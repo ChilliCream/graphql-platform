@@ -2,6 +2,8 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class ScalarBindingTests
@@ -34,17 +36,17 @@ namespace HotChocolate.Types
 
         public class QueryA
         {
-            public Bar Bar([GraphQLType(typeof(ExplicitBindingScalar))]int id) => new Bar();
+            public Bar? Bar([GraphQLType(typeof(ExplicitBindingScalar))]int id) => new Bar();
         }
 
         public class QueryB
         {
-            public Bar Bar([GraphQLType(typeof(ImplicitBindingScalar))]int id) => new Bar();
+            public Bar? Bar([GraphQLType(typeof(ImplicitBindingScalar))]int id) => new Bar();
         }
 
         public class Bar
         {
-            public Baz Baz { get; set; }
+            public Baz? Baz { get; set; }
         }
 
         public class Baz
@@ -69,12 +71,12 @@ namespace HotChocolate.Types
                 throw new System.NotImplementedException();
             }
 
-            public override IValueNode ParseValue(object value)
+            public override IValueNode ParseValue(object? value)
             {
                 throw new System.NotImplementedException();
             }
 
-            public override IValueNode ParseResult(object resultValue)
+            public override IValueNode ParseResult(object? resultValue)
             {
                 throw new System.NotImplementedException();
             }
@@ -97,12 +99,12 @@ namespace HotChocolate.Types
                 throw new System.NotImplementedException();
             }
 
-            public override IValueNode ParseValue(object value)
+            public override IValueNode ParseValue(object? value)
             {
                 throw new System.NotImplementedException();
             }
 
-            public override IValueNode ParseResult(object resultValue)
+            public override IValueNode ParseResult(object? resultValue)
             {
                 throw new System.NotImplementedException();
             }

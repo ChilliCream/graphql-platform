@@ -65,7 +65,7 @@ public static class QueryableProjectExtensions
                 return result;
             }
 
-            throw ThrowHelper.Projection_TypeMissmatch(
+            throw ThrowHelper.Projection_TypeMismatch(
                 context,
                 expectedType,
                 resultObj!.GetType());

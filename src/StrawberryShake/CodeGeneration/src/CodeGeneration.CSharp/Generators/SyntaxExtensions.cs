@@ -236,10 +236,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             string paramName;
             string propertyName;
 
-            if (name == WellKnownNames.TypeName)
+            if (name.Length > 0 && name[0] == '_')
             {
-                paramName = WellKnownNames.TypeName;
-                propertyName = $"this.{WellKnownNames.TypeName}";
+                paramName = name;
+                propertyName = $"this.{name}";
             }
             else
             {

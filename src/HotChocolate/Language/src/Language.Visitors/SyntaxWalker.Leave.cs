@@ -91,6 +91,8 @@ public partial class SyntaxWalker
                 return Leave((EnumTypeExtensionNode)node, context);
             case SyntaxKind.InputObjectTypeExtension:
                 return Leave((InputObjectTypeExtensionNode)node, context);
+            case SyntaxKind.SchemaCoordinate:
+                return Leave((SchemaCoordinateNode)node, context);
             default:
                 throw new NotSupportedException(node.GetType().FullName);
         }
@@ -282,6 +284,11 @@ public partial class SyntaxWalker
 
     protected virtual ISyntaxVisitorAction Leave(
        InputObjectTypeExtensionNode node,
+       ISyntaxVisitorContext context) =>
+       DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+       SchemaCoordinateNode node,
        ISyntaxVisitorContext context) =>
        DefaultAction;
 }

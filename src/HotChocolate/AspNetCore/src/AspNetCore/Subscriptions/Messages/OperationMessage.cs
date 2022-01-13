@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.AspNetCore.Subscriptions.Messages;
 
 public class OperationMessage

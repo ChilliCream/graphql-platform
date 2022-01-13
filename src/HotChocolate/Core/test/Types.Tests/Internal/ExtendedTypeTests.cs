@@ -404,7 +404,7 @@ namespace HotChocolate.Internal
             : List<T>
             where T : notnull
         {
-            public TK Foo { get; set; }
+            public TK Foo { get; set; } = default!;
         }
 
 #nullable enable

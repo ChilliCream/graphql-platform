@@ -1,0 +1,79 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{74D95657-7BC6-409F-8484-F963A128764A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloFederation", "src\ApolloFederation\ApolloFederation.csproj", "{46D3566C-FBBC-46BB-A9AB-454F348A003E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{EA937CAB-A9B1-474E-BF2A-A45399561B2E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloFederation.Tests", "test\ApolloFederation.Tests\ApolloFederation.Tests.csproj", "{3B96CAE2-A6C0-4BA6-A21B-1CBFE6EF7A16}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{82050CA3-2111-49D6-B682-EA22191ADB99}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApolloFederation.OfficialDemo", "ApolloFederation.OfficialDemo", "{2E3F1815-0583-4A95-994D-B1347D7BAEB6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{15BB7528-7520-49B2-851A-5019039A49D7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Accounts", "examples\ApolloFederation.OfficialDemo\Services\Accounts\Accounts.csproj", "{E86FE680-20BD-48C8-858D-2EDF05DF9322}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inventory", "examples\ApolloFederation.OfficialDemo\Services\Inventory\Inventory.csproj", "{A42264D2-3BB0-46E6-924A-D0DFF0981BCA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Products", "examples\ApolloFederation.OfficialDemo\Services\Products\Products.csproj", "{0C9C7B14-3BF8-4032-B740-1F7B07F551F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reviews", "examples\ApolloFederation.OfficialDemo\Services\Reviews\Reviews.csproj", "{1F5EC872-2F1A-45F2-909B-57BF58AB048C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services.Reviews", "examples\ApolloFederation.OfficialDemo\Services\Services.Reviews\Services.Reviews.csproj", "{20939788-6083-4D5E-9087-9297BBBCF7D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{46D3566C-FBBC-46BB-A9AB-454F348A003E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46D3566C-FBBC-46BB-A9AB-454F348A003E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46D3566C-FBBC-46BB-A9AB-454F348A003E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46D3566C-FBBC-46BB-A9AB-454F348A003E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B96CAE2-A6C0-4BA6-A21B-1CBFE6EF7A16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B96CAE2-A6C0-4BA6-A21B-1CBFE6EF7A16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B96CAE2-A6C0-4BA6-A21B-1CBFE6EF7A16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B96CAE2-A6C0-4BA6-A21B-1CBFE6EF7A16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E86FE680-20BD-48C8-858D-2EDF05DF9322}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E86FE680-20BD-48C8-858D-2EDF05DF9322}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E86FE680-20BD-48C8-858D-2EDF05DF9322}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E86FE680-20BD-48C8-858D-2EDF05DF9322}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A42264D2-3BB0-46E6-924A-D0DFF0981BCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A42264D2-3BB0-46E6-924A-D0DFF0981BCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A42264D2-3BB0-46E6-924A-D0DFF0981BCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A42264D2-3BB0-46E6-924A-D0DFF0981BCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C9C7B14-3BF8-4032-B740-1F7B07F551F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C9C7B14-3BF8-4032-B740-1F7B07F551F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C9C7B14-3BF8-4032-B740-1F7B07F551F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C9C7B14-3BF8-4032-B740-1F7B07F551F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F5EC872-2F1A-45F2-909B-57BF58AB048C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F5EC872-2F1A-45F2-909B-57BF58AB048C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F5EC872-2F1A-45F2-909B-57BF58AB048C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F5EC872-2F1A-45F2-909B-57BF58AB048C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20939788-6083-4D5E-9087-9297BBBCF7D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20939788-6083-4D5E-9087-9297BBBCF7D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20939788-6083-4D5E-9087-9297BBBCF7D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20939788-6083-4D5E-9087-9297BBBCF7D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{46D3566C-FBBC-46BB-A9AB-454F348A003E} = {74D95657-7BC6-409F-8484-F963A128764A}
+		{3B96CAE2-A6C0-4BA6-A21B-1CBFE6EF7A16} = {EA937CAB-A9B1-474E-BF2A-A45399561B2E}
+		{2E3F1815-0583-4A95-994D-B1347D7BAEB6} = {82050CA3-2111-49D6-B682-EA22191ADB99}
+		{15BB7528-7520-49B2-851A-5019039A49D7} = {2E3F1815-0583-4A95-994D-B1347D7BAEB6}
+		{E86FE680-20BD-48C8-858D-2EDF05DF9322} = {15BB7528-7520-49B2-851A-5019039A49D7}
+		{A42264D2-3BB0-46E6-924A-D0DFF0981BCA} = {15BB7528-7520-49B2-851A-5019039A49D7}
+		{0C9C7B14-3BF8-4032-B740-1F7B07F551F8} = {15BB7528-7520-49B2-851A-5019039A49D7}
+		{1F5EC872-2F1A-45F2-909B-57BF58AB048C} = {15BB7528-7520-49B2-851A-5019039A49D7}
+		{20939788-6083-4D5E-9087-9297BBBCF7D6} = {15BB7528-7520-49B2-851A-5019039A49D7}
+	EndGlobalSection
+EndGlobal

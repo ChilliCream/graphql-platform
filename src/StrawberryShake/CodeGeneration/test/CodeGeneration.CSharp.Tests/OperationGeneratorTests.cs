@@ -64,5 +64,44 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "input Baz { qux: String }",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void Nullable_ValueType_Input()
+        {
+            AssertResult(
+                @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+                "type Query { foo(bar: Bar ): String }",
+                "scalar IntPtr",
+                "input Bar { nullablePtr: IntPtr }",
+                @"extend scalar IntPtr
+                @serializationType(name: ""global::System.String"")
+                @runtimeType(name: ""global::System.IntPtr"", valueType: true)");
+        }
+
+        [Fact]
+        public void NonNullable_ValueType_Input()
+        {
+            AssertResult(
+                @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+                "type Query { foo(bar: Bar ): String }",
+                "scalar IntPtr",
+                "input Bar { nonNullablePtr: IntPtr! }",
+                @"extend scalar IntPtr
+                @serializationType(name: ""global::System.String"")
+                @runtimeType(name: ""global::System.IntPtr"", valueType: true)");
+        }
+
+        [Fact]
+        public void NonNullableValueType_WithoutGlobal_Input()
+        {
+            AssertResult(
+                @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+                "type Query { foo(bar: Bar ): String }",
+                "scalar IntPtr",
+                "input Bar { nonNullablePtr: IntPtr! }",
+                @"extend scalar IntPtr
+                @serializationType(name: ""global::System.String"")
+                @runtimeType(name: ""System.IntPtr"", valueType: true)");
+        }
     }
 }

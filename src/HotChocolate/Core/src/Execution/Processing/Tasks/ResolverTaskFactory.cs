@@ -341,9 +341,9 @@ internal static class ResolverTaskFactory
         ResultMap resultMap,
         object? completedValue)
     {
-        var isNullable = selection.Type.IsNonNullType();
+        var isNonNullType = selection.Type.IsNonNullType();
 
-        if (completedValue is null && isNullable)
+        if (completedValue is null && isNonNullType)
         {
             // if we detect a non-null violation we will stash it for later.
             // the non-null propagation is delayed so that we can parallelize better.
@@ -358,7 +358,7 @@ internal static class ResolverTaskFactory
                 responseIndex,
                 selection.ResponseName,
                 completedValue,
-                isNullable);
+                !isNonNullType);
         }
     }
 

@@ -20,6 +20,7 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
+                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
@@ -48,6 +49,7 @@ public class SelectionSetNodeTests
                 (
                     null,
                     new NameNode("bar"),
+                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -80,6 +82,7 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
+                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
@@ -98,6 +101,7 @@ public class SelectionSetNodeTests
             (
                 null,
                 new NameNode("baz"),
+                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
@@ -120,6 +124,7 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
+                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
@@ -138,6 +143,7 @@ public class SelectionSetNodeTests
             (
                 null,
                 new NameNode("baz"),
+                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
@@ -160,6 +166,7 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
+                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
@@ -179,6 +186,7 @@ public class SelectionSetNodeTests
                 null,
                 new NameNode("baz"),
                 null,
+                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null
@@ -187,6 +195,7 @@ public class SelectionSetNodeTests
             (
                 null,
                 new NameNode("qux"),
+                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
@@ -209,6 +218,7 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
+                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
@@ -217,6 +227,7 @@ public class SelectionSetNodeTests
                 (
                     null,
                     new NameNode("baz"),
+                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -250,6 +261,7 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
+                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
@@ -258,6 +270,7 @@ public class SelectionSetNodeTests
                 (
                     null,
                     new NameNode("baz"),
+                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -291,6 +304,7 @@ public class SelectionSetNodeTests
                     null,
                     new NameNode("bar"),
                     null,
+                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
@@ -311,6 +325,7 @@ public class SelectionSetNodeTests
                     (
                         null,
                         new NameNode("baz"),
+                        null,
                         null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),

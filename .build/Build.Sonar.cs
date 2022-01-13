@@ -34,10 +34,14 @@ partial class Build
 
             SonarScannerBegin(SonarBeginPrSettings);
             DotNetBuild(SonarBuildAll);
-            DotNetTest(
-                c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
-                degreeOfParallelism: DegreeOfParallelism,
-                completeOnFailure: true);
+            try
+            {
+                DotNetTest(
+                    c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
+                    degreeOfParallelism: DegreeOfParallelism,
+                    completeOnFailure: true);
+            }
+            catch { }
             SonarScannerEnd(SonarEndSettings);
         });
 
@@ -56,10 +60,14 @@ partial class Build
 
             SonarScannerBegin(SonarBeginFullSettings);
             DotNetBuild(SonarBuildAll);
-            DotNetTest(
-                c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
-                degreeOfParallelism: DegreeOfParallelism,
-                completeOnFailure: true);
+            try
+            {
+                DotNetTest(
+                    c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
+                    degreeOfParallelism: DegreeOfParallelism,
+                    completeOnFailure: true);
+            }
+            catch { }
             SonarScannerEnd(SonarEndSettings);
         });
 
@@ -109,7 +117,8 @@ partial class Build
             .SetProjectFile(SonarSolutionFile)
             .SetNoRestore(true)
             .SetConfiguration(Debug)
-            .SetProcessWorkingDirectory(RootDirectory);
+            .SetProcessWorkingDirectory(RootDirectory)
+            .SetFramework(Net60);
 
     bool IsRelevantForSonar(string fileName)
         => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName));

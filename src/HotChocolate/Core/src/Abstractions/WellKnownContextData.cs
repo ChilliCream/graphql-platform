@@ -89,4 +89,19 @@ public static class WellKnownContextData
     /// The key identifies the resolver scope on the local context.
     /// </summary>
     public const string ResolverServiceScope = "HotChocolate.Resolvers.ServiceScope";
+
+    /// <summary>
+    /// The key to the current executor.
+    /// </summary>
+    public const string RequestExecutor = "HotChocolate.Execution.RequestExecutor";
+
+    /// <summary>
+    /// The key to the current schema name.
+    /// </summary>
+    public const string SchemaName = "HotChocolate.SchemaName";
+
+    /// <summary>
+    /// The key to the current schema.
+    /// </summary>
+    public const string Schema = "HotChocolate.Schema";
 }

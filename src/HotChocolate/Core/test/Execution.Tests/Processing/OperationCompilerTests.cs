@@ -1261,6 +1261,7 @@ namespace HotChocolate.Execution.Processing
                         context.GetNextId(),
                         context.Type,
                         baz,
+                        baz.Type,
                         bazSelection,
                         bazPipeline,
                         internalSelection: true);

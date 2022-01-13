@@ -59,7 +59,7 @@ internal sealed class TypeDiscoverer
         if (includeSystemTypes)
         {
             _unregistered.AddRange(IntrospectionTypes.CreateReferences(context));
-            _unregistered.AddRange(Directives.CreateReferences(context.TypeInspector));
+            _unregistered.AddRange(Directives.CreateReferences(context));
         }
 
         _unregistered.AddRange(typeRegistry.GetTypeRefs());

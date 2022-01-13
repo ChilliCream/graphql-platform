@@ -31,9 +31,9 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
         IObjectField field = selection.Field;
         IReadOnlyDictionary<string, object?> contextData = field.ContextData;
 
-        if (contextData.TryGetValue(ContextArgumentNameKey, out object? arg) &&
+        if (contextData.TryGetValue(ContextArgumentNameKey, out var arg) &&
             arg is NameString argumentName &&
-            contextData.TryGetValue(ContextVisitFilterArgumentKey, out object? argVisitor) &&
+            contextData.TryGetValue(ContextVisitFilterArgumentKey, out var argVisitor) &&
             argVisitor is VisitFilterArgument argumentVisitor &&
             context.Selection.Count > 0 &&
             context.Selection.Peek()

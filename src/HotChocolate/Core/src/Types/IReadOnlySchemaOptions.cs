@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 #nullable enable
@@ -100,4 +101,15 @@ public interface IReadOnlySchemaOptions
     /// Defines if the runtime types of types shall be validated.
     /// </summary>
     bool StrictRuntimeTypeValidation { get; }
+
+    /// <summary>
+    /// Defines a delegate that determines if a runtime
+    /// is an instance of an <see cref="ObjectType{T}"/>.
+    /// </summary>
+    IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
+
+    /// <summary>
+    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
+    /// </summary>
+    bool EnableOneOf { get; }
 }

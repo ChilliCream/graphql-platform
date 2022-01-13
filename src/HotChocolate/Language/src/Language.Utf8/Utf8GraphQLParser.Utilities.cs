@@ -136,6 +136,10 @@ public ref partial struct Utf8GraphQLParser
 
     private bool SkipAmpersand() => _reader.Skip(TokenKind.Ampersand);
 
+    private bool SkipAt() => _reader.Skip(TokenKind.At);
+
+    private bool SkipDot() => _reader.Skip(TokenKind.Dot);
+
     private bool SkipRepeatableKeyword() =>
         SkipKeyword(GraphQLKeywords.Repeatable);
 

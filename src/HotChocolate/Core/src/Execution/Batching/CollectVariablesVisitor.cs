@@ -52,7 +52,7 @@ internal class CollectVariablesVisitor
         _action.Clear();
         _touchedFragments.Clear();
 
-        ObjectType type = _schema.GetOperationType(node.Operation);
+        ObjectType type = _schema.GetOperationType(node.Operation)!;
         _type.Push(type);
 
         for (var i = 0; i < node.VariableDefinitions.Count; i++)

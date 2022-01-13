@@ -592,7 +592,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHeroResult
+    public partial interface ISearchHeroResult
     {
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHero_Search?>? Search
         {
@@ -602,19 +602,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search
+    public partial interface ISearchHero_Search
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Starship : ISearchHero_Search
+    public partial interface ISearchHero_Search_Starship : ISearchHero_Search
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Human : ISearchHero_Search
+    public partial interface ISearchHero_Search_Human : ISearchHero_Search
     {
         public global::System.String Name
         {
@@ -629,7 +629,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Droid : ISearchHero_Search
+    public partial interface ISearchHero_Search_Droid : ISearchHero_Search
     {
         public global::System.String Name
         {
@@ -642,7 +642,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
     /// A connection to a list of items.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Friends
+    public partial interface ISearchHero_Search_Friends
     {
         /// <summary>
         /// A flattened list of the nodes.
@@ -658,13 +658,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
     /// A connection to a list of items.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Friends_FriendsConnection : ISearchHero_Search_Friends
+    public partial interface ISearchHero_Search_Friends_FriendsConnection : ISearchHero_Search_Friends
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Friends_Nodes
+    public partial interface ISearchHero_Search_Friends_Nodes
     {
         public global::System.String Name
         {
@@ -674,13 +674,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Friends_Nodes_Droid : ISearchHero_Search_Friends_Nodes
+    public partial interface ISearchHero_Search_Friends_Nodes_Droid : ISearchHero_Search_Friends_Nodes
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Friends_Nodes_Human : ISearchHero_Search_Friends_Nodes
+    public partial interface ISearchHero_Search_Friends_Nodes_Human : ISearchHero_Search_Friends_Nodes
     {
     }
 
@@ -871,7 +871,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHeroQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface ISearchHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISearchHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -899,7 +899,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
     /// Represents the StarWarsUnionListClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IStarWarsUnionListClient
+    public partial interface IStarWarsUnionListClient
     {
         global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHeroQuery SearchHero
         {
@@ -1266,7 +1266,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             }
             else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+                else
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
 
             return new global::StrawberryShake.OperationResult<ISearchHeroResult>(data?.Result, data?.Info, _resultDataFactory, errors);

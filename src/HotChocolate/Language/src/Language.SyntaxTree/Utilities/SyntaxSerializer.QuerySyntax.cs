@@ -151,7 +151,7 @@ public sealed partial class SyntaxSerializer
     {
         writer.WriteIndent();
 
-        if (node.Alias is { })
+        if (node.Alias is not null)
         {
             writer.WriteName(node.Alias);
             writer.Write(": ");
@@ -166,6 +166,11 @@ public sealed partial class SyntaxSerializer
             writer.Write(')');
         }
 
+        if (node.Required is not null)
+        {
+            VisitNullability(node.Required, writer);
+        }
+
         if (node.Directives.Count > 0)
         {
             writer.WriteSpace();
@@ -174,10 +179,40 @@ public sealed partial class SyntaxSerializer
                 w => w.WriteSpace());
         }
 
-        if (node.SelectionSet is { } selectionSet)
+        if (node.SelectionSet is not null)
         {
             writer.WriteSpace();
-            VisitSelectionSet(selectionSet, writer);
+            VisitSelectionSet(node.SelectionSet, writer);
+        }
+    }
+
+    private void VisitNullability(INullabilityNode node, ISyntaxWriter writer)
+    {
+        if (node.Kind == SyntaxKind.ListNullability)
+        {
+            writer.Write('[');
+        }
+
+        if (node.Element is not null)
+        {
+            VisitNullability(node.Element, writer);
+        }
+
+        if (node.Kind == SyntaxKind.OptionalModifier)
+        {
+            writer.Write('?');
+            return;
+        }
+
+        if (node.Kind == SyntaxKind.RequiredModifier)
+        {
+            writer.Write('!');
+            return;
+        }
+
+        if (node.Kind == SyntaxKind.ListNullability)
+        {
+            writer.Write(']');
         }
     }
 

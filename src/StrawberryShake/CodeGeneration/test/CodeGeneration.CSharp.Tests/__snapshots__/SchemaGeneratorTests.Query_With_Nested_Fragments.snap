@@ -296,7 +296,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetAllResult
+    public partial interface IGetAllResult
     {
         public global::Foo.Bar.IGetAll_Listings Listings
         {
@@ -306,7 +306,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IListingsPayload
+    public partial interface IListingsPayload
     {
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAll_Listings_Items> Items
         {
@@ -316,19 +316,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetAll_Listings : IListingsPayload
+    public partial interface IGetAll_Listings : IListingsPayload
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetAll_Listings_ListingsPayload : IGetAll_Listings
+    public partial interface IGetAll_Listings_ListingsPayload : IGetAll_Listings
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IHasListingId
+    public partial interface IHasListingId
     {
         public global::System.String ListingId
         {
@@ -338,13 +338,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetAll_Listings_Items : IHasListingId
+    public partial interface IGetAll_Listings_Items : IHasListingId
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IAuction
+    public partial interface IAuction
     {
         public global::System.Int32 StartingPrice
         {
@@ -354,13 +354,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetAll_Listings_Items_Auction : IGetAll_Listings_Items, IAuction
+    public partial interface IGetAll_Listings_Items_Auction : IGetAll_Listings_Items, IAuction
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOffer
+    public partial interface IOffer
     {
         public global::System.Int32 Price
         {
@@ -370,7 +370,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetAll_Listings_Items_Offer : IGetAll_Listings_Items, IOffer
+    public partial interface IGetAll_Listings_Items_Offer : IGetAll_Listings_Items, IOffer
     {
     }
 
@@ -543,7 +543,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetAllQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetAllQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetAllResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetAllResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -571,7 +571,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IGetAllQuery GetAll
         {
@@ -746,7 +746,14 @@ namespace Foo.Bar.State
             }
             else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+                else
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IGetAllResult>(data?.Result, data?.Info, _resultDataFactory, errors);

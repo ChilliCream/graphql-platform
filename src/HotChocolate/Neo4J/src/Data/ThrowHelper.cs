@@ -36,7 +36,7 @@ namespace HotChocolate.Data.Neo4J
                     .SetMessage(
                         "The provided source is not supported for Neo4j paging",
                         type.FullName ?? type.Name)
-                    .SetCode(ErrorCodes.Data.NoPagingationProviderFound)
+                    .SetCode(ErrorCodes.Data.NoPaginationProviderFound)
                     .Build());
         }
 

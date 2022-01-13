@@ -9,21 +9,21 @@
 
 namespace HotChocolate.Language.Properties {
     using System;
-    
-    
+
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class LangUtf8Resources {
-        
+
         private static System.Resources.ResourceManager resourceMan;
-        
+
         private static System.Globalization.CultureInfo resourceCulture;
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal LangUtf8Resources() {
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.Language.Properties {
                 return resourceMan;
             }
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,109 +44,115 @@ namespace HotChocolate.Language.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         internal static string GraphQLData_Empty {
             get {
                 return ResourceManager.GetString("GraphQLData_Empty", resourceCulture);
             }
         }
-        
+
         internal static string ParseMany_InvalidOpenToken {
             get {
                 return ResourceManager.GetString("ParseMany_InvalidOpenToken", resourceCulture);
             }
         }
-        
+
         internal static string Parser_InvalidScalarToken {
             get {
                 return ResourceManager.GetString("Parser_InvalidScalarToken", resourceCulture);
             }
         }
-        
+
         internal static string Parser_InvalidToken {
             get {
                 return ResourceManager.GetString("Parser_InvalidToken", resourceCulture);
             }
         }
-        
+
         internal static string QuerySyntaxRewriter_NotSupported {
             get {
                 return ResourceManager.GetString("QuerySyntaxRewriter_NotSupported", resourceCulture);
             }
         }
-        
+
         internal static string Reader_InvalidToken {
             get {
                 return ResourceManager.GetString("Reader_InvalidToken", resourceCulture);
             }
         }
-        
+
+        internal static string Reader_UnexpectedDigitAfterDot {
+            get {
+                return ResourceManager.GetString("Reader_UnexpectedDigitAfterDot", resourceCulture);
+            }
+        }
+
         internal static string Reader_UnexpectedPunctuatorToken {
             get {
                 return ResourceManager.GetString("Reader_UnexpectedPunctuatorToken", resourceCulture);
             }
         }
-        
+
         internal static string SourceText_Empty {
             get {
                 return ResourceManager.GetString("SourceText_Empty", resourceCulture);
             }
         }
-        
+
         internal static string Utf8Helper_InvalidEscapeChar {
             get {
                 return ResourceManager.GetString("Utf8Helper_InvalidEscapeChar", resourceCulture);
             }
         }
-        
+
         internal static string Utf8Helper_InvalidQuoteEscapeCount {
             get {
                 return ResourceManager.GetString("Utf8Helper_InvalidQuoteEscapeCount", resourceCulture);
             }
         }
-        
+
         internal static string NewLineMustBeGreaterOrEqualToOne {
             get {
                 return ResourceManager.GetString("NewLineMustBeGreaterOrEqualToOne", resourceCulture);
             }
         }
-        
+
         internal static string UnexpectedDigit {
             get {
                 return ResourceManager.GetString("UnexpectedDigit", resourceCulture);
             }
         }
-        
+
         internal static string InvalidNumber {
             get {
                 return ResourceManager.GetString("InvalidNumber", resourceCulture);
             }
         }
-        
+
         internal static string UnexpectedCharacter {
             get {
                 return ResourceManager.GetString("UnexpectedCharacter", resourceCulture);
             }
         }
-        
+
         internal static string InvalidCharacterEscapeSequence {
             get {
                 return ResourceManager.GetString("InvalidCharacterEscapeSequence", resourceCulture);
             }
         }
-        
+
         internal static string InvalidCharacterWithinString {
             get {
                 return ResourceManager.GetString("InvalidCharacterWithinString", resourceCulture);
             }
         }
-        
+
         internal static string UnterminatedString {
             get {
                 return ResourceManager.GetString("UnterminatedString", resourceCulture);
             }
         }
-        
+
         internal static string UnexpectedToken {
             get {
                 return ResourceManager.GetString("UnexpectedToken", resourceCulture);

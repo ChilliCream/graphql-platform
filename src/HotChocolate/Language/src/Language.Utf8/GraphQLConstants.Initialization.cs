@@ -45,20 +45,21 @@ internal static partial class GraphQLConstants
 
     private static void InitializeIsPunctuatorCache()
     {
-        _isPunctuator['!'] = true;
-        _isPunctuator['$'] = true;
-        _isPunctuator['&'] = true;
-        _isPunctuator['('] = true;
-        _isPunctuator[')'] = true;
-        _isPunctuator[':'] = true;
-        _isPunctuator['='] = true;
-        _isPunctuator['@'] = true;
-        _isPunctuator['['] = true;
-        _isPunctuator[']'] = true;
-        _isPunctuator['{'] = true;
-        _isPunctuator['|'] = true;
-        _isPunctuator['}'] = true;
-        _isPunctuator['.'] = true;
+        _isPunctuator[Bang] = true;
+        _isPunctuator[Dollar] = true;
+        _isPunctuator[QuestionMark] = true;
+        _isPunctuator[Ampersand] = true;
+        _isPunctuator[LeftParenthesis] = true;
+        _isPunctuator[RightParenthesis] = true;
+        _isPunctuator[Colon] = true;
+        _isPunctuator[Equal] = true;
+        _isPunctuator[At] = true;
+        _isPunctuator[LeftBracket] = true;
+        _isPunctuator[RightBracket] = true;
+        _isPunctuator[LeftBrace] = true;
+        _isPunctuator[Pipe] = true;
+        _isPunctuator[RightBrace] = true;
+        _isPunctuator[Dot] = true;
     }
 
     private static void InitializeIsLetterOrUnderscoreCache()
@@ -141,6 +142,7 @@ internal static partial class GraphQLConstants
     private static void InitializePunctuator()
     {
         _punctuatorKind[Bang] = TokenKind.Bang;
+        _punctuatorKind[QuestionMark] = TokenKind.QuestionMark;
         _punctuatorKind[Dollar] = TokenKind.Dollar;
         _punctuatorKind[Ampersand] = TokenKind.Ampersand;
         _punctuatorKind[LeftParenthesis] = TokenKind.LeftParenthesis;

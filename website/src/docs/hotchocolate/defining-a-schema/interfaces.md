@@ -235,7 +235,7 @@ public class Startup
                   content: String!
                 }
             ")
-            .BindComplexType<TextMessage>()
+            .BindRuntimeType<TextMessage>()
             .AddResolver("Query", "messages", (context) =>
             {
                 // Omitted code for brevity
@@ -619,7 +619,7 @@ public class Startup
                   content: String
                 }
             ")
-            .BindComplexType<TextMessage>()
+            .BindRuntimeType<TextMessage>()
             .AddResolver("Query", "messages", (context) =>
             {
                 // Omitted code for brevity

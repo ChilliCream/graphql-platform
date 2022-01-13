@@ -258,6 +258,11 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         {
             var inputFieldDef = new InputFieldDefinition();
             argumentDef.CopyTo(inputFieldDef);
+
+            inputFieldDef.RuntimeType =
+                argumentDef.RuntimeType ?? 
+                    argumentDef.Parameter?.ParameterType;
+
             inputObjectDef.Fields.Add(inputFieldDef);
         }
 
@@ -278,7 +283,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 var parent = ctx.Parent<object?>();
 
-                if (ReferenceEquals(ErrorMiddleware.ErrorObject, parent))
+                if (ReferenceEquals(ErrorMiddleware.ErrorObject, parent) ||
+                    ReferenceEquals(MutationConventionMiddleware.Null, parent))
                 {
                     return null;
                 }

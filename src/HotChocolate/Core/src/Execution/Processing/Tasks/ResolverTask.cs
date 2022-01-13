@@ -138,8 +138,9 @@ internal sealed partial class ResolverTask : IExecutionTask
         }
 
         CompletedValue = completedValue;
+        var isNonNullType = _selection.Type.IsNonNullType();
 
-        if (completedValue is null && _selection.Type.IsNonNullType())
+        if (completedValue is null && isNonNullType)
         {
             // if we detect a non-null violation we will stash it for later.
             // the non-null propagation is delayed so that we can parallelize better.
@@ -156,7 +157,7 @@ internal sealed partial class ResolverTask : IExecutionTask
                 _resolverContext.ResponseIndex,
                 _resolverContext.ResponseName,
                 completedValue,
-                _resolverContext.Field.Type.IsNullableType());
+                !isNonNullType);
         }
     }
 

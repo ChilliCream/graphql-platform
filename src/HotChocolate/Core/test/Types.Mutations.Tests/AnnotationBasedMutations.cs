@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -327,6 +328,69 @@ public class AnnotationBasedMutations
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Allow_Payload_Result_Field_To_Be_Null()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithInputPayload>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: { userId: 1 }) {
+                        user { name }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Allow_Id_Middleware()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithIds>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        id: ""Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA==""
+                    }) {
+                        user { name id }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Allow_InputObject_Middleware()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithInputObject>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        test: {
+                            name: ""foo""
+                        }
+                    }) {
+                        user { name }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -372,9 +436,9 @@ public class AnnotationBasedMutations
 
     public class DoSomethingPayload
     {
-        public string MyResult1 { get; set; }
+        public string MyResult1 { get; set; } = default!;
 
-        public string MyResult2 { get; set; }
+        public string MyResult2 { get; set; } = default!;
     }
 
     public class SimpleMutationInputOverride
@@ -387,9 +451,31 @@ public class AnnotationBasedMutations
 
     public class DoSomethingInput
     {
-        public string MyInput1 { get; set; }
+        public string MyInput1 { get; set; } = default!;
 
-        public string MyInput2 { get; set; }
+        public string MyInput2 { get; set; } = default!;
+    }
+
+    public class MutationWithIds
+    {
+        public User? DoSomething([ID("Foo")]Guid  id)
+        {
+            return new User() {Name = "Foo", Id = id,};
+        }
+    }
+
+    public class MutationWithInputObject
+    {
+        public User? DoSomething(Test  test)
+        {
+            return new User() {Name = test.Name};
+        }
+    }
+
+    public class Test
+    {
+        public string Name { get; set; } = default!;
+
     }
 
     public class MultipleArgumentMutation
@@ -429,5 +515,20 @@ public class AnnotationBasedMutations
     {
         [UseMutationConvention]
         public string GetFoo() => "foo";
+    }
+
+    public class MutationWithInputPayload
+    {
+        public User? DoSomething(int userId)
+        {
+            return null;
+        }
+    }
+
+    public class User
+    {
+        public Guid Id { get; set; }
+
+        public string? Name { get; set; }
     }
 }

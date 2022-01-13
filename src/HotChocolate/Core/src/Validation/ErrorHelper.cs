@@ -623,9 +623,9 @@ internal static class ErrorHelper
         this IDocumentValidatorContext context,
         FieldNode field)
     {
-        string message = Resources.ErrorHelper_IntrospectionNotAllowed;
+        var message = Resources.ErrorHelper_IntrospectionNotAllowed;
 
-        if (context.ContextData.TryGetValue(IntrospectionMessage, out object? value))
+        if (context.ContextData.TryGetValue(IntrospectionMessage, out var value))
         {
             if (value is Func<string> messageFactory)
             {
@@ -645,4 +645,33 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Validation.IntrospectionNotAllowed)
             .Build();
     }
+
+    public static IError OneOfMustHaveExactlyOneField(
+        this IDocumentValidatorContext context,
+        ISyntaxNode node,
+        InputObjectType type)
+        => ErrorBuilder.New()
+            .SetMessage(Resources.ErrorHelper_OneOfMustHaveExactlyOneField, type.Name.Value)
+            .AddLocation(node)
+            .SetPath(context.CreateErrorPath())
+            .SetExtension(nameof(type), type.Name)
+            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .Build();
+
+    public static IError OneOfVariablesMustBeNonNull(
+        this IDocumentValidatorContext context,
+        ISyntaxNode node,
+        FieldCoordinate field,
+        string variableName)
+        => ErrorBuilder.New()
+            .SetMessage(
+                Resources.ErrorHelper_OneOfVariablesMustBeNonNull,
+                variableName,
+                field.FieldName,
+                field.TypeName)
+            .AddLocation(node)
+            .SetPath(context.CreateErrorPath())
+            .SetExtension(nameof(field), field.ToString())
+            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .Build();
 }
