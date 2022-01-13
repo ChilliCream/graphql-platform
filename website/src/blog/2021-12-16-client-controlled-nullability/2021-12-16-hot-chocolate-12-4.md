@@ -3,11 +3,73 @@ path: "/blog/2021/12/14/hot-chocolate-12-4"
 date: "2021-12-16"
 title: "Client Controlled Nullability"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
-featuredImage: "hot-chocolate-12-banner.png"
+featuredImage: "hot-chocolate-12-5-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
+
+Today we have released Hot Chocolate 12.5, and this release is packed with new features. We put a focus on adding some early spec proposals into this release. Further, we have completely overhauled the Banana Cake Pop IDE to include feedback from our community. Lastly, we picked up an issue created by Simon to support OpenTelemetry.
+
+# Banana Cake Pop
+
+Let us start with the most visible change to Hot Chocolate. With Hot Chocolate 12.5, we have integrated Banana Cake Pop iteration 22, which introduces themes support. One of the top requests for BCP by users was a Dark mode. With the new version, you can now switch between our light and our dark theme. We will add more themes with one of the subsequent iterations.
+
+IMAGE
+
+We put another focus on discoverability. Many people getting into BCP had difficulty finding the schema explorer or other details regarding their operation document. With the new version, the IDE is much more organized and exposes clearly areas you can dig into.
+
+IMAGE
+
+The new Banana Cake Pop version is now available online at https://eat.bananacakepop.com, as an application that you can download at https://bananacakepop.com or through the Hot Chocolate middleware.
+
+# Open Telemetry
+
+Hot Chocolate for a long time provides instrumentation events that can be used to add your logging solution. By doing this, we did not bind Hot Chocolate to a specific logging/tracing solution or a specific use-case.
+
+But it also meant that almost everyone had to come up with their own solution to instrument Hot Chocolate. With Hot Chocolate 12.5, we have added the `HotChocolate.Diagnostics` package, which uses the new `ActivitySource` API.
+
+To add OpenTelemetry to your GraphQL server, first add the activity instrumentation to your schema.
+
+EXAMPLE
+
+Next, we need to configure OpenTelemetry for our service. To quickly inspect our traces, we will use a Jaeger exported.
+
+EXAMPLE
+
+With all this in place, we can execute requests against our demo server and inspect the traces with the Jaeger UI.
+
+IMAGE
+
+The complete example can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/OpenTelemetry).
+
+# Oneof Input Objects
+
+One of the most asked-for features in GraphQL is input unions. The GraphQL working group has been discussing this feature for a long time, and we have explored multiple roads to achieve this. The most likely candidate has become the _Oneof Input Object_ representing a structural union. A structural union means that _Oneof Input Object_ is a special kind of input object where each field represents one choice. The _Oneof Input Object_ will only allow one field to be set, and the value can not be null. The type system enforces the rules for _Oneof Input Objects_.
+
+We support _Oneof Input Objects_ in all three schema-building approaches (annotation-based, code-first, and schema-first.
+
+In order to make an input object a _Oneof Input Object_ you simply need to annotate it with the `@oneOf` directive.
+
+EXAMPLE
+
+Next, you need to enable the RFC feature on the schema.
+
+EXAMPLE
+
+The complete example can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/OneOf).
+
+Docs can be found [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/input-object-types/#oneof-input-objects).
+
+# Client-Side Nullability
+
+Client-Side nullability gives more power to the consumer of a GraphQL API. It allows us to specify error boundaries in GraphQL by defining if a field shall be nullable or required in our GraphQL request.
+
+EXAMPLE
+
+# Schema Coordinates
+
+# Old
 
 Today we have released Hot Chocolate 12.5 and this release is packed with new features. We put an emphasis on adding some early spec proposals. These are experimental features that you can opt into and that will get more refined over time.
 
