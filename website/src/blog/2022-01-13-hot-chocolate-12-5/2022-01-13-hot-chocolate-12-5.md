@@ -9,7 +9,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-Today we have released Hot Chocolate 12.5, and this release is packed with new features. We put a focus on adding some early spec proposals into this release. Further, we have completely overhauled the Banana Cake Pop IDE to include feedback from our community. Lastly, we picked up an issue created by Simon to support OpenTelemetry.
+Today we have released Hot Chocolate 12.5, and this release is packed with new features. We put a focus on adding some early spec proposals into this release. We also have completely overhauled our GraphQL IDE Banana Cake Pop to include feedback from our community. Lastly, we picked up an issue created by Simon to support OpenTelemetry.
 
 # Banana Cake Pop
 
@@ -225,10 +225,10 @@ We could also produce null entries in our `friends` list for users that do not p
 }
 ```
 
-At the moment, Banana Cake Pop is not updated for the new syntax yet. We will do that in the coming days. But you can write and execute the new syntax already since BCP will allow you to execute even with syntax errors. We hope to introduce an updated language server with the next iteration
+At the moment, Banana Cake Pop is not updated for the new syntax yet. We will do that in the coming days. But you can write and execute the new syntax already since BCP will allow you to execute even with syntax errors. We hope to introduce an updated language server with the next iteration.
 
 The current GraphQL spec RFC can be found [here](https://github.com/graphql/graphql-spec/pull/895).
 
 # Conclusion
 
-We have implemented a ton of other smaller additions and bug fixes. With 12.5, we push further ahead and allow you to opt into the newest GraphQL spec proposals and drafts. We are currently discussing great additions to the GraphQL spec at the GraphQL working group, like fragment modularity and object identity. Together, stream/defer, oneof, fragment modularity, object identity, and client-controlled nullability could make GraphQL so much better and help us solve fundamental problems in interacting with our application graphs. We have invested in these new features early and are iterating on these as the spec text matures.
+We have implemented a ton of other smaller additions and bug fixes. Hot Chocolate 12.5 pushes further ahead and allows you to opt into the newest GraphQL spec proposals and drafts. At the GraphQL working group, we are currently discussing great new additions to the GraphQL spec like fragment modularity and object identity. Together, stream/defer, oneof, fragment modularity, object identity, and client-controlled nullability could make GraphQL so much better and help us solve fundamental problems in interacting with our data graphs. We have invested in these new features early and are iterating on these as the spec text matures.
