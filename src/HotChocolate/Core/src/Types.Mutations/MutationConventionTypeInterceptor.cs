@@ -260,7 +260,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             argumentDef.CopyTo(inputFieldDef);
 
             inputFieldDef.RuntimeType =
-                argumentDef.RuntimeType ?? argumentDef.Parameter.ParameterType;
+                argumentDef.RuntimeType ?? 
+                    argumentDef.Parameter?.ParameterType;
 
             inputObjectDef.Fields.Add(inputFieldDef);
         }
