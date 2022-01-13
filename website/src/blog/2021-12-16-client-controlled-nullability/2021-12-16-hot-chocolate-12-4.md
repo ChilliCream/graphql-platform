@@ -9,7 +9,13 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-With Hot Chocolate 12.5, we focus on new spec drafts, which we bring into the core as experimental features. Today we have released Hot Chocolate 12.5.0-preview.1 and with it the initial implementation of client-controlled nullability.
+Today we have released Hot Chocolate 12.5 and this release is packed with new features. We put an emphasis on adding some early spec proposals. These are experimental features that you can opt into and that will get more refined over time.
+
+it the initial implementation of client-controlled nullability.
+
+With Hot Chocolate 12.5, we have focused on a couple new spec drafts and on OpenTelemetry.
+
+Today we have released Hot Chocolate 12.5.0-preview.1 and with it the initial implementation of client-controlled nullability.
 
 This new RFC will introduce new query syntax to let the user override type nullability on fields and introduce error boundaries into GraphQL.
 
