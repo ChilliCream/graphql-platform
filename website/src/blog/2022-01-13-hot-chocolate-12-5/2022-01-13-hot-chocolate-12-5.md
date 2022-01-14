@@ -131,9 +131,9 @@ Docs can be found [here](https://chillicream.com/docs/hotchocolate/defining-a-sc
 
 The current GraphQL spec RFC can be found [here](https://github.com/graphql/graphql-spec/pull/825).
 
-# Client-Side Nullability
+# Client-Controlled Nullability
 
-Client-Side nullability gives more power to the consumer of a GraphQL API. It allows us to specify error boundaries in GraphQL by defining if a field shall be nullable or required in our GraphQL request. To give this power to the user, the RFC introduces new query syntax to let the user override type nullability on fields and specify where error boundaries are in the GraphQL request.
+Client-Controlled nullability gives more power to the consumer of a GraphQL API. It allows us to specify error boundaries in GraphQL by defining if a field shall be nullable or required in our GraphQL request. To give this power to the user, the RFC introduces new query syntax to let the user override type nullability on fields and specify where error boundaries are in the GraphQL request.
 
 Let us, for instance, say we have a schema like the following:
 
