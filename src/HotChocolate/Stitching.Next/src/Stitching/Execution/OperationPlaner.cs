@@ -160,6 +160,8 @@ internal sealed class OperationPlaner
 
             if (needsInlineFragment)
             {
+                selectionSyntax.Insert(0, TypeNameField);
+
                 var inlineFragment = new InlineFragmentNode(
                     null,
                     new NamedTypeNode(context.Types.Peek().Name),
@@ -331,4 +333,14 @@ internal sealed class OperationPlaner
 
     private static string CreateExportName(SchemaCoordinate binding)
         => $"_export_{binding.Name}_{binding.MemberName}";
+
+    private static FieldNode TypeNameField { get; } =
+        new FieldNode(
+            null, 
+            new NameNode("__typename"), 
+            null, 
+            null, 
+            Array.Empty<DirectiveNode>(), 
+            Array.Empty<ArgumentNode>(), 
+            null);
 }

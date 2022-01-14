@@ -39,7 +39,7 @@ internal class SchemaMerger
         return root;
     }
 
-    public void Merge(SchemaInfo source, SchemaInfo target)
+    private void Merge(SchemaInfo source, SchemaInfo target)
     {
         if (source.Query is not null && target.Query is not null)
         {
