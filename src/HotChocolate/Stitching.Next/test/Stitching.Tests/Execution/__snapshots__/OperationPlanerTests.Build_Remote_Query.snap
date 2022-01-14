@@ -1,4 +1,19 @@
-﻿Reviews
+﻿Original
+
+{
+  reviews {
+    body
+    user {
+      name
+      username
+    }
+    product {
+      upc
+    }
+  }
+}
+
+Reviews
 
 query Operation_616263_2 {
   reviews {
@@ -23,3 +38,4 @@ query Operation_616263_1($_export_User_id: ID!) {
 }
 
 <--
+

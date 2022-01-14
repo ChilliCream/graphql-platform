@@ -26,6 +26,12 @@ internal sealed class OperationPlanerContext
 
     public List<ISyntaxNode?> Syntax { get; } = new();
 
+    public Dictionary<string, VariableDefinitionNode> VariableDefinitions { get; } = new();
+
+    public HashSet<string> Variables { get; } = new();
+
+    public HashSet<string> Processed { get; } = new();
+
     public Dictionary<ISelectionSet, HashSet<NameString>> RequiredFields { get; } = new();
 
     public ObjectPool<List<ISelection>> SelectionList { get; } = new SelectionListObjectPool();
@@ -64,5 +70,8 @@ internal sealed class OperationPlanerContext
         Types.Clear();
         SelectionSets.Clear();
         RequiredFields.Clear();
+        VariableDefinitions.Clear();
+        Variables.Clear();
+        Processed.Clear();
     }
 }

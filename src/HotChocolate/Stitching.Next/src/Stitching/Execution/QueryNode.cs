@@ -1,10 +1,12 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Execution;
 
-internal class QueryNode
+internal class QueryNode : IEnumerable<QueryNode>
 {
     public QueryNode(NameString source)
     {
@@ -16,6 +18,18 @@ internal class QueryNode
     public DocumentNode? Document { get; set; }
 
     public List<QueryNode> Nodes { get; } = new List<QueryNode>();
+
+    public IEnumerator<QueryNode> GetEnumerator()
+    {
+        yield return this;
+
+        foreach (QueryNode node in Nodes.SelectMany(t => t))
+        {
+            yield return node;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public override string ToString() => ToString(0);
 

@@ -1,0 +1,35 @@
+﻿Original
+
+query GetUserWithReviews($id: ID!) {
+  userById(id: $id) {
+    name
+    username
+    reviews {
+      body
+    }
+  }
+}
+
+Accounts
+
+query GetUserWithReviews_2 {
+  userById(id: $id) {
+    name
+    username
+    _export_User_id: id
+  }
+}
+
+-->
+Reviews
+
+query GetUserWithReviews_1($_export_User_id: ID!) {
+  userById(id: $_export_User_id) {
+    reviews {
+      body
+    }
+  }
+}
+
+<--
+

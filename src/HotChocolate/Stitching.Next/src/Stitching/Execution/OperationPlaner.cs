@@ -37,35 +37,39 @@ internal sealed class OperationPlaner
         Visit(rootSelectionSet, context);
 
         context.Plan.Document = CreateDocument(context);
-
         context.SelectionSets.Pop();
         context.Types.Pop();
         context.Path = Path.Root;
+
         return context.Plan;
     }
 
     private void Visit(ISelectionSet selectionSet, OperationPlanerContext context)
     {
+        var selectionSyntax = new List<ISelectionNode>();
+        var exports = new List<NameString>();
+        var variables = default(List<VariableDefinitionNode>);
+        var fetcher = default(ObjectFetcherInfo?);
+        var needsOperation = false;
+
         var node = context.CurrentNode;
         var source = context.Source;
         var declaringType = context.Types.Peek();
         var selections = context.SelectionList.Get();
-        var selectionSyntax = new List<ISelectionNode>();
-        var export = new List<NameString>();
-        List<VariableDefinitionNode>? variables = null;
         var needsInlineFragment = context.NeedsInlineFragment;
-        ObjectFetcherInfo? fetcher = null;
-        var needsOperation = false;
 
         selections.AddRange(selectionSet.Selections);
 
+        // determine if we need any exports for the current selectionSet.
         if (context.RequiredFields.TryGetValue(selectionSet, out var fields))
         {
-            export.AddRange(fields);
+            exports.AddRange(fields);
         }
 
-        while (selections.Count > 0 || export.Count > 0)
+        while (selections.Count > 0 || exports.Count > 0)
         {
+            // first we take all the selections and exports 
+            // that can be resolved with the current source.
             ExtractSelectionsForSource(
                 context.Source,
                 selections,
@@ -73,14 +77,28 @@ internal sealed class OperationPlaner
                 context);
 
             ExtractExportsForSource(
-                context.Source, 
-                declaringType, 
-                export, 
-                selectionSyntax, 
+                context.Source,
+                declaringType,
+                exports,
+                selectionSyntax,
                 context);
 
+            // after resolving all selections and exports that can be requested
+            // from the current source we will build the operation syntax.
             BuildOperation();
 
+            // next we will check if there are still selections or exports to 
+            // resolve. If there are more selections or exports to resolve we will
+            // determine the source with the highest score.
+            ResolveNextSource();
+        }
+
+        context.Source = source;
+        context.CurrentNode = node;
+        context.SelectionList.Return(selections);
+
+        void ResolveNextSource()
+        {
             if (selections.Count > 0)
             {
                 context.Source = _metadataDb.GetSource(selections);
@@ -92,9 +110,9 @@ internal sealed class OperationPlaner
 
                 PrepareOperation(fetcher.Value);
             }
-            else if (export.Count > 0)
+            else if (exports.Count > 0)
             {
-                context.Source = _metadataDb.GetSource(context.Types.Peek(), export);
+                context.Source = _metadataDb.GetSource(context.Types.Peek(), exports);
 
                 fetcher = _metadataDb.GetObjectFetcher(
                     context.Source,
@@ -104,10 +122,6 @@ internal sealed class OperationPlaner
                 PrepareOperation(fetcher.Value);
             }
         }
-
-        context.Source = source;
-        context.CurrentNode = node;
-        context.SelectionList.Return(selections);
 
         void PrepareOperation(ObjectFetcherInfo fetcher)
         {
