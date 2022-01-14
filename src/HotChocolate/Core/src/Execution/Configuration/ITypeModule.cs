@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+
+#nullable enable
 
 namespace HotChocolate.Execution.Configuration;
 
@@ -18,7 +19,7 @@ public interface ITypeModule
     /// This event signals that types have changed and the current schema
     /// version has to be phased out.
     /// </summary>
-    event EventHandler<EventArgs> TypesChanged;
+    event EventHandler<EventArgs>? TypesChanged;
 
     /// <summary>
     /// Will be called by the schema building process to add the dynamically created

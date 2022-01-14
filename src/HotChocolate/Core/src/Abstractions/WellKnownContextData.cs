@@ -104,4 +104,19 @@ public static class WellKnownContextData
     /// The key to the current schema.
     /// </summary>
     public const string Schema = "HotChocolate.Schema";
+
+    /// <summary>
+    /// The key to the query type name.
+    /// </summary>
+    public const string QueryName = "HotChocolate.Schema." + nameof(QueryName);
+
+    /// <summary>
+    /// The key to the mutation type name.
+    /// </summary>
+    public const string MutationName = "HotChocolate.Schema." + nameof(MutationName);
+
+    /// <summary>
+    /// The key to the subscription type name.
+    /// </summary>
+    public const string SubscriptionName = "HotChocolate.Schema." + nameof(SubscriptionName);
 }

@@ -380,20 +380,7 @@ public partial class SchemaBuilder
         {
             var definition = new SchemaTypesDefinition();
 
-            RegisterOperationName(
-                builder,
-                OperationType.Query,
-                builder._options.QueryTypeName);
-
-            RegisterOperationName(
-                builder,
-                OperationType.Mutation,
-                builder._options.MutationTypeName);
-
-            RegisterOperationName(
-                builder,
-                OperationType.Subscription,
-                builder._options.SubscriptionTypeName);
+            RegisterOperationTypes(builder, context);
 
             Dictionary<OperationType, ITypeReference> operations =
                 builder._operations.ToDictionary(
@@ -409,6 +396,50 @@ public partial class SchemaBuilder
             definition.DirectiveTypes = types.OfType<DirectiveType>().Distinct().ToArray();
 
             return definition;
+        }
+
+        private static void RegisterOperationTypes(
+            SchemaBuilder builder,
+            IDescriptorContext context)
+        {
+
+            RegisterOperationName(
+                builder,
+                OperationType.Query,
+                ResolveTypeName(
+                    context,
+                    WellKnownContextData.QueryName,
+                    builder._options.QueryTypeName));
+
+            RegisterOperationName(
+                builder,
+                OperationType.Mutation,
+                ResolveTypeName(
+                    context,
+                    WellKnownContextData.MutationName,
+                    builder._options.MutationTypeName));
+
+            RegisterOperationName(
+                builder,
+                OperationType.Subscription,
+                ResolveTypeName(
+                    context,
+                    WellKnownContextData.SubscriptionName,
+                    builder._options.SubscriptionTypeName));
+        }
+
+        private static string? ResolveTypeName(
+            IDescriptorContext context,
+            string key,
+            string? defaultTypeName)
+        {
+            if (context.ContextData.TryGetValue(key, out var value) &&
+                value is string typeName)
+            {
+                return typeName;
+            }
+
+            return defaultTypeName;
         }
 
         private static void ResolveOperations(
