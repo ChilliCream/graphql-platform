@@ -158,7 +158,7 @@ public class Startup
                  id: ID
                }
             ")
-            .BindComplexType<Product>()
+            .BindRuntimeType<Product>()
             .AddResolver("Query", "product", context =>
             {
                 var id = context.ArgumentValue<int>("id");

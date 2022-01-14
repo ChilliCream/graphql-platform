@@ -27,6 +27,31 @@ internal sealed class NoopExecutionDiagnosticEvents
     {
     }
 
+    public IDisposable AnalyzeOperationComplexity(IRequestContext context) => this;
+
+    public void OperationComplexityAnalyzerCompiled(IRequestContext context)
+    {
+    }
+
+    public void OperationComplexityResult(
+        IRequestContext context,
+        int complexity,
+        int allowedComplexity)
+    {
+    }
+
+    public IDisposable CoerceVariables(IRequestContext context) => this;
+
+    public IDisposable CompileOperation(IRequestContext context) => this;
+
+    public IDisposable BuildQueryPlan(IRequestContext context) => this;
+
+    public IDisposable ExecuteOperation(IRequestContext context) => this;
+
+    public IDisposable ExecuteStream(IRequestContext context) => this;
+
+    public IDisposable ExecuteDeferredTask() => this;
+
     public IDisposable ResolveFieldValue(IMiddlewareContext context) => this;
 
     public void ResolverError(IMiddlewareContext context, IError error)

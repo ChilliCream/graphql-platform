@@ -331,7 +331,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatsPageResult
+    public partial interface IGetFeatsPageResult
     {
         public global::Foo.Bar.IGetFeatsPage_Feats? Feats
         {
@@ -341,7 +341,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatsPage_Feats
+    public partial interface IGetFeatsPage_Feats
     {
         public global::System.Int32 TotalCount
         {
@@ -356,13 +356,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatsPage_Feats_FeatCollectionSegment : IGetFeatsPage_Feats
+    public partial interface IGetFeatsPage_Feats_FeatCollectionSegment : IGetFeatsPage_Feats
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFeatsPage
+    public partial interface IFeatsPage
     {
         public global::System.Guid Id
         {
@@ -392,19 +392,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatsPage_Feats_Items : IFeatsPage
+    public partial interface IGetFeatsPage_Feats_Items : IFeatsPage
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatsPage_Feats_Items_Feat : IGetFeatsPage_Feats_Items
+    public partial interface IGetFeatsPage_Feats_Items_Feat : IGetFeatsPage_Feats_Items
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatsPage_Feats_Items_Details
+    public partial interface IGetFeatsPage_Feats_Items_Details
     {
         public global::System.String Text
         {
@@ -414,7 +414,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatsPage_Feats_Items_Details_FeatDetailsBlock : IGetFeatsPage_Feats_Items_Details
+    public partial interface IGetFeatsPage_Feats_Items_Details_FeatDetailsBlock : IGetFeatsPage_Feats_Items_Details
     {
     }
 
@@ -813,7 +813,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatByIdResult
+    public partial interface IGetFeatByIdResult
     {
         public global::Foo.Bar.IGetFeatById_Feats? Feats
         {
@@ -823,7 +823,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats
+    public partial interface IGetFeatById_Feats
     {
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? Items
         {
@@ -833,13 +833,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats_FeatCollectionSegment : IGetFeatById_Feats
+    public partial interface IGetFeatById_Feats_FeatCollectionSegment : IGetFeatById_Feats
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFeatById
+    public partial interface IFeatById
     {
         public global::System.Guid Id
         {
@@ -879,19 +879,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats_Items : IFeatById
+    public partial interface IGetFeatById_Feats_Items : IFeatById
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats_Items_Feat : IGetFeatById_Feats_Items
+    public partial interface IGetFeatById_Feats_Items_Feat : IGetFeatById_Feats_Items
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats_Items_Details
+    public partial interface IGetFeatById_Feats_Items_Details
     {
         public global::System.String Text
         {
@@ -901,13 +901,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats_Items_Details_FeatDetailsBlock : IGetFeatById_Feats_Items_Details
+    public partial interface IGetFeatById_Feats_Items_Details_FeatDetailsBlock : IGetFeatById_Feats_Items_Details
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats_Items_ActionType
+    public partial interface IGetFeatById_Feats_Items_ActionType
     {
         public global::System.String Name
         {
@@ -917,7 +917,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats_Items_ActionType_ActionType : IGetFeatById_Feats_Items_ActionType
+    public partial interface IGetFeatById_Feats_Items_ActionType_ActionType : IGetFeatById_Feats_Items_ActionType
     {
     }
 
@@ -2554,7 +2554,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatsPageQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetFeatsPageQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatsPageResult>> ExecuteAsync(global::System.Int32 skip, global::System.Int32 take, global::System.String searchTerm, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.FeatSortInput>? order, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatsPageResult>> Watch(global::System.Int32 skip, global::System.Int32 take, global::System.String searchTerm, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.FeatSortInput>? order, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -2759,7 +2759,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatByIdQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetFeatByIdQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(global::System.Guid id, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> Watch(global::System.Guid id, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -2790,7 +2790,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IGetFeatsPageQuery GetFeatsPage
         {
@@ -3568,7 +3568,14 @@ namespace Foo.Bar.State
             }
             else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+                else
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IGetFeatsPageResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -3777,7 +3784,14 @@ namespace Foo.Bar.State
             }
             else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+                else
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IGetFeatByIdResult>(data?.Result, data?.Info, _resultDataFactory, errors);

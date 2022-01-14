@@ -18,16 +18,17 @@ namespace HotChocolate.Data.MongoDb.Filters
             FilterCombinator combinator,
             [NotNullWhen(true)] out MongoDbFilterDefinition combined)
         {
-            if (operations.Count < 1)
+            if (operations.Count == 0)
             {
-                throw new InvalidOperationException();
+                throw ThrowHelper.Filtering_MongoDbCombinator_QueueEmpty(this);
             }
 
             combined = combinator switch
             {
                 FilterCombinator.And => CombineWithAnd(context, operations),
                 FilterCombinator.Or => CombineWithOr(context, operations),
-                _ => throw new InvalidOperationException()
+                _ => throw ThrowHelper
+                    .Filtering_MongoDbCombinator_InvalidCombinator(this, combinator)
             };
 
             return true;

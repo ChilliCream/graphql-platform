@@ -8,27 +8,77 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public static class EntityFrameworkObjectFieldDescriptorExtensions
 {
-    public static class EntityFrameworkObjectFieldDescriptorExtensions
+    private static readonly Type _valueTask = typeof(ValueTask<>);
+    private static readonly Type _task = typeof(Task<>);
+
+    public static IObjectFieldDescriptor UseDbContext<TDbContext>(
+        this IObjectFieldDescriptor descriptor)
+        where TDbContext : DbContext
     {
-        private static readonly Type _valueTask = typeof(ValueTask<>);
-        private static readonly Type _task = typeof(Task<>);
+        var scopedServiceName = typeof(TDbContext).FullName ?? typeof(TDbContext).Name;
+        FieldMiddlewareDefinition placeholder =
+            new(_ => _ => throw new NotSupportedException(), key: WellKnownMiddleware.ToList);
 
-        public static IObjectFieldDescriptor UseDbContext<TDbContext>(
-            this IObjectFieldDescriptor descriptor)
-            where TDbContext : DbContext
-        {
-            string scopedServiceName = typeof(TDbContext).FullName ?? typeof(TDbContext).Name;
-            FieldMiddlewareDefinition placeholder =
-                new(_ => _ => throw new NotSupportedException(), key: WellKnownMiddleware.ToList);
-
-            descriptor.Extend().Definition.MiddlewareDefinitions.Add(
-                new(next => async context =>
-                {
-                    await using TDbContext dbContext = context.Services
+        descriptor.Extend().Definition.MiddlewareDefinitions.Add(
+            new(next => async context =>
+            {
+#if NET6_0_OR_GREATER
+                await using TDbContext dbContext = await context.Services
+                .GetRequiredService<IDbContextFactory<TDbContext>>()
+                .CreateDbContextAsync()
+                .ConfigureAwait(false);
+#else
+                    using TDbContext dbContext = context.Services
                         .GetRequiredService<IDbContextFactory<TDbContext>>()
                         .CreateDbContext();
+#endif
+
+                try
+                {
+                    context.SetLocalValue(scopedServiceName, dbContext);
+                    await next(context).ConfigureAwait(false);
+                }
+                finally
+                {
+                    context.RemoveLocalValue(scopedServiceName);
+                }
+            }, key: WellKnownMiddleware.DbContext));
+
+        descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+
+        descriptor
+            .Extend()
+            .OnBeforeNaming((_, d) => AddCompletionMiddleware(d, placeholder));
+
+        return descriptor;
+    }
+
+    internal static void UseDbContext<TDbContext>(
+        ObjectFieldDefinition definition)
+        where TDbContext : DbContext
+    {
+        var scopedServiceName = typeof(TDbContext).FullName ?? typeof(TDbContext).Name;
+
+        FieldMiddlewareDefinition placeholderMiddleware =
+            new(_ => _ => throw new NotSupportedException(), key: WellKnownMiddleware.ToList);
+
+        FieldMiddlewareDefinition contextMiddleware =
+            new(next => async context =>
+                {
+#if NET6_0_OR_GREATER
+                    await using TDbContext dbContext = await context.Services
+                    .GetRequiredService<IDbContextFactory<TDbContext>>()
+                    .CreateDbContextAsync()
+                    .ConfigureAwait(false);
+#else
+                        using TDbContext dbContext = context.Services
+                            .GetRequiredService<IDbContextFactory<TDbContext>>()
+                            .CreateDbContext();
+#endif
 
                     try
                     {
@@ -39,92 +89,93 @@ namespace HotChocolate.Types
                     {
                         context.RemoveLocalValue(scopedServiceName);
                     }
-                }, key: WellKnownMiddleware.DbContext));
+                },
+                key: WellKnownMiddleware.DbContext);
 
-            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+        definition.MiddlewareDefinitions.Insert(0, placeholderMiddleware);
+        definition.MiddlewareDefinitions.Insert(0, contextMiddleware);
 
-            descriptor
-                .Extend()
-                .OnBeforeNaming((_, d) =>
-                {
-                    if (d.ResultType is null)
-                    {
-                        d.MiddlewareDefinitions.Remove(placeholder);
-                        return;
-                    }
+        AddCompletionMiddleware(definition, placeholderMiddleware);
+    }
 
-                    if (TryExtractEntityType(d.ResultType, out Type? entityType))
-                    {
-                        Type middleware = typeof(ToListMiddleware<>).MakeGenericType(entityType);
-                        var index = d.MiddlewareDefinitions.IndexOf(placeholder);
-                        d.MiddlewareDefinitions[index] =
-                            new(Create(middleware), key: WellKnownMiddleware.ToList);
-                        return;
-                    }
-
-                    if (IsExecutable(d.ResultType))
-                    {
-                        Type middleware = typeof(ExecutableMiddleware);
-                        var index = d.MiddlewareDefinitions.IndexOf(placeholder);
-                        d.MiddlewareDefinitions[index] =
-                            new(Create(middleware), key: WellKnownMiddleware.ToList);
-                    }
-
-                    d.MiddlewareDefinitions.Remove(placeholder);
-                });
-
-            return descriptor;
+    internal static void AddCompletionMiddleware(
+        ObjectFieldDefinition definition,
+        FieldMiddlewareDefinition placeholderMiddleware)
+    {
+        if (definition.ResultType is null)
+        {
+            definition.MiddlewareDefinitions.Remove(placeholderMiddleware);
+            return;
         }
 
-        private static bool TryExtractEntityType(
-            Type resultType,
-            [NotNullWhen(true)] out Type? entityType)
+        if (TryExtractEntityType(definition.ResultType, out Type? entityType))
         {
-            if (!resultType.IsGenericType)
-            {
-                entityType = null;
-                return false;
-            }
+            Type middleware = typeof(ToListMiddleware<>).MakeGenericType(entityType);
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholderMiddleware);
+            definition.MiddlewareDefinitions[index] =
+                new(Create(middleware), key: WellKnownMiddleware.ToList);
+            return;
+        }
 
-            if (typeof(IEnumerable).IsAssignableFrom(resultType))
-            {
-                entityType = resultType.GenericTypeArguments[0];
-                return true;
-            }
+        if (IsExecutable(definition.ResultType))
+        {
+            Type middleware = typeof(ExecutableMiddleware);
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholderMiddleware);
+            definition.MiddlewareDefinitions[index] =
+                new(Create(middleware), key: WellKnownMiddleware.ToList);
+        }
 
-            Type resultTypeDefinition = resultType.GetGenericTypeDefinition();
-            if ((resultTypeDefinition == _task || resultTypeDefinition == _valueTask) &&
-                typeof(IEnumerable).IsAssignableFrom(resultType.GenericTypeArguments[0]) &&
-                resultType.GenericTypeArguments[0].IsGenericType)
-            {
-                entityType = resultType.GenericTypeArguments[0].GenericTypeArguments[0];
-                return true;
-            }
+        definition.MiddlewareDefinitions.Remove(placeholderMiddleware);
+    }
 
+    private static bool TryExtractEntityType(
+        Type resultType,
+        [NotNullWhen(true)] out Type? entityType)
+    {
+        if (!resultType.IsGenericType)
+        {
             entityType = null;
             return false;
         }
 
-        private static bool IsExecutable(Type resultType)
+        if (typeof(IEnumerable).IsAssignableFrom(resultType))
         {
-            if (typeof(IExecutable).IsAssignableFrom(resultType))
-            {
-                return true;
-            }
+            entityType = resultType.GenericTypeArguments[0];
+            return true;
+        }
 
-            if (!resultType.IsGenericType)
-            {
-                return false;
-            }
+        Type resultTypeDefinition = resultType.GetGenericTypeDefinition();
+        if ((resultTypeDefinition == _task || resultTypeDefinition == _valueTask) &&
+            typeof(IEnumerable).IsAssignableFrom(resultType.GenericTypeArguments[0]) &&
+            resultType.GenericTypeArguments[0].IsGenericType)
+        {
+            entityType = resultType.GenericTypeArguments[0].GenericTypeArguments[0];
+            return true;
+        }
 
-            Type resultTypeDefinition = resultType.GetGenericTypeDefinition();
-            if ((resultTypeDefinition == _task || resultTypeDefinition == _valueTask) &&
-                typeof(IExecutable).IsAssignableFrom(resultType.GenericTypeArguments[0]))
-            {
-                return true;
-            }
+        entityType = null;
+        return false;
+    }
 
+    private static bool IsExecutable(Type resultType)
+    {
+        if (typeof(IExecutable).IsAssignableFrom(resultType))
+        {
+            return true;
+        }
+
+        if (!resultType.IsGenericType)
+        {
             return false;
         }
+
+        Type resultTypeDefinition = resultType.GetGenericTypeDefinition();
+        if ((resultTypeDefinition == _task || resultTypeDefinition == _valueTask) &&
+            typeof(IExecutable).IsAssignableFrom(resultType.GenericTypeArguments[0]))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

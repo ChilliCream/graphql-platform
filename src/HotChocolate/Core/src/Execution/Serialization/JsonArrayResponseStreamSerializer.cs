@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,9 +25,30 @@ public sealed class JsonArrayResponseStreamSerializer : IResponseStreamSerialize
     /// white space between property names and values.
     /// By default, the JSON is written without any extra white space.
     /// </param>
-    public JsonArrayResponseStreamSerializer(bool indented = false)
+    /// <param name="encoder">
+    /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
+    /// </param>
+    public JsonArrayResponseStreamSerializer(
+        bool indented = false,
+        JavaScriptEncoder? encoder = null)
     {
-        _serializer = new(indented);
+        _serializer = new JsonQueryResultSerializer(indented, encoder);
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="JsonArrayResponseStreamSerializer" />.
+    /// </summary>
+    /// <param name="serializer">
+    /// The serializer that shall be used to serialize results.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="serializer"/> is <c>null</c>.
+    /// </exception>
+    public JsonArrayResponseStreamSerializer(
+        JsonQueryResultSerializer serializer)
+    {
+        _serializer = serializer ?? 
+            throw new ArgumentNullException(nameof(serializer));
     }
 
     public Task SerializeAsync(

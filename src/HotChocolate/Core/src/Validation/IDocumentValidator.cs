@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
@@ -10,6 +9,13 @@ namespace HotChocolate.Validation;
 /// </summary>
 public interface IDocumentValidator
 {
+    /// <summary>
+    /// Specifies that the validator needs to be invoked for 
+    /// every request and that the validation result cannot be 
+    /// fully cached.
+    /// </summary>
+    bool HasDynamicRules { get; }
+
     /// <summary>
     /// Validates the current document against the current schema context.
     /// </summary>

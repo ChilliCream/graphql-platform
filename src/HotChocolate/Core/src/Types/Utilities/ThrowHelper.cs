@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
@@ -251,6 +252,51 @@ internal static class ThrowHelper
             path);
     }
 
+    public static SerializationException OneOfNoFieldSet(
+        InputObjectType type,
+        Path? path)
+    {
+        IErrorBuilder builder = ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_OneOfNoFieldSet,
+                type.Name.Value)
+            .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
+            .SetPath(path);
+
+        return new(builder.Build(), type, path);
+    }
+
+    public static SerializationException OneOfMoreThanOneFieldSet(
+        InputObjectType type,
+        Path? path)
+    {
+        IErrorBuilder builder = ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_OneOfMoreThanOneFieldSet,
+                type.Name.Value)
+            .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
+            .SetPath(path);
+
+        return new(builder.Build(), type, path);
+    }
+
+    public static SerializationException OneOfFieldIsNull(
+        InputObjectType type,
+        Path? path,
+        InputField field)
+    {
+        IErrorBuilder builder = ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_OneOfFieldIsNull,
+                field.Name.Value,
+                type.Name.Value)
+            .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
+            .SetPath(path)
+            .SetExtension(nameof(field), field.Coordinate.ToString());
+
+        return new(builder.Build(), type, path);
+    }
+
     public static SerializationException NonNullInputViolation(
         IType type,
         Path? path,
@@ -402,4 +448,87 @@ internal static class ThrowHelper
                 .Build(),
             type,
             path);
+
+    public static InvalidOperationException RewriteNullability_InvalidNullabilityStructure()
+        => new(AbstractionResources.ThrowHelper_TryRewriteNullability_InvalidNullabilityStructure);
+
+    public static InvalidSchemaCoordinateException Schema_GetMember_DirectiveArgumentNotFound(
+        SchemaCoordinate coordinate)
+        => new InvalidSchemaCoordinateException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "Argument `{0}` was not found on directive `@{1}`.",
+                coordinate.ArgumentName!.Value,
+                coordinate.Name),
+            coordinate);
+
+    public static InvalidSchemaCoordinateException Schema_GetMember_DirectiveNotFound(
+        SchemaCoordinate coordinate)
+        => new InvalidSchemaCoordinateException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "Directive `@{0}` not found.",
+                coordinate.Name),
+            coordinate);
+
+    public static InvalidSchemaCoordinateException Schema_GetMember_EnumValueNotFound(
+        SchemaCoordinate coordinate)
+        => new InvalidSchemaCoordinateException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "Enum value `{0}` was not found on type `{1}`.",
+                coordinate.MemberName!.Value,
+                coordinate.Name),
+            coordinate);
+
+    public static InvalidSchemaCoordinateException Schema_GetMember_InputFieldNotFound(
+        SchemaCoordinate coordinate)
+        => new InvalidSchemaCoordinateException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "Input field `{0}` was not found on type `{1}`.",
+                coordinate.MemberName!.Value,
+                coordinate.Name),
+            coordinate);
+
+    public static InvalidSchemaCoordinateException Schema_GetMember_InvalidCoordinate(
+        SchemaCoordinate coordinate,
+        INamedType type)
+        => new InvalidSchemaCoordinateException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "The coordinate `{0}` is invalid for the type `{1}`.",
+                coordinate.ToString(),
+                type.Name.Value),
+            coordinate);
+
+    public static InvalidSchemaCoordinateException Schema_GetMember_FieldArgNotFound(
+        SchemaCoordinate coordinate)
+        => new InvalidSchemaCoordinateException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "Argument `{0}` was not found on field `{1}.{2}`.",
+                coordinate.ArgumentName!.Value,
+                coordinate.Name.Value,
+                coordinate.MemberName!.Value),
+            coordinate);
+
+    public static InvalidSchemaCoordinateException Schema_GetMember_FieldNotFound(
+        SchemaCoordinate coordinate)
+        => new InvalidSchemaCoordinateException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "Field `{0}` was not found on type `{1}`.",
+                coordinate.MemberName!.Value,
+                coordinate.Name.Value),
+            coordinate);
+
+    public static InvalidSchemaCoordinateException Schema_GetMember_TypeNotFound(
+        SchemaCoordinate coordinate)
+        => new InvalidSchemaCoordinateException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "A type with the name `{0}` was not found.",
+                coordinate.Name.Value),
+            coordinate);
 }

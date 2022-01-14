@@ -1,5 +1,5 @@
 ﻿{
-  "Content": "{\"title\":\"Hello\",\"useBrowserUrlAsEndpoint\":true,\"schemaEndpoint\":\"/foo/bar\",\"graphQLDocument\":\"# foo\",\"includeCookies\":true,\"httpHeaders\":{\"Content-Type\":\"application/json\"},\"httpMethod\":\"GET\",\"gaTrackingId\":\"GA-FOO\",\"disableTelemetry\":true}",
+  "Content": "{\"title\":\"Hello\",\"useBrowserUrlAsEndpoint\":true,\"endpoint\":\"/foo/bar\",\"graphQLDocument\":\"# foo\",\"includeCookies\":true,\"httpHeaders\":{\"Content-Type\":\"application/json\"},\"useGet\":true,\"gaTrackingId\":\"GA-FOO\",\"disableTelemetry\":true}",
   "ContentType": {
     "CharSet": "utf-8",
     "Parameters": [

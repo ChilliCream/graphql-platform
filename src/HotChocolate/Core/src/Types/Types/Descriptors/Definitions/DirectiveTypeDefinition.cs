@@ -81,7 +81,7 @@ public class DirectiveTypeDefinition
 
     public bool HasArguments => _arguments is { Count: > 0 };
 
-    internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {
         var configs = new List<ITypeSystemMemberConfiguration>();
 

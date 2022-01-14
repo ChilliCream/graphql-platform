@@ -12,6 +12,11 @@ public static class ErrorCodes
         public const string PolicyNotFound = "AUTH_POLICY_NOT_FOUND";
     }
 
+    public static class Types
+    {
+        public const string ReservedTypeName = "HC0061";
+    }
+
     public static class Execution
     {
         public const string CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE";
@@ -57,6 +62,32 @@ public static class ErrorCodes
         /// Cannot cast the parent type to the resolver requested type.
         /// </summary>
         public const string CannotCastParent = "HC0053";
+
+        /// <summary>
+        /// The Oneof Input Objects `{0}` require that exactly one field must be supplied and that
+        /// field must not be `null`. Oneof Input Objects are a special variant of Input Objects 
+        /// where the type system asserts that exactly one of the fields must be set and non-null.
+        /// </summary>
+        public const string OneOfNoFieldSet = "HC0054";
+
+        /// <summary>
+        /// More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects 
+        /// are a special variant of Input Objects where the type system asserts that exactly 
+        /// one of the fields must be set and non-null.
+        /// </summary>
+        public const string OneOfMoreThanOneFieldSet = "HC0055";
+
+        /// <summary>
+        /// `null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects 
+        /// are a special variant of Input Objects where the type system asserts that exactly 
+        /// one of the fields must be set and non-null.
+        /// </summary>
+        public const string OneOfFieldIsNull = "HC0056";
+
+        /// <summary>
+        /// Value for oneof field {field.FieldName} must be non-null.
+        /// </summary>
+        public const string OneOfFieldMustBeNonNull = "HC0057";
     }
 
     /// <summary>
@@ -125,6 +156,21 @@ public static class ErrorCodes
         /// No `map` specified.
         /// </summary>
         public const string MultiPartMapNotSpecified = "HC0044";
+
+        /// <summary>
+        /// The type parameter is empty.
+        /// </summary>
+        public const string TypeParameterIsEmpty = "HC0058";
+
+        /// <summary>
+        /// Invalid type name when requesting the SDL.
+        /// </summary>
+        public const string InvalidTypeName = "HC0059";
+
+        /// <summary>
+        /// The requested type does not exist.
+        /// </summary>
+        public const string TypeDoesNotExist = "HC0060";
     }
 
     public static class Schema
@@ -205,7 +251,7 @@ public static class ErrorCodes
         public const string MoreThanOneElement = "HC0022";
         public const string FilteringProjectionFailed = "HC0023";
         public const string SortingProjectionFailed = "HC0024";
-        public const string NoPagingationProviderFound = "HC0025";
+        public const string NoPaginationProviderFound = "HC0025";
 
         /// <summary>
         /// Type does not contain a valid node field. Only `items` and `nodes` are supported

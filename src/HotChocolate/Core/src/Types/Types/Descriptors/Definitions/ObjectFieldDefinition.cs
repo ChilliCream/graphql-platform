@@ -346,7 +346,10 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
 
                 if (nonRepeatable > 1)
                 {
-                    string[] keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
+                    var keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
+
+                    // we clear the section of the array we need before we are using it.
+                    keys.AsSpan().Slice(0, nonRepeatable).Clear();
                     int i = 0, ki = 0;
 
                     do
@@ -361,7 +364,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
                         {
                             if (ki > 0)
                             {
-                                if (Array.IndexOf(keys, def.Key) != -1)
+                                if (Array.IndexOf(keys, def.Key, 0, ki) != -1)
                                 {
                                     count--;
                                     definitions.RemoveAt(i);

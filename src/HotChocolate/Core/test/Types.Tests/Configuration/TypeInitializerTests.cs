@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -30,10 +29,12 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
                 null,
-                t => t is FooType ? RootTypeKind.Query : RootTypeKind.None);
+                t => t is FooType ? RootTypeKind.Query : RootTypeKind.None,
+                () => null,
+                new SchemaOptions());
 
             // act
-            typeInitializer.Initialize(() => null, new SchemaOptions());
+            typeInitializer.Initialize();
 
             // assert
             var exists = typeRegistry.TryGetType(
@@ -84,10 +85,12 @@ namespace HotChocolate.Configuration
                         ObjectType<Foo> => RootTypeKind.Query,
                         _ => RootTypeKind.None
                     };
-                });
+                },
+                () => null,
+                new SchemaOptions());
 
             // act
-            typeInitializer.Initialize(() => null, new SchemaOptions());
+            typeInitializer.Initialize();
 
             // assert
             var exists = typeRegistry.TryGetType(
@@ -123,7 +126,8 @@ namespace HotChocolate.Configuration
                 typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
-            var typeInitializer = new TypeInitializer(
+            // act
+            void Action() => new TypeInitializer(
                 context,
                 typeRegistry,
                 new List<ITypeReference>
@@ -138,10 +142,9 @@ namespace HotChocolate.Configuration
                         ObjectType<Foo> => RootTypeKind.Query,
                         _ => RootTypeKind.None
                     };
-                });
-
-            // act
-            void Action() => typeInitializer.Initialize(null!, new SchemaOptions());
+                },
+                null!,
+                new SchemaOptions());
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -157,7 +160,8 @@ namespace HotChocolate.Configuration
                 typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
-            var typeInitializer = new TypeInitializer(
+            // act
+            void Action() => new TypeInitializer(
                 context,
                 typeRegistry,
                 new List<ITypeReference>
@@ -172,10 +176,9 @@ namespace HotChocolate.Configuration
                         ObjectType<Foo> => RootTypeKind.Query,
                         _ => RootTypeKind.None
                     };
-                });
-
-            // act
-            void Action() => typeInitializer.Initialize(() => null, null!);
+                },
+                () => null,
+                null!);
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);

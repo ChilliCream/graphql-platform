@@ -18,21 +18,18 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 internal sealed class ParentParameterExpressionBuilder : IParameterExpressionBuilder
 {
     private const string _parent = nameof(IPureResolverContext.Parent);
-    private static readonly MethodInfo _getParentMethod;
-
-    static ParentParameterExpressionBuilder()
-    {
+    private static readonly MethodInfo _getParentMethod =
         _getParentMethod = PureContextType.GetMethods().First(IsParentMethod);
-        Debug.Assert(_getParentMethod is not null, "Parent method is missing.");
 
-        static bool IsParentMethod(MethodInfo method)
-            => method.Name.Equals(_parent, StringComparison.Ordinal) &&
-               method.IsGenericMethod;
-    }
+    private static bool IsParentMethod(MethodInfo method)
+        => method.Name.Equals(_parent, StringComparison.Ordinal) &&
+           method.IsGenericMethod;
 
     public ArgumentKind Kind => ArgumentKind.Source;
 
     public bool IsPure => true;
+
+    public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ParentAttribute));

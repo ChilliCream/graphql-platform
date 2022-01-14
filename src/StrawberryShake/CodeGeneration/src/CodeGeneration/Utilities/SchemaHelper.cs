@@ -100,7 +100,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             this ISchema schema,
             string typeName,
             bool valueType = false) =>
-            ((TypeInfos)schema.ContextData[_typeInfosKey]!).GetOrCreate(typeName, valueType);
+            ((TypeInfos)schema.ContextData[_typeInfosKey]!).GetOrAdd(typeName, valueType);
 
         private static void CollectScalarInfos(
             IEnumerable<ScalarTypeExtensionNode> scalarTypeExtensions,
@@ -313,7 +313,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
         {
             if (runtimeType is not null)
             {
-                typeInfos.TryCreate(runtimeType);
+                typeInfos.GetOrAdd(runtimeType);
             }
         }
     }

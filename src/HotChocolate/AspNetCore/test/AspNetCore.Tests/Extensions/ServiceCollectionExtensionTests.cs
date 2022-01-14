@@ -5,28 +5,27 @@ using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Xunit;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.Extensions.DependencyInjection;
+
+public class ServiceCollectionExtensionTests
 {
-    public class ServiceCollectionExtensionTests
+    [Fact]
+    public static void AddHttpRequestSerializer_OfT()
     {
-        [Fact]
-        public static void AddHttpRequestSerializer_OfT()
-        {
-            // arrange
-            var serviceCollection = new ServiceCollection();
+        // arrange
+        var serviceCollection = new ServiceCollection();
 
-            // act
-            HotChocolateAspNetCoreServiceCollectionExtensions
-                .AddHttpResultSerializer<DefaultHttpResultSerializer>(serviceCollection);
+        // act
+        HotChocolateAspNetCoreServiceCollectionExtensions
+            .AddHttpResultSerializer<DefaultHttpResultSerializer>(serviceCollection);
 
-            // assert
-            Assert.Collection(
-                serviceCollection,
-                t =>
-                {
-                    Assert.Equal(typeof(IHttpResultSerializer), t.ServiceType);
-                    Assert.Equal(typeof(DefaultHttpResultSerializer), t.ImplementationType);
-                });
-        }
+        // assert
+        Assert.Collection(
+            serviceCollection,
+            t =>
+            {
+                Assert.Equal(typeof(IHttpResultSerializer), t.ServiceType);
+                Assert.Equal(typeof(DefaultHttpResultSerializer), t.ImplementationType);
+            });
     }
 }

@@ -119,7 +119,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
     {
         if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType? dt))
         {
-            if (context.Path.TryPeek(out ISyntaxNode parent) &&
+            if (context.Path.TryPeek(out ISyntaxNode? parent) &&
                 TryLookupLocation(parent, out DirectiveLoc location) &&
                 !dt.Locations.Contains(location))
             {

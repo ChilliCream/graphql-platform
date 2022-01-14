@@ -33,6 +33,8 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
 
     public bool IsPure => false;
 
+    public bool IsDefaultHandler => false;
+
     public virtual bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ScopedStateAttribute));
 

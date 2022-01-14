@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Unique-Per-Location"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Directives-Are-Unique-Per-Location"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -45,7 +45,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Unique-Per-Location"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Directives-Are-Unique-Per-Location"
     },
     "Exception": null,
     "SyntaxNode": {

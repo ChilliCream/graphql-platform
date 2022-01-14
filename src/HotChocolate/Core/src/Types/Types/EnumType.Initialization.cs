@@ -12,15 +12,6 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
-/// <summary>
-/// GraphQL Enum types, like Scalar types, also represent leaf values in a GraphQL type system.
-/// However Enum types describe the set of possible values.
-///
-/// Enums are not references for a numeric value, but are unique values in their own right.
-/// They may serialize as a string: the name of the represented value.
-///
-/// In this example, an Enum type called Direction is defined:
-/// </summary>
 public partial class EnumType
 {
     private readonly Dictionary<NameString, IEnumValue> _enumValues = new();

@@ -1,15 +1,14 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public abstract class ScalarTypeDefinitionNodeBase
+    : NamedSyntaxNode
 {
-    public abstract class ScalarTypeDefinitionNodeBase
-        : NamedSyntaxNode
-    {
-        protected ScalarTypeDefinitionNodeBase(
-            Location? location,
-            NameNode name,
-            IReadOnlyList<DirectiveNode> directives)
-            : base(location, name, directives)
-        { }
-    }
+    protected ScalarTypeDefinitionNodeBase(
+        Location? location,
+        NameNode name,
+        IReadOnlyList<DirectiveNode> directives)
+        : base(location, name, directives)
+    { }
 }

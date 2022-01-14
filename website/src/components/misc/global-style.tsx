@@ -26,14 +26,17 @@ export const GlobalLayoutStyle = createGlobalStyle`
 
 export const GlobalStyle = createGlobalStyle`
   :root {
-    --brand-color: #f40010;
-    --brand-color-hover: #b7020a;
+    --primary-color: #3b4f74;//before: f40010;
+    --secondary-color: #516083;
+    --tertiary-color: #7989ab;
+    --quaternary-color: #bfcef1;
+    --link-color: #f4125b;
     --text-color: #667;
-    --heading-text-color: #334;
+    --heading-text-color: #3b4f74;
     --footer-text-color: #c6c6ce;
     --text-color-contrast: #fff;
-    --box-highlight-color: #ddd;
-    --box-border-color: #ccc;
+    --box-highlight-color: #e8ecf5;
+    --box-border-color: #bfcef1;
     --warning-color: #ffba00;
     --border-radius: 4px;
     --font-size: .833rem;
@@ -73,7 +76,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   a {
-    color: var(--brand-color);
+    color: var(--link-color);
     text-decoration: none;
   }
 
@@ -143,7 +146,7 @@ export const GlobalStyle = createGlobalStyle`
 
   blockquote {
     margin-bottom: 20px;
-    background-color: #e7e9eb;
+    background-color: #e8ecf5;
 
     > p:last-child {
       margin-bottom: 0;
@@ -197,7 +200,7 @@ export const GlobalStyle = createGlobalStyle`
     }
 
     > tr:hover {
-      background-color: #e7e9eb;
+      background-color: #e8ecf5;
     }
   }
 
@@ -245,7 +248,7 @@ export const GlobalStyle = createGlobalStyle`
     left: 0;
     visibility: hidden;
   }
-  
+
   h1:hover a.anchor,
   h2:hover a.anchor,
   h3:hover a.anchor,
@@ -253,5 +256,5 @@ export const GlobalStyle = createGlobalStyle`
   h5:hover a.anchor,
   h6:hover a.anchor {
     visibility: visible;
-  }  
+  }
 `;

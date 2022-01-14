@@ -60,14 +60,12 @@ public abstract class DescriptorBase<T>
                 rented[i].Configure(Context);
             }
 
+            rented.AsSpan().Slice(0, length).Clear();
             ArrayPool<CreateConfiguration>.Shared.Return(rented, true);
         }
 
         return Definition;
     }
-
-    public void ConfigureContextData(Action<ExtensionData> configure)
-        => configure(Definition.ContextData);
 
     protected virtual void OnCreateDefinition(T definition)
     {

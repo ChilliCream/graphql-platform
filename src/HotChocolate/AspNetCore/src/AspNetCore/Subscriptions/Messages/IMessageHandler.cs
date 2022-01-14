@@ -1,15 +1,11 @@
-using System.Threading;
-using System.Threading.Tasks;
+namespace HotChocolate.AspNetCore.Subscriptions.Messages;
 
-namespace HotChocolate.AspNetCore.Subscriptions.Messages
+public interface IMessageHandler
 {
-    public interface IMessageHandler
-    {
-        Task HandleAsync(
-            ISocketConnection connection,
-            OperationMessage message,
-            CancellationToken cancellationToken);
+    Task HandleAsync(
+        ISocketConnection connection,
+        OperationMessage message,
+        CancellationToken cancellationToken);
 
-        bool CanHandle(OperationMessage message);
-    }
+    bool CanHandle(OperationMessage message);
 }

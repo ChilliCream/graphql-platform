@@ -299,15 +299,33 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             buildMethod.AddEmptyLine();
 
-
+            const string errorsElement = nameof(errorsElement);
 
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(
                 IfBuilder.New()
                     .SetCondition("response.Exception is null")
                     .AddCode(CreateBuildDataSerialization())
-                    .AddElse(CreateDataError("response.Exception"))
-                );
+                    .AddElse(
+                        IfBuilder
+                            .New()
+                            .SetCondition(
+                                ConditionBuilder
+                                    .New()
+                                    .Set("response.Body != null")
+                                    .And("response.Body.RootElement.TryGetProperty(" +
+                                        $"\"errors\", out {TypeNames.JsonElement} {errorsElement})"))
+                            .AddCode(
+                                AssignmentBuilder
+                                    .New()
+                                    .SetLefthandSide("errors")
+                                    .SetRighthandSide(MethodCallBuilder
+                                        .Inline()
+                                        .SetMethodName(TypeNames.ParseError)
+                                        .AddArgument(errorsElement))
+                            )
+                            .AddElse(CreateDataError("response.Exception")))
+            );
 
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(
@@ -326,45 +344,44 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private TryCatchBuilder CreateBuildDataSerialization()
         {
             return TryCatchBuilder
-                    .New()
-                    .AddTryCode(
-                        IfBuilder
-                            .New()
-                            .SetCondition(
-                                ConditionBuilder
-                                    .New()
-                                    .Set("response.Body != null"))
-                            .AddCode(
-                                IfBuilder
-                                    .New()
-                                    .SetCondition(
-                                        ConditionBuilder
-                                            .New()
-                                            .Set("response.Body.RootElement.TryGetProperty(" +
-                                                $"\"data\", out {TypeNames.JsonElement} " +
-                                                "dataElement) && dataElement.ValueKind == " +
-                                                $"{TypeNames.JsonValueKind}.Object"))
-                                    .AddCode("data = BuildData(dataElement);"))
-                            .AddCode(
-                                IfBuilder
-                                    .New()
-                                    .SetCondition(
-                                        ConditionBuilder
-                                            .New()
-                                            .Set(
-                                                "response.Body.RootElement.TryGetProperty(" +
-                                                $"\"errors\", out {TypeNames.JsonElement} " +
-                                                "errorsElement)"))
-                                    .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")))
-                    .AddCatchBlock(
-                        CatchBlockBuilder
-                            .New()
-                            .SetExceptionVariable("ex")
-                            .AddCode(CreateDataError()));
+                .New()
+                .AddTryCode(
+                    IfBuilder
+                        .New()
+                        .SetCondition(
+                            ConditionBuilder
+                                .New()
+                                .Set("response.Body != null"))
+                        .AddCode(
+                            IfBuilder
+                                .New()
+                                .SetCondition(
+                                    ConditionBuilder
+                                        .New()
+                                        .Set("response.Body.RootElement.TryGetProperty(" +
+                                            $"\"data\", out {TypeNames.JsonElement} " +
+                                            "dataElement) && dataElement.ValueKind == " +
+                                            $"{TypeNames.JsonValueKind}.Object"))
+                                .AddCode("data = BuildData(dataElement);"))
+                        .AddCode(
+                            IfBuilder
+                                .New()
+                                .SetCondition(
+                                    ConditionBuilder
+                                        .New()
+                                        .Set(
+                                            "response.Body.RootElement.TryGetProperty(" +
+                                            $"\"errors\", out {TypeNames.JsonElement} " +
+                                            "errorsElement)"))
+                                .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")))
+                .AddCatchBlock(
+                    CatchBlockBuilder
+                        .New()
+                        .SetExceptionVariable("ex")
+                        .AddCode(CreateDataError()));
         }
 
-        private static AssignmentBuilder CreateDataError(
-            string exception = "ex")
+        private static AssignmentBuilder CreateDataError(string exception = "ex")
         {
             string dict = TypeNames.Dictionary.WithGeneric(
                 TypeNames.String,

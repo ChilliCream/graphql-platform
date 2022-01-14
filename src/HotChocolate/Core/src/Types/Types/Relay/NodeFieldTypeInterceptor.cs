@@ -130,6 +130,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         {
             ListValueNode list = context.ArgumentLiteral<ListValueNode>(Ids);
             Task<object?>[] tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
+            tasks.AsSpan().Slice(0, list.Items.Count).Clear();
             var result = new object?[list.Items.Count];
 
             try
