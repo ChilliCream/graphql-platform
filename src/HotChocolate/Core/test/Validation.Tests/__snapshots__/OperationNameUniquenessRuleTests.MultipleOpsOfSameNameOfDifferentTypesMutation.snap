@@ -11,7 +11,7 @@
     ],
     "Extensions": {
       "operation": "Foo",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Operation-Name-Uniqueness"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -48,6 +48,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 142,

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using HotChocolate.Data.Projections.Extensions;
 using HotChocolate.Execution;
@@ -106,7 +107,7 @@ public class QueryableProjectionISetTests
         res1.MatchSqlSnapshot();
     }
 
-    public static void OnModelCreating(ModelBuilder modelBuilder)
+    private static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Foo>().HasMany(x => x.ObjectSet);
         modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);
@@ -126,9 +127,9 @@ public class QueryableProjectionISetTests
         public bool BarBool { get; set; }
 
         [UseFiltering]
-        public ISet<BarDeep>? ObjectSet { get; set; }
+        public ISet<BarDeep> ObjectSet { get; set; } = default!;
 
-        public BarDeep? NestedObject { get; set; }
+        public BarDeep NestedObject { get; set; } = default!;
     }
 
     public class FooDeep
@@ -162,21 +163,21 @@ public class QueryableProjectionISetTests
     {
         public int Id { get; set; }
 
-        public Foo? Foo { get; set; }
+        public Foo Foo { get; set; } = default!;
     }
 
     public class BarDeep
     {
         public int Id { get; set; }
 
-        public FooDeep? Foo { get; set; }
+        public FooDeep Foo { get; set; } = default!;
     }
 
     public class BarNullableDeep
     {
         public int Id { get; set; }
 
-        public FooDeep? Foo { get; set; }
+        public FooDeep Foo { get; set; } = default!;
     }
 
     public class BarNullable

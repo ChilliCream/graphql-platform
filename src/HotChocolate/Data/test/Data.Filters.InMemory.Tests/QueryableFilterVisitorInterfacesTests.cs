@@ -11,10 +11,9 @@ public class QueryableFilterVisitorInterfacesTests
 {
     private static readonly BarInterface[] _barEntities =
     {
-            new BarInterface { Test = new InterfaceImpl1 { Prop = "a" } },
-            new BarInterface { Test = new InterfaceImpl1 { Prop = "b" } }
-        };
-
+        new() { Test = new InterfaceImpl1 { Prop = "a" } },
+        new() { Test = new InterfaceImpl1 { Prop = "b" } }
+    };
 
     private readonly SchemaCache _cache;
 
@@ -63,7 +62,7 @@ public class QueryableFilterVisitorInterfacesTests
         res3.MatchSnapshot("null");
     }
 
-    public static void Configure(ISchemaBuilder builder)
+    private static void Configure(ISchemaBuilder builder)
     {
         builder.AddObjectType<InterfaceImpl1>();
         builder.AddObjectType<InterfaceImpl2>();
@@ -76,20 +75,20 @@ public class QueryableFilterVisitorInterfacesTests
 
     public class InterfaceImpl1 : ITest
     {
-        public string? Prop { get; set; }
+        public string Prop { get; set; } = default!;
 
-        public string? Specific1 { get; set; }
+        public string Specific1 { get; set; } = default!;
     }
 
     public class InterfaceImpl2 : ITest
     {
-        public string? Prop { get; set; }
+        public string Prop { get; set; } = default!;
 
-        public string? Specific2 { get; set; }
+        public string Specific2 { get; set; } = default!;
     }
 
     public class BarInterface
     {
-        public ITest? Test { get; set; }
+        public ITest Test { get; set; } = default!;
     }
 }

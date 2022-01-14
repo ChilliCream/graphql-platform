@@ -230,14 +230,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_BothMiddlewaresAreApplied()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -267,14 +266,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_BothAreAppliedAndProvided()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -304,14 +302,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragment()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -342,14 +339,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragment()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -378,14 +374,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragmentNested()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -417,14 +412,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentNested()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -454,7 +448,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task
         ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
     {
@@ -462,7 +455,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -493,7 +486,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task
         ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
     {
@@ -501,7 +493,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType(c => c.Name("Query"))
@@ -534,7 +526,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task
         ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
     {
@@ -542,7 +533,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType(c => c.Name("Query"))
@@ -761,10 +752,10 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 .Type<ListType<ObjectType<Bar>>>()
                 .Resolve(_ =>
                 {
-                    IQueryable<Bar> data = new Bar[]
+                    IQueryable<Bar> data = new[]
                     {
-                            Bar.Create("a"),
-                            Bar.Create("b")
+                        Bar.Create("a"),
+                        Bar.Create("b")
                     }.AsQueryable();
                     return Task.FromResult(data);
                 })
@@ -774,7 +765,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
     public class Bar
     {
-        public string? Qux { get; set; }
+        public string Qux { get; set; } = default!;
 
         public static Bar Create(string qux) => new() { Qux = qux };
     }
@@ -785,8 +776,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         [UseProjection]
         public IQueryable<Book> GetBooks() => new[]
         {
-                new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
-            }.AsQueryable();
+            new Book
+            {
+                Id = 1,
+                Title = "BookTitle",
+                Author = new Author { Name = "Author" }
+            }
+        }.AsQueryable();
     }
 
     [ExtendObjectType("Query")]
@@ -798,8 +794,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         [UseSorting]
         public IQueryable<Book> GetBooks() => new[]
         {
-                new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
-            }.AsQueryable();
+            new Book
+            {
+                Id = 1,
+                Title = "BookTitle",
+                Author = new Author { Name = "Author" }
+            }
+        }.AsQueryable();
     }
 
     public class DifferentScope
@@ -822,36 +823,38 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
     public class FirstOrDefaulQuery
     {
-        [UseFirstOrDefault, UseProjection]
+        [UseFirstOrDefault]
+        [UseProjection]
         public IQueryable<Book> GetBooks(Book book) => new[]
+        {
+            new Book
             {
-                    new Book
-                    {
-                        Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" }
-                    },
-                    new Book
-                    {
-                        Id = 2, Title = "BookTitle2", Author = new Author { Name = "Author2" }
-                    }
-                }.AsQueryable()
-            .Where(x => x.Id == book.Id);
+                Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" }
+            },
+            new Book
+            {
+                Id = 2, Title = "BookTitle2", Author = new Author { Name = "Author2" }
+            }
+        }.AsQueryable().Where(x => x.Id == book.Id);
     }
 
     public class FirstOrDefaultMutation_ManyToMany
     {
-        [UseFirstOrDefault, UseProjection]
+        [UseFirstOrDefault]
+        [UseProjection]
         public IQueryable<Author> AddPublisher(Publisher publisher) => new[]
         {
-                new Author { Name = "Author", Publishers = new List<Publisher> { publisher } }
-            }.AsQueryable();
+            new Author { Name = "Author", Publishers = new List<Publisher> { publisher } }
+        }.AsQueryable();
     }
 
     public class FirstOrDefaultMutation_ManyToOne
     {
-        [UseFirstOrDefault, UseProjection]
+        [UseFirstOrDefault]
+        [UseProjection]
         public IQueryable<Author> AddBook(Book book) => new[]
         {
-                new Author { Name = "Author", Books = new List<Book> { book } }
-            }.AsQueryable();
+            new Author { Name = "Author", Books = new List<Book> { book } }
+        }.AsQueryable();
     }
 }

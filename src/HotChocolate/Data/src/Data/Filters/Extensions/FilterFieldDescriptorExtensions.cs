@@ -22,7 +22,7 @@ public static class FilterFieldDescriptorExtensions
         FilterFieldDefinition definition,
         ITypeInspector typeInspector)
     {
-        ITypeReference reference = definition.Type;
+        ITypeReference? reference = definition.Type;
 
         if (reference is ExtendedTypeReference extendedTypeRef)
         {

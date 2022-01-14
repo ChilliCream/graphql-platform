@@ -66,14 +66,14 @@ public class QueryableFilterVisitorInterfacesTests
         res3.MatchSnapshot("null");
     }
 
-    public static void Configure(ISchemaBuilder builder)
+    private static void Configure(ISchemaBuilder builder)
     {
         builder.AddObjectType<InterfaceImpl1>(x => x.Implements<InterfaceType<Test>>());
         builder.AddObjectType<InterfaceImpl2>(x => x.Implements<InterfaceType<Test>>());
         builder.AddInterfaceType<Test>();
     }
 
-    public static void OnModelCreating(ModelBuilder builder)
+    private static void OnModelCreating(ModelBuilder builder)
     {
         builder.Entity<Test>()
             .HasDiscriminator<string>("_t")
@@ -86,17 +86,17 @@ public class QueryableFilterVisitorInterfacesTests
         [Key]
         public int Id { get; set; }
 
-        public string? Prop { get; set; }
+        public string Prop { get; set; } = default!;
     }
 
     public class InterfaceImpl1 : Test
     {
-        public string? Specific1 { get; set; }
+        public string Specific1 { get; set; } = default!;
     }
 
     public class InterfaceImpl2 : Test
     {
-        public string? Specific2 { get; set; }
+        public string Specific2 { get; set; } = default!;
     }
 
     public class BarInterface
@@ -104,6 +104,6 @@ public class QueryableFilterVisitorInterfacesTests
         [Key]
         public int Id { get; set; }
 
-        public Test? Test { get; set; }
+        public Test Test { get; set; } = default!;
     }
 }

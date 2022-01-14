@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -37,7 +38,7 @@ public class DefinitionBase : IDefinition
     /// Get access to context data that are copied to the type
     /// and can be used for customizations.
     /// </summary>
-    public ExtensionData ContextData => _contextData ??= new ExtensionData();
+    public virtual ExtensionData ContextData => _contextData ??= new ExtensionData();
 
     /// <summary>
     /// Gets access to additional type dependencies.
@@ -69,7 +70,7 @@ public class DefinitionBase : IDefinition
     /// <summary>
     /// Gets lazy configuration of this definition and all dependent definitions.
     /// </summary>
-    internal virtual IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public virtual IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {
         if (_configurations is null)
         {
@@ -82,7 +83,7 @@ public class DefinitionBase : IDefinition
     /// <summary>
     /// Gets access to additional type dependencies.
     /// </summary>
-    internal IReadOnlyList<TypeDependency> GetDependencies()
+    public IReadOnlyList<TypeDependency> GetDependencies()
     {
         if (_dependencies is null)
         {
@@ -96,11 +97,11 @@ public class DefinitionBase : IDefinition
     /// Get access to context data that are copied to the type
     /// and can be used for customizations.
     /// </summary>
-    internal IReadOnlyDictionary<string, object?> GetContextData()
+    public IReadOnlyDictionary<string, object?> GetContextData()
     {
         if (_contextData is null)
         {
-            return ImmutableDictionary<string, object?>.Empty;
+            return ExtensionData.Empty;
         }
 
         return _contextData;

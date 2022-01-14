@@ -47,9 +47,9 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
             return Continue;
         }
 
-        if (context.Schema.TryGetType(
+        if (context.Schema.TryGetType<INamedOutputType>(
             node.TypeCondition.Name.Value,
-            out INamedOutputType type))
+            out INamedOutputType? type))
         {
             context.Types.Push(type);
             return Continue;
@@ -63,9 +63,9 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
         FragmentDefinitionNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetType(
+        if (context.Schema.TryGetType<INamedOutputType>(
             node.TypeCondition.Name.Value,
-            out INamedOutputType namedOutputType))
+            out INamedOutputType? namedOutputType))
         {
             context.Types.Push(namedOutputType);
             return Continue;

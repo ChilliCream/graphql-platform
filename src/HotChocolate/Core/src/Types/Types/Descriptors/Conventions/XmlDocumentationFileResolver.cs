@@ -85,7 +85,9 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
                 }
             }
 
+#pragma warning disable SYSLIB0012
             var codeBase = assembly.CodeBase;
+#pragma warning restore SYSLIB0012
             if (!string.IsNullOrEmpty(codeBase))
             {
                 path = IOPath.Combine(

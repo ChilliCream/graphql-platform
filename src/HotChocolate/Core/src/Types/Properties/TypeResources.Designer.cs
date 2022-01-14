@@ -1424,5 +1424,35 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ServiceHelper_UseResolverServiceInternal_Order", resourceCulture);
             }
         }
+        
+        internal static string DefaultNamingConventions_FormatFieldName_EmptyOrNull {
+            get {
+                return ResourceManager.GetString("DefaultNamingConventions_FormatFieldName_EmptyOrNull", resourceCulture);
+            }
+        }
+        
+        internal static string OneOfDirectiveType_Description {
+            get {
+                return ResourceManager.GetString("OneOfDirectiveType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_OneOfNoFieldSet {
+            get {
+                return ResourceManager.GetString("ThrowHelper_OneOfNoFieldSet", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_OneOfMoreThanOneFieldSet {
+            get {
+                return ResourceManager.GetString("ThrowHelper_OneOfMoreThanOneFieldSet", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_OneOfFieldIsNull {
+            get {
+                return ResourceManager.GetString("ThrowHelper_OneOfFieldIsNull", resourceCulture);
+            }
+        }
     }
 }

@@ -359,7 +359,7 @@ public class QueryableProjectionFilterTests
         res1.MatchSqlSnapshot();
     }
 
-    public static void OnModelCreating(ModelBuilder modelBuilder)
+    private static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Foo>().HasMany(x => x.ObjectArray);
         modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);
@@ -416,14 +416,14 @@ public class QueryableProjectionFilterTests
     {
         public int Id { get; set; }
 
-        public Foo? Foo { get; set; }
+        public Foo Foo { get; set; } = default!;
     }
 
     public class BarDeep
     {
         public int Id { get; set; }
 
-        public FooDeep? Foo { get; set; }
+        public FooDeep Foo { get; set; } = default!;
     }
 
     public class BarNullableDeep

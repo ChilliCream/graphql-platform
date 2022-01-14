@@ -10,8 +10,7 @@ namespace HotChocolate.Data.Projections.Expressions;
 
 public delegate object? ApplyProjection(IResolverContext context, object? input);
 
-public class QueryableProjectionProvider
-    : ProjectionProvider
+public class QueryableProjectionProvider : ProjectionProvider
 {
     public static readonly string ContextApplyProjectionKey = nameof(ApplyProjection);
     public const string SkipProjectionKey = "SkipProjection";
@@ -25,7 +24,6 @@ public class QueryableProjectionProvider
     {
     }
 
-    [Obsolete]
     public override FieldMiddleware CreateExecutor<TEntityType>()
     {
         ApplyProjection applyProjection = CreateApplicatorAsync<TEntityType>();
@@ -46,7 +44,6 @@ public class QueryableProjectionProvider
         }
     }
 
-    [Obsolete]
     private static ApplyProjection CreateApplicatorAsync<TEntityType>()
     {
         return (context, input) =>
@@ -74,7 +71,7 @@ public class QueryableProjectionProvider
                 new QueryableProjectionContext(
                     context,
                     context.ObjectType,
-                    context.Field.Type.UnwrapRuntimeType());
+                    context.Selection.Type.UnwrapRuntimeType());
             var visitor = new QueryableProjectionVisitor();
             visitor.Visit(visitorContext);
 

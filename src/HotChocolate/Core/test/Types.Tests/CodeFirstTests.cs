@@ -177,7 +177,7 @@ namespace HotChocolate
 
         public class GenericWrapper<T>
         {
-            public T Value { get; set; }
+            public T Value { get; set; } = default!;
         }
 
         public class Greetings

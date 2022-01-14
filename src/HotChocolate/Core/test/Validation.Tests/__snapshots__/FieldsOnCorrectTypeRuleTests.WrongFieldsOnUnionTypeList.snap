@@ -15,7 +15,7 @@
     ],
     "Extensions": {
       "type": "Foo",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -31,6 +31,7 @@
           "Kind": "Field",
           "Alias": null,
           "Arguments": [],
+          "Required": null,
           "SelectionSet": null,
           "Location": {
             "Start": 76,

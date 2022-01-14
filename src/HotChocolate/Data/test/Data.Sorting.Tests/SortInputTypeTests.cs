@@ -206,6 +206,7 @@ public class SortInputTypeTest
         builder.Create().Print().MatchSnapshot();
     }
 
+    [Fact]
     public void SortInputType_Should_IgnoreFieldWithoutCallingConvention()
     {
         // arrange
@@ -253,25 +254,17 @@ public class SortInputTypeTest
         public string Name { get; set; } = default!;
     }
 
-    public class ShouldNotBeVisible : SortInputType
-    {
+    public class ShouldNotBeVisible : SortInputType { }
 
-    }
-
-    public class IgnoreTestSortInputType
-        : SortInputType<IgnoreTest>
+    public class IgnoreTestSortInputType : SortInputType<IgnoreTest>
     {
         protected override void Configure(ISortInputTypeDescriptor<IgnoreTest> descriptor)
-        {
-            descriptor.Ignore(x => x.Name);
-        }
+            => descriptor.Ignore(x => x.Name);
     }
 
-    public class FooDirectiveType
-        : DirectiveType<FooDirective>
+    public class FooDirectiveType : DirectiveType<FooDirective>
     {
-        protected override void Configure(
-            IDirectiveTypeDescriptor<FooDirective> descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor<FooDirective> descriptor)
         {
             descriptor.Name("foo");
             descriptor.Location(Types.DirectiveLocation.InputObject)
@@ -279,9 +272,7 @@ public class SortInputTypeTest
         }
     }
 
-    public class FooDirective
-    {
-    }
+    public class FooDirective { }
 
     public class Foo
     {
@@ -329,8 +320,8 @@ public class SortInputTypeTest
 
     public interface ITest
     {
-        public string Prop { get; set; }
-        public string Prop2 { get; set; }
+        public string? Prop { get; set; }
+        public string? Prop2 { get; set; }
     }
 
     public interface ITest<T>
@@ -374,7 +365,7 @@ public class SortInputTypeTest
 
     public class TestObject<T>
     {
-        public T? Root { get; set; }
+        public T Root { get; set; } = default!;
     }
 
     public class TestingType<T> : ObjectType<TestObject<T>>

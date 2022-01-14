@@ -16,7 +16,7 @@ public class QueryableStringNotInHandler : QueryableStringOperationHandler
         QueryableFilterContext context,
         IFilterOperationField field,
         IValueNode value,
-        object parsedValue)
+        object? parsedValue)
     {
         Expression property = context.GetInstance();
 

@@ -311,7 +311,7 @@ public class FilterInputTypeTest
 
         // assert
         Assert.NotNull(type);
-        Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type.Fields["id"]).Handler);
+        Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type!.Fields["id"]).Handler);
     }
 
     [Fact]
@@ -331,11 +331,12 @@ public class FilterInputTypeTest
         // assert
         Assert.NotNull(type);
         Assert.IsType<CustomHandler>(
-            Assert.IsType<FilterField>(type.Fields["friends"]).Handler);
+            Assert.IsType<FilterField>(type!.Fields["friends"]).Handler);
         Assert.IsType<QueryableDefaultFieldHandler>(
             Assert.IsType<FilterField>(type.Fields["name"]).Handler);
     }
 
+    [Fact]
     public void FilterInputType_Should_IgnoreFieldWithoutCallingConvention()
     {
         // arrange
@@ -393,14 +394,14 @@ public class FilterInputTypeTest
 
     public class Foo
     {
-        public string? Bar { get; set; }
+        public string Bar { get; set; } = default!;
     }
 
     public class Bar
     {
-        public string? Baz { get; set; }
+        public string Baz { get; set; } = default!;
 
-        public string? Qux { get; set; }
+        public string Qux { get; set; } = default!;
     }
 
     public class Query
@@ -443,8 +444,8 @@ public class FilterInputTypeTest
 
     public interface ITest
     {
-        public string Prop { get; set; }
-        public string Prop2 { get; set; }
+        public string? Prop { get; set; }
+        public string? Prop2 { get; set; }
     }
 
     public interface ITest<T>
@@ -524,7 +525,7 @@ public class FilterInputTypeTest
 
     public class TestObject<T>
     {
-        public T? Root { get; set; }
+        public T Root { get; set; } = default!;
     }
 
     public class TestingType<T> : ObjectType<TestObject<T>>

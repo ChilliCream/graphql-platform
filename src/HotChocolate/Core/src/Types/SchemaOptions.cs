@@ -105,6 +105,20 @@ public class SchemaOptions : ISchemaOptions
     /// </summary>
     public bool StrictRuntimeTypeValidation { get; set; }
 
+    /// <summary>
+    /// Defines a delegate that determines if a runtime
+    /// is an instance of an <see cref="ObjectType{T}"/>.
+    /// </summary>
+    public IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
+    
+    /// <inheritdoc />
+    public bool EnableOneOf { get; set; }
+
+    /// <summary>
+    /// Creates a mutable options object from a read-only options object.
+    /// </summary>
+    /// <param name="options">The read-only options object.</param>
+    /// <returns>Returns a new mutable options object.</returns>
     public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
     {
         return new()
@@ -125,7 +139,9 @@ public class SchemaOptions : ISchemaOptions
             ValidatePipelineOrder = options.ValidatePipelineOrder,
             StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation,
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
-            SortFieldsByName = options.SortFieldsByName
+            SortFieldsByName = options.SortFieldsByName,
+            DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
+            EnableOneOf = options.EnableOneOf
         };
     }
 }

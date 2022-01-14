@@ -9,6 +9,9 @@
         "Breaking": {
           "type": "boolean"
         },
+        "CodeCovToken": {
+          "type": "string"
+        },
         "Configuration": {
           "type": "string",
           "description": "Configuration to build - Default is 'Debug' (local) or 'Release' (server)"

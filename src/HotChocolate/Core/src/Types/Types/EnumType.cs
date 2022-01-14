@@ -54,21 +54,11 @@ public partial class EnumType
     /// </summary>
     protected IReadOnlyDictionary<object, IEnumValue> ValueLookup => _valueLookup;
 
-    /// <summary>
-    /// Tries to resolve the runtime value of this enum type by its name.
-    /// </summary>
-    /// <param name="name">
-    /// The GraphQL name for the enum value.
-    /// </param>
-    /// <param name="runtimeValue">
-    /// The runtime enum runtime value.
-    /// </param>
-    /// <returns>
-    /// <c>true</c>, if there is a runtime value associated with the provided enum value name.
-    /// </returns>
-    public bool TryGetRuntimeValue(
-        NameString name,
-        [NotNullWhen(true)] out object? runtimeValue)
+    public bool TryGetValue(NameString name, [NotNullWhen(true)] out IEnumValue? value)
+        => _enumValues.TryGetValue(name, out value);
+
+    /// <inheritdoc />
+    public bool TryGetRuntimeValue(NameString name, [NotNullWhen(true)] out object? runtimeValue)
     {
         if (_enumValues.TryGetValue(name, out IEnumValue? value))
         {

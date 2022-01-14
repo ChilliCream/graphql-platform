@@ -42,4 +42,10 @@
   <data name="Projection_RelationshipDirectionNotSet" xml:space="preserve">
     <value>Relationship direction not set.</value>
   </data>
+  <data name="Filtering_Neo4JCombinator_QueueEmpty" xml:space="preserve">
+    <value>Neo4JCombinator {0} could not combine expressions. There were no expressions to combine.</value>
+  </data>
+  <data name="Filtering_Neo4JCombinator_InvalidCombinator" xml:space="preserve">
+    <value>Neo4JCombinator {0} could not combine expression. {1} is a invalid combinator</value>
+  </data>
 </root>

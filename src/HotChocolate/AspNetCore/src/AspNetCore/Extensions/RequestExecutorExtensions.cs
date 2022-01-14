@@ -1,4 +1,3 @@
-using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore;

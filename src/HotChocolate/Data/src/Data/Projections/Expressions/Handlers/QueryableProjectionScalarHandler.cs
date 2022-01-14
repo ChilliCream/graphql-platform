@@ -17,7 +17,7 @@ public class QueryableProjectionScalarHandler
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
         ISelection selection,
-        out ISelectionVisitorAction? action)
+        [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         if (selection.Field.Member is PropertyInfo { CanWrite: true })
         {

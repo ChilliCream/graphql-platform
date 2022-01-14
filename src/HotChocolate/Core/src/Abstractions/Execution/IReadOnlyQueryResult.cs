@@ -2,8 +2,7 @@
 
 namespace HotChocolate.Execution;
 
-// todo : deprecate this interface and use IQueryResult
-public interface IReadOnlyQueryResult
-    : IQueryResult
+// TODO : remove with version 13.
+public interface IReadOnlyQueryResult : IQueryResult
 {
 }

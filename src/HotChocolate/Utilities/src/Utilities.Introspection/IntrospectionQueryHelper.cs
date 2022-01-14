@@ -117,7 +117,10 @@ namespace HotChocolate.Utilities.Introspection
         }
 
         private static FieldNode CreateField(string name) =>
-            new(null, new NameNode(name), null,
+            new(null,
+                new NameNode(name),
+                null,
+                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null);

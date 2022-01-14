@@ -6,6 +6,7 @@ public static class WellKnownDirectives
     public const string Include = "include";
     public const string Defer = "defer";
     public const string Stream = "stream";
+    public const string OneOf = "oneOf";
     public const string IfArgument = "if";
     public const string LabelArgument = "label";
     public const string InitialCount = "initialCount";

@@ -9,8 +9,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public partial class DocumentAnalyzer
     {
-        private static void CollectInputObjectTypes(
-            IDocumentAnalyzerContext context)
+        private static void CollectInputObjectTypes(IDocumentAnalyzerContext context)
         {
             var analyzer = new InputObjectTypeUsageAnalyzer(context.Schema);
             analyzer.Analyze(context.Document);
@@ -43,7 +42,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     GetClassName(rename?.Name ?? inputField.Name),
                     inputField.Description,
                     inputField,
-                    inputField.Type));
+                    inputField.DefaultValue is not null
+                        ? (IInputType)inputField.Type.NullableType()
+                        : inputField.Type
+                ));
 
                 context.RegisterType(inputField.Type.NamedType());
             }
@@ -56,7 +58,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             context.RegisterModel(
                 typeName,
                 new InputObjectTypeModel(
-                    GetClassName(rename?.Name ?? inputObjectType.Name),
+                    typeName,
                     inputObjectType.Description,
                     inputObjectType,
                     fields));

@@ -74,5 +74,17 @@ namespace HotChocolate.Types.Properties {
                 return ResourceManager.GetString("InputParameterExpressionBuilder_Build_NoAttribute", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_CannotResolvePayloadType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_CannotResolvePayloadType", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NonMutationFields {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NonMutationFields", resourceCulture);
+            }
+        }
     }
 }

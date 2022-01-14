@@ -280,7 +280,7 @@ public class QueryableProjectionInterfaceTypeTests
         res1.MatchSqlSnapshot();
     }
 
-    public static void OnModelCreating(ModelBuilder modelBuilder)
+    private static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AbstractType>()
             .HasDiscriminator<string>("d")
@@ -288,7 +288,7 @@ public class QueryableProjectionInterfaceTypeTests
             .HasValue<Foo>("foo");
     }
 
-    public static void ConfigureSchema(ISchemaBuilder schemaBuilder)
+    private static void ConfigureSchema(ISchemaBuilder schemaBuilder)
     {
         schemaBuilder
             .AddType(new ObjectType<Foo>(
@@ -301,21 +301,21 @@ public class QueryableProjectionInterfaceTypeTests
     {
         public int Id { get; set; }
 
-        public List<AbstractType>? List { get; set; }
+        public List<AbstractType> List { get; set; } = default!;
     }
 
     public class NestedObject
     {
         public int Id { get; set; }
 
-        public AbstractType? Nested { get; set; }
+        public AbstractType Nested { get; set; } = default!;
     }
 
     public class Foo : AbstractType
     {
         public new int Id { get; set; }
 
-        public string? FooProp { get; set; }
+        public string FooProp { get; set; } = default!;
     }
 
     [InterfaceType]
@@ -323,7 +323,7 @@ public class QueryableProjectionInterfaceTypeTests
     {
         public int Id { get; set; }
 
-        public string? Name { get; set; }
+        public string Name { get; set; } = default!;
     }
 
     public class Bar : AbstractType

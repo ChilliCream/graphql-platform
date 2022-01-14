@@ -48,7 +48,7 @@ public class FilterInputTypeDescriptor<T>
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
-                Definition.EntityType,
+                Definition.EntityType!,
                 p => FilterFieldDescriptor
                     .New(Context, Definition.Scope, p)
                     .CreateDefinition(),
@@ -97,9 +97,9 @@ public class FilterInputTypeDescriptor<T>
     }
 
     /// <inheritdoc />
-    public IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> property)
+    public IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember)
     {
-        if (property.ExtractMember() is PropertyInfo m)
+        if (propertyOrMember.ExtractMember() is PropertyInfo m)
         {
             FilterFieldDescriptor? fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Member == m);
@@ -115,7 +115,7 @@ public class FilterInputTypeDescriptor<T>
 
         throw new ArgumentException(
             FilterInputTypeDescriptor_Field_OnlyProperties,
-            nameof(property));
+            nameof(propertyOrMember));
     }
 
     /// <inheritdoc />
@@ -133,9 +133,9 @@ public class FilterInputTypeDescriptor<T>
     }
 
     /// <inheritdoc />
-    public IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> property)
+    public IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> propertyOrMember)
     {
-        if (property.ExtractMember() is PropertyInfo p)
+        if (propertyOrMember.ExtractMember() is PropertyInfo p)
         {
             FilterFieldDescriptor? fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Member == p);
@@ -152,7 +152,7 @@ public class FilterInputTypeDescriptor<T>
 
         throw new ArgumentException(
             FilterInputTypeDescriptor_Field_OnlyProperties,
-            nameof(property));
+            nameof(propertyOrMember));
     }
 
     public new IFilterInputTypeDescriptor<T> AllowOr(bool allow = true)

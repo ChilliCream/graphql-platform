@@ -23,7 +23,7 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
     /// A no-op activity scope that can be returned from
     /// event methods that are not interested in when the scope is disposed.
     /// </summary>
-    internal protected static IDisposable EmptyScope { get; } = new EmptyActivityScope();
+    protected internal static IDisposable EmptyScope { get; } = new EmptyActivityScope();
 
     /// <inheritdoc />
     public virtual IDisposable ExecuteRequest(IRequestContext context)
@@ -51,6 +51,42 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
     public virtual void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors)
     {
     }
+
+    /// <inheritdoc />
+    public virtual IDisposable AnalyzeOperationComplexity(IRequestContext context)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void OperationComplexityAnalyzerCompiled(IRequestContext context)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void OperationComplexityResult(
+        IRequestContext context,
+        int complexity,
+        int allowedComplexity)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual IDisposable CoerceVariables(IRequestContext context)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable CompileOperation(IRequestContext context)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteOperation(IRequestContext context)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteStream(IRequestContext context)
+        => EmptyScope;
+
+    public virtual IDisposable ExecuteDeferredTask()
+        => EmptyScope;
 
     /// <inheritdoc />
     public virtual IDisposable ResolveFieldValue(IMiddlewareContext context)

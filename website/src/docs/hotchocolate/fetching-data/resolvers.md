@@ -144,7 +144,7 @@ public class Startup
                     foo: String!
                 }
             ")
-            .BindComplexType<Query>();
+            .BindRuntimeType<Query>();
     }
 }
 ```

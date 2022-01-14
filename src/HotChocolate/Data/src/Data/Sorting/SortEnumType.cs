@@ -49,9 +49,9 @@ public class SortEnumType
         EnumValueDefinition definition,
         [NotNullWhen(true)] out IEnumValue? enumValue)
     {
-        if (definition is SortEnumValueDefinition sortDefiniton)
+        if (definition is SortEnumValueDefinition sortDefinition)
         {
-            enumValue = new SortEnumValue(context, sortDefiniton);
+            enumValue = new SortEnumValue(context, sortDefinition);
             return true;
         }
 
