@@ -84,7 +84,7 @@ We can make this even simpler, by creating an attribute inheriting from the `Use
 public class UseSomeDbContext : UseDbContextAttribute
 {
     public UseSomeDbContext([CallerLineNumber] int order = 0)
-        : base(typeof(SomeDbContext))
+        : base(typeof(SomeDbContext), order)
     {
         Order = order;
     }
