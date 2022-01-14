@@ -4,8 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.SchemaBuilding;
 
-public interface ISubGraphResolver
+public interface ISchemaDocumentResolver
 {
-    Task<DocumentNode> GetDocumentAsync(
-        CancellationToken cancellationToken = default);
+    Task<DocumentNode> GetDocumentAsync(CancellationToken cancellationToken = default);
 }

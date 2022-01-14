@@ -11,22 +11,22 @@ using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Stitching.SchemaBuilding;
 
-public class StitchingTypeModule : ITypeModule
+internal sealed class GatewayTypeModule : ITypeModule
 {
     private readonly SchemaInspector _schemaInspector = new();
     private readonly SchemaMerger _schemaMerger = new();
-    private readonly ISubGraphResolver[] _subGraphResolvers;
+    private readonly ISchemaDocumentResolver[] _schemaDocumentResolvers;
 
     public event EventHandler<EventArgs>? TypesChanged;
 
-    public StitchingTypeModule(IEnumerable<ISubGraphResolver> subGraphResolvers)
+    public GatewayTypeModule(IEnumerable<ISchemaDocumentResolver> schemaDocumentResolvers)
     {
-        if (subGraphResolvers is null)
+        if (schemaDocumentResolvers is null)
         {
-            throw new ArgumentNullException(nameof(subGraphResolvers));
+            throw new ArgumentNullException(nameof(schemaDocumentResolvers));
         }
 
-        _subGraphResolvers = subGraphResolvers.ToArray();
+        _schemaDocumentResolvers = schemaDocumentResolvers.ToArray();
     }
 
     public async ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
@@ -36,10 +36,10 @@ public class StitchingTypeModule : ITypeModule
         HashSet<NameString> sources = new();
         List<SchemaInfo> schemaInfos = new();
 
-        foreach (ISubGraphResolver subGraphResolver in _subGraphResolvers)
+        foreach (ISchemaDocumentResolver schemaDocumentResolver in _schemaDocumentResolvers)
         {
             var schemaDocument =
-                await subGraphResolver.GetDocumentAsync(cancellationToken)
+                await schemaDocumentResolver.GetDocumentAsync(cancellationToken)
                     .ConfigureAwait(false);
 
             SchemaInfo schemaInfo = _schemaInspector.Inspect(schemaDocument);

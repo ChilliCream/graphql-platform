@@ -17,4 +17,21 @@ public static class GatewayServiceCollectionBuilder
 
         return new DefaultGatewayBuilder(services.AddGraphQL(schemaName));
     }
+
+    public static IGatewayBuilder AddRemoteSchema(
+        this IGatewayBuilder builder,
+        string sourceText)
+    {
+        builder.Builder.ConfigureSchemaServices(
+            services => services.AddSingleton<ISchemaDocumentResolver>(
+                new FileSchemaDocumentResolver(sourceText)));
+
+        
+
+        builder.Builder.ConfigureSchema(
+            (sb, sp) => 
+            {
+                sb
+            });
+    }
 }
