@@ -69,7 +69,7 @@ public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
         {
             return new Representation()
             {
-                Typename = s.Value,
+                TypeName = s.Value,
                 Data = valueSyntax
             };
         }
@@ -123,7 +123,7 @@ public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
                 runtimeValue = new Representation
                 {
                     Data = ovn,
-                    Typename = svn.Value
+                    TypeName = svn.Value
                 };
                 return true;
             }

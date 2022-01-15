@@ -35,7 +35,7 @@ public class AnyTypeTests
         Assert.IsType<Representation>(representationObject);
         if (representationObject is Representation representation)
         {
-            Assert.Equal("test", representation.Typename);
+            Assert.Equal("test", representation.TypeName);
             Assert.Collection(representation.Data.Fields,
                 node =>
                 {
@@ -149,7 +149,7 @@ public class AnyTypeTests
         );
         var representation = new Representation
         {
-            Typename = "test",
+            TypeName = "test",
             Data = objectValueNode
         };
 
@@ -190,7 +190,7 @@ public class AnyTypeTests
         );
         var representation = new Representation
         {
-            Typename = "test",
+            TypeName = "test",
             Data = objectValueNode
         };
 
@@ -247,7 +247,7 @@ public class AnyTypeTests
         );
         var representation = new Representation
         {
-            Typename = "test",
+            TypeName = "test",
             Data = objectValueNode
         };
 
@@ -283,7 +283,7 @@ public class AnyTypeTests
         Representation? parsedRepresentation = Assert.IsType<Representation>(valueSyntax);
         Assert.Equal(
             "test",
-            parsedRepresentation.Typename);
+            parsedRepresentation.TypeName);
         Assert.Equal(
             objectValueNode,
             parsedRepresentation.Data);
@@ -319,7 +319,7 @@ public class AnyTypeTests
         );
         var representation = new Representation
         {
-            Typename = "test",
+            TypeName = "test",
             Data = objectValueNode
         };
 

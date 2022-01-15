@@ -26,7 +26,7 @@ public class ReferenceResolverTests
         }
     }
 
-    class FooRefResolver
+    public class FooRefResolver
     {
         public Task<FooWithResolverClass> GetAsync(string some1, string some2)
         {
