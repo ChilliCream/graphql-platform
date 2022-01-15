@@ -85,25 +85,16 @@ public static partial class HotChocolateValidationBuilderExtensions
         return builder;
     }
 
-    /// <summary>
-    /// Sets the maximum allowed depth of a query. The default
-    /// value is <see langword="null"/>. The minimum allowed value is
-    /// <c>1</c>.
-    /// </summary>
-    internal static IValidationBuilder SetAllowedExecutionDepth(
+    internal static IValidationBuilder ModifyValidationOptions(
         this IValidationBuilder builder,
-        int allowedExecutionDepth)
+        Action<ValidationOptions> configure)
     {
-        if (allowedExecutionDepth < 1)
+        if (configure is null)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(allowedExecutionDepth),
-                allowedExecutionDepth,
-                Resources.HotChocolateValidationBuilderExtensions_MinimumAllowedValue);
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        return builder.ConfigureValidation(m =>
-            m.Modifiers.Add(o => o.MaxAllowedExecutionDepth = allowedExecutionDepth));
+        return builder.ConfigureValidation(m => m.Modifiers.Add(o => configure(o)));
     }
 
     public static IValidationBuilder TryAddValidationVisitor<T>(
