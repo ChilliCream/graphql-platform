@@ -137,10 +137,42 @@ public static partial class RequestExecutorBuilderExtensions
         return ConfigureValidation(builder, b => b.TryAddValidationRule(factory));
     }
 
+    /// <summary>
+    /// Adds a validation rule that inspects if a GraphQL query document 
+    /// exceeds the maximum allowed operation depth.
+    /// </summary>
     public static IRequestExecutorBuilder AddMaxExecutionDepthRule(
         this IRequestExecutorBuilder builder,
-        int maxAllowedExecutionDepth) =>
+        int maxAllowedExecutionDepth)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
         ConfigureValidation(builder, b => b.AddMaxExecutionDepthRule(maxAllowedExecutionDepth));
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a validation rule that inspects if a GraphQL query document 
+    /// exceeds the maximum allowed operation depth.
+    /// </summary>
+    public static IRequestExecutorBuilder AddMaxExecutionDepthRule(
+        this IRequestExecutorBuilder builder,
+        int maxAllowedExecutionDepth,
+        bool skipIntrospectionFields)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        ConfigureValidation(
+            builder,
+            b => b.AddMaxExecutionDepthRule(maxAllowedExecutionDepth, skipIntrospectionFields));
+        return builder;
+    }
 
     /// <summary>
     /// Adds a validation rule that only allows requests to use `__schema` or `__type`

@@ -42,6 +42,12 @@ internal sealed class MaxExecutionDepthVisitor : DocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
+        if (_options.SkipIntrospectionFields && 
+            node.Name.Value.StartsWith("__"))
+        {
+            return Skip;
+        }
+
         context.Fields.Push(node);
 
         if (context.Count < context.Fields.Count)

@@ -7,4 +7,10 @@ public interface IMaxExecutionDepthOptionsAccessor
     /// <see langword="null"/>. The minimum allowed value is <c>1</c>.
     /// </summary>
     int? MaxAllowedExecutionDepth { get; }
+
+    /// <summary>
+    /// Specifies that the max execution depth analysis 
+    /// shall skip introspection fields.
+    /// </summary>
+    bool SkipIntrospectionFields { get; }
 }
