@@ -183,7 +183,6 @@ const Container = styled.div`
   justify-content: flex-end;
 
   @media only screen and (min-width: 992px) {
-    display: flex;
     flex: 0 0 auto;
   }
 `;

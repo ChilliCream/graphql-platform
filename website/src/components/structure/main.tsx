@@ -66,19 +66,17 @@ export const Main: FC = ({ children }) => {
 };
 
 const Container = styled.div`
-  width: 100%;
-  grid-row: 2;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr auto;
-  justify-content: center;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-top: 60px;
   overflow-y: auto;
 `;
 
 const Content = styled.main`
-  place-items: center;
-  display: grid;
-  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
+  overflow: visible;
 `;

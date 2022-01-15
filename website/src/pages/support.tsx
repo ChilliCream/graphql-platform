@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import {
   ContentContainer,
   EnvelopeIcon,
@@ -99,27 +99,23 @@ const SupportPage: FC = () => {
 export default SupportPage;
 
 const CardContainer = styled.div`
-  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
   justify-items: center;
+  margin-top: 1.5rem auto 0;
+  max-width: 800px;
 
   > :not(:first-child) {
     margin-top: 16px;
   }
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-
-  gap: 1.5rem;
 
   > div {
     margin-top: 0 !important;
   }
 
-  ${IsPhablet(`
+  ${IsPhablet(css`
     margin-top: 1rem;
-    grid-template-columns: minmax(0, 1fr)
+    grid-template-columns: minmax(0, 1fr);
   `)}
 `;

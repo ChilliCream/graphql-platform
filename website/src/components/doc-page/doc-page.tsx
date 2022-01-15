@@ -2,7 +2,7 @@ import { graphql, Link } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
 import React, { FC, useCallback, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { DocPageFragment } from "../../../graphql-types";
 import ListAltIconSvg from "../../images/list-alt.svg";
 import NewspaperIconSvg from "../../images/newspaper.svg";
@@ -198,11 +198,11 @@ const ArticleContainer = styled.div`
   grid-row: 1;
   grid-column: 3;
 
-  ${IsSmallDesktop(`
-      grid-column: 1;
+  ${IsSmallDesktop(css`
+    grid-column: 1;
   `)};
 
-  ${IsPhablet(`
+  ${IsPhablet(css`
     width: 100%;
     padding: 0;
   `)}
@@ -210,13 +210,15 @@ const ArticleContainer = styled.div`
 
 const Container = styled.div`
   display: grid;
+
   ${DocPageDesktopGridColumns};
-  ${IsSmallDesktop(`
+
+  ${IsSmallDesktop(css`
     grid-template-columns: 250px 1fr;
     width: auto;
   `)}
 
-  ${IsTablet(`
+  ${IsTablet(css`
     grid-template-columns: 1fr;
   `)}
 
@@ -229,7 +231,7 @@ const Container = styled.div`
     grid-row: 1;
     grid-column: 2;
 
-    ${IsSmallDesktop(`
+    ${IsSmallDesktop(css`
       grid-column: 1;
     `)}
   }
@@ -238,11 +240,11 @@ const Container = styled.div`
     grid-row: 1;
     grid-column: 1 / 6;
 
-    ${IsSmallDesktop(`
+    ${IsSmallDesktop(css`
       grid-column: 2 / 5;
     `)}
 
-    ${IsTablet(`
+    ${IsTablet(css`
       grid-column: 1 / 5;
     `)}
   }
@@ -251,7 +253,7 @@ const Container = styled.div`
     grid-row: 1;
     grid-column: 4;
 
-    ${IsPhablet(`
+    ${IsPhablet(css`
       grid-column: 1;
     `)}
   }
@@ -281,26 +283,25 @@ const ResponsiveMenu = styled.div`
     top: 60px;
   }
 
-  ${IsPhablet(`
+  ${IsPhablet(css`
     left: 0;
     width: auto;
     right: 0;
-    margin-left: 0;
-    margin-right: 0;
+    margin: 0;
     top: 60px;
   `)}
 
-  ${IsDesktop(`
+  ${IsDesktop(css`
     display: none;
   `)}
 
-  ${IsSmallDesktop(`
+  ${IsSmallDesktop(css`
     > .toc-toggle {
       display: none;
     }
   `)}
 
-  ${IsTablet(`
+  ${IsTablet(css`
     > .toc-toggle {
       display: initial;
     }

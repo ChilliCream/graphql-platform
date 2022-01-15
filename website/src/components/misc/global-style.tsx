@@ -1,29 +1,5 @@
 import { createGlobalStyle } from "styled-components";
 
-export const GlobalLayoutStyle = createGlobalStyle`
- html {
-    overflow: hidden;
-    height: 100%;
-  }
-
-  body {
-    overflow: hidden;
-    height: 100%;
-    margin: 0;
-
-    > div:first-child {
-        height: 100%;
-        display: block;
-        > div {
-          height: 100%;
-          display: grid;
-          grid-template-rows: 60px auto;
-          grid-template-columns: 1fr;
-        }
-      }
-  }
-`;
-
 export const GlobalStyle = createGlobalStyle`
   :root {
     --primary-color: #3b4f74;//before: f40010;
@@ -43,19 +19,34 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   html {
+    height: 100vh;
+    overflow: hidden;
     font-family: sans-serif;
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
     font-size: 18px;
     line-height: 30px;
     color: var(--text-color);
     scroll-behavior: smooth;
-
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    > div:first-child {
+      display: block;
+      height: 100vh;
+
+      > div {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+    }
   }
 
   * {

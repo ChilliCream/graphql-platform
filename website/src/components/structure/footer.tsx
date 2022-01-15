@@ -80,7 +80,7 @@ export const Footer: FC = () => {
           </Connect>
         </About>
         <Links>
-          <Title>General Links</Title>
+          <Title>Navigation</Title>
           <Navigation>
             {topnav!.map((item, index) => (
               <NavLink key={`topnav-item-${index}`} to={item!.link!}>
@@ -115,17 +115,13 @@ export const Footer: FC = () => {
 };
 
 const Container = styled.footer`
-  display: grid;
-  place-items: center;
-
-  padding: 40px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0 60px;
   width: 100%;
   background-color: #252d3c;
   color: var(--footer-text-color);
-
-  @media only screen and (min-width: 1440px) {
-    padding: 40px 0 60px;
-  }
 `;
 
 const Section = styled.div`

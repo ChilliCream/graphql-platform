@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { IsMobile, IsSmallDesktop } from "../../shared-style";
 
 export const Intro = styled.header`
@@ -35,12 +35,13 @@ export const Hero = styled.h1`
   font-size: 2.222em;
   text-align: center;
   color: var(--text-color-contrast);
-  ${IsSmallDesktop(`
-    padding: 0 40px;
+
+  ${IsMobile(css`
+    padding: 0 15px;
   `)}
 
-  ${IsMobile(`
-    padding: 0 15px;
+  ${IsSmallDesktop(css`
+    padding: 0 40px;
   `)}
 `;
 
@@ -50,11 +51,12 @@ export const Teaser = styled.p`
   font-size: 1.222em;
   text-align: center;
   color: var(--quaternary-color);
-  ${IsSmallDesktop(`
-    padding: 0 40px;
+
+  ${IsMobile(css`
+    padding: 0 15px;
   `)}
 
-  ${IsMobile(`
-    padding: 0 15px;
+  ${IsSmallDesktop(css`
+    padding: 0 40px;
   `)}
 `;
