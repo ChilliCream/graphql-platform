@@ -88,14 +88,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     internal static IValidationBuilder ModifyValidationOptions(
         this IValidationBuilder builder,
         Action<ValidationOptions> configure)
-    {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
-        return builder.ConfigureValidation(m => m.Modifiers.Add(o => configure(o)));
-    }
+        => builder.ConfigureValidation(m => m.Modifiers.Add(configure));
 
     public static IValidationBuilder TryAddValidationVisitor<T>(
         this IValidationBuilder builder,
