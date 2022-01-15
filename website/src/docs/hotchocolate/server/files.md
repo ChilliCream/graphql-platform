@@ -42,7 +42,7 @@ services
 We can use the `Upload` scalar as an argument like the following:
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Mutation
@@ -60,8 +60,8 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class MutationType : ObjectType
@@ -87,12 +87,12 @@ public class MutationType : ObjectType
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Take a look at the Annotation-based or Code-first example.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 [Learn more about arguments](/docs/hotchocolate/defining-a-schema/arguments)
@@ -100,7 +100,7 @@ Take a look at the Annotation-based or Code-first example.
 In input object types it can be used like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class ExampleInput
@@ -110,8 +110,8 @@ public class ExampleInput
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class ExampleInput
@@ -128,12 +128,12 @@ public class ExampleInputType : InputObjectType<ExampleInput>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Take a look at the Annotation-based or Code-first example.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 [Learn more about input object types](/docs/hotchocolate/defining-a-schema/input-object-types)

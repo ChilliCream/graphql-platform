@@ -49,7 +49,7 @@ module.exports = {
             options: {
               mermaidOptions: {
                 fontFamily: "sans-serif",
-                sequence: { showSequenceNumbers: true }
+                sequence: { showSequenceNumbers: true },
               },
             },
           },

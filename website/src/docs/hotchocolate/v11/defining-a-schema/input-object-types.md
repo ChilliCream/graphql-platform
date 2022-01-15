@@ -20,7 +20,7 @@ input BookInput {
 Input object types can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class BookInput
@@ -80,8 +80,8 @@ type Mutation {
 
 > Note: While it is possible, it is not encouraged, as it complicates future extensions of either type.
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class BookInput
@@ -123,8 +123,8 @@ The `IInputTypeDescriptor` is really similar to the `IObjectTypeDescriptor` and 
 
 [Learn more about object types](/docs/hotchocolate/v11/defining-a-schema/object-types)
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class BookInput
@@ -163,7 +163,7 @@ public class Startup
 
 > ⚠ Note: Object types nested inside of an input object type need to also be declared as input object types.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Immutable types
