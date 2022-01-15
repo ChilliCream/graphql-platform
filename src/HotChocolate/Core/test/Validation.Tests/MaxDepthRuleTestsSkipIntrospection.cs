@@ -3,10 +3,10 @@ using Xunit;
 
 namespace HotChocolate.Validation
 {
-    public class MaxDepthRuleTests : DocumentValidatorVisitorTestBase
+    public class MaxDepthRuleTestsSkipIntrospection : DocumentValidatorVisitorTestBase
     {
-        public MaxDepthRuleTests()
-            : base(b => b.AddMaxExecutionDepthRule(3, skipIntrospectionFields: false))
+        public MaxDepthRuleTestsSkipIntrospection()
+            : base(b => b.AddMaxExecutionDepthRule(3, skipIntrospectionFields: true))
         {
         }
 
@@ -88,9 +88,9 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void MaxDepth3_IntrospectionQuery_Exceeds_Allowed_Depth_Error()
+        public void MaxDepth3_IntrospectionQuery_Exceeds_Allowed_Depth_Valid()
         {
-            ExpectErrors(@"
+            ExpectValid(@"
                 query {
                     __schema {
                         types {

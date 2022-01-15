@@ -20,7 +20,7 @@ input BookInput {
 Input object types can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class BookInput
@@ -80,8 +80,8 @@ type Mutation {
 
 > Note: While it is possible, it is not encouraged, as it complicates future extensions of either type.
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class BookInput
@@ -123,8 +123,8 @@ The `IInputTypeDescriptor` is really similar to the `IObjectTypeDescriptor` and 
 
 [Learn more about object types](/docs/hotchocolate/defining-a-schema/object-types)
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class BookInput
@@ -161,7 +161,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Immutable types
@@ -197,7 +197,7 @@ public record BookingInput(string Title, string Author);
 
 ## Oneof Input Objects
 
-Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null, all others being omitted. This is represented in introspection with the __Type.oneField: Boolean field, and in SDL via the @oneOf directive on the input object.
+Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null, all others being omitted. This is represented in introspection with the \_\_Type.oneField: Boolean field, and in SDL via the @oneOf directive on the input object.
 
 > ⚠️ Note: Oneof Input Objects is currently a proposed feature to the GraphQL spec. https://github.com/graphql/graphql-spec/pull/825
 
@@ -231,7 +231,7 @@ builder.Services
 Once activate you can create Oneof Input Objects like the following:
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [OneOf]
@@ -242,7 +242,7 @@ public class PetInput
     public Cat? Cat { get; set; }
 }
 
-public interface IPet 
+public interface IPet
 {
     string Name { get; }
 }
@@ -299,8 +299,8 @@ type Mutation {
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class PetInput
@@ -393,8 +393,8 @@ type Mutation {
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class PetInput
@@ -404,7 +404,7 @@ public class PetInput
     public Cat? Cat { get; set; }
 }
 
-public interface IPet 
+public interface IPet
 {
     string Name { get; }
 }
@@ -471,5 +471,5 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

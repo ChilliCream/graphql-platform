@@ -32,7 +32,7 @@ enum UserRole {
 We can define descriptions like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [GraphQLDescription("An object type")]
@@ -64,8 +64,8 @@ If the description provided to the `GraphQLDescriptionAttribute` is `null` or ma
 
 Learn more about XML documentation below.
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -115,8 +115,8 @@ public class QueryType : ObjectType
 
 The `Description()` methods take precedence over all other forms of documentation. This is true, even if the provided value is `null` or only white space.
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 services
@@ -148,7 +148,7 @@ services
     // Omitted code for brevity
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 # XML Documentation

@@ -303,10 +303,20 @@ public static partial class HotChocolateValidationBuilderExtensions
     public static IValidationBuilder AddMaxExecutionDepthRule(
         this IValidationBuilder builder,
         int maxAllowedExecutionDepth)
+        => AddMaxExecutionDepthRule(builder, maxAllowedExecutionDepth, false);
+
+    public static IValidationBuilder AddMaxExecutionDepthRule(
+        this IValidationBuilder builder,
+        int maxAllowedExecutionDepth,
+        bool skipIntrospectionFields)
     {
         return builder
             .TryAddValidationVisitor((_, o) => new MaxExecutionDepthVisitor(o))
-            .SetAllowedExecutionDepth(maxAllowedExecutionDepth);
+            .ModifyValidationOptions(o =>
+            {
+                o.MaxAllowedExecutionDepth = maxAllowedExecutionDepth;
+                o.SkipIntrospectionFields = skipIntrospectionFields;
+            });
     }
 
     /// <summary>
