@@ -5,7 +5,7 @@ import { InlineCode } from "../mdx/inline-code";
 import { CookieConsent } from "../misc/cookie-consent";
 import { GlobalLayoutStyle, GlobalStyle } from "../misc/global-style";
 import { Header } from "./header";
-import { MainContentContainer } from "./main-content-container/main-content-container";
+import { Main } from "./main";
 
 export const Layout: FC = ({ children }) => {
   const components = {
@@ -19,7 +19,7 @@ export const Layout: FC = ({ children }) => {
       <GlobalLayoutStyle />
       <Header />
       <MDXProvider components={components}>
-        <MainContentContainer>{children}</MainContentContainer>
+        <Main>{children}</Main>
       </MDXProvider>
       <CookieConsent />
     </>
