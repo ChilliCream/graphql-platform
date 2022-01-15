@@ -1,4 +1,5 @@
 ﻿using System;
+using HotChocolate.Language;
 using Moq;
 using Xunit;
 
@@ -14,7 +15,7 @@ namespace HotChocolate.Types
             var y = new NonNullType(new StringType());
 
             // act
-            bool result = x.IsEqualTo(y);
+            var result = x.IsEqualTo(y);
 
             // assert
             Assert.True(result);
@@ -28,7 +29,7 @@ namespace HotChocolate.Types
             var y = new ListType(new StringType());
 
             // act
-            bool result = x.IsEqualTo(y);
+            var result = x.IsEqualTo(y);
 
             // assert
             Assert.True(result);
@@ -42,7 +43,7 @@ namespace HotChocolate.Types
             var y = new NonNullType(new ListType(new StringType()));
 
             // act
-            bool result = x.IsEqualTo(y);
+            var result = x.IsEqualTo(y);
 
             // assert
             Assert.True(result);
@@ -56,7 +57,7 @@ namespace HotChocolate.Types
             var y = new ListType(new StringType());
 
             // act
-            bool result = x.IsEqualTo(y);
+            var result = x.IsEqualTo(y);
 
             // assert
             Assert.False(result);
@@ -69,7 +70,7 @@ namespace HotChocolate.Types
             var x = new StringType();
 
             // act
-            bool result = x.IsEqualTo(x);
+            var result = x.IsEqualTo(x);
 
             // assert
             Assert.True(result);
@@ -83,7 +84,7 @@ namespace HotChocolate.Types
             var y = new ListType(new IntType());
 
             // act
-            bool result = x.IsEqualTo(y);
+            var result = x.IsEqualTo(y);
 
             // assert
             Assert.False(result);
@@ -99,7 +100,7 @@ namespace HotChocolate.Types
                         new StringType())));
 
             // act
-            StringType stringType = type.NamedType() as StringType;
+            var stringType = type.NamedType() as StringType;
 
             // assert
             Assert.NotNull(stringType);
@@ -109,10 +110,10 @@ namespace HotChocolate.Types
         public static void NamedType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.NamedType(null);
+            void Action() => TypeExtensions.NamedType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -122,7 +123,7 @@ namespace HotChocolate.Types
             var type = new NonNullType(new StringType());
 
             // act
-            bool result = type.IsNonNullType();
+            var result = type.IsNonNullType();
 
             // assert
             Assert.True(result);
@@ -135,7 +136,7 @@ namespace HotChocolate.Types
             var type = new StringType();
 
             // act
-            bool result = type.IsNonNullType();
+            var result = type.IsNonNullType();
 
             // assert
             Assert.False(result);
@@ -145,10 +146,10 @@ namespace HotChocolate.Types
         public static void IsNonNullType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsNonNullType(null);
+            void Action() => TypeExtensions.IsNonNullType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -158,7 +159,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<ObjectType>();
 
             // act
-            bool result = type.IsCompositeType();
+            var result = type.IsCompositeType();
 
             // assert
             Assert.True(result);
@@ -171,7 +172,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<InterfaceType>();
 
             // act
-            bool result = type.IsCompositeType();
+            var result = type.IsCompositeType();
 
             // assert
             Assert.True(result);
@@ -184,7 +185,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<UnionType>();
 
             // act
-            bool result = type.IsCompositeType();
+            var result = type.IsCompositeType();
 
             // assert
             Assert.True(result);
@@ -197,7 +198,7 @@ namespace HotChocolate.Types
             var type = new StringType();
 
             // act
-            bool result = type.IsCompositeType();
+            var result = type.IsCompositeType();
 
             // assert
             Assert.False(result);
@@ -207,10 +208,10 @@ namespace HotChocolate.Types
         public static void IsCompositeType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsCompositeType(null);
+            void Action() => TypeExtensions.IsCompositeType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -220,7 +221,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<ObjectType>();
 
             // act
-            bool result = type.IsComplexType();
+            var result = type.IsComplexType();
 
             // assert
             Assert.True(result);
@@ -233,7 +234,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<InterfaceType>();
 
             // act
-            bool result = type.IsComplexType();
+            var result = type.IsComplexType();
 
             // assert
             Assert.True(result);
@@ -243,10 +244,11 @@ namespace HotChocolate.Types
         public static void IsComplexType_UnionType_False()
         {
             // arrange
-            IType type = Mock.Of<UnionType>();
+            var type = new Mock<UnionType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Union);
 
             // act
-            bool result = type.IsComplexType();
+            var result = type.Object.IsComplexType();
 
             // assert
             Assert.False(result);
@@ -259,7 +261,7 @@ namespace HotChocolate.Types
             var type = new StringType();
 
             // act
-            bool result = type.IsComplexType();
+            var result = type.IsComplexType();
 
             // assert
             Assert.False(result);
@@ -269,10 +271,10 @@ namespace HotChocolate.Types
         public static void IsComplexType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsComplexType(null);
+            void Action() => TypeExtensions.IsComplexType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -282,7 +284,7 @@ namespace HotChocolate.Types
             var type = new StringType();
 
             // act
-            bool result = type.IsLeafType();
+            var result = type.IsLeafType();
 
             // assert
             Assert.True(result);
@@ -292,10 +294,11 @@ namespace HotChocolate.Types
         public static void IsLeafType_EnumType_True()
         {
             // arrange
-            IType type = Mock.Of<EnumType>();
+            var type = new Mock<EnumType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Enum);
 
             // act
-            bool result = type.IsLeafType();
+            var result = type.Object.IsLeafType();
 
             // assert
             Assert.True(result);
@@ -308,7 +311,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<UnionType>();
 
             // act
-            bool result = type.IsLeafType();
+            var result = type.IsLeafType();
 
             // assert
             Assert.False(result);
@@ -318,10 +321,10 @@ namespace HotChocolate.Types
         public static void IsLeafType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsLeafType(null);
+            void Action() => TypeExtensions.IsLeafType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -331,7 +334,7 @@ namespace HotChocolate.Types
             IType type = new ListType(new StringType());
 
             // act
-            bool result = type.IsListType();
+            var result = type.IsListType();
 
             // assert
             Assert.True(result);
@@ -344,7 +347,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<UnionType>();
 
             // act
-            bool result = type.IsListType();
+            var result = type.IsListType();
 
             // assert
             Assert.False(result);
@@ -354,10 +357,10 @@ namespace HotChocolate.Types
         public static void IsListType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsListType(null);
+            void Action() => TypeExtensions.IsListType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -367,7 +370,7 @@ namespace HotChocolate.Types
             IType type = new StringType();
 
             // act
-            bool result = type.IsScalarType();
+            var result = type.IsScalarType();
 
             // assert
             Assert.True(result);
@@ -380,7 +383,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<UnionType>();
 
             // act
-            bool result = type.IsScalarType();
+            var result = type.IsScalarType();
 
             // assert
             Assert.False(result);
@@ -390,20 +393,21 @@ namespace HotChocolate.Types
         public static void IsScalarType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsScalarType(null);
+            void Action() => TypeExtensions.IsScalarType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
         public static void IsObjectType_True()
         {
             // arrange
-            IType type = Mock.Of<ObjectType>();
+            var type = new Mock<ObjectType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Object);
 
             // act
-            bool result = type.IsObjectType();
+            var result = type.Object.IsObjectType();
 
             // assert
             Assert.True(result);
@@ -416,7 +420,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<UnionType>();
 
             // act
-            bool result = type.IsObjectType();
+            var result = type.IsObjectType();
 
             // assert
             Assert.False(result);
@@ -426,10 +430,10 @@ namespace HotChocolate.Types
         public static void IsObjectType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsObjectType(null);
+            void Action() => TypeExtensions.IsObjectType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -439,7 +443,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<InterfaceType>();
 
             // act
-            bool result = type.IsInterfaceType();
+            var result = type.IsInterfaceType();
 
             // assert
             Assert.True(result);
@@ -449,10 +453,11 @@ namespace HotChocolate.Types
         public static void IsScalarType_False()
         {
             // arrange
-            IType type = Mock.Of<UnionType>();
+            var type = new Mock<UnionType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Union);
 
             // act
-            bool result = type.IsInterfaceType();
+            var result = type.Object.IsScalarType();
 
             // assert
             Assert.False(result);
@@ -462,20 +467,21 @@ namespace HotChocolate.Types
         public static void IsInterfaceType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsInterfaceType(null);
+            void Action() => TypeExtensions.IsInterfaceType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
         public static void IsEnumType_True()
         {
             // arrange
-            IType type = Mock.Of<EnumType>();
+            var type = new Mock<EnumType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Enum);
 
             // act
-            bool result = type.IsEnumType();
+            var result = type.Object.IsEnumType();
 
             // assert
             Assert.True(result);
@@ -488,7 +494,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<UnionType>();
 
             // act
-            bool result = type.IsEnumType();
+            var result = type.IsEnumType();
 
             // assert
             Assert.False(result);
@@ -498,20 +504,21 @@ namespace HotChocolate.Types
         public static void IsEnumType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsEnumType(null);
+            void Action() => TypeExtensions.IsEnumType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
         public static void IsUnionType_True()
         {
             // arrange
-            IType type = Mock.Of<UnionType>();
+            var type = new Mock<UnionType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Union);
 
             // act
-            bool result = type.IsUnionType();
+            var result = type.Object.IsUnionType();
 
             // assert
             Assert.True(result);
@@ -524,7 +531,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<ObjectType>();
 
             // act
-            bool result = type.IsUnionType();
+            var result = type.IsUnionType();
 
             // assert
             Assert.False(result);
@@ -534,20 +541,21 @@ namespace HotChocolate.Types
         public static void IsUnionType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsUnionType(null);
+            void Action() => TypeExtensions.IsUnionType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
         public static void IsInputObjectType_True()
         {
             // arrange
-            IType type = Mock.Of<InputObjectType>();
+            var type = new Mock<InputObjectType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.InputObject);
 
             // act
-            bool result = type.IsInputObjectType();
+            var result = type.Object.IsInputObjectType();
 
             // assert
             Assert.True(result);
@@ -560,7 +568,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<UnionType>();
 
             // act
-            bool result = type.IsInputObjectType();
+            var result = type.IsInputObjectType();
 
             // assert
             Assert.False(result);
@@ -570,10 +578,10 @@ namespace HotChocolate.Types
         public static void IsInputObjectType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsInputObjectType(null);
+            void Action() => TypeExtensions.IsInputObjectType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -583,7 +591,7 @@ namespace HotChocolate.Types
             IType type = new StringType();
 
             // act
-            bool result = type.IsInputType();
+            var result = type.IsInputType();
 
             // assert
             Assert.True(result);
@@ -596,7 +604,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<UnionType>();
 
             // act
-            bool result = type.IsInputType();
+            var result = type.IsInputType();
 
             // assert
             Assert.False(result);
@@ -606,10 +614,10 @@ namespace HotChocolate.Types
         public static void IsInputType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsInputType(null);
+            void Action() => TypeExtensions.IsInputType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -619,7 +627,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<UnionType>();
 
             // act
-            bool result = type.IsOutputType();
+            var result = type.IsOutputType();
 
             // assert
             Assert.True(result);
@@ -632,7 +640,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<InputObjectType>();
 
             // act
-            bool result = type.IsOutputType();
+            var result = type.IsOutputType();
 
             // assert
             Assert.False(result);
@@ -642,10 +650,10 @@ namespace HotChocolate.Types
         public static void IsOutputType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsOutputType(null);
+            void Action() => TypeExtensions.IsOutputType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -655,7 +663,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<InterfaceType>();
 
             // act
-            bool result = type.IsAbstractType();
+            var result = type.IsAbstractType();
 
             // assert
             Assert.True(result);
@@ -668,7 +676,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<UnionType>();
 
             // act
-            bool result = type.IsAbstractType();
+            var result = type.IsAbstractType();
 
             // assert
             Assert.True(result);
@@ -678,10 +686,11 @@ namespace HotChocolate.Types
         public static void IsAbstractType_False()
         {
             // arrange
-            IType type = Mock.Of<InputObjectType>();
+            var type = new Mock<InputObjectType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.InputObject);
 
             // act
-            bool result = type.IsAbstractType();
+            var result = type.Object.IsAbstractType();
 
             // assert
             Assert.False(result);
@@ -691,10 +700,10 @@ namespace HotChocolate.Types
         public static void IsAbstractType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsAbstractType(null);
+            void Action() => TypeExtensions.IsAbstractType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -704,7 +713,7 @@ namespace HotChocolate.Types
             IType type = new StringType();
 
             // act
-            bool result = type.IsType<StringType>();
+            var result = type.IsType(TypeKind.Scalar);
 
             // assert
             Assert.True(result);
@@ -717,7 +726,7 @@ namespace HotChocolate.Types
             IType type = new NonNullType(new StringType());
 
             // act
-            bool result = type.IsType<StringType>();
+            var result = type.IsType(TypeKind.Scalar);
 
             // assert
             Assert.True(result);
@@ -730,7 +739,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<InputObjectType>();
 
             // act
-            bool result = type.IsType<StringType>();
+            var result = type.IsType(TypeKind.Scalar);
 
             // assert
             Assert.False(result);
@@ -740,10 +749,150 @@ namespace HotChocolate.Types
         public static void IsType_Type_Is_Null()
         {
             // act
-            Action action = () => TypeExtensions.IsAbstractType(null);
+            void Action() => TypeExtensions.IsAbstractType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void RewriteType_NonNull_To_Nullable()
+        {
+            // arrange
+            var type = new NonNullType(new StringType());
+            var nullability = new OptionalModifierNode(null, null);
+
+            // act
+            IType rewritten = type.RewriteNullability(nullability);
+
+            // assert
+            Assert.IsType<StringType>(rewritten);
+        }
+
+        [Fact]
+        public void RewriteType_NonNull_To_NonNull()
+        {
+            // arrange
+            var type = new NonNullType(new StringType());
+            var nullability = new RequiredModifierNode(null, null);
+
+            // act
+            IType rewritten = type.RewriteNullability(nullability);
+
+            // assert
+            Assert.IsType<StringType>(Assert.IsType<NonNullType>(rewritten).Type);
+        }
+
+        [Fact]
+        public void RewriteType_Nullable_To_NonNull()
+        {
+            // arrange
+            var type = new StringType();
+            var nullability = new RequiredModifierNode(null, null);
+
+            // act
+            IType rewritten = type.RewriteNullability(nullability);
+
+            // assert
+            Assert.IsType<StringType>(Assert.IsType<NonNullType>(rewritten).Type);
+        }
+
+        [Fact]
+        public void RewriteType_Nullable_To_Nullable()
+        {
+            // arrange
+            var type = new StringType();
+            var nullability = new OptionalModifierNode(null, null);
+
+            // act
+            IType rewritten = type.RewriteNullability(nullability);
+
+            // assert
+            Assert.IsType<StringType>(rewritten);
+        }
+
+        [Fact]
+        public void RewriteType_ListNonNull_To_ListNullable()
+        {
+            // arrange
+            var type = new ListType(new NonNullType(new StringType()));
+            var nullability = new ListNullabilityNode(null, new OptionalModifierNode(null, null));
+
+            // act
+            IType rewritten = type.RewriteNullability(nullability);
+
+            // assert
+            Assert.IsType<StringType>(
+                Assert.IsType<ListType>(rewritten).ElementType);
+        }
+
+        [Fact]
+        public void RewriteType_NonNullListNonNull_To_NonNullListNullable()
+        {
+            // arrange
+            var type = new NonNullType(new ListType(new NonNullType(new StringType())));
+            var nullability = new ListNullabilityNode(null, new OptionalModifierNode(null, null));
+
+            // act
+            IType rewritten = type.RewriteNullability(nullability);
+
+            // assert
+            Assert.IsType<StringType>(
+                Assert.IsType<ListType>(
+                    Assert.IsType<NonNullType>(rewritten).Type).ElementType);
+        }
+
+        [Fact]
+        public void RewriteType_DoNothing()
+        {
+            // arrange
+            var type = new NonNullType(
+                new ListType(
+                    new ListType(
+                        new NonNullType(
+                            new StringType()))));
+
+            var nullability = new ListNullabilityNode(null, new ListNullabilityNode(null, null));
+
+            // act
+            IType rewritten = type.RewriteNullability(nullability);
+
+            // assert
+            Assert.IsType<StringType>(
+                Assert.IsType<NonNullType>(
+                    Assert.IsType<ListType>(
+                        Assert.IsType<ListType>(
+                            Assert.IsType<NonNullType>(rewritten).Type)
+                                .ElementType)
+                                    .ElementType)
+                                        .Type);
+        }
+
+        [Fact]
+        public void RewriteType_Modifier_Structure_Does_Not_Match_Type_Structure()
+        {
+            // arrange
+            var type = new StringType();
+            var nullability = new ListNullabilityNode(null, null);
+
+            // act
+            void Fail() => type.RewriteNullability(nullability);
+
+            // assert
+            Assert.Throws<InvalidOperationException>(Fail);
+        }
+
+        [Fact]
+        public void RewriteType_No_Nullable_Modifier()
+        {
+            // arrange
+            var type = new StringType();
+
+            // act
+            IType rewritten = type.RewriteNullability(null);
+
+            // assert
+            Assert.IsType<StringType>(rewritten);
         }
     }
 }

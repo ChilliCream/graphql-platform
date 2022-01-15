@@ -1,5 +1,4 @@
 import styled from "styled-components";
-
 import CheckIconSvg from "../../images/check.svg";
 import EnvelopeIconSvg from "../../images/envelope.svg";
 import SlackIconSvg from "../../images/slack.svg";
@@ -25,7 +24,7 @@ export const Section = styled.section`
   overflow: hidden;
 
   &:nth-child(odd) {
-    background-color: #efefef;
+    background-color: #e8ecf5;
   }
 
   @media only screen and (min-width: 992px) {
@@ -85,7 +84,7 @@ export const ContentContainer = styled.div<{ noImage?: boolean }>`
 export const SectionTitle = styled.h1<{ centerAlways?: boolean }>`
   flex: 0 0 auto;
   font-size: 1.75em;
-  color: #667;
+  color: var(--text-color);
   text-align: center;
 
   @media only screen and (min-width: 768px) {
@@ -120,7 +119,7 @@ export const EnvelopeIcon = styled(EnvelopeIconSvg)`
   width: 24px;
   height: 24px;
   vertical-align: middle;
-  fill: #666;
+  fill: var(--text-color);
 
   &:hover {
     fill: #000;
@@ -131,7 +130,7 @@ export const SlackIcon = styled(SlackIconSvg)`
   width: 24px;
   height: 24px;
   vertical-align: middle;
-  fill: #666;
+  fill: var(--text-color);
 
   &:hover {
     fill: #000;

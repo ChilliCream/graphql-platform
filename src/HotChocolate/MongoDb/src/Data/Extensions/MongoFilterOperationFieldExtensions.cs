@@ -2,7 +2,7 @@ using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data.MongoDb
 {
-    internal static class MongoFilterOperationFieldExtensions
+    public static class MongoFilterOperationFieldExtensions
     {
         public static string GetName(
             this IFilterField field)

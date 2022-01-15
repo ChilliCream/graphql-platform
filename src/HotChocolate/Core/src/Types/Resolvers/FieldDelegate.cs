@@ -2,23 +2,23 @@ using System.Threading.Tasks;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers
-{
-    /// <summary>
-    /// This delegate defines the interface of a field pipeline that the
-    /// execution engine invokes to resolve a field result.
-    /// </summary>
-    /// <param name="context">The middleware context.</param>
-    public delegate ValueTask FieldDelegate(IMiddlewareContext context);
+namespace HotChocolate.Resolvers;
 
-    /// <summary>
-    /// This delegate represents a pure field that can be executed without any side-effects.
-    /// </summary>
-    /// <param name="context">The middleware context.</param>
-    public delegate void PureFieldDelegate(IMiddlewareContext context);
+/// <summary>
+/// This delegate defines the interface of a field pipeline that the
+/// execution engine invokes to resolve a field result.
+/// </summary>
+/// <param name="context">The middleware context.</param>
+public delegate ValueTask FieldDelegate(IMiddlewareContext context);
 
-    /// <summary>
-    /// This delegate represents a field resolver that can be inlined when executing.
-    /// </summary>
-    public delegate object? InlineFieldDelegate(object? parent);
-}
+/// <summary>
+/// This delegates represents a pure resolver that is side-effect free and sync.
+/// </summary>
+/// <param name="context">The resolver context.</param>
+/// <returns>
+/// Returns the resolver result.
+/// </returns>
+public delegate object? PureFieldDelegate(IPureResolverContext context);
+
+
+public delegate object? ResultConverterDelegate(IPureResolverContext context, object? result);

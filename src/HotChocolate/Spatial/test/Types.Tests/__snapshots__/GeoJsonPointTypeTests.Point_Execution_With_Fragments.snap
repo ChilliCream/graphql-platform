@@ -19,7 +19,7 @@
       ],
       "Extensions": {
         "typeCondition": "Point",
-        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence"
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-Spread-Type-Existence"
       },
       "Exception": null,
       "SyntaxNode": {
@@ -63,6 +63,7 @@
               "Kind": "Field",
               "Alias": null,
               "Arguments": [],
+              "Required": null,
               "SelectionSet": null,
               "Location": {
                 "Start": 24,
@@ -86,6 +87,7 @@
               "Kind": "Field",
               "Alias": null,
               "Arguments": [],
+              "Required": null,
               "SelectionSet": null,
               "Location": {
                 "Start": 29,
@@ -109,6 +111,7 @@
               "Kind": "Field",
               "Alias": null,
               "Arguments": [],
+              "Required": null,
               "SelectionSet": null,
               "Location": {
                 "Start": 41,
@@ -132,6 +135,7 @@
               "Kind": "Field",
               "Alias": null,
               "Arguments": [],
+              "Required": null,
               "SelectionSet": null,
               "Location": {
                 "Start": 46,

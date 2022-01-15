@@ -1,3 +1,6 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
@@ -13,50 +16,80 @@ namespace HotChocolate.Types.Spatial.Serialization
         {
         }
 
-        protected override bool TrySerializeCoordinates(
-            Coordinate[] runtimeValue,
-            [NotNullWhen(true)] out object? resultValue)
-        {
-            if (runtimeValue.Length == 1)
-            {
-                resultValue = GeoJsonPositionSerializer.Default.Serialize(runtimeValue[0]);
-                return resultValue is {};
-            }
-
-            resultValue = null;
-            return false;
-        }
-
         public override MultiPoint CreateGeometry(
+            IType type,
             object? coordinates,
             int? crs)
         {
-            if (!(coordinates is Coordinate[] parts))
+            if (type is null)
             {
-                throw Serializer_Parse_CoordinatesIsInvalid();
+                throw new ArgumentNullException(nameof(type));
             }
 
-            var lineCount = parts.Length;
-            var geometries = new Point[lineCount];
+            Point[]? geometries;
 
-            for (var i = 0; i < lineCount; i++)
+            if (coordinates is IList { Count: > 0 } listObjects &&
+                listObjects.TryConvertToCoordinates(out Coordinate[] list))
             {
-                geometries[i] = GeoJsonPointSerializer.Default
-                    .CreateGeometry(parts[i], crs);
+                geometries = new Point[list.Length];
+
+                for (var i = 0; i < list.Length; i++)
+                {
+                    geometries[i] =
+                        GeoJsonPointSerializer.Default.CreateGeometry(type, list[i], crs);
+                }
+
+                goto Success;
             }
 
+            goto Error;
+
+            Success:
             if (crs is not null)
             {
                 GeometryFactory factory =
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
-
                 return factory.CreateMultiPoint(geometries);
             }
 
             return new MultiPoint(geometries);
+
+            Error:
+            throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
 
-        public static readonly GeoJsonMultiPointSerializer Default =
-            new GeoJsonMultiPointSerializer();
+        public override object CreateInstance(IType type, object?[] fieldValues)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (fieldValues[0] is not GeoJsonGeometryType.MultiPoint)
+            {
+                throw Geometry_Parse_InvalidType(type);
+            }
+
+            return CreateGeometry(type, fieldValues[1], (int?)fieldValues[2]);
+        }
+
+        public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (runtimeValue is not Geometry geometry)
+            {
+                throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
+            }
+
+            fieldValues[0] = GeoJsonGeometryType.MultiPoint;
+            fieldValues[1] = geometry.Coordinates;
+            fieldValues[2] = geometry.SRID;
+        }
+
+        public static readonly GeoJsonMultiPointSerializer Default = new();
     }
 }

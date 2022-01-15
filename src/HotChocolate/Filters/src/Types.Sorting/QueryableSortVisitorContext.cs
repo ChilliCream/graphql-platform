@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Sorting
         private const string _parameterName = "t";
 
         public QueryableSortVisitorContext(
+            InputParser inputParser,
             InputObjectType initialType,
             Type source,
             bool inMemory)
@@ -19,14 +20,17 @@ namespace HotChocolate.Types.Sorting
             {
                 throw new ArgumentNullException(nameof(source));
             }
+
             Closure = new SortQueryableClosure(source, _parameterName);
+            InputParser = inputParser ?? throw new ArgumentNullException(nameof(inputParser));
             InMemory = inMemory;
         }
 
+        public InputParser InputParser { get; }
+
         public SortQueryableClosure Closure { get; }
 
-        public Queue<SortOperationInvocation> SortOperations { get; } =
-            new Queue<SortOperationInvocation>();
+        public Queue<SortOperationInvocation> SortOperations { get; } = new();
 
         public bool InMemory { get; }
     }

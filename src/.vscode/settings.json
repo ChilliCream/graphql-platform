@@ -4,5 +4,6 @@
     "**/bower_components": true,
     "**/*.code-search": true,
     "**/PublicAPI*.txt": true
-  }
+  },
+  "editor.rulers": [100]
 }

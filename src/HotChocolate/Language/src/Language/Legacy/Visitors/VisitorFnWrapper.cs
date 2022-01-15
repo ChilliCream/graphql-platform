@@ -1,44 +1,43 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+internal class VisitorFnWrapper<T>
+    : ISyntaxNodeVisitor<T>
+    where T : ISyntaxNode
 {
-    internal class VisitorFnWrapper<T>
-        : ISyntaxNodeVisitor<T>
-        where T : ISyntaxNode
+    private readonly VisitorFn<T> _enter;
+    private readonly VisitorFn<T> _leave;
+
+    public VisitorFnWrapper(VisitorFn<T> enter, VisitorFn<T> leave)
     {
-        private readonly VisitorFn<T> _enter;
-        private readonly VisitorFn<T> _leave;
+        _enter = enter;
+        _leave = leave;
+    }
 
-        public VisitorFnWrapper(VisitorFn<T> enter, VisitorFn<T> leave)
+    public VisitorAction Enter(
+        T node,
+        ISyntaxNode parent,
+        IReadOnlyList<object> path,
+        IReadOnlyList<ISyntaxNode> ancestors)
+    {
+        if (_enter == null)
         {
-            _enter = enter;
-            _leave = leave;
+            return VisitorAction.Default;
         }
+        return _enter.Invoke(node, parent, path, ancestors);
+    }
 
-        public VisitorAction Enter(
-            T node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+    public VisitorAction Leave(
+        T node,
+        ISyntaxNode parent,
+        IReadOnlyList<object> path,
+        IReadOnlyList<ISyntaxNode> ancestors)
+    {
+        if (_leave == null)
         {
-            if (_enter == null)
-            {
-                return VisitorAction.Default;
-            }
-            return _enter.Invoke(node, parent, path, ancestors);
+            return VisitorAction.Default;
         }
-
-        public VisitorAction Leave(
-            T node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
-        {
-            if (_leave == null)
-            {
-                return VisitorAction.Default;
-            }
-            return _leave.Invoke(node, parent, path, ancestors);
-        }
+        return _leave.Invoke(node, parent, path, ancestors);
     }
 }

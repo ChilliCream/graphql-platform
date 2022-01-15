@@ -1,0 +1,20 @@
+﻿{
+  "data": {
+    "throw": {
+      "errors": [
+        {
+          "__typename": "CustomError",
+          "message": "Did work"
+        },
+        {
+          "__typename": "CustomNullRef",
+          "message": "This is a null ref"
+        },
+        {
+          "__typename": "ArgumentError",
+          "message": "Value does not fall within the expected range."
+        }
+      ]
+    }
+  }
+}

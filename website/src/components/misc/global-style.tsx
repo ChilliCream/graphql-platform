@@ -26,9 +26,18 @@ export const GlobalLayoutStyle = createGlobalStyle`
 
 export const GlobalStyle = createGlobalStyle`
   :root {
-    --brand-color: #f40010;
-    --brand-color-hover: #b7020a;
+    --primary-color: #3b4f74;//before: f40010;
+    --secondary-color: #516083;
+    --tertiary-color: #7989ab;
+    --quaternary-color: #bfcef1;
+    --link-color: #f4125b;
+    --text-color: #667;
+    --heading-text-color: #3b4f74;
+    --footer-text-color: #c6c6ce;
     --text-color-contrast: #fff;
+    --box-highlight-color: #e8ecf5;
+    --box-border-color: #bfcef1;
+    --warning-color: #ffba00;
     --border-radius: 4px;
     --font-size: .833rem;
   }
@@ -42,7 +51,7 @@ export const GlobalStyle = createGlobalStyle`
   body {
     font-size: 18px;
     line-height: 30px;
-    color: #667;
+    color: var(--text-color);
     scroll-behavior: smooth;
 
     -webkit-font-smoothing: antialiased;
@@ -67,7 +76,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   a {
-    color: var(--brand-color);
+    color: var(--link-color);
     text-decoration: none;
   }
 
@@ -88,18 +97,12 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: bold;
     line-height: 1.250em;
     text-rendering: optimizeLegibility;
-    color: #334;
+    color: var(--heading-text-color);
   }
 
   p {
     margin-bottom: 20px;
     line-height: 1.667em;
-
-    code {
-      padding: 2px 5px;
-      font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
-      font-size: var(--font-size);
-    }
   }
 
   h1 {
@@ -143,7 +146,7 @@ export const GlobalStyle = createGlobalStyle`
 
   blockquote {
     margin-bottom: 20px;
-    background-color: #e7e9eb;
+    background-color: #e8ecf5;
 
     > p:last-child {
       margin-bottom: 0;
@@ -197,7 +200,7 @@ export const GlobalStyle = createGlobalStyle`
     }
 
     > tr:hover {
-      background-color: #e7e9eb;
+      background-color: #e8ecf5;
     }
   }
 
@@ -208,7 +211,6 @@ export const GlobalStyle = createGlobalStyle`
     font-feature-settings: "tnum";
     font-size: var(--font-size);
     line-height: 1.667em;
-    text-align: left;
   }
 
   th {
@@ -231,15 +233,14 @@ export const GlobalStyle = createGlobalStyle`
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
-
   }
 
   /* Inline code style */
   :not(pre) > code {
-    border: 1px solid #aaa;
+    border: 1px solid var(--box-border-color);
     border-radius: .3em;
     background-color: initial;
-    color: #666;
+    color: var(--text-color);
   }
 
   a.anchor {
@@ -247,7 +248,7 @@ export const GlobalStyle = createGlobalStyle`
     left: 0;
     visibility: hidden;
   }
-  
+
   h1:hover a.anchor,
   h2:hover a.anchor,
   h3:hover a.anchor,
@@ -255,5 +256,5 @@ export const GlobalStyle = createGlobalStyle`
   h5:hover a.anchor,
   h6:hover a.anchor {
     visibility: visible;
-  }  
+  }
 `;

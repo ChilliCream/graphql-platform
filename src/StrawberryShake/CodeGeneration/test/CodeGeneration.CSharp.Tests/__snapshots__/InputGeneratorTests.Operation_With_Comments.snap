@@ -87,7 +87,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ITestResult
+    public partial interface ITestResult
     {
         public global::System.String? Foo
         {
@@ -574,7 +574,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ITestQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface ITestQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ITestResult>> Watch(global::Foo.Bar.Bar single, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -602,7 +602,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.ITestQuery Test
         {

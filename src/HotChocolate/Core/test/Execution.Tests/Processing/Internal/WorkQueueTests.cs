@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Processing.Internal
 
             // assert
             Assert.Equal(1, count);
-            Assert.False(queue.IsRunning);
+            Assert.False(queue.HasRunningTasks);
             Assert.False(queue.IsEmpty);
         }
 
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution.Processing.Internal
             // assert
             Assert.Equal(1, count1);
             Assert.Equal(2, count2);
-            Assert.False(queue.IsRunning);
+            Assert.False(queue.HasRunningTasks);
             Assert.False(queue.IsEmpty);
         }
 
@@ -59,7 +59,7 @@ namespace HotChocolate.Execution.Processing.Internal
             // assert
             Assert.Same(task2, task);
             Assert.True(success);
-            Assert.True(queue.IsRunning);
+            Assert.True(queue.HasRunningTasks);
             Assert.False(queue.IsEmpty);
         }
 
@@ -80,7 +80,7 @@ namespace HotChocolate.Execution.Processing.Internal
             // assert
             Assert.Same(task1, task);
             Assert.True(success);
-            Assert.True(queue.IsRunning);
+            Assert.True(queue.HasRunningTasks);
             Assert.True(queue.IsEmpty);
         }
 
@@ -96,13 +96,13 @@ namespace HotChocolate.Execution.Processing.Internal
 
             // act
             queue.TryTake(out var task);
-            queue.Complete(task!);
+            queue.Complete();
             queue.TryTake(out task);
-            queue.Complete(task!);
+            queue.Complete();
 
             // assert
             Assert.Same(task1, task);
-            Assert.False(queue.IsRunning);
+            Assert.False(queue.HasRunningTasks);
             Assert.True(queue.IsEmpty);
         }
 
@@ -121,7 +121,7 @@ namespace HotChocolate.Execution.Processing.Internal
 
             // assert
             Assert.Equal(0, queue.Count);
-            Assert.False(queue.IsRunning);
+            Assert.False(queue.HasRunningTasks);
             Assert.True(queue.IsEmpty);
         }
 
@@ -130,19 +130,19 @@ namespace HotChocolate.Execution.Processing.Internal
         {
             var queue = new WorkQueue();
             Assert.Equal(0, queue.Count);
-            Assert.False(queue.IsRunning);
+            Assert.False(queue.HasRunningTasks);
             Assert.True(queue.IsEmpty);
         }
 
         public class MockExecutionTask : IExecutionTask
         {
             public ExecutionTaskKind Kind { get; }
-            public bool IsCompleted { get; }
-            public IExecutionTask Parent { get; set; }
-            public IExecutionTask Next { get; set; }
-            public IExecutionTask Previous { get; set; }
-            public object State { get; set; }
+            public ExecutionTaskStatus Status { get; }
+            public IExecutionTask? Next { get; set; }
+            public IExecutionTask? Previous { get; set; }
+            public object? State { get; set; }
             public bool IsSerial { get; set; }
+            public bool IsRegistered { get; set; }
 
             public void BeginExecute(CancellationToken cancellationToken)
             {

@@ -1,17 +1,17 @@
-import React, { FunctionComponent, useCallback } from "react";
+import React, { FC, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { State } from "../../state";
-import { toggleAside } from "../../state/common";
-import { BodyStyle, DocPageStickySideBarStyle } from "./doc-page-elements";
-import { DocPagePaneHeader } from "./doc-page-pane-header";
 import styled from "styled-components";
 import {
   BoxShadow,
   IsSmallDesktop,
   SmallDesktopBreakpointNumber,
 } from "../../shared-style";
+import { State } from "../../state";
+import { toggleAside } from "../../state/common";
+import { BodyStyle, DocPageStickySideBarStyle } from "./doc-page-elements";
+import { DocPagePaneHeader } from "./doc-page-pane-header";
 
-export const DocPageAside: FunctionComponent = ({ children }) => {
+export const DocPageAside: FC = ({ children }) => {
   const showAside = useSelector<State, boolean>(
     (state) => state.common.showAside
   );
@@ -27,7 +27,7 @@ export const DocPageAside: FunctionComponent = ({ children }) => {
   }, []);
 
   return (
-    <Aside calculatedHeight={height} className={showAside ? "show" : ""}>
+    <Aside height={height} show={showAside}>
       <BodyStyle disableScrolling={showAside} />
       <DocPagePaneHeader
         title="About this article"
@@ -39,22 +39,22 @@ export const DocPageAside: FunctionComponent = ({ children }) => {
   );
 };
 
-export const Aside = styled.aside<{ calculatedHeight: string }>`
+export const Aside = styled.aside<{ height: string; show: boolean }>`
   ${DocPageStickySideBarStyle}
 
   margin-left: 0;
   transition: transform 250ms;
   background-color: white;
   padding: 25px 0 0;
+  overflow-y: hidden;
+  margin-bottom: 50px;
+  display: flex;
+  flex-direction: column;
 
-  &.show {
-    transform: none;
-  }
-
-  ${({ calculatedHeight }) =>
+  ${({ height, show }) =>
     IsSmallDesktop(`
-      transform: translateX(100%);
-      height: ${calculatedHeight};
+      transform: ${show ? `none` : `translateX(100%)`};
+      height: ${height};
       position: fixed;
       top: 60px;
       right: 0;

@@ -1,11 +1,5 @@
 import { graphql, useStaticQuery } from "gatsby";
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
 import BarsIconSvg from "../../images/bars.svg";
@@ -20,7 +14,7 @@ import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 import { Search } from "../misc/search";
 
-export const Header: FunctionComponent = () => {
+export const Header: FC = () => {
   const containerRef = useRef<HTMLHeadingElement>(null);
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
@@ -134,7 +128,7 @@ const Container = styled.header`
   z-index: 30;
   width: 100vw;
   height: 60px;
-  background-color: var(--brand-color);
+  background-color: var(--primary-color);
   transition: box-shadow 0.2s ease-in-out;
 
   &.shadow {
@@ -180,14 +174,16 @@ const LogoLink = styled(Link)`
 
 const LogoIcon = styled(LogoIconSvg)`
   height: 40px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
+  transition: fill 0.2s ease-in-out;
 `;
 
 const LogoText = styled(LogoTextSvg)`
   display: none;
   padding-left: 15px;
   height: 24px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
+  transition: fill 0.2s ease-in-out;
 
   @media only screen and (min-width: 600px) {
     display: inline-block;
@@ -210,7 +206,7 @@ const HamburgerOpenButton = styled.div`
 
 const HamburgerOpenIcon = styled(BarsIconSvg)`
   height: 26px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const Navigation = styled.nav<{ open: boolean }>`
@@ -223,7 +219,7 @@ const Navigation = styled.nav<{ open: boolean }>`
   flex: 1 1 auto;
   flex-direction: column;
   max-height: 100vh;
-  background-color: var(--brand-color);
+  background-color: var(--primary-color);
   opacity: ${({ open }) => (open ? "1" : "0")};
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   transition: opacity 0.2s ease-in-out;
@@ -271,7 +267,7 @@ const HamburgerCloseButton = styled.div`
 
 const HamburgerCloseIcon = styled(TimesIconSvg)`
   height: 26px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const Nav = styled.ol`
@@ -307,18 +303,22 @@ const NavItem = styled.li`
 
 const NavLink = styled(Link)`
   flex: 0 0 auto;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   padding: 10px 15px;
   font-family: "Roboto", sans-serif;
   font-size: 0.833em;
-  color: #fff;
+  color: var(--text-color-contrast);
   text-decoration: none;
   text-transform: uppercase;
   transition: background-color 0.2s ease-in-out;
 
   &.active,
+  &.active:hover {
+    background-color: var(--tertiary-color);
+  }
+
   &:hover {
-    background-color: var(--brand-color-hover);
+    background-color: var(--secondary-color);
   }
 `;
 
@@ -352,29 +352,29 @@ const Tools = styled.div`
 
 const ToolLink = styled(Link)`
   flex: 0 0 auto;
-  margin-left: 15px;
+  margin-left: 5px;
+  border-radius: var(--border-radius);
+  padding: 7px;
   text-decoration: none;
+  transition: background-color 0.2s ease-in-out;
 
   > ${IconContainer} > svg {
-    transition: fill 0.2s ease-in-out;
+    fill: var(--text-color-contrast);
   }
 
-  :hover > ${IconContainer} > svg {
-    fill: var(--brand-color-hover);
+  :hover {
+    background-color: var(--secondary-color);
   }
 `;
 
 const GithubIcon = styled(GithubIconSvg)`
   height: 26px;
-  fill: #fff;
 `;
 
 const SlackIcon = styled(SlackIconSvg)`
   height: 22px;
-  fill: #fff;
 `;
 
 const TwitterIcon = styled(TwitterIconSvg)`
   height: 22px;
-  fill: #fff;
 `;

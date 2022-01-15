@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Types;
 using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data.MongoDb.Filters
@@ -14,6 +15,10 @@ namespace HotChocolate.Data.MongoDb.Filters
     public abstract class MongoDbComparableOperationHandler
         : MongoDbOperationHandlerBase
     {
+        public MongoDbComparableOperationHandler(InputParser inputParser) : base(inputParser)
+        {
+        }
+
         /// <summary>
         /// Specifies the identifier of the operations that should be handled by this handler
         /// </summary>

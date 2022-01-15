@@ -1,26 +1,60 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Descriptors.Definitions
+#nullable enable
+
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+/// <summary>
+/// Defines the properties of a GraphQL enum type.
+/// </summary>
+public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
 {
-    public class EnumTypeDefinition
-        : TypeDefinitionBase<EnumTypeDefinitionNode>
+    /// <summary>
+    /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
+    /// </summary>
+    public EnumTypeDefinition() { }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
+    /// </summary>
+    public EnumTypeDefinition(
+        NameString name,
+        string? description = null,
+        Type? runtimeType = null)
+        : base(runtimeType ?? typeof(object))
     {
-        public IBindableList<EnumValueDefinition> Values { get; } =
-            new BindableList<EnumValueDefinition>();
+        Name = name;
+        Description = description;
+    }
 
-        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
+    /// <summary>
+    /// Gets the enum values.
+    /// </summary>
+    public IBindableList<EnumValueDefinition> Values { get; } =
+        new BindableList<EnumValueDefinition>();
+
+    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    {
+        List<ITypeSystemMemberConfiguration>? configs = null;
+
+        if (HasConfigurations)
         {
-            var configs = new List<ILazyTypeConfiguration>();
-
+            configs ??= new();
             configs.AddRange(Configurations);
+        }
 
-            foreach (EnumValueDefinition value in Values)
+        foreach (EnumValueDefinition value in Values)
+        {
+            if (value.HasConfigurations)
             {
+                configs ??= new();
                 configs.AddRange(value.Configurations);
             }
-
-            return configs;
         }
+
+        return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
     }
 }

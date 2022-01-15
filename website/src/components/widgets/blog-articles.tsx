@@ -1,6 +1,6 @@
 import { graphql } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { BlogArticlesFragment } from "../../../graphql-types";
 import { ArticleTitle } from "../articles/article-elements";
@@ -9,13 +9,13 @@ import { BlogArticleTags } from "../blog-article/blog-article-tags";
 import { Link } from "../misc/link";
 import { Pagination } from "../misc/pagination";
 
-interface BlogArticlesProperties {
+interface BlogArticlesProps {
   currentPage?: number;
   data: BlogArticlesFragment;
   totalPages?: number;
 }
 
-export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
+export const BlogArticles: FC<BlogArticlesProps> = ({
   currentPage,
   data: { edges },
   totalPages,
@@ -29,8 +29,8 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
                 (tag) => tag && tag.length > 0
               ) as string[])
             : [];
-          const featuredImage = node?.frontmatter!.featuredImage
-            ?.childImageSharp?.gatsbyImageData;
+          const featuredImage =
+            node?.frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
 
           return (
             <Article key={`article-${node.id}`}>
@@ -68,11 +68,7 @@ export const BlogArticlesGraphQLFragment = graphql`
         frontmatter {
           featuredImage {
             childImageSharp {
-              gatsbyImageData(
-                layout: CONSTRAINED
-                width: 800
-                pngOptions: { quality: 90 }
-              )
+              gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
             }
           }
           path
@@ -98,11 +94,11 @@ const Container = styled.ul`
 const Article = styled.li`
   @media only screen and (min-width: 820px) {
     margin: 20px 0 0;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 
     > a > .gatsby-image-wrapper {
-      border-radius: 4px 4px 0 0;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
   }
 `;

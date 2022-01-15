@@ -1,7 +1,6 @@
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+internal static class WellKnownProjectionFields
 {
-    internal static class WellKnownProjectionFields
-    {
-        public const string CombinedEdgeField = "_combinedSelectionSet";
-    }
+    public const string CombinedEdgeField = "_combinedSelectionSet";
 }

@@ -1,24 +1,23 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
-using Colorful;
+using System.Text;
+using System.Threading.Tasks;
 using Nuke.Common;
 using Nuke.Common.IO;
-using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.Git.GitTasks;
 using static Helpers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Text;
-using System;
-using System.Drawing;
+using Nuke.Common.ProjectModel;
 
-partial class Build : NukeBuild
+partial class Build
 {
-    private readonly string _shippedApiFile = "PublicAPI.Shipped.txt";
-    private readonly string _unshippedApiFile = "PublicAPI.Unshipped.txt";
-    private readonly string _removedApiPrefix = "*REMOVED*";
+    readonly string _shippedApiFile = "PublicAPI.Shipped.txt";
+    readonly string _unshippedApiFile = "PublicAPI.Unshipped.txt";
+    readonly string _removedApiPrefix = "*REMOVED*";
 
     [Parameter] readonly string From;
     [Parameter] readonly string To;
@@ -28,10 +27,24 @@ partial class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
+            TryDelete(PublicApiSolutionFile);
+
             DotNetBuildSonarSolution(AllSolutionFile);
 
+            var projectFiles = ProjectModelTasks.ParseSolution(AllSolutionFile)
+                .AllProjects
+                .Where(t => t.GetProperty<string>("AddPublicApiAnalyzers") != "false")
+                .Where(t => !Path.GetDirectoryName(t.Path)
+                    .EndsWith("tests", StringComparison.OrdinalIgnoreCase))
+                .Where(t => !Path.GetDirectoryName(t.Path)
+                    .EndsWith("test", StringComparison.OrdinalIgnoreCase))
+                .Select(t => Path.GetDirectoryName(t.Path)!)
+                .ToArray();
+
+            DotNetBuildSonarSolution(PublicApiSolutionFile, projectFiles);
+
             DotNetBuild(c => c
-                .SetProjectFile(AllSolutionFile)
+                .SetProjectFile(PublicApiSolutionFile)
                 .SetNoRestore(InvokedTargets.Contains(Restore))
                 .SetConfiguration(Configuration)
                 .SetProperty("RequireDocumentationOfPublicApiChanges", true));
@@ -41,13 +54,24 @@ partial class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
+            TryDelete(PublicApiSolutionFile);
+
             DotNetBuildSonarSolution(AllSolutionFile);
 
-            // new we restore our local dotnet tools including dotnet-format
-            DotNetToolRestore(c => c.SetProcessWorkingDirectory(RootDirectory));
+            var projectFiles = ProjectModelTasks.ParseSolution(AllSolutionFile)
+                .AllProjects
+                .Where(t => t.GetProperty<string>("AddPublicApiAnalyzers") != "false")
+                .Where(t => !Path.GetDirectoryName(t.Path)
+                    .EndsWith("tests", StringComparison.OrdinalIgnoreCase))
+                .Where(t => !Path.GetDirectoryName(t.Path)
+                    .EndsWith("test", StringComparison.OrdinalIgnoreCase))
+                .Select(t => Path.GetDirectoryName(t.Path)!)
+                .ToArray();
+
+            DotNetBuildSonarSolution(PublicApiSolutionFile, projectFiles);
 
             // last we run the actual dotnet format command.
-            DotNet($@"format ""{AllSolutionFile}"" --fix-analyzers warn --diagnostics RS0016", workingDirectory: RootDirectory);
+            DotNet($@"format ""{PublicApiSolutionFile}"" analyzers --diagnostics=RS0016", workingDirectory: RootDirectory);
         });
 
     Target DiffShippedApi => _ => _
@@ -172,7 +196,7 @@ partial class Build : NukeBuild
             }
         });
 
-    private static async Task<List<string>> GetNonEmptyLinesAsync(string filepath)
+    static async Task<List<string>> GetNonEmptyLinesAsync(string filepath)
     {
         var lines = await File.ReadAllLinesAsync(filepath);
 

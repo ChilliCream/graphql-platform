@@ -126,6 +126,14 @@ public class Startup
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+> ⚠️ Note: Only **one** subscription type can be registered using `AddSubscriptionType()`. If we want to split up our subscription type into multiple classes, we can do so using type extensions.
+>
+> [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
+
+A subscription type is just a regular object type, so everything that applies to an object type also applies to the subscription type (this is true for all all root types).
+
+[Learn more about object types](/docs/hotchocolate/defining-a-schema/object-types)
+
 # Transport
 
 After defining the subscription type, we need to add the WebSockets middleware to our request pipeline.
@@ -182,7 +190,7 @@ Our Redis subscription provider uses the [StackExchange.Redis](https://github.co
 
 To publish events and trigger subscriptions, we can use the `ITopicEventSender`. The `ITopicEventSender` is an abstraction for the registered event publishing provider. Using this abstraction allows us to seamlessly switch between subscription providers, when necessary.
 
-Most of the time we will be publishing events for successful mutations. Therefor we can simply inject the `ITopicEventSender` into our mutations like we would with every other `Service`. Of course we can not only publish events from mutations, but everywhere we have access to the `ITopicEventSender` through the DI Container.
+Most of the time we will be publishing events for successful mutations. Therefore we can simply inject the `ITopicEventSender` into our mutations like we would with every other `Service`. Of course we can not only publish events from mutations, but everywhere we have access to the `ITopicEventSender` through the DI Container.
 
 ```csharp
 public class Mutation
@@ -253,11 +261,9 @@ public class Subscription
     public ValueTask<ISourceStream<Book>> BookPublished(string author,
         [Service] ITopicEventReceiver receiver)
     {
-        string topic = $"{author}_PublishedBook";
-        ISourceStream<Book> stream =
-            receiver.SubscribeAsync<string, Book>(topic);
+        var topic = $"{author}_PublishedBook";
 
-        return stream;
+        return receiver.SubscribeAsync<string, Book>(topic);
     }
 }
 
@@ -279,9 +285,7 @@ public class Subscription
         => receiver.SubscribeAsync<string, Book>("ExampleTopic");
 
     [Subscribe(With = nameof(SubscribeToBooks))]
-    public ValueTask<ISourceStream<Book>> BookAdded([EventMessage] Book book)
+    public Book BookAdded([EventMessage] Book book)
         => book;
 }
 ```
-
-<!-- todo: arguments with Subscribe(With = "...") -->

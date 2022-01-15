@@ -57,7 +57,7 @@ namespace HotChocolate.Execution.Benchmarks
 
         public VariableCoercionBenchmarks()
         {
-            _variableCoercionHelper = new VariableCoercionHelper();
+            _variableCoercionHelper = new VariableCoercionHelper(new(), new());
             _schema = SchemaBuilder.New().AddStarWarsTypes().Create();
         }
 

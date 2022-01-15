@@ -1,0 +1,24 @@
+﻿{
+  "data": {
+    "createTask": {
+      "foo": {
+        "bar": "Bar"
+      }
+    },
+    "createValueTask": {
+      "foo": {
+        "bar": "Bar"
+      }
+    },
+    "createTaskNoName": {
+      "foo": {
+        "bar": "Bar"
+      }
+    },
+    "createValueTaskNoName": {
+      "foo": {
+        "bar": "Bar"
+      }
+    }
+  }
+}

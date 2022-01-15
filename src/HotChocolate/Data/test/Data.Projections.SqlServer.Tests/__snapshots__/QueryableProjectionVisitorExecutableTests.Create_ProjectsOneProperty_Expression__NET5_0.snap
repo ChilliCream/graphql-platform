@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "rootExecutable": [
+      {
+        "baz": "a"
+      },
+      {
+        "baz": "b"
+      }
+    ]
+  }
+}

@@ -41,18 +41,6 @@
               "deprecationReason": null
             },
             {
-              "name": "isRepeatable",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "Boolean",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "locations",
               "description": null,
               "args": [],
@@ -93,6 +81,22 @@
                       "name": "__InputValue"
                     }
                   }
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "isRepeatable",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
                 }
               },
               "isDeprecated": false,
@@ -1070,19 +1074,15 @@
                   "ofType": null
                 }
               },
-              "defaultValue": null
+              "defaultValue": "0"
             },
             {
               "name": "if",
               "description": "Streamed when true.",
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Boolean",
-                  "ofType": null
-                }
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
               },
               "defaultValue": null
             }
@@ -1103,7 +1103,7 @@
                 "name": "String",
                 "ofType": null
               },
-              "defaultValue": "\u0022No longer supported\u0022"
+              "defaultValue": "\u0022No longer supported.\u0022"
             }
           ],
           "onOperation": false,

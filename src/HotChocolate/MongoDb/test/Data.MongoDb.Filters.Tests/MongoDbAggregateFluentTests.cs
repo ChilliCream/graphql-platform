@@ -132,7 +132,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                         .Name("Query")
                         .Field("root")
                         .Type<ListType<ObjectType<TEntity>>>()
-                        .Resolver(
+                        .Resolve(
                             async ctx => await new ValueTask<IExecutable<TEntity>>(resolver()))
                         .Use(
                             next => async context =>

@@ -40,7 +40,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             IOperationResult<IIntrospectionQueryResult> result =
                 await client.IntrospectionQuery.ExecuteAsync(ct);
 
-
             // assert
             result.MatchSnapshot();
         }

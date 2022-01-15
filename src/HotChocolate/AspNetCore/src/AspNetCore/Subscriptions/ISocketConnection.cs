@@ -4,33 +4,32 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.AspNetCore.Subscriptions;
+
+public interface ISocketConnection : IDisposable
 {
-    public interface ISocketConnection : IDisposable
-    {
-        HttpContext HttpContext { get; }
+    HttpContext HttpContext { get; }
 
-        bool Closed { get; }
+    bool Closed { get; }
 
-        ISubscriptionManager Subscriptions { get; }
+    ISubscriptionManager Subscriptions { get; }
 
-        IServiceProvider RequestServices { get; }
+    IServiceProvider RequestServices { get; }
 
-        CancellationToken RequestAborted { get; }
+    CancellationToken RequestAborted { get; }
 
-        Task<bool> TryOpenAsync();
+    Task<bool> TryOpenAsync();
 
-        Task SendAsync(
-            byte[] message,
-            CancellationToken cancellationToken);
+    Task SendAsync(
+        byte[] message,
+        CancellationToken cancellationToken);
 
-        Task ReceiveAsync(
-            PipeWriter writer,
-            CancellationToken cancellationToken);
+    Task ReceiveAsync(
+        PipeWriter writer,
+        CancellationToken cancellationToken);
 
-        Task CloseAsync(
-            string message,
-            SocketCloseStatus closeStatus,
-            CancellationToken cancellationToken);
-    }
+    Task CloseAsync(
+        string message,
+        SocketCloseStatus closeStatus,
+        CancellationToken cancellationToken);
 }

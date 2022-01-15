@@ -1,99 +1,87 @@
-﻿using HotChocolate.Configuration;
+using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types.Introspection
+#nullable enable
+
+namespace HotChocolate.Types.Introspection;
+
+public static class IntrospectionFields
 {
-    public static class IntrospectionFields
+    /// <summary>
+    /// Gets the field name of the __typename introspection field.
+    /// </summary>
+    public static NameString TypeName => "__typename";
+
+    /// <summary>
+    /// Gets the field name of the __schema introspection field.
+    /// </summary>
+    public static NameString Schema => "__schema";
+
+    /// <summary>
+    /// Gets the field name of the __type introspection field.
+    /// </summary>
+    public static NameString Type => "__type";
+
+    internal static ObjectFieldDefinition CreateSchemaField(IDescriptorContext context)
     {
-        /// <summary>
-        /// Gets the field name of the __typename introspection field.
-        /// </summary>
-        public static NameString TypeName => "__typename";
+        var descriptor = ObjectFieldDescriptor.New(context, Schema);
 
-        /// <summary>
-        /// Gets the field name of the __schema introspection field.
-        /// </summary>
-        public static NameString Schema => "__schema";
+        descriptor
+            .Description(TypeResources.SchemaField_Description)
+            .Type<NonNullType<__Schema>>();
 
-        /// <summary>
-        /// Gets the field name of the __type introspection field.
-        /// </summary>
-        public static NameString Type => "__type";
+        descriptor.Definition.PureResolver = Resolve;
 
-        internal static ObjectFieldDefinition CreateSchemaField(IDescriptorContext context)
+        static ISchema Resolve(IPureResolverContext ctx)
+            => ctx.Schema;
+
+        return CreateDefinition(descriptor);
+    }
+
+    internal static ObjectFieldDefinition CreateTypeField(IDescriptorContext context)
+    {
+        var descriptor = ObjectFieldDescriptor.New(context, Type);
+
+        descriptor
+            .Description(TypeResources.TypeField_Description)
+            .Argument("name", a => a.Type<NonNullType<StringType>>())
+            .Type<__Type>()
+            .Resolve(Resolve);
+
+        descriptor.Definition.PureResolver = Resolve;
+
+        static INamedType? Resolve(IPureResolverContext ctx)
         {
-            var descriptor = ObjectFieldDescriptor.New(context, Schema);
-
-            IObjectFieldDescriptor fieldDescriptor = descriptor
-                .Description(TypeResources.SchemaField_Description)
-                .Type<NonNullType<__Schema>>()
-                .Resolve(ctx => ctx.Schema);
-
-            if (context.Options.FieldMiddleware == FieldMiddlewareApplication.UserDefinedFields)
-            {
-                fieldDescriptor
-                    .Extend()
-                    .OnBeforeCreate(definition => definition.PureResolver = ctx => ctx.Schema);
-            }
-
-            return CreateDefinition(descriptor);
+            var name = ctx.ArgumentValue<string>("name");
+            return ctx.Schema.TryGetType<INamedType>(name, out INamedType? type) ? type : null;
         }
 
-        internal static ObjectFieldDefinition CreateTypeField(IDescriptorContext context)
-        {
-            var descriptor = ObjectFieldDescriptor.New(context, Type);
+        return CreateDefinition(descriptor);
+    }
 
-            IObjectFieldDescriptor fieldDescriptor = descriptor
-                .Description(TypeResources.TypeField_Description)
-                .Argument("name", a => a.Type<NonNullType<StringType>>())
-                .Type<__Type>()
-                .Resolve(Resolve);
+    internal static ObjectFieldDefinition CreateTypeNameField(IDescriptorContext context)
+    {
+        var descriptor = ObjectFieldDescriptor.New(context, TypeName);
 
-            if (context.Options.FieldMiddleware == FieldMiddlewareApplication.UserDefinedFields)
-            {
-                fieldDescriptor
-                    .Extend()
-                    .OnBeforeCreate(definition => definition.PureResolver = Resolve);
-            }
+        descriptor
+            .Description(TypeResources.TypeNameField_Description)
+            .Type<NonNullType<StringType>>();
 
-            INamedType Resolve(IResolverContext ctx)
-            {
-                var name = ctx.ArgumentValue<string>("name");
-                return ctx.Schema.TryGetType(name, out INamedType type) ? type : null;
-            }
+        descriptor.Extend().Definition.PureResolver = Resolve;
 
-            return CreateDefinition(descriptor);
-        }
+        static string Resolve(IPureResolverContext ctx)
+            => ctx.ObjectType.Name.Value;
 
-        internal static ObjectFieldDefinition CreateTypeNameField(IDescriptorContext context)
-        {
-            var descriptor = ObjectFieldDescriptor.New(context, TypeName);
+        return CreateDefinition(descriptor);
+    }
 
-            IObjectFieldDescriptor fieldDescriptor = descriptor
-                .Description(TypeResources.TypeNameField_Description)
-                .Type<NonNullType<StringType>>()
-                .Resolver(Resolve);
-
-            if (context.Options.FieldMiddleware == FieldMiddlewareApplication.UserDefinedFields)
-            {
-                fieldDescriptor
-                    .Extend()
-                    .OnBeforeCreate(definition => definition.PureResolver = Resolve);
-            }
-
-            string Resolve(IResolverContext ctx) => ctx.ObjectType.Name.Value;
-
-            return CreateDefinition(descriptor);
-        }
-
-        private static ObjectFieldDefinition CreateDefinition(ObjectFieldDescriptor descriptor)
-        {
-            ObjectFieldDefinition definition = descriptor.CreateDefinition();
-            definition.IsIntrospectionField = true;
-            return definition;
-        }
+    private static ObjectFieldDefinition CreateDefinition(ObjectFieldDescriptor descriptor)
+    {
+        ObjectFieldDefinition definition = descriptor.CreateDefinition();
+        definition.IsIntrospectionField = true;
+        return definition;
     }
 }

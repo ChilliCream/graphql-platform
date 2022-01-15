@@ -18,7 +18,7 @@ namespace HotChocolate.Types.SDL
             // assert
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
-                .BindComplexType<Query>()
+                .BindRuntimeType<Query>()
                 .Create()
                 .Print()
                 .MatchSnapshot();
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.SDL
             // assert
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
-                .BindComplexType<Query>()
+                .BindRuntimeType<Query>()
                 .Create()
                 .Print()
                 .MatchSnapshot();
@@ -59,14 +59,14 @@ namespace HotChocolate.Types.SDL
                 extend type Query {
                     hello: String @foo
                 }
-                
+
                 directive @foo on FIELD_DEFINITION";
 
             // act
             // assert
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
-                .BindComplexType<Query>()
+                .BindRuntimeType<Query>()
                 .Create()
                 .Print()
                 .MatchSnapshot();
@@ -82,14 +82,14 @@ namespace HotChocolate.Types.SDL
                 }
 
                 extend type Query @foo
-                
+
                 directive @foo on OBJECT";
 
             // act
             // assert
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
-                .BindComplexType<Query>()
+                .BindRuntimeType<Query>()
                 .Create()
                 .Print()
                 .MatchSnapshot();

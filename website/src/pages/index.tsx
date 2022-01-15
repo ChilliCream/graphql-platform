@@ -1,13 +1,13 @@
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { BlogPostChilliCreamPlatform } from "../components/images/blog-post-chillicream-platform-11-1";
+import { BlogPostBananaCakePopCloud } from "../components/images/blog-post-banana-cake-pop-cloud";
 import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
-import { BlogPostVersion11 } from "../components/images/blog-post-version-11";
+import { BlogPostHotChocolate12 } from "../components/images/blog-post-hot-chocolate-12";
 import { Link } from "../components/misc/link";
 import {
   ContentContainer,
@@ -22,9 +22,11 @@ import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 // Logos
+import AdditivLogoSvg from "../images/companies/additiv.svg";
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
+import BdnaLogoSvg from "../images/companies/bdna.svg";
 import BeyableLogoSvg from "../images/companies/beyable.svg";
 import BiqhLogoSvg from "../images/companies/biqh.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
@@ -33,22 +35,30 @@ import E2mLogoSvg from "../images/companies/e2m.svg";
 import ExlrtLogoSvg from "../images/companies/exlrt.svg";
 import EzeepLogoSvg from "../images/companies/ezeep.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
+import HiloLogoSvg from "../images/companies/hilo.svg";
 import IncloudLogoSvg from "../images/companies/incloud.svg";
+import InfoslipsLogoSvg from "../images/companies/infoslips.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
+import OrderinLogoSvg from "../images/companies/orderin.svg";
+import PoweredSoftLogoSvg from "../images/companies/powered-soft.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SolyticLogoSvg from "../images/companies/solytic.svg";
 import SonikaLogoSvg from "../images/companies/sonika.svg";
+import SpeedwayMotorsLogoSvg from "../images/companies/speedway-motors.svg";
+import SplashbackLogoSvg from "../images/companies/splashback.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
+import TravelSoftLogoSvg from "../images/companies/travel-soft.svg";
+import XMLogoSvg from "../images/companies/xm.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
 // Images
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
 import GetStartedSvg from "../images/get-started.svg";
 
-const IndexPage: FunctionComponent = () => {
+const IndexPage: FC = () => {
   const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
     query getIndexPageData {
       site {
@@ -74,11 +84,7 @@ const IndexPage: FunctionComponent = () => {
             frontmatter {
               featuredImage {
                 childImageSharp {
-                  gatsbyImageData(
-                    layout: CONSTRAINED
-                    width: 800
-                    pngOptions: { quality: 90 }
-                  )
+                  gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
                 }
               }
               path
@@ -108,25 +114,25 @@ const IndexPage: FunctionComponent = () => {
           showThumbs={false}
         >
           <Slide>
-            <Link to="/blog/2021/03/31/chillicream-platform-11-1">
-              <BlogPostChilliCreamPlatform />
+            <Link to="/blog/2021/11/22/banana-cake-pop-cloud">
+              <BlogPostBananaCakePopCloud />
             </Link>
           </Slide>
           <Slide>
-            <Link to="/blog/2020/11/23/hot-chocolate-11">
-              <BlogPostVersion11 />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/docs/bananacakepop">
-              <BananaCakePop />
+            <Link to="https://bananacakepop.com">
+              <BananaCakePop shadow />
               <SlideContent>
-                <SlideTitle>Banana Cake Pop</SlideTitle>
+                <SlideTitle>Try Banana Cake Pop Preview 18</SlideTitle>
                 <SlideDescription>
                   Our GraphQL IDE to explore schemas, execute operations and get
                   deep performance insights.
                 </SlideDescription>
               </SlideContent>
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2021/09/27/hot-chocolate-12">
+              <BlogPostHotChocolate12 />
             </Link>
           </Slide>
           <Slide>
@@ -182,8 +188,9 @@ const IndexPage: FunctionComponent = () => {
             <SectionTitle centerAlways>From our Blog</SectionTitle>
             <Articles>
               {edges.map(({ node }) => {
-                const featuredImage = node?.frontmatter!.featuredImage
-                  ?.childImageSharp?.gatsbyImageData;
+                const featuredImage =
+                  node?.frontmatter!.featuredImage?.childImageSharp
+                    ?.gatsbyImageData;
 
                 return (
                   <Article key={`article-${node.id}`}>
@@ -212,6 +219,11 @@ const IndexPage: FunctionComponent = () => {
           <ContentContainer noImage>
             <SectionTitle centerAlways>Companies who trust us</SectionTitle>
             <Logos>
+              <Logo width={140}>
+                <Link to="https://additiv.com">
+                  <AdditivLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={160}>
                 <Link to="https://aeieng.com">
                   <AeiLogoSvg />
@@ -225,6 +237,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={180}>
                 <Link to="https://www.autoguru.com.au">
                   <AutoguruLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={150}>
+                <Link to="https://bdna.com.au">
+                  <BdnaLogoSvg />
                 </Link>
               </Logo>
               <Logo width={150}>
@@ -267,14 +284,34 @@ const IndexPage: FunctionComponent = () => {
                   <GiaLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={70}>
+                <Link to="https://www.hiloenergie.com">
+                  <HiloLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={200}>
-                <Link to="https://www.incloud.de/">
+                <Link to="https://www.incloud.de">
                   <IncloudLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={130}>
+                <Link to="https://www.infoslips.com">
+                  <InfoslipsLogoSvg />
                 </Link>
               </Logo>
               <Logo width={160}>
                 <Link to="https://motitech.co.uk">
                   <MotiviewLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://orderin.co.za">
+                  <OrderinLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={110}>
+                <Link to="https://poweredsoft.com">
+                  <PoweredSoftLogoSvg />
                 </Link>
               </Logo>
               <Logo width={180}>
@@ -298,6 +335,16 @@ const IndexPage: FunctionComponent = () => {
                 </Link>
               </Logo>
               <Logo width={120}>
+                <Link to="https://www.speedwaymotors.com">
+                  <SpeedwayMotorsLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://splashback.io">
+                  <SplashbackLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={120}>
                 <Link to="https://sweetgeeks.dk">
                   <SweetGeeksLogoSvg />
                 </Link>
@@ -310,6 +357,16 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={160}>
                 <Link to="https://www.sytadelle.fr">
                   <SytadelleLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://travel-soft.com">
+                  <TravelSoftLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={120}>
+                <Link to="https://xm.com">
+                  <XMLogoSvg />
                 </Link>
               </Logo>
               <Logo width={120}>
@@ -379,13 +436,13 @@ const Slideshow = styled(Carousel)`
         margin: 0 5px;
         border-radius: 2px;
         height: 6px;
-        background-color: #fff;
+        background-color: var(--text-color-contrast);
         opacity: 0.5;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
 
         &.selected {
-          background-color: #fff;
+          background-color: var(--text-color-contrast);
           opacity: 1;
 
           &:hover {
@@ -446,7 +503,7 @@ const SlideContent = styled.div`
     left: 20%;
     display: flex;
     flex-direction: column;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     padding: 20px;
     background-color: rgba(0, 0, 0, 0.6);
   }
@@ -477,7 +534,7 @@ const SlideTitle = styled.h2`
     margin-bottom: 10px;
     font-size: 1.667em;
     text-align: initial;
-    color: #fff;
+    color: var(--text-color-contrast);
   }
 `;
 
@@ -486,7 +543,7 @@ const SlideDescription = styled.p`
   flex: 0 0 auto;
   margin-bottom: 0;
   font-size: 1.111em;
-  color: #fff;
+  color: var(--text-color-contrast);
 
   @media only screen and (min-width: 768px) {
     display: initial;
@@ -511,7 +568,7 @@ const Article = styled.li`
   display: flex;
   margin: 20px 0 0;
   width: 100%;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 
   > a {
@@ -519,7 +576,7 @@ const Article = styled.li`
   }
 
   > a > .gatsby-image-wrapper {
-    border-radius: 4px 4px 0 0;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
   }
 
   @media only screen and (min-width: 820px) {
@@ -533,7 +590,7 @@ const ArticleMetadata = styled.div`
   align-items: center;
   margin: 15px 20px 7px;
   font-size: 0.778em;
-  color: #667;
+  color: var(--text-color);
 `;
 
 const ArticleTitle = styled.h1`
@@ -555,11 +612,11 @@ const Logo = styled.div<{ width?: number }>`
   width: ${({ width }) => width || 160}px;
 
   > a > svg {
-    fill: #667;
+    fill: var(--text-color);
     transition: fill 0.2s ease-in-out;
 
     &:hover {
-      fill: #333;
+      fill: var(--heading-text-color);
     }
   }
 `;

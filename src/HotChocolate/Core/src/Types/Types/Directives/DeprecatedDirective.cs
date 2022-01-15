@@ -2,20 +2,19 @@ using System;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+[Serializable]
+public sealed class DeprecatedDirective
 {
-    [Serializable]
-    public sealed class DeprecatedDirective
+    public DeprecatedDirective()
     {
-        public DeprecatedDirective()
-        {
-        }
-
-        public DeprecatedDirective(string? reason)
-        {
-            Reason = reason;
-        }
-
-        public string? Reason { get; }
     }
+
+    public DeprecatedDirective(string? reason)
+    {
+        Reason = reason;
+    }
+
+    public string? Reason { get; }
 }

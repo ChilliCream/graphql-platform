@@ -4,83 +4,97 @@ using HotChocolate.Language;
 
 #nullable  enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+/// <summary>
+/// A definition that represents a type.
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public class TypeDefinitionBase<T>
+    : DefinitionBase<T>
+    , ITypeDefinition
+    where T : class, ISyntaxNode
 {
-    /// <summary>
-    /// A definition that represents a type.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class TypeDefinitionBase<T>
-        : DefinitionBase<T>
-        , ITypeDefinition
-        where T : class, ISyntaxNode
+    private List<DirectiveDefinition>? _directives;
+    private Type _runtimeType = typeof(object);
+
+    protected TypeDefinitionBase() { }
+
+    protected TypeDefinitionBase(Type runtimeType)
     {
-        private List<DirectiveDefinition>? _directives;
+        _runtimeType = runtimeType;
+    }
 
-        protected TypeDefinitionBase() { }
+    /// <summary>
+    /// Specifies that this type system object needs an explicit name completion since it
+    /// depends on another type system object to complete its name.
+    /// </summary>
+    public bool NeedsNameCompletion { get; set; }
 
-        private Type _runtimeType = typeof(object);
-
-        /// <summary>
-        /// Gets or sets the .net type representation of this type.
-        /// </summary>
-        public virtual Type RuntimeType
+    /// <summary>
+    /// Gets or sets the .net type representation of this type.
+    /// </summary>
+    public virtual Type RuntimeType
+    {
+        get => _runtimeType;
+        set
         {
-            get => _runtimeType;
-            set
-            {
-                _runtimeType = value ?? throw new ArgumentNullException(nameof(value));
-            }
+            _runtimeType = value ?? throw new ArgumentNullException(nameof(value));
+        }
+    }
+
+    /// <summary>
+    /// If this is a type definition extension this is the type we want to extend.
+    /// </summary>
+    public Type? ExtendsType { get; set; }
+
+    /// <summary>
+    /// Gets the list of directives that are annotated to this type.
+    /// </summary>
+    public IList<DirectiveDefinition> Directives =>
+        _directives ??= new List<DirectiveDefinition>();
+
+    /// <summary>
+    /// Specifies if this definition has directives.
+    /// </summary>
+    public bool HasDirectives => _directives is { Count: > 0 };
+
+    /// <summary>
+    /// Gets the list of directives that are annotated to this field.
+    /// </summary>
+    public IReadOnlyList<DirectiveDefinition> GetDirectives()
+    {
+        if (_directives is null)
+        {
+            return Array.Empty<DirectiveDefinition>();
         }
 
-        /// <summary>
-        /// If this is a type definition extension this is the type we want to extend.
-        /// </summary>
-        public Type? ExtendsType { get; set; }
+        return _directives;
+    }
 
-        /// <summary>
-        /// Gets the list of directives that are annotated to this type.
-        /// </summary>
-        public IList<DirectiveDefinition> Directives =>
-            _directives ??= new List<DirectiveDefinition>();
+    protected void CopyTo(TypeDefinitionBase<T> target)
+    {
+        base.CopyTo(target);
 
-        /// <summary>
-        /// Gets the list of directives that are annotated to this field.
-        /// </summary>
-        public IReadOnlyList<DirectiveDefinition> GetDirectives()
+        target._runtimeType = _runtimeType;
+        target.ExtendsType = ExtendsType;
+
+        if (_directives is { Count: > 0 })
         {
-            if (_directives is null)
-            {
-                return Array.Empty<DirectiveDefinition>();
-            }
-
-            return _directives;
+            target._directives = new List<DirectiveDefinition>(_directives);
         }
+    }
 
-        protected void CopyTo(TypeDefinitionBase<T> target)
+    protected void MergeInto(TypeDefinitionBase<T> target)
+    {
+        base.MergeInto(target);
+
+        // Note: we will not change ExtendsType or _runtimeType on merge.
+
+        if (_directives is not null and { Count: > 0 })
         {
-            base.CopyTo(target);
-
-            target._runtimeType = _runtimeType;
-            target.ExtendsType = ExtendsType;
-
-            if (_directives is not null and { Count: > 0 })
-            {
-                target._directives = new List<DirectiveDefinition>(_directives);
-            }
-        }
-
-        protected void MergeInto(TypeDefinitionBase<T> target)
-        {
-            base.MergeInto(target);
-
-            // Note: we will not change ExtendsType or _runtimeType on merge.
-
-            if (_directives is not null and { Count: > 0 })
-            {
-                target._directives ??= new List<DirectiveDefinition>();
-                target._directives.AddRange(Directives);
-            }
+            target._directives ??= new List<DirectiveDefinition>();
+            target._directives.AddRange(Directives);
         }
     }
 }

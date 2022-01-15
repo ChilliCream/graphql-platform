@@ -5,42 +5,41 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class ObjectTypeExtension<T> : ObjectTypeExtension
 {
-    public class ObjectTypeExtension<T> : ObjectTypeExtension
+    private Action<IObjectTypeDescriptor<T>>? _configure;
+
+    public ObjectTypeExtension()
     {
-        private Action<IObjectTypeDescriptor<T>>? _configure;
+        _configure = Configure;
+    }
 
-        public ObjectTypeExtension()
-        {
-            _configure = Configure;
-        }
+    public ObjectTypeExtension(Action<IObjectTypeDescriptor<T>> configure)
+    {
+        _configure = configure
+            ?? throw new ArgumentNullException(nameof(configure));
+    }
 
-        public ObjectTypeExtension(Action<IObjectTypeDescriptor<T>> configure)
-        {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
-        }
+    protected override ObjectTypeDefinition CreateDefinition(
+        ITypeDiscoveryContext context)
+    {
+        ObjectTypeExtensionDescriptor<T> descriptor =
+            ObjectTypeDescriptor.NewExtension<T>(context.DescriptorContext);
 
-        protected override ObjectTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
-        {
-            ObjectTypeExtensionDescriptor<T> descriptor =
-                ObjectTypeDescriptor.NewExtension<T>(context.DescriptorContext);
+        _configure!(descriptor);
+        _configure = null;
 
-            _configure!(descriptor);
-            _configure = null;
+        return descriptor.CreateDefinition();
+    }
 
-            return descriptor.CreateDefinition();
-        }
+    protected virtual void Configure(IObjectTypeDescriptor<T> descriptor)
+    {
+    }
 
-        protected virtual void Configure(IObjectTypeDescriptor<T> descriptor)
-        {
-        }
-
-        protected sealed override void Configure(IObjectTypeDescriptor descriptor)
-        {
-            throw new NotSupportedException();
-        }
+    protected sealed override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        throw new NotSupportedException();
     }
 }

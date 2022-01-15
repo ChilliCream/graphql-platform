@@ -1,10 +1,8 @@
-﻿#nullable enable
+#nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+// TODO : remove with version 13.
+public interface IReadOnlyQueryResult : IQueryResult
 {
-    // todo : deprecate this interface and use IQueryResult
-    public interface IReadOnlyQueryResult
-        : IQueryResult
-    {
-    }
 }

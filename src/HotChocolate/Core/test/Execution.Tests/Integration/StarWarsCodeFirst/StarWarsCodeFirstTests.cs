@@ -550,15 +550,14 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     "{ stars } }");
 
             // assert
-            IExecutionResult result =
-                await executor.ExecuteAsync(@"
-                    mutation {
-                        createReview(episode: NEW_HOPE,
-                            review: { stars: 5 commentary: ""foo"" }) {
-                            stars
-                            commentary
-                        }
-                    }");
+            await executor.ExecuteAsync(@"
+                mutation {
+                    createReview(episode: NEW_HOPE,
+                        review: { stars: 5 commentary: ""foo"" }) {
+                        stars
+                        commentary
+                    }
+                }");
 
             IReadOnlyQueryResult eventResult = null;
 
@@ -567,7 +566,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult) queryResult;
+                    var item = (IReadOnlyQueryResult)queryResult;
                     eventResult = item;
                     break;
                 }
@@ -611,7 +610,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult) queryResult;
+                    var item = (IReadOnlyQueryResult)queryResult;
                     eventResult = item;
                     break;
                 }
@@ -657,7 +656,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult) queryResult;
+                    var item = (IReadOnlyQueryResult)queryResult;
                     eventResult = item;
                     break;
                 }
@@ -701,7 +700,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult) queryResult;
+                    var item = (IReadOnlyQueryResult)queryResult;
                     eventResult = item;
                     break;
                 }
@@ -828,7 +827,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         height
                     }
                 }",
-                request: r=> r.SetVariableValue("if", ifValue))
+                request: r => r.SetVariableValue("if", ifValue))
                 .MatchSnapshotAsync();
         }
 
@@ -844,7 +843,37 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         height
                     }
                 }",
-                request: r=> r.SetVariableValue("if", true))
+                request: r => r.SetVariableValue("if", true))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SkipAll_Default_False()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean! = false) {
+                    human(id: ""1000"") @skip(if: $if) {
+                        name
+                        height
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SkipAll_Default_True()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean! = true) {
+                    human(id: ""1000"") @skip(if: $if) {
+                        name
+                        height
+                    }
+                }")
                 .MatchSnapshotAsync();
         }
 
@@ -859,7 +888,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         name @skip(if: $if)
                     }
                 }",
-                request: r=> r.SetVariableValue("if", true))
+                request: r => r.SetVariableValue("if", true))
                 .MatchSnapshotAsync();
         }
 
@@ -934,7 +963,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         }
                     }
                 }
-                fragment FriendEdge1 on CharacterEdge {
+                fragment FriendEdge1 on FriendsEdge {
                     node {
                         __typename
                         friends {

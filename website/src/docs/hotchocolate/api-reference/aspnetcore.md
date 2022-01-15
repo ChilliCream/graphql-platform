@@ -67,7 +67,7 @@ GraphQL can also be served through an HTTP GET request. You have the same option
 For example, if we wanted to execute the following GraphQL query:
 
 ```graphql
-query($id: ID!) {
+query ($id: ID!) {
   user(id: $id) {
     name
   }
@@ -274,7 +274,7 @@ Content-Type: application/json
 }
 ```
 
-By default, the GraphQL server will use the **incremental delivery over HTTP**specification to write the stream results as soon as they are available. This means that depending on your client implementation; you can start using the results as they appear in order.
+By default, the GraphQL server will use the **incremental delivery over HTTP** specification to write the stream results as soon as they are available. This means that depending on your client implementation; you can start using the results as they appear in order.
 
 The serialization defaults can be changed like the following:
 
@@ -285,46 +285,6 @@ services.AddHttpResultSerializer(
 ```
 
 > More about batching can be found [here](/docs/hotchocolate/v10/execution-engine/batching).
-
-## GraphQL multipart request specification
-
-Hot Chocolate implements the GraphQL multipart request specification which allows for file upload streams in your browser. The GraphQL multipart request specification can be found [here](https://github.com/jaydenseric/graphql-multipart-request-spec).
-
-In order to use file upload streams in your input types or as an argument register the `Upload` scalar like the following.
-
-```csharp
-service
-    .AddGraphQLServer()
-    ...
-    .AddType<UploadType>();
-```
-
-In your resolver or input type you can then use the `IFile` interface to use the upload scalar.
-
-```csharp
-public class Query
-{
-    public async Task<bool> UploadFile(IFile file)
-    {
-        using Stream stream = file.OpenReadStream();
-        // you can now work with standard stream functionality of .NET to handle the file.
-    }
-}
-```
-
-> Note, that the `Upload` scalar can only be used as an input type and does not work on output types.
-
-If you need to upload large files or set custom upload size limits, you can configure those by registering custom [`FormOptions`](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.features.formoptions).
-
-```csharp
-services.Configure<FormOptions>(options =>
-{
-    // Set the limit to 256 MB
-    options.MultipartBodyLengthLimit = 268435456;
-});
-```
-
-Based on your WebServer you might need to configure these limits elsewhere as well. [Kestrel](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#kestrel-maximum-request-body-size) and [IIS](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#iis) are covered in the ASP.NET Core Documentation.
 
 # Subscription Transport
 
@@ -431,114 +391,4 @@ public class MyCustomHttpResultSerializer : DefaultHttpResultSerializer
         return base.GetStatusCode(result);
     }
 }
-```
-
-# GraphQL request customization
-
-The GraphQL server allows you to customize how the GraphQL request is created. For this, you need to implement the `IHttpRequestInterceptor`. For convenience reasons, we provide a default implementation (`DefaultHttpRequestInterceptor`) that can be extended.
-
-```csharp
-public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
-{
-    public virtual ValueTask OnCreateAsync(
-        HttpContext context,
-        IRequestExecutor requestExecutor,
-        IQueryRequestBuilder requestBuilder,
-        CancellationToken cancellationToken)
-    {
-        requestBuilder.TrySetServices(context.RequestServices);
-        requestBuilder.TryAddProperty(nameof(HttpContext), context);
-        requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
-        requestBuilder.TryAddProperty(nameof(CancellationToken), context.RequestAborted);
-
-        if (context.IsTracingEnabled())
-        {
-            requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
-        }
-
-        return default;
-    }
-}
-```
-
-Suppose you want to add more data to a GraphQL request; override the `OnCreateAsync` method, and add your custom data as a request property. These request properties are mapped to the request context data, which can be accessed in the field resolver or a field middleware through the `context`.
-
-```csharp
-if(context.ContextData.ContainsKey(nameof(HttpContext)))
-{
-    // some logic
-}
-```
-
-The context data can also be injected into resolver methods.
-
-```csharp
-public string MyResolver([GlobalState(nameof(HttpContext))] HttpContext context)
-{
-    // some logic
-}
-```
-
-A good practice is to inherit from the `GlobalStateAttribute` to create a custom typed attribute.
-
-```csharp
-public string MyResolver([HttpContext] HttpContext context)
-{
-    // some logic
-}
-```
-
-A custom http request interceptor can be registered like the following:
-
-```csharp
-services.AddSocketSessionInterceptor<MyCustomHttpRequestInterceptor>();
-```
-
-## Request Errors
-
-The interceptor can be used to do general request validation. This essentially allows to fail the request before the GraphQL context is created. In order to create a GraphQL error response simply throw a `GraphQLException` in the `OnCreateAsync` method. The middleware will translate these to a proper GraphQL error response for the client. You also can customize the status code behavior by using the HTTP result serializer mentioned above.
-
-# Subscription session handling
-
-The Hot Chocolate GraphQL server allows you to interact with the server's socket session handling by implementing `ISocketSessionInterceptor`. For convenience reasons, we provide a default implementation (`DefaultSocketSessionInterceptor`) that can be extended.
-
-```csharp
-public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
-{
-    public virtual ValueTask<ConnectionStatus> OnConnectAsync(
-        ISocketConnection connection,
-        InitializeConnectionMessage message,
-        CancellationToken cancellationToken) =>
-        new ValueTask<ConnectionStatus>(ConnectionStatus.Accept());
-
-    public virtual ValueTask OnRequestAsync(
-        ISocketConnection connection,
-        IQueryRequestBuilder requestBuilder,
-        CancellationToken cancellationToken)
-    {
-        HttpContext context = connection.HttpContext;
-        requestBuilder.TrySetServices(connection.RequestServices);
-        requestBuilder.TryAddProperty(nameof(CancellationToken), connection.RequestAborted);
-        requestBuilder.TryAddProperty(nameof(HttpContext), context);
-        requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
-
-        if (connection.HttpContext.IsTracingEnabled())
-        {
-            requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
-        }
-
-        return default;
-    }
-
-    public virtual ValueTask OnCloseAsync(
-        ISocketConnection connection,
-        CancellationToken cancellationToken) =>
-        default;
-}
-```
-
-A custom socket session interceptor can be registered like the following:
-
-```csharp
-services.AddSocketSessionInterceptor<MyCustomSocketSessionInterceptor>();
 ```

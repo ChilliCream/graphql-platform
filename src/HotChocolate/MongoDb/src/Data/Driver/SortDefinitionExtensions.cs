@@ -4,7 +4,7 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb
 {
-    internal static class SortDefinitionExtensions
+    public static class SortDefinitionExtensions
     {
         public static MongoDbSortDefinition Wrap<T>(this SortDefinition<T> sortDefinition) =>
             new SortDefinitionWrapper<T>(sortDefinition);

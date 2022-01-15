@@ -177,7 +177,7 @@ namespace HotChocolate
 
         public class GenericWrapper<T>
         {
-            public T Value { get; set; }
+            public T Value { get; set; } = default!;
         }
 
         public class Greetings
@@ -194,7 +194,7 @@ namespace HotChocolate
         {
             protected override void Configure(IObjectTypeDescriptor<Dog> descriptor)
             {
-                descriptor.Field("isMale").Resolver(true);
+                descriptor.Field("isMale").Resolve(true);
             }
         }
 

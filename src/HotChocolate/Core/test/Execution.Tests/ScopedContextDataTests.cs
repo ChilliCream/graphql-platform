@@ -10,33 +10,31 @@ namespace HotChocolate.Execution
         public async Task ScopedContextDataIsPassedAlongCorrectly()
         {
             // arrange
-            ISchema schema = Schema.Create(
-                @"
-                type Query {
-                    root: Level1
-                }
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"type Query {
+                        root: Level1
+                    }
 
-                type Level1 {
-                    a: Level2
-                    b: Level2
-                }
+                    type Level1 {
+                        a: Level2
+                        b: Level2
+                    }
 
-                type Level2
-                {
-                    foo: String
-                }
-                ",
-                c => c.Use(_ => context =>
-                {
-                    if (context.ScopedContextData
-                        .TryGetValue("field", out var o)
-                        && o is string s)
+                    type Level2
                     {
-                        s += "/" + context.Field.Name;
+                        foo: String
+                    }")
+                .Use(_ => context =>
+                {
+                    if (context.ScopedContextData.TryGetValue("field", out var o) &&
+                        o is string s)
+                    {
+                        s += "/" + context.Selection.Field.Name;
                     }
                     else
                     {
-                        s = "./" + context.Field.Name;
+                        s = "./" + context.Selection.Field.Name;
                     }
 
                     context.ScopedContextData = context.ScopedContextData
@@ -45,7 +43,8 @@ namespace HotChocolate.Execution
                     context.Result = s;
 
                     return default;
-                }));
+                })
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 

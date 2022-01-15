@@ -2,140 +2,214 @@
 title: Authorization
 ---
 
-# Authentication
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-GraphQL as defined by the spec does not specify how a user has to authenticate against a schema in order to execute queries. GraphQL does not even specify how requests are sent to the server using HTTP or any other protocol. _Facebook_ specified GraphQL as transport agnostic, meaning GraphQL focuses on one specific problem domain and does not try to solve other problems like how the transport might work, how authentication might work or how a schema implements authorization. These subjects are considered out of scope.
+Authorization allows us to determine a user's permissions within our system. We can for example limit access to resources or only allow certain users to execute specific mutations.
 
-If we are accessing GraphQL servers through HTTP then authenticating against a GraphQL server can be done in various ways and Hot Chocolate does not prescribe any particular.
+Authentication is a prerequisite of Authorization, as we first need to validate a user's "authenticity" before we can evaluate his authorization claims.
 
-We basically can do it in any way ASP.NET core allows us to.
+[Learn how to setup authentication](/docs/hotchocolate/security/authentication)
 
-[Overview of ASP.NET Core authentication](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1)
+# Setup
 
-# Authorization
+After we have successfully setup authentication, there are only a few things left to do.
 
-Authorization on the other hand is something Hot Chocolate can provide some value to by introducing a way to authorize access to fields with the `@authorize`-directive.
-
-But let's start at the beginning with this. In order to add authorization capabilities to our schema add the following package to our project:
-
-```bash
-dotnet add package HotChocolate.AspNetCore.Authorization
-```
-
-In order to use the `@authorize`-directive we have to register it like the following with our schema:
+1. Register the necessary ASP.NET Core services
 
 ```csharp
-SchemaBuilder.New()
-  ...
-  .AddAuthorizeDirectiveType()
-  ...
-  .Create();
-```
-
-Once we have done that we can add the `@authorize`-directive to object types or their fields.
-
-The `@authorize`-directive on a field takes precedence over one that is added on the object type definition.
-
-SDL-First:
-
-```sdl
-type Person @authorize {
-  name: String!
-  address: Address!
-}
-```
-
-Pure Code-First:
-
-```csharp
-[Authorize]
-public class Person
+public class Startup
 {
-    public string Name { get; }
-    public Address Address { get; }
-}
-```
-
-Code-First:
-
-```csharp
-public class PersonType : ObjectType<Person>
-{
-    protected override Configure(IObjectTypeDescriptor<Person> descriptor)
+    public void ConfigureServices(IServiceCollection services)
     {
-        descriptor.Authorize();
-        descriptor.Field(t => t.Address).Authorize();
+        services.AddAuthorization();
+
+        // Omitted code for brevity
+
+        services
+            .AddGraphQLServer()
+            .AddAuthorization()
+            .AddQueryType<Query>();
     }
 }
 ```
 
-If we just add the `@authorize`-directive without specifying any arguments the authorize middleware will basically just enforces that a user is authenticated.
+> ⚠️ Note: We need to call `AddAuthorization()` on the `IServiceCollection`, to register the services needed by ASP.NET Core, and on the `IRequestExecutorBuilder` to register the `@authorize` directive and middleware.
 
-If no user is authenticated the field middleware will raise a GraphQL error and the field value is set to null.
+2. Register the ASP.NET Core authorization middleware with the request pipeline by calling `UseAuthorization`
 
-> If the field is a non-null field the standard GraphQL non-null violation propagation rule is applied like with any other GraphQL error and the fields along the path are removed until the execution engine reaches a nullable field or the while result was removed.
+```csharp
+public class Startup
+{
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapGraphQL();
+        });
+    }
+}
+```
+
+# Usage
+
+At the core of authorization with Hot Chocolate is the `@authorize` directive. It can be applied to fields and types to denote that they require authorization.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+In the Annotation-based approach we can use the `[Authorize]` attribute to add the `@authorize` directive.
+
+```csharp
+[Authorize]
+public class User
+{
+    public string Name { get; set; }
+
+    [Authorize]
+    public Address Address { get; set; }
+}
+```
+
+> ⚠️ Note: We need to use the `HotChocolate.AspNetCore.AuthorizationAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class UserType : ObjectType<User>
+{
+    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor.Authorize();
+
+        descriptor.Field(f => f.Address).Authorize();
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```sdl
+type User @authorize {
+  name: String!
+  address: Address! @authorize
+}
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+Specified on a type the `@authorize` directive will be applied to each field of that type. Its authorization logic is executed once for each individual field, depending on whether it was selected by the requestor or not. If the directive is placed on an individual field, it overrules the one on the type.
+
+If we do not specify any arguments to the `@authorize` directive, it will only enforce that the requestor is authenticated, nothing more. If he is not and tries to access an authorized field, a GraphQL error will be raised and the field result set to `null`.
 
 ## Roles
 
-In many cases role based authorization is sufficient and was already available with ASP.NET classic on the .NET Framework.
+Roles provide a very intuitive way of dividing our users into groups with different access rights.
 
-Moreover, role based authorization is setup quickly and does not need any other setup then providing the roles.
+When building our `ClaimsPrincipal`, we just have to add one or more role claims.
 
-SDL-First:
+```csharp
+claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
+```
 
-```sdl
-type Person @authorize(roles: "foo") {
-  name: String!
-  address: Address! @authorize(roles: ["foo", "bar"])
+We can then check whether an authenticated user has these role claims.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+[Authorize(Roles = new [] { "Guest", "Administrator" })]
+public class User
+{
+    public string Name { get; set; }
+
+    [Authorize(Roles = new[] { "Administrator" })]
+    public Address Address { get; set; }
 }
 ```
 
-Pure Code-First:
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
-[Authorize]
-public class Person
+public class UserType : ObjectType<User>
 {
-    public string Name { get; }
-
-    [Authorize(Roles = new[] { "foo", "bar" })]
-    public Address Address { get; }
-}
-```
-
-Code-First:
-
-```csharp
-public class PersonType : ObjectType<Person>
-{
-    protected override Configure(IObjectTypeDescriptor<Person> descriptor)
+    protected override Configure(IObjectTypeDescriptor<User> descriptor)
     {
-        descriptor.Authorize(new [] {"foo"});
-        descriptor.Field(t => t.Address).Authorize(new [] {"foo", "bar"});
+        descriptor.Authorize(new[] { "Guest", "Administrator" });
+
+        descriptor.Field(t => t.Address).Authorize(new[] { "Administrator" });
     }
 }
 ```
 
-## Policies
-
-If we are using ASP.NET core then we can also opt-in using authorization policies.
-
-So taking our example from earlier we are instead of providing a role just provide a policy name:
-
-SDL-First:
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 ```sdl
-type Person @authorize(policy: "AllEmployees") {
+type User @authorize(roles: [ "Guest", "Administrator" ]) {
   name: String!
-  address: Address! @authorize(policy: "SalesDepartment")
+  address: Address! @authorize(roles: "Administrator")
 }
 ```
 
-Pure Code-First:
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+> ⚠️ Note: If multiple roles are specified, a user only has to match one of the specified roles, in order to be able to execute the resolver.
+
+[Learn more about role-based authorization in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authorization/roles)
+
+## Policies
+
+Policies allow us to create richer validation logic and decouple the authorization rules from our GraphQL resolvers.
+
+A policy consists of an [IAuthorizationRequirement](https://docs.microsoft.com/aspnet/core/security/authorization/policies#requirements) and an [AuthorizationHandler&#x3C;T&#x3E;](https://docs.microsoft.com/aspnet/core/security/authorization/policies#authorization-handlers).
+
+Once defined, we can register our policies like the following.
+
+```csharp
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AtLeast21", policy =>
+                policy.Requirements.Add(new MinimumAgeRequirement(21)));
+
+            options.AddPolicy("HasCountry", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.HasClaim(c => c.Type == ClaimTypes.Country)));
+        });
+
+        services.AddSingleton<IAuthorizationHandler, MinimumAgeHandler>();
+
+        // Omitted code for brevity
+
+        services
+            .AddGraphQLServer()
+            .AddAuthorization()
+            .AddQueryType<Query>();
+    }
+}
+```
+
+We can then use these policies to restrict access to our fields.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 [Authorize(Policy = "AllEmployees")]
-public class Person
+public class User
 {
     public string Name { get; }
 
@@ -144,133 +218,161 @@ public class Person
 }
 ```
 
-Code-First:
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
-public class PersonType : ObjectType<Person>
+public class UserType : ObjectType<User>
 {
-    protected override Configure(IObjectTypeDescriptor<Person> descriptor)
+    protected override Configure(IObjectTypeDescriptor<User> descriptor)
     {
         descriptor.Authorize("AllEmployees");
+
         descriptor.Field(t => t.Address).Authorize("SalesDepartment");
     }
 }
 ```
 
-In the above example the name field is accessible to all users that fall under the `AllEmployees` policy, whereas the directive on the address field takes precedence over the `@authorize`-directive on the object type. This means that only users that fall under the `SalesDepartment` policy can access the address field.
-
-> It is important to note that _policy-based authorization_ is only available with ASP.NET core.
-
-The `@authorize`-directive is repeatable, that means that we are able to chain the directives and only if all annotated conditions are true will we gain access to the data of the annotated field.
-
-SDL-First:
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 ```sdl
-type Person {
+type User @authorize(policy: "AllEmployees") {
   name: String!
-  address: Address!
-  @authorize(policy: "AllEmployees")
-  @authorize(policy: "SalesDepartment")
-  @authorize(roles: "FooBar")
+  address: Address! @authorize(policy: "SalesDepartment")
 }
 ```
 
-Pure Code-First:
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+This essentially uses the provided policy and runs it against the `ClaimsPrincipal` that is associated with the current request.
+
+The `@authorize` directive is also repeatable, which means that we are able to chain the directive and a user is only allowed to access the field if they meet all of the specified conditions.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
-public class Person
+[Authorize(Policy = "AtLeast21")]
+[Authorize(Policy = "HasCountry")]
+public class User
 {
-    public string Name { get; }
-
-    [Authorize(Policy = "AllEmployees")]
-    [Authorize(Policy = "SalesDepartment")]
-    [Authorize(Policy = "FooBar")]
-    public Address Address { get; }
+    public string Name { get; set; }
 }
 ```
 
-Code-First:
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
-public class PersonType : ObjectType<Person>
+public class UserType : ObjectType<User>
 {
-    protected override Configure(IObjectTypeDescriptor<Person> descriptor)
+    protected override Configure(IObjectTypeDescriptor<User> descriptor)
     {
-        descriptor.Field(t => t.Address)
-          .Authorize("AllEmployees")
-          .Authorize("SalesDepartment")
-          .Authorize("FooBar");
+        descriptor
+            .Authorize("AtLeast21")
+            .Authorize("HasCountry");
     }
 }
 ```
 
-# Policy-based authorization in ASP.NET Core
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
-Policy-based authorization in ASP.NET Core does not any longer prescribe us in which way we describe our requirements. Now, with policy-based authorization we could just say that a certain field can only be accessed if the user is 21 or older or that a user did provide his passport as evidence of his/her identity.
-
-So, in order to define those requirements we can define policies that essentially describe and validate our requirements and the rules that enforce them.
-
-```csharp
-services.AddAuthorization(options =>
-{
-    options.AddPolicy("HasCountry", policy =>
-        policy.RequireAssertion(context =>
-            context.User.HasClaim(c => (c.Type == ClaimTypes.Country))));
-});
+```sdl
+type User
+	@authorize(policy: "AtLeast21")
+	@authorize(policy: "HasCountry") {
+	name: String!
+}
 ```
 
-The good thing with policies is that we decouple the actual authorization rules from our GraphQL resolver logic which makes the whole thing better testable.
+</ExampleTabs.Schema>
+</ExampleTabs>
 
-One important aspect with policies is also that we are passing the resolver context as resource into the policy so that we have access to all the data of our resolver.
+[Learn more about policy-based authorization in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authorization/policies)
+
+### IResolverContext within an AuthorizationHandler
+
+If we need to, we can also access the `IResolverContext` in our `AuthorizationHandler`.
 
 ```csharp
-public class SalesDepartmentAuthorizationHandler
-    :  AuthorizationHandler<SalesDepartmentRequirement, IResolverContext>
+public class MinimumAgeHandler
+    : AuthorizationHandler<MinimumAgeRequirement, IResolverContext>
 {
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
-        SalesDepartmentRequirement requirement,
-        IResolverContext resource)
+        MinimumAgeRequirement requirement,
+        IResolverContext resolverContext)
     {
-        if (context.User.HasClaim(...))
-        {
-            context.Succeed(requirement);
-        }
+        // Omitted code for brevity
+    }
+}
+```
 
-        return Task.CompletedTask;
+# Global authorization
+
+We can also apply authorization to our entire GraphQL endpoint. To do this, simply call `RequireAuthorization()` on the `GraphQLEndpointConventionBuilder`.
+
+```csharp
+public class Startup
+{
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapGraphQL().RequireAuthorization();
+        });
+    }
+}
+```
+
+This method also accepts [roles](#roles) and [policies](#policies) as arguments, similiar to the `Authorize` attribute / methods.
+
+Please note that this will prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
+
+[Learn more about available middleware](/docs/hotchocolate/server/middleware)
+
+# Modifying the ClaimsPrincipal
+
+Sometimes we might want to add additional [ClaimsIdentity](https://docs.microsoft.com/dotnet/api/system.security.claims.claimsidentity) to our `ClaimsPrincipal` or modify the default identity.
+
+Hot Chocolate provides the ability to register an `IHttpRequestInterceptor`, allowing us to modify the incoming HTTP request, before it is passed along to the execution engine.
+
+```csharp
+public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
+{
+    public override ValueTask OnCreateAsync(HttpContext context,
+        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
+    {
+        var identity = new ClaimsIdentity();
+        identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
+
+        context.User.AddIdentity(identity);
+
+        return base.OnCreateAsync(context, requestExecutor, requestBuilder,
+            cancellationToken);
     }
 }
 
-public class SalesDepartmentRequirement : IAuthorizationRequirement { }
-
-services.AddAuthorization(options =>
+public class Startup
 {
-    options.AddPolicy("SalesDepartment",
-        policy => policy.Requirements.Add(new SalesDepartmentRequirement()));
-});
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddHttpRequestInterceptor<HttpRequestInterceptor>();
 
-services.AddSingleton<IAuthorizationHandler, SalesDepartmentAuthorizationHandler>();
+        // Omitted code for brevity
+    }
+}
 ```
 
-The `@authorize`-directive essentially uses the provided policy and runs it against the `ClaimsPrinciple` that is associated with the current request.
-
-More about policy-based authorization can be found in the Microsoft Documentation:
-[Policy-based authorization in ASP.NET Core | Microsoft Docs](https://docs.microsoft.com/en-us/aspnet/core/security/authorization/policies?view=aspnetcore-2.1)
-
-# Query Requests
-
-Our query middleware creates a request and passes the request with additional meta-data to the query-engine. For example we provide a property called `ClaimsIdentity` that contains the user associated with the current request. These meta-data or custom request properties can be used within a field-middleware like the authorize middleware to change the default execution of a field resolver.
-
-So, we could use an authentication-middleware in ASP.NET core to add all the user meta-data that we need to our claim-identity or we could hook up some code in our middleware and add additional meta-data or even modify the `ClaimsPrincipal`.
-
-```csharp
-services.AddQueryRequestInterceptor((ctx, builder, ct) =>
-{
-    var identity = new ClaimsIdentity();
-    identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
-    ctx.User.AddIdentity(identity);
-    return Task.CompletedTask;
-});
-```
-
-The `OnCreateRequestAsync`-delegate can be used for many other things and is not really for authorization but can be useful in dev-scenarios where we want to simulate a certain user etc..
+[Learn more about interceptors](/docs/hotchocolate/server/interceptors)

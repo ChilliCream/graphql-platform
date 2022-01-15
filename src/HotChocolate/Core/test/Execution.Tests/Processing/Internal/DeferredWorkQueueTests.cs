@@ -119,7 +119,9 @@ namespace HotChocolate.Execution.Processing.Internal
             /// </summary>
             public int Id { get; set; }
 
-            public Task<IQueryResult> ExecuteAsync(IOperationContext operationContext)
+            public bool IsCompleted => false;
+
+            public Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext)
             {
                 throw new System.NotImplementedException();
             }

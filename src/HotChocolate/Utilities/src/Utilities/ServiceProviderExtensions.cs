@@ -99,13 +99,15 @@ namespace HotChocolate.Utilities
                 service = services.GetService(type);
                 return service is not null;
             }
-            // azure functions does not honor the interface and throws if the service
-            // is not known.
+#pragma warning disable CA1031
             catch
             {
+                // azure functions does not honor the interface and throws if the service
+                // is not known.
                 service = null;
                 return false;
             }
+#pragma warning restore CA1031
         }
     }
 }

@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FC, useState } from "react";
 import styled from "styled-components";
 
 function copyToClipboard(content: string): void {
@@ -17,7 +17,7 @@ interface CoopyProps {
   content: string;
 }
 
-export const Copy: FunctionComponent<CoopyProps> = ({ content }) => {
+export const Copy: FC<CoopyProps> = ({ content }) => {
   const [showToast, setShowToast] = useState(false);
 
   return (
@@ -47,7 +47,7 @@ export const Copy: FunctionComponent<CoopyProps> = ({ content }) => {
   );
 };
 
-const CopySuccessToast: FunctionComponent = () => {
+const CopySuccessToast: FC = () => {
   return (
     <ToastContainer>
       <ToastText>Copied code example</ToastText>
@@ -59,7 +59,7 @@ const ToastText = styled.div`
   font-size: 1.25rem;
   font-family: sans-serif;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-color-contrast);
 `;
 
 const ToastContainer = styled.div`
@@ -69,10 +69,10 @@ const ToastContainer = styled.div`
   transform: translateX(-50%);
   z-index: 9999;
 
-  background-color: var(--brand-color);
+  background-color: var(--primary-color);
   box-shadow: 0px 3px 6px 0px #828282;
   padding: 20px;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   opacity: 0;
   animation: animation 3s cubic-bezier(0.98, 0.01, 0.53, 0.47);
 
@@ -93,7 +93,7 @@ const CopyIconButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0 0 0 4px;
+  border-radius: 0 0 0 var(--border-radius);
   padding: 8px 8px;
   background-color: #aaa;
 

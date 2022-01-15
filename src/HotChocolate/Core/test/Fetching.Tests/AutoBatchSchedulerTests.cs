@@ -1,5 +1,7 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
+using GreenDonut;
 using HotChocolate.Fetching;
 using Xunit;
 
@@ -13,16 +15,20 @@ namespace HotChocolate
             // arrange
             var hasBeenDispatched = false;
             var scheduler = new AutoBatchScheduler();
-            Func<ValueTask> dispatch = () =>
+            var wait = new AutoResetEvent(false);
+
+            ValueTask Dispatch()
             {
                 hasBeenDispatched = true;
+                wait.Set();
                 return default;
-            };
+            }
 
             // act
-            scheduler.Schedule(dispatch);
+            scheduler.Schedule(Dispatch);
 
             // assert
+            wait.WaitOne(TimeSpan.FromSeconds(5));
             Assert.True(hasBeenDispatched);
         }
     }

@@ -2,320 +2,405 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed class AggregateTypeInterceptor : TypeInterceptor
 {
-    internal sealed class AggregateTypeInterceptor : TypeInterceptor
+    private readonly List<ITypeDiscoveryContext> _discoveryContexts = new();
+    private readonly List<ITypeCompletionContext> _completionContexts = new();
+    private readonly List<ITypeReference> _typeReferences = new();
+    private IReadOnlyCollection<TypeInterceptor> _typeInterceptors;
+    private IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
+    private IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
+    private IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
+    private IReadOnlyCollection<ITypeInitializationFlowInterceptor> _flowInterceptors;
+    private IReadOnlyCollection<ITypeRegistryInterceptor> _registryInterceptors;
+    private bool _triggerAggregations;
+
+    public AggregateTypeInterceptor()
     {
-        private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
-        private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
-        private readonly IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
-        private readonly IReadOnlyCollection<ITypeInitializationFlowInterceptor> _flowInterceptors;
-        private readonly IReadOnlyCollection<ITypeRegistryInterceptor> _registryInterceptors;
+        _typeInterceptors = Array.Empty<TypeInterceptor>();
+        _initInterceptors = Array.Empty<ITypeInitializationInterceptor>();
+        _agrInterceptors = Array.Empty<ITypeInitializationInterceptor>();
+        _scopeInterceptors = Array.Empty<ITypeScopeInterceptor>();
+        _flowInterceptors = Array.Empty<ITypeInitializationFlowInterceptor>();
+        _registryInterceptors = Array.Empty<ITypeRegistryInterceptor>();
+        _triggerAggregations = false;
+    }
 
-        public AggregateTypeInterceptor()
+    public void SetInterceptors(IReadOnlyCollection<object> interceptors)
+    {
+        _discoveryContexts.Clear();
+        _completionContexts.Clear();
+        _typeReferences.Clear();
+
+        _typeInterceptors = interceptors.OfType<TypeInterceptor>().ToList();
+        _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
+        _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
+        _scopeInterceptors = interceptors.OfType<ITypeScopeInterceptor>().ToList();
+        _flowInterceptors = interceptors.OfType<ITypeInitializationFlowInterceptor>().ToList();
+        _registryInterceptors = interceptors.OfType<ITypeRegistryInterceptor>().ToList();
+        _triggerAggregations = _agrInterceptors.Count > 0;
+    }
+
+    public override bool TriggerAggregations => _triggerAggregations;
+
+    public override bool CanHandle(ITypeSystemObjectContext context) => true;
+
+    internal override void InitializeContext(
+        IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeReferenceResolver typeReferenceResolver)
+    {
+        foreach (TypeInterceptor interceptor in _typeInterceptors)
         {
-            _initInterceptors = Array.Empty<ITypeInitializationInterceptor>();
-            _agrInterceptors = Array.Empty<ITypeInitializationInterceptor>();
-            _scopeInterceptors = Array.Empty<ITypeScopeInterceptor>();
-            _flowInterceptors = Array.Empty<ITypeInitializationFlowInterceptor>();
-            _registryInterceptors = Array.Empty<ITypeRegistryInterceptor>();
-            TriggerAggregations = false;
+            interceptor.InitializeContext(
+                context,
+                typeInitializer,
+                typeRegistry,
+                typeLookup,
+                typeReferenceResolver);
         }
+    }
 
-        public AggregateTypeInterceptor(object interceptor)
-            : this(new[] { interceptor })
+    public override void OnBeforeDiscoverTypes()
+    {
+        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
         {
+            interceptor.OnBeforeDiscoverTypes();
         }
+    }
 
-        public AggregateTypeInterceptor(IReadOnlyCollection<object> interceptors)
+    public override void OnAfterDiscoverTypes()
+    {
+        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
         {
-            _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
-            _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
-            _scopeInterceptors = interceptors.OfType<ITypeScopeInterceptor>().ToList();
-            _flowInterceptors = interceptors.OfType<ITypeInitializationFlowInterceptor>().ToList();
-            _registryInterceptors = interceptors.OfType<ITypeRegistryInterceptor>().ToList();
-            TriggerAggregations = _agrInterceptors.Count > 0;
+            interceptor.OnAfterDiscoverTypes();
         }
+    }
 
-        public override bool TriggerAggregations { get; }
-
-        public override bool CanHandle(ITypeSystemObjectContext context) => true;
-
-        public override void OnBeforeDiscoverTypes()
+    public override void OnBeforeInitialize(
+        ITypeDiscoveryContext discoveryContext)
+    {
+        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
         {
-            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            if (interceptor.CanHandle(discoveryContext))
             {
-                interceptor.OnBeforeDiscoverTypes();
+                interceptor.OnBeforeInitialize(discoveryContext);
             }
         }
+    }
 
-        public override void OnAfterDiscoverTypes()
+    public override void OnAfterInitialize(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
         {
-            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            if (interceptor.CanHandle(discoveryContext))
             {
-                interceptor.OnAfterDiscoverTypes();
+                interceptor.OnAfterInitialize(discoveryContext, definition, contextData);
             }
         }
+    }
 
-        public override void OnBeforeInitialize(
-            ITypeDiscoveryContext discoveryContext)
+    public override void OnTypeRegistered(ITypeDiscoveryContext discoveryContext)
+    {
+        foreach (ITypeRegistryInterceptor interceptor in _registryInterceptors)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+            interceptor.OnTypeRegistered(discoveryContext);
+        }
+    }
+
+    public override IEnumerable<ITypeReference> RegisterMoreTypes(
+        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    {
+        _typeReferences.Clear();
+
+        if (_agrInterceptors.Count > 0)
+        {
+            foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
             {
-                if (interceptor.CanHandle(discoveryContext))
+                _discoveryContexts.Clear();
+
+                foreach (ITypeDiscoveryContext discoveryContext in discoveryContexts)
                 {
-                    interceptor.OnBeforeInitialize(discoveryContext);
-                }
-            }
-        }
-
-        public override void OnAfterInitialize(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
-            {
-                if (interceptor.CanHandle(discoveryContext))
-                {
-                    interceptor.OnAfterInitialize(
-                        discoveryContext, definition, contextData);
-                }
-            }
-        }
-
-        public override void OnTypeRegistered(ITypeDiscoveryContext discoveryContext)
-        {
-            foreach (ITypeRegistryInterceptor interceptor in _registryInterceptors)
-            {
-                interceptor.OnTypeRegistered(discoveryContext);
-            }
-        }
-
-        public override void OnTypesInitialized(
-            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-        {
-            if (_agrInterceptors.Count > 0)
-            {
-                var list = new List<ITypeDiscoveryContext>();
-
-                foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
-                {
-                    list.Clear();
-
-                    foreach (ITypeDiscoveryContext discoveryContext in discoveryContexts)
+                    if (interceptor.CanHandle(discoveryContext))
                     {
-                        if (interceptor.CanHandle(discoveryContext))
-                        {
-                            list.Add(discoveryContext);
-                        }
+                        _discoveryContexts.Add(discoveryContext);
                     }
-
-                    interceptor.OnTypesInitialized(list);
                 }
+
+                _typeReferences.AddRange(interceptor.RegisterMoreTypes(_discoveryContexts));
             }
+
+            _discoveryContexts.Clear();
         }
 
-        public override void OnAfterRegisterDependencies(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+        return _typeReferences;
+    }
+
+    public override void OnTypesInitialized(
+        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    {
+        if (_agrInterceptors.Count > 0)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
             {
-                if (interceptor.CanHandle(discoveryContext))
+                _discoveryContexts.Clear();
+
+                foreach (ITypeDiscoveryContext discoveryContext in discoveryContexts)
                 {
-                    interceptor.OnAfterRegisterDependencies(
-                        discoveryContext, definition, contextData);
-                }
-            }
-        }
-
-        public override void OnBeforeRegisterDependencies(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
-            {
-                if (interceptor.CanHandle(discoveryContext))
-                {
-                    interceptor.OnBeforeRegisterDependencies(
-                        discoveryContext, definition, contextData);
-                }
-            }
-        }
-
-        public override void OnBeforeCompleteTypeNames()
-        {
-            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
-            {
-                interceptor.OnBeforeCompleteTypeNames();
-            }
-        }
-
-        public override void OnAfterCompleteTypeNames()
-        {
-            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
-            {
-                interceptor.OnAfterCompleteTypeNames();
-            }
-        }
-
-        public override void OnBeforeCompleteName(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
-            {
-                if (interceptor.CanHandle(completionContext))
-                {
-                    interceptor.OnBeforeCompleteName(completionContext, definition, contextData);
-                }
-            }
-        }
-
-        public override void OnAfterCompleteName(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
-            {
-                if (interceptor.CanHandle(completionContext))
-                {
-                    interceptor.OnAfterCompleteName(completionContext, definition, contextData);
-                }
-            }
-        }
-
-        public override void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
-        {
-            if (_agrInterceptors.Count > 0)
-            {
-                var list = new List<ITypeCompletionContext>();
-
-                foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
-                {
-                    list.Clear();
-
-                    foreach (ITypeCompletionContext completionContext in completionContexts)
+                    if (interceptor.CanHandle(discoveryContext))
                     {
-                        if (interceptor.CanHandle(completionContext))
-                        {
-                            list.Add(completionContext);
-                        }
+                        _discoveryContexts.Add(discoveryContext);
                     }
-
-                    interceptor.OnTypesCompletedName(list);
                 }
+
+                interceptor.OnTypesInitialized(_discoveryContexts);
+            }
+
+            _discoveryContexts.Clear();
+        }
+    }
+
+    public override void OnAfterRegisterDependencies(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        {
+            if (interceptor.CanHandle(discoveryContext))
+            {
+                interceptor.OnAfterRegisterDependencies(
+                    discoveryContext, definition, contextData);
             }
         }
+    }
 
-        public override void OnBeforeMergeTypeExtensions()
+    public override void OnBeforeRegisterDependencies(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
         {
-            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            if (interceptor.CanHandle(discoveryContext))
             {
-                interceptor.OnBeforeMergeTypeExtensions();
+                interceptor.OnBeforeRegisterDependencies(
+                    discoveryContext, definition, contextData);
             }
         }
+    }
 
-        public override void OnAfterMergeTypeExtensions()
+    public override void OnBeforeCompleteTypeNames()
+    {
+        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
         {
-            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            interceptor.OnBeforeCompleteTypeNames();
+        }
+    }
+
+    public override void OnAfterCompleteTypeNames()
+    {
+        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        {
+            interceptor.OnAfterCompleteTypeNames();
+        }
+    }
+
+    public override void OnBeforeCompleteName(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        {
+            if (interceptor.CanHandle(completionContext))
             {
-                interceptor.OnAfterMergeTypeExtensions();
+                interceptor.OnBeforeCompleteName(completionContext, definition, contextData);
             }
         }
+    }
 
-        public override void OnBeforeCompleteTypes()
+    public override void OnAfterCompleteName(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
         {
-            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            if (interceptor.CanHandle(completionContext))
             {
-                interceptor.OnBeforeCompleteTypes();
+                interceptor.OnAfterCompleteName(completionContext, definition, contextData);
             }
         }
+    }
 
-        public override void OnAfterCompleteTypes()
+    internal override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition,
+        OperationType operationType,
+        IDictionary<string, object?> contextData)
+    {
+        foreach (TypeInterceptor interceptor in _typeInterceptors)
         {
-            foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+            if (interceptor.CanHandle(completionContext))
             {
-                interceptor.OnAfterCompleteTypes();
+                interceptor.OnAfterResolveRootType(
+                    completionContext,
+                    definition,
+                    operationType,
+                    contextData);
             }
         }
+    }
 
-        public override void OnBeforeCompleteType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+    public override void OnTypesCompletedName(
+        IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+    {
+        if (_agrInterceptors.Count > 0)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
             {
-                if (interceptor.CanHandle(completionContext))
+                _completionContexts.Clear();
+
+                foreach (ITypeCompletionContext completionContext in completionContexts)
                 {
-                    interceptor.OnBeforeCompleteType(completionContext, definition, contextData);
-                }
-            }
-        }
-
-        public override void OnAfterCompleteType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
-            {
-                if (interceptor.CanHandle(completionContext))
-                {
-                    interceptor.OnAfterCompleteType(completionContext, definition, contextData);
-                }
-            }
-        }
-
-        public override bool TryCreateScope(
-            ITypeDiscoveryContext discoveryContext,
-            [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies)
-        {
-            foreach (ITypeScopeInterceptor interceptor in _scopeInterceptors)
-            {
-                if (interceptor.TryCreateScope(discoveryContext, out typeDependencies))
-                {
-                    return true;
-                }
-            }
-
-            typeDependencies = null;
-            return false;
-        }
-
-        public override void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
-        {
-            if (_agrInterceptors.Count > 0)
-            {
-                var list = new List<ITypeCompletionContext>();
-
-                foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
-                {
-                    list.Clear();
-
-                    foreach (ITypeCompletionContext completionContext in completionContexts)
+                    if (interceptor.CanHandle(completionContext))
                     {
-                        if (interceptor.CanHandle(completionContext))
-                        {
-                            list.Add(completionContext);
-                        }
+                        _completionContexts.Add(completionContext);
                     }
-
-                    interceptor.OnTypesCompleted(list);
                 }
+
+                interceptor.OnTypesCompletedName(_completionContexts);
             }
+
+            _completionContexts.Clear();
+        }
+    }
+
+    public override void OnBeforeMergeTypeExtensions()
+    {
+        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        {
+            interceptor.OnBeforeMergeTypeExtensions();
+        }
+    }
+
+    public override void OnAfterMergeTypeExtensions()
+    {
+        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        {
+            interceptor.OnAfterMergeTypeExtensions();
+        }
+    }
+
+    public override void OnBeforeCompleteTypes()
+    {
+        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        {
+            interceptor.OnBeforeCompleteTypes();
+        }
+    }
+
+    public override void OnAfterCompleteTypes()
+    {
+        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        {
+            interceptor.OnAfterCompleteTypes();
+        }
+    }
+
+    public override void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        {
+            if (interceptor.CanHandle(completionContext))
+            {
+                interceptor.OnBeforeCompleteType(completionContext, definition, contextData);
+            }
+        }
+    }
+
+    public override void OnAfterCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        {
+            if (interceptor.CanHandle(completionContext))
+            {
+                interceptor.OnAfterCompleteType(completionContext, definition, contextData);
+            }
+        }
+    }
+
+    public override void OnValidateType(
+        ITypeSystemObjectContext validationContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        {
+            if (interceptor.CanHandle(validationContext))
+            {
+                interceptor.OnValidateType(validationContext, definition, contextData);
+            }
+        }
+    }
+
+    public override bool TryCreateScope(
+        ITypeDiscoveryContext discoveryContext,
+        [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies)
+    {
+        foreach (ITypeScopeInterceptor interceptor in _scopeInterceptors)
+        {
+            if (interceptor.TryCreateScope(discoveryContext, out typeDependencies))
+            {
+                return true;
+            }
+        }
+
+        typeDependencies = null;
+        return false;
+    }
+
+    public override void OnTypesCompleted(
+        IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+    {
+        if (_agrInterceptors.Count > 0)
+        {
+            foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
+            {
+                _completionContexts.Clear();
+
+                foreach (ITypeCompletionContext completionContext in completionContexts)
+                {
+                    if (interceptor.CanHandle(completionContext))
+                    {
+                        _completionContexts.Add(completionContext);
+                    }
+                }
+
+                interceptor.OnTypesCompleted(_completionContexts);
+            }
+
+            _completionContexts.Clear();
         }
     }
 }

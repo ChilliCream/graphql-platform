@@ -1,9 +1,9 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
-const NotFoundPage: FunctionComponent = () => (
+const NotFoundPage: FC = () => (
   <Layout>
     <SEO title="404: Not found" />
     <Container>
@@ -39,7 +39,7 @@ const Article = styled.article`
   padding-bottom: 20px;
 
   @media only screen and (min-width: 820px) {
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
   }
 `;

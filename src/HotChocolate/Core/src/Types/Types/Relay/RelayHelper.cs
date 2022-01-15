@@ -2,25 +2,24 @@ using HotChocolate.Types.Descriptors;
 
 #nullable enable
 
-namespace HotChocolate.Types.Relay
-{
-    internal static class RelayHelper
-    {
-        public static RelayOptions GetRelayOptions(
-            this IDescriptorContext context)
-        {
-            if (context.ContextData.TryGetValue(typeof(RelayOptions).FullName!, out object? o) &&
-                o is RelayOptions casted)
-            {
-                return casted;
-            }
+namespace HotChocolate.Types.Relay;
 
-            return new RelayOptions();
+internal static class RelayHelper
+{
+    public static MutationPayloadOptions GetMutationPayloadOptions(
+        this IDescriptorContext context)
+    {
+        if (context.ContextData.TryGetValue(typeof(MutationPayloadOptions).FullName!, out var o) &&
+            o is MutationPayloadOptions casted)
+        {
+            return casted;
         }
 
-        public static ISchemaBuilder SetRelayOptions(
-            this ISchemaBuilder schemaBuilder,
-            RelayOptions options) =>
-            schemaBuilder.SetContextData(typeof(RelayOptions).FullName!, options);
+        return new MutationPayloadOptions();
     }
+
+    public static ISchemaBuilder SetMutationPayloadOptions(
+        this ISchemaBuilder schemaBuilder,
+        MutationPayloadOptions options) =>
+        schemaBuilder.SetContextData(typeof(MutationPayloadOptions).FullName!, options);
 }

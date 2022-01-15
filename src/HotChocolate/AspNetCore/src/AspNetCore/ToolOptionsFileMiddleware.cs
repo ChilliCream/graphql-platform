@@ -1,129 +1,118 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
-using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+/// <summary>
+/// This middleware handles the Banana Cake Pop configuration file request.
+/// </summary>
+public class ToolOptionsFileMiddleware
 {
-    /// <summary>
-    /// This middleware handles the Banana Cake Pop configuration file request.
-    /// </summary>
-    public class ToolOptionsFileMiddleware
-        : MiddlewareBase
+    private const string _configFile = "/bcp-config.json";
+    private readonly HttpRequestDelegate _next;
+    private readonly PathString _matchUrl;
+    private BananaCakePopConfiguration? _config;
+
+    public ToolOptionsFileMiddleware(HttpRequestDelegate next, PathString matchUrl)
     {
-        private const string _configFile = "/bcp-config.json";
-        private readonly PathString _matchUrl;
+        _next = next ?? throw new ArgumentNullException(nameof(next));
+        _matchUrl = matchUrl;
+    }
 
-        public ToolOptionsFileMiddleware(
-            HttpRequestDelegate next,
-            IRequestExecutorResolver executorResolver,
-            IHttpResultSerializer resultSerializer,
-            NameString schemaName,
-            PathString matchUrl)
-            : base(next, executorResolver, resultSerializer, schemaName)
+    public async Task Invoke(HttpContext context)
+    {
+        if (context.Request.IsGetOrHeadMethod() &&
+            context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
+            subPath.Value == _configFile &&
+            (context.GetGraphQLToolOptions()?.Enable ?? true))
         {
-            _matchUrl = matchUrl;
-        }
-
-        /// <summary>
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public async Task Invoke(HttpContext context)
-        {
-            if (context.Request.IsGetOrHeadMethod() &&
-                context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
-                subPath.Value == _configFile &&
-                (context.GetGraphQLToolOptions()?.Enable ?? true))
+            if (_config is null)
             {
                 GraphQLToolOptions? options = context.GetGraphQLToolOptions();
+                GraphQLEndpointOptions? endpointOptions = context.GetGraphQLEndpointOptions();
+
                 var config = new BananaCakePopConfiguration();
-                ISchema schema = await ExecutorProxy.GetSchemaAsync(context.RequestAborted);
+
+                if (endpointOptions is not null)
+                {
+                    config.UseBrowserUrlAsEndpoint = true;
+                    config.Endpoint = endpointOptions.GraphQLEndpoint;
+                }
 
                 if (options is not null)
                 {
-                    config.Document = options.Document;
-                    config.Credentials = ConvertCredentialsToString(options.Credentials);
+                    config.Title = options.Title;
+                    config.GraphQLDocument = options.Document;
+                    config.UseBrowserUrlAsEndpoint = options.UseBrowserUrlAsGraphQLEndpoint;
+
+                    if (options.GraphQLEndpoint is not null)
+                    {
+                        config.Endpoint = options.GraphQLEndpoint;
+                    }
+
+                    config.IncludeCookies = options.IncludeCookies;
                     config.HttpHeaders = ConvertHttpHeadersToDictionary(options.HttpHeaders);
-                    config.HttpMethod = ConvertHttpMethodToString(options.HttpMethod);
+                    config.UseGet = ConvertHttpMethodToString(options.HttpMethod);
+                    config.GaTrackingId = options.GaTrackingId;
+                    config.DisableTelemetry = options.DisableTelemetry;
                 }
 
-                await context.Response.WriteAsJsonAsync(config, context.RequestAborted);
+                _config = config;
             }
-            else
-            {
-                await NextAsync(context);
-            }
-        }
 
-        private static string? ConvertCredentialsToString(DefaultCredentials? credentials)
+            await context.Response.WriteAsJsonAsync(_config, context.RequestAborted);
+        }
+        else
         {
-            if (credentials is not null)
+            await _next(context);
+        }
+    }
+
+    private static IDictionary<string, string>? ConvertHttpHeadersToDictionary(
+        IHeaderDictionary? httpHeaders)
+    {
+        if (httpHeaders is not null)
+        {
+            var result = new Dictionary<string, string>();
+
+            foreach ((var key, StringValues value) in httpHeaders)
             {
-                switch (credentials)
-                {
-                    case DefaultCredentials.Include:
-                        return "include";
-                    case DefaultCredentials.Omit:
-                        return "omit";
-                    case DefaultCredentials.SameOrigin:
-                        return "same-origin";
-                }
+                result.Add(key, value.ToString());
             }
 
-            return null;
+            return result;
         }
 
-        private static IDictionary<string, string>? ConvertHttpHeadersToDictionary(
-            IHeaderDictionary? httpHeaders)
+        return null;
+    }
+
+    private bool? ConvertHttpMethodToString(DefaultHttpMethod? httpMethod)
+        => httpMethod switch
         {
-            if (httpHeaders is not null)
-            {
-                var result = new Dictionary<string, string>();
+            DefaultHttpMethod.Get => true,
+            DefaultHttpMethod.Post => false,
+            _ => null
+        };
 
-                foreach ((var key, StringValues value) in httpHeaders)
-                {
-                    result.Add(key, value.ToString());
-                }
+    private class BananaCakePopConfiguration
+    {
+        public string? Title { get; set; }
 
-                return result;
-            }
+        public bool UseBrowserUrlAsEndpoint { get; set; } = true;
 
-            return null;
-        }
+        public string? Endpoint { get; set; }
 
-        private string? ConvertHttpMethodToString(DefaultHttpMethod? httpMethod)
-        {
-            if (httpMethod is not null)
-            {
-                switch (httpMethod)
-                {
-                    case DefaultHttpMethod.Get:
-                        return "GET";
-                    case DefaultHttpMethod.Post:
-                        return "POST";
-                }
-            }
+        public string? GraphQLDocument { get; set; }
 
-            return null;
-        }
+        public bool? IncludeCookies { get; set; }
 
-        private class BananaCakePopConfiguration
-        {
-            public bool UseBrowserUrlAsEndpoint { get; } = true;
+        public IDictionary<string, string>? HttpHeaders { get; set; }
 
-            public bool? EndpointEditable { get; set; }
+        public bool? UseGet { get; set; }
 
-            public string? Document { get; set; }
+        public string? GaTrackingId { get; set; }
 
-            public string? Credentials { get; set; }
-
-            public IDictionary<string, string>? HttpHeaders { get; set; }
-
-            public string? HttpMethod { get; set; }
-        }
+        public bool? DisableTelemetry { get; set; }
     }
 }

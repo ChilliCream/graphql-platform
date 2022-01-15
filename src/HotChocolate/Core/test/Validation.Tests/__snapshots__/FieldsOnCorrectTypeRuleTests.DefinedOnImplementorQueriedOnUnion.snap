@@ -15,14 +15,14 @@
     ],
     "Extensions": {
       "type": "CatOrDog",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
       "Kind": "SelectionSet",
       "Location": {
         "Start": 73,
-        "End": 156,
+        "End": 140,
         "Line": 2,
         "Column": 73
       },
@@ -31,6 +31,7 @@
           "Kind": "Field",
           "Alias": null,
           "Arguments": [],
+          "Required": null,
           "SelectionSet": null,
           "Location": {
             "Start": 95,

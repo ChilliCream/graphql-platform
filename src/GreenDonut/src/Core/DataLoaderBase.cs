@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static GreenDonut.Errors;
 
 namespace GreenDonut
 {
@@ -22,7 +21,7 @@ namespace GreenDonut
     /// </summary>
     /// <typeparam name="TKey">A key type.</typeparam>
     /// <typeparam name="TValue">A value type.</typeparam>
-    public abstract class DataLoaderBase<TKey, TValue>
+    public abstract partial class DataLoaderBase<TKey, TValue>
         : IDataLoader<TKey, TValue>
         , IDisposable
         where TKey : notnull
@@ -30,225 +29,176 @@ namespace GreenDonut
         private readonly object _sync = new();
         private readonly CancellationTokenSource _disposeTokenSource = new();
         private readonly IBatchScheduler _batchScheduler;
-        private readonly CacheKeyResolverDelegate<TKey> _cacheKeyResolver;
+        private readonly string _cacheKeyType;
         private readonly int _maxBatchSize;
-        private readonly ITaskCache _cache;
-        private readonly DataLoaderOptions<TKey> _options;
-        private Batch<TKey, TValue>? _currentBatch;
+        private readonly ITaskCache? _cache;
+        private readonly TaskCacheOwner? _cacheOwner;
+        private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
+        private Batch<TKey>? _currentBatch;
         private bool _disposed;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataLoader{TKey, TValue}"/> class.
-        /// </summary>
-        /// <param name="batchScheduler">
-        /// A scheduler to tell the <c>DataLoader</c> when to dispatch buffered batches.
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="options"/> is <c>null</c>.
-        /// </exception>
-        protected DataLoaderBase(IBatchScheduler batchScheduler)
-            : this(batchScheduler, null)
-        { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataLoader{TKey, TValue}"/> class.
+        /// Initializes a new instance of the <see cref="DataLoaderBase{TKey, TValue}"/> class.
         /// </summary>
         /// <param name="batchScheduler">
         /// A scheduler to tell the <c>DataLoader</c> when to dispatch buffered batches.
         /// </param>
         /// <param name="options">
         /// An options object to configure the behavior of this particular
-        /// <see cref="DataLoader{TKey, TValue}"/>.
+        /// <see cref="DataLoaderBase{TKey, TValue}"/>.
         /// </param>
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="options"/> is <c>null</c>.
         /// </exception>
-        protected DataLoaderBase(IBatchScheduler batchScheduler, DataLoaderOptions<TKey>? options)
+        protected DataLoaderBase(IBatchScheduler batchScheduler, DataLoaderOptions? options = null)
         {
-            _options = options ?? new DataLoaderOptions<TKey>();
-            _cache = _options.Cache ?? new TaskCache(_options.CacheSize);
-            _cacheKeyResolver = _options.CacheKeyResolver ?? ((TKey key) => key);
+            options ??= new DataLoaderOptions();
+            _diagnosticEvents = options.DiagnosticEvents ?? new DataLoaderDiagnosticEventListener();
+
+            if (options.Caching && options.Cache is null)
+            {
+                _cacheOwner = new TaskCacheOwner();
+                _cache = _cacheOwner.Cache;
+            }
+            else
+            {
+                _cache = options.Caching
+                    ? options.Cache
+                    : null;
+            }
+
             _batchScheduler = batchScheduler;
-            _maxBatchSize = _options.GetBatchSize();
-        }
-
-        /// <inheritdoc />
-        Task<object?> IDataLoader.LoadAsync(
-            object key,
-            CancellationToken cancellationToken)
-        {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            return Task.Factory.StartNew<Task<object?>>(
-                async () => await LoadAsync((TKey)key, cancellationToken).ConfigureAwait(false),
-                TaskCreationOptions.RunContinuationsAsynchronously)
-                    .Unwrap();
-        }
-
-        /// <inheritdoc />
-        Task<IReadOnlyList<object?>> IDataLoader.LoadAsync(
-            CancellationToken cancellationToken,
-            params object[] keys)
-        {
-            if (keys == null)
-            {
-                throw new ArgumentNullException(nameof(keys));
-            }
-
-            TKey[] newKeys = keys.Select(key => (TKey)key).ToArray();
-
-            return Task.Factory.StartNew(
-                async () => (IReadOnlyList<object?>)await LoadAsync(newKeys, cancellationToken)
-                    .ConfigureAwait(false),
-                TaskCreationOptions.RunContinuationsAsynchronously)
-                    .Unwrap();
-        }
-
-        /// <inheritdoc />
-        Task<IReadOnlyList<object?>> IDataLoader.LoadAsync(
-            IReadOnlyCollection<object> keys,
-            CancellationToken cancellationToken)
-        {
-            if (keys == null)
-            {
-                throw new ArgumentNullException(nameof(keys));
-            }
-
-            TKey[] newKeys = keys.Select(key => (TKey)key).ToArray();
-
-            return Task.Factory.StartNew(
-                async () => (IReadOnlyList<object?>)await LoadAsync(newKeys, cancellationToken)
-                    .ConfigureAwait(false),
-                TaskCreationOptions.RunContinuationsAsynchronously)
-                    .Unwrap();
-        }
-
-        /// <inheritdoc />
-        void IDataLoader.Remove(object key)
-        {
-            Remove((TKey)key);
-        }
-
-        /// <inheritdoc />
-        void IDataLoader.Set(object key, Task<object?> value)
-        {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            Task<TValue> newValue = Task.Factory.StartNew(
-                async () => ((TValue)await value.ConfigureAwait(false) ?? default)!,
-                TaskCreationOptions.RunContinuationsAsynchronously)
-                    .Unwrap();
-
-            Set((TKey)key, newValue);
-        }
-
-        /// <inheritdoc />
-        public void Clear()
-        {
-            if (_options.Caching)
-            {
-                _cache.Clear();
-            }
+            _maxBatchSize = options.MaxBatchSize;
+            _cacheKeyType = GetCacheKeyType(GetType());
         }
 
         /// <summary>
-        /// A batch loading function which has to be implemented for each
-        /// individual <c>DataLoader</c>. For every provided key must be a
-        /// result returned. Also to be mentioned is, the results must be
-        /// returned in the exact same order the keys were provided.
+        /// Gets access to the cache of this DataLoader.
         /// </summary>
-        /// <param name="keys">A list of keys.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <returns>
-        /// A list of results which are in the exact same order as the provided
-        /// keys.
-        /// </returns>
-        protected abstract ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
-            IReadOnlyList<TKey> keys,
-            CancellationToken cancellationToken);
+        protected ITaskCache? Cache => _cache;
+
+        /// <summary>
+        /// Gets the cache key type for this DataLoader.
+        /// </summary>
+        protected string CacheKeyType => _cacheKeyType;
 
         /// <inheritdoc />
-        public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken)
+        public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken = default)
         {
-            if (key == null)
+            if (key is null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
 
+            var cached = true;
+            TaskCacheKey cacheKey = new(_cacheKeyType, key);
+
             lock (_sync)
             {
-                object cacheKey = _cacheKeyResolver(key);
-
-                if (_options.Caching && _cache.TryGetValue(cacheKey, out var cachedValue))
+                if (_cache is not null)
                 {
-                    var cachedTask = (Task<TValue>)cachedValue;
+                    Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
 
-                    DiagnosticEvents.ReceivedValueFromCache(key, cacheKey, cachedTask);
+                    if (cached)
+                    {
+                        _diagnosticEvents.ResolvedTaskFromCache(this, cacheKey, cachedTask);
+                    }
 
                     return cachedTask;
                 }
 
-                TaskCompletionSource<TValue> promise = GetOrCreatePromiseUnsafe(key);
-
-                if (_options.Caching)
-                {
-                    _cache.TryAdd(cacheKey, promise.Task);
-                }
-
-                return promise.Task;
+                return CreatePromise();
             }
-        }
 
-        /// <inheritdoc />
-        public Task<IReadOnlyList<TValue>> LoadAsync(
-            CancellationToken cancellationToken,
-            params TKey[] keys)
-        {
-            if (keys == null)
+            Task<TValue> CreatePromise()
             {
-                throw new ArgumentNullException(nameof(keys));
+                cached = false;
+                return GetOrCreatePromiseUnsafe(key).Task;
             }
-
-            return LoadInternalAsync(keys, cancellationToken);
         }
 
         /// <inheritdoc />
         public Task<IReadOnlyList<TValue>> LoadAsync(
             IReadOnlyCollection<TKey> keys,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
-            if (keys == null)
+            if (keys is null)
             {
                 throw new ArgumentNullException(nameof(keys));
             }
 
-            return LoadInternalAsync(keys, cancellationToken);
+            var index = 0;
+            var tasks = new Task<TValue>[keys.Count];
+            bool cached;
+            TKey currentKey;
+
+            lock (_sync)
+            {
+                if (_cache is not null)
+                {
+                    InitializeWithCache();
+                }
+                else
+                {
+                    Initialize();
+                }
+            }
+
+            return WhenAll();
+
+            void InitializeWithCache()
+            {
+                foreach (TKey key in keys)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    cached = true;
+                    currentKey = key;
+                    TaskCacheKey cacheKey = new(_cacheKeyType, key);
+                    Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
+
+                    if (cached)
+                    {
+                        _diagnosticEvents.ResolvedTaskFromCache(this, cacheKey, cachedTask);
+                    }
+
+                    tasks[index++] = cachedTask;
+                }
+            }
+
+            void Initialize()
+            {
+                foreach (TKey key in keys)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    currentKey = key;
+                    tasks[index++] = CreatePromise();
+                }
+            }
+
+            async Task<IReadOnlyList<TValue>> WhenAll()
+                => await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            Task<TValue> CreatePromise()
+            {
+                cached = false;
+                return GetOrCreatePromiseUnsafe(currentKey).Task;
+            }
         }
 
         /// <inheritdoc />
         public void Remove(TKey key)
         {
-            if (key == null)
+            if (key is null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (_options.Caching)
+            if (_cache is not null)
             {
-                object cacheKey = _cacheKeyResolver(key);
-
-                _cache.Remove(cacheKey);
+                TaskCacheKey cacheKey = new(_cacheKeyType, key);
+                _cache.TryRemove(cacheKey);
             }
         }
 
@@ -265,133 +215,200 @@ namespace GreenDonut
                 throw new ArgumentNullException(nameof(value));
             }
 
-            if (_options.Caching)
+            if (_cache is not null)
             {
-                object cacheKey = _cacheKeyResolver(key);
-
+                TaskCacheKey cacheKey = new(_cacheKeyType, key);
                 _cache.TryAdd(cacheKey, value);
             }
         }
 
         private void BatchOperationFailed(
-            Batch<TKey, TValue> batch,
+            Batch<TKey> batch,
             IReadOnlyList<TKey> keys,
             Exception error)
         {
-            DiagnosticEvents.ReceivedBatchError(keys, error);
+            _diagnosticEvents.BatchError(keys, error);
 
-            for (var i = 0; i < keys.Count; i++)
+            foreach (TKey key in keys)
             {
-                object cacheKey = _cacheKeyResolver(keys[i]);
+                if (_cache is not null)
+                {
+                    TaskCacheKey cacheKey = new(_cacheKeyType, key);
+                    _cache.TryRemove(cacheKey);
+                }
 
-                _cache.Remove(cacheKey);
-                batch.Get(keys[i]).SetException(error);
+                batch.GetPromise<TValue>(key).TrySetException(error);
             }
         }
 
         private void BatchOperationSucceeded(
-            Batch<TKey, TValue> batch,
+            Batch<TKey> batch,
             IReadOnlyList<TKey> keys,
-            IReadOnlyList<Result<TValue>> results)
+            Result<TValue>[] results)
         {
-            if (keys.Count == results.Count)
+            for (var i = 0; i < keys.Count; i++)
             {
-                for (var i = 0; i < keys.Count; i++)
-                {
-                    SetSingleResult(batch.Get(keys[i]), keys[i], results[i]);
-                }
-            }
-            else
-            {
-                // in case we got here less or more results as expected, the
-                // complete batch operation failed.
-                Exception error = Errors.CreateKeysAndValuesMustMatch(keys.Count, results.Count);
+                TKey key = keys[i];
+                Result<TValue> value = results[i];
 
-                BatchOperationFailed(batch, keys, error);
+                if (value.Kind is ResultKind.Undefined)
+                {
+                    // in case we got here less or more results as expected, the
+                    // complete batch operation failed.
+                    Exception error = CreateKeysAndValuesMustMatch(keys.Count, i);
+                    BatchOperationFailed(batch, keys, error);
+                    return;
+                }
+
+                SetSingleResult(batch.GetPromise<TValue>(key), key, value);
             }
         }
 
         private ValueTask DispatchBatchAsync(
-            Batch<TKey, TValue> batch,
+            Batch<TKey> batch,
             CancellationToken cancellationToken)
         {
-            return batch.StartDispatchingAsync(async () =>
+            lock (_sync)
             {
-                Activity? activity = DiagnosticEvents.StartBatching(batch.Keys);
-                IReadOnlyList<Result<TValue>> results = Array.Empty<Result<TValue>>();
-
-                try
+                if (ReferenceEquals(_currentBatch, batch))
                 {
-                    results = await FetchAsync(batch.Keys, cancellationToken).ConfigureAwait(false);
-                    BatchOperationSucceeded(batch, batch.Keys, results);
+                    _currentBatch = null;
                 }
-                catch (Exception ex)
-                {
-                    BatchOperationFailed(batch, batch.Keys, ex);
-                }
+            }
 
-                DiagnosticEvents.StopBatching(activity, batch.Keys,
-                    results.Select(result => result.Value).ToArray());
-            });
+            return StartDispatchingAsync();
+
+            async ValueTask StartDispatchingAsync()
+            {
+                using(_diagnosticEvents.ExecuteBatch(this, batch.Keys))
+                {
+                    var buffer = new Result<TValue>[batch.Keys.Count];
+
+                    try
+                    {
+                        await FetchAsync(batch.Keys, buffer, cancellationToken)
+                            .ConfigureAwait(false);
+                        BatchOperationSucceeded(batch, batch.Keys, buffer);
+                        _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
+
+                        // we deliberately return the batch here... in case of an error we are
+                        // not reusing this batch.
+                        BatchPool<TKey>.Shared.Return(batch);
+                    }
+                    catch (Exception ex)
+                    {
+                        BatchOperationFailed(batch, batch.Keys, ex);
+                    }
+                }
+            }
         }
 
         private TaskCompletionSource<TValue> GetOrCreatePromiseUnsafe(TKey key)
         {
-            if (_currentBatch is not null &&
-                _currentBatch.Size < _maxBatchSize &&
-                _currentBatch.TryGetOrCreate(key, out TaskCompletionSource<TValue>? promise))
+            if (_currentBatch is not null && _currentBatch.Size < _maxBatchSize)
             {
-                return promise;
+                return _currentBatch.GetOrCreatePromise<TValue>(key);
             }
 
-            var newBatch = new Batch<TKey, TValue>();
-
-            newBatch.TryGetOrCreate(key, out TaskCompletionSource<TValue>? newPromise);
+            Batch<TKey> newBatch = BatchPool<TKey>.Shared.Get();
+            TaskCompletionSource<TValue> newPromise = newBatch.GetOrCreatePromise<TValue>(key);
             _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
             _currentBatch = newBatch;
-
-            return newPromise!;
+            return newPromise;
         }
 
-        private async Task<IReadOnlyList<TValue>> LoadInternalAsync(
-            TKey[] keys,
-            CancellationToken cancellationToken)
-        {
-            return await Task.WhenAll(keys.Select(key =>
-                LoadAsync(key, cancellationToken))).ConfigureAwait(false);
-        }
-
-        private async Task<IReadOnlyList<TValue>> LoadInternalAsync(
-            IReadOnlyCollection<TKey> keys,
-            CancellationToken cancellationToken)
-        {
-            var index = 0;
-            var tasks = new Task<TValue>[keys.Count];
-
-            foreach (TKey key in keys)
-            {
-                tasks[index++] = LoadAsync(key, cancellationToken);
-            }
-
-            return await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        private static void SetSingleResult(
+        private void SetSingleResult(
             TaskCompletionSource<TValue> promise,
             TKey key,
             Result<TValue> result)
         {
-            if (result.IsError)
-            {
-                DiagnosticEvents.ReceivedError(key, result!);
-                promise.SetException(result!);
-            }
-            else
+            if (result.Kind is ResultKind.Value)
             {
                 promise.SetResult(result);
             }
+            else
+            {
+                _diagnosticEvents.BatchItemError(key, result.Error!);
+                promise.SetException(result.Error!);
+            }
         }
 
+        /// <summary>
+        /// A helper to add additional cache lookups to a resolved entity.
+        /// </summary>
+        /// <param name="cacheKeyType">
+        /// The cache key type that shall be used to refer to the entity.
+        /// </param>
+        /// <param name="items">
+        /// The items that shall be associated with other cache keys.
+        /// </param>
+        /// <param name="key">A delegate to create the key part.</param>
+        /// <param name="value">A delegate to create the value that shall be associated.</param>
+        /// <typeparam name="TItem">The item type.</typeparam>
+        /// <typeparam name="TK">The key type.</typeparam>
+        /// <typeparam name="TV">The value type.</typeparam>
+        protected void TryAddToCache<TItem, TK, TV>(
+            string cacheKeyType,
+            IEnumerable<TItem> items,
+            Func<TItem, TK> key,
+            Func<TItem, TV> value)
+            where TK : notnull
+        {
+            if (_cache is not null)
+            {
+                foreach (TItem item in items)
+                {
+                    TaskCacheKey cacheKey = new(cacheKeyType, key(item));
+                    _cache.TryAdd(cacheKey, () => Task.FromResult(value(item)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// A helper to adds an additional cache lookup to a resolved entity.
+        /// </summary>
+        /// <param name="cacheKeyType">
+        /// The cache key type that shall be used to refer to the entity.
+        /// </param>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        /// <typeparam name="TK">The key type.</typeparam>
+        /// <typeparam name="TV">The value type.</typeparam>
+        protected void TryAddToCache<TK, TV>(
+            string cacheKeyType,
+            TK key,
+            TV value)
+            where TK : notnull
+        {
+            if (_cache is not null)
+            {
+                TaskCacheKey cacheKey = new(cacheKeyType, key);
+                _cache.TryAdd(cacheKey, () => Task.FromResult(value));
+            }
+        }
+
+        /// <summary>
+        /// A helper to create a cache key type for a DataLoader.
+        /// </summary>
+        /// <typeparam name="TDataLoader">The DataLoader type.</typeparam>
+        /// <returns>
+        /// Returns the DataLoader cache key.
+        /// </returns>
+        protected static string GetCacheKeyType<TDataLoader>()
+            where TDataLoader : IDataLoader
+            => GetCacheKeyType(typeof(TDataLoader));
+
+        /// <summary>
+        /// A helper to create a cache key type for a DataLoader.
+        /// </summary>
+        /// <param name="type">
+        /// The DataLoader type.
+        /// </param>
+        /// <returns>
+        /// Returns the DataLoader cache key.
+        /// </returns>
+        protected static string GetCacheKeyType(Type type)
+            => type.FullName ?? type.Name;
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing,
@@ -416,6 +433,7 @@ namespace GreenDonut
                     Clear();
                     _disposeTokenSource.Cancel();
                     _disposeTokenSource.Dispose();
+                    _cacheOwner?.Dispose();
                 }
 
                 _disposed = true;

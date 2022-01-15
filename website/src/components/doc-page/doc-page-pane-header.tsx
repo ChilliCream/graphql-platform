@@ -1,15 +1,14 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
-
 import TimesIconSvg from "../../images/times.svg";
 
-interface DocPagePaneHeaderProperties {
+interface DocPagePaneHeaderProps {
   showWhenScreenWidthIsSmallerThan: number;
   title: string;
   onClose: () => void;
 }
 
-export const DocPagePaneHeader: FunctionComponent<DocPagePaneHeaderProperties> = ({
+export const DocPagePaneHeader: FC<DocPagePaneHeaderProps> = ({
   showWhenScreenWidthIsSmallerThan,
   title,
   onClose,
@@ -47,6 +46,7 @@ const CloseButton = styled(TimesIconSvg)`
   opacity: 0.5;
   cursor: pointer;
   transition: opacity 0.2s ease-in-out;
+  fill: #000;
 
   &:hover {
     opacity: 1;

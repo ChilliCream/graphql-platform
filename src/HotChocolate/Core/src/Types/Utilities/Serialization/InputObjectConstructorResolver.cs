@@ -1,110 +1,121 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Types;
 
 #nullable enable
 
-namespace HotChocolate.Utilities.Serialization
+namespace HotChocolate.Utilities.Serialization;
+
+internal static class InputObjectConstructorResolver
 {
-    internal static class InputObjectConstructorResolver
+    public static ConstructorInfo? GetCompatibleConstructor(
+        Type type,
+        IReadOnlyDictionary<string, InputField> fields)
     {
-        public static ConstructorInfo? GetConstructor(
-            Type type,
-            IEnumerable<PropertyInfo> properties)
-        {
-            Dictionary<string, PropertyInfo> propertyMap = properties.ToDictionary(
-                t => t.Name,
-                StringComparer.OrdinalIgnoreCase);
-            return GetCompatibleConstructor(type, propertyMap);
-        }
+        ConstructorInfo[] constructors = type.GetConstructors(
+            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        ConstructorInfo? defaultConstructor = constructors.FirstOrDefault(
+            t => t.GetParameters().Length == 0);
 
-        private static ConstructorInfo? GetCompatibleConstructor(
-            Type type,
-            IReadOnlyDictionary<string, PropertyInfo> properties)
+        if (fields.Values.All(t => t.Property!.CanWrite))
         {
-            ConstructorInfo[] constructors = type.GetConstructors(
-                BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            ConstructorInfo? defaultConstructor = constructors.FirstOrDefault(
-                t => t.GetParameters().Length == 0);
-
-            if (properties.Values.All(t => t.CanWrite))
+            if (defaultConstructor is not null)
             {
-                if (defaultConstructor is not null)
-                {
-                    return defaultConstructor;
-                }
-                else if (constructors.Length == 0)
-                {
-                    return null;
-                }
+                return defaultConstructor;
             }
 
-            var required = new HashSet<string>();
+            if (constructors.Length == 0)
+            {
+                return null;
+            }
+        }
 
+        var required = new HashSet<string>();
+        CollectReadOnlyProperties(fields, required);
+
+        if (constructors.Length > 0)
+        {
             foreach (ConstructorInfo constructor in
                 constructors.OrderByDescending(t => t.GetParameters().Length))
             {
-                if (IsCompatibleConstructor(constructor, properties, required))
+                if (IsCompatibleConstructor(constructor, fields, required))
                 {
                     return constructor;
                 }
             }
-
-            throw new InvalidOperationException(
-                $"No compatible constructor found for input type `{type.FullName}`.\r\n" +
-                "All fields of the input type must be settable, either via a public setter " +
-                "or via a matching argument in a public, non-default constructor. " +
-                $"There was no way to set the following properties: {string.Join(", ", required)}.");
         }
 
-        private static bool IsCompatibleConstructor(
-            ConstructorInfo constructor,
-            IReadOnlyDictionary<string, PropertyInfo> properties,
-            ISet<string> required)
-        {
-            CollectReadOnlyProperties(properties, required);
-            return IsCompatibleConstructor(
-                constructor.GetParameters(),
-                properties,
-                required);
-        }
+        throw new InvalidOperationException(
+            $"No compatible constructor found for input type type `{type.FullName}`.\r\n" +
+            "All fields of the input type must be settable, either via a public setter " +
+            "or via a matching argument in a public, non-default constructor. " +
+            $"There was no way to set the following properties: {string.Join(", ", required)}.");
+    }
 
-        private static bool IsCompatibleConstructor(
-            ParameterInfo[] parameters,
-            IReadOnlyDictionary<string, PropertyInfo> properties,
-            ISet<string> required)
+    private static bool IsCompatibleConstructor(
+        ConstructorInfo constructor,
+        IReadOnlyDictionary<string, InputField> fields,
+        ISet<string> required)
+    {
+        return IsCompatibleConstructor(
+            constructor.GetParameters(),
+            fields,
+            required);
+    }
+
+    private static bool IsCompatibleConstructor(
+        ParameterInfo[] parameters,
+        IReadOnlyDictionary<string, InputField> fields,
+        ISet<string> required)
+    {
+        foreach (ParameterInfo? parameter in parameters)
         {
-            for (int i = 0; i < parameters.Length; i++)
+            if (fields.TryGetParameter(parameter, out InputField? field) &&
+                parameter.ParameterType == field.Property!.PropertyType)
             {
-                ParameterInfo parameter = parameters[i];
-                if (properties.TryGetValue(parameter.Name!, out PropertyInfo? property)
-                    && parameter.ParameterType == property.PropertyType)
-                {
-                    required.Remove(property.Name);
-                }
-                else
-                {
-                    return false;
-                }
+                required.Remove(field.Name);
             }
-
-            return required.Count == 0;
+            else
+            {
+                return false;
+            }
         }
 
-        private static void CollectReadOnlyProperties(
-            IReadOnlyDictionary<string, PropertyInfo> properties,
-            ISet<string> required)
-        {
-            required.Clear();
+        return required.Count == 0;
+    }
 
-            foreach (KeyValuePair<string, PropertyInfo> item in properties)
+    private static void CollectReadOnlyProperties(
+        IReadOnlyDictionary<string, InputField> fields,
+        ISet<string> required)
+    {
+        required.Clear();
+
+        foreach (KeyValuePair<string, InputField> item in fields)
+        {
+            if (!item.Value.Property!.CanWrite)
             {
-                if (!item.Value.CanWrite)
-                {
-                    required.Add(item.Key);
-                }
+                required.Add(item.Value.Name);
             }
         }
     }
+
+    public static bool TryGetParameter(
+        this IReadOnlyDictionary<string, InputField> fields,
+        ParameterInfo parameter,
+        [NotNullWhen(true)] out InputField? field)
+    {
+        string name = parameter.Name!;
+        string alternativeName = GetAlternativeParameterName(parameter.Name!);
+
+        return (fields.TryGetValue(alternativeName, out field) ||
+            fields.TryGetValue(name, out field));
+    }
+
+    private static string GetAlternativeParameterName(string name)
+        => name.Length > 1
+            ? name.Substring(0, 1).ToUpperInvariant() + name.Substring(1)
+            : name.ToUpperInvariant();
 }

@@ -4,40 +4,39 @@ using HotChocolate.Language;
 
 #nullable enable
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public interface IErrorBuilder
 {
-    public interface IErrorBuilder
-    {
-        IErrorBuilder SetMessage(string message);
+    IErrorBuilder SetMessage(string message);
 
-        IErrorBuilder SetCode(string? code);
+    IErrorBuilder SetCode(string? code);
 
-        IErrorBuilder RemoveCode();
+    IErrorBuilder RemoveCode();
 
-        IErrorBuilder SetPath(IReadOnlyList<object>? path);
+    IErrorBuilder SetPath(IReadOnlyList<object>? path);
 
-        IErrorBuilder SetPath(Path? path);
+    IErrorBuilder SetPath(Path? path);
 
-        IErrorBuilder RemovePath();
+    IErrorBuilder RemovePath();
 
-        IErrorBuilder AddLocation(Location location);
+    IErrorBuilder AddLocation(Location location);
 
-        IErrorBuilder AddLocation(int line, int column);
+    IErrorBuilder AddLocation(int line, int column);
 
-        IErrorBuilder SetSyntaxNode(ISyntaxNode? syntaxNode);
+    IErrorBuilder SetSyntaxNode(ISyntaxNode? syntaxNode);
 
-        IErrorBuilder ClearLocations();
+    IErrorBuilder ClearLocations();
 
-        IErrorBuilder SetException(Exception? exception);
+    IErrorBuilder SetException(Exception? exception);
 
-        IErrorBuilder RemoveException();
+    IErrorBuilder RemoveException();
 
-        IErrorBuilder SetExtension(string key, object? value);
+    IErrorBuilder SetExtension(string key, object? value);
 
-        IErrorBuilder RemoveExtension(string key);
+    IErrorBuilder RemoveExtension(string key);
 
-        IErrorBuilder ClearExtensions();
+    IErrorBuilder ClearExtensions();
 
-        IError Build();
-    }
+    IError Build();
 }

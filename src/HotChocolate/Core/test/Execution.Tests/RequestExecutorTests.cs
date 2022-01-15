@@ -103,6 +103,8 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task Ensure_Errors_Do_Not_Result_In_Timeouts()
         {
+            Snapshot.FullName();
+
             using var cts = new CancellationTokenSource(1000);
 
             await new ServiceCollection()
@@ -120,7 +122,7 @@ namespace HotChocolate.Execution
                                 __typename
                             }
                             __typename
-                        }  
+                        }
                     }",
                     cancellationToken: cts.Token)
                 .MatchSnapshotAsync();

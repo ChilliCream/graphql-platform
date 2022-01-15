@@ -1,10 +1,9 @@
-using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public class SchemaTypeResolverTests
     {

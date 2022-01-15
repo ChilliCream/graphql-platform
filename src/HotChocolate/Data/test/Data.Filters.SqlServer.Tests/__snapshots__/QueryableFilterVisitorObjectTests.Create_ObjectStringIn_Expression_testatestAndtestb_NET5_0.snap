@@ -1,0 +1,26 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      }
+    ]
+  }
+}

@@ -1,96 +1,119 @@
-﻿using System;
+using System;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public static class TypeNodeExtensions
 {
-    public static class TypeNodeExtensions
+    public static bool IsNonNullType(this ITypeNode type)
+        => type.Kind == SyntaxKind.NonNullType;
+
+    public static bool IsListType(this ITypeNode type)
     {
-        public static bool IsNonNullType(this ITypeNode type)
+        if (type.Kind == SyntaxKind.ListType)
         {
-            return type is NonNullTypeNode;
+            return true;
         }
 
-        public static bool IsListType(this ITypeNode type)
+        if (type.Kind == SyntaxKind.NonNullType &&
+            ((NonNullTypeNode)type).Kind == SyntaxKind.ListType)
         {
-            return type is ListTypeNode;
+            return true;
         }
 
-        public static ITypeNode InnerType(this ITypeNode type)
+        return false;
+    }
+
+    public static ITypeNode ElementType(this ITypeNode type)
+    {
+        if (type.Kind == SyntaxKind.NonNullType)
         {
-            if (type is NonNullTypeNode n)
-            {
-                return n.Type;
-            }
-
-            if (type is ListTypeNode l)
-            {
-                return l.Type;
-            }
-
-            return type;
+            type = ((NonNullTypeNode)type).Type;
         }
 
-        public static ITypeNode NullableType(this ITypeNode type)
+        if (type.Kind == SyntaxKind.ListType)
         {
-            if (type is NonNullTypeNode n)
-            {
-                return n.Type;
-            }
-
-            return type;
+            return ((ListTypeNode)type).Type;
         }
 
-        public static NamedTypeNode NamedType(this ITypeNode type)
-        {
-            if (type.InnerType().InnerType().InnerType().InnerType().InnerType() is NamedTypeNode n)
-            {
-                return n;
-            }
+        throw new InvalidOperationException();
+    }
 
-            throw new NotSupportedException();
+    public static ITypeNode InnerType(this ITypeNode type)
+    {
+        if (type.Kind == SyntaxKind.NonNullType)
+        {
+            return ((NonNullTypeNode)type).Type;
         }
 
-        public static bool IsEqualTo(this ITypeNode x, ITypeNode y)
+        if (type.Kind == SyntaxKind.ListType)
         {
-            if (x is null)
-            {
-                return y is null;
-            }
-
-            if (y is null)
-            {
-                return x is null;
-            }
-
-            if (x is NonNullTypeNode nnx)
-            {
-                if (y is NonNullTypeNode nny)
-                {
-                    return IsEqualTo(nnx.Type, nny.Type);
-                }
-                return false;
-            }
-
-            if (x is ListTypeNode lx)
-            {
-                if (y is ListTypeNode ly)
-                {
-                    return IsEqualTo(lx.Type, ly.Type);
-                }
-                return false;
-            }
-
-            if (x is NamedTypeNode nx)
-            {
-                if (y is NamedTypeNode ny)
-                {
-                    return nx.Name.Value.Equals(
-                        ny.Name.Value,
-                        StringComparison.Ordinal);
-                }
-                return false;
-            }
-
-            throw new NotSupportedException();
+            return ((ListTypeNode)type).Type;
         }
+
+        return type;
+    }
+
+    public static ITypeNode NullableType(this ITypeNode type)
+    {
+        if (type.Kind == SyntaxKind.NonNullType)
+        {
+            return ((NonNullTypeNode)type).Type;
+        }
+
+        return type;
+    }
+
+    public static NamedTypeNode NamedType(this ITypeNode type)
+    {
+        if (type.InnerType().InnerType().InnerType().InnerType().InnerType() is NamedTypeNode n)
+        {
+            return n;
+        }
+
+        throw new NotSupportedException();
+    }
+
+    public static bool IsEqualTo(this ITypeNode x, ITypeNode y)
+    {
+        if (x is null)
+        {
+            return y is null;
+        }
+
+        if (y is null)
+        {
+            return x is null;
+        }
+
+        if (x is NonNullTypeNode nnx)
+        {
+            if (y is NonNullTypeNode nny)
+            {
+                return IsEqualTo(nnx.Type, nny.Type);
+            }
+            return false;
+        }
+
+        if (x is ListTypeNode lx)
+        {
+            if (y is ListTypeNode ly)
+            {
+                return IsEqualTo(lx.Type, ly.Type);
+            }
+            return false;
+        }
+
+        if (x is NamedTypeNode nx)
+        {
+            if (y is NamedTypeNode ny)
+            {
+                return nx.Name.Value.Equals(
+                    ny.Name.Value,
+                    StringComparison.Ordinal);
+            }
+            return false;
+        }
+
+        throw new NotSupportedException();
     }
 }

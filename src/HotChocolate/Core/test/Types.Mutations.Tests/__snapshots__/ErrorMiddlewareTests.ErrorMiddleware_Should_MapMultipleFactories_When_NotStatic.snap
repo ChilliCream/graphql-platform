@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "throw": {
+      "errors": [
+        {
+          "__typename": "CustomNullRef",
+          "message": "This is a null ref"
+        }
+      ]
+    }
+  }
+}

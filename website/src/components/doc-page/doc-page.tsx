@@ -1,11 +1,6 @@
-import { graphql } from "gatsby";
+import { graphql, Link } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import React, { FC, useCallback, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { DocPageFragment } from "../../../graphql-types";
@@ -37,31 +32,26 @@ import {
 import { Aside, DocPageAside } from "./doc-page-aside";
 import { DocPageCommunity } from "./doc-page-community";
 import { DocPageLegacy } from "./doc-page-legacy";
-import { DocPageNavigation, Navigation } from "./doc-page-navigation";
+import {
+  DocPageNavigation,
+  Navigation,
+  ScrollContainer,
+} from "./doc-page-navigation";
 
-interface DocPageProperties {
+interface DocPageProps {
   readonly data: DocPageFragment;
   readonly originPath: string;
 }
 
-export const DocPage: FunctionComponent<DocPageProperties> = ({
-  data,
-  originPath,
-}) => {
+export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const dispatch = useDispatch();
+  const responsiveMenuRef = useRef<HTMLDivElement>(null);
+
   const { fields, frontmatter, body } = data.file!.childMdx!;
   const slug = fields!.slug!;
-  const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/g;
-  const result = productAndVersionPattern.exec(slug);
-
-  if (!result) {
-    throw new Error(`Slug ${slug} could not be parsed`);
-  }
-
-  const selectedProduct = result[1] || "";
-  const selectedVersion = result[2] || "";
   const title = frontmatter!.title!;
-  const responsiveMenuRef = useRef<HTMLDivElement>(null);
+
+  const product = useProductInformation(slug);
 
   const hasScrolled$ = useObservable((state) => {
     return state.common.yScrollPosition > 20;
@@ -90,14 +80,20 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
     };
   }, [hasScrolled$]);
 
+  if (!product) {
+    throw new Error(
+      `Product information could not be parsed from slug: '${slug}'`
+    );
+  }
+
   return (
     <TabGroupProvider>
       <Container>
         <DocPageNavigation
           data={data}
           selectedPath={slug}
-          selectedProduct={selectedProduct}
-          selectedVersion={selectedVersion}
+          selectedProduct={product.name}
+          selectedVersion={product.version}
         />
         <ArticleWrapper>
           <ArticleContainer>
@@ -117,6 +113,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
                     </Button>
                   </ResponsiveMenu>
                 </ResponsiveMenuWrapper>
+                <DocumentationNotes product={product} />
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
@@ -133,7 +130,9 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
         </ArticleWrapper>
         <DocPageAside>
           <DocPageCommunity data={data} originPath={originPath} />
-          <ArticleSections data={data.file!.childMdx!} />
+          <ScrollContainer>
+            <ArticleSections data={data.file!.childMdx!} />
+          </ScrollContainer>
         </DocPageAside>
       </Container>
     </TabGroupProvider>
@@ -164,6 +163,30 @@ export const DocPageGraphQLFragment = graphql`
     ...DocPageNavigation
   }
 `;
+
+const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
+
+interface ProductInformation {
+  readonly name: string;
+  readonly version: string;
+}
+
+function useProductInformation(slug: string): ProductInformation | null {
+  if (!slug) {
+    return null;
+  }
+
+  const result = productAndVersionPattern.exec(slug);
+
+  if (!result) {
+    return null;
+  }
+
+  return {
+    name: result[1] || "",
+    version: result[2] || "",
+  };
+}
 
 const ResponsiveMenuWrapper = styled.div`
   position: absolute;
@@ -247,7 +270,7 @@ const ResponsiveMenu = styled.div`
   width: 820px;
   height: 60px;
   padding: 0 20px;
-  border-radius: 4px 4px 0 0;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
   background: linear-gradient(
     180deg,
     #ffffff 30%,
@@ -289,7 +312,7 @@ const Button = styled.button`
   display: flex;
   flex-direction: row;
   align-items: center;
-  color: #666;
+  color: var(--text-color);
   transition: color 0.2s ease-in-out;
 
   &.aside-toggle {
@@ -308,7 +331,48 @@ const Button = styled.button`
     margin-right: 5px;
     width: 16px;
     height: 16px;
-    fill: #666;
+    fill: var(--text-color);
     transition: fill 0.2s ease-in-out;
   }
 `;
+
+const OutdatedDocumentationWarning = styled.div`
+  padding: 20px 20px;
+  background-color: var(--warning-color);
+  color: var(--text-color-contrast);
+  line-height: 1.4;
+
+  > br {
+    margin-bottom: 16px;
+  }
+
+  > a {
+    color: white !important;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+
+  @media only screen and (min-width: 820px) {
+    padding: 20px 50px;
+  }
+`;
+
+interface DocumentationNotesProps {
+  readonly product: ProductInformation;
+}
+
+const DocumentationNotes: FC<DocumentationNotesProps> = ({ product }) => {
+  if (product.version === "") {
+    return null;
+  }
+
+  return (
+    <OutdatedDocumentationWarning>
+      This is documentation for <strong>{product.version}</strong>, which is no
+      longer actively maintained.
+      <br />
+      For up-to-date documentation, see the{" "}
+      <Link to={`/docs/${product.name}`}>latest version</Link>.
+    </OutdatedDocumentationWarning>
+  );
+};

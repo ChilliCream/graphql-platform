@@ -1,17 +1,16 @@
 import { graphql, useStaticQuery } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { GetFooterDataQuery } from "../../../../graphql-types";
+import LogoTextSvg from "../../../images/chillicream-text.svg";
+import LogoIconSvg from "../../../images/chillicream.svg";
+import GithubIconSvg from "../../../images/github.svg";
+import SlackIconSvg from "../../../images/slack.svg";
+import TwitterIconSvg from "../../../images/twitter.svg";
 import { IconContainer } from "../../misc/icon-container";
 import { Link } from "../../misc/link";
 
-import GithubIconSvg from "../../../images/github.svg";
-import LogoIconSvg from "../../../images/chillicream.svg";
-import LogoTextSvg from "../../../images/chillicream-text.svg";
-import SlackIconSvg from "../../../images/slack.svg";
-import TwitterIconSvg from "../../../images/twitter.svg";
-
-export const Footer: FunctionComponent = () => {
+export const Footer: FC = () => {
   const data = useStaticQuery<GetFooterDataQuery>(graphql`
     query getFooterData {
       site {
@@ -122,7 +121,7 @@ const Container = styled.footer`
   padding: 40px 20px 60px;
   width: 100%;
   background-color: #252d3c;
-  color: #c6c6ce;
+  color: var(--footer-text-color);
 
   @media only screen and (min-width: 1440px) {
     padding: 40px 0 60px;
@@ -154,13 +153,13 @@ const Logo = styled.div`
 
 const LogoIcon = styled(LogoIconSvg)`
   height: 40px;
-  fill: #c6c6ce;
+  fill: var(--footer-text-color);
 `;
 
 const LogoText = styled(LogoTextSvg)`
   padding-left: 15px;
   height: 24px;
-  fill: #c6c6ce;
+  fill: var(--footer-text-color);
 `;
 
 const Description = styled.p`
@@ -180,7 +179,7 @@ const ConnectLink = styled(Link)`
   margin: 5px 0;
   font-size: 0.833em;
   text-decoration: none;
-  color: #c6c6ce;
+  color: var(--footer-text-color);
   transition: color 0.2s ease-in-out;
 
   > ${IconContainer} {
@@ -193,27 +192,27 @@ const ConnectLink = styled(Link)`
   }
 
   :hover {
-    color: #fff;
+    color: var(--text-color-contrast);
 
     > ${IconContainer} > svg {
-      fill: #fff;
+      fill: var(--text-color-contrast);
     }
   }
 `;
 
 const GithubIcon = styled(GithubIconSvg)`
   height: 26px;
-  fill: #c6c6ce;
+  fill: var(--footer-text-color);
 `;
 
 const SlackIcon = styled(SlackIconSvg)`
   height: 22px;
-  fill: #c6c6ce;
+  fill: var(--footer-text-color);
 `;
 
 const TwitterIcon = styled(TwitterIconSvg)`
   height: 22px;
-  fill: #c6c6ce;
+  fill: var(--footer-text-color);
 `;
 
 const Links = styled.div`
@@ -239,12 +238,12 @@ const NavLink = styled(Link)`
   font-family: "Roboto", sans-serif;
   font-size: 0.833em;
   line-height: 1.5em;
-  color: #c6c6ce;
+  color: var(--footer-text-color);
   text-decoration: none;
   transition: color 0.2s ease-in-out;
 
   :hover {
-    color: #fff;
+    color: var(--text-color-contrast);
   }
 `;
 
@@ -264,7 +263,7 @@ const Title = styled.h3`
   margin: 15px 0 9px;
   font-size: 1em;
   font-weight: bold;
-  color: #c6c6ce;
+  color: var(--footer-text-color);
 `;
 
 const Copyright = styled.div`

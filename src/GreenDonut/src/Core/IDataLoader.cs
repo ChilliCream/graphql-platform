@@ -19,11 +19,6 @@ namespace GreenDonut
     public interface IDataLoader
     {
         /// <summary>
-        /// Empties the complete cache.
-        /// </summary>
-        void Clear();
-
-        /// <summary>
         /// Loads a single value by key. This call may return a cached value
         /// or enqueues this single request for batching if enabled.
         /// </summary>
@@ -38,24 +33,7 @@ namespace GreenDonut
         /// </returns>
         Task<object?> LoadAsync(
             object key,
-            CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Loads multiple values by keys. This call may return cached values
-        /// and enqueues requests which were not cached for batching if
-        /// enabled.
-        /// </summary>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <param name="keys">A list of unique keys.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="keys"/> is <c>null</c>.
-        /// </exception>
-        /// <returns>
-        /// A list of values in the same order as the provided keys.
-        /// </returns>
-        Task<IReadOnlyList<object?>> LoadAsync(
-            CancellationToken cancellationToken,
-            params object[] keys);
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
@@ -72,7 +50,7 @@ namespace GreenDonut
         /// </returns>
         Task<IReadOnlyList<object?>> LoadAsync(
             IReadOnlyCollection<object> keys,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes a single entry from the cache.
@@ -95,6 +73,11 @@ namespace GreenDonut
         /// Throws if <paramref name="value"/> is <c>null</c>.
         /// </exception>
         void Set(object key, Task<object?> value);
+
+        /// <summary>
+        /// Empties the complete cache.
+        /// </summary>
+        void Clear();
     }
 
     /// <summary>
@@ -110,9 +93,7 @@ namespace GreenDonut
     /// </summary>
     /// <typeparam name="TKey">A key type.</typeparam>
     /// <typeparam name="TValue">A value type.</typeparam>
-    public interface IDataLoader<TKey, TValue>
-        : IDataLoader
-        where TKey : notnull
+    public interface IDataLoader<in TKey, TValue> : IDataLoader where TKey : notnull
     {
         /// <summary>
         /// Loads a single value by key. This call may return a cached value
@@ -127,24 +108,9 @@ namespace GreenDonut
         /// A single result which may contain a value or information about the
         /// error which may occurred during the call.
         /// </returns>
-        Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Loads multiple values by keys. This call may return cached values
-        /// and enqueues requests which were not cached for batching if
-        /// enabled.
-        /// </summary>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <param name="keys">A list of unique keys.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="keys"/> is <c>null</c>.
-        /// </exception>
-        /// <returns>
-        /// A list of values in the same order as the provided keys.
-        /// </returns>
-        Task<IReadOnlyList<TValue>> LoadAsync(
-            CancellationToken cancellationToken,
-            params TKey[] keys);
+        Task<TValue> LoadAsync(
+            TKey key,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
@@ -161,7 +127,7 @@ namespace GreenDonut
         /// </returns>
         Task<IReadOnlyList<TValue>> LoadAsync(
             IReadOnlyCollection<TKey> keys,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes a single entry from the cache.

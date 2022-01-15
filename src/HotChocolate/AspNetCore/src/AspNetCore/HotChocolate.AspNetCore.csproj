@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
     <Description>This package contains the GraphQL ASP.NET Core middleware for Hot Chocolate. Moreover, this package includes the Banana Cake Pop middleware, which provides you with our beloved GraphQL IDE middleware.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,13 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="HotChocolate" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Execution" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +39,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AspNetCoreResources.resx</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AspNetCore.props" Pack="true" PackagePath="build/HotChocolate.AspNetCore.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AspNetCore.targets" Pack="true" PackagePath="build/HotChocolate.AspNetCore.targets" Visible="false" />
   </ItemGroup>
 
 </Project>

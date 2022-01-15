@@ -4,6 +4,7 @@
   "SubscriptionTypeName": "C",
   "StrictValidation": false,
   "UseXmlDocumentation": false,
+  "ResolveXmlDocumentationFileName": null,
   "SortFieldsByName": true,
   "PreserveSyntaxNodes": true,
   "RemoveUnreachableTypes": false,
@@ -12,5 +13,9 @@
   "EnableDirectiveIntrospection": false,
   "DefaultDirectiveVisibility": "Public",
   "AllowInlining": true,
-  "DefaultResolverStrategy": "Parallel"
+  "DefaultResolverStrategy": "Parallel",
+  "ValidatePipelineOrder": true,
+  "StrictRuntimeTypeValidation": false,
+  "DefaultIsOfTypeCheck": null,
+  "EnableOneOf": false
 }

@@ -2,7 +2,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb
 {
-    internal static class MongoDbObjectFieldExtensions
+    public static class MongoDbObjectFieldExtensions
     {
         public static string GetName(
             this IObjectField field)

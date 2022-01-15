@@ -223,7 +223,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IChangeHomePlanetResult
+    public partial interface IChangeHomePlanetResult
     {
         public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet
         {
@@ -233,7 +233,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IChangeHomePlanet_ChangeHomePlanet
+    public partial interface IChangeHomePlanet_ChangeHomePlanet
     {
         public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human Human
         {
@@ -243,7 +243,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload : IChangeHomePlanet_ChangeHomePlanet
+    public partial interface IChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload : IChangeHomePlanet_ChangeHomePlanet
     {
     }
 
@@ -252,7 +252,7 @@ namespace Foo.Bar
     /// A human character in the Star Wars universe.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IChangeHomePlanet_ChangeHomePlanet_Human
+    public partial interface IChangeHomePlanet_ChangeHomePlanet_Human
     {
         /// <summary>
         /// The planet the character is originally from.
@@ -268,7 +268,7 @@ namespace Foo.Bar
     /// A human character in the Star Wars universe.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IChangeHomePlanet_ChangeHomePlanet_Human_Human : IChangeHomePlanet_ChangeHomePlanet_Human
+    public partial interface IChangeHomePlanet_ChangeHomePlanet_Human_Human : IChangeHomePlanet_ChangeHomePlanet_Human
     {
     }
 
@@ -550,7 +550,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IChangeHomePlanetMutation : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IChangeHomePlanetMutation : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> ExecuteAsync(global::Foo.Bar.ChangeHomePlanetInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> Watch(global::Foo.Bar.ChangeHomePlanetInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -578,7 +578,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IChangeHomePlanetMutation ChangeHomePlanet
         {

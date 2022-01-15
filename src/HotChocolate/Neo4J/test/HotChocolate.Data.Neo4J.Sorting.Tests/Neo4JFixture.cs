@@ -42,7 +42,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(new Neo4JExecutable<TEntity>(GetAsyncSession()))
+                        .Resolve(new Neo4JExecutable<TEntity>(GetAsyncSession()))
                         .Use(
                             next => async context =>
                             {

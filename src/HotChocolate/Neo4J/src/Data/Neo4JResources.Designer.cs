@@ -92,5 +92,17 @@ namespace HotChocolate.Data.Neo4J {
                 return ResourceManager.GetString("Projection_RelationshipDirectionNotSet", resourceCulture);
             }
         }
+        
+        internal static string Filtering_Neo4JCombinator_QueueEmpty {
+            get {
+                return ResourceManager.GetString("Filtering_Neo4JCombinator_QueueEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_Neo4JCombinator_InvalidCombinator {
+            get {
+                return ResourceManager.GetString("Filtering_Neo4JCombinator_InvalidCombinator", resourceCulture);
+            }
+        }
     }
 }

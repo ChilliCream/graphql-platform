@@ -1,12 +1,11 @@
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public interface IFloatValueLiteral
+    : IHasSpan
 {
-    public interface IFloatValueLiteral
-        : IHasSpan
-    {
-        float ToSingle();
+    float ToSingle();
 
-        double ToDouble();
+    double ToDouble();
 
-        decimal ToDecimal();
-    }
+    decimal ToDecimal();
 }
