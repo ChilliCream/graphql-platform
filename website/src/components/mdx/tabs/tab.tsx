@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { useTabs } from "./tabs";
 
 export interface TabProps {
-  value: string;
+  readonly value: string;
 }
 
 export const Tab: FC<TabProps> = ({ value, children }) => {

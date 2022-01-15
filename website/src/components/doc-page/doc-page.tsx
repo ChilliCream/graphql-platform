@@ -24,7 +24,7 @@ import {
   ArticleTitle,
 } from "../articles/article-elements";
 import { ArticleSections } from "../articles/article-sections";
-import { TabGroupProvider } from "../mdx/tabs/tab-groups";
+import { TabGroupProvider } from "../mdx/tabs";
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -118,7 +118,6 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
               </ArticleHeader>
               <ArticleContent>
                 <MDXRenderer>{body}</MDXRenderer>
-
                 <ArticleContentFooter
                   lastUpdated={fields!.lastUpdated!}
                   lastAuthorName={fields!.lastAuthorName!}

@@ -1,12 +1,11 @@
 import React, { FC, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
-import { hasScrolled } from "../../../state/common";
-import { PageTop } from "../../misc/page-top";
-import { ContentComponent } from "./content";
+import { hasScrolled } from "../../state/common";
+import { PageTop } from "../misc/page-top";
 import { Footer } from "./footer";
 
-export const MainContentContainer: FC = ({ children }) => {
+export const Main: FC = ({ children }) => {
   const ref = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch();
 
@@ -58,15 +57,15 @@ export const MainContentContainer: FC = ({ children }) => {
   };
 
   return (
-    <MainContentWrapper ref={ref}>
-      <ContentComponent>{children}</ContentComponent>
+    <Container ref={ref}>
+      <Content>{children}</Content>
       <Footer />
       <PageTop onTopScroll={scrollToTop} />
-    </MainContentWrapper>
+    </Container>
   );
 };
 
-const MainContentWrapper = styled.div`
+const Container = styled.div`
   width: 100%;
   grid-row: 2;
   display: grid;
@@ -75,4 +74,11 @@ const MainContentWrapper = styled.div`
   justify-content: center;
   position: relative;
   overflow-y: auto;
+`;
+
+const Content = styled.main`
+  place-items: center;
+  display: grid;
+  overflow: visible;
+  width: 100%;
 `;

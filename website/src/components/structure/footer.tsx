@@ -1,14 +1,14 @@
 import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { GetFooterDataQuery } from "../../../../graphql-types";
-import LogoTextSvg from "../../../images/chillicream-text.svg";
-import LogoIconSvg from "../../../images/chillicream.svg";
-import GithubIconSvg from "../../../images/github.svg";
-import SlackIconSvg from "../../../images/slack.svg";
-import TwitterIconSvg from "../../../images/twitter.svg";
-import { IconContainer } from "../../misc/icon-container";
-import { Link } from "../../misc/link";
+import { GetFooterDataQuery } from "../../../graphql-types";
+import LogoTextSvg from "../../images/chillicream-text.svg";
+import LogoIconSvg from "../../images/chillicream.svg";
+import GithubIconSvg from "../../images/github.svg";
+import SlackIconSvg from "../../images/slack.svg";
+import TwitterIconSvg from "../../images/twitter.svg";
+import { IconContainer } from "../misc/icon-container";
+import { Link } from "../misc/link";
 
 export const Footer: FC = () => {
   const data = useStaticQuery<GetFooterDataQuery>(graphql`
@@ -45,7 +45,7 @@ export const Footer: FC = () => {
 
   return (
     <Container>
-      <ContainerWrapper>
+      <Section>
         <About>
           <Logo>
             <LogoIcon />
@@ -106,10 +106,10 @@ export const Footer: FC = () => {
             ))}
           </Navigation>
         </Location>
-      </ContainerWrapper>
-      <ContainerWrapper>
+      </Section>
+      <Section>
         <Copyright>© {new Date().getFullYear()} ChilliCream</Copyright>
-      </ContainerWrapper>
+      </Section>
     </Container>
   );
 };
@@ -128,7 +128,7 @@ const Container = styled.footer`
   }
 `;
 
-const ContainerWrapper = styled.div`
+const Section = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
