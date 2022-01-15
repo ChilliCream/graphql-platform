@@ -717,6 +717,47 @@ namespace HotChocolate.Validation
             ");
         }
 
+        [Fact]
+        public void Ensure_Recursive_Fragments_Fail()
+        {
+            ExpectErrors("fragment f on Query{...f} {...f}");
+        }
+
+        [Fact]
+        public void Ensure_Recursive_Fragments_Fail_2()
+        {
+            ExpectErrors(@"
+                fragment f on Query {
+                    ...f
+                    f {
+                        ...f
+                        f {
+                            ...f
+                        }
+                    }
+                }
+
+                {...f}");
+        }
+
+        [Fact]
+        public void Short_Long_Names()
+        {
+            ExpectErrors(FileResource.Open("short_long_names_query.graphql"));
+        }
+
+        [Fact]
+        public void Anonymous_empty_query_repeated_25000()
+        {
+            ExpectErrors(FileResource.Open("anonymous_empty_query_repeated_25000.graphql"));
+        }
+
+        [Fact]
+        public void Produce_Many_Errors_50000_query()
+        {
+            ExpectErrors(FileResource.Open("50000_query.graphql"));
+        }
+
         private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
 
         private void ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)
