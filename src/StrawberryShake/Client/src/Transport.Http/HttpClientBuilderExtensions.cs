@@ -14,7 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         private const string _userAgentName = "StrawberryShake";
         private static readonly string _userAgentVersion =
-            typeof(HttpClientBuilderExtensions).Assembly.GetName().Version.ToString();
+            typeof(HttpClientBuilderExtensions).Assembly.GetName().Version!.ToString();
 
         /// <summary>
         /// Adds the <see cref="IHttpClientFactory"/> and related services to the

@@ -1,5 +1,5 @@
 ﻿type Address @key(fields: "matchCode") {
-  matchCode: String!
+  matchCode: String
 }
 
 type Query {

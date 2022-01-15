@@ -11,11 +11,11 @@ public class FederationSchemaPrinterTests
     {
         // arrange
         ISchema? schema = null;
-        void action() => FederationSchemaPrinter.Print(schema!);
+        void Action() => FederationSchemaPrinter.Print(schema!);
 
         // act
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class FederationSchemaPrinterTests
                         someField(a: Int): TestType
                     }
                 ")
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
@@ -89,7 +89,7 @@ public class FederationSchemaPrinterTests
                         someField(a: Int): TestType
                     }
                 ")
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
@@ -113,7 +113,7 @@ public class FederationSchemaPrinterTests
                 type Query {
                     someField(a: Int): TestType
                 }")
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
