@@ -1,5 +1,5 @@
 ﻿interface iQuery {
-  someField(a: Int = null): TestType
+  someField(a: Int): TestType
 }
 
 interface iTestType @key(fields: "id") {
@@ -8,11 +8,11 @@ interface iTestType @key(fields: "id") {
 }
 
 type Mutation {
-  doSomething(input: SomeInput = null): Boolean
+  doSomething(input: SomeInput): Boolean
 }
 
 type Query implements iQuery {
-  someField(a: Int = null): TestType
+  someField(a: Int): TestType
 }
 
 type TestType @key(fields: "id") {

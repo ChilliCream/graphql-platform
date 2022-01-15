@@ -24,12 +24,12 @@ public class FederationTypesTestBase
 
     protected void AssertDirectiveHasFieldsArgument(DirectiveType directive)
     {
-        Assert.Collection(directive.Arguments,
+        Assert.Collection(
+            directive.Arguments,
             t =>
             {
                 Assert.Equal("fields", t.Name);
-                Assert.IsType<FieldSetType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                Assert.IsType<FieldSetType>(Assert.IsType<NonNullType>(t.Type).Type);
             }
         );
     }

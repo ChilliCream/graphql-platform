@@ -209,7 +209,7 @@ const HamburgerOpenIcon = styled(BarsIconSvg)`
   fill: var(--text-color-contrast);
 `;
 
-const Navigation = styled.nav<{ open: boolean }>`
+const Navigation = styled.nav<{ readonly open: boolean }>`
   position: fixed;
   top: 0;
   right: 0;

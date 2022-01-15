@@ -1,14 +1,14 @@
 import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { GetFooterDataQuery } from "../../../../graphql-types";
-import LogoTextSvg from "../../../images/chillicream-text.svg";
-import LogoIconSvg from "../../../images/chillicream.svg";
-import GithubIconSvg from "../../../images/github.svg";
-import SlackIconSvg from "../../../images/slack.svg";
-import TwitterIconSvg from "../../../images/twitter.svg";
-import { IconContainer } from "../../misc/icon-container";
-import { Link } from "../../misc/link";
+import { GetFooterDataQuery } from "../../../graphql-types";
+import LogoTextSvg from "../../images/chillicream-text.svg";
+import LogoIconSvg from "../../images/chillicream.svg";
+import GithubIconSvg from "../../images/github.svg";
+import SlackIconSvg from "../../images/slack.svg";
+import TwitterIconSvg from "../../images/twitter.svg";
+import { IconContainer } from "../misc/icon-container";
+import { Link } from "../misc/link";
 
 export const Footer: FC = () => {
   const data = useStaticQuery<GetFooterDataQuery>(graphql`
@@ -45,7 +45,7 @@ export const Footer: FC = () => {
 
   return (
     <Container>
-      <ContainerWrapper>
+      <Section>
         <About>
           <Logo>
             <LogoIcon />
@@ -80,7 +80,7 @@ export const Footer: FC = () => {
           </Connect>
         </About>
         <Links>
-          <Title>General Links</Title>
+          <Title>Navigation</Title>
           <Navigation>
             {topnav!.map((item, index) => (
               <NavLink key={`topnav-item-${index}`} to={item!.link!}>
@@ -106,29 +106,25 @@ export const Footer: FC = () => {
             ))}
           </Navigation>
         </Location>
-      </ContainerWrapper>
-      <ContainerWrapper>
+      </Section>
+      <Section>
         <Copyright>© {new Date().getFullYear()} ChilliCream</Copyright>
-      </ContainerWrapper>
+      </Section>
     </Container>
   );
 };
 
 const Container = styled.footer`
-  display: grid;
-  place-items: center;
-
-  padding: 40px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0 60px;
   width: 100%;
   background-color: #252d3c;
   color: var(--footer-text-color);
-
-  @media only screen and (min-width: 1440px) {
-    padding: 40px 0 60px;
-  }
 `;
 
-const ContainerWrapper = styled.div`
+const Section = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;

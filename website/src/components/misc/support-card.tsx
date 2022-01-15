@@ -1,6 +1,5 @@
 import React, { FC } from "react";
 import styled from "styled-components";
-import { Perk } from "./perk";
 
 export interface SupportCardProps {
   name: string;
@@ -71,30 +70,52 @@ const TopHalf = styled.div`
 
 const Name = styled.h2`
   margin: 0;
-  line-height: 1.5rem;
+  color: rgb(17, 24, 39);
   font-size: 1.125rem;
   font-weight: 600;
-  color: rgb(17, 24, 39);
+  line-height: 1.5rem;
 `;
 
 const Description = styled.p`
-  margin: 0;
+  margin: 1rem 0 0;
   color: rgb(107, 114, 128);
-  margin-top: 1rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
 `;
 
 const BottomHalf = styled.div`
-  padding: 1.5rem 1.5rem 2rem 1.5rem;
   border-top: 1px solid rgba(229, 231, 235, 1);
+  padding: 1.5rem 1.5rem 2rem 1.5rem;
 `;
 
 const Perks = styled.ul`
   // Reset
-  margin: 0;
+  margin: 1.5rem 0 0;
   padding: 0;
   list-style: none;
+`;
 
-  margin-top: 1.5rem;
+export const Perk: FC = ({ children }) => {
+  return (
+    <PerkLayout>
+      <Bullet>- </Bullet>
+      <PerkContainer>{children}</PerkContainer>
+    </PerkLayout>
+  );
+};
+
+const Bullet = styled.div`
+  margin-left: 12px;
+`;
+
+const PerkLayout = styled.li`
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  grid-template-rows: auto;
+`;
+
+const PerkContainer = styled.div`
+  margin-left: 12px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 `;

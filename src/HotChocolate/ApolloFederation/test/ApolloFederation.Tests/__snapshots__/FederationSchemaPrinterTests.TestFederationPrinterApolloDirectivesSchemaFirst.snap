@@ -1,5 +1,5 @@
 ﻿type Query {
-  someField(a: Int = null): TestType
+  someField(a: Int): TestType
 }
 
 type TestType @key(fields: "id") {
