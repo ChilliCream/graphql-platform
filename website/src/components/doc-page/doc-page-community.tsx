@@ -8,9 +8,9 @@ import { THEME_COLORS } from "../../shared-style";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
-interface DocPageCommunityProps {
-  data: DocPageCommunityFragment;
-  originPath: string;
+export interface DocPageCommunityProps {
+  readonly data: DocPageCommunityFragment;
+  readonly originPath: string;
 }
 
 export const DocPageCommunity: FC<DocPageCommunityProps> = ({

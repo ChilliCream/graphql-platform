@@ -3,10 +3,10 @@ import React, { FC } from "react";
 import styled from "styled-components";
 import { THEME_COLORS } from "../../shared-style";
 
-interface PaginationProps {
-  currentPage: number;
-  linkPrefix: string;
-  totalPages: number;
+export interface PaginationProps {
+  readonly currentPage: number;
+  readonly linkPrefix: string;
+  readonly totalPages: number;
 }
 
 export const Pagination: FC<PaginationProps> = ({

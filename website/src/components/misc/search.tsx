@@ -25,8 +25,8 @@ import { State } from "../../state";
 import { changeSearchQuery } from "../../state/common";
 import { Link } from "./link";
 
-interface SearchProps {
-  siteUrl: string;
+export interface SearchProps {
+  readonly siteUrl: string;
 }
 
 export const Search: FC<SearchProps> = ({ siteUrl }) => {

@@ -5,8 +5,8 @@ import styled from "styled-components";
 import { FONT_FAMILY_CODE } from "../../shared-style";
 import { Copy } from "./copy";
 
-interface CodeBlockProps {
-  children: any;
+export interface CodeBlockProps {
+  readonly children: any;
 }
 
 export const CodeBlock: FC<CodeBlockProps> = ({ children }) => {

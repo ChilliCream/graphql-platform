@@ -42,7 +42,7 @@ const TabButton = styled.button`
     font-weight: 700;
   }
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     font-size: 18px;
   }
 `;

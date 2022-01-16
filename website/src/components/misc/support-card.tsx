@@ -3,9 +3,9 @@ import styled from "styled-components";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
 
 export interface SupportCardProps {
-  name: string;
-  description: string;
-  perks: string[];
+  readonly name: string;
+  readonly description: string;
+  readonly perks: string[];
 }
 
 export const SupportCard: FC<SupportCardProps> = ({

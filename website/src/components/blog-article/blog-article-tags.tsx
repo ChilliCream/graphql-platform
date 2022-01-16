@@ -4,8 +4,8 @@ import styled from "styled-components";
 import { THEME_COLORS } from "../../shared-style";
 import { Link } from "../misc/link";
 
-interface BlogArticleTagsProps {
-  tags: string[];
+export interface BlogArticleTagsProps {
+  readonly tags: string[];
 }
 
 export const BlogArticleTags: FC<BlogArticleTagsProps> = ({ tags }) => {
@@ -34,7 +34,7 @@ const Tags = styled.ul`
   margin: 0 20px 20px;
   list-style-type: none;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     margin: 0 50px 20px;
   }
 `;

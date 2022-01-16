@@ -8,6 +8,7 @@ import { BananaCakePop } from "../components/images/banana-cake-pop";
 import { BlogPostBananaCakePopCloud } from "../components/images/blog-post-banana-cake-pop-cloud";
 import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
 import { BlogPostHotChocolate12 } from "../components/images/blog-post-hot-chocolate-12";
+import { Layout } from "../components/layout";
 import { Link } from "../components/misc/link";
 import {
   ContentContainer,
@@ -20,7 +21,6 @@ import {
 } from "../components/misc/marketing-elements";
 import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
-import { Layout } from "../components/structure/layout";
 // Logos
 import AdditivLogoSvg from "../images/companies/additiv.svg";
 import AeiLogoSvg from "../images/companies/aei.svg";
@@ -559,7 +559,7 @@ const Articles = styled.ul`
   margin: 0 0 20px;
   list-style-type: none;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     flex-direction: row;
     flex-wrap: wrap;
   }
@@ -580,7 +580,7 @@ const Article = styled.li`
     border-radius: var(--border-radius) var(--border-radius) 0 0;
   }
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     width: 30%;
   }
 `;

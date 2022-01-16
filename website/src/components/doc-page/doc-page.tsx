@@ -39,7 +39,7 @@ import {
   ScrollContainer,
 } from "./doc-page-navigation";
 
-interface DocPageProps {
+export interface DocPageProps {
   readonly data: DocPageFragment;
   readonly originPath: string;
 }
@@ -353,7 +353,7 @@ const OutdatedDocumentationWarning = styled.div`
     text-decoration: underline;
   }
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     padding: 20px 50px;
   }
 `;

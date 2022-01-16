@@ -25,9 +25,9 @@ import {
 import { DocPagePaneHeader } from "./doc-page-pane-header";
 
 interface NavigationContainerProps {
-  basePath: string;
-  selectedPath: string;
-  items: Item[];
+  readonly basePath: string;
+  readonly selectedPath: string;
+  readonly items: Item[];
 }
 
 const NavigationContainer: FC<NavigationContainerProps> = ({
@@ -111,11 +111,11 @@ const NavigationContainer: FC<NavigationContainerProps> = ({
   );
 };
 
-interface DocPageNavigationProps {
-  data: DocPageNavigationFragment;
-  selectedPath: string;
-  selectedProduct: string;
-  selectedVersion: string;
+export interface DocPageNavigationProps {
+  readonly data: DocPageNavigationFragment;
+  readonly selectedPath: string;
+  readonly selectedProduct: string;
+  readonly selectedVersion: string;
 }
 
 export const DocPageNavigation: FC<DocPageNavigationProps> = ({
@@ -316,7 +316,12 @@ type EnhancedItem = Item & {
   fullpath: string;
 };
 
-export const Navigation = styled.nav<{ height: string; show: boolean }>`
+export interface NavigationProps {
+  readonly height: string;
+  readonly show: boolean;
+}
+
+export const Navigation = styled.nav<NavigationProps>`
   ${DocPageStickySideBarStyle}
   padding: 25px 0 0;
   transition: margin-left 250ms;

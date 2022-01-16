@@ -14,11 +14,11 @@ function copyToClipboard(content: string): void {
   document.body.removeChild(el);
 }
 
-interface CoopyProps {
-  content: string;
+export interface CopyProps {
+  readonly content: string;
 }
 
-export const Copy: FC<CoopyProps> = ({ content }) => {
+export const Copy: FC<CopyProps> = ({ content }) => {
   const [showToast, setShowToast] = useState(false);
 
   return (

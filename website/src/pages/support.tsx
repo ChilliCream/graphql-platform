@@ -1,5 +1,6 @@
 import React, { FC } from "react";
 import styled, { css } from "styled-components";
+import { Layout } from "../components/layout";
 import {
   ContentContainer,
   EnvelopeIcon,
@@ -11,13 +12,12 @@ import {
 import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { SupportCard } from "../components/misc/support-card";
-import { Layout } from "../components/structure/layout";
 import ContactUsSvg from "../images/contact-us.svg";
 import { IsPhablet } from "../shared-style";
 
 type ServiceType = "Consulting" | "Production Support";
 
-interface SupportService {
+export interface SupportService {
   readonly service: ServiceType;
   readonly description: string;
   readonly perks: string[];

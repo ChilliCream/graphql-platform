@@ -13,7 +13,7 @@ import { MostProminentSection } from "../doc-page/doc-page-elements";
 
 const MAX_TOC_DEPTH = 2;
 
-interface ArticleSectionsProps {
+export interface ArticleSectionsProps {
   readonly data: ArticleSectionsFragment;
 }
 
