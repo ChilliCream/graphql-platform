@@ -213,6 +213,15 @@ namespace HotChocolate.DependencyInjection
             results.MatchSnapshot();
         }
 
+        [Fact]
+        public void SetMaxAllowedValidationErrors_Builder_Is_Null()
+        {
+            void Fail()
+                => RequestExecutorBuilderExtensions.SetMaxAllowedValidationErrors(null!, 6);
+
+            Assert.Throws<ArgumentNullException>(Fail);
+        }
+
         public class MockVisitor : DocumentValidatorVisitor
         {
         }
