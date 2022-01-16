@@ -12,7 +12,7 @@ public static class HotChocolateValidationServiceCollectionExtensions
     {
         services.AddOptions();
         services.TryAddSingleton<IValidationConfiguration, ValidationConfiguration>();
-        services.TryAddSingleton(sp => new DocumentValidatorContextPool(8));
+        services.TryAddSingleton(_ => new DocumentValidatorContextPool());
         services.TryAddSingleton<IDocumentValidatorFactory, DefaultDocumentValidatorFactory>();
         return services;
     }

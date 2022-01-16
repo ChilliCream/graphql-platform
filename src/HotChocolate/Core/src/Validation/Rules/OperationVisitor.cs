@@ -53,7 +53,7 @@ public class OperationVisitor : DocumentValidatorVisitor
                 }
                 else if (!context.Names.Add(operation.Name.Value))
                 {
-                    context.Errors.Add(context.OperationNameNotUnique(
+                    context.ReportError(context.OperationNameNotUnique(
                         operation, operation.Name.Value));
                 }
             }
@@ -61,7 +61,7 @@ public class OperationVisitor : DocumentValidatorVisitor
 
         if (hasAnonymousOp && opCount > 1)
         {
-            context.Errors.Add(context.OperationAnonymousMoreThanOne(anonymousOp!, opCount));
+            context.ReportError(context.OperationAnonymousMoreThanOne(anonymousOp!, opCount));
         }
 
         return Continue;
@@ -87,7 +87,7 @@ public class OperationVisitor : DocumentValidatorVisitor
     {
         if (context.Names.Count > 1)
         {
-            context.Errors.Add(context.SubscriptionSingleRootField(node));
+            context.ReportError(context.SubscriptionSingleRootField(node));
         }
         return Continue;
     }

@@ -23,6 +23,11 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     IOutputType NonNullString { get; }
 
     /// <summary>
+    /// Specifies the max allowed validation errors.
+    /// </summary>
+    int MaxAllowedErrors { get;}
+
+    /// <summary>
     /// The current visitation path of syntax nodes.
     /// </summary>
     IList<ISyntaxNode> Path { get; }
@@ -110,7 +115,7 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     /// <summary>
     /// A list to track validation errors that occurred during the visitation.
     /// </summary>
-    ICollection<IError> Errors { get; }
+    IReadOnlyCollection<IError> Errors { get; }
 
     /// <summary>
     /// Gets ors sets a single counter.
@@ -144,4 +149,12 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     /// Rents a list of field infos.
     /// </summary>
     IList<FieldInfo> RentFieldInfoList();
+
+    /// <summary>
+    /// Reports an error.
+    /// </summary>
+    /// <param name="error">
+    /// The validation error that shall be reported.
+    /// </param>
+    void ReportError(IError error);
 }

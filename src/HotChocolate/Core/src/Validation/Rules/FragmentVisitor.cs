@@ -81,7 +81,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
                 FragmentDefinitionNode fragment = (FragmentDefinitionNode)definition;
                 if (!context.Names.Add(fragment.Name.Value))
                 {
-                    context.Errors.Add(context.FragmentNameNotUnique(fragment));
+                    context.ReportError(context.FragmentNameNotUnique(fragment));
                 }
             }
         }
@@ -99,7 +99,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         {
             if (context.Names.Add(fragmentName))
             {
-                context.Errors.Add(context.FragmentNotUsed(context.Fragments[fragmentName]));
+                context.ReportError(context.FragmentNotUsed(context.Fragments[fragmentName]));
             }
         }
 
@@ -157,11 +157,11 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
                 return Continue;
             }
 
-            context.Errors.Add(context.FragmentOnlyCompositeType(node, type.NamedType()));
+            context.ReportError(context.FragmentOnlyCompositeType(node, type.NamedType()));
             return Skip;
         }
 
-        context.Errors.Add(context.FragmentTypeConditionUnknown(node, node.TypeCondition));
+        context.ReportError(context.FragmentTypeConditionUnknown(node, node.TypeCondition));
         return Skip;
     }
 
@@ -196,11 +196,11 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
                 return Continue;
             }
 
-            context.Errors.Add(context.FragmentOnlyCompositeType(node, type.NamedType()));
+            context.ReportError(context.FragmentOnlyCompositeType(node, type.NamedType()));
             return Skip;
         }
 
-        context.Errors.Add(context.FragmentTypeConditionUnknown(node, node.TypeCondition));
+        context.ReportError(context.FragmentTypeConditionUnknown(node, node.TypeCondition));
         return Skip;
     }
 
@@ -214,12 +214,12 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         {
             if (context.Path.Contains(fragment))
             {
-                context.Errors.Add(context.FragmentCycleDetected(node));
+                context.ReportError(context.FragmentCycleDetected(node));
             }
         }
         else
         {
-            context.Errors.Add(context.FragmentDoesNotExist(node));
+            context.ReportError(context.FragmentDoesNotExist(node));
         }
         return Continue;
     }
@@ -232,7 +232,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
     {
         if (!IsCompatibleType(context, parentType, typeCondition))
         {
-            context.Errors.Add(context.FragmentNotPossible(
+            context.ReportError(context.FragmentNotPossible(
                 node, typeCondition, parentType));
         }
     }
