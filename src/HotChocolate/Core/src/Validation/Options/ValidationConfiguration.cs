@@ -5,11 +5,9 @@ using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Validation.Options;
 
-public class ValidationConfiguration
-    : IValidationConfiguration
+public class ValidationConfiguration : IValidationConfiguration
 {
-    private readonly ConcurrentDictionary<string, ValidationOptions> _optionsCache =
-        new ConcurrentDictionary<string, ValidationOptions>();
+    private readonly ConcurrentDictionary<string, ValidationOptions> _optionsCache = new();
     private readonly IOptionsMonitor<ValidationOptionsModifiers> _optionsMonitor;
 
     public ValidationConfiguration(IOptionsMonitor<ValidationOptionsModifiers> optionsMonitor)
@@ -19,10 +17,10 @@ public class ValidationConfiguration
     }
 
     public IEnumerable<IDocumentValidatorRule> GetRules(string schemaName)
-    {
-        ValidationOptions options = _optionsCache.GetOrAdd(schemaName, CreateOptions);
-        return options.Rules;
-    }
+        => GetOptions(schemaName).Rules;
+
+    public ValidationOptions GetOptions(string schemaName) 
+        => _optionsCache.GetOrAdd(schemaName, CreateOptions);
 
     private ValidationOptions CreateOptions(string schemaName)
     {

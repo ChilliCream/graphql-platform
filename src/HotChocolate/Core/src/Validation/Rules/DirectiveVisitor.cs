@@ -123,12 +123,12 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
                 TryLookupLocation(parent, out DirectiveLoc location) &&
                 !dt.Locations.Contains(location))
             {
-                context.Errors.Add(context.DirectiveNotValidInLocation(node));
+                context.ReportError(context.DirectiveNotValidInLocation(node));
             }
         }
         else
         {
-            context.Errors.Add(context.DirectiveNotSupported(node));
+            context.ReportError(context.DirectiveNotSupported(node));
         }
         return Skip;
     }
@@ -145,7 +145,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
                 && !dt.IsRepeatable
                 && !context.Names.Add(directive.Name.Value))
             {
-                context.Errors.Add(context.DirectiveMustBeUniqueInLocation(directive));
+                context.ReportError(context.DirectiveMustBeUniqueInLocation(directive));
             }
         }
     }
