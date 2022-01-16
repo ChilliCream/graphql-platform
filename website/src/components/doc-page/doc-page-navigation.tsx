@@ -330,7 +330,7 @@ export const Navigation = styled.nav<{ height: string; show: boolean }>`
 
   ${({ height }) =>
     IsTablet(`
-      margin-left: -105%;
+      margin-left: -350px;
       height: ${height};
       position: fixed;
       top: 60px;
