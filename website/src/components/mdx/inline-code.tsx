@@ -1,5 +1,6 @@
 import React, { FC } from "react";
 import styled from "styled-components";
+import { FONT_FAMILY_CODE } from "../../shared-style";
 
 export const InlineCode: FC = ({ children }) => {
   return <Container>{children}</Container>;
@@ -7,6 +8,6 @@ export const InlineCode: FC = ({ children }) => {
 
 const Container = styled.code`
   padding: 2px 5px;
-  font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+  font-family: ${FONT_FAMILY_CODE};
   font-size: var(--font-size);
 `;

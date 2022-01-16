@@ -1,10 +1,11 @@
 import React, { FC } from "react";
 import styled from "styled-components";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
 
 export interface SupportCardProps {
-  name: string;
-  description: string;
-  perks: string[];
+  readonly name: string;
+  readonly description: string;
+  readonly perks: string[];
 }
 
 export const SupportCard: FC<SupportCardProps> = ({
@@ -38,10 +39,10 @@ const ContactUs = styled.a`
   display: block;
   text-align: center;
   cursor: pointer;
-  font-family: "Roboto", sans-serif;
+  font-family: ${FONT_FAMILY_HEADING};
   margin-top: 2rem;
   width: 100%;
-  color: var(--text-color-contrast);
+  color: ${THEME_COLORS.textContrast};
   padding: 0.5rem 0;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -49,10 +50,10 @@ const ContactUs = styled.a`
   font-weight: 600;
   border: 1px solid transparent;
   border-radius: 0.375rem;
-  background-color: var(--primary-color);
+  background-color: ${THEME_COLORS.primary};
 
   :hover {
-    background-color: var(--secondary-color);
+    background-color: ${THEME_COLORS.secondary};
   }
 `;
 

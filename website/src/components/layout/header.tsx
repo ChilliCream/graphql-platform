@@ -9,6 +9,7 @@ import GithubIconSvg from "../../images/github.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
 import { useObservable } from "../../state";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
@@ -128,7 +129,7 @@ const Container = styled.header`
   z-index: 30;
   width: 100vw;
   height: 60px;
-  background-color: var(--primary-color);
+  background-color: ${THEME_COLORS.primary};
   transition: box-shadow 0.2s ease-in-out;
 
   &.shadow {
@@ -174,7 +175,7 @@ const LogoLink = styled(Link)`
 
 const LogoIcon = styled(LogoIconSvg)`
   height: 40px;
-  fill: var(--text-color-contrast);
+  fill: ${THEME_COLORS.textContrast};
   transition: fill 0.2s ease-in-out;
 `;
 
@@ -182,7 +183,7 @@ const LogoText = styled(LogoTextSvg)`
   display: none;
   padding-left: 15px;
   height: 24px;
-  fill: var(--text-color-contrast);
+  fill: ${THEME_COLORS.textContrast};
   transition: fill 0.2s ease-in-out;
 
   @media only screen and (min-width: 600px) {
@@ -206,7 +207,7 @@ const HamburgerOpenButton = styled.div`
 
 const HamburgerOpenIcon = styled(BarsIconSvg)`
   height: 26px;
-  fill: var(--text-color-contrast);
+  fill: ${THEME_COLORS.textContrast};
 `;
 
 const Navigation = styled.nav<{ readonly open: boolean }>`
@@ -219,7 +220,7 @@ const Navigation = styled.nav<{ readonly open: boolean }>`
   flex: 1 1 auto;
   flex-direction: column;
   max-height: 100vh;
-  background-color: var(--primary-color);
+  background-color: ${THEME_COLORS.primary};
   opacity: ${({ open }) => (open ? "1" : "0")};
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   transition: opacity 0.2s ease-in-out;
@@ -267,7 +268,7 @@ const HamburgerCloseButton = styled.div`
 
 const HamburgerCloseIcon = styled(TimesIconSvg)`
   height: 26px;
-  fill: var(--text-color-contrast);
+  fill: ${THEME_COLORS.textContrast};
 `;
 
 const Nav = styled.ol`
@@ -305,20 +306,20 @@ const NavLink = styled(Link)`
   flex: 0 0 auto;
   border-radius: var(--border-radius);
   padding: 10px 15px;
-  font-family: "Roboto", sans-serif;
+  font-family: ${FONT_FAMILY_HEADING};
   font-size: 0.833em;
-  color: var(--text-color-contrast);
+  color: ${THEME_COLORS.textContrast};
   text-decoration: none;
   text-transform: uppercase;
   transition: background-color 0.2s ease-in-out;
 
   &.active,
   &.active:hover {
-    background-color: var(--tertiary-color);
+    background-color: ${THEME_COLORS.tertiary};
   }
 
   &:hover {
-    background-color: var(--secondary-color);
+    background-color: ${THEME_COLORS.secondary};
   }
 `;
 
@@ -359,11 +360,11 @@ const ToolLink = styled(Link)`
   transition: background-color 0.2s ease-in-out;
 
   > ${IconContainer} > svg {
-    fill: var(--text-color-contrast);
+    fill: ${THEME_COLORS.textContrast};
   }
 
   :hover {
-    background-color: var(--secondary-color);
+    background-color: ${THEME_COLORS.secondary};
   }
 `;
 

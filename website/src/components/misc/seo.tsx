@@ -9,13 +9,13 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import { Helmet } from "react-helmet";
 
-interface SEOProps {
-  description?: string;
-  imageUrl?: string;
-  isArticle?: boolean;
-  lang?: string;
-  meta?: JSX.IntrinsicElements["meta"][];
-  title: string;
+export interface SEOProps {
+  readonly description?: string;
+  readonly imageUrl?: string;
+  readonly isArticle?: boolean;
+  readonly lang?: string;
+  readonly meta?: JSX.IntrinsicElements["meta"][];
+  readonly title: string;
 }
 
 export const SEO: FC<SEOProps> = ({
