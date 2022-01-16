@@ -56,7 +56,7 @@ jobs:
     - name: Build
       run: |
         ./init.sh
-        dotnet build src ./src/All.sln
+        dotnet build ./src/All.sln
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
