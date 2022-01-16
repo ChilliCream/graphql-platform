@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import { IsMobile, IsSmallDesktop } from "../../shared-style";
+import { IsMobile, IsSmallDesktop, THEME_COLORS } from "../../shared-style";
 
 export const Intro = styled.header`
   display: flex;
@@ -8,10 +8,10 @@ export const Intro = styled.header`
   align-items: center;
   padding: 25px 0;
   width: 100%;
-  background-color: var(--primary-color);
+  background-color: ${THEME_COLORS.primary};
   background: linear-gradient(
     180deg,
-    var(--primary-color) 70%,
+    ${THEME_COLORS.primary} 70%,
     #3d5f9f 100%
   ); //before: ff892a
 
@@ -24,7 +24,7 @@ export const Title = styled.h3`
   flex: 0 0 auto;
   font-size: 1em;
   text-align: center;
-  color: var(--quaternary-color);
+  color: ${THEME_COLORS.quaternary};
   text-transform: uppercase;
 `;
 
@@ -34,7 +34,7 @@ export const Hero = styled.h1`
   max-width: 800px;
   font-size: 2.222em;
   text-align: center;
-  color: var(--text-color-contrast);
+  color: ${THEME_COLORS.textContrast};
 
   ${IsMobile(css`
     padding: 0 15px;
@@ -50,7 +50,7 @@ export const Teaser = styled.p`
   max-width: 800px;
   font-size: 1.222em;
   text-align: center;
-  color: var(--quaternary-color);
+  color: ${THEME_COLORS.quaternary};
 
   ${IsMobile(css`
     padding: 0 15px;

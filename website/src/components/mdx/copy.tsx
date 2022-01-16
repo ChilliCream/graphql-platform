@@ -1,5 +1,6 @@
 import React, { FC, useState } from "react";
 import styled from "styled-components";
+import { FONT_FAMILY, THEME_COLORS } from "../../shared-style";
 
 function copyToClipboard(content: string): void {
   const el = document.createElement(`textarea`);
@@ -57,9 +58,9 @@ const CopySuccessToast: FC = () => {
 
 const ToastText = styled.div`
   font-size: 1.25rem;
-  font-family: sans-serif;
+  font-family: ${FONT_FAMILY};
   font-weight: bold;
-  color: var(--text-color-contrast);
+  color: ${THEME_COLORS.textContrast};
 `;
 
 const ToastContainer = styled.div`
@@ -68,8 +69,7 @@ const ToastContainer = styled.div`
   bottom: 30px;
   transform: translateX(-50%);
   z-index: 9999;
-
-  background-color: var(--primary-color);
+  background-color: ${THEME_COLORS.primary};
   box-shadow: 0px 3px 6px 0px #828282;
   padding: 20px;
   border-radius: var(--border-radius);

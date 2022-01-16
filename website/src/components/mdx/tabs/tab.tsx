@@ -1,5 +1,6 @@
 import React, { FC } from "react";
 import styled from "styled-components";
+import { THEME_COLORS } from "../../../shared-style";
 import { useTabs } from "./tabs";
 
 export interface TabProps {
@@ -26,10 +27,10 @@ const TabButton = styled.button`
   padding: 1rem 0.25rem;
   font-size: 0.95rem;
   line-height: 1.2;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 
   :hover {
-    color: var(--heading-text-color);
+    color: ${THEME_COLORS.heading};
   }
 
   :focus {
@@ -37,7 +38,7 @@ const TabButton = styled.button`
   }
 
   &.active {
-    color: var(--heading-text-color);
+    color: ${THEME_COLORS.heading};
     font-weight: 700;
   }
 

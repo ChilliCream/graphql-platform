@@ -2,6 +2,7 @@ import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 import { BlogArticleMetadataFragment } from "../../../graphql-types";
+import { THEME_COLORS } from "../../shared-style";
 import { Link } from "../misc/link";
 
 interface BlogArticleMetadataProps {
@@ -55,7 +56,7 @@ const AuthorLink = styled(Link)`
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 `;
 
 const AuthorImage = styled.img`

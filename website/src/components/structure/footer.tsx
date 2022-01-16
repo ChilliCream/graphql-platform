@@ -7,6 +7,7 @@ import LogoIconSvg from "../../images/chillicream.svg";
 import GithubIconSvg from "../../images/github.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
@@ -121,7 +122,7 @@ const Container = styled.footer`
   padding: 40px 0 60px;
   width: 100%;
   background-color: #252d3c;
-  color: var(--footer-text-color);
+  color: ${THEME_COLORS.footerText};
 `;
 
 const Section = styled.div`
@@ -149,13 +150,13 @@ const Logo = styled.div`
 
 const LogoIcon = styled(LogoIconSvg)`
   height: 40px;
-  fill: var(--footer-text-color);
+  fill: ${THEME_COLORS.footerText};
 `;
 
 const LogoText = styled(LogoTextSvg)`
   padding-left: 15px;
   height: 24px;
-  fill: var(--footer-text-color);
+  fill: ${THEME_COLORS.footerText};
 `;
 
 const Description = styled.p`
@@ -175,7 +176,7 @@ const ConnectLink = styled(Link)`
   margin: 5px 0;
   font-size: 0.833em;
   text-decoration: none;
-  color: var(--footer-text-color);
+  color: ${THEME_COLORS.footerText};
   transition: color 0.2s ease-in-out;
 
   > ${IconContainer} {
@@ -188,27 +189,27 @@ const ConnectLink = styled(Link)`
   }
 
   :hover {
-    color: var(--text-color-contrast);
+    color: ${THEME_COLORS.textContrast};
 
     > ${IconContainer} > svg {
-      fill: var(--text-color-contrast);
+      fill: ${THEME_COLORS.textContrast};
     }
   }
 `;
 
 const GithubIcon = styled(GithubIconSvg)`
   height: 26px;
-  fill: var(--footer-text-color);
+  fill: ${THEME_COLORS.footerText};
 `;
 
 const SlackIcon = styled(SlackIconSvg)`
   height: 22px;
-  fill: var(--footer-text-color);
+  fill: ${THEME_COLORS.footerText};
 `;
 
 const TwitterIcon = styled(TwitterIconSvg)`
   height: 22px;
-  fill: var(--footer-text-color);
+  fill: ${THEME_COLORS.footerText};
 `;
 
 const Links = styled.div`
@@ -231,15 +232,15 @@ const Navigation = styled.nav`
 const NavLink = styled(Link)`
   flex: 0 0 auto;
   margin: 4px 0;
-  font-family: "Roboto", sans-serif;
+  font-family: ${FONT_FAMILY_HEADING};
   font-size: 0.833em;
   line-height: 1.5em;
-  color: var(--footer-text-color);
+  color: ${THEME_COLORS.footerText};
   text-decoration: none;
   transition: color 0.2s ease-in-out;
 
   :hover {
-    color: var(--text-color-contrast);
+    color: ${THEME_COLORS.textContrast};
   }
 `;
 
@@ -259,7 +260,7 @@ const Title = styled.h3`
   margin: 15px 0 9px;
   font-size: 1em;
   font-weight: bold;
-  color: var(--footer-text-color);
+  color: ${THEME_COLORS.footerText};
 `;
 
 const Copyright = styled.div`

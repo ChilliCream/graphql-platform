@@ -57,6 +57,7 @@ import ZioskLogoSvg from "../images/companies/ziosk.svg";
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
 import GetStartedSvg from "../images/get-started.svg";
+import { THEME_COLORS } from "../shared-style";
 
 const IndexPage: FC = () => {
   const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
@@ -436,13 +437,13 @@ const Slideshow = styled(Carousel)`
         margin: 0 5px;
         border-radius: 2px;
         height: 6px;
-        background-color: var(--text-color-contrast);
+        background-color: ${THEME_COLORS.textContrast};
         opacity: 0.5;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
 
         &.selected {
-          background-color: var(--text-color-contrast);
+          background-color: ${THEME_COLORS.textContrast};
           opacity: 1;
 
           &:hover {
@@ -534,7 +535,7 @@ const SlideTitle = styled.h2`
     margin-bottom: 10px;
     font-size: 1.667em;
     text-align: initial;
-    color: var(--text-color-contrast);
+    color: ${THEME_COLORS.textContrast};
   }
 `;
 
@@ -543,7 +544,7 @@ const SlideDescription = styled.p`
   flex: 0 0 auto;
   margin-bottom: 0;
   font-size: 1.111em;
-  color: var(--text-color-contrast);
+  color: ${THEME_COLORS.textContrast};
 
   @media only screen and (min-width: 768px) {
     display: initial;
@@ -590,7 +591,7 @@ const ArticleMetadata = styled.div`
   align-items: center;
   margin: 15px 20px 7px;
   font-size: 0.778em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 `;
 
 const ArticleTitle = styled.h1`
@@ -612,11 +613,11 @@ const Logo = styled.div<{ width?: number }>`
   width: ${({ width }) => width || 160}px;
 
   > a > svg {
-    fill: var(--text-color);
+    fill: ${THEME_COLORS.text};
     transition: fill 0.2s ease-in-out;
 
     &:hover {
-      fill: var(--heading-text-color);
+      fill: ${THEME_COLORS.heading};
     }
   }
 `;

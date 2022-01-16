@@ -12,6 +12,7 @@ import {
   IsPhablet,
   IsSmallDesktop,
   IsTablet,
+  THEME_COLORS,
 } from "../../shared-style";
 import { useObservable } from "../../state";
 import { toggleAside, toggleTOC } from "../../state/common";
@@ -312,7 +313,7 @@ const Button = styled.button`
   display: flex;
   flex-direction: row;
   align-items: center;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
 
   &.aside-toggle {
@@ -331,15 +332,15 @@ const Button = styled.button`
     margin-right: 5px;
     width: 16px;
     height: 16px;
-    fill: var(--text-color);
+    fill: ${THEME_COLORS.text};
     transition: fill 0.2s ease-in-out;
   }
 `;
 
 const OutdatedDocumentationWarning = styled.div`
   padding: 20px 20px;
-  background-color: var(--warning-color);
-  color: var(--text-color-contrast);
+  background-color: ${THEME_COLORS.warning};
+  color: ${THEME_COLORS.textContrast};
   line-height: 1.4;
 
   > br {

@@ -13,7 +13,7 @@ import { DocPageNavigationFragment } from "../../../graphql-types";
 import ArrowDownIconSvg from "../../images/arrow-down.svg";
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
 import ProductSwitcherIconSvg from "../../images/th-large.svg";
-import { BoxShadow, IsTablet } from "../../shared-style";
+import { BoxShadow, IsTablet, THEME_COLORS } from "../../shared-style";
 import { State } from "../../state";
 import { closeTOC } from "../../state/common";
 import { IconContainer } from "../misc/icon-container";
@@ -211,7 +211,7 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
           <ProductSwitcherButton onClick={toggleVersionSwitcher}>
             {activeVersion?.title}
 
-            <IconContainer size={12}>
+            <IconContainer size={16}>
               {versionSwitcherOpen ? <ArrowUpIconSvg /> : <ArrowDownIconSvg />}
             </IconContainer>
           </ProductSwitcherButton>
@@ -344,7 +344,7 @@ const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  border: 1px solid var(--box-border-color);
+  border: 1px solid ${THEME_COLORS.boxBorder};
   border-radius: var(--border-radius);
   padding: 7px 10px;
   height: 38px;
@@ -357,12 +357,12 @@ const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
     padding-left: 6px;
 
     > svg {
-      fill: var(--text-color);
+      fill: ${THEME_COLORS.text};
     }
   }
 
   :hover:enabled {
-    background-color: var(--box-highlight-color);
+    background-color: ${THEME_COLORS.boxHighlight};
   }
 
   :disabled {
@@ -392,7 +392,7 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
   flex: 1 1 100%;
   flex-direction: column;
   padding: 0 10px;
-  background-color: var(--text-color-contrast);
+  background-color: ${THEME_COLORS.textContrast};
 
   @media only screen and (min-width: 1070px) {
     top: 135px;
@@ -412,10 +412,10 @@ const ProductVersionDialog = styled.div<{ open: boolean }>`
   display: ${({ open }) => (open ? "flex" : "none")};
   flex-direction: column;
   padding: 10px;
-  background-color: var(--text-color-contrast);
+  background-color: ${THEME_COLORS.textContrast};
   position: absolute;
   border-radius: var(--border-radius);
-  border: 1px solid var(--box-border-color);
+  border: 1px solid ${THEME_COLORS.boxBorder};
   top: 110px;
   right: 14px;
 
@@ -435,12 +435,12 @@ interface LinkProps {
 
 const ProductLink = styled(Link)<LinkProps>`
   flex: 0 0 auto;
-  border: 1px solid var(--box-border-color);
+  border: 1px solid ${THEME_COLORS.boxBorder};
   border-radius: var(--border-radius);
   margin: 5px;
   padding: 10px;
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
   cursor: pointer;
 
   @media only screen and (min-width: 1070px) {
@@ -449,23 +449,27 @@ const ProductLink = styled(Link)<LinkProps>`
 
   transition: background-color 0.2s ease-in-out;
 
-  ${({ active }) => active && `background-color: var(--box-highlight-color);`}
+  ${({ active }) =>
+    active &&
+    css`
+      background-color: ${THEME_COLORS.boxHighlight};
+    `}
 
   :hover {
-    background-color: var(--box-highlight-color);
+    background-color: ${THEME_COLORS.boxHighlight};
   }
 `;
 
 const VersionLink = styled(Link)`
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
   cursor: pointer;
   padding: 6px 9px;
   transition: background-color 0.2s ease-in-out;
   border-radius: var(--border-radius);
 
   :hover {
-    background-color: var(--box-highlight-color);
+    background-color: ${THEME_COLORS.boxHighlight};
   }
 `;
 
@@ -518,19 +522,19 @@ const NavigationGroup = styled.div<{ expanded: boolean }>`
 
     > .arrow-down {
       display: ${({ expanded }) => (expanded ? "none" : "initial")};
-      fill: var(--text-color);
+      fill: ${THEME_COLORS.text};
     }
 
     > .arrow-up {
       display: ${({ expanded }) => (expanded ? "initial" : "none")};
-      fill: var(--text-color);
+      fill: ${THEME_COLORS.text};
     }
   }
 `;
 
 const NavigationLink = styled(Link)`
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 
   :hover {
     color: #000;
