@@ -24,8 +24,6 @@ export const SearchModal: FC<SearchModalProps> = ({
   const resolveHit: (props: HitProps) => JSX.Element = ({ children, hit }) => {
     const slug = hit.url.replace(siteUrl, "");
 
-    console.log(hit);
-
     return <Link to={slug}>{children}</Link>;
   };
 

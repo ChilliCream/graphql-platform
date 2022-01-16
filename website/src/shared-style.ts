@@ -53,6 +53,10 @@ export interface ThemeColors {
   readonly background: string;
   readonly shadow: string;
   readonly primary: string;
+  readonly primaryButton: string;
+  readonly primaryButtonText: string;
+  readonly primaryButtonHover: string;
+  readonly primaryButtonHoverText: string;
   readonly secondary: string;
   readonly tertiary: string;
   readonly quaternary: string;
@@ -71,6 +75,10 @@ export const THEME_COLORS: ThemeColors = {
   background: "var(--cc-background-color)",
   shadow: "var(--cc-shadow-color)",
   primary: "var(--cc-primary-color)",
+  primaryButton: "var(--cc-primary-button-color)",
+  primaryButtonText: "var(--cc-primary-button-text-color)",
+  primaryButtonHover: "var(--cc-primary-button-hover-color)",
+  primaryButtonHoverText: "var(--cc-primary-button-hover-text-color)",
   secondary: "var(--cc-secondary-color)",
   tertiary: "var(--cc-tertiary-color)",
   quaternary: "var(--cc-quaternary-color)",
@@ -89,6 +97,10 @@ export const DEFAULT_THEME_COLORS = css`
   --cc-background-color: #ffffff;
   --cc-shadow-color: #0f1725;
   --cc-primary-color: #3b4f74; //before: f40010;
+  --cc-primary-button-color: #cb1974;
+  --cc-primary-button-text-color: #ffffff;
+  --cc-primary-button-hover-color: #b10e61;
+  --cc-primary-button-hover-text-color: #ffffff;
   --cc-secondary-color: #516083;
   --cc-tertiary-color: #7989ab;
   --cc-quaternary-color: #bfcef1;
@@ -108,4 +120,4 @@ export const FONT_FAMILY =
 export const FONT_FAMILY_CODE =
   'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace';
 
-export const FONT_FAMILY_HEADING = `"Roboto", ${FONT_FAMILY}`;
+export const FONT_FAMILY_HEADING = "Roboto, ${FONT_FAMILY}";

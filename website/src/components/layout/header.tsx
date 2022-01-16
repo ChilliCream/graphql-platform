@@ -30,6 +30,7 @@ export const Header: FC = () => {
             link
           }
           tools {
+            bcp
             github
             slack
             twitter
@@ -108,6 +109,7 @@ export const Header: FC = () => {
         </Navigation>
         <Group>
           <Tools>
+            <LaunchLink to={tools!.bcp!}>Launch</LaunchLink>
             <ToolButton onClick={handleSearchOpen}>
               <IconContainer size={20}>
                 <SearchIconSvg />
@@ -360,13 +362,28 @@ const Group = styled.div`
 `;
 
 const Tools = styled.div`
-  display: none;
+  display: flex;
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
+`;
 
-  @media only screen and (min-width: 992px) {
-    display: flex;
+const LaunchLink = styled(Link)`
+  flex: 0 0 auto;
+  margin-left: 5px;
+  border-radius: var(--border-radius);
+  padding: 10px 15px;
+  color: ${THEME_COLORS.primaryButtonText};
+  background-color: ${THEME_COLORS.primaryButton};
+  font-family: ${FONT_FAMILY_HEADING};
+  font-size: 0.833em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+
+  :hover {
+    color: ${THEME_COLORS.primaryButtonHoverText};
+    background-color: ${THEME_COLORS.primaryButtonHover};
   }
 `;
 
@@ -375,7 +392,6 @@ const ToolButton = styled.button`
   margin-left: 5px;
   border-radius: var(--border-radius);
   padding: 7px;
-  text-decoration: none;
   transition: background-color 0.2s ease-in-out;
 
   > ${IconContainer} > svg {
