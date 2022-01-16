@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export interface IconContainerProps {
-  readonly size?: 16 | 24 | 32;
+  readonly size?: 16 | 20 | 24 | 28 | 32;
 }
 
 export const IconContainer = styled.span<IconContainerProps>`

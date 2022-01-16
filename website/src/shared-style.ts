@@ -49,6 +49,9 @@ export const BoxShadow = css`
 `;
 
 export interface ThemeColors {
+  readonly backdrop: string;
+  readonly background: string;
+  readonly shadow: string;
   readonly primary: string;
   readonly secondary: string;
   readonly tertiary: string;
@@ -64,33 +67,39 @@ export interface ThemeColors {
 }
 
 export const THEME_COLORS: ThemeColors = {
-  primary: "var(--primary-color)",
-  secondary: "var(--secondary-color)",
-  tertiary: "var(--tertiary-color)",
-  quaternary: "var(--quaternary-color)",
-  link: "var(--link-color)",
-  text: "var(--text-color)",
-  heading: "var(--heading-color)",
-  footerText: "var(--footer-text-color)",
-  textContrast: "var(--text-contrast-color)",
-  boxHighlight: "var(--box-highlight-color)",
-  boxBorder: "var(--box-border-color)",
-  warning: "var(--warning-color)",
+  backdrop: "var(--cc-backdrop-color)",
+  background: "var(--cc-background-color)",
+  shadow: "var(--cc-shadow-color)",
+  primary: "var(--cc-primary-color)",
+  secondary: "var(--cc-secondary-color)",
+  tertiary: "var(--cc-tertiary-color)",
+  quaternary: "var(--cc-quaternary-color)",
+  link: "var(--cc-link-color)",
+  text: "var(--cc-text-color)",
+  heading: "var(--cc-heading-color)",
+  footerText: "var(--cc-footer-text-color)",
+  textContrast: "var(--cc-text-contrast-color)",
+  boxHighlight: "var(--cc-box-highlight-color)",
+  boxBorder: "var(--cc-box-border-color)",
+  warning: "var(--cc-warning-color)",
 };
 
 export const DEFAULT_THEME_COLORS = css`
-  --primary-color: #3b4f74; //before: f40010;
-  --secondary-color: #516083;
-  --tertiary-color: #7989ab;
-  --quaternary-color: #bfcef1;
-  --link-color: #f4125b;
-  --text-color: #667;
-  --heading-text-color: #3b4f74;
-  --footer-text-color: #c6c6ce;
-  --text-contrast-color: #fff;
-  --box-highlight-color: #e8ecf5;
-  --box-border-color: #bfcef1;
-  --warning-color: #ffba00;
+  --cc-backdrop-color: #cbd0db16;
+  --cc-background-color: #ffffff;
+  --cc-shadow-color: #0f1725;
+  --cc-primary-color: #3b4f74; //before: f40010;
+  --cc-secondary-color: #516083;
+  --cc-tertiary-color: #7989ab;
+  --cc-quaternary-color: #bfcef1;
+  --cc-link-color: #f4125b;
+  --cc-text-color: #667;
+  --cc-heading-text-color: #3b4f74;
+  --cc-footer-text-color: #c6c6ce;
+  --cc-text-contrast-color: #fff;
+  --cc-box-highlight-color: #e8ecf5;
+  --cc-box-border-color: #bfcef1;
+  --cc-warning-color: #ffba00;
 `;
 
 export const FONT_FAMILY =

@@ -24,9 +24,9 @@
     "build-storybook": "build-storybook"
   },
   "dependencies": {
+    "@docsearch/react": "^3.0.0-alpha.42",
     "@mdx-js/mdx": "^1.6.22",
     "@mdx-js/react": "^1.6.22",
-    "@mui/material": "^5.2.8",
     "algoliasearch": "^4.9.1",
     "gatsby": "^3.6.2",
     "gatsby-plugin-disqus": "^1.2.2",
@@ -91,9 +91,6 @@
     "pretty-quick": "^3.0.2",
     "typescript": "^4.3.2",
     "typescript-styled-plugin": "^0.18.0"
-  },
-  "resolutions": {
-    "@mui/styled-engine": "npm:@mui/styled-engine-sc@latest"
   },
   "husky": {
     "hooks": {

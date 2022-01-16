@@ -210,10 +210,10 @@ const SearchField = styled.input`
 `;
 
 interface HitComponentProps {
-  hit: any;
+  readonly hit: any;
 }
 
-const HitsWrapper = styled.div<{ show: boolean }>`
+const HitsWrapper = styled.div<{ readonly show: boolean }>`
   position: fixed;
   top: 60px;
   right: 0;

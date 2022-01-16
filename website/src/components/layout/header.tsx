@@ -6,6 +6,7 @@ import BarsIconSvg from "../../images/bars.svg";
 import LogoTextSvg from "../../images/chillicream-text.svg";
 import LogoIconSvg from "../../images/chillicream-winking.svg";
 import GithubIconSvg from "../../images/github.svg";
+import SearchIconSvg from "../../images/search.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
@@ -13,11 +14,12 @@ import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
 import { useObservable } from "../../state";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
-import { Search } from "../misc/search";
+import { SearchModal } from "../misc/search-modal";
 
 export const Header: FC = () => {
   const containerRef = useRef<HTMLHeadingElement>(null);
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
+  const [searchOpen, setSearchOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
     query getHeaderData {
       site {
@@ -41,13 +43,21 @@ export const Header: FC = () => {
     return state.common.yScrollPosition > 0;
   });
 
-  const handleHamburgerOpenClick = useCallback(() => {
+  const handleTopNavClose = useCallback(() => {
+    setTopNavOpen(false);
+  }, [setTopNavOpen]);
+
+  const handleTopNavOpen = useCallback(() => {
     setTopNavOpen(true);
   }, [setTopNavOpen]);
 
-  const handleHamburgerCloseClick = useCallback(() => {
-    setTopNavOpen(false);
-  }, [setTopNavOpen]);
+  const handleSearchClose = useCallback(() => {
+    setSearchOpen(false);
+  }, [setSearchOpen]);
+
+  const handleSearchOpen = useCallback(() => {
+    setSearchOpen(true);
+  }, [setSearchOpen]);
 
   useEffect(() => {
     const classes = containerRef.current?.className ?? "";
@@ -78,7 +88,7 @@ export const Header: FC = () => {
               <LogoIcon />
               <LogoText />
             </LogoLink>
-            <HamburgerCloseButton onClick={handleHamburgerCloseClick}>
+            <HamburgerCloseButton onClick={handleTopNavClose}>
               <HamburgerCloseIcon />
             </HamburgerCloseButton>
           </NavigationHeader>
@@ -97,8 +107,12 @@ export const Header: FC = () => {
           </Nav>
         </Navigation>
         <Group>
-          <Search siteUrl={siteUrl!} />
           <Tools>
+            <ToolButton onClick={handleSearchOpen}>
+              <IconContainer size={20}>
+                <SearchIconSvg />
+              </IconContainer>
+            </ToolButton>
             <ToolLink to={tools!.slack!}>
               <IconContainer>
                 <SlackIcon />
@@ -116,10 +130,15 @@ export const Header: FC = () => {
             </ToolLink>
           </Tools>
         </Group>
-        <HamburgerOpenButton onClick={handleHamburgerOpenClick}>
+        <HamburgerOpenButton onClick={handleTopNavOpen}>
           <HamburgerOpenIcon />
         </HamburgerOpenButton>
       </ContainerWrapper>
+      <SearchModal
+        open={searchOpen}
+        siteUrl={siteUrl!}
+        onClose={handleSearchClose}
+      />
     </Container>
   );
 };
@@ -348,6 +367,23 @@ const Tools = styled.div`
 
   @media only screen and (min-width: 992px) {
     display: flex;
+  }
+`;
+
+const ToolButton = styled.button`
+  flex: 0 0 auto;
+  margin-left: 5px;
+  border-radius: var(--border-radius);
+  padding: 7px;
+  text-decoration: none;
+  transition: background-color 0.2s ease-in-out;
+
+  > ${IconContainer} > svg {
+    fill: ${THEME_COLORS.textContrast};
+  }
+
+  :hover {
+    background-color: ${THEME_COLORS.secondary};
   }
 `;
 
