@@ -19,7 +19,7 @@ public class ValidationConfiguration : IValidationConfiguration
     public IEnumerable<IDocumentValidatorRule> GetRules(string schemaName)
         => GetOptions(schemaName).Rules;
 
-    public ValidationOptions GetOptions(string schemaName) 
+    public ValidationOptions GetOptions(string schemaName)
         => _optionsCache.GetOrAdd(schemaName, CreateOptions);
 
     private ValidationOptions CreateOptions(string schemaName)
@@ -27,7 +27,7 @@ public class ValidationConfiguration : IValidationConfiguration
         ValidationOptionsModifiers modifiers = _optionsMonitor.Get(schemaName);
         var options = new ValidationOptions();
 
-        for (int i = 0; i < modifiers.Modifiers.Count; i++)
+        for (var i = 0; i < modifiers.Modifiers.Count; i++)
         {
             modifiers.Modifiers[i](options);
         }

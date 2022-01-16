@@ -94,10 +94,13 @@ namespace HotChocolate.Validation
             configure(builder);
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            var rule = services.GetRequiredService<IValidationConfiguration>()
-                .GetRules(Schema.DefaultName).First();
+            IDocumentValidatorRule rule =
+                services.GetRequiredService<IValidationConfiguration>()
+                    .GetRules(Schema.DefaultName).First();
 
             DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+            context.MaxAllowedErrors = int.MaxValue;
+
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
             context.Prepare(query);
 

@@ -8,7 +8,7 @@ namespace HotChocolate.Validation.Options;
 public class ValidationOptions : IMaxExecutionDepthOptionsAccessor, IErrorOptionsAccessor
 {
     private int? _maxAllowedExecutionDepth;
-    private int maxErrors = 5;
+    private int _maxErrors = 5;
 
     /// <summary>
     /// Gets the document rules of the validation.
@@ -30,7 +30,7 @@ public class ValidationOptions : IMaxExecutionDepthOptionsAccessor, IErrorOption
     }
 
     /// <summary>
-    /// Specifies that the max execution depth analysis 
+    /// Specifies that the max execution depth analysis
     /// shall skip introspection fields.
     /// </summary>
     public bool SkipIntrospectionFields { get; set; }
@@ -40,7 +40,7 @@ public class ValidationOptions : IMaxExecutionDepthOptionsAccessor, IErrorOption
     /// </summary>
     public int MaxAllowedErrors
     {
-        get => maxErrors;
+        get => _maxErrors;
         set
         {
             // if the value is lover than 1 we will set it to the default.
@@ -48,7 +48,7 @@ public class ValidationOptions : IMaxExecutionDepthOptionsAccessor, IErrorOption
             {
                 value = 5;
             }
-            maxErrors = value;
+            _maxErrors = value;
         }
     }
 }
