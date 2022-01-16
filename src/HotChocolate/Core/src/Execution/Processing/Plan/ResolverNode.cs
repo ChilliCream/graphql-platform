@@ -42,8 +42,8 @@ internal sealed class ResolverNode : QueryPlanNode
             1 => new SequenceStep(new[] { resolver, Nodes[0].CreateStep() }),
             _ => new SequenceStep(new ExecutionStep[]
             {
-                    resolver,
-                    new SequenceStep(Nodes.Select(t => t.CreateStep()).ToArray())
+                resolver,
+                new SequenceStep(Nodes.Select(t => t.CreateStep()).ToArray())
             })
         };
     }

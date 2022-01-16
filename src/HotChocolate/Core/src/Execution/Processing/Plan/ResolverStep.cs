@@ -10,9 +10,7 @@ internal sealed class ResolverStep : ExecutionStep
 {
     private readonly ISelection[] _selections;
 
-    public ResolverStep(
-        ExecutionStrategy strategy,
-        IReadOnlyList<ISelection> selections)
+    public ResolverStep(ExecutionStrategy strategy, IReadOnlyList<ISelection> selections)
     {
         if (selections is null)
         {
@@ -23,8 +21,8 @@ internal sealed class ResolverStep : ExecutionStep
         _selections = selections.ToArray();
     }
 
-    public override string Name =>
-        Strategy is ExecutionStrategy.Serial
+    public override string Name
+        => Strategy is ExecutionStrategy.Serial
             ? "SerialResolver"
             : "Resolver";
 
@@ -35,10 +33,11 @@ internal sealed class ResolverStep : ExecutionStep
     public override bool TryActivate(IQueryPlanState state)
     {
         IVariableValueCollection variables = state.Context.Variables;
+        ISet<int> selections = state.Selections;
 
         foreach (ISelection? selection in _selections)
         {
-            if (state.Selections.Contains(selection.Id) && selection.IsIncluded(variables))
+            if (selections.Contains(selection.Id) && selection.IsIncluded(variables))
             {
                 return true;
             }
@@ -51,7 +50,7 @@ internal sealed class ResolverStep : ExecutionStep
     {
         Debug.Assert(ReferenceEquals(task.State, this), "The task must be part of this step.");
 
-        if (task is ResolverTask { ChildTasks: { Count: > 0 } } resolverTask)
+        if (task is ResolverTask { ChildTasks.Count: > 0} resolverTask)
         {
             foreach (ResolverTask? childTask in resolverTask.ChildTasks)
             {
@@ -63,7 +62,5 @@ internal sealed class ResolverStep : ExecutionStep
     }
 
     public override string ToString()
-    {
-        return $"{Name}[{string.Join(", ", _selections.Select(t => t.Id))}]";
-    }
+        => $"{Name}[{string.Join(", ", _selections.Select(t => t.Id))}]";
 }

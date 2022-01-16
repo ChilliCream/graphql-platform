@@ -72,7 +72,7 @@ internal static partial class QueryPlanBuilder
     }
 
     internal static ExecutionStrategy GetStrategyFromSelection(ISelection selection) =>
-        selection.Strategy == SelectionExecutionStrategy.Serial
+        selection.Strategy is SelectionExecutionStrategy.Serial
             ? ExecutionStrategy.Serial
             : ExecutionStrategy.Parallel;
 }

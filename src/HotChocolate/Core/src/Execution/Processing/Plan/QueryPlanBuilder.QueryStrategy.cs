@@ -87,7 +87,7 @@ internal static partial class QueryPlanBuilder
             {
                 QueryPlanNode parent = context.NodePath.Peek();
 
-                if (selection.Strategy == SelectionExecutionStrategy.Serial)
+                if (selection.Strategy is SelectionExecutionStrategy.Serial)
                 {
                     if (parent is ResolverNode { Strategy: ExecutionStrategy.Serial } p)
                     {
@@ -109,7 +109,7 @@ internal static partial class QueryPlanBuilder
                         context.NodePath.Push(resolverPlanStep);
                     }
                 }
-                else if (selection.Strategy == SelectionExecutionStrategy.Default ||
+                else if (selection.Strategy is SelectionExecutionStrategy.Default ||
                     context.SelectionPath.Count == 0)
                 {
                     if (parent is ResolverNode { Strategy: ExecutionStrategy.Parallel } p)
@@ -132,7 +132,7 @@ internal static partial class QueryPlanBuilder
                         context.NodePath.Push(resolverPlanStep);
                     }
                 }
-                else if (selection.Strategy == SelectionExecutionStrategy.Pure)
+                else if (selection.Strategy is SelectionExecutionStrategy.Pure)
                 {
                     // if a selection is pure we just ignore it in the plan since
                     // it will be inlined.

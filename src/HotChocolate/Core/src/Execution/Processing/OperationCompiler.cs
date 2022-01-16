@@ -27,8 +27,6 @@ public sealed partial class OperationCompiler
 
     internal ISchema Schema => _schema;
 
-    internal FragmentCollection Fragments => _fragments;
-
     internal int GetNextId() => _nextSelectionId++;
 
     public static IPreparedOperation Compile(
@@ -212,9 +210,7 @@ public sealed partial class OperationCompiler
         SelectionIncludeCondition? includeCondition)
     {
         NameString fieldName = selection.Name.Value;
-        NameString responseName = selection.Alias is null
-            ? selection.Name.Value
-            : selection.Alias.Value;
+        NameString responseName = selection.Alias?.Value ?? selection.Name.Value;
 
         if (context.Type.Fields.TryGetField(fieldName, out IObjectField? field))
         {

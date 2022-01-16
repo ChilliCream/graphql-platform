@@ -17,6 +17,8 @@ internal class QueryNode : IEnumerable<QueryNode>
 
     public DocumentNode? Document { get; set; }
 
+    public Path Path { get; }
+
     public List<QueryNode> Nodes { get; } = new List<QueryNode>();
 
     public IEnumerator<QueryNode> GetEnumerator()
