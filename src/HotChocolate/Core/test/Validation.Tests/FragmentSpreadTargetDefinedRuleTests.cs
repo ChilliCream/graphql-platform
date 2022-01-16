@@ -17,7 +17,9 @@ namespace HotChocolate.Validation
         public void UndefinedFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentValidatorContext context = ValidationUtils.CreateContext();
+            context.MaxAllowedErrors = int.MaxValue;
+
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {

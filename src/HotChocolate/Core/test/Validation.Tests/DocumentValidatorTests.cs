@@ -30,7 +30,6 @@ namespace HotChocolate.Validation
         public void SchemaIsNull()
         {
             // arrange
-            ISchema schema = ValidationUtils.CreateSchema();
             IDocumentValidator queryValidator = CreateValidator();
 
             // act
@@ -250,7 +249,16 @@ namespace HotChocolate.Validation
         public void QueriesWithInvalidVariableTypes()
         {
             // arrange
-            ExpectErrors(@"
+            ExpectErrors(
+                null,
+                new ServiceCollection()
+                    .AddValidation()
+                    .ModifyValidationOptions(o => o.MaxAllowedErrors = int.MaxValue)
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequiredService<IDocumentValidatorFactory>()
+                    .CreateValidator(),
+                @"
                 query takesCat($cat: Cat) {
                     # ...
                 }
@@ -265,48 +273,47 @@ namespace HotChocolate.Validation
 
                 query takesCatOrDog($catOrDog: CatOrDog) {
                     # ...
-                }
-            ",
-            t => Assert.Equal(
-                "Operation `takesCat` has a empty selection set. Root types without subfields " +
-                "are disallowed.",
-                t.Message),
-            t => Assert.Equal(
-                "Operation `takesDogBang` has a empty selection set. Root types without " +
-                "subfields are disallowed.",
-                t.Message),
-            t => Assert.Equal(
-                "Operation `takesListOfPet` has a empty selection set. Root types without " +
-                "subfields are disallowed.",
-                t.Message),
-            t => Assert.Equal(
-                "Operation `takesCatOrDog` has a empty selection set. Root types without " +
-                "subfields are disallowed.",
-                t.Message),
-            t => Assert.Equal(
-                "The type of variable `cat` is not an input type.",
-                t.Message),
-            t => Assert.Equal(
-                "The following variables were not used: cat.",
-                t.Message),
-            t => Assert.Equal(
-                "The type of variable `dog` is not an input type.",
-                t.Message),
-            t => Assert.Equal(
-                "The following variables were not used: dog.",
-                t.Message),
-            t => Assert.Equal(
-                "The type of variable `pets` is not an input type.",
-                t.Message),
-            t => Assert.Equal(
-                "The following variables were not used: pets.",
-                t.Message),
-            t => Assert.Equal(
-                "The type of variable `catOrDog` is not an input type.",
-                t.Message),
-            t => Assert.Equal(
-                "The following variables were not used: catOrDog.",
-                t.Message));
+                }",
+                t => Assert.Equal(
+                    "Operation `takesCat` has a empty selection set. Root types without " +
+                    "subfields are disallowed.",
+                    t.Message),
+                t => Assert.Equal(
+                    "Operation `takesDogBang` has a empty selection set. Root types without " +
+                    "subfields are disallowed.",
+                    t.Message),
+                t => Assert.Equal(
+                    "Operation `takesListOfPet` has a empty selection set. Root types without " +
+                    "subfields are disallowed.",
+                    t.Message),
+                t => Assert.Equal(
+                    "Operation `takesCatOrDog` has a empty selection set. Root types without " +
+                    "subfields are disallowed.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `cat` is not an input type.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The following variables were not used: cat.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `dog` is not an input type.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The following variables were not used: dog.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `pets` is not an input type.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The following variables were not used: pets.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `catOrDog` is not an input type.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The following variables were not used: catOrDog.",
+                    t.Message));
         }
 
         [Fact]
@@ -715,6 +722,95 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+        }
+
+        [Fact]
+        public void Ensure_Recursive_Fragments_Fail()
+        {
+            ExpectErrors("fragment f on Query{...f} {...f}");
+        }
+
+        [Fact]
+        public void Ensure_Recursive_Fragments_Fail_2()
+        {
+            ExpectErrors(@"
+                fragment f on Query {
+                    ...f
+                    f {
+                        ...f
+                        f {
+                            ...f
+                        }
+                    }
+                }
+
+                {...f}");
+        }
+
+        [Fact]
+        public void Short_Long_Names()
+        {
+            ExpectErrors(FileResource.Open("short_long_names_query.graphql"));
+        }
+
+        [Fact]
+        public void Anonymous_empty_query_repeated_25000()
+        {
+            ExpectErrors(FileResource.Open("anonymous_empty_query_repeated_25000.graphql"));
+        }
+
+        [Fact]
+        public void Type_query_repeated_6250()
+        {
+            ExpectErrors(FileResource.Open("__type_query_repeated_6250.graphql"));
+        }
+
+        [Fact]
+        public void Typename_query_repeated_4167()
+        {
+            ExpectErrors(FileResource.Open("__typename_query_repeated_4167.graphql"));
+        }
+
+        [Fact]
+        public void Typename_query()
+        {
+            ExpectValid(FileResource.Open("__typename_query.graphql"));
+        }
+
+        [Fact]
+        public void Produce_Many_Errors_100_query()
+        {
+            ExpectErrors(FileResource.Open("100_query.graphql"));
+        }
+
+        [Fact]
+        public void Produce_Many_Errors_1000_query()
+        {
+            ExpectErrors(FileResource.Open("1000_query.graphql"));
+        }
+
+        [Fact]
+        public void Produce_Many_Errors_10000_query()
+        {
+            ExpectErrors(FileResource.Open("10000_query.graphql"));
+        }
+
+        [Fact]
+        public void Produce_Many_Errors_25000_query()
+        {
+            ExpectErrors(FileResource.Open("25000_query.graphql"));
+        }
+
+        [Fact]
+        public void Produce_Many_Errors_30000_query()
+        {
+            ExpectErrors(FileResource.Open("30000_query.graphql"));
+        }
+
+        [Fact]
+        public void Produce_Many_Errors_50000_query()
+        {
+            ExpectErrors(FileResource.Open("50000_query.graphql"));
         }
 
         private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
