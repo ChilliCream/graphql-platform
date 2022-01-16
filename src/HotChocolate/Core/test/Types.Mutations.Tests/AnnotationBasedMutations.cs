@@ -30,6 +30,47 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleMutationReturnList_Inferred()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<SimpleMutationReturnList>()
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    ApplyToAllMutations = true
+                })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task SimpleMutationReturnList_Inferred_Execute()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<SimpleMutationReturnList>()
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    ApplyToAllMutations = true
+                })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: { something: ""abc"" }) {
+                        string
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task SimpleMutation_Inferred_With_QueryField()
     {
         Snapshot.FullName();
@@ -395,6 +436,11 @@ public class AnnotationBasedMutations
     {
         public string DoSomething(string something)
             => something;
+    }
+
+    public class SimpleMutationReturnList
+    {
+        public System.Collections.Generic.List<string> DoSomething(string something) => new() { something };
     }
 
     [ExtendObjectType("Mutation")]
