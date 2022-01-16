@@ -51,7 +51,9 @@ jobs:
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
     - name: Build
-      run: ./build.sh compile
+      run: |
+        ./init.sh
+        dotnet build src ./src/All.sln
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
