@@ -93,6 +93,10 @@ namespace HotChocolate.Data.MongoDb.Filters
                 .BindRuntimeType<DateTimeOffset, ComparableOperationFilterInputType<DateTimeOffset>
                 >()
                 .BindRuntimeType<TimeSpan, ComparableOperationFilterInputType<TimeSpan>>()
+                #if NET6_0_OR_GREATER
+                .BindRuntimeType<DateOnly, ComparableOperationFilterInputType<DateOnly>>()
+                .BindRuntimeType<TimeOnly, ComparableOperationFilterInputType<TimeOnly>>()
+                #endif
                 .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
                 .BindRuntimeType<byte?, ComparableOperationFilterInputType<byte?>>()
                 .BindRuntimeType<short?, ComparableOperationFilterInputType<short?>>()
@@ -106,7 +110,11 @@ namespace HotChocolate.Data.MongoDb.Filters
                 .BindRuntimeType<DateTime?, ComparableOperationFilterInputType<DateTime?>>()
                 .BindRuntimeType<DateTimeOffset?,
                     ComparableOperationFilterInputType<DateTimeOffset?>>()
-                .BindRuntimeType<TimeSpan?, ComparableOperationFilterInputType<TimeSpan?>>();
+                .BindRuntimeType<TimeSpan?, ComparableOperationFilterInputType<TimeSpan?>>()
+                #if NET6_0_OR_GREATER
+                .BindRuntimeType<DateOnly?, ComparableOperationFilterInputType<DateOnly?>>()
+                .BindRuntimeType<TimeOnly?, ComparableOperationFilterInputType<TimeOnly?>>();
+                #endif
 
             return descriptor;
         }
