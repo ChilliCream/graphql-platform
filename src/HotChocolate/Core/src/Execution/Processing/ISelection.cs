@@ -8,9 +8,7 @@ namespace HotChocolate.Execution.Processing;
 /// <summary>
 /// Represents a field selection during execution.
 /// </summary>
-public interface ISelection
-    : IFieldSelection
-    , IOptionalSelection
+public interface ISelection : IFieldSelection, IOptionalSelection
 {
     /// <summary>
     /// Gets an operation unique identifier of this selection.

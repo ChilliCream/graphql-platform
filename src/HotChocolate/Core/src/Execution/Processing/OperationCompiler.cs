@@ -38,27 +38,27 @@ public sealed partial class OperationCompiler
         InputParser inputParser,
         IEnumerable<ISelectionOptimizer>? optimizers = null)
     {
-        if (operationId == null)
+        if (operationId is null)
         {
             throw new ArgumentNullException(nameof(operationId));
         }
 
-        if (document == null)
+        if (document is null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
-        if (operation == null)
+        if (operation is null)
         {
             throw new ArgumentNullException(nameof(operation));
         }
 
-        if (schema == null)
+        if (schema is null)
         {
             throw new ArgumentNullException(nameof(schema));
         }
 
-        if (rootType == null)
+        if (rootType is null)
         {
             throw new ArgumentNullException(nameof(rootType));
         }
@@ -172,7 +172,6 @@ public sealed partial class OperationCompiler
                 ExtractVisibility(selection, selectionCondition));
         }
     }
-
 
     private void ResolveFields(
         CompilerContext context,
@@ -412,20 +411,13 @@ public sealed partial class OperationCompiler
 
     private static bool DoesTypeApply(IType typeCondition, IObjectType current)
     {
-        switch (typeCondition.Kind)
+        return typeCondition.Kind switch
         {
-            case TypeKind.Object:
-                return ReferenceEquals(typeCondition, current);
-
-            case TypeKind.Interface:
-                return current.IsImplementing((InterfaceType)typeCondition);
-
-            case TypeKind.Union:
-                return ((UnionType)typeCondition).Types.ContainsKey(current.Name);
-
-            default:
-                return false;
-        }
+            TypeKind.Object => ReferenceEquals(typeCondition, current),
+            TypeKind.Interface => current.IsImplementing((InterfaceType)typeCondition),
+            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsKey(current.Name),
+            _ => false
+        };
     }
 
     private IReadOnlyDictionary<NameString, ArgumentValue>? CoerceArgumentValues(
@@ -443,9 +435,7 @@ public sealed partial class OperationCompiler
         for (var i = 0; i < selection.Arguments.Count; i++)
         {
             ArgumentNode argumentValue = selection.Arguments[i];
-            if (field.Arguments.TryGetField(
-                argumentValue.Name.Value,
-                out IInputField? argument))
+            if (field.Arguments.TryGetField(argumentValue.Name.Value, out IInputField? argument))
             {
                 arguments[argument.Name.Value] =
                     CreateArgumentValue(
@@ -540,7 +530,7 @@ public sealed partial class OperationCompiler
                 return false;
 
             case SyntaxKind.ListValue:
-                ListValueNode list = (ListValueNode)valueLiteral;
+                var list = (ListValueNode)valueLiteral;
                 for (var i = 0; i < list.Items.Count; i++)
                 {
                     if (!CanBeCompiled(list.Items[i]))
@@ -573,17 +563,10 @@ public sealed partial class OperationCompiler
         return pipeline;
     }
 
-    private PureFieldDelegate? TryCreatePureField(
-        IObjectField field,
-        FieldNode selection)
-    {
-        if (field.PureResolver is not null && selection.Directives.Count == 0)
-        {
-            return field.PureResolver;
-        }
-
-        return null;
-    }
+    private PureFieldDelegate? TryCreatePureField(IObjectField field, FieldNode selection)
+        => field.PureResolver is not null && selection.Directives.Count == 0
+            ? field.PureResolver
+            : null;
 
     private IReadOnlyList<IDirective> CollectDirectives(
         IObjectField field,
@@ -768,6 +751,6 @@ public sealed partial class OperationCompiler
         return next;
     }
 
-    private static bool HasNoErrors(object? result) =>
-        result is not IError or not IEnumerable<IError>;
+    private static bool HasNoErrors(object? result)
+        => result is not IError or not IEnumerable<IError>;
 }

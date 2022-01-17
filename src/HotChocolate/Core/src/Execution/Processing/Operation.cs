@@ -68,29 +68,24 @@ internal sealed class Operation : IPreparedOperation
     public IEnumerable<ISelectionVariants> SelectionVariants =>
         _selectionSets.Values;
 
-    public ISelectionSet GetRootSelectionSet() =>
-        RootSelectionVariants.GetSelectionSet(RootType);
+    public ISelectionSet GetRootSelectionSet()
+        => RootSelectionVariants.GetSelectionSet(RootType);
 
     public ISelectionSet GetSelectionSet(
         SelectionSetNode selectionSet,
         IObjectType typeContext)
-    {
-        return _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
+        => _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
             ? variants.GetSelectionSet(typeContext)
             : SelectionSet.Empty;
-    }
 
     public IReadOnlyList<IObjectType> GetPossibleTypes(SelectionSetNode selectionSet)
-    {
-        return _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
+        => _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
             ? variants.GetPossibleTypes()
             : Array.Empty<IObjectType>();
-    }
 
     public string Print()
     {
-        OperationDefinitionNode operation =
-            Definition.WithSelectionSet(Visit(RootSelectionVariants));
+        OperationDefinitionNode operation = Definition.WithSelectionSet(Visit(RootSelectionVariants));
         var document = new DocumentNode(new[] { operation });
         return document.ToString();
     }

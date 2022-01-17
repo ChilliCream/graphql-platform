@@ -216,29 +216,31 @@ public class Selection : ISelection
     /// <inheritdoc />
     public SelectionInclusionKind InclusionKind { get; private set; }
 
-    public bool IsInternal =>
-        InclusionKind == SelectionInclusionKind.Internal ||
-        InclusionKind == SelectionInclusionKind.InternalConditional;
+    public bool IsInternal
+        => InclusionKind == SelectionInclusionKind.Internal ||
+           InclusionKind == SelectionInclusionKind.InternalConditional;
 
-    public bool IsConditional =>
-        InclusionKind == SelectionInclusionKind.Conditional ||
-        InclusionKind == SelectionInclusionKind.InternalConditional;
+    public bool IsConditional
+        => InclusionKind == SelectionInclusionKind.Conditional ||
+           InclusionKind == SelectionInclusionKind.InternalConditional;
 
-    internal IReadOnlyList<SelectionIncludeCondition>? IncludeConditions => _includeConditions;
+    internal IReadOnlyList<SelectionIncludeCondition>? IncludeConditions
+        => _includeConditions;
 
     /// <inheritdoc />
     public bool IsIncluded(IVariableValueCollection variableValues, bool allowInternals = false)
-    {
-        return InclusionKind switch
+        => InclusionKind switch
         {
-            SelectionInclusionKind.Always => true,
-            SelectionInclusionKind.Conditional => EvaluateConditions(variableValues),
-            SelectionInclusionKind.Internal => allowInternals,
-            SelectionInclusionKind.InternalConditional =>
-                allowInternals && EvaluateConditions(variableValues),
+            SelectionInclusionKind.Always
+                => true,
+            SelectionInclusionKind.Conditional
+                => EvaluateConditions(variableValues),
+            SelectionInclusionKind.Internal
+                => allowInternals,
+            SelectionInclusionKind.InternalConditional
+                => allowInternals && EvaluateConditions(variableValues),
             _ => throw new NotSupportedException()
         };
-    }
 
     /// <inheritdoc />
     public IAsyncEnumerable<object?> CreateStream(object resolverResult)
@@ -254,7 +256,7 @@ public class Selection : ISelection
     private bool EvaluateConditions(IVariableValueCollection variableValues)
     {
         Debug.Assert(
-            _includeConditions != null,
+            _includeConditions is not null,
             "If a selection is conditional it must have visibility conditions.");
 
         for (var i = 0; i < _includeConditions!.Count; i++)
@@ -393,7 +395,7 @@ public class Selection : ISelection
             }
         }
 
-        if (merged is { })
+        if (merged is not null)
         {
             return merged;
         }
@@ -408,12 +410,12 @@ public class Selection : ISelection
 
     private void ModifyCondition(bool hasConditions) =>
         InclusionKind =
-            (InclusionKind == SelectionInclusionKind.Internal
-                || InclusionKind == SelectionInclusionKind.InternalConditional)
-                ? (hasConditions
+            InclusionKind == SelectionInclusionKind.Internal
+                || InclusionKind == SelectionInclusionKind.InternalConditional
+                ? hasConditions
                     ? SelectionInclusionKind.InternalConditional
-                    : SelectionInclusionKind.Internal)
-                : (hasConditions
+                    : SelectionInclusionKind.Internal
+                : hasConditions
                     ? SelectionInclusionKind.Conditional
-                    : SelectionInclusionKind.Always);
+                    : SelectionInclusionKind.Always;
 }

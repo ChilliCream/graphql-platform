@@ -437,17 +437,14 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddDocument(sp =>
-                    Utf8GraphQLParser.Parse("type Query { a: Foo }"))
-                .AddDocument(sp =>
-                    Utf8GraphQLParser.Parse("type Foo { a: String }"))
-                .Use(next => context =>
+                .AddDocument(_ => Utf8GraphQLParser.Parse("type Query { a: Foo }"))
+                .AddDocument(_ => Utf8GraphQLParser.Parse("type Foo { a: String }"))
+                .Use(_ => context =>
                 {
                     context.Result = "foo";
                     return default(ValueTask);
                 })
                 .Create();
-
 
             // assert
             schema.MakeExecutable().Execute("{ a { a } }").MatchSnapshot();
@@ -458,11 +455,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddType((Type)null);
+            void Action() => SchemaBuilder.New().AddType(((Type)null)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]

@@ -140,7 +140,7 @@ internal static class ResolverTaskFactory
 
             if (final || selection.IsIncluded(variables))
             {
-                if (selection.Strategy is SelectionExecutionStrategy.Pure)
+                if (operationContext.Scheduler.CanBeInlined(selection))
                 {
                     ResolveAndCompleteInline(
                         operationContext,

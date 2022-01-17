@@ -36,6 +36,17 @@ internal interface IWorkScheduler
     void Complete(IExecutionTask task);
 
     /// <summary>
+    /// Defines if the given selection can be inlined.
+    /// </summary>
+    /// <param name="selection">
+    /// The selection for which the execution state shall be determined.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the selection can be inlined.
+    /// </returns>
+    bool CanBeInlined(ISelection selection);
+
+    /// <summary>
     /// Execute the work.
     /// </summary>
     Task ExecuteAsync();

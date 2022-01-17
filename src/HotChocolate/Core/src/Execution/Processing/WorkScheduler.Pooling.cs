@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
@@ -16,11 +17,11 @@ internal partial class WorkScheduler
     private readonly SuspendedWorkQueue _suspended = new();
     private readonly QueryPlanStateMachine _stateMachine = new();
     private readonly HashSet<int> _selections = new();
+    private readonly ConcurrentBag<ResolverResultSubscription> _subscriptions = new();
 
     private readonly OperationContext _operationContext;
     private readonly DeferredWorkBacklog _deferredWorkBacklog = new();
     private readonly ProcessingPause _pause = new();
-
 
     private bool _processing;
     private bool _completed;
@@ -31,6 +32,7 @@ internal partial class WorkScheduler
     private IResultHelper _result = default!;
     private IExecutionDiagnosticEvents _diagnosticEvents = default!;
     private CancellationToken _requestAborted;
+    private QueryPlan _queryPlan = default!;
 
     private bool _isInitialized;
 
@@ -48,6 +50,7 @@ internal partial class WorkScheduler
         _result = _operationContext.Result;
         _diagnosticEvents = _operationContext.DiagnosticEvents;
         _requestAborted = _operationContext.RequestAborted;
+        _queryPlan = _operationContext.QueryPlan;
         _batchDispatcher = batchDispatcher;
 
         _stateMachine.Initialize(this, _operationContext.QueryPlan);
@@ -69,11 +72,21 @@ internal partial class WorkScheduler
                 _batchDispatcher = default!;
             }
 
+            foreach (ResolverResultSubscription subscription in _subscriptions)
+            {
+                subscription.Complete();
+            }
+
             _work.Clear();
             _suspended.Clear();
             _stateMachine.Clear();
             _deferredWorkBacklog.Clear();
             _selections.Clear();
+#if NET5_0_OR_GREATER
+            _subscriptions.Clear();
+#else
+            while(_subscriptions.TryTake(out _)) { }
+#endif
             _processing = false;
             _completed = false;
 
@@ -82,6 +95,7 @@ internal partial class WorkScheduler
             _result = default!;
             _diagnosticEvents = default!;
             _requestAborted = default;
+            _queryPlan = default!;
 
             _isInitialized = false;
         }
@@ -103,6 +117,11 @@ internal partial class WorkScheduler
             _suspended.Clear();
             _stateMachine.Clear();
             _selections.Clear();
+#if NET5_0_OR_GREATER
+            _subscriptions.Clear();
+#else
+            while(_subscriptions.TryTake(out _)) { }
+#endif
             _stateMachine.Initialize(this, _operationContext.QueryPlan);
 
             _processing = false;

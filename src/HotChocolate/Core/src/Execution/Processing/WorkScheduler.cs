@@ -193,6 +193,9 @@ internal partial class WorkScheduler : IWorkScheduler
                !_serial.HasRunningTasks;
     }
 
+    /// <inheritdoc />
+    public bool CanBeInlined(ISelection selection) => _queryPlan.CanBeInlined(selection);
+
     private int TryTake(IExecutionTask?[] buffer)
     {
         var size = 0;

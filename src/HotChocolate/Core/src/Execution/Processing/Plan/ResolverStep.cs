@@ -58,6 +58,12 @@ internal sealed class ResolverStep : ExecutionStep
             }
 
             state.RegisterUnsafe(resolverTask.ChildTasks);
+
+            state.OnResolverCompleted(
+                resolverTask.Selection,
+                resolverTask.Path,
+                resolverTask.Status,
+                resolverTask.CompletedValue);
         }
     }
 

@@ -61,6 +61,11 @@ internal sealed partial class ResolverTask : IExecutionTask
     /// </summary>
     public object? CompletedValue { get; private set; }
 
+    /// <summary>
+    /// Gets the execution path.
+    /// </summary>
+    public Path Path => _resolverContext.Path;
+
     /// <inheritdoc />
     public object? State { get; set; }
 

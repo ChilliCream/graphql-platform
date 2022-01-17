@@ -53,6 +53,9 @@ internal sealed class QueryPlan
         return _streamPlans[selectionId];
     }
 
+    public bool CanBeInlined(ISelection selection)
+        => !_stepBySelectionId.ContainsKey(selection.Id);
+
     internal bool TryGetStep(IExecutionTask task, [MaybeNullWhen(false)] out ExecutionStep step)
     {
         if (task.State is ExecutionStep ts1)
