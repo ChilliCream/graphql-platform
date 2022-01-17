@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Internal;
@@ -82,6 +83,7 @@ internal partial class WorkScheduler
             _stateMachine.Clear();
             _deferredWorkBacklog.Clear();
             _selections.Clear();
+
 #if NET5_0_OR_GREATER
             _subscriptions.Clear();
 #else

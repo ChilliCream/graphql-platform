@@ -49,6 +49,9 @@ internal sealed class QueryPlanStateMachine
     {
         _planState = state;
         _plan = plan;
+        _plan.Initialize(state);
+
+        // set initial strategy.
         Strategy = ExecutionStrategy.Parallel;
 
         // we first ensure that the state machine has enough state slots for the current

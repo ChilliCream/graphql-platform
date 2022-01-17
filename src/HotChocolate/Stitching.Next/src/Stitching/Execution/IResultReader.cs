@@ -1,9 +1,11 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -131,6 +133,76 @@ internal static class ResultMergeHelper
     }
 }
 
+internal sealed class FetchExecutionStep : ExecutionStep
+{
+    public override bool TryActivate(IQueryPlanState state)
+    {
+        GetFetchState(state);
+        return true;
+    }
+
+    public override void CompleteTask(IQueryPlanState state, IExecutionTask task)
+    {
+        
+    }
+
+    private FetchState GetFetchState(IQueryPlanState state)
+    {
+        if (!state.Context.ContextData.TryGetValue(nameof(FetchState), out var value) ||
+            value is not FetchState fetchState)
+        {
+            fetchState = new FetchState();
+            state.Subscribe(fetchState);
+            state.Context.ContextData.Add(nameof(FetchState), fetchState);
+        }
+
+        return fetchState;
+    }
+}
+
+internal sealed class FetchState : IObserver<ResolverResult>
+{
+    public void OnNext(ResolverResult value)
+    {
+
+    }
+
+    public void OnError(Exception error)
+    {
+    }
+
+    public void OnCompleted()
+    {
+    }
+
+    private static Path ToHierarchy(Path path)
+    {
+        Path? current = path;
+        string[] rented = ArrayPool<string>.Shared.Rent(path.Depth);
+        int i = 0;
+
+        while (current is not null && current is not RootPathSegment)
+        {
+            if (current is NamePathSegment namePath)
+            {
+                rented[i++] = namePath.Name.Value;
+            }
+
+            current = current.Parent;
+        }
+
+        current = Path.Root;
+
+        for (int j = i - 1; j >= 0; j--)
+        {
+            current = current.Append(rented[j]);
+        }
+
+        ArrayPool<string>.Shared.Return(rented);
+        return current;
+    }
+}
+
 internal sealed class FetchTask : ExecutionTask
 {
     private readonly IFetcher _fetcher;
@@ -138,7 +210,7 @@ internal sealed class FetchTask : ExecutionTask
     private readonly QueryNode _root;
 
 
-    public FetchTask( IExecutionTaskContext context)
+    public FetchTask(IExecutionTaskContext context)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
     }
@@ -156,13 +228,13 @@ internal sealed class FetchTask : ExecutionTask
             QueryNode current = queue.Dequeue();
             FetchRequest request = new(current.Source, current.Document!, variables);
             IFetchResponse response = await _fetcher.FetchAsync(request).ConfigureAwait(false);
-            
+
 
 
         }
     }
 
-    
+
 }
 
 internal sealed class FetchTaskDefinition : IExecutionTaskDefinition

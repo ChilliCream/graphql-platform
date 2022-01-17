@@ -31,6 +31,14 @@ internal sealed class QueryPlan
 
     public int Count { get; }
 
+    public void Initialize(IQueryPlanState state)
+    {
+        foreach (ExecutionStep step in _steps)
+        {
+            step.Initialize(state);
+        }
+    }
+
     public QueryPlan GetDeferredPlan(int fragmentId)
     {
         if (fragmentId >= _deferredPlans.Length)

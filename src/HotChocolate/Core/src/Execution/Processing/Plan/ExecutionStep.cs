@@ -60,6 +60,15 @@ internal abstract class ExecutionStep
     public IReadOnlyList<ExecutionStep> Steps { get; }
 
     /// <summary>
+    /// When the plan is initialized every step gets a chance to prepare its state and subscribe
+    /// to events.
+    /// </summary>
+    /// <param name="state">
+    /// The current query plan execution state.
+    /// </param>
+    public virtual void Initialize(IQueryPlanState state) { }
+
+    /// <summary>
     /// Tries to activate this execution step for the current request.
     /// If the activation returns <c>false</c> and it is
     /// not part of the current request and can be skipped.

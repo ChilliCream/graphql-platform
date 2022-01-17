@@ -35,11 +35,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType((Type)null, OperationType.Query);
+            void Action()
+                => SchemaBuilder.New().AddRootType(((Type)null)!, OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -47,11 +47,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType(typeof(int), OperationType.Query);
+            void Action()
+                => SchemaBuilder.New().AddRootType(typeof(int), OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -59,11 +59,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType(typeof(ObjectType), OperationType.Query);
+            void Action()
+                => SchemaBuilder.New().AddRootType(typeof(ObjectType), OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -71,11 +71,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType(typeof(MyEnumType), OperationType.Query);
+            void Action()
+                => SchemaBuilder.New().AddRootType(typeof(MyEnumType), OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -83,12 +83,13 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType(typeof(FooType), OperationType.Query)
-                .AddRootType(typeof(FooType), OperationType.Query);
+            void Action()
+                => SchemaBuilder.New()
+                    .AddRootType(typeof(FooType), OperationType.Query)
+                    .AddRootType(typeof(FooType), OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -143,11 +144,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType((ObjectType)null, OperationType.Query);
+            void Action()
+                => SchemaBuilder.New().AddRootType(((ObjectType)null)!, OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -392,11 +393,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .Use((FieldMiddleware)null);
+            void Action() => SchemaBuilder.New().Use((FieldMiddleware)null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -405,12 +405,11 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddDocument(sp =>
-                    Utf8GraphQLParser.Parse("type Query { a: String }"))
-                .Use(next => context =>
+                .AddDocument(_ => Utf8GraphQLParser.Parse("type Query { a: String }"))
+                .Use(_ => context =>
                 {
                     context.Result = "foo";
-                    return default(ValueTask);
+                    return default;
                 })
                 .Create();
 
@@ -424,11 +423,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddDocument((LoadSchemaDocument)null);
+            void Action() => SchemaBuilder.New().AddDocument((LoadSchemaDocument)null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -442,7 +440,7 @@ namespace HotChocolate
                 .Use(_ => context =>
                 {
                     context.Result = "foo";
-                    return default(ValueTask);
+                    return default;
                 })
                 .Create();
 
@@ -466,11 +464,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddType((INamedType)null);
+            void Action() => SchemaBuilder.New().AddType(((INamedType)null)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -1701,13 +1698,11 @@ namespace HotChocolate
                         .Name("Query")
                         .Field("foo")
                         .Resolve("bar")
-                        .Extend().OnBeforeCreate(
-                            (ctx, def) =>
-                            {
-                                context = ctx;
-                            }))
-                .TryAddConvention<IMockConvention>(sp => convention)
+                        .Extend()
+                        .OnBeforeCreate((ctx, _) => context = ctx))
+                .TryAddConvention<IMockConvention>(_ => convention)
                 .Create();
+
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
 
