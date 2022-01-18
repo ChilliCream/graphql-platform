@@ -11,34 +11,34 @@ using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
-    public class MongoDbFilterVisitorDateOnlyTests
+    public class MongoDbFilterVisitorTimeOnlyTests
         : SchemaCache
         , IClassFixture<MongoResource>
     {
 #if NET6_0_OR_GREATER
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Bar = new DateOnly(2022,01,16) },
-            new Foo { Bar = new DateOnly(2022,01,15) }
+            new Foo { Bar = new TimeOnly(06,30) },
+            new Foo { Bar = new TimeOnly(16,00) }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =
         {
-            new FooNullable { Bar = new DateOnly(2022,01,16) },
+            new FooNullable { Bar = new TimeOnly(06,30) },
             new FooNullable { Bar = null },
-            new FooNullable { Bar = new DateOnly(2022,01,15) }
+            new FooNullable { Bar = new TimeOnly(16,00) }
         };
 
-        public MongoDbFilterVisitorDateOnlyTests(MongoResource resource)
+        public MongoDbFilterVisitorTimeOnlyTests(MongoResource resource)
         {
             Init(resource);
 
-            // NOTE: At the time of coding, MongoDB C# Driver doesn't natively support DateOnly
-            BsonSerializer.RegisterSerializationProvider(new LocalDateOnlySerializationProvider());
+            // NOTE: At the time of coding, MongoDB C# Driver doesn't natively support TimeOnly
+            BsonSerializer.RegisterSerializationProvider(new LocalTimeOnlySerializationProvider());
         }
 
         [Fact]
-        public async Task Create_DateOnlyEqual_Expression()
+        public async Task Create_TimeOnlyEqual_Expression()
         {
             // arrange
             IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
@@ -47,21 +47,21 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
+                    .SetQuery("{ root(where: { bar: { eq: \"06:30:00\" } }){ bar } }")
                     .Create());
 
-            res1.MatchDocumentSnapshot("2022-01-16");
+            res1.MatchDocumentSnapshot("0630");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
+                    .SetQuery("{ root(where: { bar: { eq: \"16:00:00\" } }){ bar } }")
                     .Create());
 
-            res2.MatchDocumentSnapshot("2022-01-15");
+            res2.MatchDocumentSnapshot("1600");
         }
 
         [Fact]
-        public async Task Create_DateOnlyNotEqual_Expression()
+        public async Task Create_TimeOnlyNotEqual_Expression()
         {
             // arrange
             IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
@@ -70,21 +70,21 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
+                    .SetQuery("{ root(where: { bar: { neq: \"06:30:00\" } }){ bar } }")
                     .Create());
 
-            res1.MatchDocumentSnapshot("2022-01-15");
+            res1.MatchDocumentSnapshot("0630");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
+                    .SetQuery("{ root(where: { bar: { neq: \"16:00:00\" } }){ bar } }")
                     .Create());
 
-            res2.MatchDocumentSnapshot("2022-01-16");
+            res2.MatchDocumentSnapshot("1600");
         }
 
         [Fact]
-        public async Task Create_NullableDateOnlyEqual_Expression()
+        public async Task Create_NullableTimeOnlyEqual_Expression()
         {
             // arrange
             IRequestExecutor? tester = CreateSchema<FooNullable, FooNullableFilterType>(
@@ -94,17 +94,17 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
+                    .SetQuery("{ root(where: { bar: { eq: \"06:30:00\" } }){ bar } }")
                     .Create());
 
-            res1.MatchDocumentSnapshot("2022-01-16");
+            res1.MatchDocumentSnapshot("0630");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
+                    .SetQuery("{ root(where: { bar: { eq: \"16:00:00\" } }){ bar } }")
                     .Create());
 
-            res2.MatchDocumentSnapshot("2022-01-15");
+            res2.MatchDocumentSnapshot("1600");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -115,7 +115,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         }
 
         [Fact]
-        public async Task Create_NullableDateOnlyNotEqual_Expression()
+        public async Task Create_NullableTimeOnlyNotEqual_Expression()
         {
             // arrange
             IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
@@ -125,17 +125,17 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
+                    .SetQuery("{ root(where: { bar: { neq: \"06:30:00\" } }){ bar } }")
                     .Create());
 
-            res1.MatchDocumentSnapshot("2022-01-15");
+            res1.MatchDocumentSnapshot("0630");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
+                    .SetQuery("{ root(where: { bar: { neq: \"16:00:00\" } }){ bar } }")
                     .Create());
 
-            res2.MatchDocumentSnapshot("2022-01-16");
+            res2.MatchDocumentSnapshot("1600");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -150,7 +150,7 @@ namespace HotChocolate.Data.MongoDb.Filters
             [BsonId]
             public Guid Id { get; set; } = Guid.NewGuid();
 
-            public DateOnly Bar { get; set; }
+            public TimeOnly Bar { get; set; }
         }
 
         public class FooNullable
@@ -158,7 +158,7 @@ namespace HotChocolate.Data.MongoDb.Filters
             [BsonId]
             public Guid Id { get; set; } = Guid.NewGuid();
 
-            public DateOnly? Bar { get; set; }
+            public TimeOnly? Bar { get; set; }
         }
 
         public class FooFilterType
@@ -171,30 +171,29 @@ namespace HotChocolate.Data.MongoDb.Filters
         {
         }
 
-        internal class LocalDateOnlySerializationProvider : IBsonSerializationProvider
+        internal class LocalTimeOnlySerializationProvider : IBsonSerializationProvider
         {
             public IBsonSerializer? GetSerializer(Type type)
             {
-                return type == typeof(DateOnly) ? new DateOnlySerializer() : null;
+                return type == typeof(TimeOnly) ? new TimeOnlySerializer() : null;
             }
         }
 
-        internal class DateOnlySerializer : StructSerializerBase<DateOnly>
+        internal class TimeOnlySerializer : StructSerializerBase<TimeOnly>
         {
-            private static readonly TimeOnly zeroTimeComponent = new();
-
-            public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, DateOnly value)
+            public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, TimeOnly value)
             {
-                var dateTime = value.ToDateTime(zeroTimeComponent, DateTimeKind.Utc);
+                DateTime dateTime = default(DateTime).Add(value.ToTimeSpan());
+                dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
                 var ticks = BsonUtils.ToMillisecondsSinceEpoch(dateTime);
                 context.Writer.WriteDateTime(ticks);
             }
 
-            public override DateOnly Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+            public override TimeOnly Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
             {
                 long ticks = context.Reader.ReadDateTime();
                 DateTime dateTime = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(ticks);
-                return new DateOnly(dateTime.Year, dateTime.Month, dateTime.Day);
+                return new TimeOnly(dateTime.Hour, dateTime.Minute, dateTime.Second);
             }
         }
 #endif
