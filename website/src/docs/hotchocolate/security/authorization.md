@@ -20,6 +20,8 @@ After we have successfully setup authentication, there are only a few things lef
 dotnet add package HotChocolate.AspNetCore.Authorization
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 2. Register the necessary ASP.NET Core services
 
 ```csharp

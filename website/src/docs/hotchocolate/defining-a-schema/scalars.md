@@ -286,6 +286,8 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 dotnet add package HotChocolate.Types.Scalars
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 **Available Scalars:**
 
 | Type             | Description                                                                                                                                              |
@@ -345,6 +347,8 @@ It can be installed like the following.
 ```bash
 dotnet add package HotChocolate.Types.NodaTime
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 **Available Scalars:**
 

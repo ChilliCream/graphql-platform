@@ -236,6 +236,8 @@ To get started, add the HotChocolate.Diagnostics package to your project.
 dotnet add package HotChocolate.Diagnostics
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 Next, head over to your `Program.cs` and add `AddInstrumentation` to your GraphQL configuration.
 
 ```csharp

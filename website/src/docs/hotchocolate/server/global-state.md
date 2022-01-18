@@ -98,7 +98,7 @@ public class QueryType : ObjectType
 }
 ```
 
-> ⚠ Note: If no value exists for the specified `key` a default value is returned an no exception is thrown.
+> ⚠️ Note: If no value exists for the specified `key` a default value is returned an no exception is thrown.
 
 We can also access the Global State through the `ContextData` dictionary on the `IResolverContext`.
 

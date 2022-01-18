@@ -60,6 +60,8 @@ The middleware is part of the `HotChocolate.Data.EntityFramework` package.
 dotnet add package HotChocolate.Data.EntityFramework
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 Once installed we can start applying the `UseDbContext` middleware to our resolvers.
 
 <ExampleTabs>

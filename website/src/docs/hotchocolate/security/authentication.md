@@ -80,6 +80,8 @@ In order to make the authentication result available to our resolvers, we need t
 dotnet add package HotChocolate.AspNetCore.Authorization
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 2. Call `AddAuthorization()` on the `IRequestExecutorBuilder`
 
 ```csharp

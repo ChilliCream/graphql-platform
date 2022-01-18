@@ -48,6 +48,8 @@ Filtering is part of the `HotChocolate.Data` package. You can add the dependency
 dotnet add package HotChocolate.Data
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 To use filtering you need to register it on the schema:
 
 ```csharp

@@ -15,6 +15,8 @@ To use the MongoDB integration, you need to install the package `HotChocolate.Da
 dotnet add package HotChocolate.Data.MongoDb
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 # MongoExecutable
 
 The whole integration builds around `IExecutable<T>`.

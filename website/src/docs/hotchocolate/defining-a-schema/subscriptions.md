@@ -177,6 +177,8 @@ In order to use the Redis provider we have to add the `HotChocolate.Subscription
 dotnet add package HotChocolate.Subscriptions.Redis
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 After we have added the package we can setup the Redis subscription provider.
 
 ```csharp

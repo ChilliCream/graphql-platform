@@ -106,7 +106,7 @@ You can add the `HotChocolate.AspNetCore` package using the NuGet Package Manage
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-> ⚠ Note: Additional `HotChocolate.*` packages need to have the same version.
+> ⚠️ Note: Additional `HotChocolate.*` packages need to have the same version.
 
 #### 3. Defining the schema
 
