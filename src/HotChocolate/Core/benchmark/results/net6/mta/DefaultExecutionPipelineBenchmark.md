@@ -8,15 +8,25 @@ BenchmarkDotNet=v0.12.1, OS=Windows 10.0.19044
 
 
 ```
-|                                      Method |        Mean |       Error |      StdDev |      Median | Rank |     Gen 0 |    Gen 1 | Gen 2 |   Allocated |
-|-------------------------------------------- |------------:|------------:|------------:|------------:|-----:|----------:|---------:|------:|------------:|
-|                         SchemaIntrospection |    242.3 μs |     0.87 μs |     0.82 μs |    242.1 μs |    1 |   10.2539 |        - |     - |    84.12 KB |
-|     SchemaIntrospectionFiveParallelRequests |  1,219.7 μs |     9.00 μs |     8.42 μs |  1,218.8 μs |    2 |   50.7813 |        - |     - |   420.59 KB |
-|                                     GetHero | 15,562.3 μs |   248.69 μs |   232.62 μs | 15,702.1 μs |    3 |         - |        - |     - |     5.58 KB |
-|                 GetHeroFiveParallelRequests | 15,590.7 μs |   207.16 μs |   193.78 μs | 15,693.9 μs |    3 |         - |        - |     - |    27.68 KB |
-|                          GetHeroWithFriends | 46,728.6 μs |   610.80 μs |   541.46 μs | 46,978.4 μs |    4 |         - |        - |     - |    51.14 KB |
-|      GetHeroWithFriendsFiveParallelRequests | 46,902.5 μs |   192.30 μs |   150.13 μs | 46,944.4 μs |    4 |         - |        - |     - |   256.59 KB |
-|                      GetTwoHerosWithFriends | 46,873.5 μs |   448.68 μs |   397.74 μs | 46,985.8 μs |    4 |         - |        - |     - |   109.06 KB |
-| GetTwoHeroesWithFriendsFiveParallelRequests | 47,202.2 μs |   753.44 μs |   704.77 μs | 46,887.3 μs |    4 |         - |        - |     - |   529.34 KB |
-|                                  LargeQuery | 64,337.4 μs | 1,276.28 μs | 1,987.02 μs | 64,146.8 μs |    5 |  125.0000 |        - |     - |  1914.96 KB |
-|              LargeQueryFiveParallelRequests | 73,617.7 μs | 1,814.20 μs | 5,349.20 μs | 73,850.1 μs |    6 | 1142.8571 | 571.4286 |     - | 10218.22 KB |
+|                                      Method |         Mean |       Error |       StdDev |       Median | Rank |     Gen 0 |    Gen 1 | Gen 2 |  Allocated |
+|-------------------------------------------- |-------------:|------------:|-------------:|-------------:|-----:|----------:|---------:|------:|-----------:|
+|                         SchemaIntrospection |     251.7 μs |     1.11 μs |      0.99 μs |     251.3 μs |    1 |   10.2539 |        - |     - |   84.12 KB |
+|     SchemaIntrospectionFiveParallelRequests |   1,219.2 μs |     5.32 μs |      4.71 μs |   1,218.6 μs |    2 |   50.7813 |        - |     - |  420.59 KB |
+|        SchemaIntrospectionFiveInSerialBatch |   1,510.7 μs |     7.97 μs |      7.45 μs |   1,509.8 μs |    3 |   74.2188 |   1.9531 |     - |  606.81 KB |
+|      SchemaIntrospectionFiveInParallelBatch |   1,513.3 μs |     3.84 μs |      3.60 μs |   1,512.9 μs |    3 |   74.2188 |   1.9531 |     - |  606.81 KB |
+|                                     GetHero |  15,594.6 μs |   281.65 μs |    263.46 μs |  15,693.0 μs |    4 |         - |        - |     - |    5.59 KB |
+|                 GetHeroFiveParallelRequests |  15,641.5 μs |   159.85 μs |    149.52 μs |  15,545.0 μs |    4 |         - |        - |     - |   27.65 KB |
+|                    GetHeroFiveInSerialBatch |  77,848.4 μs |   881.47 μs |    824.53 μs |  78,219.5 μs |    8 |         - |        - |     - |   60.45 KB |
+|                  GetHeroFiveInParallelBatch |  78,228.2 μs |   657.85 μs |    615.35 μs |  78,423.3 μs |    8 |         - |        - |     - |   60.47 KB |
+|                          GetHeroWithFriends |  46,772.1 μs |   545.68 μs |    483.73 μs |  46,950.2 μs |    5 |         - |        - |     - |   50.09 KB |
+|      GetHeroWithFriendsFiveParallelRequests |  46,818.6 μs |   168.90 μs |    131.87 μs |  46,822.8 μs |    5 |         - |        - |     - |  252.49 KB |
+|         GetHeroWithFriendsFiveInSerialBatch | 236,324.2 μs | 3,724.09 μs |  3,483.52 μs | 234,203.5 μs |    9 |         - |        - |     - |  409.66 KB |
+|       GetHeroWithFriendsFiveInParallelBatch | 234,871.3 μs | 2,519.53 μs |  2,233.50 μs | 233,957.0 μs |    9 |         - |        - |     - |  409.18 KB |
+|                      GetTwoHerosWithFriends |  46,688.1 μs |   527.31 μs |    467.44 μs |  46,872.2 μs |    5 |         - |        - |     - |  107.25 KB |
+| GetTwoHeroesWithFriendsFiveParallelRequests |  47,517.4 μs |   907.10 μs |    848.50 μs |  47,784.0 μs |    5 |         - |        - |     - |  530.15 KB |
+|    GetTwoHeroesWithFriendsFiveInSerialBatch | 235,546.6 μs | 2,977.30 μs |  2,784.97 μs | 233,942.4 μs |    9 |         - |        - |     - |  697.82 KB |
+|  GetTwoHeroesWithFriendsFiveInParallelBatch | 235,878.3 μs | 4,249.61 μs |  3,975.09 μs | 233,863.3 μs |    9 |         - |        - |     - |   730.2 KB |
+|                                  LargeQuery |  64,505.5 μs | 1,264.76 μs |  2,248.11 μs |  64,188.9 μs |    6 |  125.0000 |        - |     - | 1822.12 KB |
+|              LargeQueryFiveParallelRequests |  73,863.7 μs | 1,630.90 μs |  4,808.76 μs |  73,192.9 μs |    7 | 1142.8571 | 571.4286 |     - |  9973.9 KB |
+|                 LargeQueryFiveInSerialBatch | 321,679.4 μs | 6,415.92 μs | 12,361.30 μs | 316,285.1 μs |   10 | 1000.0000 |        - |     - | 10904.7 KB |
+|               LargeQueryFiveInParallelBatch | 320,374.9 μs | 6,311.97 μs | 14,375.56 μs | 316,233.0 μs |   10 | 1000.0000 |        - |     - | 9690.19 KB |
