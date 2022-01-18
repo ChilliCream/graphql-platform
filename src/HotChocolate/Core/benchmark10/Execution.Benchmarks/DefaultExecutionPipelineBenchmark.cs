@@ -131,12 +131,9 @@ namespace HotChocolate.Execution.Benchmarks
             }
             catch (Exception ex)
             {
-                var err = new StringBuilder();
-                err.AppendLine(ex.Message);
-                err.AppendLine(ex.StackTrace);
-                await File.AppendAllTextAsync(
-                    "/Users/michael/local/hc-1/src/HotChocolate/Core/benchmark/err.log",
-                    err.ToString());
+                Console.WriteLine("Full Exception:");
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
                 throw;
             }
         }
