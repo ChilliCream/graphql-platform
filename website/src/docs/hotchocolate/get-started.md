@@ -5,62 +5,11 @@ title: "Get started with Hot Chocolate"
 import { ApiChoiceTabs } from "../../components/mdx/api-choice-tabs"
 import { InputChoiceTabs } from "../../components/mdx/input-choice-tabs"
 
-TODO
+In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate.
 
 # Setup
 
-There are two ways to setup a Hot Chocolate GraphQL server. Either you use our official template or you integrate Hot Chocolate into an existing project manually. While the from scratch approach certainly takes a bit longer, ultimately the setup is really straight forward and fast in both cases.
-
-Keep reading if you want to use our template or jump ahead to the [from scratch section](#from-scratch).
-
-## Using our template
-
-We offer some templates for Hot Chocolate to help you get a GraphQL server up and running in a matter of seconds.
-
-#### 1. Install the templates
-
-The `HotChocolate.Templates` collection can be installed like the following.
-
-```bash
-dotnet new -i HotChocolate.Templates
-```
-
-These templates are kept up to date by us with the latest .NET and Hot Chocolate features. We are for example making use of _Implicit Usings_ added with .NET 6 to provide the most common Hot Chocolate namespaces implicitly.
-
-> Note: Our templates have to be updated manually. To update just re-execute the above command. We recommend doing so every time Hot Chocolate releases a new major version.
-
-#### 2. Create a new project using a template
-
-Once you have installed our templates you can use them to bootstrap your next ASP.NET Core project with Hot Chocolate.
-
-<InputChoiceTabs>
-<InputChoiceTabs.CLI>
-
-```bash
-dotnet new graphql -n Demo
-```
-
-This will create a new directory called "Demo" containing your project's files.
-
-You can now open the "Demo" directory or the "Demo.csproj" file in your favorite code editor.
-
-</InputChoiceTabs.CLI>
-<InputChoiceTabs.VisualStudio>
-
-Create a new project from within Visual Studio using the "HotChocolate GraphQL Server" template.
-
-[Learn how you can create a new project within Visual Studio](https://docs.microsoft.com/visualstudio/ide/create-new-project)
-
-</InputChoiceTabs.VisualStudio>
-</InputChoiceTabs>
-
-Now that you have your project ready, let's look at executing your first GraphQL query with Hot Chocolate.
-
-[Learn how to execute your first GraphQL query](#executing-a-query)
-
-## From scratch
-
-Of course you can also integrate Hot Chocolate into an existing ASP.NET Core application. If you have already created an ASP.NET Core project you can skip step 1.
+If you are integrating Hot Chocolate into an existing project using ASP.NET Core, you can skip step 1.
 
 #### 1. Create a new ASP.NET Core project
 
@@ -112,7 +61,7 @@ You can add the `HotChocolate.AspNetCore` package using the NuGet Package Manage
 
 Next, we want to create a GraphQL schema. The GraphQL schema defines which data we expose and how consumers can interact with said data.
 
-For starters we can define two object types (models) that we want to expose through our schema.
+For starters we can define two object types that we want to expose through our schema.
 
 ```csharp
 public class Book
@@ -130,7 +79,7 @@ public class Author
 
 #### 4. Adding a Query type
 
-Now that we have defined our models, we need to define a `Query` type that is used to query for the models we've just defined.
+Now we need to define a Query type that exposes the types we have just created through a field.
 
 ```csharp
 public class Query
@@ -146,6 +95,8 @@ public class Query
         };
 }
 ```
+
+The field in question is called `GetBook`, but the name will be shortened to just `book` in the resulting schema.
 
 #### 5. Adding GraphQL services
 
@@ -177,7 +128,7 @@ public void ConfigureServices(IServiceCollection services)
 </ApiChoiceTabs.Regular>
 </ApiChoiceTabs>
 
-The `AddGraphQLServer` returns an `IRequestExecutorBuilder` which is the main way to configure our GraphQL server. In the above example we are specifying the Query type that should be exposed by our GraphQL server.
+The `AddGraphQLServer` returns an `IRequestExecutorBuilder`, which has many extension methods, similar to an `IServiceCollection`, that can be used to configure the GraphQL schema. In the above example we are specifying the Query type that should be exposed by our GraphQL server.
 
 #### 6. Mapping the GraphQL endpoint
 
@@ -214,9 +165,46 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 And this is it - you have successfully setup a Hot Chocolate GraphQL server! 🚀
 
+<!-- ## Templates
+
+#### 1. Install the templates
+
+The `HotChocolate.Templates` collection can be installed like the following.
+
+```bash
+dotnet new -i HotChocolate.Templates
+```
+
+These templates are kept up to date by us with the latest .NET and Hot Chocolate features. We are for example making use of _Implicit Usings_ added with .NET 6 to provide the most common Hot Chocolate namespaces implicitly.
+
+> Note: Our templates have to be updated manually. To update just re-execute the above command. We recommend doing so every time Hot Chocolate releases a new major version.
+
+#### 2. Create a new project using a template
+
+Once you have installed our templates you can use them to bootstrap your next ASP.NET Core project with Hot Chocolate.
+
+<InputChoiceTabs>
+<InputChoiceTabs.CLI>
+
+```bash
+dotnet new graphql -n Demo
+```
+
+This will create a new directory called "Demo" containing your project's files. You can open the directory or the "Demo.csproj" file in your favorite code editor.
+
+</InputChoiceTabs.CLI>
+<InputChoiceTabs.VisualStudio>
+
+Create a new project from within Visual Studio using the "HotChocolate GraphQL Server" template.
+
+[Learn how you can create a new project within Visual Studio](https://docs.microsoft.com/visualstudio/ide/create-new-project)
+
+</InputChoiceTabs.VisualStudio>
+</InputChoiceTabs> -->
+
 # Executing a query
 
-In order to isue a query against your newly built GraphQL server, we first have to run it.
+First off we have to run the project.
 
 <InputChoiceTabs>
 <InputChoiceTabs.CLI>
@@ -229,8 +217,6 @@ dotnet run
 <InputChoiceTabs.VisualStudio>
 
 The Project can be started by either pressing `Ctrl + F5` or clicking the green "Debug" button in the Visual Studio toolbar.
-
-![Run project with Visual Studio](../../images/visualstudio-run-project.png)
 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
