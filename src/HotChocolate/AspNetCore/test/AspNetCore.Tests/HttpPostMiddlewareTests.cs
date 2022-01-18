@@ -12,6 +12,10 @@ using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.AspNetCore.Instrumentation;
 using System;
+using HotChocolate.Execution.Instrumentation;
+using HotChocolate.AspNetCore.Extensions;
+using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Types;
 
 namespace HotChocolate.AspNetCore;
 
@@ -952,5 +956,300 @@ public class HttpPostMiddlewareTests : ServerTestBase
             Triggered = true;
             return EmptyScope;
         }
+    }
+
+
+    /// <see cref = "BatchParallelExecution_Node" />
+    private class BatchParallelExecution_GroupTracker : ExecutionDiagnosticEventListener
+    {
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _httpContextItemKey;
+
+        public BatchParallelExecution_GroupTracker(IHttpContextAccessor httpContextAccessor)
+        {
+            _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+            _httpContextItemKey = GetType().FullName + ".ItemKey";
+        }
+
+        public int Current
+        {
+            get
+            {
+                if (_httpContextAccessor.HttpContext.Items.TryGetValue(_httpContextItemKey, out object? currentGroup) )
+                {
+                    return (int) currentGroup;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+
+        public override IDisposable ExecuteBatchedQueryGroup()
+        {
+             _httpContextAccessor.HttpContext.Items[_httpContextItemKey] = Current + 1;
+            return EmptyScope;
+        }
+    }
+
+    /// <see cref = "CreateBatchParallelExecutionTestServer" />
+    private class BatchParallelExecution_Node
+    {
+        private readonly BatchParallelExecution_GroupTracker _groupTracker;
+
+        public BatchParallelExecution_Node(BatchParallelExecution_GroupTracker groupTracker)
+        {
+            _groupTracker = groupTracker ?? throw new ArgumentNullException(nameof(groupTracker));
+        }
+
+        public int Group() { return _groupTracker.Current; }
+        public int Print(int i) { return i; }
+        public int Add(int i1, int i2) { return i1 + i2; }
+    }
+
+    /// <summary>Server used to test parallel execution in batch requests</summary>
+    protected virtual TestServer BatchParallelExecution_CreateServer(
+        string pattern = "/graphql",
+        Action<IServiceCollection> configureServices = default,
+        Action<GraphQLEndpointConventionBuilder> configureConventions = default)
+    {
+        return ServerFactory.Create(
+            services => services
+                .AddSingleton<BatchParallelExecution_GroupTracker>()
+                .AddSingleton<IExecutionDiagnosticEventListener>(sp => sp.GetRequiredService<BatchParallelExecution_GroupTracker>())
+                .AddRouting()
+                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                .AddGraphQLServer()
+                .ModifyRequestOptions(o =>
+                {
+                    o.MaxConcurrentBatchQueries = 5;
+                })
+                .AddQueryType(d =>
+                {
+                    d.Name("Query")
+                        .Field("node")
+                        .Type<ObjectType<BatchParallelExecution_Node>>()
+                        .Resolve(c =>
+                        {
+                            return ActivatorUtilities.CreateInstance<BatchParallelExecution_Node>(c.Services);
+                        });
+                })
+                .AddMutationType(d =>
+                {
+                    d.Name("Mutation")
+                        .Field("nop")
+                        .Type<ObjectType<BatchParallelExecution_Node>>()
+                        .Resolve(c =>
+                        {
+                            return ActivatorUtilities.CreateInstance<BatchParallelExecution_Node>(c.Services);
+                        });
+                })
+                .AddExportDirectiveType()
+            ,
+            app => app
+                .UseRouting()
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapGraphQL("/graphql");
+                })
+            );
+    }
+
+    /// <summary>
+    /// Basic success case, apollo style batches with only queries are executed in parallel
+    /// </summary>
+    [Fact]
+    public async Task BatchParallelExecution_Basic()
+    {
+        // arrange
+        TestServer server = BatchParallelExecution_CreateServer();
+
+        // act
+        IReadOnlyList<ClientQueryResult> result =
+            await server.PostApolloBatchAsync(
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query one { node { group } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query two { node { group } }"
+                });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+
+    /// <summary>
+    /// Ensure that when operationNames query parameter is passed, no queries are executed in parallel.
+    /// (this is relay style workflow batch, not an apollo style batch)
+    /// </summary>
+    [Fact]
+    public async Task BatchParallelExecution_OperationNames()
+    {
+        // arrange
+        TestServer server = BatchParallelExecution_CreateServer();
+
+        // act
+        IReadOnlyList<ClientQueryResult> result =
+            await server.PostOperationAsync(
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query one { node { group } }
+                          query two { node { group } }"
+                },
+                "one, two");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    /// <summary>
+    /// Ensure that the limit of concurrent requests for a batch requests is enforced properly
+    /// </summary>
+    [Fact]
+    public async Task BatchParallelExecution_Limit()
+    {
+        // arrange
+        TestServer server = BatchParallelExecution_CreateServer();
+
+        // act
+        IReadOnlyList<ClientQueryResult> result =
+            await server.PostApolloBatchAsync(
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:1) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:2) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:3) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:4) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:5) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:6) } }"
+                });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+
+    /// <summary>
+    /// Ensure that we do not run queries in parallel that are not idempotent.
+    /// (edge case, apollo style batching shouldn't have this anyway)
+    /// </summary>
+    [Fact]
+    public async Task BatchParallelExecution_Exports()
+    {
+        // arrange
+        TestServer server = BatchParallelExecution_CreateServer();
+
+        // act
+        IReadOnlyList<ClientQueryResult> result =
+            await server.PostApolloBatchAsync(
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:1) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:2) @export(as: ""exported"") } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query ($exported: Int!) { node { group, add(i1:$exported, i2: 1) } }"
+                });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    /// <summary>
+    /// Ensure that mutations are not executed in parallel with both other queries or mutations
+    /// (edge case, apollo style batching shouldn't have this anyway)
+    /// </summary>
+    [Fact]
+    public async Task BatchParallelExecution_Mutations()
+    {
+        // arrange
+        TestServer server = BatchParallelExecution_CreateServer();
+
+        // act
+        IReadOnlyList<ClientQueryResult> result =
+            await server.PostApolloBatchAsync(
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:1) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:2) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"mutation { nop { group, print(i:3) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:4) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:5) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"mutation { nop { group, print(i:6) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"mutation { nop { group, print(i:7) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:8) } }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                        @"query { node { group, print(i:9) } }"
+                });
+
+        // assert
+        result.MatchSnapshot();
     }
 }

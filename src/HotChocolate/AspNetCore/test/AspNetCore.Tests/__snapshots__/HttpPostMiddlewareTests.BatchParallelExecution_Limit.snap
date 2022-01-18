@@ -1,0 +1,74 @@
+﻿[
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "node": {
+        "group": 1,
+        "print": 1
+      }
+    },
+    "Errors": null,
+    "Extensions": null
+  },
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "node": {
+        "group": 1,
+        "print": 2
+      }
+    },
+    "Errors": null,
+    "Extensions": null
+  },
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "node": {
+        "group": 1,
+        "print": 3
+      }
+    },
+    "Errors": null,
+    "Extensions": null
+  },
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "node": {
+        "group": 1,
+        "print": 4
+      }
+    },
+    "Errors": null,
+    "Extensions": null
+  },
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "node": {
+        "group": 1,
+        "print": 5
+      }
+    },
+    "Errors": null,
+    "Extensions": null
+  },
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "node": {
+        "group": 2,
+        "print": 6
+      }
+    },
+    "Errors": null,
+    "Extensions": null
+  }
+]

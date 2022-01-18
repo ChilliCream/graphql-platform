@@ -88,6 +88,9 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
     public virtual IDisposable ExecuteDeferredTask()
         => EmptyScope;
 
+    public virtual IDisposable ExecuteBatchedQueryGroup()
+        => EmptyScope;
+
     /// <inheritdoc />
     public virtual IDisposable ResolveFieldValue(IMiddlewareContext context)
         => EmptyScope;

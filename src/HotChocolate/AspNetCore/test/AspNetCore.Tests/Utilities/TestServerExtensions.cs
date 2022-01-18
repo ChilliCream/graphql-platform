@@ -110,6 +110,53 @@ public static class TestServerExtensions
         }
     }
 
+    public static Task<IReadOnlyList<ClientQueryResult>> PostApolloBatchAsync(
+        this TestServer testServer,
+        params ClientQueryRequest[] requests)
+    {
+        return PostApolloBatchAsync(testServer, "/graphql", requests);
+    }
+
+    public static async Task<IReadOnlyList<ClientQueryResult>> PostApolloBatchAsync(
+        this TestServer testServer,
+        string path,
+        params ClientQueryRequest[] requests)
+    {
+        HttpResponseMessage response =
+            await SendPostRequestAsync(
+                testServer,
+                JsonConvert.SerializeObject(requests),
+                path);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound } };
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+
+        try
+        {
+            List<ClientQueryResult> result =
+                JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
+
+            foreach (ClientQueryResult item in result)
+            {
+                item.StatusCode = response.StatusCode;
+                item.ContentType = response.Content.Headers.ContentType.ToString();
+            }
+
+            return result;
+        }
+        catch
+        {
+            ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+            result.StatusCode = response.StatusCode;
+            result.ContentType = response.Content.Headers.ContentType.ToString();
+            return new[] { result };
+        }
+    }
+
     public static async Task<ClientQueryResult> PostAsync(
         this TestServer testServer,
         string requestJson,

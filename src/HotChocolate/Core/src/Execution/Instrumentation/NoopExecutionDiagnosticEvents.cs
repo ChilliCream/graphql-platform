@@ -52,6 +52,8 @@ internal sealed class NoopExecutionDiagnosticEvents
 
     public IDisposable ExecuteDeferredTask() => this;
 
+    public IDisposable ExecuteBatchedQueryGroup() => this;
+
     public IDisposable ResolveFieldValue(IMiddlewareContext context) => this;
 
     public void ResolverError(IMiddlewareContext context, IError error)

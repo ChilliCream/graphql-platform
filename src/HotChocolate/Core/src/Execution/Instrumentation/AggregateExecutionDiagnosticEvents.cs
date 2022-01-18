@@ -168,6 +168,18 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
+    public IDisposable ExecuteBatchedQueryGroup()
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].ExecuteBatchedQueryGroup();
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
     public IDisposable ResolveFieldValue(IMiddlewareContext context)
     {
         if (_listeners.Length == 0)

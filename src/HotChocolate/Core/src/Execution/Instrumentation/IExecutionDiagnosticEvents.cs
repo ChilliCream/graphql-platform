@@ -185,6 +185,17 @@ public interface IExecutionDiagnosticEvents
     IDisposable ExecuteDeferredTask();
 
     /// <summary>
+    /// Called when starting to execute a group of queries from a batch request.
+    /// A group of queries are all items from the batch that can be run in parallel.
+    /// If parallel execution is not possible, each group only contains 1 query.
+    /// </summary>
+    /// <returns>
+    /// A scope that will be disposed when all queries in the group have been completed
+    /// or an error has occurred that caused the execution to be aborted.
+    /// </returns>
+    IDisposable ExecuteBatchedQueryGroup();
+
+    /// <summary>
     /// Called when starting to resolve a field value.
     /// </summary>
     /// <remarks>

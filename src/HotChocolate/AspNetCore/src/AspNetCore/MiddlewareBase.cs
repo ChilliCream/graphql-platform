@@ -172,7 +172,9 @@ public class MiddlewareBase : IDisposable
         }
 
         return await requestExecutor.ExecuteBatchAsync(
-            requestBatch, cancellationToken: context.RequestAborted);
+            requestBatch,
+            allowParallelExecution: true,
+            cancellationToken: context.RequestAborted);
     }
 
     protected static AllowedContentType ParseContentType(HttpContext context)

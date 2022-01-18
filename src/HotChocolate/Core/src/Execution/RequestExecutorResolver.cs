@@ -242,7 +242,9 @@ internal sealed class RequestExecutorResolver
             sp => new BatchExecutor(
                 sp.GetRequiredService<IErrorHandler>(),
                 _applicationServices.GetRequiredService<ITypeConverter>(),
-                _applicationServices.GetRequiredService<InputFormatter>()));
+                _applicationServices.GetRequiredService<InputFormatter>(),
+                sp.GetRequiredService<IExecutionDiagnosticEvents>(),
+                sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
 
         serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 

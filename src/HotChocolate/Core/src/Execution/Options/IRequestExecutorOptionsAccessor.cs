@@ -12,4 +12,5 @@ public interface IRequestExecutorOptionsAccessor
     , IDocumentCacheSizeOptionsAccessor
     , IRequestTimeoutOptionsAccessor
     , IComplexityAnalyzerOptionsAccessor
+    , IRequestBatchOptions
 { }

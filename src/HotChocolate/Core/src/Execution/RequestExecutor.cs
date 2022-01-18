@@ -119,7 +119,7 @@ internal sealed class RequestExecutor : IRequestExecutor
 
         return Task.FromResult<IBatchQueryResult>(
             new BatchQueryResult(
-                () => _batchExecutor.ExecuteAsync(this, requestBatch),
+                () => _batchExecutor.ExecuteAsync(this, requestBatch, allowParallelExecution),
                 null));
     }
 }
