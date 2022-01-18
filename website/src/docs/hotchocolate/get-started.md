@@ -11,7 +11,7 @@ In this tutorial, we will walk you through the basics of creating a GraphQL serv
 
 If you are integrating Hot Chocolate into an existing project using ASP.NET Core, you can skip step 1.
 
-#### 1. Create a new ASP.NET Core project
+## 1. Create a new ASP.NET Core project
 
 <InputChoiceTabs>
 <InputChoiceTabs.CLI>
@@ -34,7 +34,7 @@ Create a new project from within Visual Studio using the "ASP.NET Core Empty" te
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-#### 2. Add the HotChocolate.AspNetCore package
+## 2. Add the HotChocolate.AspNetCore package
 
 This package includes everything that's needed to get your GraphQL server up and running.
 
@@ -57,9 +57,9 @@ You can add the `HotChocolate.AspNetCore` package using the NuGet Package Manage
 
 > ⚠️ Note: Additional `HotChocolate.*` packages need to have the same version.
 
-#### 3. Defining the schema
+## 3. Define the types
 
-Next, we want to create a GraphQL schema. The GraphQL schema defines which data we expose and how consumers can interact with said data.
+Next, we need to define the types our GraphQL schema should contain. These types and their fields define what consumers can query from our GraphQL API.
 
 For starters we can define two object types that we want to expose through our schema.
 
@@ -77,7 +77,7 @@ public class Author
 }
 ```
 
-#### 4. Adding a Query type
+## 4. Add a Query type
 
 Now we need to define a Query type that exposes the types we have just created through a field.
 
@@ -98,7 +98,7 @@ public class Query
 
 The field in question is called `GetBook`, but the name will be shortened to just `book` in the resulting schema.
 
-#### 5. Adding GraphQL services
+## 5. Add GraphQL services
 
 Next, we need to add the services required by Hot Chocolate to our Dependency Injection container.
 
@@ -130,7 +130,7 @@ public void ConfigureServices(IServiceCollection services)
 
 The `AddGraphQLServer` returns an `IRequestExecutorBuilder`, which has many extension methods, similar to an `IServiceCollection`, that can be used to configure the GraphQL schema. In the above example we are specifying the Query type that should be exposed by our GraphQL server.
 
-#### 6. Mapping the GraphQL endpoint
+## 6. Map the GraphQL endpoint
 
 Now that we've added the necessary services, we need to expose our GraphQL server at an endpoint. Hot Chocolate comes with an ASP.NET Core middleware that is used to serve up the GraphQL server.
 
@@ -221,7 +221,7 @@ The Project can be started by either pressing `Ctrl + F5` or clicking the green 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-If you have setup everything correctly you should be able to naviagte to <a href="http://localhost:5000/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5000/graphql</a> and be greeted by our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop)
+If you have setup everything correctly, you should be able to open <a href="http://localhost:5000/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5000/graphql</a> (the port might be different for you) in your browser and be greeted by our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop).
 
 ![GraphQL IDE](../../images/get-started-bcp.png)
 
