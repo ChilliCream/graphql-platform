@@ -211,3 +211,38 @@ services
     .AddGraphQLServer()
     .ModifyOptions(opt => opt.UseXmlDocumentation = false);
 ```
+
+## With a custom naming convention
+
+If you want to use a custom naming convention and XML documentation, ensure you give the convention an instance of the `XmlDocumentationProvider` as demonstrated below; otherwise the comments won't appear in your schema.
+
+```csharp
+public class CustomNamingConventions : DefaultNamingConventions
+{
+    // Before
+    public CustomNamingConventions()
+        : base() { }
+  
+    // After
+    public CustomNamingConventions(IDocumentationProvider documentationProvider)
+        : base(documentationProvider) { }
+}
+
+// Startup
+// Before
+.AddConvention<INamingConventions>(sp => new CustomNamingConventions());
+
+// After
+IReadOnlySchemaOptions capturedSchemaOptions;
+  
+services
+    .AddGraphQLServer()
+    .ModifyOptions(opt => capturedSchemaOptions = opt)
+    .AddConvention<INamingConventions>(sp => new CustomNamingConventions(
+        new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(
+                capturedSchemaOptions.ResolveXmlDocumentationFileName),
+            sp.GetApplicationService<ObjectPool<StringBuilder>>() 
+              ?? new NoOpStringBuilderPool())));
+```  
+  
