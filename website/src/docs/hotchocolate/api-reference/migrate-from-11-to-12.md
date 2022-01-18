@@ -275,3 +275,45 @@ public class CustomBatchDataLoader : BatchDataLoader<string, string?>
 ```
 
 Allowing the DI to inject the options will allow the DataLoader to use the new shared pooled cache objects.
+
+# Custom naming conventions
+
+If you're using a custom naming convention and have xml documentation enabled, you'll need to modify the way the naming convention is hooked up
+else your comments will disappear from your schema.
+
+**v11**
+
+```csharp
+public class CustomNamingConventions : DefaultNamingConventions
+{
+    public CustomNamingConventions()
+        : base() { }
+}
+
+services
+    .AddGraphQLServer()
+    .AddConvention<INamingConventions>(sp => new CustomNamingConventions()) // or
+    .AddConvention<INamingConventions, CustomNamingConventions>();
+```  
+
+**v12**
+
+```csharp
+public class CustomNamingConventions : DefaultNamingConventions
+{
+    public CustomNamingConventions(IDocumentationProvider documentationProvider)
+        : base(documentationProvider) { }
+}
+
+IReadOnlySchemaOptions capturedSchemaOptions;  
+services
+    .AddGraphQLServer()
+    .ModifyOptions(opt => capturedSchemaOptions = opt)
+    .AddConvention<INamingConventions>(sp => new CustomNamingConventions(
+        new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(
+                capturedSchemaOptions.ResolveXmlDocumentationFileName),
+            sp.GetApplicationService<ObjectPool<StringBuilder>>() 
+                ?? new NoOpStringBuilderPool())));
+```  
+
