@@ -2,7 +2,7 @@
 title: Entity Framework Core
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 Entity Framework Core is a powerful object-relational mapping framework that has become a staple when working with SQL-based Databases in ASP.NET Core applications.
 
