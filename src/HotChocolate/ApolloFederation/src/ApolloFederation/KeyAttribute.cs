@@ -21,7 +21,8 @@ namespace HotChocolate.ApolloFederation;
     AttributeTargets.Struct |
     AttributeTargets.Interface |
     AttributeTargets.Property |
-    AttributeTargets.Method)]
+    AttributeTargets.Method,
+    AllowMultiple = true)]
 public sealed class KeyAttribute : DescriptorAttribute
 {
     /// <summary>
