@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { Tabs } from "./tabs";
+import { List, Panel, Tab, Tabs } from "./tabs";
 
 export interface InputChoiceTabsComposition {
   CLI: FC;
@@ -11,21 +11,19 @@ export const InputChoiceTabs: FC & InputChoiceTabsComposition = ({
 }) => {
   return (
     <Tabs defaultValue={"cli"} groupId="input-choice">
-      <Tabs.List>
-        <Tabs.Tab value="cli">CLI</Tabs.Tab>
-        <Tabs.Tab value="visual-studio">Visual Studio</Tabs.Tab>
-      </Tabs.List>
+      <List>
+        <Tab value="cli">CLI</Tab>
+        <Tab value="visual-studio">Visual Studio</Tab>
+      </List>
       {children}
     </Tabs>
   );
 };
 
-const CLI: FC = ({ children }) => (
-  <Tabs.Panel value="cli">{children}</Tabs.Panel>
-);
+const CLI: FC = ({ children }) => <Panel value="cli">{children}</Panel>;
 
 const VisualStudio: FC = ({ children }) => (
-  <Tabs.Panel value="visual-studio">{children}</Tabs.Panel>
+  <Panel value="visual-studio">{children}</Panel>
 );
 
 InputChoiceTabs.CLI = CLI;

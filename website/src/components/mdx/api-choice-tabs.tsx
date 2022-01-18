@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { Tabs } from "./tabs";
+import { List, Panel, Tab, Tabs } from "./tabs";
 
 export interface ApiChoiceTabsComposition {
   MinimalApis: FC;
@@ -9,22 +9,20 @@ export interface ApiChoiceTabsComposition {
 export const ApiChoiceTabs: FC & ApiChoiceTabsComposition = ({ children }) => {
   return (
     <Tabs defaultValue={"minimal-apis"} groupId="api-choice">
-      <Tabs.List>
-        <Tabs.Tab value="minimal-apis">.NET 6</Tabs.Tab>
-        <Tabs.Tab value="regular">.NET 5 or earlier</Tabs.Tab>
-      </Tabs.List>
+      <List>
+        <Tab value="minimal-apis">.NET 6</Tab>
+        <Tab value="regular">.NET 5 or earlier</Tab>
+      </List>
       {children}
     </Tabs>
   );
 };
 
 const MinimalApis: FC = ({ children }) => (
-  <Tabs.Panel value="minimal-apis">{children}</Tabs.Panel>
+  <Panel value="minimal-apis">{children}</Panel>
 );
 
-const Regular: FC = ({ children }) => (
-  <Tabs.Panel value="regular">{children}</Tabs.Panel>
-);
+const Regular: FC = ({ children }) => <Panel value="regular">{children}</Panel>;
 
 ApiChoiceTabs.MinimalApis = MinimalApis;
 ApiChoiceTabs.Regular = Regular;

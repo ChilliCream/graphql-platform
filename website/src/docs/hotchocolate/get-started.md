@@ -42,27 +42,27 @@ dotnet new graphql -n Demo
 
 This will create a new directory called "Demo" containing your project's files.
 
+You can now open the "Demo" directory or the "Demo.csproj" file in your favorite code editor.
+
 </InputChoiceTabs.CLI>
 <InputChoiceTabs.VisualStudio>
 
-TODO
+Create a new project from within Visual Studio using the "HotChocolate GraphQL Server" template.
+
+[Learn how you can create a new project within Visual Studio](https://docs.microsoft.com/visualstudio/ide/create-new-project)
 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-After you have successfully created the project you can go ahead and open it in your favorite Code Editor.
+Now that you have your project ready, let's look at executing your first GraphQL query with Hot Chocolate.
 
-And this is it - you have successfully setup a Hot Chocolate GraphQL server! 🚀
-
-[Lets explore how you can execute your first GraphQL query](#executing-a-query)
+[Learn how to execute your first GraphQL query](#executing-a-query)
 
 ## From scratch
 
-If you do not want to use the template or you have to integrate Hot Chocolate into an existing ASP.NET Core application, you can setup a functioning GraphQL server in a few simple steps. If you have already created an ASP.NET Core project you can skip step 1.
+Of course you can also integrate Hot Chocolate into an existing ASP.NET Core application. If you have already created an ASP.NET Core project you can skip step 1.
 
 #### 1. Create a new ASP.NET Core project
-
-We start of by creating a new ASP.NET Core project.
 
 <InputChoiceTabs>
 <InputChoiceTabs.CLI>
@@ -73,19 +73,17 @@ dotnet new web -n Demo
 
 This will create a new directory called "Demo" containing your project's files.
 
+You can now open the "Demo" directory or the "Demo.csproj" file in your favorite code editor.
+
 </InputChoiceTabs.CLI>
 <InputChoiceTabs.VisualStudio>
 
-<!-- todo: verify template name -->
-
-In Visual Studio you can create a new ASP.NET Core project using the "Web" template.
+Create a new project from within Visual Studio using the "ASP.NET Core Empty" template.
 
 [Learn how you can create a new project within Visual Studio](https://docs.microsoft.com/visualstudio/ide/create-new-project)
 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
-
-After you have successfully created the project you can go ahead and open it in your favorite Code Editor.
 
 #### 2. Add the HotChocolate.AspNetCore package
 
@@ -108,6 +106,8 @@ You can add the `HotChocolate.AspNetCore` package using the NuGet Package Manage
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
+> ⚠ Note: Additional `HotChocolate.*` packages need to have the same version.
+
 #### 3. Defining the schema
 
 Next, we want to create a GraphQL schema. The GraphQL schema defines which data we expose and how consumers can interact with said data.
@@ -115,24 +115,22 @@ Next, we want to create a GraphQL schema. The GraphQL schema defines which data 
 For starters we can define two object types (models) that we want to expose through our schema.
 
 ```csharp
-public class Author
-{
-    public string Name { get; set; }\
-}
-
 public class Book
 {
     public string Title { get; set; }
 
     public Author Author { get; set; }
 }
-```
 
-With these two classes we have a nice and simple model that we can use to build our GraphQL schema.
+public class Author
+{
+    public string Name { get; set; }
+}
+```
 
 #### 4. Adding a Query type
 
-Now that we have defined our models, we need to
+Now that we have defined our models, we need to define a `Query` type that is used to query for the models we've just defined.
 
 ```csharp
 public class Query
@@ -151,12 +149,18 @@ public class Query
 
 #### 5. Adding GraphQL services
 
-Next, we need to add the services required by Hot Chocolate to operate a GraphQL server to our Dependency Injection container.
+Next, we need to add the services required by Hot Chocolate to our Dependency Injection container.
 
 <ApiChoiceTabs>
 <ApiChoiceTabs.MinimalApis>
 
-TODO
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>();
+```
 
 </ApiChoiceTabs.MinimalApis>
 <ApiChoiceTabs.Regular>
@@ -182,7 +186,13 @@ Now that we've added the necessary services, we need to expose our GraphQL serve
 <ApiChoiceTabs>
 <ApiChoiceTabs.MinimalApis>
 
-TODO
+```csharp
+var app = builder.Build();
+
+app.MapGraphQL();
+
+app.Run();
+```
 
 </ApiChoiceTabs.MinimalApis>
 <ApiChoiceTabs.Regular>
@@ -218,43 +228,28 @@ dotnet run
 </InputChoiceTabs.CLI>
 <InputChoiceTabs.VisualStudio>
 
-TODO
+The Project can be started by either pressing `Ctrl + F5` or clicking the green "Debug" button in the Visual Studio toolbar.
+
+![Run project with Visual Studio](../../images/visualstudio-run-project.png)
 
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-If you have setup everything so far correctly you should be able to naviagte to <a href="http://localhost:5000/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5000/graphql</a> and be greeted by our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop)
+If you have setup everything correctly you should be able to naviagte to <a href="http://localhost:5000/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5000/graphql</a> and be greeted by our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop)
 
 ![GraphQL IDE](../../images/get-started-bcp.png)
 
-![GraphQL IDE execute Query](../../images/get-started-bcp-query.png)
+Next click on "Create document". You will be presented with a settings dialog for this new tab, pictured below. Make sure the "Schema Endpoint" input field has the correct URL under which your GraphQL endpoint is available. If it is correct you can just go ahead and click the "Apply" button in the bottom right.
 
-[Learn more about the features of Banana Cake Pop](/docs/bananacakepop)
+![GraphQL IDE: Setup](../../images/get-started-bcp-setup.png)
 
-# Additional resources
+Now you should be seeing an editor like the one pictured below. If your GraphQL server has been correctly setup you should be seeing a green "online" in the top right corner of the editor.
 
-Now that you've setup a basic GraphQL server using Hot Chocolate, what should be your next steps?
+![GraphQL IDE: Editor](../../images/get-started-bcp-editor.png)
 
-If this is your first time using GraphQL, we recommend [this guide](https://graphql.org/learn/) that walks you through the basic concepts of GraphQL.
+The view is split into four panes. The top left pane is where you enter the queries you wish to send to the GraphQL server - the result will be displayed in the top right pane. Variables and headers can be modified in the bottom left pane and recent queries can be viewed in the bottom right pane.
 
-If you want to get an overview of Hot Chocolate's features, we recommend reading the _Overview_ pages in each section of the documentation. They can be found in the sidebar to your left.
-
-For a guided tutorial that explains how you can setup your GraphQL server beyond this basic example, checkout [our workshop](https://github.com/ChilliCream/graphql-workshop). Here we will dive deeper into several topics around Hot Chocolate and GraphQL in general.
-
-You can also jump straight into our documentation and learn more about<br/>[Defining a GraphQL schema](/docs/hotchocolate/defining-a-schema).
-
-<!--
-
-
-2. Open your browser and head over to `http://localhost:5000/graphql` to open our built-in GraphQL IDE [Banana Cake Pop](/docs/bananacakepop).
-
-![GraphQL IDE](../../images/get-started-bcp.png)
-
-3. Next, click on the `Book` icon in the left-hand navigation bar to explore the server's GraphQL schema. If this is the first time you are running the demo, you will need to enter `http://localhost:5000/graphql` as the schema endpoint URI. In the schema explorer, we can see that we have one query root field exposed. By clicking on the field, we can drill into the schema structure.
-
-![GraphQL IDE Schema Explorer](../../images/get-started-bcp-schema-explorer.png)
-
-4. Head back to the query tab and execute your first GraphQL query by clicking the play button.
+Okay, so let's send a query to your GraphQL server. Paste the below query into the top left pane of the editor:
 
 ```graphql
 {
@@ -267,14 +262,24 @@ You can also jump straight into our documentation and learn more about<br/>[Defi
 }
 ```
 
-![GraphQL IDE Execute Query](../../images/get-started-bcp-query.png)
+To execute the query, simply press the "Run" button. The result should be displayed as JSON in the top right pane as shown below:
 
-# Summary
+![GraphQL IDE: Executing a query](../../images/get-started-bcp-query.png)
 
-In this guide, we have learned how to set up a simple GraphQL server project and define a GraphQL schema with .NET.
+You can also view and browse the schema from within Banana Cake Pop. Click on the "Schema Reference" tab next to "Operations" in order to browse the schema. There's also a "Schema Definition" tab, pictured below, which shows the schema using the raw SDL (Schema Definition Language).
 
-Moreover, we explored our GraphQL schema with our GraphQL IDE Banana Cake Pop and executed a simple query to test our server.
+![GraphQL IDE: Schema](../../images/get-started-bcp-schema.png)
 
-If you want to dive deeper, you can start with our [GraphQL tutorial](https://github.com/ChilliCream/graphql-workshop) to get into several topics around GraphQL and Hot Chocolate.
+Congratulations, you've built your first Hot Chocolate GraphQL server and sent a query using the Banana Cake Pop GraphQL IDE 🎉🚀
 
-Further, you can learn more about defining GraphQL schemas in .NET [here](/docs/hotchocolate/defining-a-schema). -->
+# Additional resources
+
+Now that you've setup a basic GraphQL server, what should be your next steps?
+
+If this is your first time using GraphQL, we recommend [this guide](https://graphql.org/learn/) that walks you through the basic concepts of GraphQL.
+
+If you want to get an overview of Hot Chocolate's features, we recommend reading the _Overview_ pages in each section of the documentation. They can be found in the sidebar to your left.
+
+For a guided tutorial that explains how you can setup your GraphQL server beyond this basic example, checkout [our workshop](https://github.com/ChilliCream/graphql-workshop). Here we will dive deeper into several topics around Hot Chocolate and GraphQL in general.
+
+You can also jump straight into our documentation and learn more about<br/>[Defining a GraphQL schema](/docs/hotchocolate/defining-a-schema).
