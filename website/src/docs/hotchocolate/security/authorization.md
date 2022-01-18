@@ -370,7 +370,7 @@ This method also accepts [roles](#roles) and [policies](#policies) as arguments,
 
 > ⚠️ Note: Unlike the `@authorize directive` this will return status code 401 and prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
 
-[Learn more about available middleware](/docs/hotchocolate/server/middleware)
+[Learn more about available middleware](/docs/hotchocolate/server/endpoints)
 
 # Modifying the ClaimsPrincipal
 
