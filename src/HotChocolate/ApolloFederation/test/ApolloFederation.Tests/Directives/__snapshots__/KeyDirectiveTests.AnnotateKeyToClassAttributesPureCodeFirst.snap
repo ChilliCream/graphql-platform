@@ -28,7 +28,7 @@ directive @defer("If this argument label has a value other than null, it will be
 directive @external on FIELD_DEFINITION
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: _FieldSet!) on OBJECT | INTERFACE
+directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
 
 "Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
 directive @provides(fields: _FieldSet!) on FIELD_DEFINITION

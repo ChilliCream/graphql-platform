@@ -40,6 +40,23 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         => builder.ConfigureSchema(c => c.AddGlobalObjectIdentification());
 
     /// <summary>
+    /// Adds a <c>node</c> field to the root query according to the
+    /// Global Object Identification specification.
+    /// </summary>
+    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
+    /// <param name="registerNodeInterface">
+    /// Specifies if the node interface and the node field shall be registered with the schema.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+    /// and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder AddGlobalObjectIdentification(
+        this IRequestExecutorBuilder builder,
+        bool registerNodeInterface)
+        => builder.ConfigureSchema(c => c.AddGlobalObjectIdentification(registerNodeInterface));
+
+    /// <summary>
     /// Enables rewriting of mutation payloads to provide access to a query root field.
     /// </summary>
     /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>

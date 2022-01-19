@@ -22,6 +22,7 @@ namespace HotChocolate.Types.Relay
                 await SchemaBuilder.New()
                     .AddQueryType<QueryType>()
                     .AddType<FooPayloadType>()
+                    .AddGlobalObjectIdentification(false)
                     .Create()
                     .MakeExecutable()
                     .ExecuteAsync(
@@ -53,6 +54,7 @@ namespace HotChocolate.Types.Relay
                 await SchemaBuilder.New()
                     .AddQueryType<QueryType>()
                     .AddType<FooPayloadType>()
+                    .AddGlobalObjectIdentification(false)
                     .Create()
                     .MakeExecutable()
                     .ExecuteAsync(

@@ -10,17 +10,13 @@ namespace HotChocolate.Data.Filters;
 
 public class FilterVisitorTestBase
 {
-    private readonly object _lock = new object();
-
-    public FilterVisitorTestBase()
-    {
-    }
+    private readonly object _lock = new();
 
     private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
         params TResult[] results)
         where TResult : class
     {
-        return ctx => results.AsQueryable();
+        return _ => results.AsQueryable();
     }
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
