@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -16,7 +15,7 @@ internal static class EntitiesResolver
         IResolverContext context)
     {
         var entities = new List<object?>();
-        
+
         foreach (Representation representation in representations)
         {
             if (schema.TryGetType<INamedType>(representation.TypeName, out var entityType) &&
