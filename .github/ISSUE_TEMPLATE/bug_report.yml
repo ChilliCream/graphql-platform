@@ -51,6 +51,7 @@ body:
         - Hot Chocolate
         - Strawberry Shake
         - Banana Cake Pop
+        - Green Donut
     validations:
       required: true
   - type: input
