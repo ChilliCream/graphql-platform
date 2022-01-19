@@ -171,6 +171,7 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     public new IObjectFieldDescriptor Name(NameString value)
     {
+        value = Context.Naming.GetMemberName(value), MemberKind.ObjectField);
         base.Name(value);
         return this;
     }
