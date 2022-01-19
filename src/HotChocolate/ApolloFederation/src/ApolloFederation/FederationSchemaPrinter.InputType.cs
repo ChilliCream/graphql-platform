@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation;
 
-public static partial class FederationSchemaPrinter
+internal static partial class FederationSchemaPrinter
 {
     private static InputObjectTypeDefinitionNode SerializeInputObjectType(
         InputObjectType inputObjectType,

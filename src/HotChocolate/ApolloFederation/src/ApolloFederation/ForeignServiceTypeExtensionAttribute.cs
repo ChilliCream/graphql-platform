@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.ApolloFederation.WellKnownContextData;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -19,9 +20,7 @@ public sealed class ForeignServiceTypeExtensionAttribute : ObjectTypeDescriptorA
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)
-    {
-        descriptor
+        => descriptor
             .Extend()
-            .OnBeforeCreate(d => d.ContextData[WellKnownContextData.ExtendMarker] = true);
-    }
+            .OnBeforeCreate(d => d.ContextData[ExtendMarker] = true);
 }

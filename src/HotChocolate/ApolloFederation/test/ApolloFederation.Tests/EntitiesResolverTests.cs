@@ -23,13 +23,9 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new()
-            {
-                TypeName = "ForeignType",
-                Data = new ObjectValueNode(
-                    new ObjectFieldNode("Id", "1"),
-                    new ObjectFieldNode("SomeExternalField", "someExternalField"))
-            }
+            new("ForeignType", new ObjectValueNode(
+                new ObjectFieldNode("Id", "1"),
+                new ObjectFieldNode("SomeExternalField", "someExternalField")))
         };
 
         // assert
@@ -54,13 +50,9 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new()
-            {
-                TypeName = "MixedFieldTypes",
-                Data = new ObjectValueNode(
-                    new ObjectFieldNode("Id", "1"),
-                    new ObjectFieldNode("IntField", 25))
-            }
+            new("MixedFieldTypes",new ObjectValueNode(
+                new ObjectFieldNode("Id", "1"),
+                new ObjectFieldNode("IntField", 25)))
         };
 
         // assert
@@ -84,11 +76,7 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new()
-            {
-                TypeName = "TypeWithReferenceResolver",
-                Data = new ObjectValueNode(new ObjectFieldNode("Id", "1"))
-            }
+            new("TypeWithReferenceResolver", new ObjectValueNode(new ObjectFieldNode("Id", "1")))
         };
 
         // assert
@@ -111,11 +99,7 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new()
-            {
-                TypeName = "NonExistingTypeName",
-                Data = new ObjectValueNode()
-            }
+            new("NonExistingTypeName", new ObjectValueNode())
         };
 
         // assert
@@ -136,11 +120,7 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new()
-            {
-                TypeName = "TypeWithoutRefResolver",
-                Data = new ObjectValueNode()
-            }
+            new("TypeWithoutRefResolver", new ObjectValueNode())
         };
 
         // assert

@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -64,14 +65,9 @@ public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
     protected override Representation ParseLiteral(ObjectValueNode valueSyntax)
     {
         if (valueSyntax.Fields.FirstOrDefault(
-            field => field.Name.Value == "__typename") is { } typename &&
-            typename.Value is StringValueNode s)
+            field => field.Name.Value.EqualsOrdinal("__typename")) is { Value: StringValueNode s })
         {
-            return new Representation()
-            {
-                TypeName = s.Value,
-                Data = valueSyntax
-            };
+            return new Representation(s.Value, valueSyntax);
         }
 
         throw Any_InvalidFormat(this);
@@ -99,9 +95,7 @@ public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
     /// <inheritdoc />
     protected override ObjectValueNode ParseValue(Representation runtimeValue)
     {
-        return new ObjectValueNode(
-            runtimeValue.Data.Fields
-        );
+        return new ObjectValueNode(runtimeValue.Data.Fields);
     }
 
     /// <inheritdoc />
@@ -116,15 +110,11 @@ public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
         if (resultValue is ObjectValueNode ovn)
         {
             ObjectFieldNode? typeField = ovn.Fields.SingleOrDefault(
-                field => field.Name.Value.Equals(TypeNameField, StringComparison.Ordinal));
+                field => field.Name.Value.EqualsOrdinal(TypeNameField));
 
-            if (typeField is not null && typeField.Value is StringValueNode svn)
+            if (typeField?.Value is StringValueNode svn)
             {
-                runtimeValue = new Representation
-                {
-                    Data = ovn,
-                    TypeName = svn.Value
-                };
+                runtimeValue = new Representation(svn.Value, ovn);
                 return true;
             }
 

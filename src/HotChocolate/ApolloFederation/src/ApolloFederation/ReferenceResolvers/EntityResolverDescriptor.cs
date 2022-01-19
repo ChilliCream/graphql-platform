@@ -2,11 +2,16 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.Expressions;
+using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -38,8 +43,7 @@ public class EntityResolverDescriptor
         }
     }
 
-    protected override EntityResolverDefinition Definition { get; set; } =
-        new EntityResolverDefinition();
+    protected internal override EntityResolverDefinition Definition { get; protected set; } = new();
 
     public IObjectTypeDescriptor ResolveEntity(FieldResolverDelegate fieldResolver)
     {
@@ -90,7 +94,12 @@ public class EntityResolverDescriptor
             Context.ResolverCompiler.CompileResolve(
                 method,
                 sourceType: typeof(object),
-                resolverType: method.DeclaringType ?? typeof(object));
+                resolverType: method.DeclaringType ?? typeof(object),
+                parameterExpressionBuilders: new IParameterExpressionBuilder[]
+                {
+                    new LocalStateParameterExpressionBuilder()
+                });
+
         return ResolveEntity(resolver.Resolver!);
     }
 
@@ -99,4 +108,38 @@ public class EntityResolverDescriptor
             Context.TypeInspector.GetNodeResolverMethod(
                 Definition.ResolvedEntityType ?? type,
                 type)!);
+}
+
+internal sealed class LocalStateParameterExpressionBuilder
+    : ScopedStateParameterExpressionBuilder
+{
+    public override ArgumentKind Kind => ArgumentKind.LocalState;
+
+    protected override PropertyInfo ContextDataProperty { get; } =
+        ContextType.GetProperty(nameof(IResolverContext.LocalContextData))!;
+
+    protected override MethodInfo SetStateMethod { get; } =
+        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.SetLocalState))!;
+
+    protected override MethodInfo SetStateGenericMethod { get; } =
+        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.SetLocalStateGeneric))!;
+
+    public override bool CanHandle(ParameterInfo parameter)
+        => parameter.IsDefined(typeof(LocalStateAttribute));
+
+    protected override string GetKey(ParameterInfo parameter) => "data";
+
+    public override Expression Build(ParameterInfo parameter, Expression context)
+    {
+        var path = parameter.GetCustomAttribute<MapAttribute>() is { } attr
+            ? attr.Path.Split('.')
+            : new[] { parameter.Name! };
+
+        ConstantExpression key = Expression.Constant("data", typeof(string));
+        Expression value = BuildGetter(parameter, key, context, typeof(ObjectValueNode));
+
+        return null;
+    }
+
+
 }

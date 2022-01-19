@@ -9,7 +9,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.ApolloFederation.WellKnownContextData;
 
@@ -17,7 +16,7 @@ namespace HotChocolate.ApolloFederation;
 
 internal sealed class FederationTypeInterceptor : TypeInterceptor
 {
-    private static readonly object _empty = new object();
+    private static readonly object _empty = new();
     private readonly List<ObjectType> _entityTypes = new();
 
     public override bool TriggerAggregations => true;
@@ -76,36 +75,31 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         if (completionContext.Type is ObjectType ot && ot.ToRuntimeType() is var rt &&
             rt.IsDefined(typeof(ForeignServiceTypeExtensionAttribute)))
         {
-            IEnumerable<ObjectField>? fields = ot.Fields.Where(
+            IEnumerable<ObjectField> fields = ot.Fields.Where(
                 field => field.Member is not null &&
-                         field.Member.IsDefined(typeof(ExternalAttribute))
-            );
+                    field.Member.IsDefined(typeof(ExternalAttribute)));
 
-            ParameterExpression? representationArgument = Expression.Parameter(typeof(Representation));
-            ParameterExpression? objectVariable = Expression.Variable(rt);
+            ParameterExpression representationArgument = Expression.Parameter(typeof(Representation));
+            ParameterExpression objectVariable = Expression.Variable(rt);
 
-            IEnumerable<ConditionalExpression>? assignExpressions = fields.Select(
+            IEnumerable<ConditionalExpression> assignExpressions = fields.Select(
                 field =>
                 {
-                    if (field.Member is PropertyInfo pi &&
-                        field.Type.InnerType() is ScalarType st)
+                    if (field.Member is PropertyInfo pi && field.Type.InnerType() is ScalarType st)
                     {
-                        InputParser? inputParser = completionContext.Services.GetService<InputParser>();
-
                         Expression<Func<IValueNode, object?>> valueConverter =
-                                (valueNode) => st.ParseLiteral(valueNode);
+                            valueNode => st.ParseLiteral(valueNode);
 
                         Expression<Func<Representation, bool>> assignConditionCheck =
-                            (representation) =>
+                            representation =>
                                 representation.Data.Fields.Any(
                                     item =>
                                         item.Name.Value.Equals(
                                             pi.Name,
-                                            StringComparison.OrdinalIgnoreCase)
-                                );
+                                            StringComparison.OrdinalIgnoreCase));
 
                         Expression<Func<Representation, IValueNode>> valueGetterFunc =
-                            (representation) =>
+                            representation =>
                                 representation.Data.Fields.Single(item =>
                                     item.Name.Value.Equals(
                                         pi.Name,
@@ -130,21 +124,14 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             LabelTarget returnTarget = Expression.Label(rt);
             var expressions = new List<Expression>
                 {
-                    Expression.Assign(
-                        objectVariable,
-                        Expression.New(rt)
-                    ),
+                    Expression.Assign(objectVariable, Expression.New(rt))
                 };
             expressions.AddRange(assignExpressions);
             expressions.Add(Expression.Label(returnTarget, objectVariable));
 
-            LambdaExpression? objectFactoryMethodExpression = Expression.Lambda(
-                Expression.Block(
-                    new[] { objectVariable },
-                    expressions
-                ),
-                representationArgument
-            );
+            LambdaExpression objectFactoryMethodExpression = Expression.Lambda(
+                Expression.Block(new[] { objectVariable }, expressions),
+                representationArgument);
 
             contextData[EntityResolver] = objectFactoryMethodExpression.Compile();
         }

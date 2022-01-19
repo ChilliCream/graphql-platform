@@ -16,14 +16,11 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class ExternalDirectiveType
-    : DirectiveType
+public sealed class ExternalDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
-    {
-        descriptor
+        => descriptor
             .Name(WellKnownTypeNames.External)
             .Description(FederationResources.ExternalDirective_Description)
             .Location(DirectiveLocation.FieldDefinition);
-    }
 }
