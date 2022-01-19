@@ -6,6 +6,8 @@ internal static class WellKnownContextData
 
     public const string IsRelaySupportEnabled = "HotChocolate.Relay.IsEnabled";
 
+    public const string GlobalIdSupportEnabled = "HotChocolate.Relay.GlobalId";
+
     public const string NodeId = "HotChocolate.Relay.Node.Id";
 
     public const string InternalId = "HotChocolate.Relay.Node.Id.InternalId";
