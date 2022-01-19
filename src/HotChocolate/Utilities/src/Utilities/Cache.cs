@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Utilities
 {
+#pragma warning disable CA1724
     public sealed class Cache<TValue>
     {
         private const int _minimumSize = 10;
@@ -202,4 +203,5 @@ namespace HotChocolate.Utilities
             public Entry? Previous;
         }
     }
+    #pragma warning restore CA1724
 }

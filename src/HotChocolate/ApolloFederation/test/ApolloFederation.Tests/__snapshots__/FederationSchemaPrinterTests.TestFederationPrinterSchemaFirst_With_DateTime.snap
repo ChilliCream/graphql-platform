@@ -1,4 +1,7 @@
-﻿type Mutation {
+﻿"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")
+
+type Mutation {
   doSomething(input: SomeInput): Boolean
 }
 
@@ -15,6 +18,7 @@ input SomeInput {
   name: String!
   description: String
   someEnum: SomeEnum
+  time: DateTime
 }
 
 type TestType @key(fields: "id") {

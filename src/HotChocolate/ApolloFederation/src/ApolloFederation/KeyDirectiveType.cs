@@ -13,8 +13,7 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class KeyDirectiveType
-    : DirectiveType
+public sealed class KeyDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
     {
@@ -22,6 +21,7 @@ public sealed class KeyDirectiveType
             .Name(WellKnownTypeNames.Key)
             .Description(FederationResources.KeyDirective_Description)
             .Location(DirectiveLocation.Object | DirectiveLocation.Interface)
+            .Repeatable()
             .FieldsArgument();
     }
 }
