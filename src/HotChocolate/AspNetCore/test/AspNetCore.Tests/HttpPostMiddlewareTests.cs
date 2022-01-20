@@ -297,6 +297,36 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Aggregate_Diagnostic_All_Listeners_Are_Triggered2()
+    {
+        // arrange
+        var listenerA = new TestListener2();
+        var listenerB = new TestListener2();
+
+        TestServer server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                    .AddDiagnosticEventListener(sp => listenerA)
+                    .AddDiagnosticEventListener(sp => listenerB)
+            );
+
+        // act
+         await server.PostApolloBatchAsync(
+            new ClientQueryRequest
+            {
+                Query = @"{ hero(episode: NEW_HOPE) { name } }"
+            },
+            new ClientQueryRequest
+            {
+                Query = @"{ hero(episode: NEW_HOPE) { name } }"
+            });
+
+        // assert
+        Assert.Equal(2, listenerA.ExecuteBatchedQueryGroupCount());
+        Assert.Equal(2, listenerB.ExecuteBatchedQueryGroupCount());
+    }
+
+    [Fact]
     public async Task Ensure_Multipart_Format_Is_Correct_With_Defer()
     {
         // arrange
@@ -958,6 +988,42 @@ public class HttpPostMiddlewareTests : ServerTestBase
         }
     }
 
+    public class TestListener2 : ExecutionDiagnosticEventListener
+    {
+        public override IDisposable ExecuteBatchedQueryGroup()
+        {
+            return Triggered(nameof(ExecuteBatchedQueryGroup));
+        }
+
+        public int ExecuteBatchedQueryGroupCount()
+        {
+            return TriggerCount(nameof(ExecuteBatchedQueryGroup));
+        }
+
+        private IDisposable Triggered(string key)
+        {
+            if (_triggered.TryGetValue(key, out var current))
+            {
+                _triggered[key] = current+1;
+            }
+            else
+            {
+                _triggered[key] = 1;
+            }
+
+            return EmptyScope;
+        }
+
+        private int TriggerCount(string key)
+        {
+            return _triggered.TryGetValue(key, out var result)
+                ? result
+                : 0;
+        }
+
+        private readonly Dictionary<string, int> _triggered = new();
+    }
+
 
     /// <see cref = "BatchParallelExecution_Node" />
     private class BatchParallelExecution_GroupTracker : ExecutionDiagnosticEventListener
@@ -989,7 +1055,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         public override IDisposable ExecuteBatchedQueryGroup()
         {
              _httpContextAccessor.HttpContext.Items[_httpContextItemKey] = Current + 1;
-            return EmptyScope;
+            return base.ExecuteBatchedQueryGroup();
         }
     }
 
@@ -1011,16 +1077,15 @@ public class HttpPostMiddlewareTests : ServerTestBase
     /// <summary>Server used to test parallel execution in batch requests</summary>
     protected virtual TestServer BatchParallelExecution_CreateServer(
         string pattern = "/graphql",
-        Action<IServiceCollection> configureServices = default,
-        Action<GraphQLEndpointConventionBuilder> configureConventions = default)
+        Action<IServiceCollection> configureServices = default)
     {
         return ServerFactory.Create(
-            services => services
-                .AddSingleton<BatchParallelExecution_GroupTracker>()
-                .AddSingleton<IExecutionDiagnosticEventListener>(sp => sp.GetRequiredService<BatchParallelExecution_GroupTracker>())
+            services => {
+                services
                 .AddRouting()
                 .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
+                .AddDiagnosticEventListener<BatchParallelExecution_GroupTracker>()
                 .ModifyRequestOptions(o =>
                 {
                     o.MaxConcurrentBatchQueries = 5;
@@ -1045,8 +1110,9 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             return ActivatorUtilities.CreateInstance<BatchParallelExecution_Node>(c.Services);
                         });
                 })
-                .AddExportDirectiveType()
-            ,
+                .AddExportDirectiveType();
+                configureServices?.Invoke(services);
+            },
             app => app
                 .UseRouting()
                 .UseEndpoints(endpoints =>

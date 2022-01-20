@@ -119,7 +119,7 @@ internal partial class BatchExecutor
             }
         }
 
-        private class WorkItem
+        private sealed class WorkItem
         {
             private readonly BatchExecutorEnumerable _parent;
             private readonly IReadOnlyQueryRequest _request = default!;
