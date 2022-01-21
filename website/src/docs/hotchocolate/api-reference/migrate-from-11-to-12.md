@@ -317,3 +317,7 @@ services
                 ?? new NoOpStringBuilderPool())));
 ```  
 
+# Miscellaneous
+
+* `IObjectField`
+  * If you were using `IObjectField.Member`, you'll likely want to move to `IObjectField.ResolverMember` (as `.Member` can be null in some cases and `.ResolverMember` will fall back to `.Member`).
