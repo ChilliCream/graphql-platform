@@ -22,4 +22,16 @@ public class ValidationOptionsTests
         var options = new ValidationOptions { SkipIntrospectionFields = value };
         Assert.Equal(value, options.SkipIntrospectionFields);
     }
+
+    [InlineData(int.MaxValue, int.MaxValue)]
+    [InlineData(20, 20)]
+    [InlineData(5, 5)]
+    [InlineData(1, 1)]
+    [InlineData(0, 5)]
+    [Theory]
+    public void MaxAllowedErrors(int value, int expected)
+    {
+        var options = new ValidationOptions { MaxAllowedErrors = value };
+        Assert.Equal(expected, options.MaxAllowedErrors);
+    }
 }

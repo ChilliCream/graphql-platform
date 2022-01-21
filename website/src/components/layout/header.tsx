@@ -6,17 +6,20 @@ import BarsIconSvg from "../../images/bars.svg";
 import LogoTextSvg from "../../images/chillicream-text.svg";
 import LogoIconSvg from "../../images/chillicream-winking.svg";
 import GithubIconSvg from "../../images/github.svg";
+import SearchIconSvg from "../../images/search.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
 import { useObservable } from "../../state";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
-import { Search } from "../misc/search";
+import { SearchModal } from "../misc/search-modal";
 
 export const Header: FC = () => {
   const containerRef = useRef<HTMLHeadingElement>(null);
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
+  const [searchOpen, setSearchOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
     query getHeaderData {
       site {
@@ -27,6 +30,7 @@ export const Header: FC = () => {
             link
           }
           tools {
+            bcp
             github
             slack
             twitter
@@ -40,13 +44,21 @@ export const Header: FC = () => {
     return state.common.yScrollPosition > 0;
   });
 
-  const handleHamburgerOpenClick = useCallback(() => {
+  const handleTopNavClose = useCallback(() => {
+    setTopNavOpen(false);
+  }, [setTopNavOpen]);
+
+  const handleTopNavOpen = useCallback(() => {
     setTopNavOpen(true);
   }, [setTopNavOpen]);
 
-  const handleHamburgerCloseClick = useCallback(() => {
-    setTopNavOpen(false);
-  }, [setTopNavOpen]);
+  const handleSearchClose = useCallback(() => {
+    setSearchOpen(false);
+  }, [setSearchOpen]);
+
+  const handleSearchOpen = useCallback(() => {
+    setSearchOpen(true);
+  }, [setSearchOpen]);
 
   useEffect(() => {
     const classes = containerRef.current?.className ?? "";
@@ -77,7 +89,7 @@ export const Header: FC = () => {
               <LogoIcon />
               <LogoText />
             </LogoLink>
-            <HamburgerCloseButton onClick={handleHamburgerCloseClick}>
+            <HamburgerCloseButton onClick={handleTopNavClose}>
               <HamburgerCloseIcon />
             </HamburgerCloseButton>
           </NavigationHeader>
@@ -96,8 +108,13 @@ export const Header: FC = () => {
           </Nav>
         </Navigation>
         <Group>
-          <Search siteUrl={siteUrl!} />
           <Tools>
+            <LaunchLink to={tools!.bcp!}>Launch</LaunchLink>
+            <ToolButton onClick={handleSearchOpen}>
+              <IconContainer size={20}>
+                <SearchIconSvg />
+              </IconContainer>
+            </ToolButton>
             <ToolLink to={tools!.slack!}>
               <IconContainer>
                 <SlackIcon />
@@ -115,10 +132,15 @@ export const Header: FC = () => {
             </ToolLink>
           </Tools>
         </Group>
-        <HamburgerOpenButton onClick={handleHamburgerOpenClick}>
+        <HamburgerOpenButton onClick={handleTopNavOpen}>
           <HamburgerOpenIcon />
         </HamburgerOpenButton>
       </ContainerWrapper>
+      <SearchModal
+        open={searchOpen}
+        siteUrl={siteUrl!}
+        onClose={handleSearchClose}
+      />
     </Container>
   );
 };
@@ -128,7 +150,7 @@ const Container = styled.header`
   z-index: 30;
   width: 100vw;
   height: 60px;
-  background-color: var(--primary-color);
+  background-color: ${THEME_COLORS.primary};
   transition: box-shadow 0.2s ease-in-out;
 
   &.shadow {
@@ -174,7 +196,7 @@ const LogoLink = styled(Link)`
 
 const LogoIcon = styled(LogoIconSvg)`
   height: 40px;
-  fill: var(--text-color-contrast);
+  fill: ${THEME_COLORS.textContrast};
   transition: fill 0.2s ease-in-out;
 `;
 
@@ -182,7 +204,7 @@ const LogoText = styled(LogoTextSvg)`
   display: none;
   padding-left: 15px;
   height: 24px;
-  fill: var(--text-color-contrast);
+  fill: ${THEME_COLORS.textContrast};
   transition: fill 0.2s ease-in-out;
 
   @media only screen and (min-width: 600px) {
@@ -206,7 +228,7 @@ const HamburgerOpenButton = styled.div`
 
 const HamburgerOpenIcon = styled(BarsIconSvg)`
   height: 26px;
-  fill: var(--text-color-contrast);
+  fill: ${THEME_COLORS.textContrast};
 `;
 
 const Navigation = styled.nav<{ readonly open: boolean }>`
@@ -219,7 +241,7 @@ const Navigation = styled.nav<{ readonly open: boolean }>`
   flex: 1 1 auto;
   flex-direction: column;
   max-height: 100vh;
-  background-color: var(--primary-color);
+  background-color: ${THEME_COLORS.primary};
   opacity: ${({ open }) => (open ? "1" : "0")};
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   transition: opacity 0.2s ease-in-out;
@@ -267,7 +289,7 @@ const HamburgerCloseButton = styled.div`
 
 const HamburgerCloseIcon = styled(TimesIconSvg)`
   height: 26px;
-  fill: var(--text-color-contrast);
+  fill: ${THEME_COLORS.textContrast};
 `;
 
 const Nav = styled.ol`
@@ -305,20 +327,20 @@ const NavLink = styled(Link)`
   flex: 0 0 auto;
   border-radius: var(--border-radius);
   padding: 10px 15px;
-  font-family: "Roboto", sans-serif;
+  font-family: ${FONT_FAMILY_HEADING};
   font-size: 0.833em;
-  color: var(--text-color-contrast);
+  color: ${THEME_COLORS.textContrast};
   text-decoration: none;
   text-transform: uppercase;
   transition: background-color 0.2s ease-in-out;
 
   &.active,
   &.active:hover {
-    background-color: var(--tertiary-color);
+    background-color: ${THEME_COLORS.tertiary};
   }
 
   &:hover {
-    background-color: var(--secondary-color);
+    background-color: ${THEME_COLORS.secondary};
   }
 `;
 
@@ -340,13 +362,44 @@ const Group = styled.div`
 `;
 
 const Tools = styled.div`
-  display: none;
+  display: flex;
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
+`;
 
-  @media only screen and (min-width: 992px) {
-    display: flex;
+const LaunchLink = styled(Link)`
+  flex: 0 0 auto;
+  margin-left: 5px;
+  border-radius: var(--border-radius);
+  padding: 10px 15px;
+  color: ${THEME_COLORS.primaryButtonText};
+  background-color: ${THEME_COLORS.primaryButton};
+  font-family: ${FONT_FAMILY_HEADING};
+  font-size: 0.833em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+
+  :hover {
+    color: ${THEME_COLORS.primaryButtonHoverText};
+    background-color: ${THEME_COLORS.primaryButtonHover};
+  }
+`;
+
+const ToolButton = styled.button`
+  flex: 0 0 auto;
+  margin-left: 5px;
+  border-radius: var(--border-radius);
+  padding: 7px;
+  transition: background-color 0.2s ease-in-out;
+
+  > ${IconContainer} > svg {
+    fill: ${THEME_COLORS.textContrast};
+  }
+
+  :hover {
+    background-color: ${THEME_COLORS.secondary};
   }
 `;
 
@@ -359,11 +412,11 @@ const ToolLink = styled(Link)`
   transition: background-color 0.2s ease-in-out;
 
   > ${IconContainer} > svg {
-    fill: var(--text-color-contrast);
+    fill: ${THEME_COLORS.textContrast};
   }
 
   :hover {
-    background-color: var(--secondary-color);
+    background-color: ${THEME_COLORS.secondary};
   }
 `;
 

@@ -6,13 +6,14 @@ import { asyncScheduler } from "rxjs";
 import { throttleTime } from "rxjs/operators";
 import styled, { css } from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
+import { THEME_COLORS } from "../../shared-style";
 import { useObservable } from "../../state";
 import { closeAside } from "../../state/common";
 import { MostProminentSection } from "../doc-page/doc-page-elements";
 
 const MAX_TOC_DEPTH = 2;
 
-interface ArticleSectionsProps {
+export interface ArticleSectionsProps {
   readonly data: ArticleSectionsFragment;
 }
 
@@ -113,7 +114,7 @@ const TocItemContainer = styled.ul`
 
 const TocLink = styled((props) => <Link {...props} />)`
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 
   :hover {
     color: #000;

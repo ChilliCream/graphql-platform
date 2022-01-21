@@ -398,6 +398,7 @@ public class AnnotationBasedMutations
             .AddMutationType<MutationWithIds>()
             .AddMutationConventions(true)
             .ModifyOptions(o => o.StrictValidation = false)
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync(
                 @"mutation {
                     doSomething(input: {

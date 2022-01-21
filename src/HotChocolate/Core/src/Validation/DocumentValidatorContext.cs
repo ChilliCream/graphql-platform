@@ -11,6 +11,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 {
     private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
     private readonly List<FieldInfoListBuffer> _buffers = new() { new FieldInfoListBuffer() };
+    private readonly List<IError> _errors = new();
 
     private ISchema? _schema;
     private IOutputType? _nonNullString;
@@ -46,6 +47,8 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         }
         private set => _nonNullString = value;
     }
+
+    public int MaxAllowedErrors { get; set; }
 
     public IList<ISyntaxNode> Path { get; } = new List<ISyntaxNode>();
 
@@ -85,7 +88,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public IList<IInputField> InputFields { get; } = new List<IInputField>();
 
-    public ICollection<IError> Errors { get; } = new List<IError>();
+    public IReadOnlyCollection<IError> Errors => _errors;
 
     public IList<object?> List { get; } = new List<object?>();
 
@@ -109,6 +112,16 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         }
 
         return list;
+    }
+
+    public void ReportError(IError error)
+    {
+        if (_errors.Count == MaxAllowedErrors)
+        {
+            throw new MaxValidationErrorsException();
+        }
+
+        _errors.Add(error);
     }
 
     public void Clear()
@@ -135,11 +148,12 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         OutputFields.Clear();
         Fields.Clear();
         InputFields.Clear();
-        Errors.Clear();
+        _errors.Clear();
         List.Clear();
         UnexpectedErrorsDetected = false;
         Count = 0;
         Max = 0;
+        MaxAllowedErrors = 0;
     }
 
     private void ClearBuffers()

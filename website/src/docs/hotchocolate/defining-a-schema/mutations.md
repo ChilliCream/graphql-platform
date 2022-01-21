@@ -981,7 +981,7 @@ interface Error {
 
 Often we also want to provide an error code so that the GUI components can more easily implement error handling logic. In such a case, we could provide our own error interface.
 
-> Note: All you error types have to implement the contract that the interface declares! Your errors/exceptions do not have to implement the common interface, but they have to declare all the interface's members.
+> Note: All your error types have to implement the contract that the interface declares! Your errors/exceptions do not have to implement the common interface, but they have to declare all the interface's members.
 
 <ExampleTabs>
 <Annotation>

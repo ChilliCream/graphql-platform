@@ -20,10 +20,11 @@ body:
     id: product
     attributes:
       label: Product
-      description: Which of our products is affected by this bug?
+      description: Which of our products does this relate to?
       options:
         - Hot Chocolate
         - Strawberry Shake
         - Banana Cake Pop
+        - Green Donut
     validations:
       required: true

@@ -9,10 +9,10 @@ import { BlogArticleTags } from "../blog-article/blog-article-tags";
 import { Link } from "../misc/link";
 import { Pagination } from "../misc/pagination";
 
-interface BlogArticlesProps {
-  currentPage?: number;
-  data: BlogArticlesFragment;
-  totalPages?: number;
+export interface BlogArticlesProps {
+  readonly currentPage?: number;
+  readonly data: BlogArticlesFragment;
+  readonly totalPages?: number;
 }
 
 export const BlogArticles: FC<BlogArticlesProps> = ({
@@ -92,7 +92,7 @@ const Container = styled.ul`
 `;
 
 const Article = styled.li`
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     margin: 20px 0 0;
     border-radius: var(--border-radius);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);

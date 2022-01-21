@@ -20,12 +20,13 @@ import {
 import { useDispatch, useSelector, useStore } from "react-redux";
 import styled from "styled-components";
 import AlgoliaLogoSvg from "../../images/algolia-logo.svg";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
 import { State } from "../../state";
 import { changeSearchQuery } from "../../state/common";
 import { Link } from "./link";
 
-interface SearchProps {
-  siteUrl: string;
+export interface SearchProps {
+  readonly siteUrl: string;
 }
 
 export const Search: FC<SearchProps> = ({ siteUrl }) => {
@@ -192,27 +193,27 @@ const SearchField = styled.input`
   border-radius: var(--border-radius);
   width: 100%;
   padding: 10px 15px;
-  font-family: "Roboto", sans-serif;
+  font-family: ${FONT_FAMILY_HEADING};
   font-size: 0.833em;
-  background-color: var(--secondary-color);
-  color: var(--text-color-contrast);
+  background-color: ${THEME_COLORS.secondary};
+  color: ${THEME_COLORS.textContrast};
   transition: background-color 0.2s ease-in-out;
 
   ::placeholder {
-    color: var(--text-color-contrast);
+    color: ${THEME_COLORS.textContrast};
   }
 
   :hover,
   :focus {
-    background-color: var(--tertiary-color);
+    background-color: ${THEME_COLORS.tertiary};
   }
 `;
 
 interface HitComponentProps {
-  hit: any;
+  readonly hit: any;
 }
 
-const HitsWrapper = styled.div<{ show: boolean }>`
+const HitsWrapper = styled.div<{ readonly show: boolean }>`
   position: fixed;
   top: 60px;
   right: 0;
@@ -222,7 +223,7 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   padding: 15px 20px;
   max-height: 80vh;
   overflow-y: initial;
-  background: var(--text-color-contrast);
+  background: ${THEME_COLORS.textContrast};
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
 
   > * + * {
@@ -236,10 +237,10 @@ const HitsWrapper = styled.div<{ show: boolean }>`
     line-height: 1.667em;
 
     > a {
-      color: var(--primary-color);
+      color: ${THEME_COLORS.primary};
 
       &:hover {
-        color: var(--text-color);
+        color: ${THEME_COLORS.text};
       }
     }
   }
@@ -261,8 +262,8 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   mark {
     display: inline-block;
     padding: 3px 2px;
-    background: var(--primary-color);
-    color: var(--text-color-contrast);
+    background: ${THEME_COLORS.primary};
+    color: ${THEME_COLORS.textContrast};
   }
 
   @media only screen and (min-width: 600px) {

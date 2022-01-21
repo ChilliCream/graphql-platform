@@ -1,5 +1,8 @@
 namespace HotChocolate.Validation.Options;
 
+/// <summary>
+/// Represents the options for the max execution depth analyzer.
+/// </summary>
 public interface IMaxExecutionDepthOptionsAccessor
 {
     /// <summary>

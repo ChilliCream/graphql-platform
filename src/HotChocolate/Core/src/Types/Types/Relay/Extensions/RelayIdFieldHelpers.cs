@@ -2,11 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.Types.WellKnownContextData;
 
 #nullable enable
 
@@ -35,11 +36,16 @@ internal static class RelayIdFieldHelpers
             throw new ArgumentNullException(nameof(descriptor));
         }
 
+        var extend = descriptor.Extend();
 
-        descriptor.Extend().OnBeforeCreate(RewriteDefinition);
-        descriptor.Extend()
-            .OnBeforeCompletion(
-                (c, d) => AddSerializerToInputField(c, d, typeName));
+        // rewrite type
+        extend.OnBeforeCreate(RewriteDefinition);
+
+        // add serializer if globalID support is enabled.
+        if (extend.Context.ContextData.ContainsKey(GlobalIdSupportEnabled))
+        {
+            extend.OnBeforeCompletion((c, d) => AddSerializerToInputField(c, d, typeName));
+        }
     }
 
     /// <summary>
@@ -61,15 +67,22 @@ internal static class RelayIdFieldHelpers
             throw new ArgumentNullException(nameof(descriptor));
         }
 
+        // rewrite type
         descriptor.Extend().OnBeforeCreate(RewriteDefinition);
+
         if (descriptor is IDescriptor<ObjectFieldDefinition> objectFieldDescriptor)
         {
-            ResultConverterDefinition placeholder =
-                new((_, r) => r, key: WellKnownMiddleware.GlobalId, isRepeatable: false);
-            objectFieldDescriptor.Extend().Definition.ResultConverters.Add(placeholder);
-            objectFieldDescriptor.Extend()
-                .OnBeforeCompletion(
+            var extend = objectFieldDescriptor.Extend();
+
+            // add serializer if globalID support is enabled.
+            if (extend.Context.ContextData.ContainsKey(GlobalIdSupportEnabled))
+            {
+                ResultConverterDefinition placeholder =
+                    new((_, r) => r, key: WellKnownMiddleware.GlobalId, isRepeatable: false);
+                extend.Definition.ResultConverters.Add(placeholder);
+                extend.OnBeforeCompletion(
                     (c, d) => AddSerializerToObjectField(c, d, placeholder, typeName));
+            }
         }
     }
 

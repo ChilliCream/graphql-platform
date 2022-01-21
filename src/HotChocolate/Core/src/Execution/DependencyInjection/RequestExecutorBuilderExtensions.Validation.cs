@@ -138,7 +138,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a validation rule that inspects if a GraphQL query document 
+    /// Adds a validation rule that inspects if a GraphQL query document
     /// exceeds the maximum allowed operation depth.
     /// </summary>
     public static IRequestExecutorBuilder AddMaxExecutionDepthRule(
@@ -155,7 +155,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a validation rule that inspects if a GraphQL query document 
+    /// Adds a validation rule that inspects if a GraphQL query document
     /// exceeds the maximum allowed operation depth.
     /// </summary>
     public static IRequestExecutorBuilder AddMaxExecutionDepthRule(
@@ -185,6 +185,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// <summary>
     /// Toggle whether introspection is allow or not.
     /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
     /// <param name="allow">
     /// If `true` introspection is allowed.
     /// If `false` introspection is disallowed, except for requests
@@ -199,6 +202,36 @@ public static partial class RequestExecutorBuilderExtensions
             builder.AddIntrospectionAllowedRule();
         }
 
+        return builder;
+    }
+
+    /// <summary>
+    /// Sets the max allowed document validation errors.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="maxAllowedValidationErrors"></param>
+    /// <returns>
+    /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
+    /// configuration.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder SetMaxAllowedValidationErrors(
+        this IRequestExecutorBuilder builder,
+        int maxAllowedValidationErrors)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        ConfigureValidation(
+            builder,
+            b => b.ConfigureValidation(
+                c => c.Modifiers.Add(o => o.MaxAllowedErrors = maxAllowedValidationErrors)));
         return builder;
     }
 
