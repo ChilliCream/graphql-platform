@@ -18,15 +18,15 @@ namespace HotChocolate.Data.MongoDb.Filters
 #if NET6_0_OR_GREATER
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Bar = new TimeOnly(06,30) },
-            new Foo { Bar = new TimeOnly(16,00) }
+            new Foo { Bar = new TimeOnly(06, 30) },
+            new Foo { Bar = new TimeOnly(16, 00) }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =
         {
-            new FooNullable { Bar = new TimeOnly(06,30) },
+            new FooNullable { Bar = new TimeOnly(06, 30) },
             new FooNullable { Bar = null },
-            new FooNullable { Bar = new TimeOnly(16,00) }
+            new FooNullable { Bar = new TimeOnly(16, 00) }
         };
 
         public MongoDbFilterVisitorTimeOnlyTests(MongoResource resource)
@@ -181,7 +181,10 @@ namespace HotChocolate.Data.MongoDb.Filters
 
         internal class TimeOnlySerializer : StructSerializerBase<TimeOnly>
         {
-            public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, TimeOnly value)
+            public override void Serialize(
+                BsonSerializationContext context,
+                BsonSerializationArgs args,
+                TimeOnly value)
             {
                 DateTime dateTime = default(DateTime).Add(value.ToTimeSpan());
                 dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
@@ -189,7 +192,9 @@ namespace HotChocolate.Data.MongoDb.Filters
                 context.Writer.WriteDateTime(ticks);
             }
 
-            public override TimeOnly Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+            public override TimeOnly Deserialize(
+                BsonDeserializationContext context,
+                BsonDeserializationArgs args)
             {
                 long ticks = context.Reader.ReadDateTime();
                 DateTime dateTime = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(ticks);
