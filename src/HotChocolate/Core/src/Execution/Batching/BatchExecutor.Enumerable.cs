@@ -56,7 +56,7 @@ internal partial class BatchExecutor
             _maxConcurrentQueries = maxConcurrentQueries;
             if (_maxConcurrentQueries < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(_maxConcurrentQueries));
+                throw new ArgumentOutOfRangeException(nameof(maxConcurrentQueries));
             }
             _visitor = new CollectVariablesVisitor(requestExecutor.Schema);
         }
@@ -122,8 +122,8 @@ internal partial class BatchExecutor
         private sealed class WorkItem
         {
             private readonly BatchExecutorEnumerable _parent;
-            private readonly IReadOnlyQueryRequest _request = default!;
-            private readonly OperationDefinitionNode _operation = default!;
+            private readonly IReadOnlyQueryRequest _request;
+            private readonly OperationDefinitionNode _operation;
             private readonly int _exportCount;
             private readonly IQueryResult _error = default!;
 
