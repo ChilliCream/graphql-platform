@@ -106,7 +106,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         IDictionary<string, object?> contextData)
     {
         if (type.ToRuntimeType() is var rt &&
-            rt.IsDefined(typeof(ForeignServiceTypeExtensionAttribute)))
+            rt.IsDefined(typeof(ExtendServiceTypeAttribute)))
         {
             IEnumerable<ObjectField> fields = type.Fields.Where(
                 field => field.Member is not null &&

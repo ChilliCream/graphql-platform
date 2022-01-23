@@ -157,7 +157,7 @@ public class EntitiesResolverTests
         }
     }
 
-    [ForeignServiceTypeExtension]
+    [ExtendServiceType]
     public class ForeignType
     {
         [Key]
@@ -170,7 +170,7 @@ public class EntitiesResolverTests
         public string InternalField { get; set; } = "InternalValue";
     }
 
-    [ForeignServiceTypeExtension]
+    [ExtendServiceType]
     public class MixedFieldTypes
     {
         [Key]

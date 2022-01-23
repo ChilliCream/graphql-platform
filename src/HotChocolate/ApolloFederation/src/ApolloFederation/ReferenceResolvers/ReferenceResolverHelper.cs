@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using static HotChocolate.ApolloFederation.AnyType;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -11,7 +12,7 @@ internal static class ReferenceResolverHelper
         IResolverContext context,
         IReadOnlyList<string[]> required)
         => ArgumentParser.Matches(
-            context.GetLocalValue<IValueNode>("data")!,
+            context.GetLocalValue<IValueNode>(DataField)!,
             required);
 
     public static ValueTask<object?> ExecuteAsync(
@@ -21,7 +22,7 @@ internal static class ReferenceResolverHelper
 
     public static ValueTask<object?> Invalid(IResolverContext context)
     {
-        var representation = context.GetLocalValue<IValueNode>("data")?.ToString() ?? "null";
+        var representation = context.GetLocalValue<IValueNode>(DataField)?.ToString() ?? "null";
 
         throw new GraphQLException(
             new Error(

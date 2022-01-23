@@ -229,7 +229,7 @@ public class FederationSchemaPrinterTests
         public string Zipcode { get; set; } = default!;
     }
 
-    [ForeignServiceTypeExtension]
+    [ExtendServiceType]
     public class Product
     {
         [Key]

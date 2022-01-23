@@ -40,7 +40,7 @@ internal static class EntitiesResolver
                 objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
                 value is FieldResolverDelegate resolver)
             {
-                context.SetLocalValue("data", representation.Data);
+                context.SetLocalValue(AnyType.DataField, representation.Data);
                 entities.Add(await resolver.Invoke(context).ConfigureAwait(false));
             }
             else

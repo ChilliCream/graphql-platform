@@ -37,12 +37,12 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder
 
     public override bool CanHandle(ParameterInfo parameter) => true;
 
-    protected override string GetKey(ParameterInfo parameter) => "data";
+    protected override string GetKey(ParameterInfo parameter) => AnyType.DataField;
 
     public override Expression Build(ParameterInfo parameter, Expression context)
     {
         ConstantExpression path = Expression.Constant(GetPath(parameter), typeof(string[]));
-        ConstantExpression key = Expression.Constant("data", typeof(string));
+        ConstantExpression key = Expression.Constant(AnyType.DataField, typeof(string));
         Expression value = BuildGetter(parameter, key, context, typeof(IValueNode));
         MethodInfo getValueMethod = _getValue.MakeGenericMethod(parameter.ParameterType);
         Expression<Func<IResolverContext, IObjectType>> getObjectTypeExpr = t => t.ObjectType;
