@@ -11,7 +11,7 @@ const gateway = new ApolloGateway({
     { name: "accounts", url: "http://localhost:5001/graphql" },
     { name: "reviews", url: "http://localhost:5002/graphql" },
     { name: "products", url: "http://localhost:5003/graphql" }
-    // { name: "inventory", url: "http://localhost:5004/graphql" }
+    { name: "inventory", url: "http://localhost:5004/graphql" }
   ],
 
   // Experimental: Enabling this enables the query plan view in Playground.
