@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.ApolloFederation;
 
-public class Representation
+public sealed class Representation
 {
     public Representation(NameString typeName, ObjectValueNode data)
     {

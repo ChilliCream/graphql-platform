@@ -1,12 +1,12 @@
 using System;
-using HotChocolate.Resolvers;
+using System.Collections.Generic;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.ApolloFederation;
 
-public class EntityResolverDefinition : DefinitionBase
+public sealed class EntityResolverDefinition : DefinitionBase
 {
     public Type? ResolvedEntityType { get; set; }
 
-    public FieldResolverDelegate? Resolver { get; set; }
+    public ReferenceResolverDefinition? ResolverDefinition { get; set; }
 }

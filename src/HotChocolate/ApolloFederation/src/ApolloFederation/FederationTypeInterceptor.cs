@@ -4,8 +4,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -17,6 +19,21 @@ namespace HotChocolate.ApolloFederation;
 internal sealed class FederationTypeInterceptor : TypeInterceptor
 {
     private static readonly object _empty = new();
+    private static readonly MethodInfo _matches =
+        typeof(ReferenceResolverHelper)
+            .GetMethod(
+                nameof(ReferenceResolverHelper.Matches),
+                BindingFlags.Static | BindingFlags.Public)!;
+    private static readonly MethodInfo _execute =
+        typeof(ReferenceResolverHelper)
+            .GetMethod(
+                nameof(ReferenceResolverHelper.ExecuteAsync),
+                BindingFlags.Static | BindingFlags.Public)!;
+    private static readonly MethodInfo _invalid =
+        typeof(ReferenceResolverHelper)
+            .GetMethod(
+                nameof(ReferenceResolverHelper.Invalid),
+                BindingFlags.Static | BindingFlags.Public)!;
     private readonly List<ObjectType> _entityTypes = new();
 
     public override bool TriggerAggregations => true;
@@ -44,16 +61,6 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnAfterCompleteType(
-        ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
-    {
-        AddFactoryMethodToContext(
-            completionContext,
-            contextData);
-    }
-
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
         DefinitionBase? definition,
@@ -68,19 +75,37 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             definition);
     }
 
-    private void AddFactoryMethodToContext(
+    public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        if (completionContext.Type is ObjectType ot && ot.ToRuntimeType() is var rt &&
+        if (completionContext.Type is ObjectType type &&
+            definition is ObjectTypeDefinition typeDef)
+        {
+            AddFactoryMethodToContext(
+                type,
+                contextData);
+
+            CompleteReferenceResolver(typeDef);
+        }
+    }
+
+    private void AddFactoryMethodToContext(
+        ObjectType type,
+        IDictionary<string, object?> contextData)
+    {
+        if (type.ToRuntimeType() is var rt &&
             rt.IsDefined(typeof(ForeignServiceTypeExtensionAttribute)))
         {
-            IEnumerable<ObjectField> fields = ot.Fields.Where(
+            IEnumerable<ObjectField> fields = type.Fields.Where(
                 field => field.Member is not null &&
                     field.Member.IsDefined(typeof(ExternalAttribute)));
 
-            ParameterExpression representationArgument = Expression.Parameter(typeof(Representation));
-            ParameterExpression objectVariable = Expression.Variable(rt);
+            ParameterExpression representationArgument =
+                Expression.Parameter(typeof(Representation));
+            ParameterExpression objectVariable =
+                Expression.Variable(rt);
 
             IEnumerable<ConditionalExpression> assignExpressions = fields.Select(
                 field =>
@@ -117,9 +142,9 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                                             representationArgument)),
                                     pi.PropertyType)));
                     }
+
                     throw ExternalAttribute_InvalidTarget(rt, field.Member);
-                }
-            );
+                });
 
             LabelTarget returnTarget = Expression.Label(rt);
             var expressions = new List<Expression>
@@ -134,6 +159,49 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 representationArgument);
 
             contextData[EntityResolver] = objectFactoryMethodExpression.Compile();
+        }
+    }
+
+    private void CompleteReferenceResolver(ObjectTypeDefinition typeDef)
+    {
+        if (typeDef.GetContextData().TryGetValue(EntityResolver, out var value) &&
+            value is IReadOnlyList<ReferenceResolverDefinition> resolvers)
+        {
+            if (resolvers.Count == 1)
+            {
+                typeDef.ContextData[EntityResolver] = resolvers[0].Resolver;
+            }
+            else
+            {
+                var expressions = new Stack<(Expression Condition, Expression Execute)>();
+                ParameterExpression context = Expression.Parameter(typeof(IResolverContext));
+
+                foreach (ReferenceResolverDefinition resolverDef in resolvers)
+                {
+                    Expression required = Expression.Constant(resolverDef.Required);
+                    Expression resolver = Expression.Constant(resolverDef.Resolver);
+                    Expression condition = Expression.Call(_matches, context, required);
+                    Expression execute = Expression.Call(_execute, context, resolver);
+                    expressions.Push((condition, execute));
+                }
+
+                Expression current = Expression.Call(_invalid, context);
+                ParameterExpression variable = Expression.Variable(typeof(ValueTask<object?>));
+
+                while (expressions.Count > 0)
+                {
+                    var expression = expressions.Pop();
+                    current = Expression.IfThenElse(
+                        expression.Condition,
+                        Expression.Assign(variable, expression.Execute),
+                        current);
+                }
+
+                current = Expression.Block(new[] { variable }, current, variable);
+
+                typeDef.ContextData[EntityResolver] =
+                    Expression.Lambda<FieldResolverDelegate>(current, context).Compile();
+            }
         }
     }
 
@@ -164,7 +232,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 )
                 .Resolve(c => EntitiesResolver._Entities(
                     c.Schema,
-                    c.ArgumentValue<IReadOnlyList<Representation>>(WellKnownArgumentNames.Representations),
+                    c.ArgumentValue<IReadOnlyList<Representation>>(
+                        WellKnownArgumentNames.Representations),
                     c
                 ));
             objectTypeDefinition.Fields.Add(entitiesFieldDescriptor.CreateDefinition());
@@ -221,7 +290,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
                 // register dependency to the key directive so that it is completed before
                 // we complete this type.
-                foreach (DirectiveDefinition? directiveDefinition in objectTypeDefinition.Directives)
+                foreach (DirectiveDefinition directiveDefinition in objectTypeDefinition.Directives)
                 {
                     discoveryContext.Dependencies.Add(
                         new TypeDependency(
