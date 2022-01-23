@@ -2,7 +2,7 @@ namespace Products;
 
 public class ProductRepository
 {
-    private Dictionary<string, Product> _products;
+    private readonly Dictionary<string, Product> _products;
 
     public ProductRepository()
     {

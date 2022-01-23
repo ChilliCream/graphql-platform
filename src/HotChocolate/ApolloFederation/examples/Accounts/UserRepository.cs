@@ -2,7 +2,7 @@ namespace Accounts;
 
 public class UserRepository
 {
-    private Dictionary<string, User> _users;
+    private readonly Dictionary<string, User> _users;
 
     public UserRepository()
     {
