@@ -12,15 +12,10 @@ public class ObjectType<T> : ObjectType
     private Action<IObjectTypeDescriptor<T>>? _configure;
 
     public ObjectType()
-    {
-        _configure = Configure;
-    }
+        => _configure = Configure;
 
     public ObjectType(Action<IObjectTypeDescriptor<T>> configure)
-    {
-        _configure = configure
-            ?? throw new ArgumentNullException(nameof(configure));
-    }
+        => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
     protected override ObjectTypeDefinition CreateDefinition(
         ITypeDiscoveryContext context)
@@ -33,12 +28,8 @@ public class ObjectType<T> : ObjectType
         return descriptor.CreateDefinition();
     }
 
-    protected virtual void Configure(IObjectTypeDescriptor<T> descriptor)
-    {
-    }
+    protected virtual void Configure(IObjectTypeDescriptor<T> descriptor) { }
 
     protected sealed override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        throw new NotSupportedException();
-    }
+        => throw new NotSupportedException();
 }
