@@ -43,13 +43,23 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        AddToUnionIfHasTypeLevelKeyDirective(
-            discoveryContext,
-            definition);
+        if (discoveryContext.Type is ObjectType objectType &&
+            definition is ObjectTypeDefinition objectTypeDefinition)
+        {
+            ApplyMethodLevelReferenceResolvers(
+                objectType,
+                objectTypeDefinition,
+                discoveryContext);
 
-        AggregatePropertyLevelKeyDirectives(
-            discoveryContext,
-            definition);
+            AddToUnionIfHasTypeLevelKeyDirective(
+                objectType,
+                objectTypeDefinition);
+
+            AggregatePropertyLevelKeyDirectives(
+                objectType,
+                objectTypeDefinition,
+                discoveryContext);
+        }
     }
 
     public override void OnTypesInitialized(
@@ -240,70 +250,88 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void AddToUnionIfHasTypeLevelKeyDirective(
-        ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition)
+    private void ApplyMethodLevelReferenceResolvers(
+        ObjectType objectType,
+        ObjectTypeDefinition objectTypeDefinition,
+        ITypeDiscoveryContext discoveryContext)
     {
-        if (discoveryContext.Type is ObjectType objectType &&
-            definition is ObjectTypeDefinition objectTypeDefinition)
+        if (objectType.RuntimeType != typeof(object))
         {
-            if (objectTypeDefinition.Directives.Any(
-                    d => d.Reference is NameDirectiveReference
-                    { Name: { Value: WellKnownTypeNames.Key } }) ||
-                objectTypeDefinition.Fields.Any(
-                    f => f.ContextData.ContainsKey(WellKnownTypeNames.Key)))
+            IDescriptorContext descriptorContext = discoveryContext.DescriptorContext;
+            ITypeInspector typeInspector = discoveryContext.TypeInspector;
+            var descriptor = ObjectTypeDescriptor.From(descriptorContext, objectTypeDefinition);
+
+            foreach (MethodInfo possibleReferenceResolver in
+                objectType.RuntimeType.GetMethods(BindingFlags.Static | BindingFlags.Public))
             {
-                _entityTypes.Add(objectType);
+                if (possibleReferenceResolver.IsDefined(typeof(ReferenceResolverAttribute)))
+                {
+                    typeInspector.ApplyAttributes(
+                        descriptorContext,
+                        descriptor,
+                        possibleReferenceResolver);
+                }
             }
+
+            descriptor.CreateDefinition();
+        }
+    }
+
+    private void AddToUnionIfHasTypeLevelKeyDirective(
+        ObjectType objectType,
+        ObjectTypeDefinition objectTypeDefinition)
+    {
+        if (objectTypeDefinition.Directives.Any(
+            d => d.Reference is NameDirectiveReference { Name.Value: WellKnownTypeNames.Key }) ||
+            objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(WellKnownTypeNames.Key)))
+        {
+            _entityTypes.Add(objectType);
         }
     }
 
     private void AggregatePropertyLevelKeyDirectives(
-        ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition)
+        ObjectType objectType,
+        ObjectTypeDefinition objectTypeDefinition,
+        ITypeDiscoveryContext discoveryContext)
     {
-        if (discoveryContext.Type is ObjectType objectType &&
-            definition is ObjectTypeDefinition objectTypeDefinition)
+        // if we find key markers on our fields, we need to construct the key directive
+        // from the annotated fields.
+        if (objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker)))
         {
-            // if we find key markers on our fields, we need to construct the key directive
-            // from the annotated fields.
-            if (objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker)))
+            IReadOnlyList<ObjectFieldDefinition> fields = objectTypeDefinition.Fields;
+            var fieldSet = new StringBuilder();
+
+            foreach (ObjectFieldDefinition? fieldDefinition in fields)
             {
-                IReadOnlyList<ObjectFieldDefinition> fields = objectTypeDefinition.Fields;
-                var fieldSet = new StringBuilder();
-
-                foreach (ObjectFieldDefinition? fieldDefinition in fields)
+                if (fieldDefinition.ContextData.ContainsKey(KeyMarker))
                 {
-                    if (fieldDefinition.ContextData.ContainsKey(KeyMarker))
+                    if (fieldSet.Length > 0)
                     {
-                        if (fieldSet.Length > 0)
-                        {
-                            fieldSet.Append(' ');
-                        }
-
-                        fieldSet.Append(fieldDefinition.Name);
+                        fieldSet.Append(' ');
                     }
+
+                    fieldSet.Append(fieldDefinition.Name);
                 }
-
-                // add the key directive with the dynamically generated field set.
-                AddKeyDirective(objectTypeDefinition, fieldSet.ToString());
-
-                // register dependency to the key directive so that it is completed before
-                // we complete this type.
-                foreach (DirectiveDefinition directiveDefinition in objectTypeDefinition.Directives)
-                {
-                    discoveryContext.Dependencies.Add(
-                        new TypeDependency(
-                            directiveDefinition.TypeReference,
-                            TypeDependencyKind.Completed));
-
-                    discoveryContext.RegisterDependency(directiveDefinition.Reference);
-                }
-
-                // since this type has now a key directive we also need to add this type to
-                // the _Entity union type.
-                _entityTypes.Add(objectType);
             }
+
+            // add the key directive with the dynamically generated field set.
+            AddKeyDirective(objectTypeDefinition, fieldSet.ToString());
+
+            // register dependency to the key directive so that it is completed before
+            // we complete this type.
+            foreach (DirectiveDefinition directiveDefinition in objectTypeDefinition.Directives)
+            {
+                discoveryContext.Dependencies.Add(
+                    new TypeDependency(
+                        directiveDefinition.TypeReference,
+                        TypeDependencyKind.Completed));
+
+                discoveryContext.RegisterDependency(directiveDefinition.Reference);
+            }
+
+            // since this type has now a key directive we also need to add this type to
+            // the _Entity union type.
+            _entityTypes.Add(objectType);
         }
     }
 

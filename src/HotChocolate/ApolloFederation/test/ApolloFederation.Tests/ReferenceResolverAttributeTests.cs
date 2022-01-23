@@ -244,17 +244,18 @@ public class ReferenceResolverAttributeTests
 
     [Key("id")]
     [Key("sku")]
-    [ReferenceResolver(EntityResolver = nameof(GetByIdAsync))]
-    [ReferenceResolver(EntityResolver = nameof(GetBySkuAsync))]
+
     public class ExternalMultiKeyResolver
     {
         public string Id { get; set; } = default!;
 
         public string Sku { get; set; } = default!;
 
+        [ReferenceResolver]
         public static Task<ExternalMultiKeyResolver> GetByIdAsync(string id)
             => Task.FromResult(new ExternalMultiKeyResolver { Id = id });
 
+        [ReferenceResolver]
         public static Task<ExternalMultiKeyResolver> GetBySkuAsync(string sku)
             => Task.FromResult(new ExternalMultiKeyResolver { Sku = sku });
     }

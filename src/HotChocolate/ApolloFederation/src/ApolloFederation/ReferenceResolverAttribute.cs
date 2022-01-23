@@ -10,16 +10,36 @@ namespace HotChocolate.ApolloFederation;
 /// The reference resolver enables your gateway's query planner to resolve a particular
 /// entity by whatever unique identifier your other subgraphs use to reference it.
 /// </summary>
-public class ReferenceResolverAttribute : ObjectTypeDescriptorAttribute
+[AttributeUsage(
+    AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method,
+    AllowMultiple = true)]
+public class ReferenceResolverAttribute : DescriptorAttribute
 {
     public string? EntityResolver { get; set; }
 
     public Type? EntityResolverType { get; set; }
 
-    public override void OnConfigure(
+    protected internal override void TryConfigure(
         IDescriptorContext context,
-        IObjectTypeDescriptor descriptor,
-        Type type)
+        IDescriptor descriptor,
+        ICustomAttributeProvider element)
+    {
+        if (descriptor is IObjectTypeDescriptor objectTypeDescriptor)
+        {
+            switch (element)
+            {
+                case Type type:
+                    OnConfigure(objectTypeDescriptor, type);
+                    break;
+
+                case MethodInfo method:
+                    OnConfigure(objectTypeDescriptor, method);
+                    break;
+            }
+        }
+    }
+
+    private void OnConfigure(IObjectTypeDescriptor descriptor, Type type)
     {
         var entityResolverDescriptor = new EntityResolverDescriptor(descriptor);
 
@@ -60,5 +80,11 @@ public class ReferenceResolverAttribute : ObjectTypeDescriptorAttribute
         {
             entityResolverDescriptor.ResolveEntityWith(type);
         }
+    }
+
+    private void OnConfigure(IObjectTypeDescriptor descriptor, MethodInfo method)
+    {
+        var entityResolverDescriptor = new EntityResolverDescriptor(descriptor);
+        entityResolverDescriptor.ResolveEntityWith(method);
     }
 }
