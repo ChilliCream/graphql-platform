@@ -8,18 +8,18 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorBooleanTests
     : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities = new[]
+    private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true },
-            new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
-    private static readonly FooNullable[] _fooNullableEntities = new[]
+    private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { Bar = true },
-            new FooNullable { Bar = null },
-            new FooNullable { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
+    };
 
     private readonly SchemaCache _cache;
 
@@ -32,18 +32,18 @@ public class QueryableFilterVisitorBooleanTests
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        IExecutionResult res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
         res1.MatchSnapshot("true");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        IExecutionResult res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
@@ -55,18 +55,18 @@ public class QueryableFilterVisitorBooleanTests
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        IExecutionResult res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
         res1.MatchSnapshot("true");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        IExecutionResult res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
@@ -78,26 +78,26 @@ public class QueryableFilterVisitorBooleanTests
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        IExecutionResult res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
         res1.MatchSnapshot("true");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        IExecutionResult res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
         res2.MatchSnapshot("false");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        IExecutionResult res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
@@ -109,26 +109,26 @@ public class QueryableFilterVisitorBooleanTests
     public async Task Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        IExecutionResult res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
         res1.MatchSnapshot("true");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        IExecutionResult res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
 
         res2.MatchSnapshot("false");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        IExecutionResult res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Create());
@@ -150,13 +150,11 @@ public class QueryableFilterVisitorBooleanTests
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
+    public class FooFilterInput : FilterInputType<Foo>
     {
     }
 
-    public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
+    public class FooNullableFilterInput : FilterInputType<FooNullable>
     {
     }
 }

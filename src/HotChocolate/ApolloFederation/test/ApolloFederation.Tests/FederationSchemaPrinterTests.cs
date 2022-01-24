@@ -24,16 +24,15 @@ public class FederationSchemaPrinterTests
         // arrange
         ISchema schema = SchemaBuilder.New()
             .AddApolloFederation()
-            .AddDocumentFromString(@"
-                    type TestType @key(fields: ""id"") {
-                        id: Int!
-                        name: String!
-                    }
+            .AddDocumentFromString(
+                @"type TestType @key(fields: ""id"") {
+                    id: Int!
+                    name: String!
+                }
 
-                    type Query {
-                        someField(a: Int): TestType
-                    }
-                ")
+                type Query {
+                    someField(a: Int): TestType
+                }")
             .Use(_ => _ => default)
             .Create();
 
@@ -49,46 +48,104 @@ public class FederationSchemaPrinterTests
         ISchema schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(@"
-                    type TestType @key(fields: ""id"") {
-                        id: Int!
-                        name: String!
-                        enum: SomeEnum
-                    }
+                type TestType @key(fields: ""id"") {
+                    id: Int!
+                    name: String!
+                    enum: SomeEnum
+                }
 
-                    type TestTypeTwo {
-                        id: Int!
-                    }
+                type TestTypeTwo {
+                    id: Int!
+                }
 
-                    interface iTestType @key(fields: ""id"") {
-                        id: Int!
-                        external: String! @external
-                    }
+                interface iTestType @key(fields: ""id"") {
+                    id: Int!
+                    external: String! @external
+                }
 
-                    union TestTypes = TestType | TestTypeTwo
+                union TestTypes = TestType | TestTypeTwo
 
-                    enum SomeEnum {
-                       FOO
-                       BAR
-                    }
+                enum SomeEnum {
+                   FOO
+                   BAR
+                }
 
-                    input SomeInput {
-                      name: String!
-                      description: String
-                      someEnum: SomeEnum
-                    }
+                input SomeInput {
+                  name: String!
+                  description: String
+                  someEnum: SomeEnum
+                }
 
-                    type Mutation {
-                        doSomething(input: SomeInput): Boolean
-                    }
+                type Mutation {
+                    doSomething(input: SomeInput): Boolean
+                }
 
-                    type Query implements iQuery {
-                        someField(a: Int): TestType
-                    }
+                type Query implements iQuery {
+                    someField(a: Int): TestType
+                }
 
-                    interface iQuery {
-                        someField(a: Int): TestType
-                    }
-                ")
+                interface iQuery {
+                    someField(a: Int): TestType
+                }
+            ")
+            .Use(_ => _ => default)
+            .Create();
+
+        // act
+        // assert
+        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+    }
+
+    [Fact]
+    public void TestFederationPrinterSchemaFirst_With_DateTime()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddDocumentFromString(@"
+                type TestType @key(fields: ""id"") {
+                    id: Int!
+                    name: String!
+                    enum: SomeEnum
+                }
+
+                type TestTypeTwo {
+                    id: Int!
+                }
+
+                interface iTestType @key(fields: ""id"") {
+                    id: Int!
+                    external: String! @external
+                }
+
+                union TestTypes = TestType | TestTypeTwo
+
+                enum SomeEnum {
+                   FOO
+                   BAR
+                }
+
+                input SomeInput {
+                  name: String!
+                  description: String
+                  someEnum: SomeEnum
+                  time: DateTime
+                }
+
+                type Mutation {
+                    doSomething(input: SomeInput): Boolean
+                }
+
+                type Query implements iQuery {
+                    someField(a: Int): TestType
+                }
+
+                interface iQuery {
+                    someField(a: Int): TestType
+                }
+
+                scalar DateTime
+            ")
             .Use(_ => _ => default)
             .Create();
 
@@ -172,7 +229,7 @@ public class FederationSchemaPrinterTests
         public string Zipcode { get; set; } = default!;
     }
 
-    [ForeignServiceTypeExtension]
+    [ExtendServiceType]
     public class Product
     {
         [Key]

@@ -9,7 +9,7 @@ namespace HotChocolate.ApolloFederation;
 
 public class EntitiesResolverTests
 {
-    [Fact(Skip = "Needs to be fixed!")]
+    [Fact]
     public async void TestResolveViaForeignServiceType()
     {
         // arrange
@@ -23,13 +23,9 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new()
-            {
-                TypeName = "ForeignType",
-                Data = new ObjectValueNode(
-                    new ObjectFieldNode("Id", "1"),
-                    new ObjectFieldNode("SomeExternalField", "someExternalField"))
-            }
+            new("ForeignType", new ObjectValueNode(
+                new ObjectFieldNode("id", "1"),
+                new ObjectFieldNode("someExternalField", "someExternalField")))
         };
 
         // assert
@@ -40,7 +36,7 @@ public class EntitiesResolverTests
         Assert.Equal("InternalValue", obj.InternalField);
     }
 
-    [Fact(Skip = "Needs to be fixed!")]
+    [Fact]
     public async void TestResolveViaForeignServiceType_MixedTypes()
     {
         // arrange
@@ -54,13 +50,9 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new()
-            {
-                TypeName = "MixedFieldTypes",
-                Data = new ObjectValueNode(
-                    new ObjectFieldNode("Id", "1"),
-                    new ObjectFieldNode("IntField", 25))
-            }
+            new("MixedFieldTypes",new ObjectValueNode(
+                new ObjectFieldNode("id", "1"),
+                new ObjectFieldNode("intField", 25)))
         };
 
         // assert
@@ -84,11 +76,7 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new()
-            {
-                TypeName = "TypeWithReferenceResolver",
-                Data = new ObjectValueNode(new ObjectFieldNode("Id", "1"))
-            }
+            new("TypeWithReferenceResolver", new ObjectValueNode(new ObjectFieldNode("Id", "1")))
         };
 
         // assert
@@ -111,11 +99,7 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new()
-            {
-                TypeName = "NonExistingTypeName",
-                Data = new ObjectValueNode()
-            }
+            new("NonExistingTypeName", new ObjectValueNode())
         };
 
         // assert
@@ -136,11 +120,7 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new()
-            {
-                TypeName = "TypeWithoutRefResolver",
-                Data = new ObjectValueNode()
-            }
+            new("TypeWithoutRefResolver", new ObjectValueNode())
         };
 
         // assert
@@ -177,29 +157,48 @@ public class EntitiesResolverTests
         }
     }
 
-    [ForeignServiceTypeExtension]
+    [ExtendServiceType]
     public class ForeignType
     {
+        public ForeignType(string id, string someExternalField)
+        {
+            Id = id;
+            SomeExternalField = someExternalField;
+        }
+
         [Key]
         [External]
-        public string Id { get; set; } = default!;
+        public string Id { get; }
 
         [External]
-        public string SomeExternalField { get; set; } = default!;
+        public string SomeExternalField { get; }
 
-        public string InternalField { get; set; } = "InternalValue";
+        public string InternalField => "InternalValue";
+
+        [ReferenceResolver]
+        public static ForeignType GetById(string id, string someExternalField)
+            => new(id, someExternalField);
     }
 
-    [ForeignServiceTypeExtension]
+    [ExtendServiceType]
     public class MixedFieldTypes
     {
+        public MixedFieldTypes(string id, int intField)
+        {
+            Id = id;
+            IntField = intField;
+        }
+
         [Key]
         [External]
-        public string Id { get; set; } = default!;
+        public string Id { get; }
 
         [External]
-        public int IntField { get; set; }
+        public int IntField { get; }
 
         public string InternalField { get; set; } = "InternalValue";
+
+        [ReferenceResolver]
+        public static MixedFieldTypes GetByExternal(string id, int intField) => new(id, intField);
     }
 }

@@ -55,6 +55,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                                 }
                             })
                         .UseFiltering<T>())
+                .AddType(new TimeSpanType(TimeSpanFormat.DotNet))
                 .UseRequest(
                     next => async context =>
                     {

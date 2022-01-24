@@ -51,7 +51,10 @@ public abstract class ObjectTypeDescriptorBase<T>
                 p =>
                 {
                     var descriptor = ObjectFieldDescriptor.New(
-                        Context, p, Definition.RuntimeType, Definition.FieldBindingType);
+                        Context,
+                        p,
+                        Definition.RuntimeType,
+                        Definition.FieldBindingType);
 
                     if (Definition.IsExtension && Context.TypeInspector.IsMemberIgnored(p))
                     {
@@ -64,8 +67,7 @@ public abstract class ObjectTypeDescriptorBase<T>
                 fields,
                 handledMembers,
                 include: IncludeField,
-                includeIgnoredMembers
-                : Definition.IsExtension);
+                includeIgnoredMembers: Definition.IsExtension);
         }
 
         base.OnCompleteFields(fields, handledMembers);

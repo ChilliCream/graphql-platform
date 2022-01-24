@@ -21,11 +21,9 @@ namespace HotChocolate.ApolloFederation;
 public sealed class ProvidesDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
-    {
-        descriptor
+        => descriptor
             .Name(WellKnownTypeNames.Provides)
             .Description(FederationResources.ProvidesDirective_Description)
             .Location(DirectiveLocation.FieldDefinition)
             .FieldsArgument();
-    }
 }

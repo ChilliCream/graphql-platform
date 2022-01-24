@@ -1,18 +1,20 @@
-﻿interface iQuery {
-  someField(a: Int): TestType
-}
-
-interface iTestType @key(fields: "id") {
-  id: Int!
-  external: String! @external
-}
-
-type Mutation {
+﻿type Mutation {
   doSomething(input: SomeInput): Boolean
 }
 
 type Query implements iQuery {
   someField(a: Int): TestType
+}
+
+enum SomeEnum {
+  FOO
+  BAR
+}
+
+input SomeInput {
+  name: String!
+  description: String
+  someEnum: SomeEnum
 }
 
 type TestType @key(fields: "id") {
@@ -27,13 +29,11 @@ type TestTypeTwo {
 
 union TestTypes = TestType | TestTypeTwo
 
-input SomeInput {
-  name: String!
-  description: String
-  someEnum: SomeEnum
+interface iQuery {
+  someField(a: Int): TestType
 }
 
-enum SomeEnum {
-  FOO
-  BAR
+interface iTestType @key(fields: "id") {
+  id: Int!
+  external: String! @external
 }

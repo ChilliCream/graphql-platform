@@ -22,6 +22,6 @@ public sealed class ExternalAttribute : ObjectFieldDescriptorAttribute
     public override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member) =>
-        descriptor.External();
+        MemberInfo member)
+        => descriptor.External();
 }
