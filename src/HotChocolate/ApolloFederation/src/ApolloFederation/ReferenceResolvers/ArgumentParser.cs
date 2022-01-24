@@ -35,13 +35,14 @@ internal static class ArgumentParser
 
                 foreach (ObjectFieldNode fieldValue in ((ObjectValueNode)valueNode).Fields)
                 {
-                    if (field.Name.Value.EqualsOrdinal(current))
+                    if (fieldValue.Name.Value.EqualsOrdinal(current))
                     {
-                        if (path.Length >= ++i)
+                        if (path.Length < ++i && field.Type.IsCompositeType())
                         {
-                            return TryGetValue(fieldValue.Value, field.Type, path, i, out value);
+                            break;
                         }
-                        break;
+
+                        return TryGetValue(fieldValue.Value, field.Type, path, i, out value);
                     }
                 }
                 break;

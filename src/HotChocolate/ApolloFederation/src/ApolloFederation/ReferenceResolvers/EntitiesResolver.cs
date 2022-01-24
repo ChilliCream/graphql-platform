@@ -18,29 +18,12 @@ internal static class EntitiesResolver
 
         foreach (Representation representation in representations)
         {
-            if (schema.TryGetType<INamedType>(representation.TypeName, out var entityType) &&
-                !entityType.ContextData.ContainsKey(ExtendMarker))
-            {
-                entityType = null;
-            }
-
-            if (entityType != null)
-            {
-                if (entityType.ContextData.TryGetValue(EntityResolver, out var value) &&
-                    value is Func<object, object?> d)
-                {
-                    entities.Add(d(representation));
-                }
-                else
-                {
-                    throw ThrowHelper.EntityResolver_NoResolverFound();
-                }
-            }
-            else if (schema.TryGetType<ObjectType>(representation.TypeName, out var objectType) &&
+            if (schema.TryGetType<ObjectType>(representation.TypeName, out var objectType) &&
                 objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
                 value is FieldResolverDelegate resolver)
             {
-                context.SetLocalValue(AnyType.DataField, representation.Data);
+                context.SetLocalValue(TypeField, objectType);
+                context.SetLocalValue(DataField, representation.Data);
                 entities.Add(await resolver.Invoke(context).ConfigureAwait(false));
             }
             else

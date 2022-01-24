@@ -8,6 +8,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types;
+using static HotChocolate.ApolloFederation.WellKnownContextData;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
 namespace HotChocolate.ApolloFederation;
@@ -33,21 +34,21 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder
 
     public override bool IsDefaultHandler => true;
 
-    public IReadOnlyList<string[]> Paths { get; private set; } = Array.Empty<string[]>();
+    public IReadOnlyList<string[]> Required { get; private set; } = Array.Empty<string[]>();
 
     public override bool CanHandle(ParameterInfo parameter) => true;
 
-    protected override string GetKey(ParameterInfo parameter) => AnyType.DataField;
+    protected override string GetKey(ParameterInfo parameter) => DataField;
 
     public override Expression Build(ParameterInfo parameter, Expression context)
     {
         ConstantExpression path = Expression.Constant(GetPath(parameter), typeof(string[]));
-        ConstantExpression key = Expression.Constant(AnyType.DataField, typeof(string));
-        Expression value = BuildGetter(parameter, key, context, typeof(IValueNode));
+        ConstantExpression dataKey = Expression.Constant(DataField, typeof(string));
+        ConstantExpression typeKey = Expression.Constant(TypeField, typeof(string));
+        Expression value = BuildGetter(parameter, dataKey, context, typeof(IValueNode));
+        Expression objectType = BuildGetter(parameter, typeKey, context, typeof(ObjectType));
         MethodInfo getValueMethod = _getValue.MakeGenericMethod(parameter.ParameterType);
-        Expression<Func<IResolverContext, IObjectType>> getObjectTypeExpr = t => t.ObjectType;
-        Expression getObjectType = Expression.Invoke(getObjectTypeExpr, context);
-        Expression getValue = Expression.Call(getValueMethod, value, getObjectType, path);
+        Expression getValue = Expression.Call(getValueMethod, value, objectType, path);
         return getValue;
     }
 
@@ -57,11 +58,17 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder
           ? attr.Path.Split('.')
           : new[] { parameter.Name! };
 
-        if (Paths.Count == 0)
+        if (Required.Count == 0)
         {
-            Paths = new string[][] { path };
+            Required = new string[][] { path };
         }
-        else if (Paths is List<string[]> list)
+        else if (Required.Count == 1)
+        {
+            var required = new List<string[]>(Required);
+            required.Add(path);
+            Required = required;
+        }
+        else if (Required is List<string[]> list)
         {
             list.Add(path);
         }

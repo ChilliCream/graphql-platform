@@ -125,7 +125,7 @@ public sealed class EntityResolverDescriptor
                 resolverType: method.DeclaringType ?? typeof(object),
                 parameterExpressionBuilders: new IParameterExpressionBuilder[] { argumentBuilder });
 
-        return ResolveEntity(resolver.Resolver!, argumentBuilder.Paths);
+        return ResolveEntity(resolver.Resolver!, argumentBuilder.Required);
     }
 
     public IObjectTypeDescriptor ResolveEntityWith(Type type) =>
