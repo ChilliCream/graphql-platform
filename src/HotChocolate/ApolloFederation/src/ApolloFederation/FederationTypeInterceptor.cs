@@ -90,85 +90,10 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        if (completionContext.Type is ObjectType type &&
+        if (completionContext.Type is ObjectType &&
             definition is ObjectTypeDefinition typeDef)
         {
-            AddFactoryMethodToContext(
-                type,
-                contextData);
-
             CompleteReferenceResolver(typeDef);
-        }
-    }
-
-    private void AddFactoryMethodToContext(
-        ObjectType type,
-        IDictionary<string, object?> contextData)
-    {
-        if (type.ToRuntimeType() is var rt &&
-            rt.IsDefined(typeof(ExtendServiceTypeAttribute)))
-        {
-            IEnumerable<ObjectField> fields = type.Fields.Where(
-                field => field.Member is not null &&
-                    field.Member.IsDefined(typeof(ExternalAttribute)));
-
-            ParameterExpression representationArgument =
-                Expression.Parameter(typeof(Representation));
-            ParameterExpression objectVariable =
-                Expression.Variable(rt);
-
-            IEnumerable<ConditionalExpression> assignExpressions = fields.Select(
-                field =>
-                {
-                    if (field.Member is PropertyInfo pi && field.Type.InnerType() is ScalarType st)
-                    {
-                        Expression<Func<IValueNode, object?>> valueConverter =
-                            valueNode => st.ParseLiteral(valueNode);
-
-                        Expression<Func<Representation, bool>> assignConditionCheck =
-                            representation =>
-                                representation.Data.Fields.Any(
-                                    item =>
-                                        item.Name.Value.Equals(
-                                            pi.Name,
-                                            StringComparison.OrdinalIgnoreCase));
-
-                        Expression<Func<Representation, IValueNode>> valueGetterFunc =
-                            representation =>
-                                representation.Data.Fields.Single(item =>
-                                    item.Name.Value.Equals(
-                                        pi.Name,
-                                        StringComparison.OrdinalIgnoreCase)).Value;
-
-                        return Expression.IfThen(
-                            Expression.Invoke(assignConditionCheck, representationArgument),
-                            Expression.Assign(
-                                Expression.MakeMemberAccess(objectVariable, pi),
-                                Expression.Convert(
-                                    Expression.Invoke(
-                                        valueConverter,
-                                        Expression.Invoke(
-                                            valueGetterFunc,
-                                            representationArgument)),
-                                    pi.PropertyType)));
-                    }
-
-                    throw ExternalAttribute_InvalidTarget(rt, field.Member);
-                });
-
-            LabelTarget returnTarget = Expression.Label(rt);
-            var expressions = new List<Expression>
-                {
-                    Expression.Assign(objectVariable, Expression.New(rt))
-                };
-            expressions.AddRange(assignExpressions);
-            expressions.Add(Expression.Label(returnTarget, objectVariable));
-
-            LambdaExpression objectFactoryMethodExpression = Expression.Lambda(
-                Expression.Block(new[] { objectVariable }, expressions),
-                representationArgument);
-
-            contextData[EntityResolver] = objectFactoryMethodExpression.Compile();
         }
     }
 
@@ -237,9 +162,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 .Type<NonNullType<ListType<EntityType>>>()
                 .Argument(
                     WellKnownArgumentNames.Representations,
-                    descriptor =>
-                        descriptor.Type<NonNullType<ListType<NonNullType<AnyType>>>>()
-                )
+                    descriptor => descriptor.Type<NonNullType<ListType<NonNullType<AnyType>>>>())
                 .Resolve(c => EntitiesResolver._Entities(
                     c.Schema,
                     c.ArgumentValue<IReadOnlyList<Representation>>(

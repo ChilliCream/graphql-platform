@@ -14,7 +14,6 @@ namespace HotChocolate.ApolloFederation;
 public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
 {
     public const string TypeNameField = "__typename";
-    public const string DataField = "data";
 
     /// <summary>
     /// Initializes a new instance of <see cref="AnyType"/>.

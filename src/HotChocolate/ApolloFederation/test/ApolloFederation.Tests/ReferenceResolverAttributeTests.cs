@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Xunit;
+using static HotChocolate.ApolloFederation.WellKnownContextData;
 using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -148,14 +149,14 @@ public class ReferenceResolverAttributeTests
         ObjectType type,
         ObjectValueNode representation)
     {
-        var inClassResolverContextObject =
-            type.ContextData[WellKnownContextData.EntityResolver];
+        var inClassResolverContextObject = type.ContextData[EntityResolver];
         Assert.NotNull(inClassResolverContextObject);
         FieldResolverDelegate inClassResolverDelegate =
             Assert.IsType<FieldResolverDelegate>(inClassResolverContextObject);
         IResolverContext context = CreateResolverContext(schema, type);
 
-        context.SetLocalValue(AnyType.DataField, representation);
+        context.SetLocalValue(DataField, representation);
+        context.SetLocalValue(TypeField, type);
         return inClassResolverDelegate.Invoke(context);
     }
 
