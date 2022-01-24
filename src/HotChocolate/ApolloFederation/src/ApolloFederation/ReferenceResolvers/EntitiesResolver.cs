@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -16,7 +15,7 @@ internal static class EntitiesResolver
         IResolverContext context)
     {
         var entities = new List<object?>();
-        
+
         foreach (Representation representation in representations)
         {
             if (schema.TryGetType<INamedType>(representation.TypeName, out var entityType) &&
@@ -41,7 +40,7 @@ internal static class EntitiesResolver
                 objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
                 value is FieldResolverDelegate resolver)
             {
-                context.SetLocalValue("data", representation.Data);
+                context.SetLocalValue(AnyType.DataField, representation.Data);
                 entities.Add(await resolver.Invoke(context).ConfigureAwait(false));
             }
             else

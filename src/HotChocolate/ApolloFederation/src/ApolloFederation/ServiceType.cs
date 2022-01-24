@@ -14,12 +14,10 @@ namespace HotChocolate.ApolloFederation;
 public class ServiceType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor
+        => descriptor
             .Name(WellKnownTypeNames.Service)
             .Description(FederationResources.ServiceType_Description)
             .Field(WellKnownFieldNames.Sdl)
             .Type<NonNullType<StringType>>()
             .Resolve(resolver => FederationSchemaPrinter.Print(resolver.Schema));
-    }
 }

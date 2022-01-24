@@ -8,7 +8,7 @@ using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate.ApolloFederation;
 
-public static partial class FederationSchemaPrinter
+internal static partial class FederationSchemaPrinter
 {
     private static IDefinitionNode? SerializeObjectType(
         ObjectType objectType,

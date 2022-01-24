@@ -9,7 +9,7 @@ using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate.ApolloFederation;
 
-public static partial class FederationSchemaPrinter
+internal static partial class FederationSchemaPrinter
 {
     public static string Print(ISchema schema)
     {
