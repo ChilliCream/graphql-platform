@@ -2,7 +2,7 @@
 title: Filtering
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 With Hot Chocolate filters, you can expose complex filter objects through your GraphQL API that translates to native database queries. The default filter implementation translates filters to expression trees that are applied to `IQueryable`.
 Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
@@ -47,6 +47,8 @@ Filtering is part of the `HotChocolate.Data` package. You can add the dependency
 ```bash
 dotnet add package HotChocolate.Data
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 To use filtering you need to register it on the schema:
 

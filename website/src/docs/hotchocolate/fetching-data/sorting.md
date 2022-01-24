@@ -2,7 +2,7 @@
 title: Sorting
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 # What is sorting
 
@@ -59,8 +59,10 @@ enum SortEnumType {
 Sorting is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
 
 ```bash
-  dotnet add package HotChocolate.Data
+dotnet add package HotChocolate.Data
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 To use sorting you need to register it on the schema:
 

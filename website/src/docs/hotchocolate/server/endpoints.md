@@ -1,28 +1,8 @@
 ---
-title: Middleware
+title: Endpoints
 ---
 
-In Order for Hot Chocolate to be accessible using a HTTP endpoint, we need to register some middleware with ASP.NET Core.
-
-<!-- # Services
-
-In order for Hot Chocolate to function correctly we have to register some services that are used within the server middleware as well as in the schema creation process.
-
-To register these services we have to call `AddGraphQLServer()` in the `ConfigureServices()` method of the `Startup` class.
-
-```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>();
-    }
-}
-```
-
-The `AddGraphQLServer()` method also has an optional `schemaName` argument, which becomes relevant as soon as we want to host multiple schemas using a single GraphQL server. Most users will be able to safely ignore this argument. -->
+Hot Chocolate comes with a set of ASP.NET Core middleware used for making the GraphQL server available via HTTP and WebSockets. There are also middleware for hosting our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop) as well as an endpoint used for downloading the schema in its SDL representation.
 
 # MapGraphQL
 
@@ -43,7 +23,21 @@ public class Startup
 }
 ```
 
-Per default this makes our GraphQL server available at `/graphql`.
+If you are using .NET 6 Minimal APIs, you can also call `MapGraphQL()` on the `app` builder directly, since it implements `IEndpointRouteBuilder`:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Omitted code for brevity
+
+var app = builder.Build();
+
+app.MapGraphQL();
+
+app.Run();
+```
+
+The middleware registered by `MapGraphQL` makes the GraphQL server available at `/graphql` per default.
 
 We can customize the endpoint at which the GraphQL server is hosted like the following.
 
