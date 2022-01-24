@@ -40,7 +40,7 @@ Each of these mutations is executed serially one by one whereas their child sele
 A mutation type can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Mutation
@@ -64,8 +64,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Mutation
@@ -96,8 +96,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Mutation
@@ -134,7 +134,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > ⚠️ Note: Only **one** mutation type can be registered using `AddMutationType()`. If we want to split up our mutation type into multiple classes, we can do so using type extensions.
@@ -239,7 +239,7 @@ service
 With the mutation conventions enabled, we can define the described mutation pattern with minimal code by just annotating a field with `UseMutationConvention`.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Mutation
@@ -252,8 +252,8 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Mutation
@@ -277,8 +277,8 @@ public class MutationType : ObjectType<Mutation>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type Mutation {
@@ -286,7 +286,7 @@ type Mutation {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 We also can configure the mutation conventions to be applied to all mutations by default.
@@ -301,7 +301,7 @@ service
 In the case that the conventions are applied by default we no longer need any annotation.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Mutation
@@ -313,8 +313,8 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Mutation
@@ -337,8 +337,8 @@ public class MutationType : ObjectType<Mutation>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type Mutation {
@@ -346,7 +346,7 @@ type Mutation {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Errors
@@ -357,7 +357,7 @@ The mutation conventions also allow you to create mutations that follow the erro
 The basic concept here is to keep the resolver clean of any error handling code and use exceptions to signal an error state. The field will simply expose which exceptions are domain errors that shall be exposed to the schema. All other exceptions will still cause runtime errors.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Mutation
@@ -371,8 +371,8 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Mutation
@@ -396,8 +396,8 @@ public class MutationType : ObjectType<Mutation>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type Mutation {
@@ -417,7 +417,7 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 The HotChocolate schema is automatically rewritten, and an error middleware will catch all the exceptions that represent domain errors and rewrite them into the correct error object.
@@ -474,7 +474,7 @@ If the exception is thrown and is caught in the error middleware, it will be rew
 > The name of the exception will be rewritten. `Exception` is replaced with `Error` to follow the common GraphQL naming conventions.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class UserNameTakenException : Exception
@@ -495,8 +495,8 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserNameTakenException : Exception
@@ -527,8 +527,8 @@ public class MutationType : ObjectType<Mutation>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class UserNameTakenException : Exception
@@ -557,7 +557,7 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ### Map with a factory method
@@ -569,7 +569,7 @@ The error instance and the translation of the exception can be done by an error 
 Add a `public` `static` method called `CreateErrorFrom` that takes an exception and returns the error object.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class UserNameTakenError
@@ -612,8 +612,8 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserNameTakenError
@@ -666,8 +666,8 @@ public class MutationType : ObjectType<Mutation>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class UserNameTakenError
@@ -708,7 +708,7 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 Error factories can also be located in a dedicated class.
@@ -771,7 +771,7 @@ public class Mutation
 Lastly, we can also use the constructor of an error class to consume an exception. Essentially the constructor in this case represents the factory that we described earlier.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class UserNameTakenError
@@ -804,8 +804,8 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserNameTakenError
@@ -848,8 +848,8 @@ public class MutationType : ObjectType<Mutation>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class UserNameTakenError
@@ -890,7 +890,7 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > Note: errors and error factories can be shared between multiple mutations.
@@ -981,10 +981,10 @@ interface Error {
 
 Often we also want to provide an error code so that the GUI components can more easily implement error handling logic. In such a case, we could provide our own error interface.
 
-> Note: All you error types have to implement the contract that the interface declares! Your errors/exceptions do not have to implement the common interface, but they have to declare all the interface's members.
+> Note: All your error types have to implement the contract that the interface declares! Your errors/exceptions do not have to implement the common interface, but they have to declare all the interface's members.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [GraphQLName("UserError")]
@@ -1007,8 +1007,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class CustomErrorInterfaceType : InterfaceType
@@ -1033,8 +1033,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 interface UserError @errorInterface {
@@ -1043,7 +1043,7 @@ interface UserError @errorInterface {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ```sdl

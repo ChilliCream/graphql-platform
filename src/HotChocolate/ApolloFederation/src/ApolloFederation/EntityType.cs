@@ -11,9 +11,7 @@ namespace HotChocolate.ApolloFederation;
 public sealed class EntityType : UnionType
 {
     protected override void Configure(IUnionTypeDescriptor descriptor)
-    {
-        descriptor
+        => descriptor
             .Name(Entity)
             .Description(FederationResources.EntityType_Description);
-    }
 }

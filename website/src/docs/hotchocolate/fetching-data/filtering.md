@@ -59,7 +59,7 @@ services.AddGraphQLServer()
 Hot Chocolate will infer the filters directly from your .Net Model and then use a Middleware to apply filters to `IQueryable<T>` or `IEnumerable<T>` on execution.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -70,8 +70,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Query
@@ -92,12 +92,12 @@ public class QueryType : ObjectType<Query>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ⚠️ Schema-first does currently not support filtering!
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
@@ -165,7 +165,7 @@ input CustomerOperationFilterInput {
 To apply this filter type we just have to provide it to the `UseFiltering` extension method with as the generic type argument.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -176,8 +176,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType<Query>
@@ -191,12 +191,12 @@ public class QueryType : ObjectType<Query>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ⚠️ Schema-first does currently not support filtering!
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 # "and" / "or" Filter

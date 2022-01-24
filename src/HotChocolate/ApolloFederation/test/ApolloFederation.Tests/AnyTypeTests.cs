@@ -29,13 +29,13 @@ public class AnyTypeTests
         );
 
         // act
-        object? representationObject = type.Deserialize(serialized);
+        var representationObject = type.Deserialize(serialized);
 
         // assert
         Assert.IsType<Representation>(representationObject);
         if (representationObject is Representation representation)
         {
-            Assert.Equal("test", representation.Typename);
+            Assert.Equal("test", representation.TypeName);
             Assert.Collection(representation.Data.Fields,
                 node =>
                 {
@@ -92,11 +92,10 @@ public class AnyTypeTests
         var type = new AnyType();
         var serialized = new ObjectValueNode(
             new ObjectFieldNode(AnyType.TypeNameField, "test"),
-            new ObjectFieldNode("foo", "bar")
-        );
+            new ObjectFieldNode("foo", "bar"));
 
         // act
-        var success = type.TryDeserialize(serialized, out object? representation);
+        var success = type.TryDeserialize(serialized, out var representation);
 
         // assert
         Assert.True(success);
@@ -110,7 +109,7 @@ public class AnyTypeTests
         var type = new AnyType();
 
         // act
-        var success = type.TryDeserialize(null, out object? representation);
+        var success = type.TryDeserialize(null, out var representation);
 
         // assert
         Assert.True(success);
@@ -125,7 +124,7 @@ public class AnyTypeTests
         const int serialized = 1;
 
         // act
-        var success = type.TryDeserialize(serialized, out object? representation);
+        var success = type.TryDeserialize(serialized, out var representation);
 
         // assert
         Assert.False(success);
@@ -147,14 +146,10 @@ public class AnyTypeTests
                 "bar"
             )
         );
-        var representation = new Representation
-        {
-            Typename = "test",
-            Data = objectValueNode
-        };
+        var representation = new Representation("test", objectValueNode);
 
         // act
-        object? serialized = type.Serialize(representation);
+        var serialized = type.Serialize(representation);
 
         // assert
         Assert.Equal(objectValueNode, serialized);
@@ -188,14 +183,10 @@ public class AnyTypeTests
                 "bar"
             )
         );
-        var representation = new Representation
-        {
-            Typename = "test",
-            Data = objectValueNode
-        };
+        var representation = new Representation("test", objectValueNode);
 
         // act
-        var success = type.TrySerialize(representation, out object? serialized);
+        var success = type.TrySerialize(representation, out var serialized);
 
         // assert
         Assert.True(success);
@@ -209,7 +200,7 @@ public class AnyTypeTests
         var type = new AnyType();
 
         // act
-        var success = type.TrySerialize(1, out object? serialized);
+        var success = type.TrySerialize(1, out var serialized);
 
         // assert
         Assert.False(success);
@@ -223,7 +214,7 @@ public class AnyTypeTests
         var type = new AnyType();
 
         // act
-        var success = type.TrySerialize(null, out object? serialized);
+        var success = type.TrySerialize(null, out var serialized);
 
         // assert
         Assert.True(success);
@@ -245,11 +236,7 @@ public class AnyTypeTests
                 "bar"
             )
         );
-        var representation = new Representation
-        {
-            Typename = "test",
-            Data = objectValueNode
-        };
+        var representation = new Representation("test", objectValueNode);
 
         // act
         IValueNode valueSyntax = type.ParseValue(representation);
@@ -277,16 +264,12 @@ public class AnyTypeTests
         );
 
         // act
-        object? valueSyntax = type.ParseLiteral(objectValueNode);
+        var valueSyntax = type.ParseLiteral(objectValueNode);
 
         // assert
-        Representation? parsedRepresentation = Assert.IsType<Representation>(valueSyntax);
-        Assert.Equal(
-            "test",
-            parsedRepresentation.Typename);
-        Assert.Equal(
-            objectValueNode,
-            parsedRepresentation.Data);
+        Representation parsedRepresentation = Assert.IsType<Representation>(valueSyntax);
+        Assert.Equal("test", parsedRepresentation.TypeName);
+        Assert.Equal(objectValueNode, parsedRepresentation.Data);
     }
 
     [Fact]
@@ -317,14 +300,10 @@ public class AnyTypeTests
                 "bar"
             )
         );
-        var representation = new Representation
-        {
-            Typename = "test",
-            Data = objectValueNode
-        };
+        var representation = new Representation("test", objectValueNode);
 
         // act
-        IValueNode? parsedResult = type.ParseResult(representation);
+        IValueNode parsedResult = type.ParseResult(representation);
 
         // assert
         Assert.Equal(
@@ -339,12 +318,10 @@ public class AnyTypeTests
         var type = new AnyType();
 
         // act
-        IValueNode? parsedResult = type.ParseResult(null);
+        IValueNode parsedResult = type.ParseResult(null);
 
         // assert
-        Assert.Equal(
-            NullValueNode.Default,
-            parsedResult);
+        Assert.Equal(NullValueNode.Default, parsedResult);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Xunit;
+using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -25,7 +26,7 @@ public class FieldSetTypeTests
         const string serialized = "a b c d e(d: $b)";
 
         // act
-        object? selectionSet = type.Deserialize(serialized);
+        var selectionSet = type.Deserialize(serialized);
 
         // assert
         Assert.IsType<SelectionSetNode>(selectionSet);
@@ -53,7 +54,7 @@ public class FieldSetTypeTests
         const string serialized = "a b c d e(d: $b)";
 
         // act
-        var success = type.TryDeserialize(serialized, out object? selectionSet);
+        var success = type.TryDeserialize(serialized, out var selectionSet);
 
         // assert
         Assert.True(success);
@@ -67,7 +68,7 @@ public class FieldSetTypeTests
         var type = new FieldSetType();
 
         // act
-        var success = type.TryDeserialize(null, out object? selectionSet);
+        var success = type.TryDeserialize(null, out var selectionSet);
 
         // assert
         Assert.True(success);
@@ -82,7 +83,7 @@ public class FieldSetTypeTests
         const string serialized = "1";
 
         // act
-        var success = type.TryDeserialize(serialized, out object? selectionSet);
+        var success = type.TryDeserialize(serialized, out var selectionSet);
 
         // assert
         Assert.False(success);
@@ -97,7 +98,7 @@ public class FieldSetTypeTests
         const int serialized = 1;
 
         // act
-        var success = type.TryDeserialize(serialized, out object? selectionSet);
+        var success = type.TryDeserialize(serialized, out var selectionSet);
 
         // assert
         Assert.False(success);
@@ -109,11 +110,10 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        SelectionSetNode selectionSet =
-            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        SelectionSetNode selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
 
         // act
-        object? serialized = type.Serialize(selectionSet);
+        var serialized = type.Serialize(selectionSet);
 
         // assert
         Assert.Equal("a b c d e(d: $b)", serialized);
@@ -137,11 +137,10 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        SelectionSetNode selectionSet =
-            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        SelectionSetNode selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
 
         // act
-        var success = type.TrySerialize(selectionSet, out object? serialized);
+        var success = type.TrySerialize(selectionSet, out var serialized);
 
         // assert
         Assert.True(success);
@@ -155,7 +154,7 @@ public class FieldSetTypeTests
         var type = new FieldSetType();
 
         // act
-        var success = type.TrySerialize(1, out object? serialized);
+        var success = type.TrySerialize(1, out var serialized);
 
         // assert
         Assert.False(success);
@@ -167,8 +166,7 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        SelectionSetNode selectionSet =
-            Utf8GraphQLParser.Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        SelectionSetNode selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
 
         // act
         IValueNode valueSyntax = type.ParseValue(selectionSet);

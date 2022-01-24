@@ -47,7 +47,7 @@ We strongly encourage the use of nullable reference types.
 We can also be explicit about the nullability of our fields.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -68,8 +68,8 @@ public class Book
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType<Query>
@@ -97,8 +97,8 @@ public class BookType : ObjectType<Book>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type Book {
@@ -107,13 +107,13 @@ type Book {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 The inner type of a list can be made non-null like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Book
@@ -123,8 +123,8 @@ public class Book
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class BookType : ObjectType<Book>
@@ -138,8 +138,8 @@ public class BookType : ObjectType<Book>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type Book {
@@ -147,5 +147,5 @@ type Book {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

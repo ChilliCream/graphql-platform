@@ -64,7 +64,7 @@ Properties are also covered in detail by the [object type documentation](/docs/h
 A regular resolver is just a simple method, which returns a value.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -83,8 +83,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Query
@@ -124,8 +124,8 @@ descriptor
     });
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Query
@@ -162,7 +162,7 @@ services
     .AddResolver("Query", "foo", (context) => "Bar");
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Async Resolver
@@ -272,7 +272,7 @@ public class Startup
 We can then access the `UserService` in our resolvers like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -282,8 +282,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Query
@@ -316,8 +316,8 @@ descriptor
     });
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Query
@@ -345,7 +345,7 @@ services
     });
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 Hot Chocolate will correctly inject the service depending on its lifetime. For example, a scoped service is only instantiated once per scope (by default that's the GraphQL request execution) and this same instance is injected into all resolvers who share the same scope.
@@ -453,7 +453,7 @@ From the point of view of this `friends` resolver, the `User` CLR type is its _p
 We can access this so called _parent_ value like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 In the Annotation-based approach we can just access the properties using the `this` keyword.
 
@@ -487,8 +487,8 @@ public class User
 
 This is especially useful when using [type extensions](/docs/hotchocolate/defining-a-schema/extending-types).
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class User
@@ -526,8 +526,8 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class User
@@ -559,5 +559,5 @@ services
     });
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

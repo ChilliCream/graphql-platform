@@ -48,7 +48,7 @@ namespace HotChocolate.Types
             await ExpectValid
             (
                 @"{ person { id name } }",
-                b => b.AddQueryType<Query>()
+                b => b.AddQueryType<Query>().AddGlobalObjectIdentification(false)
             )
             .MatchSnapshotAsync();
         }

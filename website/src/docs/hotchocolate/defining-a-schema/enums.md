@@ -82,7 +82,7 @@ Variables:
 We can define enums like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public enum UserRole
@@ -101,8 +101,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public enum UserRole
@@ -155,8 +155,8 @@ public class Startup
 
 With this configuration each `UserRole` CLR type we return from our resovlers would be assumed to be a `UserRoleType`.
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 services
@@ -180,7 +180,7 @@ services
     })
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Non-enum values
@@ -261,7 +261,7 @@ public class UserRoleType : EnumType<UserRole>
 ## Ignoring values
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 In the Annotation-based approach we can ignore values using the `[GraphQLIgnore]` attribute.
 
@@ -275,8 +275,8 @@ public enum UserRole
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 In the Code-first approach we can ignore values using the `Ignore` method on the `IEnumTypeDescriptor`. This is only necessary, if the binding behavior of the enum type is implicit.
 
@@ -290,12 +290,12 @@ public class UserRoleType : EnumType<UserRole>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 We do not have to ignore values in the Schema-first approach.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Including values
@@ -326,7 +326,7 @@ Enum values are automatically formatted to the UPPER_SNAIL_CASE according to the
 If we need to we can override these inferred names.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 The `[GraphQLName]` attribute allows us to specify an explicit name.
 
@@ -341,8 +341,8 @@ public enum UserRole
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 The `Name` method on the `IEnumTypeDescriptor` / `IEnumValueDescriptor` allows us to specify an explicit name.
 
@@ -358,12 +358,12 @@ public class UserRoleType : EnumType<UserRole>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Simply change the names in the schema.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 This would produce the following `Role` schema enum type:

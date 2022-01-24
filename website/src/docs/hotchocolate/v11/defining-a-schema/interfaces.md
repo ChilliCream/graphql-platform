@@ -41,7 +41,7 @@ Learn more about interfaces [here](https://graphql.org/learn/schema/#interfaces)
 Interfaces can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [InterfaceType("Message")]
@@ -109,8 +109,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public interface IMessage
@@ -179,8 +179,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public interface IMessage
@@ -229,7 +229,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > Note: We have to explicitly register the interface implementations:
@@ -262,7 +262,7 @@ type TextMessage implements DatedMessage & Message {
 We can implement this like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [InterfaceType("Message")]
@@ -307,8 +307,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public interface IMessage
@@ -392,8 +392,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public interface IMessage
@@ -450,7 +450,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > Note: We also have to register the `DatedMessage` interface manually, if we do not expose it through a field directly:
@@ -464,7 +464,7 @@ public class Startup
 We can also declare additional dynamic fields (resolvers) on our interfaces.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [InterfaceType("Message")]
@@ -486,8 +486,8 @@ public class TextMessage : IMessage
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public interface IMessage
@@ -606,8 +606,8 @@ public class TextMessageType : ObjectType<TextMessage>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public interface IMessage
@@ -646,5 +646,5 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

@@ -1,10 +1,17 @@
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.ApolloFederation;
 
-public class Representation
+public sealed class Representation
 {
-    public NameString Typename { get; set; }
+    public Representation(NameString typeName, ObjectValueNode data)
+    {
+        TypeName = typeName.EnsureNotEmpty(nameof(typeName));
+        Data = data ?? throw new ArgumentNullException(nameof(data));
+    }
 
-    public ObjectValueNode Data { get; set; } = default!;
+    public NameString TypeName { get; }
+
+    public ObjectValueNode Data { get; }
 }

@@ -18,7 +18,9 @@ namespace HotChocolate.Validation
         public void FieldIsNotDefinedOnTypeInFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentValidatorContext context = ValidationUtils.CreateContext();
+            context.MaxAllowedErrors = int.MaxValue;
+
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
@@ -80,7 +82,9 @@ namespace HotChocolate.Validation
         public void DefinedOnImplementorsButNotInterfaceOnPet()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentValidatorContext context = ValidationUtils.CreateContext();
+            context.MaxAllowedErrors = int.MaxValue;
+
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
@@ -141,7 +145,9 @@ namespace HotChocolate.Validation
         public void DirectFieldSelectionOnUnion()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentValidatorContext context = ValidationUtils.CreateContext();
+            context.MaxAllowedErrors = int.MaxValue;
+
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query {
                     catOrDog {

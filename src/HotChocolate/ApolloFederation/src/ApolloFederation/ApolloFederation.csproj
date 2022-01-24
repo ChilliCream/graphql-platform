@@ -4,8 +4,7 @@
     <PackageId>HotChocolate.ApolloFederation</PackageId>
     <AssemblyName>HotChocolate.ApolloFederation</AssemblyName>
     <RootNamespace>HotChocolate.ApolloFederation</RootNamespace>
-    <Description></Description>
-    <LangVersion>preview</LangVersion>
+    <Description>Apollo Federation Subgraph support for HotChocolate.</Description>
   </PropertyGroup>
 
   <ItemGroup>

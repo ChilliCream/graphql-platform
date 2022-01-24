@@ -39,7 +39,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 We can access the Global State in our resolvers like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -78,8 +78,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType
@@ -117,10 +117,10 @@ descriptor
     });
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Take a look at the Annotation-based or Code-first example.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

@@ -49,7 +49,7 @@ internal sealed class DocumentRule : IDocumentValidatorRule
 
         if (typeSystemNode is not null)
         {
-            context.Errors.Add(context.TypeSystemDefinitionNotAllowed(typeSystemNode));
+            context.ReportError(context.TypeSystemDefinitionNotAllowed(typeSystemNode));
         }
     }
 }

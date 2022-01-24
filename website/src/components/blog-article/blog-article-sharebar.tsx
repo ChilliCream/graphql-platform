@@ -6,9 +6,9 @@ import { BlogArticleSharebarFragment } from "../../../graphql-types";
 import LinkedinIconSvg from "../../images/linkedin-square.svg";
 import TwitterIconSvg from "../../images/twitter-square.svg";
 
-interface BlogArticleSharebarProps {
-  data: BlogArticleSharebarFragment;
-  tags: string[];
+export interface BlogArticleSharebarProps {
+  readonly data: BlogArticleSharebarFragment;
+  readonly tags: string[];
 }
 
 export const BlogArticleSharebar: FC<BlogArticleSharebarProps> = ({

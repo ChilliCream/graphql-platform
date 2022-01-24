@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Validation.Options;
 
 namespace HotChocolate.Validation;
 
@@ -13,6 +15,7 @@ public sealed class DocumentValidator : IDocumentValidator
     private readonly DocumentValidatorContextPool _contextPool;
     private readonly IDocumentValidatorRule[] _allRules;
     private readonly IDocumentValidatorRule[] _nonCacheableRules;
+    private readonly int _maxAllowedErrors;
 
     /// <summary>
     /// Creates a new instance of <see cref="DocumentValidator"/>.
@@ -26,16 +29,23 @@ public sealed class DocumentValidator : IDocumentValidator
     /// <exception cref="ArgumentNullException"></exception>
     public DocumentValidator(
         DocumentValidatorContextPool contextPool,
-        IEnumerable<IDocumentValidatorRule> rules)
+        IEnumerable<IDocumentValidatorRule> rules,
+        IErrorOptionsAccessor errorOptionsAccessor)
     {
         if (rules is null)
         {
             throw new ArgumentNullException(nameof(rules));
         }
 
+        if (errorOptionsAccessor is null)
+        {
+            throw new ArgumentNullException(nameof(errorOptionsAccessor));
+        }
+
         _contextPool = contextPool ?? throw new ArgumentNullException(nameof(contextPool));
         _allRules = rules.ToArray();
         _nonCacheableRules = _allRules.Where(t => !t.IsCacheable).ToArray();
+        _maxAllowedErrors = errorOptionsAccessor.MaxAllowedErrors;
     }
 
     /// <inheritdoc />
@@ -85,6 +95,11 @@ public sealed class DocumentValidator : IDocumentValidator
                 ? new DocumentValidatorResult(context.Errors)
                 : DocumentValidatorResult.Ok;
         }
+        catch (MaxValidationErrorsException)
+        {
+            Debug.Assert(context.Errors.Count > 0, "There must be at least 1 validation error.");
+            return new DocumentValidatorResult(context.Errors);
+        }
         finally
         {
             _contextPool.Return(context);
@@ -109,6 +124,7 @@ public sealed class DocumentValidator : IDocumentValidator
             }
         }
 
+        context.MaxAllowedErrors = _maxAllowedErrors;
         context.ContextData = contextData;
     }
 }

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -12,24 +13,23 @@ public class ServiceTypeTests
         // arrange
         ISchema schema = SchemaBuilder.New()
             .AddApolloFederation()
-            .AddDocumentFromString(@"
-                    type Query {
+            .AddDocumentFromString(
+                @"type Query {
 
-                    }
+                }
 
-                    type Address @key(fields: ""matchCode"") {
-                        matchCode: String!
-                    }
-                ")
-            .Use(next => context => default)
+                type Address @key(fields: ""matchCode"") {
+                    matchCode: String!
+                }")
+            .Use(_ => _ => default)
             .Create();
 
         // act
         ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
         // assert
-        object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
-            new MockResolverContext(schema));
+        var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+            CreateResolverContext(schema));
         value.MatchSnapshot();
     }
 
@@ -48,15 +48,15 @@ public class ServiceTypeTests
                         matchCode: String!
                     }
                 ")
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
         ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
         // assert
-        object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
-            new MockResolverContext(schema));
+        var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+            CreateResolverContext(schema));
         value.MatchSnapshot();
     }
 
@@ -75,8 +75,8 @@ public class ServiceTypeTests
         ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
         // assert
-        object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
-            new MockResolverContext(schema));
+        var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+            CreateResolverContext(schema));
         value.MatchSnapshot();
     }
 
@@ -93,8 +93,8 @@ public class ServiceTypeTests
         ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
         // assert
-        object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
-            new MockResolverContext(schema));
+        var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+            CreateResolverContext(schema));
         value.MatchSnapshot();
     }
 

@@ -47,7 +47,7 @@ We strongly encourage the use of nullable reference types.
 We can also be explicit about the nullability of our fields.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -68,8 +68,8 @@ public class Book
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType<Query>
@@ -97,8 +97,8 @@ public class BookType : ObjectType<Book>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type User {
@@ -107,5 +107,5 @@ type User {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

@@ -184,7 +184,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             ObjectFieldNode field = node.Fields[i];
             if (!context.Names.Add(field.Name.Value))
             {
-                context.Errors.Add(context.InputFieldAmbiguous(field));
+                context.ReportError(context.InputFieldAmbiguous(field));
             }
         }
 
@@ -201,7 +201,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             {
                 if (node.Fields.Count == 0 || node.Fields.Count > 1)
                 {
-                    context.Errors.Add(
+                    context.ReportError(
                         context.OneOfMustHaveExactlyOneField(
                             node,
                             inputObjectType));
@@ -216,7 +216,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
                     {
                         if (value.Value.IsNull())
                         {
-                            context.Errors.Add(
+                            context.ReportError(
                                 context.OneOfMustHaveExactlyOneField(
                                     node,
                                     inputObjectType));
@@ -224,7 +224,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
                         else if (value.Value.Kind is SyntaxKind.Variable &&
                             !IsInstanceOfType(context, new NonNullType(field.Type), value.Value))
                         {
-                            context.Errors.Add(
+                            context.ReportError(
                                 context.OneOfVariablesMustBeNonNull(
                                     node,
                                     field.Coordinate,
@@ -246,7 +246,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
                     field.DefaultValue.IsNull() &&
                     context.Names.Add(field.Name))
                 {
-                    context.Errors.Add(
+                    context.ReportError(
                         context.FieldIsRequiredButNull(node, field.Name));
                 }
             }
@@ -270,7 +270,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             if (field.Type.IsNonNullType() &&
                 node.Value.IsNull())
             {
-                context.Errors.Add(
+                context.ReportError(
                     context.FieldIsRequiredButNull(node, field.Name));
             }
 
@@ -280,7 +280,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         }
         else
         {
-            context.Errors.Add(context.InputFieldDoesNotExist(node));
+            context.ReportError(context.InputFieldDoesNotExist(node));
             return Skip;
         }
     }
@@ -339,7 +339,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             if (TryPeekLastDefiningSyntaxNode(context, out ISyntaxNode? node) &&
                 TryCreateValueError(context, locationType, valueNode, node, out IError? error))
             {
-                context.Errors.Add(error);
+                context.ReportError(error);
                 return Skip;
             }
         }

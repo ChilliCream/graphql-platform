@@ -4,12 +4,13 @@ import styled from "styled-components";
 import { DocPageCommunityFragment } from "../../../graphql-types";
 import GitHubIconSvg from "../../images/github.svg";
 import SlackIconSvg from "../../images/slack.svg";
+import { THEME_COLORS } from "../../shared-style";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
-interface DocPageCommunityProps {
-  data: DocPageCommunityFragment;
-  originPath: string;
+export interface DocPageCommunityProps {
+  readonly data: DocPageCommunityFragment;
+  readonly originPath: string;
 }
 
 export const DocPageCommunity: FC<DocPageCommunityProps> = ({
@@ -91,13 +92,13 @@ const CommunityItem = styled.li`
 
 const CommunityLink = styled(Link)`
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 
   > ${IconContainer} {
     margin-right: 10px;
 
     > svg {
-      fill: var(--text-color);
+      fill: ${THEME_COLORS.text};
     }
   }
 

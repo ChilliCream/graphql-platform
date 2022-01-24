@@ -29,6 +29,7 @@ module.exports = {
       },
     ],
     tools: {
+      bcp: `https://eat.bananacakepop.com`,
       github: `https://github.com/ChilliCream/hotchocolate`,
       slack: `http://slack.chillicream.com/`,
       twitter: `https://twitter.com/Chilli_Cream`,
@@ -49,7 +50,7 @@ module.exports = {
             options: {
               mermaidOptions: {
                 fontFamily: "sans-serif",
-                sequence: { showSequenceNumbers: true }
+                sequence: { showSequenceNumbers: true },
               },
             },
           },

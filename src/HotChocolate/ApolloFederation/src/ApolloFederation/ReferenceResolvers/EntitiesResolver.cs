@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -12,34 +11,37 @@ internal static class EntitiesResolver
 {
     public static async Task<List<object?>> _Entities(
         ISchema schema,
-        IReadOnlyList<Representation> representations, IResolverContext c)
+        IReadOnlyList<Representation> representations,
+        IResolverContext context)
     {
-        var ret = new List<object?>();
-        foreach (Representation? representation in representations)
-        {
-            INamedType? representationType = schema.Types
-                .SingleOrDefault(type =>
-                    type.Name == representation.Typename &&
-                    type.ContextData.ContainsKey(ExtendMarker));
+        var entities = new List<object?>();
 
-            if (representationType != null)
+        foreach (Representation representation in representations)
+        {
+            if (schema.TryGetType<INamedType>(representation.TypeName, out var entityType) &&
+                !entityType.ContextData.ContainsKey(ExtendMarker))
             {
-                if (representationType.ContextData.TryGetValue(EntityResolver, out var obj) &&
-                    obj is Func<object, object?> d)
+                entityType = null;
+            }
+
+            if (entityType != null)
+            {
+                if (entityType.ContextData.TryGetValue(EntityResolver, out var value) &&
+                    value is Func<object, object?> d)
                 {
-                    ret.Add(d(representation));
+                    entities.Add(d(representation));
                 }
                 else
                 {
                     throw ThrowHelper.EntityResolver_NoResolverFound();
                 }
             }
-            else if (schema.TryGetType<ObjectType>(representation.Typename, out ObjectType? type) &&
-                type.ContextData.TryGetValue(EntityResolver, out object? o) &&
-                o is FieldResolverDelegate resolver)
+            else if (schema.TryGetType<ObjectType>(representation.TypeName, out var objectType) &&
+                objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
+                value is FieldResolverDelegate resolver)
             {
-                c.SetLocalValue("data", representation.Data);
-                ret.Add(await resolver.Invoke(c).ConfigureAwait(false));
+                context.SetLocalValue(AnyType.DataField, representation.Data);
+                entities.Add(await resolver.Invoke(context).ConfigureAwait(false));
             }
             else
             {
@@ -47,6 +49,6 @@ internal static class EntitiesResolver
             }
         }
 
-        return ret;
+        return entities;
     }
 }

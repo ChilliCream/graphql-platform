@@ -1,0 +1,472 @@
+﻿[
+  {
+    "Message": "The GraphQL document has an execution depth of 8 which exceeds the max allowed execution depth of 3.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "allowedExecutionDepth": 3,
+      "detectedExecutionDepth": 8
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 942,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 23,
+          "End": 942,
+          "Line": 2,
+          "Column": 23
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "Required": null,
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 54,
+                "End": 942,
+                "Line": 3,
+                "Column": 30
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "Required": null,
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": {
+                      "Start": 86,
+                      "End": 924,
+                      "Line": 4,
+                      "Column": 31
+                    },
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "Required": null,
+                        "SelectionSet": {
+                          "Kind": "SelectionSet",
+                          "Location": {
+                            "Start": 123,
+                            "End": 902,
+                            "Line": 5,
+                            "Column": 36
+                          },
+                          "Selections": [
+                            {
+                              "Kind": "Field",
+                              "Alias": null,
+                              "Arguments": [],
+                              "Required": null,
+                              "SelectionSet": {
+                                "Kind": "SelectionSet",
+                                "Location": {
+                                  "Start": 162,
+                                  "End": 876,
+                                  "Line": 6,
+                                  "Column": 38
+                                },
+                                "Selections": [
+                                  {
+                                    "Kind": "Field",
+                                    "Alias": null,
+                                    "Arguments": [],
+                                    "Required": null,
+                                    "SelectionSet": null,
+                                    "Location": {
+                                      "Start": 200,
+                                      "End": 245,
+                                      "Line": 7,
+                                      "Column": 37
+                                    },
+                                    "Name": {
+                                      "Kind": "Name",
+                                      "Location": {
+                                        "Start": 200,
+                                        "End": 245,
+                                        "Line": 7,
+                                        "Column": 37
+                                      },
+                                      "Value": "kind"
+                                    },
+                                    "Directives": []
+                                  },
+                                  {
+                                    "Kind": "Field",
+                                    "Alias": null,
+                                    "Arguments": [],
+                                    "Required": null,
+                                    "SelectionSet": null,
+                                    "Location": {
+                                      "Start": 241,
+                                      "End": 288,
+                                      "Line": 8,
+                                      "Column": 37
+                                    },
+                                    "Name": {
+                                      "Kind": "Name",
+                                      "Location": {
+                                        "Start": 241,
+                                        "End": 288,
+                                        "Line": 8,
+                                        "Column": 37
+                                      },
+                                      "Value": "name"
+                                    },
+                                    "Directives": []
+                                  },
+                                  {
+                                    "Kind": "Field",
+                                    "Alias": null,
+                                    "Arguments": [],
+                                    "Required": null,
+                                    "SelectionSet": {
+                                      "Kind": "SelectionSet",
+                                      "Location": {
+                                        "Start": 289,
+                                        "End": 846,
+                                        "Line": 9,
+                                        "Column": 44
+                                      },
+                                      "Selections": [
+                                        {
+                                          "Kind": "Field",
+                                          "Alias": null,
+                                          "Arguments": [],
+                                          "Required": null,
+                                          "SelectionSet": null,
+                                          "Location": {
+                                            "Start": 331,
+                                            "End": 380,
+                                            "Line": 10,
+                                            "Column": 41
+                                          },
+                                          "Name": {
+                                            "Kind": "Name",
+                                            "Location": {
+                                              "Start": 331,
+                                              "End": 380,
+                                              "Line": 10,
+                                              "Column": 41
+                                            },
+                                            "Value": "kind"
+                                          },
+                                          "Directives": []
+                                        },
+                                        {
+                                          "Kind": "Field",
+                                          "Alias": null,
+                                          "Arguments": [],
+                                          "Required": null,
+                                          "SelectionSet": null,
+                                          "Location": {
+                                            "Start": 376,
+                                            "End": 427,
+                                            "Line": 11,
+                                            "Column": 41
+                                          },
+                                          "Name": {
+                                            "Kind": "Name",
+                                            "Location": {
+                                              "Start": 376,
+                                              "End": 427,
+                                              "Line": 11,
+                                              "Column": 41
+                                            },
+                                            "Value": "name"
+                                          },
+                                          "Directives": []
+                                        },
+                                        {
+                                          "Kind": "Field",
+                                          "Alias": null,
+                                          "Arguments": [],
+                                          "Required": null,
+                                          "SelectionSet": {
+                                            "Kind": "SelectionSet",
+                                            "Location": {
+                                              "Start": 428,
+                                              "End": 812,
+                                              "Line": 12,
+                                              "Column": 48
+                                            },
+                                            "Selections": [
+                                              {
+                                                "Kind": "Field",
+                                                "Alias": null,
+                                                "Arguments": [],
+                                                "Required": null,
+                                                "SelectionSet": null,
+                                                "Location": {
+                                                  "Start": 474,
+                                                  "End": 527,
+                                                  "Line": 13,
+                                                  "Column": 45
+                                                },
+                                                "Name": {
+                                                  "Kind": "Name",
+                                                  "Location": {
+                                                    "Start": 474,
+                                                    "End": 527,
+                                                    "Line": 13,
+                                                    "Column": 45
+                                                  },
+                                                  "Value": "kind"
+                                                },
+                                                "Directives": []
+                                              },
+                                              {
+                                                "Kind": "Field",
+                                                "Alias": null,
+                                                "Arguments": [],
+                                                "Required": null,
+                                                "SelectionSet": null,
+                                                "Location": {
+                                                  "Start": 523,
+                                                  "End": 578,
+                                                  "Line": 14,
+                                                  "Column": 45
+                                                },
+                                                "Name": {
+                                                  "Kind": "Name",
+                                                  "Location": {
+                                                    "Start": 523,
+                                                    "End": 578,
+                                                    "Line": 14,
+                                                    "Column": 45
+                                                  },
+                                                  "Value": "name"
+                                                },
+                                                "Directives": []
+                                              },
+                                              {
+                                                "Kind": "Field",
+                                                "Alias": null,
+                                                "Arguments": [],
+                                                "Required": null,
+                                                "SelectionSet": {
+                                                  "Kind": "SelectionSet",
+                                                  "Location": {
+                                                    "Start": 579,
+                                                    "End": 774,
+                                                    "Line": 15,
+                                                    "Column": 52
+                                                  },
+                                                  "Selections": [
+                                                    {
+                                                      "Kind": "Field",
+                                                      "Alias": null,
+                                                      "Arguments": [],
+                                                      "Required": null,
+                                                      "SelectionSet": null,
+                                                      "Location": {
+                                                        "Start": 629,
+                                                        "End": 686,
+                                                        "Line": 16,
+                                                        "Column": 49
+                                                      },
+                                                      "Name": {
+                                                        "Kind": "Name",
+                                                        "Location": {
+                                                          "Start": 629,
+                                                          "End": 686,
+                                                          "Line": 16,
+                                                          "Column": 49
+                                                        },
+                                                        "Value": "kind"
+                                                      },
+                                                      "Directives": []
+                                                    },
+                                                    {
+                                                      "Kind": "Field",
+                                                      "Alias": null,
+                                                      "Arguments": [],
+                                                      "Required": null,
+                                                      "SelectionSet": null,
+                                                      "Location": {
+                                                        "Start": 682,
+                                                        "End": 732,
+                                                        "Line": 17,
+                                                        "Column": 49
+                                                      },
+                                                      "Name": {
+                                                        "Kind": "Name",
+                                                        "Location": {
+                                                          "Start": 682,
+                                                          "End": 732,
+                                                          "Line": 17,
+                                                          "Column": 49
+                                                        },
+                                                        "Value": "name"
+                                                      },
+                                                      "Directives": []
+                                                    }
+                                                  ]
+                                                },
+                                                "Location": {
+                                                  "Start": 572,
+                                                  "End": 774,
+                                                  "Line": 15,
+                                                  "Column": 45
+                                                },
+                                                "Name": {
+                                                  "Kind": "Name",
+                                                  "Location": {
+                                                    "Start": 572,
+                                                    "End": 580,
+                                                    "Line": 15,
+                                                    "Column": 45
+                                                  },
+                                                  "Value": "ofType"
+                                                },
+                                                "Directives": []
+                                              }
+                                            ]
+                                          },
+                                          "Location": {
+                                            "Start": 421,
+                                            "End": 812,
+                                            "Line": 12,
+                                            "Column": 41
+                                          },
+                                          "Name": {
+                                            "Kind": "Name",
+                                            "Location": {
+                                              "Start": 421,
+                                              "End": 429,
+                                              "Line": 12,
+                                              "Column": 41
+                                            },
+                                            "Value": "ofType"
+                                          },
+                                          "Directives": []
+                                        }
+                                      ]
+                                    },
+                                    "Location": {
+                                      "Start": 282,
+                                      "End": 846,
+                                      "Line": 9,
+                                      "Column": 37
+                                    },
+                                    "Name": {
+                                      "Kind": "Name",
+                                      "Location": {
+                                        "Start": 282,
+                                        "End": 290,
+                                        "Line": 9,
+                                        "Column": 37
+                                      },
+                                      "Value": "ofType"
+                                    },
+                                    "Directives": []
+                                  }
+                                ]
+                              },
+                              "Location": {
+                                "Start": 157,
+                                "End": 876,
+                                "Line": 6,
+                                "Column": 33
+                              },
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": {
+                                  "Start": 157,
+                                  "End": 163,
+                                  "Line": 6,
+                                  "Column": 33
+                                },
+                                "Value": "type"
+                              },
+                              "Directives": []
+                            }
+                          ]
+                        },
+                        "Location": {
+                          "Start": 116,
+                          "End": 902,
+                          "Line": 5,
+                          "Column": 29
+                        },
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": {
+                            "Start": 116,
+                            "End": 124,
+                            "Line": 5,
+                            "Column": 29
+                          },
+                          "Value": "fields"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": {
+                    "Start": 80,
+                    "End": 924,
+                    "Line": 4,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 80,
+                      "End": 87,
+                      "Line": 4,
+                      "Column": 25
+                    },
+                    "Value": "types"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 45,
+              "End": 942,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 45,
+                "End": 55,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "__schema"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
+  }
+]

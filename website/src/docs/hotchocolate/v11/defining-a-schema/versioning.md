@@ -24,7 +24,7 @@ type Query {
 Fields can be deprecated like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -37,8 +37,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType
@@ -56,8 +56,8 @@ public class QueryType : ObjectType
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 services
@@ -69,7 +69,7 @@ services
     ");
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > Note: It is currently not possible to deprecate input values, such as arguments.
