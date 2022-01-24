@@ -350,5 +350,65 @@ namespace HotChocolate.Execution.Batching
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);
         }
+
+        [Fact]
+        public async Task Invalid_MaxConcurrentBatchQueries()
+        {
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+                .AddStarWarsTypes()
+                .AddExportDirectiveType()
+                .ModifyRequestOptions(o =>
+                {
+                    o.MaxConcurrentBatchQueries = 0;
+                })
+                .Services
+                .AddStarWarsRepositories()
+            );
+
+            // act
+            var batch = new List<IReadOnlyQueryRequest>
+            {
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        query getHero {
+                            hero(episode: EMPIRE) {
+                                id
+                            }
+                        }")
+                    .Create()
+            };
+
+            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, allowParallelExecution: true);
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await batchResult.ToJsonAsync());
+        }
+
+        [Fact]
+        public async Task Invalid_Query()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+                .AddStarWarsTypes()
+                .AddExportDirectiveType()
+                .Services
+                .AddStarWarsRepositories()
+            );
+
+            // act
+            var batch = new List<IReadOnlyQueryRequest>
+            {
+                QueryRequestBuilder.New()
+                    .SetQuery("not a valid query")
+                    .Create()
+            };
+
+            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+
+            // assert
+            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+        }
     }
 }

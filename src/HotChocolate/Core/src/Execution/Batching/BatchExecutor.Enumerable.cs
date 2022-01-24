@@ -54,7 +54,7 @@ internal partial class BatchExecutor
             _executionDiagnosticEvents = executionDiagnosticEvents ??
                 throw new ArgumentNullException(nameof(executionDiagnosticEvents));
             _maxConcurrentQueries = maxConcurrentQueries;
-            if (_maxConcurrentQueries < 0)
+            if (_maxConcurrentQueries <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxConcurrentQueries));
             }
