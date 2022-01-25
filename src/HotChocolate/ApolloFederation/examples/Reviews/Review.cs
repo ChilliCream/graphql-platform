@@ -4,15 +4,25 @@ namespace Reviews;
 
 public class Review
 {
+    public Review(string id, string body, string authorId, string upc)
+    {
+        Id = id;
+        Body = body;
+        AuthorId = authorId;
+        Product = new Product(upc);
+    }
+
     [Key]
-    public string Id { get; set; } = default!;
+    public string Id { get; }
 
-    public Product Product { get; set; } = default!;
+    public string Body { get; }
+    
+    public string AuthorId { get; }
 
-    public string Body { get; set; } = default!;
+    public Product Product { get; }
 
     [Provides("username")]
-    public User Author { get; set; } = default!;
-    
-    public string AuthorId { get; set; } = default!;
+    public Task<User> GetAuthorAsync(
+        UserRepository repository) 
+        => repository.GetUserById(AuthorId);
 }

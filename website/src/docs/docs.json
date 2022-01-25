@@ -301,6 +301,10 @@
                 "title": "ASP.NET Core"
               },
               {
+                "path": "apollo-federation",
+                "title": "Apollo Federation"
+              },
+              {
                 "path": "dependency-injection",
                 "title": "Dependency Injection"
               },

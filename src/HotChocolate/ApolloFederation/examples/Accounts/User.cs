@@ -1,20 +1,26 @@
-using HotChocolate;
 using HotChocolate.ApolloFederation;
 
 namespace Accounts;
 
 public class User
 {
+    public User(string id, string name, string username)
+    {
+        Id = id;
+        Name = name;
+        Username = username;
+    }
+
     [Key]
-    public string Id { get; set; } = default!;
+    public string Id { get; }
 
-    public string Name { get; set; } = default!;
+    public string Name { get; }
 
-    public string Username { get; set; } = default!;
+    public string Username { get; }
 
     [ReferenceResolver]
     public static Task<User> GetByIdAsync(
         string id,
         UserRepository userRepository)
-        => Task.FromResult(userRepository.GetUserById(id));
+        => userRepository.GetUserByIdAsync(id);
 }

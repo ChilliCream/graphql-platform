@@ -6,7 +6,8 @@ builder.Services.AddSingleton<UserRepository>();
 builder.Services
     .AddGraphQLServer()
     .AddApolloFederation()
-    .AddQueryType<Query>()
+    .AddQueryType()
+    .AddType<Review>()
     .RegisterService<ReviewRepository>()
     .RegisterService<UserRepository>();
 
