@@ -8,15 +8,33 @@ namespace HotChocolate.ApolloFederation;
 
 public interface IEntityResolverDescriptor
 {
-    IObjectTypeDescriptor ResolveEntity(
+    IObjectTypeDescriptor ResolveReference(
         FieldResolverDelegate fieldResolver);
 
-    IObjectTypeDescriptor ResolveEntityWith<TResolver>(
+    IObjectTypeDescriptor ResolveReferenceWith<TResolver>(
         Expression<Func<TResolver, object>> method);
 
-    IObjectTypeDescriptor ResolveEntityWith<TResolver>();
+    IObjectTypeDescriptor ResolveReferenceWith<TResolver>();
 
-    IObjectTypeDescriptor ResolveEntityWith(MethodInfo method);
+    IObjectTypeDescriptor ResolveReferenceWith(MethodInfo method);
 
-    IObjectTypeDescriptor ResolveEntityWith(Type type);
+    IObjectTypeDescriptor ResolveReferenceWith(Type type);
+}
+
+public interface IEntityResolverDescriptor<TEntity>
+{
+    IObjectTypeDescriptor ResolveReference(
+        FieldResolverDelegate fieldResolver);
+
+    IObjectTypeDescriptor ResolveReference(
+        Expression<Func<TEntity, object>> method);
+
+    IObjectTypeDescriptor ResolveReferenceWith<TResolver>(
+        Expression<Func<TResolver, object>> method);
+
+    IObjectTypeDescriptor ResolveReferenceWith<TResolver>();
+
+    IObjectTypeDescriptor ResolveReferenceWith(MethodInfo method);
+
+    IObjectTypeDescriptor ResolveReferenceWith(Type type);
 }

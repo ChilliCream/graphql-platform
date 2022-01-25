@@ -11,9 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
-    <ProjectReference Include="..\..\src\ApolloFederation\ApolloFederation.csproj" />
+    <ProjectReference Include="..\..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\ApolloFederation\ApolloFederation.csproj" />
   </ItemGroup>
 
 </Project>

@@ -20,7 +20,5 @@ public sealed class ExtendServiceTypeAttribute : ObjectTypeDescriptorAttribute
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)
-        => descriptor
-            .Extend()
-            .OnBeforeCreate(d => d.ContextData[ExtendMarker] = true);
+        => descriptor.ExtendServiceType();
 }

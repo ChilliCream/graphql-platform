@@ -13,11 +13,17 @@ using static HotChocolate.ApolloFederation.WellKnownContextData;
 
 namespace HotChocolate.ApolloFederation;
 
-public sealed class EntityResolverDescriptor
+public sealed class EntityResolverDescriptor<TEntity>
     : DescriptorBase<EntityResolverDefinition>
     , IEntityResolverDescriptor
+    , IEntityResolverDescriptor<TEntity>
 {
     private readonly IObjectTypeDescriptor _typeDescriptor;
+
+    public EntityResolverDescriptor(
+        IObjectTypeDescriptor<TEntity> descriptor)
+        : this((ObjectTypeDescriptor)descriptor, typeof(TEntity))
+    {}
 
     public EntityResolverDescriptor(
         IObjectTypeDescriptor descriptor,
@@ -56,9 +62,13 @@ public sealed class EntityResolverDescriptor
 
     protected internal override EntityResolverDefinition Definition { get; protected set; } = new();
 
-    public IObjectTypeDescriptor ResolveEntity(
+    public IObjectTypeDescriptor ResolveReference(
         FieldResolverDelegate fieldResolver)
         => ResolveEntity(fieldResolver, Array.Empty<string[]>());
+
+    public IObjectTypeDescriptor ResolveReference(
+        Expression<Func<TEntity, object>> method)
+        => ResolveReferenceWith<TEntity>();
 
     private IObjectTypeDescriptor ResolveEntity(
         FieldResolverDelegate fieldResolver,
@@ -78,7 +88,7 @@ public sealed class EntityResolverDescriptor
         return _typeDescriptor;
     }
 
-    public IObjectTypeDescriptor ResolveEntityWith<TResolver>(
+    public IObjectTypeDescriptor ResolveReferenceWith<TResolver>(
         Expression<Func<TResolver, object>> method)
     {
         if (method is null)
@@ -95,7 +105,7 @@ public sealed class EntityResolverDescriptor
                     m,
                     sourceType: typeof(object),
                     resolverType: typeof(TResolver));
-            return ResolveEntity(resolver.Resolver!);
+            return ResolveReference(resolver.Resolver!);
         }
 
         throw new ArgumentException(
@@ -103,13 +113,13 @@ public sealed class EntityResolverDescriptor
             nameof(member));
     }
 
-    public IObjectTypeDescriptor ResolveEntityWith<TResolver>() =>
-        ResolveEntityWith(
+    public IObjectTypeDescriptor ResolveReferenceWith<TResolver>() =>
+        ResolveReferenceWith(
             Context.TypeInspector.GetNodeResolverMethod(
                 Definition.ResolvedEntityType ?? typeof(TResolver),
                 typeof(TResolver))!);
 
-    public IObjectTypeDescriptor ResolveEntityWith(MethodInfo method)
+    public IObjectTypeDescriptor ResolveReferenceWith(MethodInfo method)
     {
         if (method is null)
         {
@@ -128,8 +138,8 @@ public sealed class EntityResolverDescriptor
         return ResolveEntity(resolver.Resolver!, argumentBuilder.Required);
     }
 
-    public IObjectTypeDescriptor ResolveEntityWith(Type type) =>
-        ResolveEntityWith(
+    public IObjectTypeDescriptor ResolveReferenceWith(Type type) =>
+        ResolveReferenceWith(
             Context.TypeInspector.GetNodeResolverMethod(
                 Definition.ResolvedEntityType ?? type,
                 type)!);
