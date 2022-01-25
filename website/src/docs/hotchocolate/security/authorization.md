@@ -2,7 +2,7 @@
 title: Authorization
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 Authorization allows us to determine a user's permissions within our system. We can for example limit access to resources or only allow certain users to execute specific mutations.
 
@@ -19,6 +19,8 @@ After we have successfully setup authentication, there are only a few things lef
 ```bash
 dotnet add package HotChocolate.AspNetCore.Authorization
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 2. Register the necessary ASP.NET Core services
 
@@ -368,7 +370,7 @@ This method also accepts [roles](#roles) and [policies](#policies) as arguments,
 
 > ⚠️ Note: Unlike the `@authorize directive` this will return status code 401 and prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
 
-[Learn more about available middleware](/docs/hotchocolate/server/middleware)
+[Learn more about available middleware](/docs/hotchocolate/server/endpoints)
 
 # Modifying the ClaimsPrincipal
 

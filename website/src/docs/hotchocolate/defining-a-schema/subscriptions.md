@@ -2,7 +2,7 @@
 title: "Subscriptions"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 The subscription type in GraphQL is used to add real-time capabilities to our applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
 
@@ -176,6 +176,8 @@ In order to use the Redis provider we have to add the `HotChocolate.Subscription
 ```bash
 dotnet add package HotChocolate.Subscriptions.Redis
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 After we have added the package we can setup the Redis subscription provider.
 
