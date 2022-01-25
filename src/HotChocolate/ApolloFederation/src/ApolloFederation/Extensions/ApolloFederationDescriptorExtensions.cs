@@ -40,7 +40,7 @@ public static class ApolloFederationDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        return descriptor.Directive(new ExternalDirectiveType());
+        return descriptor.Directive(WellKnownTypeNames.External);
     }
 
     /// <summary>

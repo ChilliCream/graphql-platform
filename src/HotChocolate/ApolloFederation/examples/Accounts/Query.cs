@@ -2,6 +2,6 @@
 
 public class Query
 {
-    public User Me(UserRepository userRepository)
-        => userRepository.GetUserById("1");
+    public Task<User> Me(UserRepository userRepository)
+        => userRepository.GetUserByIdAsync("1");
 }

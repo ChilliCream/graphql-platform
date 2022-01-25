@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using static HotChocolate.ApolloFederation.WellKnownContextData;
 
 namespace HotChocolate.ApolloFederation;
@@ -31,5 +33,18 @@ internal static class ReferenceResolverHelper
                 {
                     { nameof(representation), representation }
                 }));
+    }
+
+    public static void TrySetExternal<TValue>(
+        ObjectType type,
+        IValueNode data,
+        object entity,
+        string[] path,
+        Action<object, TValue?> setValue)
+    {
+        if (ArgumentParser.TryGetValue<TValue>(data, type, path, out var value))
+        {
+            setValue(entity, value);
+        }
     }
 }

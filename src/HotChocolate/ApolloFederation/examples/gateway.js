@@ -31,7 +31,7 @@ const gateway = new ApolloGateway({
     subscriptions: false,
   });
 
-  server.listen({port: 5000}).then(({ url }) => {
+  server.listen({port: 5400}).then(({ url }) => {
     console.log(`🚀 Server ready at ${url}`);
   });
 })();

@@ -90,13 +90,17 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        if (completionContext.Type is ObjectType &&
+        if (completionContext.Type is ObjectType type &&
             definition is ObjectTypeDefinition typeDef)
         {
+            CompleteExternalFieldSetters(type, typeDef);
             CompleteReferenceResolver(typeDef);
         }
     }
 
+    private void CompleteExternalFieldSetters(ObjectType type, ObjectTypeDefinition typeDef)
+        => ExternalSetterExpressionHelper.TryAddExternalSetter(type, typeDef);
+ 
     private void CompleteReferenceResolver(ObjectTypeDefinition typeDef)
     {
         if (typeDef.GetContextData().TryGetValue(EntityResolver, out var value) &&

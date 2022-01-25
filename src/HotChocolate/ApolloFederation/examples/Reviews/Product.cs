@@ -5,10 +5,18 @@ namespace Reviews;
 [ExtendServiceType]
 public class Product
 {
+    public Product(string upc)
+    {
+        Upc = upc;
+    }
+
     [Key]
     [External]
-    public string Upc { get; set; } = default!;
+    public string Upc { get; }
 
-    public IEnumerable<Review> GetReviews(ReviewRepository reviewRepository)
-        => reviewRepository.GetByProductUpc(Upc);
+    public Task<IEnumerable<Review>> GetReviews(ReviewRepository repository)
+        => repository.GetByProductUpcAsync(Upc);
+
+    [ReferenceResolver]
+    public static Product GetByIdAsync(string upc) => new(upc);
 }

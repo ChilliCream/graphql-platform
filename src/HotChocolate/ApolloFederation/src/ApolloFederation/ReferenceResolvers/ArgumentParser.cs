@@ -14,6 +14,13 @@ internal static class ArgumentParser
         string[] path)
         => TryGetValue<T>(valueNode, type, path, 0, out var value) ? value : default;
 
+    public static bool TryGetValue<T>(
+        IValueNode valueNode,
+        IType type,
+        string[] path,
+        out T? value)
+        => TryGetValue<T>(valueNode, type, path, 0, out value);
+
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static bool TryGetValue<T>(
         IValueNode valueNode,

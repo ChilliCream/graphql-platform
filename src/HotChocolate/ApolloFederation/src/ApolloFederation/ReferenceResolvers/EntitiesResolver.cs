@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.ApolloFederation.WellKnownContextData;
@@ -24,7 +25,17 @@ internal static class EntitiesResolver
             {
                 context.SetLocalValue(TypeField, objectType);
                 context.SetLocalValue(DataField, representation.Data);
-                entities.Add(await resolver.Invoke(context).ConfigureAwait(false));
+
+                var entity = await resolver.Invoke(context).ConfigureAwait(false);
+
+                if (entity is not null &&
+                    objectType!.ContextData.TryGetValue(ExternalSetter, out value) &&
+                    value is Action<ObjectType, IValueNode, object> setExternals)
+                {
+                    setExternals(objectType, representation.Data!, entity);
+                }
+
+                entities.Add(entity);
             }
             else
             {
