@@ -188,10 +188,10 @@ services
 
 ## Cursor Pagination
 
-To use cursor based pagination annoate you resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
+To use cursor based pagination annoate you resolver with `[UsePaging]` or `.UsePaging()`
 
 ```csharp
-[UseMongoDbPaging]
+[UsePaging1]
 public IExecutable<Person> GetPersons([Service] IMongoCollection<Person> collection)
 {
     return collection.AsExecutable();
@@ -221,10 +221,10 @@ query GetPersons {
 
 ## Offset Pagination
 
-To use cursor based pagination annoate you resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
+To use offset based pagination annoate you resolver with `[UseOffsetPaging]` or `.UseOffsetPaging()`
 
 ```csharp
-[UseMongoDbOffsetPaging]
+[UseOffsetPaging]
 public IExecutable<Person> GetPersons([Service] IMongoCollection<Person> collection)
 {
     return collection.AsExecutable();
