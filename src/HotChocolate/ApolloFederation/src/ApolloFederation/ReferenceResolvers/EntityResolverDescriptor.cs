@@ -13,6 +13,9 @@ using static HotChocolate.ApolloFederation.WellKnownContextData;
 
 namespace HotChocolate.ApolloFederation;
 
+/// <summary>
+/// The entity descriptor allows to specify a reference resolver.
+/// </summary>
 public sealed class EntityResolverDescriptor<TEntity>
     : DescriptorBase<EntityResolverDefinition>
     , IEntityResolverDescriptor
@@ -20,14 +23,15 @@ public sealed class EntityResolverDescriptor<TEntity>
 {
     private readonly IObjectTypeDescriptor _typeDescriptor;
 
-    public EntityResolverDescriptor(
+    internal EntityResolverDescriptor(
         IObjectTypeDescriptor<TEntity> descriptor)
         : this((ObjectTypeDescriptor)descriptor, typeof(TEntity))
-    {}
+    {
+    }
 
-    public EntityResolverDescriptor(
+    internal EntityResolverDescriptor(
         IObjectTypeDescriptor descriptor,
-        Type? resolvedEntityType = null)
+        Type? entityType = null)
         : base(descriptor.Extend().Context)
     {
         _typeDescriptor = descriptor;
@@ -36,7 +40,7 @@ public sealed class EntityResolverDescriptor<TEntity>
             .Extend()
             .OnBeforeCreate(OnCompleteDefinition);
 
-        Definition.ResolvedEntityType = resolvedEntityType;
+        Definition.EntityType = entityType;
     }
 
     private void OnCompleteDefinition(ObjectTypeDefinition definition)
@@ -62,13 +66,10 @@ public sealed class EntityResolverDescriptor<TEntity>
 
     protected internal override EntityResolverDefinition Definition { get; protected set; } = new();
 
+    /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReference(
         FieldResolverDelegate fieldResolver)
         => ResolveEntity(fieldResolver, Array.Empty<string[]>());
-
-    public IObjectTypeDescriptor ResolveReference(
-        Expression<Func<TEntity, object>> method)
-        => ResolveReferenceWith<TEntity>();
 
     private IObjectTypeDescriptor ResolveEntity(
         FieldResolverDelegate fieldResolver,
@@ -88,6 +89,12 @@ public sealed class EntityResolverDescriptor<TEntity>
         return _typeDescriptor;
     }
 
+    /// <inheritdoc cref="IEntityResolverDescriptor{T}"/>
+    public IObjectTypeDescriptor ResolveReference(
+        Expression<Func<TEntity, object>> method)
+        => ResolveReferenceWith<TEntity>();
+
+    /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReferenceWith<TResolver>(
         Expression<Func<TResolver, object>> method)
     {
@@ -113,12 +120,14 @@ public sealed class EntityResolverDescriptor<TEntity>
             nameof(member));
     }
 
+    /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReferenceWith<TResolver>() =>
         ResolveReferenceWith(
             Context.TypeInspector.GetNodeResolverMethod(
-                Definition.ResolvedEntityType ?? typeof(TResolver),
+                Definition.EntityType ?? typeof(TResolver),
                 typeof(TResolver))!);
 
+    /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReferenceWith(MethodInfo method)
     {
         if (method is null)
@@ -138,9 +147,10 @@ public sealed class EntityResolverDescriptor<TEntity>
         return ResolveEntity(resolver.Resolver!, argumentBuilder.Required);
     }
 
+    /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReferenceWith(Type type) =>
         ResolveReferenceWith(
             Context.TypeInspector.GetNodeResolverMethod(
-                Definition.ResolvedEntityType ?? type,
+                Definition.EntityType ?? type,
                 type)!);
 }

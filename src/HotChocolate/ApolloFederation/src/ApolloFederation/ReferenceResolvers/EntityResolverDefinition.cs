@@ -1,12 +1,20 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.ApolloFederation;
 
+/// <summary>
+/// The entity definition allows to specify a reference resolver.
+/// </summary>
 public sealed class EntityResolverDefinition : DefinitionBase
 {
-    public Type? ResolvedEntityType { get; set; }
+    /// <summary>
+    /// The runtime type of the entity.
+    /// </summary>
+    public Type? EntityType { get; set; }
 
+    /// <summary>
+    /// The reference resolver definition.
+    /// </summary>
     public ReferenceResolverDefinition? ResolverDefinition { get; set; }
 }
