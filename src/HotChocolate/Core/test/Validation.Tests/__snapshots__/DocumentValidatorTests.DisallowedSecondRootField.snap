@@ -154,7 +154,7 @@
     }
   },
   {
-    "Message": "The field `disallowedSecondRootFieldNonExisting` does not exist on the type `Subscription`.",
+    "Message": "The field `disallowedSe...` does not exist on the type `Subscription`.",
     "Code": null,
     "Path": null,
     "Locations": [

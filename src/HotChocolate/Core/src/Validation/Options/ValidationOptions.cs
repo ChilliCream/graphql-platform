@@ -7,8 +7,9 @@ namespace HotChocolate.Validation.Options;
 /// </summary>
 public class ValidationOptions : IMaxExecutionDepthOptionsAccessor, IErrorOptionsAccessor
 {
+    private const int _defaultMaxErrors = 5;
     private int? _maxAllowedExecutionDepth;
-    private int _maxErrors = 5;
+    private int _maxErrors = _defaultMaxErrors;
 
     /// <summary>
     /// Gets the document rules of the validation.
@@ -46,8 +47,9 @@ public class ValidationOptions : IMaxExecutionDepthOptionsAccessor, IErrorOption
             // if the value is lover than 1 we will set it to the default.
             if (value < 1)
             {
-                value = 5;
+                value = _defaultMaxErrors;
             }
+
             _maxErrors = value;
         }
     }

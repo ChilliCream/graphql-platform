@@ -30,6 +30,7 @@ public interface ISchemaBuilder
 
     ISchemaBuilder SetSchema(Action<ISchemaTypeDescriptor> configure);
 
+    [Obsolete("Use ModifyOptions")]
     ISchemaBuilder SetOptions(IReadOnlySchemaOptions options);
 
     ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure);
@@ -193,5 +194,8 @@ public interface ISchemaBuilder
     /// </returns>
     ISchema Create(IDescriptorContext context);
 
+    /// <summary>
+    /// Creates a descriptor context.
+    /// </summary>
     IDescriptorContext CreateContext();
 }

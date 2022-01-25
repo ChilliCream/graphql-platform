@@ -1,6 +1,6 @@
 ﻿[
   {
-    "Message": "The field `unknown_pet_field` does not exist on the type `Pet`.",
+    "Message": "The field `unknown_pet_...` does not exist on the type `Pet`.",
     "Code": null,
     "Path": {
       "Parent": null,

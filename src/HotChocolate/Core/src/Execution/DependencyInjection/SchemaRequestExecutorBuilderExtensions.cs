@@ -1,6 +1,5 @@
 using System;
 using HotChocolate;
-using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -10,6 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static partial class SchemaRequestExecutorBuilderExtensions
 {
+    [Obsolete("Use ModifyOptions")]
     public static IRequestExecutorBuilder SetOptions(
         this IRequestExecutorBuilder builder,
         IReadOnlySchemaOptions options)

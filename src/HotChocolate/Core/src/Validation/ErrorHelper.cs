@@ -125,7 +125,10 @@ internal static class ErrorHelper
         return ErrorBuilder.New()
             .SetMessage(
                 Resources.ErrorHelper_FieldDoesNotExist,
-                node.Name.Value, outputType.Name)
+                node.Name.Value.Length > 15
+                    ? node.Name.Value.Substring(0, 12) + "..."
+                    : node.Name.Value,
+                outputType.Name)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetExtension("type", outputType.Name)

@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
+using HotChocolate.Validation.Options;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -20,10 +21,10 @@ namespace HotChocolate.Validation
             IDocumentValidator queryValidator = CreateValidator();
 
             // act
-            Action a = () => queryValidator.Validate(schema, null!);
+            void Action() => queryValidator.Validate(schema, null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -185,7 +186,7 @@ namespace HotChocolate.Validation
                 $"Subscription operations must have exactly one root field.",
                 t.Message),
             t => Assert.Equal(
-                "The field `disallowedSecondRootFieldNonExisting` does not exist " +
+                "The field `disallowedSe...` does not exist " +
                 "on the type `Subscription`.", t.Message));
         }
 
@@ -857,10 +858,16 @@ namespace HotChocolate.Validation
             result.Errors.MatchSnapshot();
         }
 
-        private static IDocumentValidator CreateValidator()
+        private static IDocumentValidator CreateValidator(int? maxErrors = null)
         {
-            return new ServiceCollection()
-                .AddValidation()
+            IValidationBuilder builder = new ServiceCollection().AddValidation();
+
+            if (maxErrors.HasValue)
+            {
+                builder.ModifyValidationOptions(o => o.MaxAllowedErrors = maxErrors.Value);
+            }
+
+            return builder
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<IDocumentValidatorFactory>()

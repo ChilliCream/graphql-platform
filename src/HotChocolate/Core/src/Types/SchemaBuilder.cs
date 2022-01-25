@@ -100,6 +100,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
+    [Obsolete("Use ModifyOptions")]
     public ISchemaBuilder SetOptions(IReadOnlySchemaOptions options)
     {
         if (options is null)
