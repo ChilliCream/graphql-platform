@@ -1,5 +1,3 @@
-using HotChocolate.ApolloFederation;
-
 namespace Products;
 
 public class Product

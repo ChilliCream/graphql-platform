@@ -1,5 +1,3 @@
-using HotChocolate.ApolloFederation;
-
 namespace Inventory;
 
 public class Product
@@ -9,7 +7,6 @@ public class Product
         Upc = upc;
     }
 
-    [Key]
     public string Upc { get; }
 
     public int Weight { get; private set; }

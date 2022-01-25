@@ -1,5 +1,3 @@
-using HotChocolate.ApolloFederation;
-
 namespace Accounts;
 
 public class User
