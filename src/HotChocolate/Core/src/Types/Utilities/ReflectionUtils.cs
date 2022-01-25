@@ -106,19 +106,17 @@ public static class ReflectionUtils
         Expression memberExpression,
         out MemberInfo member)
     {
-        if (memberExpression is MemberExpression m
-            && m.Member.IsPublic())
+        if (memberExpression is MemberExpression m)
         {
             if (m.Member is PropertyInfo pi
-                && pi.DeclaringType.IsAssignableFrom(type)
+                && (pi.DeclaringType?.IsAssignableFrom(type) ?? false)
                 && !pi.IsSpecialName)
             {
                 member = GetBestMatchingProperty(type, pi);
                 return true;
             }
-            else if (m.Member is MethodInfo mi
-                && mi.DeclaringType.IsAssignableFrom(type)
-                && !mi.IsSpecialName)
+
+            if (m.Member is MethodInfo mi && (IsInstanceMethod(mi) || IsStaticMethod(mi)))
             {
                 member = GetBestMatchingMethod(type, mi);
                 return true;
@@ -127,6 +125,12 @@ public static class ReflectionUtils
 
         member = null;
         return false;
+
+        bool IsInstanceMethod(MethodInfo method)
+            => (method.DeclaringType?.IsAssignableFrom(type) ?? false) && !method.IsSpecialName;
+
+        bool IsStaticMethod(MethodInfo method)
+            => method.IsStatic;
     }
 
     private static Expression UnwrapFunc<T, TPropertyType>(
@@ -158,10 +162,8 @@ public static class ReflectionUtils
         Expression memberExpression,
         out MemberInfo member)
     {
-        if (memberExpression is MethodCallExpression mc
-            && mc.Method.IsPublic()
-            && mc.Method.DeclaringType.IsAssignableFrom(type)
-            && !mc.Method.IsSpecialName)
+        if (memberExpression is MethodCallExpression mc &&
+            (IsInstanceMethod(mc.Method) || IsStaticMethod(mc.Method)))
         {
             member = GetBestMatchingMethod(type, mc.Method);
             return true;
@@ -169,21 +171,12 @@ public static class ReflectionUtils
 
         member = null;
         return false;
-    }
 
-    private static bool IsPublic(this MemberInfo member)
-    {
-        if (member is PropertyInfo p)
-        {
-            return p.GetGetMethod()?.IsPublic ?? false;
-        }
+        bool IsInstanceMethod(MethodInfo method)
+            => (method.DeclaringType?.IsAssignableFrom(type) ?? false) && !method.IsSpecialName;
 
-        if (member is MethodInfo m)
-        {
-            return m.IsPublic;
-        }
-
-        return false;
+        bool IsStaticMethod(MethodInfo method)
+            => method.IsStatic;
     }
 
     public static string GetTypeName(this Type type)
@@ -200,18 +193,20 @@ public static class ReflectionUtils
 
     private static string CreateGenericTypeName(Type type)
     {
-        string name = type.Name.Substring(0, type.Name.Length - 2);
+        var name = type.Name.Substring(0, type.Name.Length - 2);
         IEnumerable<string> arguments = type.GetGenericArguments().Select(GetTypeName);
         return CreateTypeName(type, $"{name}<{string.Join(", ", arguments)}>");
     }
 
     private static string CreateTypeName(Type type, string typeName)
     {
-        string ns = GetNamespace(type);
+        var ns = GetNamespace(type);
+
         if (ns is null)
         {
             return typeName;
         }
+
         return $"{ns}.{typeName}";
     }
 
@@ -219,7 +214,7 @@ public static class ReflectionUtils
     {
         if (type.IsNested)
         {
-            return $"{GetNamespace(type.DeclaringType)}.{type.DeclaringType.Name}";
+            return $"{GetNamespace(type.DeclaringType)}.{type.DeclaringType!.Name}";
         }
         return type.Namespace;
     }
@@ -228,7 +223,7 @@ public static class ReflectionUtils
     {
         if (member.IsDefined(typeof(GraphQLTypeAttribute)))
         {
-            return member.GetCustomAttribute<GraphQLTypeAttribute>().Type;
+            return member.GetCustomAttribute<GraphQLTypeAttribute>()!.Type;
         }
 
         if (member is Type t)
@@ -275,7 +270,7 @@ public static class ReflectionUtils
                 && p.CanRead
                 && p.DeclaringType != typeof(object)))
         {
-            string name = property.GetGraphQLName();
+            var name = property.GetGraphQLName();
             if (!exists(name))
             {
                 add(name, property);
@@ -300,10 +295,9 @@ public static class ReflectionUtils
             .Select(t => t.ParameterType).ToArray();
         Type current = type;
 
-        while (current != typeof(object))
+        while (current is not null && current != typeof(object))
         {
-            MethodInfo betterMatching = current
-                .GetMethod(method.Name, parameters);
+            MethodInfo betterMatching = current.GetMethod(method.Name, parameters);
 
             if (betterMatching != null)
             {
@@ -326,10 +320,9 @@ public static class ReflectionUtils
 
         Type current = type;
 
-        while (current != typeof(object))
+        while (current is not null && current != typeof(object))
         {
-            PropertyInfo betterMatching = current
-                .GetProperty(property.Name);
+            PropertyInfo betterMatching = current.GetProperty(property.Name);
 
             if (betterMatching != null)
             {

@@ -69,9 +69,9 @@ public sealed class EntityResolverDescriptor<TEntity>
     /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReference(
         FieldResolverDelegate fieldResolver)
-        => ResolveEntity(fieldResolver, Array.Empty<string[]>());
+        => ResolveReference(fieldResolver, Array.Empty<string[]>());
 
-    private IObjectTypeDescriptor ResolveEntity(
+    private IObjectTypeDescriptor ResolveReference(
         FieldResolverDelegate fieldResolver,
         IReadOnlyList<string[]> required)
     {
@@ -92,7 +92,7 @@ public sealed class EntityResolverDescriptor<TEntity>
     /// <inheritdoc cref="IEntityResolverDescriptor{T}"/>
     public IObjectTypeDescriptor ResolveReference(
         Expression<Func<TEntity, object>> method)
-        => ResolveReferenceWith<TEntity>();
+        => ResolveReferenceWith(method);
 
     /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReferenceWith<TResolver>(
@@ -107,12 +107,7 @@ public sealed class EntityResolverDescriptor<TEntity>
 
         if (member is MethodInfo m)
         {
-            FieldResolverDelegates resolver =
-                Context.ResolverCompiler.CompileResolve(
-                    m,
-                    sourceType: typeof(object),
-                    resolverType: typeof(TResolver));
-            return ResolveReference(resolver.Resolver!);
+            return ResolveReferenceWith(m);
         }
 
         throw new ArgumentException(
@@ -121,8 +116,8 @@ public sealed class EntityResolverDescriptor<TEntity>
     }
 
     /// <inheritdoc cref="IEntityResolverDescriptor"/>
-    public IObjectTypeDescriptor ResolveReferenceWith<TResolver>() =>
-        ResolveReferenceWith(
+    public IObjectTypeDescriptor ResolveReferenceWith<TResolver>()
+        => ResolveReferenceWith(
             Context.TypeInspector.GetNodeResolverMethod(
                 Definition.EntityType ?? typeof(TResolver),
                 typeof(TResolver))!);
@@ -144,12 +139,12 @@ public sealed class EntityResolverDescriptor<TEntity>
                 resolverType: method.DeclaringType ?? typeof(object),
                 parameterExpressionBuilders: new IParameterExpressionBuilder[] { argumentBuilder });
 
-        return ResolveEntity(resolver.Resolver!, argumentBuilder.Required);
+        return ResolveReference(resolver.Resolver!, argumentBuilder.Required);
     }
 
     /// <inheritdoc cref="IEntityResolverDescriptor"/>
-    public IObjectTypeDescriptor ResolveReferenceWith(Type type) =>
-        ResolveReferenceWith(
+    public IObjectTypeDescriptor ResolveReferenceWith(Type type)
+        => ResolveReferenceWith(
             Context.TypeInspector.GetNodeResolverMethod(
                 Definition.EntityType ?? type,
                 type)!);
