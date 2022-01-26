@@ -122,6 +122,6 @@ partial class Build
 
     bool IsRelevantForSonar(string fileName)
         => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName)) &&
-            fileName.Contains("example") &&
-            fileName.Contains("sample");
+            !fileName.Contains("example") &&
+            !fileName.Contains("sample");
 }
