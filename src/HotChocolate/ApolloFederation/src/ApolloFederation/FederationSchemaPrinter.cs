@@ -13,6 +13,20 @@ namespace HotChocolate.ApolloFederation;
 /// </summary>
 internal static partial class FederationSchemaPrinter
 {
+    private readonly static HashSet<string> _builtInDirectives = new()
+    {
+        WellKnownTypeNames.External,
+        WellKnownTypeNames.Requires,
+        WellKnownTypeNames.Provides,
+        WellKnownTypeNames.Key,
+        WellKnownDirectives.Defer,
+        WellKnownDirectives.Stream,
+        WellKnownDirectives.Skip,
+        WellKnownDirectives.Include,
+        WellKnownDirectives.Deprecated,
+        SpecifiedByDirectiveType.Names.SpecifiedBy
+    };
+
     /// <summary>
     /// Creates a <see cref="string" /> representation of the given
     /// <paramref name="schema"/>.
@@ -34,17 +48,32 @@ internal static partial class FederationSchemaPrinter
         return SerializeSchema(schema).ToString();
     }
 
-    private static DocumentNode SerializeSchema(
-        ISchema schema)
+    private static DocumentNode SerializeSchema(ISchema schema)
     {
-        var referenced = new ReferencedTypes();
+        var context = new Context();
         var definitionNodes = new List<IDefinitionNode>();
+
+        foreach (DirectiveType directive in schema.DirectiveTypes)
+        {
+            if (directive.IsPublic)
+            {
+                context.DirectiveNames.Add(directive.Name);
+            }
+        }
 
         foreach (INamedType namedType in GetRelevantTypes(schema))
         {
-            if (TrySerializeType(namedType, referenced, out IDefinitionNode? definitionNode))
+            if (TrySerializeType(namedType, context, out IDefinitionNode? definitionNode))
             {
                 definitionNodes.Add(definitionNode);
+            }
+        }
+
+        foreach (DirectiveType directive in schema.DirectiveTypes)
+        {
+            if (!_builtInDirectives.Contains(directive.Name.Value) && directive.IsPublic)
+            {
+                definitionNodes.Add(SerializeDirectiveTypeDefinition(directive, context));
             }
         }
 
@@ -58,17 +87,17 @@ internal static partial class FederationSchemaPrinter
 
     private static bool TrySerializeType(
         INamedType namedType,
-        ReferencedTypes referenced,
+        Context context,
         [NotNullWhen(true)] out IDefinitionNode? definitionNode)
     {
         definitionNode = namedType switch
         {
-            ObjectType type => SerializeObjectType(type, referenced),
-            InterfaceType type => SerializeInterfaceType(type, referenced),
-            InputObjectType type => SerializeInputObjectType(type, referenced),
-            UnionType type => SerializeUnionType(type, referenced),
-            EnumType type => SerializeEnumType(type, referenced),
-            ScalarType type => SerializeScalarType(type, referenced),
+            ObjectType type => SerializeObjectType(type, context),
+            InterfaceType type => SerializeInterfaceType(type, context),
+            InputObjectType type => SerializeInputObjectType(type, context),
+            UnionType type => SerializeUnionType(type, context),
+            EnumType type => SerializeEnumType(type, context),
+            ScalarType type => SerializeScalarType(type, context),
             _ => throw new NotSupportedException()
         };
         return definitionNode is not null;
@@ -76,32 +105,51 @@ internal static partial class FederationSchemaPrinter
 
     private static ITypeNode SerializeType(
         IType type,
-        ReferencedTypes referenced)
+        Context context)
     {
         return type switch
         {
             NonNullType nt => new NonNullTypeNode(
-                (INullableTypeNode)SerializeType(nt.Type, referenced)),
-            ListType lt => new ListTypeNode(SerializeType(lt.ElementType, referenced)),
-            INamedType namedType => SerializeNamedType(namedType, referenced),
+                (INullableTypeNode)SerializeType(nt.Type, context)),
+            ListType lt => new ListTypeNode(SerializeType(lt.ElementType, context)),
+            INamedType namedType => SerializeNamedType(namedType, context),
             _ => throw new NotSupportedException()
         };
     }
 
     private static NamedTypeNode SerializeNamedType(
         INamedType namedType,
-        ReferencedTypes referenced)
+        Context context)
     {
-        referenced.TypeNames.Add(namedType.Name);
+        context.TypeNames.Add(namedType.Name);
         return new NamedTypeNode(null, new NameNode(namedType.Name));
     }
 
-    private static DirectiveNode SerializeDirective(
-        IDirective directiveType,
-        ReferencedTypes referenced)
+    private static IReadOnlyList<DirectiveNode> SerializeDirectives(
+        IReadOnlyCollection<IDirective> directives,
+        Context context)
     {
-        referenced.DirectiveNames.Add(directiveType.Name);
-        return directiveType.ToNode(true);
+        if (directives.Count == 0)
+        {
+            return Array.Empty<DirectiveNode>();
+        }
+
+        List<DirectiveNode>? directiveNodes = null;
+
+        foreach (IDirective directive in directives)
+        {
+            if (context.DirectiveNames.Contains(directive.Name))
+            {
+                (directiveNodes ??= new()).Add(directive.ToNode(true));
+            }
+        }
+
+        if (directiveNodes is not null)
+        {
+            return directiveNodes;
+        }
+
+        return Array.Empty<DirectiveNode>();
     }
 
     private static StringValueNode? SerializeDescription(string? description)
@@ -126,9 +174,9 @@ internal static partial class FederationSchemaPrinter
         IntrospectionTypes.IsIntrospectionType(type.Name) ||
         BuiltInTypes.IsBuiltInType(type.Name);
 
-    private sealed class ReferencedTypes
+    private sealed class Context
     {
         public HashSet<string> TypeNames { get; } = new();
-        public HashSet<string> DirectiveNames { get; } = new();
+        public HashSet<string> DirectiveNames { get; } = new(_builtInDirectives);
     }
 }
