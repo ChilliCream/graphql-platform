@@ -1,4 +1,4 @@
-namespace HotChocolate.ApolloFederation.CertificationSchema.Types;
+namespace HotChocolate.ApolloFederation.CertificationSchema.AnnotationBased.Types;
 
 public class ProductDimension
 {

@@ -89,20 +89,20 @@ public sealed class EntityResolverDescriptor<TEntity>
     }
 
     /// <inheritdoc cref="IEntityResolverDescriptor{T}"/>
-    public IObjectTypeDescriptor ResolveReference(
-        Expression<Func<TEntity, object>> method)
-        => ResolveReferenceWith(method);
+    public IObjectTypeDescriptor ResolveReferenceWith(
+        Expression<Func<TEntity, object?>> method)
+        => ResolveReferenceWith<TEntity>(method);
 
     /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReferenceWith<TResolver>(
-        Expression<Func<TResolver, object>> method)
+        Expression<Func<TResolver, object?>> method)
     {
         if (method is null)
         {
             throw new ArgumentNullException(nameof(method));
         }
 
-        MemberInfo member = method.TryExtractMember();
+        MemberInfo member = method.TryExtractMember(true);
 
         if (member is MethodInfo m)
         {

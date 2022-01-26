@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.ApolloFederation.CertificationSchema.CodeFirst.Types;
 using HotChocolate.Execution;
-using HotChocolate.ApolloFederation.CertificationSchema.Types;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.ApolloFederation.CertificationSchema;
+namespace HotChocolate.ApolloFederation.CertificationSchema.CodeFirst;
 
 public static class SchemaSetup
 {
@@ -12,7 +12,7 @@ public static class SchemaSetup
             .AddSingleton<Data>()
             .AddGraphQL()
             .AddApolloFederation()
-            .AddQueryType<Query>()
+            .AddQueryType<QueryType>()
             .RegisterService<Data>()
             .BuildRequestExecutorAsync();
 }

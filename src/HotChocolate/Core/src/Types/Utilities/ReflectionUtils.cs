@@ -12,14 +12,15 @@ namespace HotChocolate.Utilities;
 public static class ReflectionUtils
 {
     public static MemberInfo TryExtractMember<T, TPropertyType>(
-        this Expression<Func<T, TPropertyType>> memberExpression)
+        this Expression<Func<T, TPropertyType>> memberExpression,
+        bool allowStatic = false)
     {
         if (memberExpression == null)
         {
             throw new ArgumentNullException(nameof(memberExpression));
         }
 
-        return TryExtractMemberInternal<T>(UnwrapFunc(memberExpression));
+        return TryExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
     }
 
     internal static MemberInfo TryExtractCallMember(
@@ -42,41 +43,47 @@ public static class ReflectionUtils
     }
 
     private static MemberInfo TryExtractMemberInternal<T>(
-        Expression expression)
-    {
-        return ExtractMember(typeof(T), expression);
-    }
+        Expression expression,
+        bool allowStatic)
+        => ExtractMember(typeof(T), expression, allowStatic);
 
-    public static MethodInfo ExtractMethod<T>(this Expression<Action<T>> memberExpression) =>
-        ExtractMember(memberExpression) as MethodInfo ??
-        throw new ArgumentException("Member is not a method!", nameof(memberExpression));
+    public static MethodInfo ExtractMethod<T>(
+        this Expression<Action<T>> memberExpression,
+        bool allowStatic = false)
+        => ExtractMember(memberExpression, allowStatic) as MethodInfo ??
+           throw new ArgumentException(
+               TypeResources.ReflectionUtils_ExtractMethod_MethodExpected,
+               nameof(memberExpression));
 
     public static MemberInfo ExtractMember<T>(
-        this Expression<Action<T>> memberExpression)
+        this Expression<Action<T>> memberExpression,
+        bool allowStatic = false)
     {
         if (memberExpression is null)
         {
             throw new ArgumentNullException(nameof(memberExpression));
         }
 
-        return ExtractMemberInternal<T>(UnwrapAction(memberExpression));
+        return ExtractMemberInternal<T>(UnwrapAction(memberExpression), allowStatic);
     }
 
     public static MemberInfo ExtractMember<T, TPropertyType>(
-        this Expression<Func<T, TPropertyType>> memberExpression)
+        this Expression<Func<T, TPropertyType>> memberExpression,
+        bool allowStatic = false)
     {
         if (memberExpression is null)
         {
             throw new ArgumentNullException(nameof(memberExpression));
         }
 
-        return ExtractMemberInternal<T>(UnwrapFunc(memberExpression));
+        return ExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
     }
 
     private static MemberInfo ExtractMemberInternal<T>(
-        Expression expression)
+        Expression expression,
+        bool allowStatic)
     {
-        MemberInfo member = ExtractMember(typeof(T), expression);
+        MemberInfo member = ExtractMember(typeof(T), expression, allowStatic);
 
         if (member is null)
         {
@@ -104,6 +111,7 @@ public static class ReflectionUtils
     private static bool TryExtractMemberFromMemberExpression(
         Type type,
         Expression memberExpression,
+        bool allowStatic,
         out MemberInfo member)
     {
         if (memberExpression is MemberExpression m)
@@ -116,7 +124,8 @@ public static class ReflectionUtils
                 return true;
             }
 
-            if (m.Member is MethodInfo mi && (IsInstanceMethod(mi) || IsStaticMethod(mi)))
+            if (m.Member is MethodInfo mi &&
+                (IsInstanceMethod(type, mi) || allowStatic && IsStaticMethod(mi)))
             {
                 member = GetBestMatchingMethod(type, mi);
                 return true;
@@ -125,12 +134,6 @@ public static class ReflectionUtils
 
         member = null;
         return false;
-
-        bool IsInstanceMethod(MethodInfo method)
-            => (method.DeclaringType?.IsAssignableFrom(type) ?? false) && !method.IsSpecialName;
-
-        bool IsStaticMethod(MethodInfo method)
-            => method.IsStatic;
     }
 
     private static Expression UnwrapFunc<T, TPropertyType>(
@@ -144,12 +147,20 @@ public static class ReflectionUtils
     }
 
     private static MemberInfo ExtractMember(
-        Type type, Expression unwrappedExpr)
+        Type type,
+        Expression unwrappedExpr,
+        bool allowStatic)
     {
         if (TryExtractMemberFromMemberExpression(
-                type, unwrappedExpr, out MemberInfo member)
-            || TryExtractMemberFromMemberCallExpression(
-                type, unwrappedExpr, out member))
+                type,
+                unwrappedExpr,
+                allowStatic,
+                out MemberInfo member) ||
+            TryExtractMemberFromMemberCallExpression(
+                type,
+                unwrappedExpr,
+                allowStatic,
+                out member))
         {
             return member;
         }
@@ -160,10 +171,11 @@ public static class ReflectionUtils
     private static bool TryExtractMemberFromMemberCallExpression(
         Type type,
         Expression memberExpression,
+        bool allowStatic,
         out MemberInfo member)
     {
         if (memberExpression is MethodCallExpression mc &&
-            (IsInstanceMethod(mc.Method) || IsStaticMethod(mc.Method)))
+            (IsInstanceMethod(type, mc.Method) || allowStatic && IsStaticMethod(mc.Method)))
         {
             member = GetBestMatchingMethod(type, mc.Method);
             return true;
@@ -171,13 +183,13 @@ public static class ReflectionUtils
 
         member = null;
         return false;
-
-        bool IsInstanceMethod(MethodInfo method)
-            => (method.DeclaringType?.IsAssignableFrom(type) ?? false) && !method.IsSpecialName;
-
-        bool IsStaticMethod(MethodInfo method)
-            => method.IsStatic;
     }
+
+    private static bool IsInstanceMethod(Type type, MethodInfo method)
+        => (method.DeclaringType?.IsAssignableFrom(type) ?? false) && !method.IsSpecialName;
+
+    private static bool IsStaticMethod(MethodInfo method)
+        => method.IsStatic;
 
     public static string GetTypeName(this Type type)
     {

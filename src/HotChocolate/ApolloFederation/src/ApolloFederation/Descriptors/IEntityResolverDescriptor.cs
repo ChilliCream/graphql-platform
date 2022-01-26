@@ -34,7 +34,7 @@ public interface IEntityResolverDescriptor
     /// Returns the descriptor for configuration chaining.
     /// </returns>
     IObjectTypeDescriptor ResolveReferenceWith<TResolver>(
-        Expression<Func<TResolver, object>> method);
+        Expression<Func<TResolver, object?>> method);
 
     /// <summary>
     /// Resolve an entity from its representation.
@@ -96,8 +96,8 @@ public interface IEntityResolverDescriptor<TEntity>
     /// <returns>
     /// Returns the descriptor for configuration chaining.
     /// </returns>
-    IObjectTypeDescriptor ResolveReference(
-        Expression<Func<TEntity, object>> method);
+    IObjectTypeDescriptor ResolveReferenceWith(
+        Expression<Func<TEntity, object?>> method);
 
     /// <summary>
     /// Resolve an entity from its representation.
@@ -112,7 +112,7 @@ public interface IEntityResolverDescriptor<TEntity>
     /// Returns the descriptor for configuration chaining.
     /// </returns>
     IObjectTypeDescriptor ResolveReferenceWith<TResolver>(
-        Expression<Func<TResolver, object>> method);
+        Expression<Func<TResolver, object?>> method);
 
     /// <summary>
     /// Resolve an entity from its representation.

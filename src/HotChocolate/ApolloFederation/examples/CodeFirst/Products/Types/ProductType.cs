@@ -8,7 +8,7 @@ public class ProductType : ObjectType<Product>
     {
         descriptor
             .Key("upc")
-            .ResolveReference(t => GetProduct(default!, default!));
+            .ResolveReferenceWith(t => GetProduct(default!, default!));
     }
 
     private static Product GetProduct(

@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.ApolloFederation.CertificationSchema;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.CertificationSchema.CodeFirst;
 
 public class CertificationTests
 {
@@ -163,8 +162,8 @@ public class CertificationTests
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"query ($id: ID!) {
-                product(id: $id) { 
-                    dimensions { size weight } 
+                product(id: $id) {
+                    dimensions { size weight }
                 }
             }",
             new Dictionary<string, object?>

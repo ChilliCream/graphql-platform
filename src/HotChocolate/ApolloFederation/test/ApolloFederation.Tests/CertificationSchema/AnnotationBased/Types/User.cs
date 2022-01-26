@@ -1,6 +1,6 @@
 using HotChocolate.Types.Relay;
 
-namespace HotChocolate.ApolloFederation.CertificationSchema.Types;
+namespace HotChocolate.ApolloFederation.CertificationSchema.AnnotationBased.Types;
 
 [Key("email")]
 [ExtendServiceType]

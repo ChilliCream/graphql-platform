@@ -8,7 +8,7 @@ public class UserType : ObjectType<User>
     {
         descriptor
             .Key("id")
-            .ResolveReference(t => ResolveUserById(default!, default!));
+            .ResolveReferenceWith(t => ResolveUserById(default!, default!));
     }
 
     private static Task<User> ResolveUserById(

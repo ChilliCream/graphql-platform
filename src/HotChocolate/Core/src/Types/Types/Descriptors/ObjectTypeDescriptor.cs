@@ -255,7 +255,10 @@ public class ObjectTypeDescriptor
             }
 
             fieldDescriptor = ObjectFieldDescriptor.New(
-                Context, member, Definition.RuntimeType, typeof(TResolver));
+                Context,
+                member,
+                Definition.RuntimeType,
+                typeof(TResolver));
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
@@ -263,7 +266,10 @@ public class ObjectTypeDescriptor
         if (member is null)
         {
             var fieldDescriptor = ObjectFieldDescriptor.New(
-                Context, propertyOrMethod, Definition.RuntimeType, typeof(TResolver));
+                Context,
+                propertyOrMethod,
+                Definition.RuntimeType,
+                typeof(TResolver));
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }

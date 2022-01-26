@@ -9,7 +9,7 @@ public class ProductType : ObjectType<Product>
         descriptor
             .ExtendServiceType()
             .Key("upc")
-            .ResolveReference(t => GetProduct(default!));
+            .ResolveReferenceWith(t => GetProduct(default!));
 
         descriptor
             .Field(t => t.Upc)
