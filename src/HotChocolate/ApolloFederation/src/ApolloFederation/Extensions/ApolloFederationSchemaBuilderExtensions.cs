@@ -1,6 +1,7 @@
-using System;
+using HotChocolate.ApolloFederation;
+using AnyType = HotChocolate.ApolloFederation.AnyType;
 
-namespace HotChocolate.ApolloFederation.Extensions;
+namespace HotChocolate;
 
 /// <summary>
 /// Provides extensions to <see cref="ISchemaBuilder"/>.

@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using static System.Linq.Expressions.Expression;
 using static System.Reflection.BindingFlags;

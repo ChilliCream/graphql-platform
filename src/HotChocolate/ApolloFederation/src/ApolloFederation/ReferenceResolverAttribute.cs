@@ -1,7 +1,5 @@
-using System;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Descriptors;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 

@@ -1,8 +1,6 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation.Descriptors;
 

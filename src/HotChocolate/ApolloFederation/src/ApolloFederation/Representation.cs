@@ -1,10 +1,9 @@
-using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
-/// A representation is a blob of data that is supposed to match 
+/// A representation is a blob of data that is supposed to match
 /// the combined requirements of the fields requested on an entity.
 /// </summary>
 public sealed class Representation
@@ -16,7 +15,7 @@ public sealed class Representation
     /// The type name of the entity.
     /// </param>
     /// <param name="data">
-    /// The required data to resolve the data from an entity. 
+    /// The required data to resolve the data from an entity.
     /// </param>
     public Representation(NameString typeName, ObjectValueNode data)
     {

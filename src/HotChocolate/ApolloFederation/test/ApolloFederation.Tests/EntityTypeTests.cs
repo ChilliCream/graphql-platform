@@ -1,4 +1,3 @@
-using HotChocolate.ApolloFederation.Extensions;
 using Xunit;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
 

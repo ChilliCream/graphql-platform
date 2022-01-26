@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.ApolloFederation.Helpers;

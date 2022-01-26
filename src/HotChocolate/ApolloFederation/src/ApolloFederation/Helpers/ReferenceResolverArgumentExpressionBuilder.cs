@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -7,7 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Resolvers.Expressions.Parameters;
-using HotChocolate.Types;
 using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 

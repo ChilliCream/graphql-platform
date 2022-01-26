@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 
 namespace HotChocolate.ApolloFederation.Helpers;

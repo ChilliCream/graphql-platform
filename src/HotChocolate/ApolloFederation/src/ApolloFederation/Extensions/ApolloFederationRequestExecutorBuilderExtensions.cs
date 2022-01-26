@@ -2,7 +2,7 @@ using System;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.ApolloFederation.Extensions;
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Provides extensions to <see cref="IRequestExecutorBuilder"/>.

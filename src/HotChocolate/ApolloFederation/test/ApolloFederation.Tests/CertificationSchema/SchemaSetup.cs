@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.ApolloFederation.CertificationSchema.Types;
-using HotChocolate.ApolloFederation.Extensions;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema;
 

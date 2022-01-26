@@ -2,7 +2,6 @@ using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 

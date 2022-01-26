@@ -10,7 +10,6 @@ using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.ApolloFederation.ThrowHelper;
@@ -102,7 +101,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void CompleteExternalFieldSetters(ObjectType type, ObjectTypeDefinition typeDef)
         => ExternalSetterExpressionHelper.TryAddExternalSetter(type, typeDef);
- 
+
     private void CompleteReferenceResolver(ObjectTypeDefinition typeDef)
     {
         if (typeDef.GetContextData().TryGetValue(EntityResolver, out var value) &&

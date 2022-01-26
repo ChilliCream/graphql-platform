@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities.Introspection;
 

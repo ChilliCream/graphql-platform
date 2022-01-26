@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -6,7 +5,6 @@ using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
