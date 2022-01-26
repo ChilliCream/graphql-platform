@@ -1,3 +1,5 @@
+using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Extensions;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Types;
 

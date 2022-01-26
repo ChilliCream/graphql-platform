@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.ApolloFederation.Extensions;
 using Snapshooter.Xunit;
 using Xunit;
 

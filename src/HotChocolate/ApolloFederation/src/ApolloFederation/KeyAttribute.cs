@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using HotChocolate.ApolloFederation.Extensions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.ThrowHelper;
@@ -64,7 +65,7 @@ public sealed class KeyAttribute : DescriptorAttribute
             case IObjectFieldDescriptor objectFieldDescriptor when element is MemberInfo:
                 objectFieldDescriptor
                     .Extend()
-                    .OnBeforeCreate(d => d.ContextData[WellKnownContextData.KeyMarker] = true);
+                    .OnBeforeCreate(d => d.ContextData[Constants.WellKnownContextData.KeyMarker] = true);
                 break;
         }
     }

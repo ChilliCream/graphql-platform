@@ -1,4 +1,6 @@
 using System.Threading.Tasks;
+using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Extensions;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.ApolloFederation.TestHelper;

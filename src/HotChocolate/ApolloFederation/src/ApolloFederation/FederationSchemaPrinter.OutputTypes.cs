@@ -32,7 +32,7 @@ internal static partial class FederationSchemaPrinter
             .Select(t => SerializeNamedType(t, referenced))
             .ToList();
 
-        if (objectType.ContextData.ContainsKey(WellKnownContextData.ExtendMarker))
+        if (objectType.ContextData.ContainsKey(Constants.WellKnownContextData.ExtendMarker))
         {
             return new ObjectTypeExtensionNode(
                 null,

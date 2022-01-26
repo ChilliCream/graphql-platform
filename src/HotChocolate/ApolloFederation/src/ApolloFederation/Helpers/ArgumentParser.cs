@@ -4,8 +4,11 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Helpers;
 
+/// <summary>
+/// A helper for getting field values from a representation object.
+/// </summary>
 internal static class ArgumentParser
 {
     public static T? GetValue<T>(

@@ -5,11 +5,11 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{74D95657-7BC6-409F-8484-F963A128764A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloFederation", "src\ApolloFederation\ApolloFederation.csproj", "{46D3566C-FBBC-46BB-A9AB-454F348A003E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloFederation", "src\ApolloFederation\HotChocolate.ApolloFederation.csproj", "{46D3566C-FBBC-46BB-A9AB-454F348A003E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{EA937CAB-A9B1-474E-BF2A-A45399561B2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloFederation.Tests", "test\ApolloFederation.Tests\ApolloFederation.Tests.csproj", "{3B96CAE2-A6C0-4BA6-A21B-1CBFE6EF7A16}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloFederation.Tests", "test\ApolloFederation.Tests\HotChocolate.ApolloFederation.Tests.csproj", "{3B96CAE2-A6C0-4BA6-A21B-1CBFE6EF7A16}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{82050CA3-2111-49D6-B682-EA22191ADB99}"
 EndProject

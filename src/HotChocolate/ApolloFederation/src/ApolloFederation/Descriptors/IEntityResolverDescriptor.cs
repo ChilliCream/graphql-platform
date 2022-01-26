@@ -4,7 +4,7 @@ using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Descriptors;
 
 /// <summary>
 /// The entity descriptor allows to specify a reference resolver.

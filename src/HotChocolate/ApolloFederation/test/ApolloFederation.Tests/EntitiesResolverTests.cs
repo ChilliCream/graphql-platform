@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.ApolloFederation.Extensions;
+using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Xunit;
@@ -29,7 +31,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        List<object?> result = await EntitiesResolver._Entities(schema, representations, context);
+        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
         ForeignType obj = Assert.IsType<ForeignType>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("someExternalField", obj.SomeExternalField);
@@ -56,7 +58,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        List<object?> result = await EntitiesResolver._Entities(schema, representations, context);
+        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
         MixedFieldTypes obj = Assert.IsType<MixedFieldTypes>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal(25, obj.IntField);
@@ -80,7 +82,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        List<object?> result = await EntitiesResolver._Entities(schema, representations, context);
+        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
         TypeWithReferenceResolver obj = Assert.IsType<TypeWithReferenceResolver>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("SomeField", obj.SomeField);
@@ -103,7 +105,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        Task ShouldThrow() => EntitiesResolver._Entities(schema, representations, context);
+        Task ShouldThrow() => EntitiesResolver.ResolveAsync(schema, representations, context);
         await Assert.ThrowsAsync<SchemaException>(ShouldThrow);
     }
 
@@ -124,7 +126,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        Task ShouldThrow() => EntitiesResolver._Entities(schema, representations, context);
+        Task ShouldThrow() => EntitiesResolver.ResolveAsync(schema, representations, context);
         await Assert.ThrowsAsync<SchemaException>(ShouldThrow);
     }
 

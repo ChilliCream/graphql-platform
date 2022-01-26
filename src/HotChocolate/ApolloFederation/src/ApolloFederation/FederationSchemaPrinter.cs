@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
@@ -9,8 +10,22 @@ using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate.ApolloFederation;
 
+/// <summary>
+/// The apollo federation schema printer.
+/// </summary>
 internal static partial class FederationSchemaPrinter
 {
+    /// <summary>
+    /// Creates a <see cref="string" /> representation of the given
+    /// <paramref name="schema"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema object.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="string" /> representation of the given
+    /// <paramref name="schema"/>.
+    /// </returns>
     public static string Print(ISchema schema)
     {
         if (schema is null)

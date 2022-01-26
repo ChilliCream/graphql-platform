@@ -1,10 +1,12 @@
 using System;
-using HotChocolate.ApolloFederation;
+using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Descriptors;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
-using static HotChocolate.ApolloFederation.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 
-namespace HotChocolate.Types;
+namespace HotChocolate.ApolloFederation.Extensions;
 
 /// <summary>
 /// Provides extensions for type system descriptors.

@@ -1,7 +1,7 @@
 using System;
+using HotChocolate.ApolloFederation.Extensions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using static HotChocolate.ApolloFederation.WellKnownContextData;
 
 namespace HotChocolate.ApolloFederation;
 

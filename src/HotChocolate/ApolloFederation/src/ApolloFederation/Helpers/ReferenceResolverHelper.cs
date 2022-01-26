@@ -4,10 +4,13 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using static HotChocolate.ApolloFederation.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Helpers;
 
+/// <summary>
+/// This class provides helpers for the reference resolver expression generators.
+/// </summary>
 internal static class ReferenceResolverHelper
 {
     public static bool Matches(

@@ -2,15 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using static System.Linq.Expressions.Expression;
 using static System.Reflection.BindingFlags;
-using static HotChocolate.ApolloFederation.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Helpers;
 
+/// <summary>
+/// This class contains helpers to genereate external field setters.
+/// </summary>
 internal static class ExternalSetterExpressionHelper
 {
     private static readonly MethodInfo _createSetValueExpression =

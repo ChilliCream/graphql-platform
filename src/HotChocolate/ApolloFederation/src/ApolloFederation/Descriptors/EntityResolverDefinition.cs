@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Descriptors;
 
 /// <summary>
 /// The entity definition allows to specify a reference resolver.

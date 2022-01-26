@@ -1,7 +1,7 @@
 using HotChocolate.Types;
-using static HotChocolate.ApolloFederation.WellKnownArgumentNames;
+using static HotChocolate.ApolloFederation.Constants.WellKnownArgumentNames;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Extensions;
 
 internal static class DirectiveTypeDescriptorExtensions
 {

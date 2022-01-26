@@ -8,10 +8,10 @@ using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types;
-using static HotChocolate.ApolloFederation.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Helpers;
 
 internal sealed class ReferenceResolverArgumentExpressionBuilder
     : ScopedStateParameterExpressionBuilder

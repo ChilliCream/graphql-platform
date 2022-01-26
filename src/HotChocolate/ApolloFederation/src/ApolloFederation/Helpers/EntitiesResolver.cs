@@ -4,13 +4,16 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using static HotChocolate.ApolloFederation.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Helpers;
 
+/// <summary>
+/// This class contains the _entities resolver method.
+/// </summary>
 internal static class EntitiesResolver
 {
-    public static async Task<List<object?>> _Entities(
+    public static async Task<List<object?>> ResolveAsync(
         ISchema schema,
         IReadOnlyList<Representation> representations,
         IResolverContext context)
