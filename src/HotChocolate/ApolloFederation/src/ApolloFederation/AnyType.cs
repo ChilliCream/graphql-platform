@@ -1,7 +1,7 @@
 using System.Linq;
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
@@ -18,7 +18,8 @@ public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
     /// <summary>
     /// Initializes a new instance of <see cref="AnyType"/>.
     /// </summary>
-    public AnyType() : this(WellKnownTypeNames.Any)
+    public AnyType()
+        : this(WellKnownTypeNames.Any)
     {
     }
 

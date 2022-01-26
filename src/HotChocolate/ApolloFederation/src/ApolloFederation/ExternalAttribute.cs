@@ -1,5 +1,4 @@
 using System.Reflection;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.ApolloFederation;

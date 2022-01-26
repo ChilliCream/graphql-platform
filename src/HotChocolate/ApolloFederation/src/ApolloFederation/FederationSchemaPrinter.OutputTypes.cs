@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -32,7 +27,7 @@ internal static partial class FederationSchemaPrinter
             .Select(t => SerializeNamedType(t, referenced))
             .ToList();
 
-        if (objectType.ContextData.ContainsKey(WellKnownContextData.ExtendMarker))
+        if (objectType.ContextData.ContainsKey(Constants.WellKnownContextData.ExtendMarker))
         {
             return new ObjectTypeExtensionNode(
                 null,

@@ -1,3 +1,4 @@
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Xunit;

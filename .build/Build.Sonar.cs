@@ -121,5 +121,7 @@ partial class Build
             .SetFramework(Net60);
 
     bool IsRelevantForSonar(string fileName)
-        => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName));
+        => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName)) &&
+            !fileName.Contains("example") &&
+            !fileName.Contains("sample");
 }

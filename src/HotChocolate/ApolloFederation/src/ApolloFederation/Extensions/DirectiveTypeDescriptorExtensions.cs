@@ -1,5 +1,4 @@
-using HotChocolate.Types;
-using static HotChocolate.ApolloFederation.WellKnownArgumentNames;
+using static HotChocolate.ApolloFederation.Constants.WellKnownArgumentNames;
 
 namespace HotChocolate.ApolloFederation;
 

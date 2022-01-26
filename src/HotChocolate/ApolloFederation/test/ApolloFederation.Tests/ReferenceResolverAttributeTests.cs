@@ -4,7 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Xunit;
-using static HotChocolate.ApolloFederation.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;

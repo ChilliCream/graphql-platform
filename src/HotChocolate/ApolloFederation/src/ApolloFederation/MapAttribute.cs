@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
@@ -12,7 +10,7 @@ public class MapAttribute : Attribute
     /// Represents an argument to a representation value.
     /// </summary>
     /// <param name="path">
-    /// A path to field in the representation graph. 
+    /// A path to field in the representation graph.
     /// </param>
     public MapAttribute(string path)
     {
@@ -20,7 +18,7 @@ public class MapAttribute : Attribute
     }
 
     /// <summary>
-    /// A path to field in the representation graph. 
+    /// A path to field in the representation graph.
     /// </summary>
     public string Path { get; }
 }

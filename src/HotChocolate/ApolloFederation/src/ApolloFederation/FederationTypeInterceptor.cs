@@ -1,18 +1,19 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Descriptors;
+using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.ApolloFederation.ThrowHelper;
-using static HotChocolate.ApolloFederation.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -100,7 +101,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void CompleteExternalFieldSetters(ObjectType type, ObjectTypeDefinition typeDef)
         => ExternalSetterExpressionHelper.TryAddExternalSetter(type, typeDef);
- 
+
     private void CompleteReferenceResolver(ObjectTypeDefinition typeDef)
     {
         if (typeDef.GetContextData().TryGetValue(EntityResolver, out var value) &&
@@ -167,7 +168,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 .Argument(
                     WellKnownArgumentNames.Representations,
                     descriptor => descriptor.Type<NonNullType<ListType<NonNullType<AnyType>>>>())
-                .Resolve(c => EntitiesResolver._Entities(
+                .Resolve(c => EntitiesResolver.ResolveAsync(
                     c.Schema,
                     c.ArgumentValue<IReadOnlyList<Representation>>(
                         WellKnownArgumentNames.Representations),

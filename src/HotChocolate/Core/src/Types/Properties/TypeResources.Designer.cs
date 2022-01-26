@@ -1454,5 +1454,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_OneOfFieldIsNull", resourceCulture);
             }
         }
+        
+        internal static string ReflectionUtils_ExtractMethod_MethodExpected {
+            get {
+                return ResourceManager.GetString("ReflectionUtils_ExtractMethod_MethodExpected", resourceCulture);
+            }
+        }
     }
 }

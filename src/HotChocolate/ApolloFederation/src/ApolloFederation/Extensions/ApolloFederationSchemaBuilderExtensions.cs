@@ -1,5 +1,5 @@
-using System;
 using HotChocolate.ApolloFederation;
+using AnyType = HotChocolate.ApolloFederation.AnyType;
 
 namespace HotChocolate;
 
