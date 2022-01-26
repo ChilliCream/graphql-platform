@@ -1,0 +1,5 @@
+﻿type Query {
+  foo: String @custom
+}
+
+directive @custom on FIELD_DEFINITION

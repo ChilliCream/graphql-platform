@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -154,30 +155,6 @@ public class FederationSchemaPrinterTests
         FederationSchemaPrinter.Print(schema).MatchSnapshot();
     }
 
-    [Fact(Skip = "Wait for SchemaFirstFixes!")]
-    public void TestFederationPrinterApolloTypeExtensionSchemaFirst()
-    {
-        // arrange
-        ISchema schema = SchemaBuilder.New()
-            .AddApolloFederation()
-            .AddDocumentFromString(
-                @"
-                extend type TestType @key(fields: ""id"") {
-                    id: Int!
-                    name: String!
-                }
-
-                type Query {
-                    someField(a: Int): TestType
-                }")
-            .Use(_ => _ => default)
-            .Create();
-
-        // act
-        // assert
-        FederationSchemaPrinter.Print(schema).MatchSnapshot();
-    }
-
     [Fact]
     public void TestFederationPrinterApolloDirectivesPureCodeFirst()
     {
@@ -199,6 +176,34 @@ public class FederationSchemaPrinterTests
         ISchema schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<QueryRoot<Product>>()
+            .Create();
+
+        // act
+        // assert
+        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+    }
+
+    [Fact]
+    public void CustomDirective_IsPublic()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithDirective>()
+            .AddDirectiveType(new CustomDirectiveType(true))
+            .Create();
+
+        // act
+        // assert
+        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+    }
+
+    [Fact]
+    public void CustomDirective_IsInternal()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithDirective>()
+            .AddDirectiveType(new CustomDirectiveType(false))
             .Create();
 
         // act
@@ -234,5 +239,43 @@ public class FederationSchemaPrinterTests
     {
         [Key]
         public string Upc { get; set; } = default!;
+    }
+
+    public class QueryWithDirective : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor
+                .Name("Query")
+                .Field("foo")
+                .Resolve("bar")
+                .Directive("custom");
+        }
+    }
+
+    public class CustomDirectiveType : DirectiveType
+    {
+        private readonly bool _isPublic;
+
+        public CustomDirectiveType(bool isPublic)
+        {
+            _isPublic = isPublic;
+        }
+
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor
+                .Name("custom")
+                .Location(DirectiveLocation.FieldDefinition);
+
+            if (_isPublic)
+            {
+                descriptor.Public();
+            }
+            else
+            {
+                descriptor.Internal();
+            }
+        }
     }
 }
