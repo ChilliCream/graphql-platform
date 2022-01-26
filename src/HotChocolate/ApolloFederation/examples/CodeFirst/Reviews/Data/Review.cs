@@ -1,5 +1,3 @@
-using HotChocolate.ApolloFederation;
-
 namespace Reviews;
 
 public class Review
@@ -12,17 +10,11 @@ public class Review
         Product = new Product(upc);
     }
 
-    [Key]
     public string Id { get; }
 
     public string Body { get; }
-    
+
     public string AuthorId { get; }
 
     public Product Product { get; }
-
-    [Provides("username")]
-    public Task<User> GetAuthorAsync(
-        UserRepository repository) 
-        => repository.GetUserById(AuthorId);
 }
