@@ -7,7 +7,7 @@ using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
 namespace HotChocolate.Diagnostics.Listeners;
 
-public class ActivityDataLoaderDiagnosticListener : DataLoaderDiagnosticEventListener
+internal sealed class ActivityDataLoaderDiagnosticListener : DataLoaderDiagnosticEventListener
 {
     private readonly InstrumentationOptions _options;
     private readonly ActivityEnricher _enricher;
