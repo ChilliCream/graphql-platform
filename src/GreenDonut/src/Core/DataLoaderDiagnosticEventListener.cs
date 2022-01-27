@@ -26,6 +26,7 @@ namespace GreenDonut
         public virtual IDisposable ExecuteBatch<TKey>(
             IDataLoader dataLoader,
             IReadOnlyList<TKey> keys)
+            where TKey : notnull
             => EmptyScope;
 
         /// <inheritdoc />
@@ -39,12 +40,14 @@ namespace GreenDonut
         public virtual void BatchError<TKey>(
             IReadOnlyList<TKey> keys,
             Exception error)
+            where TKey : notnull
         { }
 
         /// <inheritdoc />
         public virtual void BatchItemError<TKey>(
             TKey key,
             Exception error)
+            where TKey : notnull
         { }
 
         private sealed class EmptyActivityScope : IDisposable
