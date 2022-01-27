@@ -84,7 +84,7 @@ export const THEME_COLORS: ThemeColors = {
   quaternary: "var(--cc-quaternary-color)",
   link: "var(--cc-link-color)",
   text: "var(--cc-text-color)",
-  heading: "var(--cc-heading-color)",
+  heading: "var(--cc-heading-text-color)",
   footerText: "var(--cc-footer-text-color)",
   textContrast: "var(--cc-text-contrast-color)",
   boxHighlight: "var(--cc-box-highlight-color)",
