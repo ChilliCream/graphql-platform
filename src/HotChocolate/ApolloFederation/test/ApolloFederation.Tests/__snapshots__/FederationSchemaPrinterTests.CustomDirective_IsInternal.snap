@@ -1,3 +1,9 @@
-﻿type Query {
+﻿enum EnumWithDeprecatedValue {
+  DEPRECATED @deprecated
+  ACTIVE
+}
+
+type Query {
   foo: String
+  deprecated: EnumWithDeprecatedValue @deprecated(reason: "deprecated")
 }

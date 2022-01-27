@@ -250,6 +250,12 @@ public class FederationSchemaPrinterTests
                 .Field("foo")
                 .Resolve("bar")
                 .Directive("custom");
+
+            descriptor
+                .Field("deprecated")
+                .Resolve("abc")
+                .Deprecated("deprecated")
+                .Type<EnumType<EnumWithDeprecatedValue>>();
         }
     }
 
@@ -277,5 +283,12 @@ public class FederationSchemaPrinterTests
                 descriptor.Internal();
             }
         }
+    }
+
+    public enum EnumWithDeprecatedValue
+    {
+        [Obsolete]
+        Deprecated,
+        Active
     }
 }

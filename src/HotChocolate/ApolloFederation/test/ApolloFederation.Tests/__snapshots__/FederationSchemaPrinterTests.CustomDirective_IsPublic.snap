@@ -1,5 +1,11 @@
-﻿type Query {
+﻿enum EnumWithDeprecatedValue {
+  DEPRECATED @deprecated
+  ACTIVE
+}
+
+type Query {
   foo: String @custom
+  deprecated: EnumWithDeprecatedValue @deprecated(reason: "deprecated")
 }
 
 directive @custom on FIELD_DEFINITION

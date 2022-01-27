@@ -29,6 +29,22 @@ internal static partial class FederationSchemaPrinter
     {
         var directives = SerializeDirectives(enumValue.Directives, context);
 
+        if (enumValue.IsDeprecated)
+        {
+            var deprecateDirective = DeprecatedDirective.CreateNode(enumValue.DeprecationReason);
+
+            if(directives.Count == 0)
+            {
+                directives = new[] { deprecateDirective };
+            }
+            else
+            {
+                var temp = directives.ToList();
+                temp.Add(deprecateDirective);
+                directives = temp;
+            }
+        }
+
         return new EnumValueDefinitionNode(
             null,
             new NameNode(enumValue.Name),
