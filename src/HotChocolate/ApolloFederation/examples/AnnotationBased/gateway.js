@@ -7,12 +7,14 @@ const gateway = new ApolloGateway({
   // using a single source of truth to compose a schema is recommended and
   // prevents composition failures at runtime using schema validation using
   // real usage-based metrics.
-  serviceList: [
-    { name: "accounts", url: "http://localhost:5001/graphql" },
-    { name: "reviews", url: "http://localhost:5002/graphql" },
-    { name: "products", url: "http://localhost:5003/graphql" },
-    { name: "inventory", url: "http://localhost:5004/graphql" }
-  ],
+  supergraphSdl: new IntrospectAndCompose({
+    subgraphs: [
+      { name: "accounts", url: "http://localhost:5001/graphql" },
+      { name: "reviews", url: "http://localhost:5002/graphql" },
+      { name: "products", url: "http://localhost:5003/graphql" },
+      { name: "inventory", url: "http://localhost:5004/graphql" }
+    ],
+  }),
 
   // Experimental: Enabling this enables the query plan view in Playground.
   __exposeQueryPlanExperimental: false,

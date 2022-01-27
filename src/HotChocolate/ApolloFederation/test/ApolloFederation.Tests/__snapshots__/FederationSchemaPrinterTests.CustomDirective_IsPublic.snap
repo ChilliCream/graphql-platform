@@ -1,5 +1,13 @@
-﻿type Query {
-  foo: String @custom
+﻿enum EnumWithDeprecatedValue {
+  DEPRECATED1 @deprecated
+  DEPRECATED2 @custom @deprecated
+  ACTIVE
 }
 
-directive @custom on FIELD_DEFINITION
+type Query {
+  foo: String @custom
+  deprecated1: EnumWithDeprecatedValue @deprecated(reason: "deprecated")
+  deprecated2: EnumWithDeprecatedValue @custom @deprecated(reason: "deprecated")
+}
+
+directive @custom on FIELD_DEFINITION | ENUM_VALUE

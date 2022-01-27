@@ -91,6 +91,22 @@ internal static partial class FederationSchemaPrinter
 
         var directives = SerializeDirectives(field.Directives, context);
 
+        if (field.IsDeprecated)
+        {
+            var deprecateDirective = DeprecatedDirective.CreateNode(field.DeprecationReason);
+
+            if(directives.Count == 0)
+            {
+                directives = new[] { deprecateDirective };
+            }
+            else
+            {
+                var temp = directives.ToList();
+                temp.Add(deprecateDirective);
+                directives = temp;
+            }
+        }
+
         return new FieldDefinitionNode(
             null,
             new NameNode(field.Name),
