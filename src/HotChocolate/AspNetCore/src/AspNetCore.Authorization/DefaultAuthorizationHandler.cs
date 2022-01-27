@@ -51,9 +51,9 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
 
 
 #if NETSTANDARD2_0
-        private static bool TryGetAuthenticatedPrincipal(
-            IMiddlewareContext context,
-            out ClaimsPrincipal? principal)
+    private static bool TryGetAuthenticatedPrincipal(
+        IMiddlewareContext context,
+        out ClaimsPrincipal? principal)
 #else
     private static bool TryGetAuthenticatedPrincipal(
         IMiddlewareContext context,

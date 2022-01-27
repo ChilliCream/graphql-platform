@@ -11,7 +11,8 @@ public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
             .Location(DirectiveLocation.Schema)
             .Location(DirectiveLocation.Object)
             .Location(DirectiveLocation.FieldDefinition)
-            .Repeatable();
+            .Repeatable()
+            .Internal();
 
         descriptor.Argument(t => t.Policy)
             .Description(

@@ -1,5 +1,8 @@
 namespace HotChocolate.Language.Utilities;
 
+/// <summary>
+/// This helper can serialize a GraphQL syntax tree into its string representation.
+/// </summary>
 public sealed partial class SyntaxSerializer
 {
     private readonly bool _indented;
@@ -67,6 +70,11 @@ public sealed partial class SyntaxSerializer
             case SyntaxKind.ObjectField:
                 writer.WriteObjectField((ObjectFieldNode)node);
                 break;
+            case SyntaxKind.OptionalModifier:
+            case SyntaxKind.RequiredModifier:
+            case SyntaxKind.ListNullability:
+                VisitNullability((INullabilityNode)node, writer);
+                break;
             case SyntaxKind.SchemaDefinition:
                 VisitSchemaDefinition((SchemaDefinitionNode)node, writer);
                 break;
@@ -123,6 +131,9 @@ public sealed partial class SyntaxSerializer
                 break;
             case SyntaxKind.InputObjectTypeExtension:
                 VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node, writer);
+                break;
+            case SyntaxKind.SchemaCoordinate:
+                VisitSchemaCoordinate((SchemaCoordinateNode)node, writer);
                 break;
             default:
                 ThrowHelper.NodeKindIsNotSupported(node.Kind);

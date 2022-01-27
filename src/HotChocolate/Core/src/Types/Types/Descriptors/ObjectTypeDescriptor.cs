@@ -17,8 +17,6 @@ public class ObjectTypeDescriptor
     : DescriptorBase<ObjectTypeDefinition>
     , IObjectTypeDescriptor
 {
-    private ICollection<Type>? _resolverTypes;
-
     protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
     {
@@ -56,8 +54,6 @@ public class ObjectTypeDescriptor
     protected ICollection<ObjectFieldDescriptor> Fields { get; } =
         new List<ObjectFieldDescriptor>();
 
-    protected ICollection<Type> ResolverTypes => _resolverTypes ??= new HashSet<Type>();
-
     protected override void OnCreateDefinition(
         ObjectTypeDefinition definition)
     {
@@ -80,9 +76,7 @@ public class ObjectTypeDescriptor
             // if this definition is used for a type extension we need a
             // binding to a field which shall be ignored. In case this is a
             // definition for the type it will be ignored by the type initialization.
-            Definition.FieldIgnores.Add(new ObjectFieldBinding(
-                field.Definition.Name,
-                ObjectFieldBindingType.Field));
+            Definition.FieldIgnores.Add(new(field.Definition.Name, ObjectFieldBindingType.Field));
         }
 
         var fields = new Dictionary<NameString, ObjectFieldDefinition>();
@@ -193,6 +187,7 @@ public class ObjectTypeDescriptor
     {
         ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
             t => t.Definition.Name.Equals(name));
+
         if (fieldDescriptor is { })
         {
             return fieldDescriptor;
@@ -260,7 +255,10 @@ public class ObjectTypeDescriptor
             }
 
             fieldDescriptor = ObjectFieldDescriptor.New(
-                Context, member, Definition.RuntimeType, typeof(TResolver));
+                Context,
+                member,
+                Definition.RuntimeType,
+                typeof(TResolver));
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
@@ -268,7 +266,10 @@ public class ObjectTypeDescriptor
         if (member is null)
         {
             var fieldDescriptor = ObjectFieldDescriptor.New(
-                Context, propertyOrMethod, Definition.RuntimeType, typeof(TResolver));
+                Context,
+                propertyOrMethod,
+                Definition.RuntimeType,
+                typeof(TResolver));
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }

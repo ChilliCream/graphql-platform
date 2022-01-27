@@ -37,6 +37,13 @@ namespace HotChocolate.Validation.Rules;
 /// chapter.
 ///
 /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
+///
+/// AND
+///
+/// Oneof Input Objects require that exactly one field must be supplied and that
+/// field must not be {null}.
+///
+/// DRAFT: https://github.com/graphql/graphql-spec/pull/825
 /// </summary>
 internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 {
@@ -177,7 +184,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             ObjectFieldNode field = node.Fields[i];
             if (!context.Names.Add(field.Name.Value))
             {
-                context.Errors.Add(context.InputFieldAmbiguous(field));
+                context.ReportError(context.InputFieldAmbiguous(field));
             }
         }
 
@@ -190,6 +197,43 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
         if (namedType is InputObjectType inputObjectType)
         {
+            if (inputObjectType.Directives.Contains(WellKnownDirectives.OneOf))
+            {
+                if (node.Fields.Count == 0 || node.Fields.Count > 1)
+                {
+                    context.ReportError(
+                        context.OneOfMustHaveExactlyOneField(
+                            node,
+                            inputObjectType));
+                }
+                else
+                {
+                    ObjectFieldNode value = node.Fields[0];
+
+                    if (inputObjectType.Fields.TryGetField(
+                        value.Name.Value,
+                        out InputField? field))
+                    {
+                        if (value.Value.IsNull())
+                        {
+                            context.ReportError(
+                                context.OneOfMustHaveExactlyOneField(
+                                    node,
+                                    inputObjectType));
+                        }
+                        else if (value.Value.Kind is SyntaxKind.Variable &&
+                            !IsInstanceOfType(context, new NonNullType(field.Type), value.Value))
+                        {
+                            context.ReportError(
+                                context.OneOfVariablesMustBeNonNull(
+                                    node,
+                                    field.Coordinate,
+                                    ((VariableNode)value.Value).Name.Value));
+                        }
+                    }
+                }
+            }
+
             if (context.Names.Count >= inputObjectType.Fields.Count)
             {
                 return Continue;
@@ -202,7 +246,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
                     field.DefaultValue.IsNull() &&
                     context.Names.Add(field.Name))
                 {
-                    context.Errors.Add(
+                    context.ReportError(
                         context.FieldIsRequiredButNull(node, field.Name));
                 }
             }
@@ -226,7 +270,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             if (field.Type.IsNonNullType() &&
                 node.Value.IsNull())
             {
-                context.Errors.Add(
+                context.ReportError(
                     context.FieldIsRequiredButNull(node, field.Name));
             }
 
@@ -236,7 +280,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         }
         else
         {
-            context.Errors.Add(context.InputFieldDoesNotExist(node));
+            context.ReportError(context.InputFieldDoesNotExist(node));
             return Skip;
         }
     }
@@ -295,7 +339,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             if (TryPeekLastDefiningSyntaxNode(context, out ISyntaxNode? node) &&
                 TryCreateValueError(context, locationType, valueNode, node, out IError? error))
             {
-                context.Errors.Add(error);
+                context.ReportError(error);
                 return Skip;
             }
         }

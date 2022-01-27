@@ -1,8 +1,5 @@
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.Execution;
 
 namespace HotChocolate.AspNetCore;
 

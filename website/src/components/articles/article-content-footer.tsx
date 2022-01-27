@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import styled from "styled-components";
 
-interface ArticleContentFooterProps {
+export interface ArticleContentFooterProps {
   readonly lastUpdated: string;
   readonly lastAuthorName: string;
 }

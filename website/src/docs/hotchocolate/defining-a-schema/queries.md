@@ -2,7 +2,7 @@
 title: "Queries"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 The query type in GraphQL represents a read-only view of all of our entities and ways to retrieve them. A query type is required for every GraphQL server.
 
@@ -34,7 +34,7 @@ Queries are expected to be side-effect free and are therefore parallelized by th
 A query type can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -56,8 +56,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Query
@@ -103,8 +103,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Query
@@ -131,13 +131,13 @@ public class Startup
                   author: String
                 }
             ")
-            .BindComplexType<Query>()
-            .BindComplexType<Book>();
+            .BindRuntimeType<Query>()
+            .BindRuntimeType<Book>();
     }
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > ⚠️ Note: Only **one** query type can be registered using `AddQueryType()`. If we want to split up our query type into multiple classes, we can do so using type extensions.

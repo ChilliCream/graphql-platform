@@ -441,5 +441,94 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     abc: String
                 }");
         }
+
+        [Fact]
+        public void FieldsWithUnderlineInName()
+        {
+            AssertResult(
+                @"
+                    query GetBwr_TimeSeries(
+                      $where: bwr_TimeSeriesFilterInput
+                      $readDataInput: ReadDataInput!
+                    ) {
+                      bwr_TimeSeries(where: $where) {
+                        nodes {
+                          ...Bwr_TimeSeries
+                        }
+                      }
+                    }
+
+                    fragment Bwr_TimeSeries on bwr_TimeSeries {
+                      inventoryId: _inventoryItemId
+                      area
+                      source
+                      type
+                      name
+                      category
+                      specification
+                      commodity
+                      resolution {
+                        timeUnit
+                        factor
+                      }
+                      unit
+                      validationCriteria {
+                        ...Bwr_ValidationCriteria
+                      }
+                      importSpecification {
+                        fromPeriod
+                        toPeriod
+                      }
+                      _dataPoints(input: $readDataInput) {
+                        timestamp
+                        value
+                        flag
+                      }
+                    }
+
+                    fragment Bwr_ValidationCriteria on bwr_ValidationCriteria {
+                      _inventoryItemId
+                      name
+                      completeness
+                      lowerBound
+                      upperBound
+                    }
+                ",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("FieldsWithUnderlinePrefix.graphql"));
+        }
+
+        [Fact]
+        public void HasuraMutation()
+        {
+            AssertResult(
+                @"
+                     mutation insertPeople($people: [people_insert_input!]!) {
+                        insert_people(objects: $people)
+                        {
+                            affected_rows
+                        }
+                    }
+                ",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("HasuraSchema.graphql"));
+        }
+
+        [Fact]
+        public void LowerCaseScalarArgument()
+        {
+            AssertResult(
+                @"
+                    query GetPeopleByPk($id: uuid!) {
+                        people_by_pk(id: $id) {
+                            id
+                            firstName
+                            lastName
+                        }
+                    }
+                ",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("HasuraSchema.graphql"));
+        }
     }
 }

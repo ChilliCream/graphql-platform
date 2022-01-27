@@ -15,12 +15,10 @@ internal sealed class LocalStateParameterExpressionBuilder
         ContextType.GetProperty(nameof(IResolverContext.LocalContextData))!;
 
     protected override MethodInfo SetStateMethod { get; } =
-        typeof(ExpressionHelper)
-            .GetMethod(nameof(ExpressionHelper.SetLocalState))!;
+        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.SetLocalState))!;
 
     protected override MethodInfo SetStateGenericMethod { get; } =
-        typeof(ExpressionHelper)
-            .GetMethod(nameof(ExpressionHelper.SetLocalStateGeneric))!;
+        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.SetLocalStateGeneric))!;
 
     public override bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(LocalStateAttribute));

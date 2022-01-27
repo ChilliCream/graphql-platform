@@ -13,8 +13,8 @@
         "duration": 0
       },
       "validation": {
-        "startOffset": 20,
-        "duration": 20
+        "startOffset": 0,
+        "duration": 0
       },
       "execution": {
         "resolvers": [
@@ -25,7 +25,7 @@
             "parentType": "Query",
             "fieldName": "a",
             "returnType": "String",
-            "startOffset": 60,
+            "startOffset": 20,
             "duration": 20
           }
         ]

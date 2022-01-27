@@ -17,13 +17,20 @@ namespace HotChocolate.Validation
 
             IValidationBuilder builder = serviceCollection
                 .AddValidation()
-                .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()));
+                .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()))
+                .ModifyValidationOptions(o => o.MaxAllowedErrors = int.MaxValue);
             configure(builder);
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            Rule = services.GetRequiredService<IValidationConfiguration>()
+
+            Rule = services
+                .GetRequiredService<IValidationConfiguration>()
                 .GetRules(Schema.DefaultName).First();
-            StarWars = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+            StarWars = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .ModifyOptions(o => o.EnableOneOf = true)
+                .Create();
         }
 
         protected IDocumentValidatorRule Rule { get; }
@@ -73,8 +80,8 @@ namespace HotChocolate.Validation
             Assert.Empty(context.Errors);
         }
 
-        protected void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
-            ExpectErrors(null, sourceText, elementInspectors);
+        protected void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors)
+            => ExpectErrors(null, sourceText, elementInspectors);
 
         protected void ExpectErrors(
             ISchema schema,
@@ -82,7 +89,8 @@ namespace HotChocolate.Validation
             params Action<IError>[] elementInspectors)
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+            DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+            context.MaxAllowedErrors = int.MaxValue;
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
             context.Prepare(query);
 

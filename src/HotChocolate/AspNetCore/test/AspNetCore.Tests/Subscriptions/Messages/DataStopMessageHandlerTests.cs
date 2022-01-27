@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;

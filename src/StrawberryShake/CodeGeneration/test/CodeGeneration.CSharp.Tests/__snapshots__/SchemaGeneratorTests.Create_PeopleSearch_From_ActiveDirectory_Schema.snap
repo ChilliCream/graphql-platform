@@ -575,7 +575,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearchQueryResult
+    public partial interface IPeopleSearchQueryResult
     {
         /// <summary>
         /// Searches for people based on their id, name, and identites.
@@ -588,7 +588,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearch_People
+    public partial interface IPeopleSearch_People
     {
         public global::System.Int32 TotalCount
         {
@@ -611,7 +611,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearch_People_PersonCollectionSegment : IPeopleSearch_People
+    public partial interface IPeopleSearch_People_PersonCollectionSegment : IPeopleSearch_People
     {
     }
 
@@ -620,7 +620,7 @@ namespace Foo.Bar
     /// Information about the offset pagination.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearch_People_PageInfo
+    public partial interface IPeopleSearch_People_PageInfo
     {
         /// <summary>
         /// Indicates whether more items exist following the set defined by the clients arguments.
@@ -644,13 +644,13 @@ namespace Foo.Bar
     /// Information about the offset pagination.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearch_People_PageInfo_CollectionSegmentInfo : IPeopleSearch_People_PageInfo
+    public partial interface IPeopleSearch_People_PageInfo_CollectionSegmentInfo : IPeopleSearch_People_PageInfo
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearchResult
+    public partial interface IPeopleSearchResult
     {
         public global::System.String Id
         {
@@ -716,19 +716,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearch_People_Items : IPeopleSearchResult
+    public partial interface IPeopleSearch_People_Items : IPeopleSearchResult
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearch_People_Items_Person : IPeopleSearch_People_Items
+    public partial interface IPeopleSearch_People_Items_Person : IPeopleSearch_People_Items
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearch_People_Items_Department
+    public partial interface IPeopleSearch_People_Items_Department
     {
         public global::System.String Id
         {
@@ -746,13 +746,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearch_People_Items_Department_Department : IPeopleSearch_People_Items_Department
+    public partial interface IPeopleSearch_People_Items_Department_Department : IPeopleSearch_People_Items_Department
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearch_People_Items_Manager
+    public partial interface IPeopleSearch_People_Items_Manager
     {
         public global::System.String Id
         {
@@ -778,7 +778,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearch_People_Items_Manager_Person : IPeopleSearch_People_Items_Manager
+    public partial interface IPeopleSearch_People_Items_Manager_Person : IPeopleSearch_People_Items_Manager
     {
     }
 
@@ -1059,7 +1059,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPeopleSearchQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IPeopleSearchQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> ExecuteAsync(global::System.String term, global::System.Int32? skip, global::System.Int32? take, global::System.Boolean? inactive, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> Watch(global::System.String term, global::System.Int32? skip, global::System.Int32? take, global::System.Boolean? inactive, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -1087,7 +1087,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IPeopleSearchQuery PeopleSearch
         {
@@ -1493,7 +1493,14 @@ namespace Foo.Bar.State
             }
             else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+                else
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IPeopleSearchQueryResult>(data?.Result, data?.Info, _resultDataFactory, errors);

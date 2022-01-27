@@ -1,8 +1,8 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
 import { GetBlogArticlesByTagQuery } from "../../graphql-types";
+import { Layout } from "../components/layout";
 import { SEO } from "../components/misc/seo";
-import { Layout } from "../components/structure/layout";
 import { BlogArticles } from "../components/widgets/blog-articles";
 
 interface BlogTagTemplateProps {

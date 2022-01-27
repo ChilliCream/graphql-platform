@@ -1,15 +1,17 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.AspNetCore.Instrumentation;
+using System;
 
 namespace HotChocolate.AspNetCore;
 
@@ -223,6 +225,71 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Single_Diagnostic_Listener_Is_Triggered()
+    {
+        // arrange
+        var listenerA = new TestListener();
+
+        TestServer server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                    .AddDiagnosticEventListener(sp => listenerA));
+
+        // act
+        await server.PostRawAsync(new ClientQueryRequest
+        {
+            Query = @"
+                {
+                    hero(episode: NEW_HOPE)
+                    {
+                        name
+                        ... on Droid @defer(label: ""my_id"")
+                        {
+                            id
+                        }
+                    }
+                }"
+        });
+
+        // assert
+        Assert.True(listenerA.Triggered);
+    }
+
+    [Fact]
+    public async Task Aggregate_Diagnostic_All_Listeners_Are_Triggered()
+    {
+        // arrange
+        var listenerA = new TestListener();
+        var listenerB = new TestListener();
+
+        TestServer server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                    .AddDiagnosticEventListener(sp => listenerA)
+                    .AddDiagnosticEventListener(sp => listenerB));
+
+        // act
+        await server.PostRawAsync(new ClientQueryRequest
+        {
+            Query = @"
+                {
+                    hero(episode: NEW_HOPE)
+                    {
+                        name
+                        ... on Droid @defer(label: ""my_id"")
+                        {
+                            id
+                        }
+                    }
+                }"
+        });
+
+        // assert
+        Assert.True(listenerA.Triggered);
+        Assert.True(listenerB.Triggered);
     }
 
     [Fact]
@@ -873,6 +940,17 @@ public class HttpPostMiddlewareTests : ServerTestBase
             CancellationToken cancellationToken)
         {
             throw new GraphQLException("MyCustomError");
+        }
+    }
+
+    public class TestListener : ServerDiagnosticEventListener
+    {
+        public bool Triggered { get; set; }
+
+        public override IDisposable ExecuteHttpRequest(HttpContext context, HttpRequestKind kind)
+        {
+            Triggered = true;
+            return EmptyScope;
         }
     }
 }

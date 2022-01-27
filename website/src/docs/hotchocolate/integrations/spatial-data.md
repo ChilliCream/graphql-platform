@@ -23,8 +23,10 @@ can return NetTopologySuite shapes and they will be transformed into GeoJSON.
 You first need to add the package reference to your project. You can do this with the `dotnet` cli:
 
 ```bash
-  dotnet add package HotChocolate.Spatial
+dotnet add package HotChocolate.Spatial
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 To make the schema recognize the spatial types you need to register them on the schema builder.
 

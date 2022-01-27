@@ -765,6 +765,42 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 });
         }
 
+        [Fact]
+        public async Task Execution_Depth_Is_Skipped_For_Introspection()
+        {
+            Snapshot.FullName();
+            await ExpectValid(@"
+                query {
+                    __schema {
+                        types {
+                            fields {
+                                type {
+                                    kind
+                                    name
+                                    ofType {
+                                        kind
+                                        name
+                                        ofType {
+                                            kind
+                                            name
+                                            ofType {
+                                                kind
+                                                name
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }",
+                configure: c =>
+                {
+                    AddDefaultConfiguration(c);
+                    c.AddMaxExecutionDepthRule(3, skipIntrospectionFields: true);
+                });
+        }
+
         [InlineData("true")]
         [InlineData("false")]
         [Theory]

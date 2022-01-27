@@ -12,8 +12,8 @@ public class QueryableProjectionListHandler
 {
     public override bool CanHandle(ISelection selection) =>
         selection.Field.Member is { } &&
-        selection.Field.Type is ListType ||
-        selection.Field.Type is NonNullType nonNullType &&
+        selection.Type is ListType ||
+        selection.Type is NonNullType nonNullType &&
         nonNullType.InnerType() is ListType;
 
     public override QueryableProjectionContext OnBeforeEnter(
@@ -38,16 +38,10 @@ public class QueryableProjectionListHandler
     {
         IObjectField field = selection.Field;
 
-        if (!(field.Member is PropertyInfo { CanWrite: true }))
+        if (field.Member is not PropertyInfo { CanWrite: true })
         {
             action = SelectionVisitor.Skip;
             return true;
-        }
-
-        if (field.RuntimeType is null)
-        {
-            action = null;
-            return false;
         }
 
         IOutputType type = field.Type;
@@ -70,7 +64,7 @@ public class QueryableProjectionListHandler
     {
         IObjectField field = selection.Field;
 
-        if (field.RuntimeType is null || field.Member is null)
+        if (field.Member is null)
         {
             action = null;
             return false;

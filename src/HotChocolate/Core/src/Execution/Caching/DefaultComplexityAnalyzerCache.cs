@@ -17,13 +17,13 @@ internal class DefaultComplexityAnalyzerCache : IComplexityAnalyzerCache
 
     public int Count => _cache.Usage;
 
-    public bool TryGetOperation(
+    public bool TryGetAnalyzer(
         string operationId,
         [NotNullWhen(true)] out ComplexityAnalyzerDelegate? analyzer) =>
         _cache.TryGet(operationId, out analyzer);
 
 
-    public void TryAddOperation(
+    public void TryAddAnalyzer(
         string operationId,
         ComplexityAnalyzerDelegate analyzer) =>
         _cache.GetOrCreate(operationId, () => analyzer);

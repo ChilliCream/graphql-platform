@@ -1,0 +1,22 @@
+﻿{
+  "errors": [
+    {
+      "message": "The variable \u0060var\u0060 is not compatible with the type of the current location.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 39
+        }
+      ],
+      "path": [
+        "example"
+      ],
+      "extensions": {
+        "variable": "var",
+        "variableType": "String!",
+        "locationType": "ExampleInput!",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
+      }
+    }
+  ]
+}

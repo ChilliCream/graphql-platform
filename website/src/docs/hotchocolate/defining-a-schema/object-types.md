@@ -2,7 +2,7 @@
 title: "Object Types"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 The most important type in a GraphQL schema is the object type. It contains fields that can return simple scalars like `String`, `Int`, or again object types.
 
@@ -24,7 +24,7 @@ Learn more about object types [here](https://graphql.org/learn/schema/#object-ty
 Object types can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 In the Annotation-based approach we are essentially just creating regular C# classes.
 
@@ -35,8 +35,8 @@ public class Author
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 In the Code-first approach we create a new class inheriting from `ObjectType<T>` to map our POCO `Author` to an object type.
 
@@ -99,8 +99,8 @@ public class AuthorType : ObjectType
 
 Head over [here](#additional-fields) to learn how to add fields to such a type.
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Author
@@ -119,12 +119,12 @@ public class Startup
                   name: String
                 }
             ")
-            .BindComplexType<Author>();
+            .BindRuntimeType<Author>();
     }
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 # Binding behavior
@@ -167,7 +167,7 @@ public class BookType : ObjectType<Book>
 ## Ignoring fields
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 In the Annotation-based approach we can ignore fields using the `[GraphQLIgnore]` attribute.
 
@@ -181,8 +181,8 @@ public class Book
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 In the Code-first approach we can ignore fields of our POCO using the `Ignore` method on the `IObjectTypeDescriptor`. This is only necessary, if the binding behavior of the object type is implicit.
 
@@ -196,12 +196,12 @@ public class BookType : ObjectType<Book>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 We do not have to ignore fields in the Schema-first approach.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Including fields
@@ -233,7 +233,7 @@ The following conventions are applied when transforming C# method and property n
 If we need to we can override these inferred names.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 The `[GraphQLName]` attribute allows us to specify an explicit name.
 
@@ -246,8 +246,8 @@ public class Author
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 The `Name` method on the `IObjectTypeDescriptor` / `IObjectFieldDescriptor` allows us to specify an explicit name.
 
@@ -265,12 +265,12 @@ public class AuthorType : ObjectType<Author>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Simply change the names in the schema.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 This would produce the following `BookAuthor` schema object type:
@@ -296,7 +296,7 @@ If only one of our clients requires specific names, it is better to use [aliases
 Hot Chocolate will, most of the time, correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though. For example when we are working with custom scalars or Code-first types in general.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 In the annotation-based approach we can use the `[GraphQLType]` attribute.
 
@@ -308,8 +308,8 @@ public class Author
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 In the Code-first approach we can use the `Type<T>` method on the `IObjectFieldDescriptor`.
 
@@ -325,12 +325,12 @@ public class AuthorType : ObjectType<Author>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Simply change the field type in the schema.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 # Additional fields
@@ -338,7 +338,7 @@ Simply change the field type in the schema.
 We can add additional (dynamic) fields to our schema types, without adding new properties to our backing class.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Author
@@ -352,8 +352,8 @@ public class Author
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 In the Code-first approach we can use the `Resolve` method on the `IObjectFieldDescriptor`.
 
@@ -372,8 +372,8 @@ public class AuthorType : ObjectType<Author>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Author
@@ -393,7 +393,7 @@ public class Startup
                   additionalField: DateTime!
                 }
             ")
-            .BindComplexType<Author>()
+            .BindRuntimeType<Author>()
             .AddResolver("Author", "additionalField", (context) =>
             {
                 // Omitted code for brevity
@@ -402,7 +402,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 What we have just created is a resolver. Hot Chocolate automatically creates resolvers for our properties, but we can also define them ourselves.

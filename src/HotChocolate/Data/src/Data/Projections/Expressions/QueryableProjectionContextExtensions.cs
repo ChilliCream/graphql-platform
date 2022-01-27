@@ -42,4 +42,16 @@ public static class QueryableProjectionContextExtensions
 
         throw ProjectionConvention_CouldNotProject();
     }
+
+    public static Expression<Func<T, TTarget>> Project<T, TTarget>(
+        this QueryableProjectionContext context)
+        where T : TTarget
+    {
+        if (context.TryGetQueryableScope(out QueryableProjectionScope? scope))
+        {
+            return scope.Project<T, TTarget>();
+        }
+
+        throw ProjectionConvention_CouldNotProject();
+    }
 }

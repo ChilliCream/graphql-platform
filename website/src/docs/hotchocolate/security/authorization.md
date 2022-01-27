@@ -2,7 +2,7 @@
 title: Authorization
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 Authorization allows us to determine a user's permissions within our system. We can for example limit access to resources or only allow certain users to execute specific mutations.
 
@@ -14,7 +14,15 @@ Authentication is a prerequisite of Authorization, as we first need to validate 
 
 After we have successfully setup authentication, there are only a few things left to do.
 
-1. Register the necessary ASP.NET Core services
+1. Install the `HotChocolate.AspNetCore.Authorization` package
+
+```bash
+dotnet add package HotChocolate.AspNetCore.Authorization
+```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
+2. Register the necessary ASP.NET Core services
 
 ```csharp
 public class Startup
@@ -35,7 +43,7 @@ public class Startup
 
 > ⚠️ Note: We need to call `AddAuthorization()` on the `IServiceCollection`, to register the services needed by ASP.NET Core, and on the `IRequestExecutorBuilder` to register the `@authorize` directive and middleware.
 
-2. Register the ASP.NET Core authorization middleware with the request pipeline by calling `UseAuthorization`
+3. Register the ASP.NET Core authorization middleware with the request pipeline by calling `UseAuthorization`
 
 ```csharp
 public class Startup
@@ -60,7 +68,7 @@ public class Startup
 At the core of authorization with Hot Chocolate is the `@authorize` directive. It can be applied to fields and types to denote that they require authorization.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 In the Annotation-based approach we can use the `[Authorize]` attribute to add the `@authorize` directive.
 
@@ -75,10 +83,10 @@ public class User
 }
 ```
 
-> ⚠️ Note: We need to use the `HotChocolate.AspNetCore.AuthorizationAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
+> ⚠️ Note: We need to use the `HotChocolate.AspNetCore.Authorization.AuthorizeAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -92,8 +100,8 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type User @authorize {
@@ -102,12 +110,37 @@ type User @authorize {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 Specified on a type the `@authorize` directive will be applied to each field of that type. Its authorization logic is executed once for each individual field, depending on whether it was selected by the requestor or not. If the directive is placed on an individual field, it overrules the one on the type.
 
 If we do not specify any arguments to the `@authorize` directive, it will only enforce that the requestor is authenticated, nothing more. If he is not and tries to access an authorized field, a GraphQL error will be raised and the field result set to `null`.
+
+> ⚠️ Note: Using the @authorize directive, all unauthorized requests by default will return status code 200 and a payload like this:
+
+```json
+{
+  "errors": [
+    {
+      "message": "The current user is not authorized to access this resource.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": ["welcome"],
+      "extensions": {
+        "code": "AUTH_NOT_AUTHENTICATED"
+      }
+    }
+  ],
+  "data": {
+    "welcome": null
+  }
+}
+```
 
 ## Roles
 
@@ -122,7 +155,7 @@ claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
 We can then check whether an authenticated user has these role claims.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [Authorize(Roles = new [] { "Guest", "Administrator" })]
@@ -135,8 +168,8 @@ public class User
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -150,8 +183,8 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type User @authorize(roles: [ "Guest", "Administrator" ]) {
@@ -160,7 +193,7 @@ type User @authorize(roles: [ "Guest", "Administrator" ]) {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > ⚠️ Note: If multiple roles are specified, a user only has to match one of the specified roles, in order to be able to execute the resolver.
@@ -205,7 +238,7 @@ public class Startup
 We can then use these policies to restrict access to our fields.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [Authorize(Policy = "AllEmployees")]
@@ -218,8 +251,8 @@ public class User
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -233,8 +266,8 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type User @authorize(policy: "AllEmployees") {
@@ -243,7 +276,7 @@ type User @authorize(policy: "AllEmployees") {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 This essentially uses the provided policy and runs it against the `ClaimsPrincipal` that is associated with the current request.
@@ -251,7 +284,7 @@ This essentially uses the provided policy and runs it against the `ClaimsPrincip
 The `@authorize` directive is also repeatable, which means that we are able to chain the directive and a user is only allowed to access the field if they meet all of the specified conditions.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [Authorize(Policy = "AtLeast21")]
@@ -262,8 +295,8 @@ public class User
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -277,8 +310,8 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type User
@@ -288,7 +321,7 @@ type User
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 [Learn more about policy-based authorization in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authorization/policies)
@@ -335,9 +368,9 @@ public class Startup
 
 This method also accepts [roles](#roles) and [policies](#policies) as arguments, similiar to the `Authorize` attribute / methods.
 
-Please note that this will prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
+> ⚠️ Note: Unlike the `@authorize directive` this will return status code 401 and prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
 
-[Learn more about available middleware](/docs/hotchocolate/server/middleware)
+[Learn more about available middleware](/docs/hotchocolate/server/endpoints)
 
 # Modifying the ClaimsPrincipal
 

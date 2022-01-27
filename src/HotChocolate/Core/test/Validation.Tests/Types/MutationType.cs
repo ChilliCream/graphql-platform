@@ -1,6 +1,6 @@
 ﻿using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Types
 {
     public class MutationType
         : ObjectType
@@ -11,6 +11,11 @@ namespace HotChocolate.Validation
 
             descriptor.Field("fieldB")
                 .Type<NonNullType<StringType>>()
+                .Resolve(() => "foo");
+
+            descriptor.Field("addPet")
+                .Argument("pet", a => a.Type<PetInputType>())
+                .Type<PetType>()
                 .Resolve(() => "foo");
         }
     }

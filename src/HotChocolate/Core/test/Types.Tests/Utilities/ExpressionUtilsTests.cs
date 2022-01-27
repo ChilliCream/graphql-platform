@@ -28,17 +28,6 @@ namespace HotChocolate.Utilities
             Assert.Equal("Property", member.Name);
         }
 
-
-        [Fact]
-        public void InternalPropertyExpression_ShouldThrow()
-        {
-            // act
-            Action a = () => GetMember(t => t.InternalProperty);
-
-            // assert
-            Assert.Throws<ArgumentException>(a);
-        }
-
         [Fact]
         public void PublicMethodExpression_ShouldReturnMethod()
         {
@@ -50,25 +39,14 @@ namespace HotChocolate.Utilities
             Assert.Equal("Method", member.Name);
         }
 
-
-        [Fact]
-        public void InternalMethodExpression_ShouldThrow()
-        {
-            // act
-            Action a = () => GetMember(t => t.InternalMethod());
-
-            // assert
-            Assert.Throws<ArgumentException>(a);
-        }
-
         [Fact]
         public void IndexerExpression_ShouldThrow()
         {
             // act
-            Action a = () => GetMember(t => t[default]);
+            void Action() => GetMember(t => t[default]);
 
             // assert
-            Assert.Throws<ArgumentException>(a);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         public static MemberInfo GetMember<V>(Expression<Func<ExpressionUtilsTestDummy, V>> expr)

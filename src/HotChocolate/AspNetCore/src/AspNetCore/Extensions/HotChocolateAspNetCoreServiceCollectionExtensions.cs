@@ -1,9 +1,8 @@
-using System;
-using HotChocolate;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -45,6 +44,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 sp.GetRequiredService<IDocumentHashProvider>(),
                 maxAllowedRequestSize,
                 sp.GetRequiredService<ParserOptions>()));
+        services.TryAddSingleton<IServerDiagnosticEvents>(sp =>
+        {
+            IServerDiagnosticEventListener[] listeners =
+                sp.GetServices<IServerDiagnosticEventListener>().ToArray();
+            return listeners.Length switch
+            {
+                0 => new NoopServerDiagnosticEventListener(),
+                1 => listeners[0],
+                _ => new AggregateServerDiagnosticEventListener(listeners)
+            };
+        });
         return services;
     }
 

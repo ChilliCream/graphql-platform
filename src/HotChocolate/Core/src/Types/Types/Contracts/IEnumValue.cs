@@ -10,6 +10,7 @@ namespace HotChocolate.Types;
 public interface IEnumValue
     : IHasDirectives
     , IHasReadOnlyContextData
+    , ITypeSystemMember
 {
     /// <summary>
     /// The associated syntax node from the GraphQL SDL.

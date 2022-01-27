@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace HotChocolate.AspNetCore;
 
 [Serializable]
-public class GraphQLRequestException
-    : GraphQLException
+public class GraphQLRequestException : GraphQLException
 {
     public GraphQLRequestException(string message)
         : base(message)

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Mime;
 using System.Threading;
-using HotChocolate.Execution.Processing.Plan;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -35,7 +33,11 @@ internal class DeferredTaskExecutor : IAsyncEnumerable<IQueryResult>
                 context.ClearResult();
 
                 // next we execute the deferred task.
-                IQueryResult? result = await deferredTask.ExecuteAsync(context).ConfigureAwait(false);
+                IQueryResult? result;
+                using (context.DiagnosticEvents.ExecuteDeferredTask())
+                {
+                    result = await deferredTask.ExecuteAsync(context).ConfigureAwait(false);
+                }
 
                 // if we get a result we will yield it to the consumer of the result stream.
                 if (result is not null)

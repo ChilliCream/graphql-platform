@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -9,8 +10,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public partial class DocumentAnalyzer
     {
-        private static void CollectEnumTypes(
-            IDocumentAnalyzerContext context)
+        private static void CollectEnumTypes(IDocumentAnalyzerContext context)
         {
             var analyzer = new EnumTypeUsageAnalyzer(context.Schema);
             analyzer.Analyze(context.Document);

@@ -50,9 +50,9 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
         if (node.SelectionSet.Selections.Count == 0)
         {
-            context.Errors.Add(context.NoSelectionOnRootType(
+            context.ReportError(context.NoSelectionOnRootType(
                 node,
-                context.Schema.GetOperationType(node.Operation)));
+                context.Schema.GetOperationType(node.Operation)!));
         }
 
         return base.Leave(node, context);
@@ -86,7 +86,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                 {
                     if (of.Type.NamedType().IsCompositeType())
                     {
-                        context.Errors.Add(
+                        context.ReportError(
                             context.NoSelectionOnCompositeField(node, ct, of.Type));
                     }
                 }
@@ -94,7 +94,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                 {
                     if (of.Type.NamedType().IsLeafType())
                     {
-                        context.Errors.Add(
+                        context.ReportError(
                             context.LeafFieldsCannotHaveSelections(node, ct, of.Type));
                         return Skip;
                     }
@@ -105,7 +105,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                 return Continue;
             }
 
-            context.Errors.Add(context.FieldDoesNotExist(node, ct));
+            context.ReportError(context.FieldDoesNotExist(node, ct));
             return Skip;
         }
 
@@ -130,7 +130,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             type.NamedType() is { Kind: TypeKind.Union } unionType &&
             HasFields(node))
         {
-            context.Errors.Add(context.UnionFieldError(node, (UnionType)unionType));
+            context.ReportError(context.UnionFieldError(node, (UnionType)unionType));
             return Skip;
         }
 
@@ -228,7 +228,9 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                             fieldB.ResponseName,
                             StringComparison.Ordinal))
                     {
-                        if (SameResponseShape(fieldA.Type, fieldB.Type))
+                        if (SameResponseShape(
+                            fieldA.Type.RewriteNullability(fieldA.Field.Required),
+                            fieldB.Type.RewriteNullability(fieldB.Field.Required)))
                         {
                             if (IsParentTypeAligned(fieldA, fieldB))
                             {
@@ -239,14 +241,14 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                                 }
                                 else if (context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
                                 {
-                                    context.Errors.Add(
+                                    context.ReportError(
                                         context.FieldsAreNotMergable(fieldA, fieldB));
                                 }
                             }
                         }
                         else if (context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
                         {
-                            context.Errors.Add(context.FieldsAreNotMergable(fieldA, fieldB));
+                            context.ReportError(context.FieldsAreNotMergable(fieldA, fieldB));
                         }
                     }
                 }

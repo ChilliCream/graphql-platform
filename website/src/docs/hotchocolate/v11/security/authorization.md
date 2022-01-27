@@ -2,7 +2,7 @@
 title: Authorization
 ---
 
-import { ExampleTabs } from "../../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 Authorization allows us to determine a user's permissions within our system. We can for example limit access to resources or only allow certain users to execute specific mutations.
 
@@ -60,7 +60,7 @@ public class Startup
 At the core of authorization with Hot Chocolate is the `@authorize` directive. It can be applied to fields and types to denote that they require authorization.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 In the Annotation-based approach we can use the `[Authorize]` attribute to add the `@authorize` directive.
 
@@ -77,8 +77,8 @@ public class User
 
 > ⚠️ Note: We need to use the `HotChocolate.AspNetCore.AuthorizationAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -92,8 +92,8 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type User @authorize {
@@ -102,7 +102,7 @@ type User @authorize {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 Specified on a type the `@authorize` directive will be applied to each field of that type. Its authorization logic is executed once for each individual field, depending on whether it was selected by the requestor or not. If the directive is placed on an individual field, it overrules the one on the type.
@@ -122,7 +122,7 @@ claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
 We can then check whether an authenticated user has these role claims.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [Authorize(Roles = new [] { "Guest", "Administrator" })]
@@ -135,8 +135,8 @@ public class User
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -150,8 +150,8 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type User @authorize(roles: [ "Guest", "Administrator" ]) {
@@ -160,7 +160,7 @@ type User @authorize(roles: [ "Guest", "Administrator" ]) {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > ⚠️ Note: If multiple roles are specified, a user only has to match one of the specified roles, in order to be able to execute the resolver.
@@ -205,7 +205,7 @@ public class Startup
 We can then use these policies to restrict access to our fields.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [Authorize(Policy = "AllEmployees")]
@@ -218,8 +218,8 @@ public class User
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -233,8 +233,8 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type User @authorize(policy: "AllEmployees") {
@@ -243,7 +243,7 @@ type User @authorize(policy: "AllEmployees") {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 This essentially uses the provided policy and runs it against the `ClaimsPrincipal` that is associated with the current request.
@@ -251,7 +251,7 @@ This essentially uses the provided policy and runs it against the `ClaimsPrincip
 The `@authorize` directive is also repeatable, which means that we are able to chain the directive and a user is only allowed to access the field if they meet all of the specified conditions.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [Authorize(Policy = "AtLeast21")]
@@ -262,8 +262,8 @@ public class User
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -277,8 +277,8 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type User
@@ -288,7 +288,7 @@ type User
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 [Learn more about policy-based authorization in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authorization/policies)

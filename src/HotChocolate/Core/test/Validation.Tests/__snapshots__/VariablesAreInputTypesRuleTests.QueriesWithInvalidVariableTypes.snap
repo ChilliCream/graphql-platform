@@ -12,7 +12,7 @@
     "Extensions": {
       "variable": "cat",
       "variableType": "Cat",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -77,7 +77,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -177,7 +177,7 @@
     "Extensions": {
       "variable": "dog",
       "variableType": "Dog!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -251,7 +251,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -360,7 +360,7 @@
     "Extensions": {
       "variable": "pets",
       "variableType": "[Pet]",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -434,7 +434,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -543,7 +543,7 @@
     "Extensions": {
       "variable": "catOrDog",
       "variableType": "CatOrDog",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -608,7 +608,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {

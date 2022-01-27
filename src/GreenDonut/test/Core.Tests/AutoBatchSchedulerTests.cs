@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using Xunit;
 
 namespace GreenDonut
@@ -7,12 +9,20 @@ namespace GreenDonut
         [Fact]
         public void DispatchOnEnqueue()
         {
+            // arrange
             var dispatched = false;
+            var waitHandle = new AutoResetEvent(false);
+
+            // act
             AutoBatchScheduler.Default.Schedule(() =>
             {
                 dispatched = true;
+                waitHandle.Set();
                 return default;
             });
+
+            // assert
+            waitHandle.WaitOne(TimeSpan.FromSeconds(5));
             Assert.True(dispatched);
         }
     }

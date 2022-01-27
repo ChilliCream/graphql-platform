@@ -73,12 +73,12 @@ namespace HotChocolate.Validation
         public void MultipleNamedOperations()
         {
             ExpectValid(@"
-                query Foo { 
+                query Foo {
                     dog {
                         name
                     }
                 }
-                query Bar { 
+                query Bar {
                     dog {
                         name
                     }
@@ -93,7 +93,7 @@ namespace HotChocolate.Validation
                 {
                     ...Foo
                 }
-                fragment Foo on Query { 
+                fragment Foo on Query {
                     dog {
                         name
                     }
@@ -102,14 +102,14 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void AnonymoutOperationWithAMutation()
+        public void AnonymousOperationWithAMutation()
         {
             ExpectErrors(@"
                 {
                     dog {
                         name
                     }
-                } 
+                }
                 mutation Foo {
                     fieldB
                 }
@@ -117,14 +117,14 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void AnonymoutOperationWithASubscription()
+        public void AnonymousOperationWithASubscription()
         {
             ExpectErrors(@"
                 {
                     dog {
                         name
                     }
-                } 
+                }
                 subscription Foo {
                     newMessage
                 }
