@@ -191,7 +191,7 @@ services
 To use cursor based pagination annoate you resolver with `[UsePaging]` or `.UsePaging()`
 
 ```csharp
-[UsePaging1]
+[UsePaging]
 public IExecutable<Person> GetPersons([Service] IMongoCollection<Person> collection)
 {
     return collection.AsExecutable();
