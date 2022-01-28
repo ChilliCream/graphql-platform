@@ -478,8 +478,7 @@ namespace HotChocolate.Execution
             public string Qux { get; set; }
         }
 
-        private sealed class UpperDirectiveType
-            : DirectiveType
+        private sealed class UpperDirectiveType : DirectiveType
         {
             protected override void Configure(IDirectiveTypeDescriptor descriptor)
             {

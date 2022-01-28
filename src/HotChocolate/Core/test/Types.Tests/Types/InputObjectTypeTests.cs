@@ -12,6 +12,8 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class InputObjectTypeTests : TypeTestBase
@@ -323,21 +325,7 @@ namespace HotChocolate.Types
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
 
-        private static ObjectValueNode CreateObjectLiteral()
-        {
-            return new(new List<ObjectFieldNode>
-            {
-                new("foo",
-                    new ObjectValueNode(
-                        new List<ObjectFieldNode>
-                        {
-                            new("fooList", new ListValueNode(Array.Empty<IValueNode>()))
-                        })),
-                new("bar", new StringValueNode("123"))
-            });
-        }
-
-        public ISchema Create()
+        private ISchema Create()
         {
             return SchemaBuilder.New()
                 .ModifyOptions(o => o.StrictValidation = false)
@@ -385,13 +373,8 @@ namespace HotChocolate.Types
                     .Create();
 
             // assert
-            Exception ex =
-                Assert.Throws<SchemaException>(Action)
-                   .Errors.First().Exception;
-
-            Assert.Equal(
-                "inputType",
-                Assert.IsType<ArgumentException>(ex).ParamName);
+            Exception? ex = Assert.Throws<SchemaException>(Action).Errors.First().Exception;
+            Assert.Equal("inputType", Assert.IsType<ArgumentException>(ex).ParamName);
         }
 
         [Fact]
@@ -618,17 +601,16 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Exception ex = Record.Exception(
-                () => SchemaBuilder
+            void Fail()
+                => SchemaBuilder
                     .New()
                     .AddQueryType(x => x.Name("Query").Field("Foo").Resolve("bar"))
                     .AddType<InputObjectType<InputObjectType<Foo>>>()
                     .ModifyOptions(o => o.StrictRuntimeTypeValidation = true)
-                    .Create());
+                    .Create();
 
             // assert
-            Assert.IsType<SchemaException>(ex);
-            ex.Message.MatchSnapshot();
+            Assert.Throws<SchemaException>(Fail).Message.MatchSnapshot();
         }
 
         [Fact]
@@ -662,23 +644,34 @@ namespace HotChocolate.Types
             Assert.Throws<ArgumentNullException>(Fail);
         }
 
+        [Fact]
+        public void Deprecate_fields_with_attribute()
+        {
+            SchemaBuilder.New()
+                .AddInputObjectType<InputWithDeprecatedField>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public class FieldNameInput
         {
-            public string YourFieldName { get; set; }
+            public string? YourFieldName { get; set; }
 
             [GraphQLDeprecated("This is deprecated")]
-            public string YourFieldname { get; set; }
+            public string? YourFieldname { get; set; }
         }
 
         public class QueryWithInterfaceInput
         {
-            public string Test(InputWithInterface input) => "Foo";
+            public string? Test(InputWithInterface? input) => "Foo";
         }
 
         public class InputWithInterface
         {
-            public string Works { get; set; }
-            public IDoesNotWork DoesNotWork { get; set; }
+            public string? Works { get; set; }
+            public IDoesNotWork? DoesNotWork { get; set; }
         }
 
         public interface IDoesNotWork
@@ -689,18 +682,18 @@ namespace HotChocolate.Types
         public class SimpleInput
         {
             public int Id { get; set; }
-            public string Name { get; set; }
+            public string? Name { get; set; }
         }
 
         public class SerializationInputObject1
         {
-            public SerializationInputObject2 Foo { get; set; }
-            public string Bar { get; set; } = "Bar";
+            public SerializationInputObject2? Foo { get; set; }
+            public string? Bar { get; set; } = "Bar";
         }
 
         public class SerializationInputObject2
         {
-            public List<SerializationInputObject1> FooList { get; set; } =
+            public List<SerializationInputObject1?>? FooList { get; set; } =
                 new() { new SerializationInputObject1() };
         }
 
@@ -709,8 +702,9 @@ namespace HotChocolate.Types
             protected override void Configure(
                 IDirectiveTypeDescriptor<FooDirective> descriptor)
             {
-                descriptor.Name("foo");
-                descriptor.Location(DirectiveLocation.InputObject)
+                descriptor
+                    .Name("foo")
+                    .Location(DirectiveLocation.InputObject)
                     .Location(DirectiveLocation.InputFieldDefinition);
             }
         }
@@ -721,11 +715,12 @@ namespace HotChocolate.Types
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
-                descriptor.Name("Query");
-                descriptor.Field("foo")
+                descriptor
+                    .Name("Query")
+                    .Field("foo")
                     .Argument("a", a => a.Type<FooInputType>())
                     .Type<StringType>()
-                    .Resolve(ctx => ctx.ArgumentValue<Foo>("a").Bar.Text);
+                    .Resolve(ctx => ctx.ArgumentValue<Foo>("a").Bar?.Text);
             }
         }
 
@@ -744,25 +739,25 @@ namespace HotChocolate.Types
 
         public class Foo
         {
-            public Bar Bar { get; set; }
+            public Bar? Bar { get; set; }
         }
 
         public class FooIgnored
         {
             [GraphQLIgnore]
-            public Bar Bar { get; set; }
+            public Bar? Bar { get; set; }
 
-            public Bar Baz { get; set; }
+            public Bar? Baz { get; set; }
         }
 
         public class Bar
         {
-            public string Text { get; set; }
+            public string? Text { get; set; }
         }
 
         public class Baz
         {
-            public string Text { get; set; }
+            public string? Text { get; set; }
         }
 
         public class QueryWithOptionals
@@ -780,20 +775,20 @@ namespace HotChocolate.Types
 
         public class FooInput
         {
-            public Optional<string> Bar { get; set; }
-            public string Baz { get; set; }
+            public Optional<string?> Bar { get; set; }
+            public string? Baz { get; set; }
         }
 
         public class FooPayload
         {
             public bool IsBarSet { get; set; }
-            public string Bar { get; set; }
-            public string Baz { get; set; }
+            public string? Bar { get; set; }
+            public string? Baz { get; set; }
         }
 
         public class QueryWithImmutables
         {
-            public FooImmutable Do(FooImmutable input)
+            public FooImmutable? Do(FooImmutable? input)
             {
                 return input;
             }
@@ -806,36 +801,46 @@ namespace HotChocolate.Types
                 Bar = "default";
             }
 
-            public FooImmutable(string bar, string baz)
+            public FooImmutable(string? bar, string? baz)
             {
                 Bar = bar;
                 Baz = baz;
             }
 
-            public string Bar { get; }
+            public string? Bar { get; }
 
-            public string Baz { get; set; }
+            public string? Baz { get; set; }
 
-            public string Qux { get; private set; }
+            public string? Qux { get; private set; }
         }
 
         public class InputWithDefault
         {
             [DefaultValue("abc")]
-            public string WithStringDefault { get; set; }
+            public string? WithStringDefault { get; set; }
 
             [DefaultValue(null)]
-            public string WithNullDefault { get; set; }
+            public string? WithNullDefault { get; set; }
 
             [DefaultValue(FooEnum.Bar)]
             public FooEnum Enum { get; set; }
 
-            public string WithoutDefault { get; set; }
+            public string? WithoutDefault { get; set; }
+        }
+
+        public class InputWithDeprecatedField
+        {
+            [Obsolete]
+            public string? A { get; set; }
+
+            [GraphQLDeprecated("Foo Bar")]
+            public string? B { get; set; }
         }
 
         public enum FooEnum
         {
-            Bar, Baz
+            Bar,
+            Baz
         }
     }
 }
