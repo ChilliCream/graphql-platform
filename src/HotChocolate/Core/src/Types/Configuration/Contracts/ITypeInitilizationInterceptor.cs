@@ -14,12 +14,6 @@ namespace HotChocolate.Configuration;
 public interface ITypeInitializationInterceptor
 {
     /// <summary>
-    /// Defines if the type initialization shall trigger aggregated lifecycle
-    /// events like OnTypesInitialized, OnTypesCompletedName and OnTypesCompleted.
-    /// </summary>
-    bool TriggerAggregations { get; }
-
-    /// <summary>
     /// Specifies the types that this interceptor wants to handle.
     /// </summary>
     /// <param name="context">
@@ -53,19 +47,16 @@ public interface ITypeInitializationInterceptor
     /// <param name="definition">
     /// The type definition of the type system member.
     /// </param>
-    /// <param name="contextData">
-    /// The context data of the type system member.
-    /// </param>
     void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData);
+        DefinitionBase? definition);
 
     /// <summary>
     /// If all types are registered you can analyze them and add more new types at this point.
     /// This event could be hit multiple times.
     ///
-    /// Ones <see cref="OnTypesInitialized"/> is hit, no more types can be added.
+    /// Ones <see cref="ITypeInitializationFlowInterceptor.OnAllTypesInitialized"/> is hit, 
+    /// no more types can be added.
     /// </summary>
     /// <param name="discoveryContexts">
     /// The discovery contexts of types that are already initialized.
@@ -74,15 +65,6 @@ public interface ITypeInitializationInterceptor
     /// Returns types that shall be included into the schema.
     /// </returns>
     IEnumerable<ITypeReference> RegisterMoreTypes(
-        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts);
-
-    /// <summary>
-    /// This event is called after all type system members are initialized.
-    /// </summary>
-    /// <param name="discoveryContexts">
-    /// The type discovery contexts that can be handled by this interceptor.
-    /// </param>
-    void OnTypesInitialized(
         IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts);
 
     /// <summary>
@@ -95,13 +77,9 @@ public interface ITypeInitializationInterceptor
     /// <param name="definition">
     /// The type definition of the type system member.
     /// </param>
-    /// <param name="contextData">
-    /// The context data of the type system member.
-    /// </param>
     void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData);
+        DefinitionBase? definition);
 
     /// <summary>
     /// This event is called after the type dependencies are reported to the
@@ -113,13 +91,9 @@ public interface ITypeInitializationInterceptor
     /// <param name="definition">
     /// The type definition of the type system member.
     /// </param>
-    /// <param name="contextData">
-    /// The context data of the type system member.
-    /// </param>
     void OnAfterRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData);
+        DefinitionBase? definition);
 
     /// <summary>
     /// This event is called before the type name is assigned.
@@ -130,13 +104,9 @@ public interface ITypeInitializationInterceptor
     /// <param name="definition">
     /// The type definition of the type system member.
     /// </param>
-    /// <param name="contextData">
-    /// The context data of the type system member.
-    /// </param>
     void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData);
+        DefinitionBase? definition);
 
     /// <summary>
     /// This event is called after the type name is assigned.
@@ -147,22 +117,9 @@ public interface ITypeInitializationInterceptor
     /// <param name="definition">
     /// The type definition of the type system member.
     /// </param>
-    /// <param name="contextData">
-    /// The context data of the type system member.
-    /// </param>
     void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData);
-
-    /// <summary>
-    /// This event is called after all type system members have been named.
-    /// </summary>
-    /// <param name="completionContexts">
-    /// The type discovery contexts that can be handled by this interceptor.
-    /// </param>
-    void OnTypesCompletedName(
-        IReadOnlyCollection<ITypeCompletionContext> completionContexts);
+        DefinitionBase? definition);
 
     /// <summary>
     /// This event is called before the type system member is fully completed.
@@ -173,13 +130,9 @@ public interface ITypeInitializationInterceptor
     /// <param name="definition">
     /// The type definition of the type system member.
     /// </param>
-    /// <param name="contextData">
-    /// The context data of the type system member.
-    /// </param>
     void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData);
+        DefinitionBase? definition);
 
     /// <summary>
     /// This event is called after the type system member is fully completed.
@@ -190,13 +143,9 @@ public interface ITypeInitializationInterceptor
     /// <param name="definition">
     /// The type definition of the type system member.
     /// </param>
-    /// <param name="contextData">
-    /// The context data of the type system member.
-    /// </param>
     void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData);
+        DefinitionBase? definition);
 
     /// <summary>
     /// This event is called after the type system member is fully completed and is
@@ -209,20 +158,7 @@ public interface ITypeInitializationInterceptor
     /// <param name="definition">
     /// The type definition of the type system member.
     /// </param>
-    /// <param name="contextData">
-    /// The context data of the type system member.
-    /// </param>
     void OnValidateType(
         ITypeSystemObjectContext validationContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData);
-
-    /// <summary>
-    /// This event is called after all type system members have been completed.
-    /// </summary>
-    /// <param name="completionContexts">
-    /// The type discovery contexts that can be handled by this interceptor.
-    /// </param>
-    void OnTypesCompleted(
-        IReadOnlyCollection<ITypeCompletionContext> completionContexts);
+        DefinitionBase? definition);
 }

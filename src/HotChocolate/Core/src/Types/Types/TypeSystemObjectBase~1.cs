@@ -9,6 +9,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Types and directives are type system objects.
+/// </summary>
 public abstract class TypeSystemObjectBase<TDefinition>
     : TypeSystemObjectBase
     where TDefinition : DefinitionBase
@@ -59,7 +62,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
 
         RegisterConfigurationDependencies(context, _definition);
 
-        OnAfterInitialize(context, _definition, _definition.ContextData);
+        OnAfterInitialize(context, _definition);
 
         MarkInitialized();
     }
@@ -79,7 +82,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
 
         TDefinition definition = _definition!;
 
-        OnBeforeCompleteName(context, definition, definition.ContextData);
+        OnBeforeCompleteName(context, definition);
 
         ExecuteConfigurations(context, definition, ApplyConfigurationOn.Naming);
         OnCompleteName(context, definition);
@@ -99,7 +102,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
                 .Build());
         }
 
-        OnAfterCompleteName(context, definition, definition.ContextData);
+        OnAfterCompleteName(context, definition);
 
         MarkNamed();
     }
@@ -120,7 +123,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
 
         TDefinition definition = _definition!;
 
-        OnBeforeCompleteType(context, definition, definition.ContextData);
+        OnBeforeCompleteType(context, definition);
 
         ExecuteConfigurations(context, definition, ApplyConfigurationOn.Completion);
         Description = definition.Description;
@@ -129,8 +132,8 @@ public abstract class TypeSystemObjectBase<TDefinition>
         _contextData = definition.ContextData;
         _definition = null;
 
-        OnAfterCompleteType(context, definition, _contextData);
-        OnValidateType(context, definition, _contextData);
+        OnAfterCompleteType(context, definition);
+        OnValidateType(context, definition);
 
         MarkCompleted();
     }
@@ -157,7 +160,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
         ITypeDiscoveryContext context,
         TDefinition definition)
     {
-        OnBeforeRegisterDependencies(context, definition, definition.ContextData);
+        OnBeforeRegisterDependencies(context, definition);
 
         foreach (ITypeSystemMemberConfiguration? configuration in definition.GetConfigurations())
         {
@@ -168,7 +171,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
         }
 
         OnRegisterDependencies(context, definition);
-        OnAfterRegisterDependencies(context, definition, definition.ContextData);
+        OnAfterRegisterDependencies(context, definition);
     }
 
     private static void ExecuteConfigurations(
@@ -187,81 +190,47 @@ public abstract class TypeSystemObjectBase<TDefinition>
 
     protected virtual void OnBeforeInitialize(
         ITypeDiscoveryContext context)
-    {
-        context.TypeInterceptor.OnBeforeInitialize(context);
-    }
+        => context.TypeInterceptor.OnBeforeInitialize(context);
 
     protected virtual void OnAfterInitialize(
         ITypeDiscoveryContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
-    {
-        context.TypeInterceptor.OnAfterInitialize(
-            context, definition, contextData);
-    }
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnAfterInitialize(context, definition);
 
     protected virtual void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
-    {
-        context.TypeInterceptor.OnBeforeRegisterDependencies(
-            context, definition, contextData);
-    }
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnBeforeRegisterDependencies(context, definition);
 
     protected virtual void OnAfterRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
-    {
-        context.TypeInterceptor.OnAfterRegisterDependencies(
-            context, definition, contextData);
-    }
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnAfterRegisterDependencies(context, definition);
 
     protected virtual void OnBeforeCompleteName(
         ITypeCompletionContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
-    {
-        context.TypeInterceptor.OnBeforeCompleteName(
-            context, definition, contextData);
-    }
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnBeforeCompleteName(context, definition);
 
     protected virtual void OnAfterCompleteName(
         ITypeCompletionContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
-    {
-        context.TypeInterceptor.OnAfterCompleteName(
-            context, definition, contextData);
-    }
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnAfterCompleteName(context, definition);
 
     protected virtual void OnBeforeCompleteType(
         ITypeCompletionContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
-    {
-        context.TypeInterceptor.OnBeforeCompleteType(
-            context, definition, contextData);
-    }
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnBeforeCompleteType(context, definition);
 
     protected virtual void OnAfterCompleteType(
         ITypeCompletionContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
-    {
-        context.TypeInterceptor.OnAfterCompleteType(
-            context, definition, contextData);
-    }
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnAfterCompleteType(context, definition);
 
     protected virtual void OnValidateType(
         ITypeSystemObjectContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
-    {
-        context.TypeInterceptor.OnValidateType(
-            context, definition, contextData);
-    }
+        DefinitionBase definition)
+        => context.TypeInterceptor.OnValidateType(context, definition);
 
     private void AssertUninitialized()
     {

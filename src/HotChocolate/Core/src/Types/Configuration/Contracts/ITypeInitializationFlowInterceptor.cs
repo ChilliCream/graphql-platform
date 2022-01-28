@@ -18,6 +18,11 @@ public interface ITypeInitializationFlowInterceptor
     void OnAfterDiscoverTypes();
 
     /// <summary>
+    /// This event is called after all type system members are initialized.
+    /// </summary>
+    void OnAllTypesInitialized();
+
+    /// <summary>
     /// This method is called before the type names are completed.
     /// </summary>
     void OnBeforeCompleteTypeNames();
@@ -26,6 +31,11 @@ public interface ITypeInitializationFlowInterceptor
     /// This method is called after the type names are completed.
     /// </summary>
     void OnAfterCompleteTypeNames();
+
+    /// <summary>
+    /// This event is called after all type system members have been named.
+    /// </summary>
+    void OnAllTypeNamesCompleted();
 
     /// <summary>
     /// This method is called before the type extensions are merged.
@@ -46,4 +56,9 @@ public interface ITypeInitializationFlowInterceptor
     /// This method is called after the types are completed.
     /// </summary>
     void OnAfterCompleteTypes();
+
+    /// <summary>
+    /// This event is called after all type system members have been completed.
+    /// </summary>
+    void OnAllTypesCompleted();
 }

@@ -8,6 +8,9 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Types and directives are type system objects.
+/// </summary>
 public abstract class TypeSystemObjectBase : ITypeSystemObject
 {
     private TypeStatus _status;
