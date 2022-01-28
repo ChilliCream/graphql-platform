@@ -161,13 +161,6 @@ internal sealed class TypeRegistrar : ITypeRegistrar
     {
         try
         {
-            // if the scalar is one of our reserved string types we will ensure
-            // that we provide the correct type.
-            if (typeSystemObject is INamedType n && Scalars.IsReservedName(n.Name))
-            {
-                typeSystemObject = new StringType(n.Name, n.Description);
-            }
-
             // first we create a reference to this type-system-object and ensure that we have
             // not already registered it.
             TypeReference instanceRef = TypeReference.Create(typeSystemObject, scope);

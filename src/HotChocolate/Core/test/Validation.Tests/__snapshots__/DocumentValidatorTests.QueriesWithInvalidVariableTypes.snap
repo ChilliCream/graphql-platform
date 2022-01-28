@@ -337,7 +337,7 @@
       "Kind": "OperationDefinition",
       "Location": {
         "Start": 298,
-        "End": 397,
+        "End": 384,
         "Line": 14,
         "Column": 17
       },
@@ -409,7 +409,7 @@
         "Kind": "SelectionSet",
         "Location": {
           "Start": 339,
-          "End": 397,
+          "End": 384,
           "Line": 14,
           "Column": 58
         },
@@ -1033,7 +1033,7 @@
       "Kind": "OperationDefinition",
       "Location": {
         "Start": 298,
-        "End": 397,
+        "End": 384,
         "Line": 14,
         "Column": 17
       },
@@ -1105,7 +1105,7 @@
         "Kind": "SelectionSet",
         "Location": {
           "Start": 339,
-          "End": 397,
+          "End": 384,
           "Line": 14,
           "Column": 58
         },

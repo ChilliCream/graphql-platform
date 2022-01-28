@@ -55,7 +55,7 @@ internal sealed class MutationConventionMiddleware
                 new ArgumentValue(
                     argument,
                     kind,
-                    inputArgument.IsFullyCoerced,
+                    true,
                     inputArgument.IsDefaultValue,
                     value,
                     valueLiteral));

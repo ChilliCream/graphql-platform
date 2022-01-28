@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
@@ -24,7 +25,7 @@ public class RequiresDirectiveTests
         Assert.IsType<RequiresDirectiveType>(directive);
         Assert.Equal(WellKnownTypeNames.Requires, directive!.Name);
         Assert.Single(directive.Arguments);
-        this.AssertDirectiveHasFieldsArgument(directive);
+        AssertDirectiveHasFieldsArgument(directive);
         Assert.Collection(
             directive.Locations,
             t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
@@ -54,7 +55,7 @@ public class RequiresDirectiveTests
             .AddDirectiveType<KeyDirectiveType>()
             .AddDirectiveType<RequiresDirectiveType>()
             .AddType<FieldSetType>()
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
@@ -107,12 +108,12 @@ public class RequiresDirectiveTests
                 o.Field("someField").Argument("a", a => a.Type<IntType>()).Type(reviewType);
             });
 
-        ISchema? schema = SchemaBuilder.New()
+        ISchema schema = SchemaBuilder.New()
             .AddQueryType(queryType)
             .AddType<FieldSetType>()
             .AddDirectiveType<KeyDirectiveType>()
             .AddDirectiveType<RequiresDirectiveType>()
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
@@ -164,7 +165,7 @@ public class RequiresDirectiveTests
 
     public class Query
     {
-        public Review someField(int id) => default!;
+        public Review SomeField(int id) => default!;
     }
 
     public class Review

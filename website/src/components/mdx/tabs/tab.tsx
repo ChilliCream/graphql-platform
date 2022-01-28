@@ -1,9 +1,10 @@
 import React, { FC } from "react";
 import styled from "styled-components";
+import { THEME_COLORS } from "../../../shared-style";
 import { useTabs } from "./tabs";
 
 export interface TabProps {
-  value: string;
+  readonly value: string;
 }
 
 export const Tab: FC<TabProps> = ({ value, children }) => {
@@ -26,10 +27,10 @@ const TabButton = styled.button`
   padding: 1rem 0.25rem;
   font-size: 0.95rem;
   line-height: 1.2;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 
   :hover {
-    color: var(--heading-text-color);
+    color: ${THEME_COLORS.heading};
   }
 
   :focus {
@@ -37,11 +38,11 @@ const TabButton = styled.button`
   }
 
   &.active {
-    color: var(--heading-text-color);
+    color: ${THEME_COLORS.heading};
     font-weight: 700;
   }
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     font-size: 18px;
   }
 `;

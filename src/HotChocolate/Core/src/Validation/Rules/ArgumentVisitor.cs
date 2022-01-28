@@ -130,7 +130,7 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
             {
                 if (!context.Names.Add(argument.Name.Value))
                 {
-                    context.Errors.Add(context.ArgumentNotUnique(
+                    context.ReportError(context.ArgumentNotUnique(
                         argument, field, directive));
                 }
 
@@ -138,13 +138,13 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
                     arg.DefaultValue.IsNull() &&
                     argument.Value.IsNull())
                 {
-                    context.Errors.Add(context.ArgumentRequired(
+                    context.ReportError(context.ArgumentRequired(
                         argument, argument.Name.Value, field, directive));
                 }
             }
             else
             {
-                context.Errors.Add(context.ArgumentDoesNotExist(
+                context.ReportError(context.ArgumentDoesNotExist(
                     argument, field, directive));
             }
         }
@@ -157,7 +157,7 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
                 argument.DefaultValue.IsNull() &&
                 context.Names.Add(argument.Name))
             {
-                context.Errors.Add(context.ArgumentRequired(
+                context.ReportError(context.ArgumentRequired(
                     node, argument.Name, field, directive));
             }
         }

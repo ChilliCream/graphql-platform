@@ -41,8 +41,8 @@ namespace HotChocolate.Types
                 {
                     d.Name("Query");
                     d.Field(t => t.Bar.Text);
-                    d.Field(t => t.Bars.Select(t => t.Text)).Name("texts");
-                    d.Field(t => t.Bars.Select(t => t.Text).FirstOrDefault()).Name("firstText");
+                    d.Field(t => t.Bars.Select(b => b.Text)).Name("texts");
+                    d.Field(t => t.Bars.Select(b => b.Text).FirstOrDefault()).Name("firstText");
                 })
                 .Create()
                 .MakeExecutable()

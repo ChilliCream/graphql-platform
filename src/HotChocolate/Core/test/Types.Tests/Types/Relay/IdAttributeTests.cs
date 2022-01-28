@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Relay
             var intId = idSerializer.Serialize("Query", 1);
             var stringId = idSerializer.Serialize("Query", "abc");
             var guidId = idSerializer.Serialize(
-                "Query", 
+                "Query",
                 new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5"));
 
             // act
@@ -33,6 +33,7 @@ namespace HotChocolate.Types.Relay
                 await SchemaBuilder.New()
                     .AddQueryType<Query>()
                     .AddType<FooPayload>()
+                    .AddGlobalObjectIdentification(false)
                     .Create()
                     .MakeExecutable()
                     .ExecuteAsync(
@@ -79,6 +80,7 @@ namespace HotChocolate.Types.Relay
                 await SchemaBuilder.New()
                     .AddQueryType<Query>()
                     .AddType<FooPayload>()
+                    .AddGlobalObjectIdentification(false)
                     .Create()
                     .MakeExecutable()
                     .ExecuteAsync(
@@ -106,6 +108,7 @@ namespace HotChocolate.Types.Relay
                 await SchemaBuilder.New()
                     .AddQueryType<Query>()
                     .AddType<FooPayload>()
+                    .AddGlobalObjectIdentification(false)
                     .Create()
                     .MakeExecutable()
                     .ExecuteAsync(
@@ -152,18 +155,19 @@ namespace HotChocolate.Types.Relay
                 await SchemaBuilder.New()
                     .AddQueryType<Query>()
                     .AddType<FooPayload>()
+                    .AddGlobalObjectIdentification(false)
                     .Create()
                     .MakeExecutable()
                     .ExecuteAsync(
                         QueryRequestBuilder.New()
                             .SetQuery(
                                 @"query foo (
-                                    $someId: ID! $someIntId: ID! 
-                                    $someNullableId: ID 
+                                    $someId: ID! $someIntId: ID!
+                                    $someNullableId: ID
                                     $someNullableIntId: ID) {
                                     foo(input: {
                                         someId: $someId someIds: [$someIntId]
-                                        someNullableId: $someNullableId 
+                                        someNullableId: $someNullableId
                                         someNullableIds: [$someNullableIntId, $someIntId] })
                                     {
                                         someId
@@ -200,6 +204,7 @@ namespace HotChocolate.Types.Relay
             IRequestExecutor executor = SchemaBuilder.New()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
                 .Create()
                 .MakeExecutable();
 
@@ -241,6 +246,7 @@ namespace HotChocolate.Types.Relay
                 await SchemaBuilder.New()
                     .AddQueryType<Query>()
                     .AddType<FooPayload>()
+                    .AddGlobalObjectIdentification(false)
                     .Create()
                     .MakeExecutable()
                     .ExecuteAsync(
@@ -276,6 +282,7 @@ namespace HotChocolate.Types.Relay
                 await SchemaBuilder.New()
                     .AddQueryType<Query>()
                     .AddType<FooPayload>()
+                    .AddGlobalObjectIdentification(false)
                     .Create()
                     .MakeExecutable()
                     .ExecuteAsync(
@@ -306,6 +313,7 @@ namespace HotChocolate.Types.Relay
             SchemaBuilder.New()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
                 .Create()
                 .ToString()
                 .MatchSnapshot();
@@ -322,6 +330,7 @@ namespace HotChocolate.Types.Relay
                     d.Name("Query");
                     d.Field("abc").ID().ID().ID().ID().Resolve("abc");
                 })
+                .AddGlobalObjectIdentification(false)
                 .TryAddTypeInterceptor(inspector)
                 .Create();
 

@@ -2,10 +2,10 @@ using Nuke.Common;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.SonarScanner;
+using static System.IO.Path;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 using static Helpers;
-using static System.IO.Path;
 
 partial class Build
 {
@@ -121,5 +121,7 @@ partial class Build
             .SetFramework(Net60);
 
     bool IsRelevantForSonar(string fileName)
-        => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName));
+        => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName)) &&
+            !fileName.Contains("example") &&
+            !fileName.Contains("sample");
 }

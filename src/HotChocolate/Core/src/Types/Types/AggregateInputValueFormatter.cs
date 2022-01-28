@@ -29,11 +29,11 @@ internal sealed class AggregateInputValueFormatter : IInputValueFormatter
 
     public object? OnAfterDeserialize(object? runtimeValue)
     {
-        object? current = runtimeValue;
+        var current = runtimeValue;
 
-        for (var i = 0; i < _formatters.Length; i++)
+        foreach (IInputValueFormatter formatter in _formatters)
         {
-            current = _formatters[i].OnAfterDeserialize(current);
+            current = formatter.OnAfterDeserialize(current);
         }
 
         return current;

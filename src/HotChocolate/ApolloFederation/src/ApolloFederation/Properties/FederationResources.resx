@@ -177,4 +177,7 @@
   <data name="Any_Description" xml:space="preserve">
     <value>The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema.</value>
   </data>
+  <data name="ResolveReference_MustBeMethod" xml:space="preserve">
+    <value>The expression must refer to a method representing the reference resolver.</value>
+  </data>
 </root>

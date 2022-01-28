@@ -170,6 +170,23 @@ namespace HotChocolate.Execution.Errors
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async void SetMaxAllowedValidationErrors_To_1()
+        {
+            Snapshot.FullName();
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d
+                    .Field("foo")
+                    .Type<ObjectType<Foo>>()
+                    .Extend()
+                    // in the pure resolver we will return the wrong type
+                    .Definition.PureResolver = _ => new Baz())
+                .SetMaxAllowedValidationErrors(1)
+                .ExecuteRequestAsync("{ a b c d }")
+                .MatchSnapshotAsync();
+        }
+
 
         private async Task ExpectError(
             string query,
@@ -190,8 +207,7 @@ namespace HotChocolate.Execution.Errors
             Assert.Equal(expectedErrorCount, errors);
         }
 
-        public class QueryType
-            : ObjectType<Query>
+        public class QueryType : ObjectType<Query>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Query> descriptor)

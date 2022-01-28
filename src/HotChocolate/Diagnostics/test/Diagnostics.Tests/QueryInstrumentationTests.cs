@@ -10,7 +10,7 @@ using static HotChocolate.Diagnostics.ActivityTestHelper;
 namespace HotChocolate.Diagnostics;
 
 [Collection("Instrumentation")]
-public class QueryInstrumentationTests
+public partial class QueryInstrumentationTests
 {
     [Fact]
     public async Task Track_events_of_a_simple_query_default()
@@ -23,6 +23,40 @@ public class QueryInstrumentationTests
                 .AddInstrumentation()
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ sayHello }");
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Track_data_loader_events()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation()
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Track_data_loader_events_with_keys()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.IncludeDataLoaderKeys = true)
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
 
             // assert
             activities.MatchSnapshot();
@@ -324,6 +358,9 @@ public class QueryInstrumentationTests
         public string SayHello() => "hello";
 
         public string CauseFatalError() => throw new GraphQLException("fail");
+
+        public Task<string> DataLoader(CustomDataLoader dataLoader, string key)
+            => dataLoader.LoadAsync(key);
     }
 
 }

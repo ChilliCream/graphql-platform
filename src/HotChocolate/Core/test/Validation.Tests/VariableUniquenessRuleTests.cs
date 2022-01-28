@@ -16,7 +16,9 @@ namespace HotChocolate.Validation
         public void OperationWithTwoVariablesThatHaveTheSameName()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentValidatorContext context = ValidationUtils.CreateContext();
+            context.MaxAllowedErrors = int.MaxValue;
+
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query houseTrainedQuery($atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {

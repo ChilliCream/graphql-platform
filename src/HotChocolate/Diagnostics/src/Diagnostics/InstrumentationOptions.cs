@@ -22,6 +22,12 @@ public sealed class InstrumentationOptions
     /// </summary>
     public bool IncludeDocument { get; set; }
 
+
+    /// <summary>
+    /// Specifies if DataLoader batch keys shall included into the tracing data.
+    /// </summary>
+    public bool IncludeDataLoaderKeys { get; set; }
+
     /// <summary>
     /// Defines if the operation display name shall be included in the root activity.
     /// </summary>
@@ -50,4 +56,6 @@ public sealed class InstrumentationOptions
     internal bool SkipExecuteOperation => (Scopes & ExecuteOperation) != ExecuteOperation;
 
     internal bool SkipResolveFieldValue => (Scopes & ResolveFieldValue) != ResolveFieldValue;
+
+    internal bool SkipDataLoaderBatch => (Scopes & DataLoaderBatch) != DataLoaderBatch;
 }

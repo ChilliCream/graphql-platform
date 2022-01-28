@@ -1,4 +1,3 @@
-using System;
 using Xunit;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
@@ -30,7 +29,7 @@ public class EntityTypeTests
                     }
                 "
             )
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
@@ -60,15 +59,14 @@ public class EntityTypeTests
                     }
                 "
             )
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
         EntityType entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
-        Assert.Collection(entityType.Types.Values,
-            t => Assert.Equal("User", t.Name));
+        Assert.Collection(entityType.Types.Values, t => Assert.Equal("User", t.Name));
     }
 
     [Fact]
@@ -92,29 +90,29 @@ public class EntityTypeTests
                         matchCode: String!
                     }
                 ")
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
         EntityType entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
-        Assert.Collection(entityType.Types.Values,
-            t => Assert.Equal("User", t.Name));
+        Assert.Collection(entityType.Types.Values, t => Assert.Equal("User", t.Name));
     }
 
     [Fact]
     public void TestEntityTypeCodeFirstNoEntities_ShouldThrow()
     {
-        Action createSchema = () =>
-            {
-                // arrange
-                ISchema schema = SchemaBuilder.New()
+        void CreateSchema()
+        {
+            // arrange
+            SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddQueryType<Query<Address>>()
                 .Create();
-            };
-        SchemaException? exception = Assert.Throws<SchemaException>(createSchema);
+        }
+
+        SchemaException exception = Assert.Throws<SchemaException>(CreateSchema);
         Assert.Contains(ThrowHelper_EntityType_NoEntities, exception.Message);
     }
 
@@ -131,8 +129,7 @@ public class EntityTypeTests
         EntityType entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
-        Assert.Collection(entityType.Types.Values,
-            t => Assert.Equal("Review", t.Name));
+        Assert.Collection(entityType.Types.Values, t => Assert.Equal("Review", t.Name));
     }
 
     [Fact]
@@ -148,7 +145,8 @@ public class EntityTypeTests
         EntityType entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
-        Assert.Collection(entityType.Types.Values,
+        Assert.Collection(
+            entityType.Types.Values,
             t => Assert.Equal("UserWithClassAttribute", t.Name),
             t => Assert.Equal("Review", t.Name));
     }
@@ -166,7 +164,8 @@ public class EntityTypeTests
         EntityType entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
-        Assert.Collection(entityType.Types.Values,
+        Assert.Collection(
+            entityType.Types.Values,
             t => Assert.Equal("UserWithPropertyAttributes", t.Name));
     }
 
@@ -176,7 +175,7 @@ public class EntityTypeTests
         // arrange
         ISchema schema = SchemaBuilder.New()
             .AddApolloFederation()
-            .AddQueryType<Query<UserWithNestesKeyClassAttribute>>()
+            .AddQueryType<Query<UserWithNestedKeyClassAttribute>>()
             .Create();
 
         // act
@@ -184,7 +183,7 @@ public class EntityTypeTests
 
         // assert
         Assert.Collection(entityType.Types.Values,
-            t => Assert.Equal("UserWithNestesKeyClassAttribute", t.Name));
+            t => Assert.Equal("UserWithNestedKeyClassAttribute", t.Name));
     }
 }
 
@@ -210,7 +209,7 @@ public class UserWithPropertyAttributes
 }
 
 [Key("id address { matchCode }")]
-public class UserWithNestesKeyClassAttribute
+public class UserWithNestedKeyClassAttribute
 {
     public int Id { get; set; }
     public Address Address { get; set; } = default!;

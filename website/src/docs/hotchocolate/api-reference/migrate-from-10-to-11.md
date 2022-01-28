@@ -620,7 +620,7 @@ downstream schemas.
     services
         .AddGraphQLServer()
         .AddRemoteSchema("SomeSchema")
-        .ConfigureSchema(x => 
+        .ConfigureSchema(x =>
              x.AddType(new IntType())
              .AddType(new IntType("PaginationAmount")))
         .AddMergedDocumentRewriter(
@@ -628,7 +628,7 @@ downstream schemas.
 
     services
         .AddGraphQL("SomeSchema")
-        .ConfigureSchema(x => 
+        .ConfigureSchema(x =>
              x.AddType(new IntType())
              .AddType(new IntType("PaginationAmount")));
 ```

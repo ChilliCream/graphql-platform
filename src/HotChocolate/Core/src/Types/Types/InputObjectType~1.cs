@@ -18,15 +18,13 @@ public class InputObjectType<T> : InputObjectType
 
     public InputObjectType(Action<IInputObjectTypeDescriptor<T>> configure)
     {
-        _configure = configure
-            ?? throw new ArgumentNullException(nameof(configure));
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
     protected override InputObjectTypeDefinition CreateDefinition(
         ITypeDiscoveryContext context)
     {
-        var descriptor =
-            InputObjectTypeDescriptor.New<T>(context.DescriptorContext);
+        var descriptor = InputObjectTypeDescriptor.New<T>(context.DescriptorContext);
 
         _configure!(descriptor);
         _configure = null;
@@ -41,7 +39,5 @@ public class InputObjectType<T> : InputObjectType
 
     protected sealed override void Configure(
         IInputObjectTypeDescriptor descriptor)
-    {
-        throw new NotSupportedException();
-    }
+        => throw new NotSupportedException();
 }
