@@ -1,6 +1,6 @@
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -14,14 +14,12 @@ namespace HotChocolate.ApolloFederation;
 /// This means it can represent a single field "upc", multiple fields "id countryCode",
 /// and even nested selection sets "id organization { id }".
 /// </summary>
-public sealed class FieldSetType
-    : ScalarType<SelectionSetNode, StringValueNode>
+public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="FieldSetType"/>.
     /// </summary>
-    public FieldSetType()
-        : this(WellKnownTypeNames.FieldSet)
+    public FieldSetType() : this(WellKnownTypeNames.FieldSet)
     {
     }
 
@@ -54,8 +52,8 @@ public sealed class FieldSetType
     }
 
     /// <inheritdoc />
-    protected override StringValueNode ParseValue(SelectionSetNode runtimeValue) =>
-        new StringValueNode(SerializeSelectionSet(runtimeValue));
+    protected override StringValueNode ParseValue(SelectionSetNode runtimeValue)
+        => new StringValueNode(SerializeSelectionSet(runtimeValue));
 
     /// <inheritdoc />
     public override IValueNode ParseResult(object? resultValue)
@@ -130,12 +128,12 @@ public sealed class FieldSetType
         return false;
     }
 
-    private static SelectionSetNode ParseSelectionSet(string s) =>
-        Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{s}}}");
+    private static SelectionSetNode ParseSelectionSet(string s)
+        => Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{s}}}");
 
     private static string SerializeSelectionSet(SelectionSetNode selectionSet)
     {
-        string s = selectionSet.ToString(false);
+        var s = selectionSet.ToString(false);
         return s.Substring(1, s.Length - 2).Trim();
     }
 }

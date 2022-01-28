@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { State } from "../../state";
 import { hideCookieConsent, showCookieConsent } from "../../state/common";
-import { Button } from "../button";
+import { Button } from "../misc/button";
 import { Link } from "./link";
 
 export const CookieConsent: FC = () => {

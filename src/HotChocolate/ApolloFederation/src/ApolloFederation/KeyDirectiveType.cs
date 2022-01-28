@@ -1,5 +1,5 @@
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Properties;
-using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -13,15 +13,13 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class KeyDirectiveType
-    : DirectiveType
+public sealed class KeyDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
-    {
-        descriptor
+        => descriptor
             .Name(WellKnownTypeNames.Key)
             .Description(FederationResources.KeyDirective_Description)
             .Location(DirectiveLocation.Object | DirectiveLocation.Interface)
+            .Repeatable()
             .FieldsArgument();
-    }
 }

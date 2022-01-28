@@ -258,6 +258,11 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         {
             var inputFieldDef = new InputFieldDefinition();
             argumentDef.CopyTo(inputFieldDef);
+
+            inputFieldDef.RuntimeType =
+                argumentDef.RuntimeType ?? 
+                    argumentDef.Parameter?.ParameterType;
+
             inputObjectDef.Fields.Add(inputFieldDef);
         }
 
@@ -425,7 +430,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         => type switch
         {
             NonNullType nnt => new NonNullTypeNode((INullableTypeNode)CreateTypeNode(nnt.Type)),
-            ListType lt => new ListTypeNode((INullableTypeNode)CreateTypeNode(lt.ElementType)),
+            ListType lt => new ListTypeNode(CreateTypeNode(lt.ElementType)),
             INamedType nt => new NamedTypeNode(nt.Name),
             _ => throw new NotSupportedException("Type is not supported.")
         };

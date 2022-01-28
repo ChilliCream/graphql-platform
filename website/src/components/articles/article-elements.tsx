@@ -1,7 +1,11 @@
 import styled from "styled-components";
 import { IsSmallDesktop } from "../../shared-style";
 
-export const ArticleHeader = styled.header<{ readonly kind: "blog" | "doc" }>`
+export interface ArticleHeaderProps {
+  readonly kind: "blog" | "doc";
+}
+
+export const ArticleHeader = styled.header<ArticleHeaderProps>`
   position: relative;
 
   ${({ kind }) =>
@@ -11,7 +15,7 @@ export const ArticleHeader = styled.header<{ readonly kind: "blog" | "doc" }>`
   `)
       : ""}
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     > .gatsby-image-wrapper {
       border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
@@ -22,7 +26,7 @@ export const ArticleTitle = styled.h1`
   margin: 20px 20px 10px;
   font-size: 2em;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     margin: 20px 50px 10px;
   }
 `;
@@ -59,7 +63,7 @@ export const ArticleContent = styled.div`
     }
   }
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     > * {
       padding-right: 50px;
       padding-left: 50px;

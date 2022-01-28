@@ -39,10 +39,26 @@ public static class RelaySchemaBuilderExtensions
     /// Global Object Identification specification.
     /// </summary>
     public static ISchemaBuilder AddGlobalObjectIdentification(this ISchemaBuilder schemaBuilder)
+        => AddGlobalObjectIdentification(schemaBuilder, true);
+
+    /// <summary>
+    /// Adds a <c>node</c> field to the root query according to the
+    /// Global Object Identification specification.
+    /// </summary>
+    public static ISchemaBuilder AddGlobalObjectIdentification(
+        this ISchemaBuilder schemaBuilder,
+        bool registerNodeInterface)
     {
-        return schemaBuilder
-            .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
-            .AddType<NodeType>();
+        schemaBuilder.SetContextData(GlobalIdSupportEnabled, 1);
+
+        if (registerNodeInterface)
+        {
+            schemaBuilder
+                .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
+                .AddType<NodeType>();
+        }
+
+        return schemaBuilder;
     }
 
     /// <summary>

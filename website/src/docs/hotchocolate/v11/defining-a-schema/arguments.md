@@ -2,7 +2,7 @@
 title: "Arguments"
 ---
 
-import { ExampleTabs } from "../../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 GraphQL allows us to specify arguments on a field and access their values in the field's resolver.
 
@@ -39,7 +39,7 @@ Learn more about arguments [here](https://graphql.org/learn/schema/#arguments) a
 Arguments can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -63,8 +63,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType
@@ -97,8 +97,8 @@ if (username.HasValue)
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 services
@@ -116,7 +116,7 @@ services
     });
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 Arguments can be made required by using the non-null type. Learn more about [non-null](/docs/hotchocolate/v11/defining-a-schema/non-null)

@@ -1,5 +1,5 @@
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Properties;
-using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -21,11 +21,9 @@ namespace HotChocolate.ApolloFederation;
 public sealed class ProvidesDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
-    {
-        descriptor
+        => descriptor
             .Name(WellKnownTypeNames.Provides)
             .Description(FederationResources.ProvidesDirective_Description)
             .Location(DirectiveLocation.FieldDefinition)
             .FieldsArgument();
-    }
 }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using BenchmarkDotNet.Attributes;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Validation.Benchmarks
 {
@@ -28,7 +29,9 @@ namespace HotChocolate.Validation.Benchmarks
             var factory = _services.GetRequiredService<IDocumentValidatorFactory>();
             _validator = factory.CreateValidator();
 
-            _schema = _services.GetRequiredService<ISchema>();
+            _schema = _services.GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync()
+                .Result.Schema;
             var resources = new ResourceHelper();
             _introspectionQuery = Utf8GraphQLParser.Parse(
                 resources.GetResourceString("IntrospectionQuery.graphql"));

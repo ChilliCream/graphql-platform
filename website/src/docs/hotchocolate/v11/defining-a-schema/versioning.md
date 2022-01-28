@@ -2,7 +2,7 @@
 title: "Versioning"
 ---
 
-import { ExampleTabs } from "../../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 Whilst we could version our GraphQL API similar to REST, i.e. `/graphql/v1`, it is not a best practice and often unnecessary.
 
@@ -24,7 +24,7 @@ type Query {
 Fields can be deprecated like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -37,8 +37,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType
@@ -56,8 +56,8 @@ public class QueryType : ObjectType
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 services
@@ -69,7 +69,7 @@ services
     ");
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > Note: It is currently not possible to deprecate input values, such as arguments.

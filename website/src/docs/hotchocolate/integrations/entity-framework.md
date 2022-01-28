@@ -2,7 +2,7 @@
 title: Entity Framework Core
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 Entity Framework Core is a powerful object-relational mapping framework that has become a staple when working with SQL-based Databases in ASP.NET Core applications.
 
@@ -60,10 +60,12 @@ The middleware is part of the `HotChocolate.Data.EntityFramework` package.
 dotnet add package HotChocolate.Data.EntityFramework
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 Once installed we can start applying the `UseDbContext` middleware to our resolvers.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 In the Annotation-based approach, we can annotate our resolver using the `UseDbContextAttribute`, specifying the type of our `DbContext` as an argument.
 
@@ -100,8 +102,8 @@ public class Query
 
 > Note: Since the [order of attributes is not guaranteed by .NET](https://docs.microsoft.com/dotnet/csharp/language-reference/language-specification/attributes#attribute-specification), Hot Chocolate uses the line number to determine the correct order of the Data middleware. If you are using a custom attribute, you have to forward the line number using the `CallerLineNumberAttribute`.
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 In the Code-first approach we can add the `UseDbContext` middlware through the `IObjectFieldDescriptor`, specifying the type of our `DbContext` as the generic type parameter.
 
@@ -121,12 +123,12 @@ public class QueryType : ObjectType
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ⚠️ Schema-first does currently not support DbContext integration!
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > ⚠️ Note: When using multiple middleware, keep in mind that the order of middleware matters. The correct order is:
@@ -227,7 +229,7 @@ Hot Chocolate gives us the option to execute certain resolvers serially, meaning
 We can execute a single resolver serially, by marking it as `Serial`.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -240,8 +242,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType
@@ -261,12 +263,12 @@ public class QueryType : ObjectType
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Take a look at the Annotation-based or Code-first example.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 We can also make `Serial` the default execution strategy.
