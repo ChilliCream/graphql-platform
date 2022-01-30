@@ -1,0 +1,21 @@
+﻿{
+  ... on Query {
+    me @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+      ... on User {
+        id @__execute(id: 2, kind: PURE, type: LEAF)
+        name @__execute(id: 3, kind: PURE, type: LEAF)
+        reviews @__execute(id: 4, kind: DEFAULT, type: COMPOSITE_LIST) {
+          ... on Review {
+            body @__execute(id: 5, kind: PURE, type: LEAF)
+            product @__execute(id: 6, kind: DEFAULT, type: COMPOSITE) {
+              ... on Product {
+                upc @__execute(id: 7, kind: PURE, type: LEAF)
+              }
+            }
+          }
+        }
+      }
+    }
+    local @__execute(id: 1, kind: DEFAULT, type: LEAF)
+  }
+}
