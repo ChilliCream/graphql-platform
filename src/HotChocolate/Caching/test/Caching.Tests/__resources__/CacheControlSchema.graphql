@@ -1,0 +1,16 @@
+type Query {
+  field: String
+  maxAge1: String @cacheControl(maxAge: 1)
+  maxAge2: String @cacheControl(maxAge: 2)
+  scopePrivate: String @cacheControl(scope: PRIVATE)
+  scopePublic: String @cacheControl(scope: PRIVATE)
+  child: Child
+}
+
+type Child {
+  field: String
+  maxAge1: String @cacheControl(maxAge: 1)
+  maxAge2: String @cacheControl(maxAge: 2)
+  scopePrivate: String @cacheControl(scope: PRIVATE)
+  scopePublic: String @cacheControl(scope: PRIVATE)
+}

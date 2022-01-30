@@ -32,8 +32,7 @@ public static class RequestExecutorBuilderExtensions
             .UseOperationExecution();
     }
 
-    public static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder,
-        Action<QueryCacheSettings>? configureSettings = null)
+    public static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder)
         where TCache : class, IQueryCache
     {
         if (builder is null)
@@ -41,18 +40,34 @@ public static class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        var settings = new QueryCacheSettings();
-
-        configureSettings?.Invoke(settings);
-
-        builder.SetContextData(typeof(QueryCacheSettings).FullName, settings);
-
-        builder
-            .AddDirectiveType<CacheControlDirectiveType>()
-            .AddType<CacheControlScopeType>();
-
         builder.Services.AddSingleton<IQueryCache, TCache>();
 
-        return builder;
+        return builder.AddQueryCacheInternals();
+    }
+
+    public static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, TCache> cacheFactory)
+        where TCache : class, IQueryCache
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.AddSingleton<IQueryCache>(cacheFactory);
+
+        return builder.AddQueryCacheInternals();
+    }
+
+    private static IRequestExecutorBuilder AddQueryCacheInternals(this IRequestExecutorBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        return builder
+            .AddDirectiveType<CacheControlDirectiveType>()
+            .AddType<CacheControlScopeType>();
     }
 }

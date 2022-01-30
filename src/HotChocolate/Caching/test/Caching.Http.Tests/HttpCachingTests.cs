@@ -1,11 +1,8 @@
-using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -21,27 +18,87 @@ public class HttpCachingTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Test()
+    public async Task MaxAge()
     {
         TestServer server = CreateServer(services =>
         {
             services.AddGraphQLServer()
                 .UseQueryResultCachePipeline()
                 .AddHttpQueryCache()
-                .AddQueryType<Query>();
+                .AddQueryType(d =>
+                    d.Name("Query")
+                    .Field("field")
+                    .Resolve("")
+                    .CacheControl(2000));
         });
 
         HttpClient client = server.CreateClient();
-
-        GraphQLResult result = await client.PostQueryAsync("{ field1 }");
+        GraphQLResult result = await client.PostQueryAsync("{ field }");
 
         result.MatchSnapshot();
     }
 
-    private class Query
+    [Fact]
+    public async Task MaxAge_Zero()
     {
-        [CacheControl(2000)]
-        public string Field1() => "Test";
+        TestServer server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryResultCachePipeline()
+                .AddHttpQueryCache()
+                .AddQueryType(d =>
+                    d.Name("Query")
+                    .Field("field")
+                    .Resolve("")
+                    .CacheControl(0));
+        });
+
+        HttpClient client = server.CreateClient();
+        GraphQLResult result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Scope()
+    {
+        TestServer server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryResultCachePipeline()
+                .AddHttpQueryCache()
+                .AddQueryType(d =>
+                    d.Name("Query")
+                    .Field("field")
+                    .Resolve("")
+                    .CacheControl(scope: CacheControlScope.Private));
+        });
+
+        HttpClient client = server.CreateClient();
+        GraphQLResult result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task MaxAgeAndScope()
+    {
+        TestServer server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryResultCachePipeline()
+                .AddHttpQueryCache()
+                .AddQueryType(d =>
+                    d.Name("Query")
+                    .Field("field")
+                    .Resolve("")
+                    .CacheControl(2000, CacheControlScope.Private));
+        });
+
+        HttpClient client = server.CreateClient();
+        GraphQLResult result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
     }
 }
 

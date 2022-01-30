@@ -8,14 +8,13 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class RequestExecutorBuilderExtensions
 {
     public static IRequestExecutorBuilder AddHttpQueryCache(
-        this IRequestExecutorBuilder builder,
-        Action<QueryCacheSettings>? configureSettings = null)
+        this IRequestExecutorBuilder builder)
     {
         if (builder is null)
         {
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.AddQueryCache<HttpQueryCache>(configureSettings);
+        return builder.AddQueryCache<HttpQueryCache>();
     }
 }

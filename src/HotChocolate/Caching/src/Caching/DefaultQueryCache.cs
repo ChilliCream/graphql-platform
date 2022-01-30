@@ -7,7 +7,7 @@ namespace HotChocolate.Caching;
 public abstract class DefaultQueryCache : IQueryCache
 {
     public abstract Task CacheQueryResultAsync(IRequestContext context,
-        QueryCacheResult result, IQueryCacheSettings settings);
+        CacheControlResult result, IQueryCacheSettings settings);
 
     public abstract Task<IQueryResult?> TryReadCachedQueryResultAsync(
         IRequestContext context, IQueryCacheSettings settings);
