@@ -4,23 +4,37 @@ namespace HotChocolate.Caching;
 
 public class CacheControlDirective
 {
+    private int? maxAge;
+
+    public CacheControlDirective()
+    {
+
+    }
+
     public CacheControlDirective(int? maxAge = null,
         CacheControlScope? scope = null,
         bool? inheritMaxAge = null)
     {
-        if (maxAge.HasValue && maxAge.Value < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(maxAge), maxAge, "TODO");
-        }
-
         MaxAge = maxAge;
         Scope = scope;
         InheritMaxAge = inheritMaxAge;
     }
 
-    public int? MaxAge { get; }
+    public int? MaxAge
+    {
+        get => maxAge; set
+        {
+            if (value.HasValue && value.Value < 0)
+            {
+                // todo: better exception
+                throw new Exception($"{nameof(MaxAge)} can not be set to a value less than 0.");
+            }
 
-    public CacheControlScope? Scope { get; }
+            maxAge = value;
+        }
+    }
+
+    public CacheControlScope? Scope { get; set; }
 
     public bool? InheritMaxAge { get; set; }
 }

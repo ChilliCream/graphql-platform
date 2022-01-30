@@ -14,6 +14,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
+
+    <InternalsVisibleTo Include="HotChocolate.Caching" />
   </ItemGroup>
 
   <ItemGroup>

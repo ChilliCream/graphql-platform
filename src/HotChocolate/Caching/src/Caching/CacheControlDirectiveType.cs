@@ -10,9 +10,10 @@ public class CacheControlDirectiveType : DirectiveType<CacheControlDirective>
             .Name("cacheControl")
             .Description("TODO")
             .Location(DirectiveLocation.FieldDefinition
-                | DirectiveLocation.Object
-                | DirectiveLocation.Interface
-                | DirectiveLocation.Union);
+                // | DirectiveLocation.Object
+                // | DirectiveLocation.Interface
+                // | DirectiveLocation.Union
+                );
 
         descriptor
             .Argument(a => a.MaxAge)

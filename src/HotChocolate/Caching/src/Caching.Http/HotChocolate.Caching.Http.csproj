@@ -1,7 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -10,9 +9,9 @@
     <AssemblyName>HotChocolate.Caching.Http</AssemblyName>
     <RootNamespace>HotChocolate.Caching.Http</RootNamespace>
   </PropertyGroup>
-  
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   
   <ItemGroup>

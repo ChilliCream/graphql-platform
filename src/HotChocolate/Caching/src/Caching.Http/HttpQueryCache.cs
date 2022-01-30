@@ -8,7 +8,7 @@ namespace HotChocolate.Caching.Http;
 internal sealed class HttpQueryCache : DefaultQueryCache
 {
     private static readonly string _httpContextKey = nameof(HttpContext);
-    private static readonly string _cacheControlValueTemplate = "{0}, max-age={1}";
+    private const string _cacheControlValueTemplate = "{0}, max-age={1}";
 
     public override bool ShouldReadResultFromCache(IRequestContext context)
     {
@@ -45,8 +45,11 @@ internal sealed class HttpQueryCache : DefaultQueryCache
         var headerValue = string.Format(_cacheControlValueTemplate,
             cacheType, result.MaxAge);
 
-        // todo: the new header setters exist, but are not usable?
+#if NET6_0_OR_GREATER
+        httpContext.Response.Headers.CacheControl = headerValue;
+#else
         httpContext.Response.Headers.Add("Cache-Control", headerValue);
+#endif
 
         return Task.CompletedTask;
     }

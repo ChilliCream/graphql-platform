@@ -7,8 +7,9 @@ namespace HotChocolate.Caching;
 
 [AttributeUsage(AttributeTargets.Property
     | AttributeTargets.Method
-    | AttributeTargets.Class
-    | AttributeTargets.Interface)]
+    // | AttributeTargets.Class
+    // | AttributeTargets.Interface
+    )]
 public sealed class CacheControlAttribute : DescriptorAttribute
 {
     private int? _maxAge;
@@ -34,31 +35,28 @@ public sealed class CacheControlAttribute : DescriptorAttribute
         {
             switch (descriptor)
             {
-                case IInterfaceTypeDescriptor interfaceType:
-                    interfaceType.CacheControl(_maxAge, _scope, _inheritMaxAge);
+                case IObjectFieldDescriptor objectField:
+                    objectField.CacheControl(_maxAge, _scope, _inheritMaxAge);
                     break;
-                case IObjectTypeDescriptor objectType:
-                    objectType.CacheControl(_maxAge, _scope, _inheritMaxAge);
-                    break;
-                case IUnionTypeDescriptor unionType:
-                    unionType.CacheControl(_maxAge, _scope, _inheritMaxAge);
-                    break;
+                    // case IInterfaceFieldDescriptor interfaceField:
+                    //     interfaceField.CacheControl(_maxAge, _scope, _inheritMaxAge);
+                    //     break;
             }
         }
         else
         {
-            switch (descriptor)
-            {
-                case IInterfaceTypeDescriptor interfaceType:
-                    interfaceType.CacheControl(_maxAge, _scope, _inheritMaxAge);
-                    break;
-                case IObjectTypeDescriptor objectType:
-                    objectType.CacheControl(_maxAge, _scope, _inheritMaxAge);
-                    break;
-                case IUnionTypeDescriptor unionType:
-                    unionType.CacheControl(_maxAge, _scope, _inheritMaxAge);
-                    break;
-            }
+            // switch (descriptor)
+            // {
+            // case IObjectTypeDescriptor objectType:
+            //     objectType.CacheControl(_maxAge, _scope, _inheritMaxAge);
+            //     break;
+            // case IInterfaceTypeDescriptor interfaceType:
+            //     interfaceType.CacheControl(_maxAge, _scope, _inheritMaxAge);
+            //     break;
+            // case IUnionTypeDescriptor unionType:
+            //     unionType.CacheControl(_maxAge, _scope, _inheritMaxAge);
+            //     break;
+            // }
         }
     }
 

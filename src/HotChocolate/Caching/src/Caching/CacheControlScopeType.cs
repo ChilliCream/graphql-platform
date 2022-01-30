@@ -9,5 +9,13 @@ public class CacheControlScopeType : EnumType<CacheControlScope>
         descriptor
             .Name("CacheControlScope")
             .Description("TODO");
+
+        descriptor
+            .Value(CacheControlScope.Public)
+            .Description("TODO");
+
+        descriptor
+            .Value(CacheControlScope.Private)
+            .Description("TODO");
     }
 }

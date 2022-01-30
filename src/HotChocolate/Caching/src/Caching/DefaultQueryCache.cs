@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Caching;
@@ -23,7 +24,12 @@ public abstract class DefaultQueryCache : IQueryCache
             return false;
         }
 
-        // todo: check if it's a query - we do not want to cache mutations / subscriptions
+        // operations other than query should not be cached.
+        if (context.Operation is null
+            || context.Operation.Definition.Operation != OperationType.Query)
+        {
+            return false;
+        }
 
         if (result.Errors is { Count: > 0 })
         {
