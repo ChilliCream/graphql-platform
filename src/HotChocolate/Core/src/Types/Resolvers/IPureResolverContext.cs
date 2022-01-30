@@ -28,6 +28,11 @@ public interface IPureResolverContext : IHasContextData
     IObjectType ObjectType { get; }
 
     /// <summary>
+    /// Gets the current execution path.
+    /// </summary>
+    Path Path { get; }
+
+    /// <summary>
     /// Gets the field selection for which a field resolver is
     /// being executed.
     /// </summary>
