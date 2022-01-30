@@ -1,13 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="'$(SonarBuild)' == 'true'">net6.0</TargetFrameworks>
-    <TargetFramework Condition="'$(SonarBuild)' == 'true'">net6.0</TargetFramework>
-    <TargetFrameworks Condition="'$(SonarBuild)' != 'true'">netstandard2.0</TargetFrameworks>
-    <TargetFramework Condition="'$(SonarBuild)' != 'true'">netstandard2.0</TargetFramework>
+    <TargetFrameworks>net6.0; netstandard2.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
+    <IncludeSymbols>false</IncludeSymbols>
   </PropertyGroup>
 
   <PropertyGroup>
