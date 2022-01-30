@@ -118,7 +118,8 @@ partial class Build
             .SetNoRestore(true)
             .SetConfiguration(Debug)
             .SetProcessWorkingDirectory(RootDirectory)
-            .SetFramework(Net60);
+            .SetFramework(Net60)
+            .SetProperty("SonarBuild", "true");
 
     bool IsRelevantForSonar(string fileName)
         => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName)) &&
