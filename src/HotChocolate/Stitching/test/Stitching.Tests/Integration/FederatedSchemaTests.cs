@@ -14,6 +14,10 @@ using HotChocolate.Stitching.Schemas.Reviews;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
+using HotChocolate.Utilities;
+using System.Linq;
 
 namespace HotChocolate.Stitching.Integration
 {
@@ -124,6 +128,54 @@ namespace HotChocolate.Stitching.Integration
 
             // assert
             result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AutoMerge_CompileOperation()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
+                    .AddRemoteSchema(_accounts)
+                    .AddRemoteSchema(_inventory)
+                    .AddRemoteSchema(_products)
+                    .AddRemoteSchema(_reviews)
+                    .BuildRequestExecutorAsync();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(@"{
+                    me {
+                        id
+                        name
+                        reviews {
+                            body
+                            product {
+                                upc
+                            }
+                        }
+                    }
+                    local
+                }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            // act
+            IPreparedOperation operation =
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    executor.Schema,
+                    executor.Schema.QueryType,
+                    new(new DefaultTypeConverter()));
+
+            // assert
+            operation.Print().MatchSnapshot();
         }
 
         [Fact]
