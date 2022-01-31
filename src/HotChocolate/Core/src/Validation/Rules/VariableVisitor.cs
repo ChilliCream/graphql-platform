@@ -79,12 +79,12 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 
         if (context.Unused.Count > 0)
         {
-            context.Errors.Add(context.VariableNotUsed(node));
+            context.ReportError(context.VariableNotUsed(node));
         }
 
         if (context.Used.Count > 0)
         {
-            context.Errors.Add(context.VariableNotDeclared(node));
+            context.ReportError(context.VariableNotDeclared(node));
         }
 
         return base.Leave(node, context);
@@ -105,12 +105,12 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             node.Type.NamedType().Name.Value, out INamedType? type) &&
             !type.IsInputType())
         {
-            context.Errors.Add(context.VariableNotInputType(node, variableName));
+            context.ReportError(context.VariableNotInputType(node, variableName));
         }
 
         if (!context.Names.Add(variableName))
         {
-            context.Errors.Add(context.VariableNameNotUnique(node, variableName));
+            context.ReportError(context.VariableNameNotUnique(node, variableName));
         }
 
         return Skip;
@@ -255,7 +255,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
                 out VariableDefinitionNode? variableDefinition)
             && !IsVariableUsageAllowed(variableDefinition, context.Types.Peek(), defaultValue))
         {
-            context.Errors.Add(ErrorHelper.VariableIsNotCompatible(
+            context.ReportError(ErrorHelper.VariableIsNotCompatible(
                 context, node, variableDefinition));
         }
 

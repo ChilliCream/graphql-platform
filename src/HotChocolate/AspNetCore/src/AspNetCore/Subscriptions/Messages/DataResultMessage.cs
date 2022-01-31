@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using HotChocolate.Execution;
-
 namespace HotChocolate.AspNetCore.Subscriptions.Messages;
 
 public sealed class DataResultMessage

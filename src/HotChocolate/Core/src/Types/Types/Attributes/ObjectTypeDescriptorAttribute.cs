@@ -10,8 +10,7 @@ namespace HotChocolate.Types;
     AttributeTargets.Class | AttributeTargets.Struct,
     Inherited = true,
     AllowMultiple = true)]
-public abstract class ObjectTypeDescriptorAttribute
-    : DescriptorAttribute
+public abstract class ObjectTypeDescriptorAttribute : DescriptorAttribute
 {
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,

@@ -2,7 +2,7 @@
 title: "Scalars"
 ---
 
-import { ExampleTabs } from "../../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
 
@@ -77,7 +77,7 @@ It is **not** automatically inferred and the `IdType` needs to be [explicitly sp
 `ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Product
@@ -95,8 +95,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Product
@@ -134,8 +134,8 @@ public class QueryType : ObjectType
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Product
@@ -169,7 +169,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 Notice how our code uses `int` for the `Id`, but in a request / response it would be serialized as a `string`. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.

@@ -1,11 +1,8 @@
-using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using static System.String;
 using static System.Globalization.CultureInfo;
+using static System.String;
 
 namespace HotChocolate.AspNetCore;
 
@@ -42,7 +39,7 @@ internal static class HttpResponseExtensions
         this IHeaderDictionary headers,
         string fileName)
     {
-        headers[_contentDepositionHeader] = 
+        headers[_contentDepositionHeader] =
             Format(InvariantCulture, _contentDepositionValue, fileName);
         return headers;
     }

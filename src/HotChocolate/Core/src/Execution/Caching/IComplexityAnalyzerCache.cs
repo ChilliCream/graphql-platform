@@ -30,7 +30,7 @@ internal interface IComplexityAnalyzerCache
     /// <c>true</c> if an operation complexity analyzer was found that matches the specified
     /// <paramref name="operationId"/>, otherwise <c>false</c>.
     /// </returns>
-    bool TryGetOperation(
+    bool TryGetAnalyzer(
         string operationId,
         [NotNullWhen(true)] out ComplexityAnalyzerDelegate? analyzer);
 
@@ -43,7 +43,7 @@ internal interface IComplexityAnalyzerCache
     /// <param name="analyzer">
     /// The operation complexity analyzer that shall be cached.
     /// </param>
-    void TryAddOperation(
+    void TryAddAnalyzer(
         string operationId,
         ComplexityAnalyzerDelegate analyzer);
 

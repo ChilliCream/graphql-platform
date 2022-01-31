@@ -8,8 +8,7 @@ public class SchemaCache
     : FilterVisitorTestBase
     , IDisposable
 {
-    private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache =
-        new ConcurrentDictionary<(Type, Type, object), IRequestExecutor>();
+    private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache = new();
 
     public IRequestExecutor CreateSchema<T, TType>(
         T[] entities,

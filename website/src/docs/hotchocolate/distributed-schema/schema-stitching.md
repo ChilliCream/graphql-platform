@@ -12,6 +12,8 @@ You will need to add a package reference to `HotChocolate.Stitching` to your gat
 dotnet add package HotChocolate.Stitching
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 ```csharp
 public static class WellKnownSchemaNames
 {

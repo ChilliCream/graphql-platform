@@ -1,24 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution;
-using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Language;
+using HotChocolate.Utilities;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
-public class HttpMultipartMiddleware : HttpPostMiddleware
+public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 {
     private const string _operations = "operations";
     private const string _map = "map";
@@ -29,9 +23,16 @@ public class HttpMultipartMiddleware : HttpPostMiddleware
         IRequestExecutorResolver executorResolver,
         IHttpResultSerializer resultSerializer,
         IHttpRequestParser requestParser,
+        IServerDiagnosticEvents diagnosticEvents,
         NameString schemaName,
         IOptions<FormOptions> formOptions)
-        : base(next, executorResolver, resultSerializer, requestParser, schemaName)
+        : base(
+            next,
+            executorResolver,
+            resultSerializer,
+            requestParser,
+            diagnosticEvents,
+            schemaName)
     {
         _formOptions = formOptions.Value;
     }
@@ -42,7 +43,15 @@ public class HttpMultipartMiddleware : HttpPostMiddleware
             (context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? true) &&
             ParseContentType(context) == AllowedContentType.Form)
         {
-            await HandleRequestAsync(context, AllowedContentType.Form);
+            if (!IsDefaultSchema)
+            {
+                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+            }
+
+            using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpMultiPart))
+            {
+                await HandleRequestAsync(context, AllowedContentType.Form);
+            }
         }
         else
         {

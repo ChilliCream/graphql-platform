@@ -42,8 +42,6 @@ namespace HotChocolate.Stitching.Integration
                     .AddRemoteSchemaFromString(
                         "DocumentClient",
                         FileResource.Open("DocumentClient.graphql"))
-                    .AddType(new IntType("PaginationAmount"))
-                    .AddType(new IntType())
                     .AddMergedDocumentRewriter(d =>
                     {
                         var rewriter = new DocumentRewriter();
@@ -51,14 +49,8 @@ namespace HotChocolate.Stitching.Integration
                     })
                     .RewriteType("ContractClient", "Int", "PaginationAmount")
                     .AddGraphQL("AdvisorClient")
-                    .AddType(new IntType("PaginationAmount"))
-                    .AddType(new IntType())
                     .AddGraphQL("ContractClient")
-                    .AddType(new IntType("PaginationAmount"))
-                    .AddType(new IntType())
                     .AddGraphQL("DocumentClient")
-                    .AddType(new IntType("PaginationAmount"))
-                    .AddType(new IntType())
                     .Services
                     .BuildServiceProvider();
 

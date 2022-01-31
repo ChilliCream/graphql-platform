@@ -82,7 +82,7 @@ public sealed class DescriptorContext : IDescriptorContext
                                 new XmlDocumentationFileResolver(
                                     Options.ResolveXmlDocumentationFileName),
                                 Services.GetService<ObjectPool<StringBuilder>>() ??
-                                new NoOpStringBuilderPool()))
+                                    new NoOpStringBuilderPool()))
                         : new DefaultNamingConventions(
                             new NoopDocumentationProvider()));
             }

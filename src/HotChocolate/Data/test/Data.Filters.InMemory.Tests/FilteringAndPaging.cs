@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
@@ -11,11 +10,11 @@ public class FilteringAndPaging
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true },
-            new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
-    private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new();
 
     [Fact]
     public async Task Create_BooleanEqual_Expression()

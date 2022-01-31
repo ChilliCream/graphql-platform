@@ -44,6 +44,8 @@ dotnet new graphql
 dotnet add package HotChocolate.PersistedQueries.InMemory
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 ## Step 2: Configure automatic persisted queries
 
 Next, we want to configure our GraphQL server to be able to handle automatic persisted query requests. For this, we need to register the in-memory query storage and configure the automatic persisted query request pipeline.
@@ -230,6 +232,8 @@ docker run --name redis-stitching -p 7000:6379 -d redis
 ```bash
 dotnet add package HotChocolate.PersistedQueries.Redis
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 3. Next, we need to configure the server to use Redis as query storage.
 

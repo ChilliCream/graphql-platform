@@ -2,7 +2,7 @@
 title: "Enums"
 ---
 
-import { ExampleTabs } from "../../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 An Enum is a special kind of [scalar](/docs/hotchocolate/v11/defining-a-schema/scalars) that is restricted to a particular set of allowed values.
 
@@ -21,7 +21,7 @@ Learn more about enums [here](https://graphql.org/learn/schema/#enumeration-type
 We can define enums like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public enum UserRole
@@ -53,8 +53,8 @@ public enum UserRole
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public enum UserRole
@@ -139,8 +139,8 @@ public class QueryType : ObjectType
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 services
@@ -164,5 +164,5 @@ services
     })
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

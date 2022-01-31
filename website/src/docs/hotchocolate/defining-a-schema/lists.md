@@ -2,7 +2,7 @@
 title: "Lists"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 GraphQL allows us to return lists of elements from our fields.
 
@@ -32,7 +32,7 @@ Learn more about lists [here](https://graphql.org/learn/schema/#lists-and-non-nu
 Lists can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 If our field resolver returns a list type, e.g. `IEnumerable<T>` or `IQueryable<T>`, it will automatically be treated as a list type in the schema.
 
@@ -46,8 +46,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 If our field resolver returns a list type, e.g. `IEnumerable<T>` or `IQueryable<T>`, it will automatically be treated as a list type in the schema.
 
@@ -92,8 +92,8 @@ public class QueryType : ObjectType
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```sdl
 type Query {
@@ -101,5 +101,5 @@ type Query {
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

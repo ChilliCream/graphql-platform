@@ -2,7 +2,7 @@
 title: "Interfaces"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 An interface is an abstract type that defines a certain set of fields that an object type or another interface must include to implement the interface. Interfaces can only be used as output types, meaning we can't use interfaces as arguments or as fields on input object types.
 
@@ -55,7 +55,7 @@ If we need to access fields that are part of an object type implementing the int
 Interfaces can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [InterfaceType("Message")]
@@ -123,8 +123,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public interface IMessage
@@ -193,8 +193,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public interface IMessage
@@ -235,7 +235,7 @@ public class Startup
                   content: String!
                 }
             ")
-            .BindComplexType<TextMessage>()
+            .BindRuntimeType<TextMessage>()
             .AddResolver("Query", "messages", (context) =>
             {
                 // Omitted code for brevity
@@ -244,7 +244,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > Note: We have to explicitly register the interface implementations:
@@ -294,7 +294,7 @@ public class MessageType : InterfaceType<IMessage>
 ## Ignoring fields
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 In the Annotation-based approach we can ignore fields using the `[GraphQLIgnore]` attribute.
 
@@ -308,8 +308,8 @@ public interface IMessage
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 In the Code-first approach we can ignore fields using the `Ignore` method on the `IInterfaceTypeDescriptor`. This is only necessary, if the binding behavior of the interface type is implicit.
 
@@ -325,12 +325,12 @@ public class MessageType : InterfaceType<IMessage>
 
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 We do not have to ignore fields in the Schema-first approach.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Including fields
@@ -357,7 +357,7 @@ Unless specified explicitly, Hot Chocolate automatically infers the names of int
 If we need to we can override these inferred names.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 The `[GraphQLName]` attribute allows us to specify an explicit name.
 
@@ -379,8 +379,8 @@ We can also specify a name for the interface type using the `[InterfaceType]` at
 public interface IMessage
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 The `Name` method on the `IInterfaceTypeDescriptor` / `IInterfaceFieldDescriptor` allows us to specify an explicit name.
 
@@ -399,12 +399,12 @@ public class MessageType : InterfaceType<IMessage>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Simply change the names in the schema.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 This would produce the following `Post` schema interface type:
@@ -440,7 +440,7 @@ type TextMessage implements DatedMessage & Message {
 We can implement this like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [InterfaceType("Message")]
@@ -485,8 +485,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public interface IMessage
@@ -570,8 +570,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public interface IMessage
@@ -619,7 +619,7 @@ public class Startup
                   content: String
                 }
             ")
-            .BindComplexType<TextMessage>()
+            .BindRuntimeType<TextMessage>()
             .AddResolver("Query", "messages", (context) =>
             {
                 // Omitted code for brevity
@@ -628,7 +628,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > Note: We also have to register the `DatedMessage` interface manually, if we do not expose it through a field directly:

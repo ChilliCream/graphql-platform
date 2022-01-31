@@ -34,10 +34,10 @@ public static class Scalars
         { typeof(NameString), typeof(NameType) },
         { typeof(TimeSpan), typeof(TimeSpanType) },
 
-        #if NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER
         { typeof(DateOnly), typeof(DateType) },
         { typeof(TimeOnly), typeof(TimeSpanType) },
-        #endif
+#endif
     };
 
     private static readonly Dictionary<NameString, Type> _nameLookup = new()
@@ -63,6 +63,9 @@ public static class Scalars
         { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
         { ScalarNames.Name, typeof(NameType) },
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
+
+        // legacy support
+        { ScalarNames.PaginationAmount, typeof(PaginationAmountType) },
     };
 
     private static readonly Dictionary<Type, ValueKind> _scalarKinds = new()

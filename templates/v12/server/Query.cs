@@ -2,15 +2,25 @@
 
 public class Query
 {
-    public Person GetPerson() => new Person("Luke Skywalker");
+    public Book GetBook() =>
+        new Book
+        {
+            Title = "C# in depth.",
+            Author = new Author
+            {
+                Name = "Jon Skeet"
+            }
+        };
 }
 
-public class Person
+public class Book
 {
-    public Person(string name)
-    {
-        Name = name;
-    }
+    public string Title { get; set; }
 
-    public string Name { get; }
+    public Author Author { get; set; }
+}
+
+public class Author
+{
+    public string Name { get; set; }
 }

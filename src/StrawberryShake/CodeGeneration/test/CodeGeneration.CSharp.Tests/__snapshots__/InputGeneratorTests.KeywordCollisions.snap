@@ -299,10 +299,10 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class AbstractInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class abstractInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
-        public global::System.String TypeName => "Abstract";
+        public global::System.String TypeName => "abstract";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
@@ -315,7 +315,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.Abstract;
+            var input = runtimeValue as global::Foo.Bar.@abstract;
             var inputInfo = runtimeValue as global::Foo.Bar.State.IAbstractInfo;
             if (input is null || inputInfo is null)
             {
@@ -346,7 +346,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Abstract : global::Foo.Bar.State.IAbstractInfo, global::System.IEquatable<Abstract>
+    public partial class @abstract : global::Foo.Bar.State.IAbstractInfo, global::System.IEquatable<@abstract>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -365,10 +365,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((Abstract)obj);
+            return Equals((@abstract)obj);
         }
 
-        public virtual global::System.Boolean Equals(Abstract? other)
+        public virtual global::System.Boolean Equals(@abstract? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -496,23 +496,23 @@ namespace Foo.Bar
         public ReadonlyQuery(global::StrawberryShake.IOperationExecutor<IReadonlyResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
-            _abstractFormatter = serializerResolver.GetInputValueFormatter("Abstract");
+            _abstractFormatter = serializerResolver.GetInputValueFormatter("abstract");
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IReadonlyResult);
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IReadonlyResult>> ExecuteAsync(global::Foo.Bar.Abstract input, global::System.Threading.CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IReadonlyResult>> ExecuteAsync(global::Foo.Bar.@abstract input, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<IReadonlyResult>> Watch(global::Foo.Bar.Abstract input, global::StrawberryShake.ExecutionStrategy? strategy = null)
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IReadonlyResult>> Watch(global::Foo.Bar.@abstract input, global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(input);
             return _operationExecutor.Watch(request, strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(global::Foo.Bar.Abstract input)
+        private global::StrawberryShake.OperationRequest CreateRequest(global::Foo.Bar.@abstract input)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
             variables.Add("input", FormatInput(input));
@@ -524,7 +524,7 @@ namespace Foo.Bar
             return new global::StrawberryShake.OperationRequest(id: ReadonlyQueryDocument.Instance.Hash.Value, name: "Readonly", document: ReadonlyQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
-        private global::System.Object? FormatInput(global::Foo.Bar.Abstract value)
+        private global::System.Object? FormatInput(global::Foo.Bar.@abstract value)
         {
             if (value is null)
             {
@@ -563,8 +563,8 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IReadonlyQuery : global::StrawberryShake.IOperationRequestFactory
     {
-        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IReadonlyResult>> ExecuteAsync(global::Foo.Bar.Abstract input, global::System.Threading.CancellationToken cancellationToken = default);
-        global::System.IObservable<global::StrawberryShake.IOperationResult<IReadonlyResult>> Watch(global::Foo.Bar.Abstract input, global::StrawberryShake.ExecutionStrategy? strategy = null);
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IReadonlyResult>> ExecuteAsync(global::Foo.Bar.@abstract input, global::System.Threading.CancellationToken cancellationToken = default);
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IReadonlyResult>> Watch(global::Foo.Bar.@abstract input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
@@ -799,7 +799,14 @@ namespace Foo.Bar.State
             }
             else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+                else
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IReadonlyResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -993,7 +1000,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.AbstractInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.abstractInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IReadonlyResult>, global::Foo.Bar.State.ReadonlyResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IReadonlyResult>>(sp));

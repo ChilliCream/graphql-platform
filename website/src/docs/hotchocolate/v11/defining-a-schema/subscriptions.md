@@ -2,7 +2,7 @@
 title: "Subscriptions"
 ---
 
-import { ExampleTabs } from "../../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 The subscription type in GraphQL is used to add real-time capabilities to our applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
 
@@ -30,7 +30,7 @@ Hot Chocolate implements subscriptions via WebSockets and uses the pub/sub appro
 A subscription type can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Subscription
@@ -52,8 +52,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class SubscriptionType : ObjectType
@@ -90,8 +90,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Subscription
@@ -123,7 +123,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 # Transport

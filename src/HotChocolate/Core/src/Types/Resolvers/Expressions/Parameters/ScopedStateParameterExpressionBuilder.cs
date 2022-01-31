@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -33,12 +34,12 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
 
     public bool IsPure => false;
 
-    public bool IsDefaultHandler => false;
+    public virtual bool IsDefaultHandler => false;
 
     public virtual bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ScopedStateAttribute));
 
-    public Expression Build(ParameterInfo parameter, Expression context)
+    public virtual Expression Build(ParameterInfo parameter, Expression context)
     {
         var key = GetKey(parameter);
 
@@ -55,7 +56,7 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
     protected virtual string? GetKey(ParameterInfo parameter)
         => parameter.GetCustomAttribute<ScopedStateAttribute>()!.Key;
 
-    private Expression BuildSetter(
+    protected Expression BuildSetter(
         ParameterInfo parameter,
         ConstantExpression key,
         Expression context)
@@ -72,17 +73,20 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
             key);
     }
 
-    private Expression BuildGetter(
+    protected Expression BuildGetter(
         ParameterInfo parameter,
         ConstantExpression key,
-        Expression context)
+        Expression context,
+        Type? targetType = null)
     {
+        targetType ??= parameter.ParameterType;
+
         MemberExpression contextData = Expression.Property(context, ContextDataProperty);
 
         MethodInfo getScopedState =
             parameter.HasDefaultValue
-                ? _getScopedStateWithDefault.MakeGenericMethod(parameter.ParameterType)
-                : _getScopedState.MakeGenericMethod(parameter.ParameterType);
+                ? _getScopedStateWithDefault.MakeGenericMethod(targetType)
+                : _getScopedState.MakeGenericMethod(targetType);
 
         return parameter.HasDefaultValue
             ? Expression.Call(
@@ -91,15 +95,14 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
                 contextData,
                 key,
                 Expression.Constant(true, typeof(bool)),
-                Expression.Constant(parameter.RawDefaultValue, parameter.ParameterType))
+                Expression.Constant(parameter.RawDefaultValue, targetType))
             : Expression.Call(
                 getScopedState,
                 context,
                 contextData,
                 key,
                 Expression.Constant(
-                    new NullableHelper(parameter.ParameterType)
-                        .GetFlags(parameter).FirstOrDefault() ?? false,
+                    new NullableHelper(targetType).GetFlags(parameter).FirstOrDefault() ?? false,
                     typeof(bool)));
     }
 }

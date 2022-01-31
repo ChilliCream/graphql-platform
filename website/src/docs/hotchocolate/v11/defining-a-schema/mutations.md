@@ -2,7 +2,7 @@
 title: "Mutations"
 ---
 
-import { ExampleTabs } from "../../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 The mutation type in GraphQL is used to mutate/change data. This means that when we are doing mutations, we are intending to cause side-effects in the system.
 
@@ -40,7 +40,7 @@ Each of these mutations is executed serially one by one whereas their child sele
 A mutation type can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Mutation
@@ -64,8 +64,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Mutation
@@ -96,8 +96,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Mutation
@@ -134,7 +134,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 # Transactions

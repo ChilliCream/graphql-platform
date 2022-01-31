@@ -943,16 +943,16 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Bwr_TimeSeriesFilterInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class bwr_TimeSeriesFilterInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _bwr_TimeSeriesFilterInputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringOperationFilterInputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _referenceTyOfbwr_TimeSeriesFilterInputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _listRefFilterTyOfbwr_TimeSeriesFilterInputFormatter = default !;
-        public global::System.String TypeName => "Bwr_TimeSeriesFilterInput";
+        public global::System.String TypeName => "bwr_TimeSeriesFilterInput";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _bwr_TimeSeriesFilterInputFormatter = serializerResolver.GetInputValueFormatter("Bwr_TimeSeriesFilterInput");
+            _bwr_TimeSeriesFilterInputFormatter = serializerResolver.GetInputValueFormatter("bwr_TimeSeriesFilterInput");
             _stringOperationFilterInputFormatter = serializerResolver.GetInputValueFormatter("StringOperationFilterInput");
             _referenceTyOfbwr_TimeSeriesFilterInputFormatter = serializerResolver.GetInputValueFormatter("ReferenceTyOfbwr_TimeSeriesFilterInput");
             _listRefFilterTyOfbwr_TimeSeriesFilterInputFormatter = serializerResolver.GetInputValueFormatter("ListRefFilterTyOfbwr_TimeSeriesFilterInput");
@@ -965,7 +965,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.Bwr_TimeSeriesFilterInput;
+            var input = runtimeValue as global::Foo.Bar.bwr_TimeSeriesFilterInput;
             var inputInfo = runtimeValue as global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo;
             if (input is null || inputInfo is null)
             {
@@ -1051,7 +1051,7 @@ namespace Foo.Bar
             return fields;
         }
 
-        private global::System.Object? FormatAnd(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bwr_TimeSeriesFilterInput>? input)
+        private global::System.Object? FormatAnd(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.bwr_TimeSeriesFilterInput>? input)
         {
             if (input is null)
             {
@@ -1074,7 +1074,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? FormatOr(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bwr_TimeSeriesFilterInput>? input)
+        private global::System.Object? FormatOr(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.bwr_TimeSeriesFilterInput>? input)
         {
             if (input is null)
             {
@@ -1256,7 +1256,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Bwr_TimeSeriesFilterInput : global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo, global::System.IEquatable<Bwr_TimeSeriesFilterInput>
+    public partial class bwr_TimeSeriesFilterInput : global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo, global::System.IEquatable<bwr_TimeSeriesFilterInput>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1275,10 +1275,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((Bwr_TimeSeriesFilterInput)obj);
+            return Equals((bwr_TimeSeriesFilterInput)obj);
         }
 
-        public virtual global::System.Boolean Equals(Bwr_TimeSeriesFilterInput? other)
+        public virtual global::System.Boolean Equals(bwr_TimeSeriesFilterInput? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1388,9 +1388,9 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bwr_TimeSeriesFilterInput>? _value_and;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.bwr_TimeSeriesFilterInput>? _value_and;
         private global::System.Boolean _set_and;
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bwr_TimeSeriesFilterInput>? _value_or;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.bwr_TimeSeriesFilterInput>? _value_or;
         private global::System.Boolean _set_or;
         private global::Foo.Bar.StringOperationFilterInput? _value_name;
         private global::System.Boolean _set_name;
@@ -1418,7 +1418,7 @@ namespace Foo.Bar
         private global::System.Boolean _set_validationResults;
         private global::Foo.Bar.StringOperationFilterInput? _value__inventoryItemId;
         private global::System.Boolean _set__inventoryItemId;
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bwr_TimeSeriesFilterInput>? And
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.bwr_TimeSeriesFilterInput>? And
         {
             get => _value_and;
             set
@@ -1429,7 +1429,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.IsAndSet => _set_and;
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bwr_TimeSeriesFilterInput>? Or
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.bwr_TimeSeriesFilterInput>? Or
         {
             get => _value_or;
             set
@@ -3258,24 +3258,24 @@ namespace Foo.Bar
         public GetBwr_TimeSeriesQuery(global::StrawberryShake.IOperationExecutor<IGetBwr_TimeSeriesResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
-            _bwr_TimeSeriesFilterInputFormatter = serializerResolver.GetInputValueFormatter("Bwr_TimeSeriesFilterInput");
+            _bwr_TimeSeriesFilterInputFormatter = serializerResolver.GetInputValueFormatter("bwr_TimeSeriesFilterInput");
             _readDataInputFormatter = serializerResolver.GetInputValueFormatter("ReadDataInput");
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetBwr_TimeSeriesResult);
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> ExecuteAsync(global::Foo.Bar.Bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::System.Threading.CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> ExecuteAsync(global::Foo.Bar.bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(@where, readDataInput);
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> Watch(global::Foo.Bar.Bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::StrawberryShake.ExecutionStrategy? strategy = null)
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> Watch(global::Foo.Bar.bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(@where, readDataInput);
             return _operationExecutor.Watch(request, strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(global::Foo.Bar.Bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput)
+        private global::StrawberryShake.OperationRequest CreateRequest(global::Foo.Bar.bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
             variables.Add("where", FormatWhere(@where));
@@ -3288,7 +3288,7 @@ namespace Foo.Bar
             return new global::StrawberryShake.OperationRequest(id: GetBwr_TimeSeriesQueryDocument.Instance.Hash.Value, name: "GetBwr_TimeSeries", document: GetBwr_TimeSeriesQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
-        private global::System.Object? FormatWhere(global::Foo.Bar.Bwr_TimeSeriesFilterInput? value)
+        private global::System.Object? FormatWhere(global::Foo.Bar.bwr_TimeSeriesFilterInput? value)
         {
             if (value is null)
             {
@@ -3383,8 +3383,8 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetBwr_TimeSeriesQuery : global::StrawberryShake.IOperationRequestFactory
     {
-        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> ExecuteAsync(global::Foo.Bar.Bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::System.Threading.CancellationToken cancellationToken = default);
-        global::System.IObservable<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> Watch(global::Foo.Bar.Bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::StrawberryShake.ExecutionStrategy? strategy = null);
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> ExecuteAsync(global::Foo.Bar.bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::System.Threading.CancellationToken cancellationToken = default);
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> Watch(global::Foo.Bar.bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
@@ -4206,7 +4206,14 @@ namespace Foo.Bar.State
             }
             else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+                else
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IGetBwr_TimeSeriesResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -4687,7 +4694,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.Bwr_TimeSeriesFilterInputInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.bwr_TimeSeriesFilterInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.StringOperationFilterInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.ReferenceTyOfbwr_TimeSeriesFilterInputInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.ListRefFilterTyOfbwr_TimeSeriesFilterInputInputValueFormatter>(services);
