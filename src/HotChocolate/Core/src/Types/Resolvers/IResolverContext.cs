@@ -51,11 +51,6 @@ public interface IResolverContext : IPureResolverContext
     NameString ResponseName { get; }
 
     /// <summary>
-    /// Gets the current execution path.
-    /// </summary>
-    Path Path { get; }
-
-    /// <summary>
     /// Indicates that the context has errors. To report new errors use <see cref="ReportError(IError)"/>
     /// </summary>
     bool HasErrors { get; }
