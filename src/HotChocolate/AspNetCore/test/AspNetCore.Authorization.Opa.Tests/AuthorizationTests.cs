@@ -47,7 +47,7 @@ public class AuthorizationTests : ServerTestBase
                 connection.RemotePort = 7777;
             });
 
-        await using OpaHandle h = await OpaProcess.StartServerAsync();
+        await using OpaHandle _ = await OpaProcess.StartServerAsync();
 
         // act
         ClientQueryResult result =

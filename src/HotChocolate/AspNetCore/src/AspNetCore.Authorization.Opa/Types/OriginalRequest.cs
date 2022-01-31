@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -8,6 +8,6 @@ public sealed class OriginalRequest
     public string Host { get; set; } = string.Empty;
     public string Method { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;
-    public IQueryCollection? Query { get; set; }
+    public IEnumerable<KeyValuePair<string,StringValues>>? Query { get; set; }
     public string Scheme { get; set; } = string.Empty;
 }
