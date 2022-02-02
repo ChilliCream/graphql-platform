@@ -19,7 +19,13 @@ public sealed class OpaService : IOpaService
         if (request is null) throw new ArgumentNullException(nameof(request));
 
         HttpResponseMessage response = await _httpClient.PostAsync(policyPath,  request.ToJsonContent(_options.JsonSerializerOptions), token);
-        if (policyPath.Equals(string.Empty) && response.StatusCode == HttpStatusCode.NotFound) return NoDefaultPolicy.Response;
-        return await response.Content.QueryResponseFromJsonAsync(_options.JsonSerializerOptions, token);
+        response.EnsureSuccessStatusCode();
+        QueryResponse? result = await response.Content.QueryResponseFromJsonAsync(_options.JsonSerializerOptions, token);
+        return result switch
+        {
+            { Result: null } when policyPath.Equals(string.Empty) => NoDefaultPolicy.Response,
+            { Result: null } => PolicyNotFound.Response,
+            var r => r
+        };
     }
 }

@@ -1,14 +1,10 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Threading;
+using System.Net.Http;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
@@ -19,12 +15,23 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
-public class AuthorizationTests : ServerTestBase
+public class AuthorizationTests : ServerTestBase, IAsyncLifetime
 {
+    private OpaHandle _opaHandle;
     public AuthorizationTests(TestServerFactory serverFactory)
         : base(serverFactory)
     {
     }
+    private static void SetUpHttpContext(HttpContext context)
+    {
+        ConnectionInfo connection = context.Connection;
+        connection.LocalIpAddress = IPAddress.Loopback;
+        connection.LocalPort = 5555;
+        connection.RemoteIpAddress = IPAddress.Loopback;
+        connection.RemotePort = 7777;
+    }
+
+    public async Task InitializeAsync() => _opaHandle = await OpaProcess.StartServerAsync();
 
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
@@ -38,20 +45,45 @@ public class AuthorizationTests : ServerTestBase
                 configure(builder);
                 builder.Services.AddAuthorization();
             },
-            context =>
-            {
-                ConnectionInfo connection = context.Request.HttpContext.Connection;
-                connection.LocalIpAddress = IPAddress.Loopback;
-                connection.LocalPort = 5555;
-                connection.RemoteIpAddress = IPAddress.Loopback;
-                connection.RemotePort = 7777;
-            });
-
-        await using OpaHandle _ = await OpaProcess.StartServerAsync();
+            SetUpHttpContext);
 
         // act
         ClientQueryResult result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.MatchSnapshot();
+    }
+
+    [Theory]
+    [ClassData(typeof(AuthorizationTestData))]
+    [ClassData(typeof(AuthorizationAttributeTestData))]
+    public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder> configure)
+    {
+        // arrange
+        TestServer server = CreateTestServer(
+            builder =>
+            {
+                configure(builder);
+                builder.Services.AddAuthorization();
+
+            },
+            SetUpHttpContext + (Action<HttpContext>)(c =>
+            {
+                c.Request.Headers["Authorization"] =
+                    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+            }));
+
+        var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
+        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181") };
+
+        HttpResponseMessage putPolicyResponse = await client.PutAsync("/v1/policies/has_age_defined", new StringContent(hasAgeDefinedPolicy));
+        putPolicyResponse.EnsureSuccessStatusCode();
+
+        // act
+        ClientQueryResult result =
+            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -81,4 +113,6 @@ public class AuthorizationTests : ServerTestBase
                 app.UseEndpoints(b => b.MapGraphQL());
             });
     }
+
+    public async Task DisposeAsync() => await _opaHandle.DisposeAsync();
 }

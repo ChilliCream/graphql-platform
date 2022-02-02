@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using HotChocolate.AspNetCore.Authorization.Opa;
+
 namespace HotChocolate.AspNetCore.Authorization;
 
 public abstract class ResponseBase { }
@@ -5,7 +8,8 @@ public abstract class ResponseBase { }
 public sealed class QueryResponse : ResponseBase
 {
     public Guid? DecisionId { get; set; }
-    public bool Result { get; set; }
+    [JsonConverter(typeof(OpaResultFieldConverter))]
+    public bool? Result { get; set; }
 }
 
 public sealed class PolicyNotFound : ResponseBase

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text.Json;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,7 +13,7 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
         [Authorize]
         public string GetDefault() => "foo";
 
-        [Authorize(Policy = "HasAgeDefined")]
+        [Authorize(Policy = "graphql/authz/has_age_defined/allow")]
         public string GetAge() => "foo";
 
         [Authorize(Roles = new[] { "a" })]
