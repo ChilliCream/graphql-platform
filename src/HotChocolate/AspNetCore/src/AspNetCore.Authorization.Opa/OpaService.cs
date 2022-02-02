@@ -18,9 +18,9 @@ public sealed class OpaService : IOpaService
         if (policyPath is null) throw new ArgumentNullException(nameof(policyPath));
         if (request is null) throw new ArgumentNullException(nameof(request));
 
-        HttpResponseMessage response = await _httpClient.PostAsync(policyPath,  request.ToJsonContent(_options.JsonSerializerOptions), token);
+        HttpResponseMessage response = await _httpClient.PostAsync(policyPath,  request.ToJsonContent(_options.JsonSerializerOptions), token).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        QueryResponse? result = await response.Content.QueryResponseFromJsonAsync(_options.JsonSerializerOptions, token);
+        QueryResponse? result = await response.Content.QueryResponseFromJsonAsync(_options.JsonSerializerOptions, token).ConfigureAwait(false);
         return result switch
         {
             { Result: null } when policyPath.Equals(string.Empty) => NoDefaultPolicy.Response,
