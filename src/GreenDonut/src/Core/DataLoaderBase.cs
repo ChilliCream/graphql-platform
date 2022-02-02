@@ -312,8 +312,11 @@ namespace GreenDonut
 
             Batch<TKey> newBatch = BatchPool<TKey>.Shared.Get();
             TaskCompletionSource<TValue> newPromise = newBatch.GetOrCreatePromise<TValue>(key);
-            _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
+            
+            // set the batch before enqueueing to avoid concurrency issues.
             _currentBatch = newBatch;
+            _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
+           
             return newPromise;
         }
 
