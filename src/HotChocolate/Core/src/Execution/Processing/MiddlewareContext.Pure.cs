@@ -66,7 +66,9 @@ internal partial class MiddlewareContext
 
         public IObjectType ObjectType => _parentType;
 
-        public IFieldSelection Selection => _parentContext.Selection;
+        public IFieldSelection Selection => _selection;
+
+        public Path Path => _path;
 
         public IVariableValueCollection Variables => _parentContext.Variables;
 

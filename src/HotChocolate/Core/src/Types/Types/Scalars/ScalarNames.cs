@@ -20,6 +20,5 @@ public static class ScalarNames
     public const string TimeSpan = nameof(TimeSpan);
     public const string MultiplierPath = nameof(MultiplierPath);
     public const string Name = nameof(Name);
-    public const string _Any = nameof(_Any);
-    public const string _FieldSet = nameof(_FieldSet);
+    public const string PaginationAmount = nameof(PaginationAmount);
 }
