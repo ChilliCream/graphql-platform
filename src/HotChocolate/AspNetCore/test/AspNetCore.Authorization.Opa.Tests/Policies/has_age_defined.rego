@@ -1,4 +1,7 @@
-﻿package graphql.authz.has_age_defined
+# Warning: this policy exists only for testing purposes.
+# How to correctly validate JWT tokens in OPA: https://www.openpolicyagent.org/docs/latest/oauth-oidc/
+
+package graphql.authz.has_age_defined
 
 import input.request
 

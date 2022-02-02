@@ -6,7 +6,7 @@
   },
   "Errors": [
     {
-      "message": "The `HasAgeDefined` authorization policy does not exist.",
+      "message": "The `graphql/authz/has_age_defined/allow` authorization policy does not exist.",
       "locations": [
         {
           "line": 1,
