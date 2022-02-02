@@ -13,7 +13,7 @@ public class AuthorizationTestData : IEnumerable<object[]>
     private readonly string SchemaCode = @"
             type Query {
                 default: String @authorize
-                age: String @authorize(policy: ""HasAgeDefined"")
+                age: String @authorize(policy: ""graphql/authz/has_age_defined/allow"")
                 roles: String @authorize(roles: [""a""])
                 roles_ab: String @authorize(roles: [""a"" ""b""])
                 piped: String
