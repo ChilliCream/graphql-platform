@@ -85,8 +85,15 @@ public class FromJsonDescriptorTests
     {
         var mock = new Mock<IObjectFieldDescriptor>();
         void Fail() => JsonObjectTypeExtensions.FromJson(
-            mock.Object, 
+            mock.Object,
             default(Func<JsonElement, string>)!);
+        Assert.Throws<ArgumentNullException>(Fail);
+    }
+
+    [Fact]
+    public void AddJsonSupport_Builder_Is_Null()
+    {
+        void Fail() => JsonRequestExecutorBuilderExtensions.AddJsonSupport(null!);
         Assert.Throws<ArgumentNullException>(Fail);
     }
 
