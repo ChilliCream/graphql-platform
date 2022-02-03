@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
+using static HotChocolate.WellKnownContextData;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -20,6 +24,7 @@ public sealed class DescriptorContext : IDescriptorContext
 {
     private readonly Dictionary<(Type, string?), IConvention> _conventions = new();
     private readonly IReadOnlyDictionary<(Type, string?), List<CreateConvention>> _cFactories;
+    private readonly Dictionary<string, ISchemaDirective> _schemaDirectives = new();
 
     private readonly IServiceProvider _services;
 
@@ -125,6 +130,25 @@ public sealed class DescriptorContext : IDescriptorContext
     public IDictionary<string, object?> ContextData { get; }
 
     /// <inheritdoc />
+    public bool TryGetSchemaDirective(
+        DirectiveNode directiveNode,
+        [NotNullWhen(true)] out ISchemaDirective? directive)
+    {
+        if (ContextData.TryGetValue(SchemaDirectives, out var value) &&
+            value is IReadOnlyList<ISchemaDirective> directives)
+        {
+            foreach (ISchemaDirective sd in directives)
+            {
+                _schemaDirectives[sd.Name.Value] = sd;
+            }
+
+            ContextData.Remove(SchemaDirectives);
+        }
+
+        return _schemaDirectives.TryGetValue(directiveNode.Name.Value, out directive);
+    }
+
+    /// <inheritdoc />
     public T GetConventionOrDefault<T>(
         Func<T> defaultConvention,
         string? scope = null)
@@ -221,10 +245,7 @@ public sealed class DescriptorContext : IDescriptorContext
         }
     }
 
-    public void Dispose()
-    {
-        ResolverCompiler.Dispose();
-    }
+    public void Dispose() => ResolverCompiler.Dispose();
 
     internal static DescriptorContext Create(
         IReadOnlySchemaOptions? options = null,

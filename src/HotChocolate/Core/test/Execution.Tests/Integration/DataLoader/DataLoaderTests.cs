@@ -376,28 +376,28 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 .MatchSnapshotAsync();
         }
 
-    [Fact]
-    public async Task Ensure_That_DataLoader_Dispatch_Correctly_When_Used_Serially()
-    {
-        Snapshot.FullName();
+        [Fact]
+        public async Task Ensure_That_DataLoader_Dispatch_Correctly_When_Used_Serially()
+        {
+            Snapshot.FullName();
 
-        IRequestExecutor executor =
-            await new ServiceCollection()
-                .AddGraphQLServer()
-                .AddQueryType()
-                .AddMutationType<SerialMutation>()
-                .AddDataLoader<CustomDataLoader>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .BuildRequestExecutorAsync();
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType()
+                    .AddMutationType<SerialMutation>()
+                    .AddDataLoader<CustomDataLoader>()
+                    .ModifyOptions(o => o.StrictValidation = false)
+                    .BuildRequestExecutorAsync();
 
-        IExecutionResult result = await executor.ExecuteAsync(
-            @"mutation { 
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"mutation { 
                 a: doSomething(key: ""a"") 
                 b: doSomething(key: ""b"") 
             }");
 
-        result.MatchSnapshot();
-    }
+            result.MatchSnapshot();
+        }
 
         public class DataLoaderListener : DataLoaderDiagnosticEventListener
         {
@@ -507,39 +507,41 @@ namespace HotChocolate.Execution.Integration.DataLoader
             public string Field { get; }
         }
 
-    public class SerialMutation
-    {
-        [Serial]
-        public async Task<string> DoSomethingAsync(
-            CustomDataLoader dataLoader,
-            string key,
-            CancellationToken cancellationToken)
+        public class SerialMutation
         {
-            string value = await dataLoader.LoadAsync(key, cancellationToken);
-            return value;
-        }
-    }
-
-    public class CustomDataLoader : BatchDataLoader<string, string>
-    {
-        public CustomDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options = null)
-            : base(batchScheduler, options)
-        {
-        }
-
-        protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
-            IReadOnlyList<string> keys,
-            CancellationToken cancellationToken)
-        {
-            var dict = new Dictionary<string, string>();
-
-            foreach (string s in keys)
+            [Serial]
+            public async Task<string> DoSomethingAsync(
+                CustomDataLoader dataLoader,
+                string key,
+                CancellationToken cancellationToken)
             {
-                dict[s] = s + "_value";
+                string value = await dataLoader.LoadAsync(key, cancellationToken);
+                return value;
+            }
+        }
+
+        public class CustomDataLoader : BatchDataLoader<string, string>
+        {
+            public CustomDataLoader(
+                IBatchScheduler batchScheduler, 
+                DataLoaderOptions? options = null)
+                : base(batchScheduler, options)
+            {
             }
 
-            return Task.FromResult<IReadOnlyDictionary<string, string>>(dict);
+            protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
+                IReadOnlyList<string> keys,
+                CancellationToken cancellationToken)
+            {
+                var dict = new Dictionary<string, string>();
+
+                foreach (string s in keys)
+                {
+                    dict[s] = s + "_value";
+                }
+
+                return Task.FromResult<IReadOnlyDictionary<string, string>>(dict);
+            }
         }
-    }
     }
 }
