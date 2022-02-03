@@ -7,6 +7,11 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate
 {
@@ -408,45 +413,84 @@ namespace HotChocolate
             // assert
             schema.Print().MatchSnapshot();
         }
-    }
 
-    public class Query
-    {
-        public string Hello() => "World";
-    }
+        [Fact]
+        public async Task Apply_Schema_Building_Directive()
+        {
+            // arrange
+            var sdl = "type Person { name: String! @desc(value: \"abc\") }";
 
-    public class QueryWithItems
-    {
-        [UsePaging]
-        public string[] GetItems() => new[] { "a", "b" };
-    }
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .AddQueryType<QueryCodeFirst>()
+                    .BindRuntimeType<Person>()
+                    .ConfigureSchema(sb => sb.AddSchemaDirective(new CustomDescriptionDirective()))
+                    .BuildSchemaAsync();
 
-    public class QueryWithOffsetItems
-    {
-        [UseOffsetPaging]
-        public string[] GetItems() => new[] { "a", "b" };
-    }
+            // assert
+            Assert.Equal(
+                schema.GetType<ObjectType>("Person").Fields["name"].Description,
+                "abc");
+        }
 
-    public class QueryWithPersons
-    {
-        [UsePaging]
-        public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
-    }
+        public class Query
+        {
+            public string Hello() => "World";
+        }
 
-    public class QueryWithOffsetPersons
-    {
-        [UseOffsetPaging]
-        public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
-    }
+        public class QueryWithItems
+        {
+            [UsePaging]
+            public string[] GetItems() => new[] { "a", "b" };
+        }
 
-    public class QueryCodeFirst
-    {
-        [GraphQLType("Person!")]
-        public object GetPerson() => new Person { Name = "Hello" };
-    }
+        public class QueryWithOffsetItems
+        {
+            [UseOffsetPaging]
+            public string[] GetItems() => new[] { "a", "b" };
+        }
 
-    public class Person
-    {
-        public string Name { get; set; }
+        public class QueryWithPersons
+        {
+            [UsePaging]
+            public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
+        }
+
+        public class QueryWithOffsetPersons
+        {
+            [UseOffsetPaging]
+            public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
+        }
+
+        public class QueryCodeFirst
+        {
+            [GraphQLType("Person!")]
+            public object GetPerson() => new Person { Name = "Hello" };
+        }
+
+        public class Person
+        {
+            public string Name { get; set; }
+        }
+
+        public class CustomDescriptionDirective : ISchemaDirective
+        {
+            public NameString Name => "desc";
+
+            public void ApplyConfiguration(
+                IDescriptorContext context,
+                DirectiveNode directiveNode,
+                IDefinition definition,
+                Stack<IDefinition> path)
+            {
+                if (definition is ObjectFieldDefinition objectField)
+                {
+                    objectField.Description = (string)directiveNode.Arguments.First().Value.Value;
+                }
+            }
+        }
     }
 }

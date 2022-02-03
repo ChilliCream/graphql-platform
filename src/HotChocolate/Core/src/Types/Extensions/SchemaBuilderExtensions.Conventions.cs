@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Properties;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
+using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -277,4 +280,19 @@ public static partial class SchemaBuilderExtensions
         where TConvention : IConvention
         where TConcreteConvention : class, TConvention =>
         builder.TryAddConvention(typeof(TConvention), typeof(TConcreteConvention), scope);
+
+    public static ISchemaBuilder AddSchemaDirective(
+        this ISchemaBuilder builder,
+        ISchemaDirective directive)
+    {
+        if (!builder.ContextData.TryGetValue(SchemaDirectives, out var value) ||
+            value is not List<ISchemaDirective> directives)
+        {
+            directives = new();
+            builder.ContextData[SchemaDirectives] = directives;
+        }
+        
+        directives.Add(directive);
+        return builder;
+    }
 }

@@ -104,4 +104,9 @@ public static class WellKnownContextData
     /// The key to the current schema.
     /// </summary>
     public const string Schema = "HotChocolate.Schema";
+
+    /// <summary>
+    /// The key to the schema building directives.
+    /// </summary>
+    public const string SchemaDirectives = "HotChocolate.Schema.Building.Directives";
 }

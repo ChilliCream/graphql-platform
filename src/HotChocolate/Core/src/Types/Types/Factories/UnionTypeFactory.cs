@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -11,6 +12,8 @@ internal sealed class UnionTypeFactory
     public UnionType Create(IDescriptorContext context, UnionTypeDefinitionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        path.Clear();
 
         var typeDefinition = new UnionTypeDefinition(
             node.Name.Value,
@@ -27,13 +30,16 @@ internal sealed class UnionTypeFactory
             typeDefinition.Types.Add(TypeReference.Create(namedType));
         }
 
-        SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
         return UnionType.CreateUnsafe(typeDefinition);
     }
 
     public UnionTypeExtension Create(IDescriptorContext context, UnionTypeExtensionNode node)
     {
+        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        path.Clear();
+
         var typeDefinition = new UnionTypeDefinition(node.Name.Value);
         typeDefinition.BindTo = node.GetBindingValue();
 
@@ -42,7 +48,7 @@ internal sealed class UnionTypeFactory
             typeDefinition.Types.Add(TypeReference.Create(namedType));
         }
 
-        SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
         return UnionTypeExtension.CreateUnsafe(typeDefinition);
     }
