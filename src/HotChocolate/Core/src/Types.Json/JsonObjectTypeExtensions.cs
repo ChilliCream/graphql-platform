@@ -5,12 +5,33 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Provides <see cref="IObjectFieldDescriptor"> extensions to handle JSON objects.
+/// </summary>
 public static class JsonObjectTypeExtensions
 {
+    /// <summary>
+    /// Specifies that this field will be resolved from the JsonELement representing the instance
+    /// of this type.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The <see cref="IObjectFieldDescriptor"/> representing the field configuration.
+    /// </param>
+    /// <param name="propertyName">
+    /// If specified this name will be used as the property name to get the field data from.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
     public static IObjectFieldDescriptor FromJson(
         this IObjectFieldDescriptor descriptor,
         string? propertyName = null)
     {
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
         descriptor
             .Extend()
             .OnBeforeCompletion((ctx, def) =>
@@ -21,24 +42,48 @@ public static class JsonObjectTypeExtensions
 
                 if (type.IsListType())
                 {
-                    throw new SchemaException();
+                    throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
                 }
 
                 if (namedType is ScalarType scalarType)
                 {
-                    InferResolver(def, scalarType, propertyName);
+                    InferResolver(ctx.Type, def, scalarType, propertyName);
+                    return;
                 }
 
-                throw new SchemaException();
+                throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
             });
 
         return descriptor;
     }
 
+    /// <summary>
+    /// Specifies that this field will be resolved from the JsonELement representing the instance
+    /// of this type.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The <see cref="IObjectFieldDescriptor"/> representing the field configuration.
+    /// </param>
+    /// <param name="resolve">
+    /// A resolver that will be applied to the JsonElement representing the instance of this type.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
     public static IObjectFieldDescriptor FromJson<TResult>(
         this IObjectFieldDescriptor descriptor,
         Func<JsonElement, TResult> resolve)
     {
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        if (resolve is null)
+        {
+            throw new ArgumentNullException(nameof(resolve));
+        }
+
         descriptor
             .Extend()
             .OnBeforeCreate(def =>
@@ -50,7 +95,8 @@ public static class JsonObjectTypeExtensions
         return descriptor;
     }
 
-    private static void InferResolver(
+    internal static void InferResolver(
+        ITypeSystemObject type,
         ObjectFieldDefinition def,
         ScalarType scalarType,
         string propertyName)
@@ -96,12 +142,7 @@ public static class JsonObjectTypeExtensions
                 def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetDateTimeOffset();
                 return;
             default:
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage(
-                            "Could not infer the correct mapping for the JSON object type `{0}`.",
-                            def.Name)
-                        .Build());
+                throw ThrowHelper.CannotInferTypeFromJsonObj(type.Name);
         }
     }
 
