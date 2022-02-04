@@ -208,7 +208,14 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                                     Type? unwrapped = Unwrap(parameter.ParameterType, type);
                                     if (unwrapped is not null)
                                     {
+#if NET5_0_OR_GREATER
                                         _runtimeTypes.TryAdd(type.NamedType().Name, unwrapped);
+#else
+                                        if (!_runtimeTypes.ContainsKey(type.NamedType().Name))
+                                        {
+                                            _runtimeTypes.Add(type.NamedType().Name, unwrapped);
+                                        }
+#endif
                                     }
                                 }
                             }
