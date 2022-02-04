@@ -1,15 +1,16 @@
 using HotChocolate.AzureFunctions;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Azure.Functions.Extensions.DependencyInjection;
 
-public static class HotChocolateFunctionsHostBuilderExtensions
+public static class HotChocolateAzFuncIsolatedProcessHostBuilderExtensions
 {
     /// <summary>
-    /// Adds a GraphQL server and Azure Functions integration services.
+    /// Adds a GraphQL server and Azure Functions integration services for Azure Functions Isolated processing model.
     /// </summary>
-    /// <param name="builder">
+    /// <param name="hostBuilder">
     /// The <see cref="IFunctionsHostBuilder"/>.
     /// </param>
     /// <param name="maxAllowedRequestSize">
@@ -24,16 +25,20 @@ public static class HotChocolateFunctionsHostBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <see cref="IServiceCollection"/> is <c>null</c>.
     /// </exception>
-    public static IRequestExecutorBuilder AddGraphQLFunction(
-        this IFunctionsHostBuilder builder,
+    public static IRequestExecutorBuilder AddGraphQLFunctionIsolatedProcess(
+        this IHostBuilder hostBuilder,
         int maxAllowedRequestSize = 20 * 1000 * 1000,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        if (hostBuilder is null)
+            throw new ArgumentNullException(nameof(hostBuilder));
 
-        return builder.Services.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
+        IRequestExecutorBuilder executorBuilder = null!;
+        hostBuilder.ConfigureServices(services =>
+        {
+            executorBuilder = services.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
+        });
+
+        return executorBuilder;
     }
 }

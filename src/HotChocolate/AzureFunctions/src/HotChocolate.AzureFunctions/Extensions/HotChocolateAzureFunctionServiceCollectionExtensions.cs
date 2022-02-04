@@ -34,7 +34,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     public static IRequestExecutorBuilder AddGraphQLFunction(
         this IServiceCollection services,
         int maxAllowedRequestSize = 20 * 1000 * 1000,
-        string apiRoute = "/api/graphql")
+        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
         if (services is null)
         {
@@ -47,14 +47,32 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
 
+        //Add the Request Executor Dependency...
+        services.AddAzureFunctionsGraphQLRequestExecutorDependency(apiRoute);
+
+        return executorBuilder;
+    }
+
+    /// <summary>
+    /// Internal method to adds the Request Executor dependency for Azure Functions both in-process and isolate-process.
+    /// Normal configuration should use AddGraphQLFunction() extension instead which correctly call this internally.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="apiRoute"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddAzureFunctionsGraphQLRequestExecutorDependency(
+        this IServiceCollection services,
+        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute
+    )
+    {
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {
-            PathString path = apiRoute.TrimEnd('/');
+            PathString path = apiRoute?.TrimEnd('/');
             IFileProvider fileProvider = CreateFileProvider();
             var options = new GraphQLServerOptions();
 
             foreach (Action<GraphQLServerOptions> configure in
-                sp.GetServices<Action<GraphQLServerOptions>>())
+                     sp.GetServices<Action<GraphQLServerOptions>>())
             {
                 configure(options);
             }
@@ -74,7 +92,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             return new DefaultGraphQLRequestExecutor(pipeline, options);
         });
 
-        return executorBuilder;
+        return services;
     }
 
     /// <summary>
