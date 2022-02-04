@@ -7,17 +7,21 @@ namespace HotChocolate;
 /// with the HotChocolate.Types.Analyzers source generators.
 /// </summary>
 [AttributeUsage(AttributeTargets.Assembly)]
-public sealed class ModuleNameAttribute : Attribute
+public sealed class ModuleAttribute : Attribute
 {
     /// <summary>
-    /// Initializes new instance of <see cref="ModuleNameAttribute"/>.
+    /// Initializes new instance of <see cref="ModuleAttribute"/>.
     /// </summary>
     /// <param name="name">
     /// The module name.
     /// </param>
-    public ModuleNameAttribute(string name)
+    /// <param name="options">
+    /// The source generator features.
+    /// </param>
+    public ModuleAttribute(string name, ModuleOptions options = ModuleOptions.Default)
     {
         Name = name;
+        Options = options;
     }
 
     /// <summary>
@@ -25,4 +29,9 @@ public sealed class ModuleNameAttribute : Attribute
     /// </summary>
     /// <value></value>
     public string Name { get; }
+
+    /// <summary>
+    /// Gets the selected source generator options.
+    /// </summary>
+    public ModuleOptions Options { get; }
 }
