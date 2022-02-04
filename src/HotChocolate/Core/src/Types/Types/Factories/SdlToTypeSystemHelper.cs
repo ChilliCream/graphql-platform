@@ -26,7 +26,7 @@ internal static class SdlToTypeSystemHelper
                 continue;
             }
 
-            if(directive.IsDeprecationReason() && directive.IsBindingDirective())
+            if(directive.IsDeprecationReason() || directive.IsBindingDirective())
             {
                 continue;
             }
