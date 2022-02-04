@@ -389,12 +389,12 @@ public class ProjectToTests
 
         public string? Name { get; set; }
 
-        public ICollection<Post> Posts { get; set; }
+        public ICollection<Post> Posts { get; set; } = default!;
 
         public int MembershipId { get; set; }
         public Membership? Membership { get; set; }
 
-        public ICollection<Blog> Blogs { get; set; }
+        public ICollection<Blog> Blogs { get; set; } = default!;
     }
 
     public class Image
