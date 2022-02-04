@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -17,6 +14,8 @@ internal sealed class InputObjectTypeFactory
         InputObjectTypeDefinitionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        path.Clear();
 
         var typeDefinition = new InputObjectTypeDefinition(
             node.Name.Value,
@@ -28,9 +27,9 @@ internal sealed class InputObjectTypeFactory
             typeDefinition.SyntaxNode = node;
         }
 
-        SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
-        DeclareFields(typeDefinition, node.Fields, preserveSyntaxNodes);
+        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
 
         return InputObjectType.CreateUnsafe(typeDefinition);
     }
@@ -38,22 +37,28 @@ internal sealed class InputObjectTypeFactory
     public InputObjectTypeExtension Create(IDescriptorContext context, InputObjectTypeExtensionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        path.Clear();
 
         var typeDefinition = new InputObjectTypeDefinition(node.Name.Value);
         typeDefinition.BindTo = node.GetBindingValue();
 
-        SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
-        DeclareFields(typeDefinition, node.Fields, preserveSyntaxNodes);
+        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
 
         return InputObjectTypeExtension.CreateUnsafe(typeDefinition);
     }
 
     private static void DeclareFields(
+        IDescriptorContext context,
         InputObjectTypeDefinition parent,
         IReadOnlyCollection<InputValueDefinitionNode> fields,
+        Stack<IDefinition> path,
         bool preserveSyntaxNodes)
     {
+        path.Push(parent);
+
         foreach (InputValueDefinitionNode inputField in fields)
         {
             var inputFieldDefinition = new InputFieldDefinition(
@@ -68,9 +73,11 @@ internal sealed class InputObjectTypeFactory
                 inputFieldDefinition.SyntaxNode = inputField;
             }
 
-            SdlToTypeSystemHelper.AddDirectives(inputFieldDefinition, inputField);
+            SdlToTypeSystemHelper.AddDirectives(context, inputFieldDefinition, inputField, path);
 
             parent.Fields.Add(inputFieldDefinition);
         }
+
+        path.Pop();
     }
 }
