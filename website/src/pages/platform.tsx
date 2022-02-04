@@ -70,7 +70,7 @@ const PlatformPage: FC = () => {
           <ContentContainer>
             <SectionTitle>Strawberry Shake</SectionTitle>
             <p>
-              Strawberry Shake is a command line tool that generates custom .Net
+              Strawberry Shake is a tool that generates custom .Net
               clients for any GraphQL endpoint.
             </p>
             <Link to="/docs/strawberryshake">Learn more</Link>
