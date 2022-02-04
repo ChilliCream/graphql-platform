@@ -7,11 +7,11 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate
 {
@@ -69,6 +69,72 @@ namespace HotChocolate
             IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result = await executor.ExecuteAsync(query);
             result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_Against_Schema_With_Interface_Schema()
+        {
+            Snapshot.FullName();
+
+            var source = @"
+                type Query {
+                    pet: Pet
+                }
+
+                interface Pet {
+                    name: String
+                }
+
+                type Cat implements Pet {
+                    name: String
+                }
+
+                type Dog implements Pet {
+                    name: String
+                }
+            ";
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(source)
+                .AddResolver<PetQuery>("Query")
+                .BindRuntimeType<Cat>()
+                .BindRuntimeType<Dog>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Execute_Against_Schema_With_Interface_Execute()
+        {
+            Snapshot.FullName();
+
+            var source = @"
+                type Query {
+                    pet: Pet
+                }
+
+                interface Pet {
+                    name: String
+                }
+
+                type Cat implements Pet {
+                    name: String
+                }
+
+                type Dog implements Pet {
+                    name: String
+                }
+            ";
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(source)
+                .AddResolver<PetQuery>("Query")
+                .BindRuntimeType<Cat>()
+                .BindRuntimeType<Dog>()
+                .ExecuteRequestAsync("{ pet { name __typename } }")
+                .MatchSnapshotAsync();
         }
 
         [Fact]
@@ -432,8 +498,8 @@ namespace HotChocolate
 
             // assert
             Assert.Equal(
-                schema.GetType<ObjectType>("Person").Fields["name"].Description,
-                "abc");
+                "abc",
+                schema.GetType<ObjectType>("Person")?.Fields["name"].Description);
         }
 
         public class Query
@@ -491,6 +557,36 @@ namespace HotChocolate
                     objectField.Description = (string)directiveNode.Arguments.First().Value.Value;
                 }
             }
+        }
+
+        public class PetQuery
+        {
+            public IPet GetPet() => new Cat("Mauzi");
+        }
+
+        public interface IPet
+        {
+            string Name { get; }
+        }
+
+        public class Cat : IPet
+        {
+            public Cat(string name)
+            {
+                Name = name;
+            }
+
+            public string Name { get; }
+        }
+
+        public class Dog : IPet
+        {
+            public Dog(string name)
+            {
+                Name = name;
+            }
+
+            public string Name { get; }
         }
     }
 }

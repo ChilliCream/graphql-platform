@@ -39,6 +39,8 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
     /// <inheritdoc />
     public IsOfTypeFallback? IsOfType { get; private set; }
 
+    public ITypeReference TypeReference => References[0];
+
     public void PrepareForCompletion(
         TypeReferenceResolver typeReferenceResolver,
         Func<ISchema> schemaResolver,
