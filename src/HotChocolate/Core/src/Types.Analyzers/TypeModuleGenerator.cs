@@ -90,7 +90,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
             if (possibleType.BaseList is not null && possibleType.BaseList.Types.Count > 0)
             {
                 var model = context.SemanticModel.GetDeclaredSymbol(possibleType);
-                if (model is INamedTypeSymbol { IsAbstract: false } type)
+                if (model is { IsAbstract: false } type)
                 {
                     var typeDisplayString = type.ToDisplayString();
                     var processing = new Queue<INamedTypeSymbol>();
@@ -192,7 +192,6 @@ public class TypeModuleGenerator : IIncrementalGenerator
 
         code.AppendLine("using System;");
         code.AppendLine("using HotChocolate.Execution.Configuration;");
-        code.AppendLine();
 
         if (!modulesAndTypes.IsDefaultOrEmpty && modulesAndTypes.Any(t => t.TypeName is not null))
         {
