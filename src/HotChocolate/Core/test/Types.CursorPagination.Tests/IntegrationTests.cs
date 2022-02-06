@@ -791,7 +791,7 @@ namespace HotChocolate.Types.Pagination
                     .AddGraphQL()
                     .AddQueryType<ProviderByName>()
                     .AddCursorPagingProvider<DummyProvider>(providerName: "Abc")
-                    .SetPagingOptions(new PagingOptions{ InferConnectionNameFromField = false })
+                    .SetPagingOptions(new PagingOptions { InferConnectionNameFromField = false })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -871,6 +871,53 @@ namespace HotChocolate.Types.Pagination
                 .AddGraphQL()
                 .AddQueryType<BackwardQuery>()
                 .ExecuteRequestAsync("{ foos { nodes } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task LegacySupport_Schema()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .SetPagingOptions(new PagingOptions { LegacySupport = true })
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task LegacySupport_Query()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { LegacySupport = true })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                query($first: PaginationAmount = 2){
+                    letters(first: $first) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }")
                 .MatchSnapshotAsync();
         }
 

@@ -63,6 +63,9 @@ public static class Scalars
         { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
         { ScalarNames.Name, typeof(NameType) },
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
+
+        // legacy support
+        { ScalarNames.PaginationAmount, typeof(PaginationAmountType) },
     };
 
     private static readonly Dictionary<Type, ValueKind> _scalarKinds = new()
@@ -94,13 +97,6 @@ public static class Scalars
         { typeof(bool?), ValueKind.Float }
     };
 
-    // reserved types for HotChocolate schema stitching.
-    private static readonly HashSet<string> _reservedTypes = new()
-    {
-        ScalarNames._Any,
-        ScalarNames._FieldSet
-    };
-
     internal static bool TryGetScalar(
         Type clrType,
         [NotNullWhen(true)] out Type? schemaType) =>
@@ -128,18 +124,6 @@ public static class Scalars
     public static bool IsBuiltIn(NameString typeName) =>
         typeName.HasValue &&
         _nameLookup.ContainsKey(typeName);
-
-    /// <summary>
-    /// Defines if the specified name represents a hot chocolate reserved type.
-    /// </summary>
-    /// <param name="typeName">
-    /// A GraphQL type name.
-    /// </param>
-    /// Returns <c>true</c> if the specified name represents a reserved scalar type name;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public static bool IsReservedName(NameString typeName) =>
-        _reservedTypes.Contains(typeName);
 
     /// <summary>
     /// Tries to infer the GraphQL literal kind from a runtime value.

@@ -3,6 +3,8 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors;
 
 public class InputFieldDescriptor
@@ -49,12 +51,12 @@ public class InputFieldDescriptor
             MemberKind.InputObjectField);
         Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
 
-        if (context.TypeInspector.TryGetDefaultValue(property, out object defaultValue))
+        if (context.TypeInspector.TryGetDefaultValue(property, out var defaultValue))
         {
             Definition.RuntimeDefaultValue = defaultValue;
         }
 
-        if (context.Naming.IsDeprecated(property, out string? reason) && reason is not null)
+        if (context.Naming.IsDeprecated(property, out var reason))
         {
             Deprecated(reason);
         }

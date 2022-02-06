@@ -135,8 +135,7 @@ public class ObjectFieldDescriptor
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    protected internal override ObjectFieldDefinition Definition { get; protected set; } =
-        new();
+    protected internal override ObjectFieldDefinition Definition { get; protected set; } = new();
 
     /// <inheritdoc />
     protected override void OnCreateDefinition(ObjectFieldDefinition definition)

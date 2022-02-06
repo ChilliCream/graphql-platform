@@ -35,6 +35,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
     private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = new();
     private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
+    private readonly List<IParameterExpressionBuilder> _defaultParameterExpressionBuilders;
     private readonly List<IParameterFieldConfiguration> _parameterFieldConfigurations;
     private readonly ImplicitArgumentParameterExpressionBuilder _defaultExprBuilder = new();
 
@@ -88,20 +89,31 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
         if (customParameterExpressionBuilders is not null)
         {
+            var defaultParameterExpressionBuilders = new List<IParameterExpressionBuilder>();
+
             // last we will add all custom default handlers. This will give these handlers a chance
             // to apply logic only on arguments.
             foreach (IParameterExpressionBuilder builder in custom)
             {
                 if (builder.IsDefaultHandler)
                 {
-                    parameterExpressionBuilders.Add(builder);
+                    defaultParameterExpressionBuilders.Add(builder);
                 }
             }
+
+            _defaultParameterExpressionBuilders = defaultParameterExpressionBuilders;
         }
+        else
+        {
+            _defaultParameterExpressionBuilders = new();
+
+        }
+
+        _parameterExpressionBuilders = parameterExpressionBuilders;
 
         var parameterFieldConfigurations = new List<IParameterFieldConfiguration>();
 
-        foreach (IParameterExpressionBuilder builder in parameterExpressionBuilders)
+        foreach (IParameterExpressionBuilder builder in _parameterExpressionBuilders)
         {
             if (builder is IParameterFieldConfiguration configuration)
             {
@@ -109,7 +121,14 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             }
         }
 
-        _parameterExpressionBuilders = parameterExpressionBuilders;
+        foreach (IParameterExpressionBuilder builder in _defaultParameterExpressionBuilders)
+        {
+            if (builder is IParameterFieldConfiguration configuration)
+            {
+                parameterFieldConfigurations.Add(configuration);
+            }
+        }
+
         _parameterFieldConfigurations = parameterFieldConfigurations;
     }
 
@@ -458,7 +477,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         {
             foreach (IParameterExpressionBuilder builder in fieldParameterExpressionBuilders)
             {
-                if (builder.CanHandle(parameter))
+                if (!builder.IsDefaultHandler && builder.CanHandle(parameter))
                 {
 #if NETSTANDARD
                     _cache[parameter] = builder;
@@ -483,6 +502,43 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             }
         }
 
+        if (fieldParameterExpressionBuilders.Length > 0)
+        {
+            foreach (IParameterExpressionBuilder builder in fieldParameterExpressionBuilders)
+            {
+                if (builder.IsDefaultHandler && builder.CanHandle(parameter))
+                {
+#if NETSTANDARD
+                    _cache[parameter] = builder;
+#else
+                    _cache.TryAdd(parameter, builder);
+#endif
+                    return builder;
+                }
+            }
+        }
+
+        if (_defaultParameterExpressionBuilders.Count > 0)
+        {
+            foreach (IParameterExpressionBuilder builder in _defaultParameterExpressionBuilders)
+            {
+                if (builder.CanHandle(parameter))
+                {
+#if NETSTANDARD
+                _cache[parameter] = builder;
+#else
+                _cache.TryAdd(parameter, builder);
+#endif
+                    return builder;
+                }
+            }
+        }
+
+#if NETSTANDARD
+        _cache[parameter] = _defaultExprBuilder;
+#else
+        _cache.TryAdd(parameter, _defaultExprBuilder);
+#endif
         return _defaultExprBuilder;
     }
 

@@ -2,7 +2,7 @@
 title: "Relay"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 > Note: Even though they originated in Relay, the design principles described in this document are not exclusive to Relay. They lead to an overall better schema design, which is why we recommend them to **all** users of Hot Chocolate.
 
@@ -29,7 +29,7 @@ Id fields can be opted in to the global identifier behavior using the `ID` middl
 Hot Chocolate automatically combines the value of fields annotated as `ID` with another value to form a global identifier. Per default, this additional value is the name of the type the Id belongs to. Since type names are unique within a schema, this ensures that we are returning a unique Id within the schema. If our GraphQL server serves multiple schemas, the schema name is also included in this combined Id. The resulting Id is then Base64 encoded to make it opaque.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Product
@@ -48,8 +48,8 @@ The `[ID]` attribute can be used on primary key fields and on fields that act as
 public int FooId { get; set; }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Product
@@ -74,12 +74,12 @@ The `ID()` can not only be used on primary key fields but also on fields that ac
 descriptor.Field(f => f.FooId).ID("Foo");
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 The type of fields specified as `ID` is also automatically rewritten to the ID scalar.
@@ -92,7 +92,7 @@ If our `Product` output type returns a serialized Id, all arguments and fields o
 Therefore we also need to define them as `ID`, in order to deserialize the serialized Id to the actual Id.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -122,8 +122,8 @@ public Product GetProduct([ID(nameof(Product))] int id)
 
 This will result in an error if an Id, serialized using a different type name than `Product`, is used as input.
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 descriptor
@@ -157,12 +157,12 @@ Per default all serialized Ids are accepted. If we want to only accept Ids that 
 
 This will result in an error if an Id, serialized using a different type name than `Product`, is used as input.
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Id Serializer
@@ -247,7 +247,7 @@ Next we need to extend our object types with the `Global Object Identification` 
 3. A method responsible for refetching an object based on its `id` needs to be defined.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 To declare an object type as a refetchable, we need to annotate it using the `[Node]` attribute. This in turn causes the type to implement the `Node` interface and if present automatically turns the `id` field into a [global identifier](#global-identifiers).
 
@@ -340,8 +340,8 @@ public class ProductExtensions
 
 [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 In the Code-first approach, we have multiple APIs on the `IObjectTypeDescriptor` to fulfill these criteria:
 
@@ -422,12 +422,12 @@ public class ProductNodeResolver
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 Since node resolvers resolve entities by their Id, they are the perfect place to start utilizing DataLoaders.

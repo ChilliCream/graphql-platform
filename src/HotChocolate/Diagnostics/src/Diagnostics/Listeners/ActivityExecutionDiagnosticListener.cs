@@ -335,3 +335,4 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         }
     }
 }
+

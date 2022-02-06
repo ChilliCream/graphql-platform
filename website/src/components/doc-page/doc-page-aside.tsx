@@ -1,11 +1,7 @@
 import React, { FC, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import {
-  BoxShadow,
-  IsSmallDesktop,
-  SmallDesktopBreakpointNumber,
-} from "../../shared-style";
+import { BoxShadow, IsSmallDesktop } from "../../shared-style";
 import { State } from "../../state";
 import { toggleAside } from "../../state/common";
 import { BodyStyle, DocPageStickySideBarStyle } from "./doc-page-elements";
@@ -31,7 +27,7 @@ export const DocPageAside: FC = ({ children }) => {
       <BodyStyle disableScrolling={showAside} />
       <DocPagePaneHeader
         title="About this article"
-        showWhenScreenWidthIsSmallerThan={SmallDesktopBreakpointNumber}
+        showWhenScreenWidthIsSmallerThan={1280}
         onClose={handleCloseAside}
       />
       {children}

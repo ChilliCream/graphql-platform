@@ -13,6 +13,8 @@ using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.WellKnownContextData;
+using GreenDonut;
+using System.Collections;
 
 namespace HotChocolate.Diagnostics;
 
@@ -66,7 +68,7 @@ public class ActivityEnricher
         }
 
         activity.SetTag("graphql.http.kind", kind);
-        
+
         var isDefault = false;
         if (!(context.Items.TryGetValue(SchemaName, out var value) &&
             value is string schemaName))
@@ -549,6 +551,22 @@ public class ActivityEnricher
         Activity activity)
     {
         EnrichError(error, activity);
+    }
+
+    public virtual void EnrichDataLoaderBatch<TKey>(
+        IDataLoader dataLoader,
+        IReadOnlyList<TKey> keys,
+        Activity activity)
+        where TKey : notnull
+    {
+        activity.DisplayName = $"Execute {dataLoader.GetType().Name} Batch";
+        activity.SetTag("graphql.dataLoader.keys.count", keys.Count);
+
+        if (_options.IncludeDataLoaderKeys)
+        {
+            var temp = keys.Select(t => t.ToString()).ToArray();
+            activity.SetTag("graphql.dataLoader.keys", temp);
+        }
     }
 
     protected virtual void EnrichError(IError error, Activity activity)

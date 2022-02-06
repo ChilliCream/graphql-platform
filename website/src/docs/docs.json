@@ -185,8 +185,8 @@
                 "title": "Overview"
               },
               {
-                "path": "middleware",
-                "title": "Middleware"
+                "path": "endpoints",
+                "title": "Endpoints"
               },
               {
                 "path": "interceptors",
@@ -299,6 +299,10 @@
               {
                 "path": "aspnetcore",
                 "title": "ASP.NET Core"
+              },
+              {
+                "path": "apollo-federation",
+                "title": "Apollo Federation"
               },
               {
                 "path": "dependency-injection",

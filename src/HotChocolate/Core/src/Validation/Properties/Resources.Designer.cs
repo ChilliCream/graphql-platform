@@ -266,13 +266,7 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_MaxExecutionDepth", resourceCulture);
             }
         }
-        
-        internal static string HotChocolateValidationBuilderExtensions_MinimumAllowedValue {
-            get {
-                return ResourceManager.GetString("HotChocolateValidationBuilderExtensions_MinimumAllowedValue", resourceCulture);
-            }
-        }
-        
+
         internal static string ErrorHelper_DirectiveMustBeUniqueInLocation {
             get {
                 return ResourceManager.GetString("ErrorHelper_DirectiveMustBeUniqueInLocation", resourceCulture);

@@ -2,7 +2,7 @@
 title: Sorting
 ---
 
-import { ExampleTabs } from "../../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 # What is sorting
 
@@ -73,7 +73,7 @@ services.AddGraphQLServer()
 Hot Chocolate will infer the sorting types directly from your .Net Model and then use a Middleware to apply the order to `IQueryable<T>` or `IEnumerable<T>` on execution.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -84,8 +84,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType<Query>
@@ -103,12 +103,12 @@ public class Query
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ⚠️ Schema-first does currently not support sorting!
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
@@ -178,7 +178,7 @@ enum AscOnlySortEnumType {
 To apply this sorting type we just have to provide it to the `UseSorting` extension method with as the generic type argument.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -189,8 +189,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType<Query>
@@ -208,12 +208,12 @@ public class Query
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ⚠️ Schema-first does currently not support sorting!
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 # Sorting Conventions

@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
@@ -104,19 +105,10 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
                         .Argument("a", a => a.Type<IntType>())
                         .Type("Review");
                 }))
-            .AddQueryType(
-                new ObjectType(
-                    o =>
-                    {
-                        o.Name("Query");
-                        o.Field("someField")
-                            .Argument("a", a => a.Type<IntType>())
-                            .Type("Review");
-                    }))
             .AddType<FieldSetType>()
             .AddDirectiveType<KeyDirectiveType>()
             .AddDirectiveType<ProvidesDirectiveType>()
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
@@ -176,7 +168,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
 
     public class Query
     {
-        public Review someField(int id) => default!;
+        public Review SomeField(int id) => default!;
     }
 
     public class Review

@@ -62,18 +62,15 @@ namespace HotChocolate.Stitching.Utilities
             {
                 IReadOnlyDictionary<NameString, ISet<NameString>> externalFieldLookup =
                     completionContext.GetExternalFieldLookup();
-                if (externalFieldLookup.TryGetValue(
-                    objectType.Name,
-                    out ISet<NameString>? external))
+                if (externalFieldLookup.TryGetValue(objectType.Name, out ISet<NameString>? external))
                 {
                     foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
                     {
                         if (external.Contains(objectField.Name) &&
                             _handledExternalFields.Add((objectTypeDef.Name, objectField.Name)))
                         {
-                            FieldMiddleware handleDictionary =
-                                FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
-                            objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
+                            objectField.Resolvers = new FieldResolverDelegates(
+                                pureResolver: RemoteFieldHelper.RemoteFieldResolver);
                         }
                     }
                 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Validation;
+using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -53,10 +54,7 @@ internal sealed class DocumentValidationMiddleware
 
                         context.Result = QueryResultBuilder.CreateError(
                             validationResult.Errors,
-                            new Dictionary<string, object?>
-                            {
-                            { WellKnownContextData.ValidationErrors, true }
-                            });
+                            new Dictionary<string, object?> { { ValidationErrors, true } });
 
                         _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
                         return;

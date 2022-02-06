@@ -65,7 +65,7 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
         target.DefaultValue = DefaultValue;
         target.RuntimeDefaultValue = RuntimeDefaultValue;
         target.Parameter = Parameter;
-        target.RuntimeType = target.RuntimeType;
+        target.RuntimeType = RuntimeType;
     }
 
     internal void MergeInto(ArgumentDefinition target)

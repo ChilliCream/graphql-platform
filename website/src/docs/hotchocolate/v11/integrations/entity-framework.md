@@ -2,7 +2,7 @@
 title: Entity Framework
 ---
 
-import { ExampleTabs } from "../../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 The execution engine of Hot Chocolate executes resolvers in parallel. This can lead to exceptions because
 the database context of Entity Framework cannot handle more than one request in parallel.
@@ -38,7 +38,7 @@ pool.
 If you annotate a field with `UseDbContext()` all of this is handled for you
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -50,8 +50,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType
@@ -69,12 +69,12 @@ public class QueryType : ObjectType
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ⚠️ Schema-first does currently not support DbContext integration!
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UseDbContext > UsePaging > UseProjections > UseFiltering > UseSorting

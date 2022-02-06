@@ -13,6 +13,7 @@ namespace HotChocolate.Types.Relay
             // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<SomeQuery>()
+                .AddGlobalObjectIdentification(false)
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();

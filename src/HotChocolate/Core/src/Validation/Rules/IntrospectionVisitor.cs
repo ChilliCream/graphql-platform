@@ -41,7 +41,7 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
                 (IntrospectionFields.Schema.Equals(node.Name.Value) ||
                  IntrospectionFields.Type.Equals(node.Name.Value)))
             {
-                context.Errors.Add(context.IntrospectionNotAllowed(node));
+                context.ReportError(context.IntrospectionNotAllowed(node));
                 return Break;
             }
 
