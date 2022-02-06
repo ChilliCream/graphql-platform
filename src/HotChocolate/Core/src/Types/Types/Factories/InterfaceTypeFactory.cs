@@ -12,6 +12,8 @@ internal sealed class InterfaceTypeFactory
     public InterfaceType Create(IDescriptorContext context, InterfaceTypeDefinitionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        path.Clear();
 
         var typeDefinition = new InterfaceTypeDefinition(
             node.Name.Value,
@@ -28,9 +30,9 @@ internal sealed class InterfaceTypeFactory
             typeDefinition.Interfaces.Add(TypeReference.Create(typeNode));
         }
 
-        SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
-        DeclareFields(typeDefinition, node.Fields, preserveSyntaxNodes);
+        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
 
         return InterfaceType.CreateUnsafe(typeDefinition);
     }
@@ -38,6 +40,8 @@ internal sealed class InterfaceTypeFactory
     public InterfaceTypeExtension Create(IDescriptorContext context, InterfaceTypeExtensionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        path.Clear();
 
         var typeDefinition = new InterfaceTypeDefinition(node.Name.Value);
         typeDefinition.BindTo = node.GetBindingValue();
@@ -47,18 +51,22 @@ internal sealed class InterfaceTypeFactory
             typeDefinition.Interfaces.Add(TypeReference.Create(typeNode));
         }
 
-        SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
-        DeclareFields(typeDefinition, node.Fields, preserveSyntaxNodes);
+        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
 
         return InterfaceTypeExtension.CreateUnsafe(typeDefinition);
     }
 
     private static void DeclareFields(
+        IDescriptorContext context,
         InterfaceTypeDefinition parent,
         IReadOnlyCollection<FieldDefinitionNode> fields,
+        Stack<IDefinition> path,
         bool preserveSyntaxNodes)
     {
+        path.Push(parent);
+
         foreach (FieldDefinitionNode field in fields)
         {
             var fieldDefinition = new InterfaceFieldDefinition(
@@ -72,24 +80,30 @@ internal sealed class InterfaceTypeFactory
                 fieldDefinition.SyntaxNode = field;
             }
 
-            SdlToTypeSystemHelper.AddDirectives(fieldDefinition, field);
+            SdlToTypeSystemHelper.AddDirectives(context, fieldDefinition, field, path);
 
             if (field.DeprecationReason() is { Length: > 0 } reason)
             {
                 fieldDefinition.DeprecationReason = reason;
             }
 
-            DeclareFieldArguments(fieldDefinition, field, preserveSyntaxNodes);
+            DeclareFieldArguments(context, fieldDefinition, field, path, preserveSyntaxNodes);
 
             parent.Fields.Add(fieldDefinition);
         }
+
+        path.Pop();
     }
 
     private static void DeclareFieldArguments(
+        IDescriptorContext context,
         InterfaceFieldDefinition parent,
         FieldDefinitionNode field,
+        Stack<IDefinition> path,
         bool preserveSyntaxNodes)
     {
+        path.Push(parent);
+
         foreach (InputValueDefinitionNode argument in field.Arguments)
         {
             var argumentDefinition = new ArgumentDefinition(
@@ -109,9 +123,11 @@ internal sealed class InterfaceTypeFactory
                 argumentDefinition.DeprecationReason = reason;
             }
 
-            SdlToTypeSystemHelper.AddDirectives(argumentDefinition, argument);
+            SdlToTypeSystemHelper.AddDirectives(context, argumentDefinition, argument, path);
 
             parent.Arguments.Add(argumentDefinition);
         }
+
+        path.Pop();
     }
 }
