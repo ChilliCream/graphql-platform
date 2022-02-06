@@ -23,7 +23,7 @@ public class HttpCachingTests : ServerTestBase
         TestServer server = CreateServer(services =>
         {
             services.AddGraphQLServer()
-                .UseQueryResultCachePipeline()
+                .UseQueryCachePipeline()
                 .AddHttpQueryCache()
                 .AddQueryType(d =>
                     d.Name("Query")
@@ -44,7 +44,7 @@ public class HttpCachingTests : ServerTestBase
         TestServer server = CreateServer(services =>
         {
             services.AddGraphQLServer()
-                .UseQueryResultCachePipeline()
+                .UseQueryCachePipeline()
                 .AddHttpQueryCache()
                 .AddQueryType(d =>
                     d.Name("Query")
@@ -65,7 +65,7 @@ public class HttpCachingTests : ServerTestBase
         TestServer server = CreateServer(services =>
         {
             services.AddGraphQLServer()
-                .UseQueryResultCachePipeline()
+                .UseQueryCachePipeline()
                 .AddHttpQueryCache()
                 .AddQueryType(d =>
                     d.Name("Query")
@@ -86,7 +86,7 @@ public class HttpCachingTests : ServerTestBase
         TestServer server = CreateServer(services =>
         {
             services.AddGraphQLServer()
-                .UseQueryResultCachePipeline()
+                .UseQueryCachePipeline()
                 .AddHttpQueryCache()
                 .AddQueryType(d =>
                     d.Name("Query")

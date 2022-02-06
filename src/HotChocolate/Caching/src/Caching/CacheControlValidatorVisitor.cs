@@ -61,7 +61,6 @@ internal sealed class CacheControlValidatorVisitor : TypeDocumentValidatorVisito
             type.NamedType() is IComplexOutputType ot &&
             ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
         {
-            // context.List.Push(new List<Expression>());
             context.OutputFields.Push(of);
             context.Types.Push(of.Type);
             return Continue;

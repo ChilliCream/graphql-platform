@@ -199,7 +199,7 @@ public class ObjectFieldQueryCacheTests
             .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
             .UseField(_ => _ => default)
             .AddQueryCache(_ => cache)
-            .UseQueryResultCachePipeline()
+            .UseQueryCachePipeline()
             .BuildRequestExecutorAsync();
 
         return executor;

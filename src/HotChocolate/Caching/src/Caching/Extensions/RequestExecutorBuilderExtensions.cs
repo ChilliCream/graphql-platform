@@ -6,11 +6,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class RequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder UseQueryResultCache(
+    public static IRequestExecutorBuilder UseQueryCache(
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<QueryCacheMiddleware>();
 
-    public static IRequestExecutorBuilder UseQueryResultCachePipeline(this IRequestExecutorBuilder builder)
+    public static IRequestExecutorBuilder UseQueryCachePipeline(this IRequestExecutorBuilder builder)
     {
         if (builder is null)
         {
@@ -21,7 +21,7 @@ public static class RequestExecutorBuilderExtensions
             .UseInstrumentations()
             .UseExceptions()
             .UseTimeout()
-            .UseQueryResultCache()
+            .UseQueryCache()
             .UseDocumentCache()
             .UseDocumentParser()
             .UseDocumentValidation()
@@ -59,12 +59,37 @@ public static class RequestExecutorBuilderExtensions
         return builder.AddQueryCacheInternals();
     }
 
+    public static IRequestExecutorBuilder ModifyQueryCacheOptions(this IRequestExecutorBuilder builder,
+        Action<QueryCacheSettings> modifyOptions)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.AddSingleton(modifyOptions);
+
+        return builder;
+    }
+
     private static IRequestExecutorBuilder AddQueryCacheInternals(this IRequestExecutorBuilder builder)
     {
         if (builder is null)
         {
             throw new ArgumentNullException(nameof(builder));
         }
+
+        builder.Services.AddSingleton<IQueryCacheOptionsAccessor>(sp =>
+        {
+            var accessor = new QueryCacheOptionsAccessor();
+
+            foreach (Action<QueryCacheSettings> configure in sp.GetServices<Action<QueryCacheSettings>>())
+            {
+                configure(accessor.QueryCache);
+            }
+
+            return accessor;
+        });
 
         return builder
             .AddDirectiveType<CacheControlDirectiveType>()

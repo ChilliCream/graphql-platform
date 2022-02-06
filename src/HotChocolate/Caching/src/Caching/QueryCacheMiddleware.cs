@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Pipeline;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Validation;
-using static HotChocolate.Execution.Pipeline.PipelineTools;
 
 namespace HotChocolate.Caching;
 
@@ -22,14 +20,14 @@ public sealed class QueryCacheMiddleware
     public QueryCacheMiddleware(
         RequestDelegate next,
         DocumentValidatorContextPool contextPool,
+        IQueryCacheOptionsAccessor optionsAccessor,
         IQueryCache cache)
     {
         _next = next;
         _contextPool = contextPool;
         _cache = cache;
 
-        // todo: get actual settings
-        _settings = new QueryCacheSettings();
+        _settings = optionsAccessor.QueryCache;
         _compiler = new CacheControlValidatorVisitor(_settings);
     }
 
@@ -71,25 +69,28 @@ public sealed class QueryCacheMiddleware
 
                 CacheControlResult? result = ComputeCacheControlResult(context, document, operationDefinition);
 
-                // todo: handle dynamic cache hints set via IResolverContext
+                if (result is null)
+                {
+                    return;
+                }
 
                 await _cache.CacheQueryResultAsync(context, result, _settings);
             }
         }
     }
 
-    private CacheControlResult ComputeCacheControlResult(IRequestContext requestContext,
+    private CacheControlResult? ComputeCacheControlResult(IRequestContext context,
         DocumentNode document, OperationDefinitionNode operationDefinition)
     {
         DocumentValidatorContext validatorContext = _contextPool.Get();
+        CacheControlResult? operationCacheControlResult = null;
 
         try
         {
-            PrepareContext(requestContext, document, validatorContext);
+            PrepareContext(context, document, validatorContext);
 
             _compiler.Visit(document, validatorContext);
 
-            CacheControlResult? operationCacheControlResult = null;
             var cacheControlResults = (List<CacheControlResult>)validatorContext.List.Peek()!;
 
             foreach (CacheControlResult cacheControlResult in cacheControlResults)
@@ -100,19 +101,21 @@ public sealed class QueryCacheMiddleware
                 }
 
                 // todo: add to operation cache
-                // var cacheId = requestContext.CreateCacheId(
+                // var cacheId = context.CreateCacheId(
                 //          CreateOperationId(
-                //              requestContext.DocumentId!,
+                //              context.DocumentId!,
                 //              cacheControlResult.OperationDefinitionNode.Name?.Value));
             }
-
-            return operationCacheControlResult!;
         }
         finally
         {
             validatorContext.Clear();
             _contextPool.Return(validatorContext);
         }
+
+        // todo: handle dynamic cache hints set via IResolverContext
+
+        return operationCacheControlResult!;
     }
 
     private static void PrepareContext(IRequestContext requestContext,
