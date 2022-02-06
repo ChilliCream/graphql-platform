@@ -647,6 +647,111 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task AnnotationBased_DepreactedInputTypes_NullableFields_Valid()
+        {
+            // arrange
+            // act
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddInputObjectType<DeprecatedInputFields>()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AnnotationBased_DepreactedInputTypes_NonNullableField_Invalid()
+        {
+            // arrange
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .AddInputObjectType<DeprecatedNonNull>()
+                .BuildSchemaAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(call);
+            exception.Errors.Single().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DepreactedInputTypes_NullableFields_Valid()
+        {
+            // arrange
+            // act
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .AddInputObjectType(x => x.Name("Foo").Field("bar").Type<IntType>().Deprecated("b"))
+                .BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DepreactedInputTypes_NonNullableField_Invalid()
+        {
+            // arrange
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .AddInputObjectType(x => x
+                    .Name("Foo")
+                    .Field("bar")
+                    .Type<NonNullType<IntType>>()
+                    .Deprecated("b"))
+                .BuildSchemaAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(call);
+            exception.Errors.Single().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DepreactedInputTypes_NullableFields_Valid()
+        {
+            // arrange
+            // act
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .AddDocumentFromString(@"
+                    input Foo {
+                        bar: String @deprecated(reason: ""reason"")
+                    }
+                ")
+                .BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DepreactedInputTypes_NonNullableField_Invalid()
+        {
+            // arrange
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .AddDocumentFromString(@"
+                    input Foo {
+                        bar: String! @deprecated(reason: ""reason"")
+                    }
+                ")
+                .BuildSchemaAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(call);
+            exception.Errors.Single().ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void OneOf_descriptor_is_null()
         {
             void Fail() => InputObjectTypeDescriptorExtensions.OneOf(null);
@@ -666,8 +771,25 @@ namespace HotChocolate.Types
         {
             public string YourFieldName { get; set; }
 
-            [GraphQLDeprecated("This is deprecated")]
             public string YourFieldname { get; set; }
+        }
+
+        public class DeprecatedInputFields
+        {
+            [Obsolete("reason")]
+            public int? ObsoleteWithReason { get; set; }
+
+            [Obsolete]
+            public int? Obsolete { get; set; }
+
+            [GraphQLDeprecated("reason")]
+            public int? Deprecated { get; set; }
+        }
+
+        public class DeprecatedNonNull
+        {
+            [Obsolete("reason")]
+            public int ObsoleteWithReason { get; set; }
         }
 
         public class QueryWithInterfaceInput
