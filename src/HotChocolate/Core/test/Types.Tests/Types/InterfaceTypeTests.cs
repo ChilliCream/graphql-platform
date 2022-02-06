@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -582,6 +585,147 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public async Task AnnotationBased_DeprecatedArguments_Valid()
+        {
+            // arrange
+
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddInterfaceType<DeprecatedInterface>()
+                .AddType<DeprecatedImplementation>()
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AnnotationBased_DeprecatedArgumentsWithNonNullType_Invalid()
+        {
+            // arrange
+
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddInterfaceType<DeprecatedNonNullInterface>()
+                .AddType<DeprecatedNonNullImplementation>()
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException ex = await Assert.ThrowsAsync<SchemaException>(call);
+            ex.Errors[0].ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DeprecatedArguments_Valid()
+        {
+            // arrange
+
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddInterfaceType(x => x
+                    .Name("Interface")
+                    .Field("bar")
+                    .Type<IntType>()
+                    .Argument("baz", y => y.Type<IntType>().Deprecated("b")))
+                .AddObjectType(x => x
+                    .Name("Foo")
+                    .Implements("Interface")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Type<IntType>()
+                    .Argument("baz", y => y.Type<IntType>().Deprecated("b")))
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DeprecatedArgumentsWithNonNullType_Invalid()
+        {
+            // arrange
+
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddInterfaceType(x => x
+                    .Name("Interface")
+                    .Field("bar")
+                    .Type<IntType>()
+                    .Argument("baz", y => y.Type<NonNullType<IntType>>().Deprecated("b")))
+                .AddObjectType(x => x
+                    .Name("Foo")
+                    .Implements("Interface")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Type<IntType>()
+                    .Argument("baz", y => y.Type<NonNullType<IntType>>().Deprecated("b")))
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException ex = await Assert.ThrowsAsync<SchemaException>(call);
+            ex.Errors[0].ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DeprecatedArguments_Valid()
+        {
+            // arrange
+
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddDocumentFromString(@"
+                    interface Interface  {
+                        bar(a: String @deprecated(reason:""reason"")): Int!
+                    }
+
+                    type Foo implements Interface  {
+                        bar(a: String @deprecated(reason:""reason"")): Int!
+                    }
+                ")
+                .AddResolver("Foo", "bar", x => 1)
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DeprecatedArgumentsWithNonNullType_Invalid()
+        {
+            // arrange
+
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddDocumentFromString(@"
+                    interface Interface  {
+                        bar(a: String! @deprecated(reason:""reason"")): Int!
+                    }
+
+                    type Foo implements Interface  {
+                        bar(a: String! @deprecated(reason:""reason"")): Int!
+                    }
+                ")
+                .AddResolver("Foo", "bar", x => 1)
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException ex = await Assert.ThrowsAsync<SchemaException>(call);
+            ex.Errors[0].ToString().MatchSnapshot();
+        }
+
         public interface IFoo
         {
             bool Bar { get; }
@@ -634,6 +778,28 @@ namespace HotChocolate.Types
             public string Hello => "World!";
 
             public IEnumerable<Fruit> GetFruits() => new Fruit[] { new Orange(), new Pineapple() };
+        }
+
+        [InterfaceType]
+        public class DeprecatedInterface
+        {
+            public int? Deprecated([GraphQLDeprecated("reason")] int? deprecated) => deprecated;
+        }
+
+        [InterfaceType]
+        public class DeprecatedImplementation : DeprecatedInterface
+        {
+        }
+
+        [InterfaceType]
+        public class DeprecatedNonNullInterface
+        {
+            public int Deprecated([GraphQLDeprecated("reason")] int deprecated) => deprecated;
+        }
+
+        [InterfaceType]
+        public class DeprecatedNonNullImplementation : DeprecatedInterface
+        {
         }
 
         [InterfaceType]
