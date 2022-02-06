@@ -9,10 +9,10 @@ public class CacheControlDirectiveType : DirectiveType<CacheControlDirective>
         descriptor
             .Name("cacheControl")
             .Description("TODO")
-            .Location(DirectiveLocation.FieldDefinition
-                // | DirectiveLocation.Object
-                // | DirectiveLocation.Interface
-                // | DirectiveLocation.Union
+            .Location(DirectiveLocation.Object
+                | DirectiveLocation.FieldDefinition
+                | DirectiveLocation.Interface
+                | DirectiveLocation.Union
                 );
 
         descriptor
