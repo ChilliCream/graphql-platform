@@ -44,7 +44,7 @@ public class DirectiveArgumentDescriptor
             Definition.RuntimeDefaultValue = defaultValue;
         }
 
-        if (context.Naming.IsDeprecated(property, out string? reason) && reason is not null)
+        if (context.Naming.IsDeprecated(property, out string? reason))
         {
             Deprecated(reason);
         }
@@ -89,7 +89,7 @@ public class DirectiveArgumentDescriptor
     }
 
     /// <inheritdoc />
-    public new IDirectiveArgumentDescriptor Deprecated(string reason)
+    public new IDirectiveArgumentDescriptor Deprecated(string? reason)
     {
         base.Deprecated(reason);
         return this;
