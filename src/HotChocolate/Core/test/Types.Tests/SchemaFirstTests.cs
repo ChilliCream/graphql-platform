@@ -502,6 +502,19 @@ namespace HotChocolate
                 schema.GetType<ObjectType>("Person")?.Fields["name"].Description);
         }
 
+        [Fact]
+        public async Task Any_Argument()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString("type Query { foo(a: Any): Any }")
+                .BindRuntimeType<QueryWithAnyArgument>("Query")
+                .ExecuteRequestAsync("{ foo(a: { a: \"hello\" }) }")
+                .MatchSnapshotAsync();
+        }
+
         public class Query
         {
             public string Hello() => "World";
@@ -587,6 +600,11 @@ namespace HotChocolate
             }
 
             public string Name { get; }
+        }
+
+        public class QueryWithAnyArgument
+        {
+            public object Foo(object a) => a;
         }
     }
 }
