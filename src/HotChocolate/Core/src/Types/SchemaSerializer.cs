@@ -473,14 +473,25 @@ public static class SchemaSerializer
     }
 
     private static InputValueDefinitionNode SerializeInputField(
-        IInputField inputValue) =>
-        new(
+        IInputField inputValue)
+    {
+        var directives = inputValue.Directives
+            .Select(SerializeDirective)
+            .ToList();
+
+        SerializeDeprecationDirective(
+            directives,
+            inputValue.IsDeprecated,
+            inputValue.DeprecationReason);
+
+        return new(
             null,
             new NameNode(inputValue.Name),
             SerializeDescription(inputValue.Description),
             SerializeType(inputValue.Type),
             inputValue.DefaultValue,
-            inputValue.Directives.Select(SerializeDirective).ToList());
+            directives);
+    }
 
     private static ITypeNode SerializeType(IType type)
     {
