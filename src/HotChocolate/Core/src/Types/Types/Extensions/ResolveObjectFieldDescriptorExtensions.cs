@@ -9,6 +9,8 @@ namespace HotChocolate.Types;
 
 public static class ResolveObjectFieldDescriptorExtensions
 {
+    // Resolve(IResolverContext)
+
     public static IObjectFieldDescriptor Resolve(
         this IObjectFieldDescriptor descriptor,
         Func<IResolverContext, object?> resolver)
