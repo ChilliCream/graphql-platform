@@ -9,7 +9,13 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
-public class MessageBus : IObservable<IMessage>, IAsyncDisposable
+public class MessageBus
+#if NETSTANDARD2_0
+    : IDisposable
+#else
+    : IAsyncDisposable
+#endif
+    , IObservable<IMessage>
 {
     private const byte _endMessage = 3;
     private const int _chunkSize = 128;
@@ -102,34 +108,37 @@ public class MessageBus : IObservable<IMessage>, IAsyncDisposable
         }
     }
 
-
 #if NETSTANDARD2_0
-    public ValueTask DisposeAsync()
-#else
-    public async ValueTask DisposeAsync()
-#endif
+    public void Dispose()
     {
         if (!_disposed)
         {
             _cts.Cancel();
 
-#if NETSTANDARD2_0
             _readStream.Dispose();
             _writeStream.Dispose();
-#else
-            await _readStream.DisposeAsync();
-            await _writeStream.DisposeAsync();
-#endif
 
             _observers.ForEach(o => o.Dispose());
             _cts.Dispose();
             _disposed = true;
         }
-
-#if NETSTANDARD2_0
-        return default;
-#endif
     }
+#else
+    public async ValueTask DisposeAsync()
+    {
+        if (!_disposed)
+        {
+            _cts.Cancel();
+
+            await _readStream.DisposeAsync();
+            await _writeStream.DisposeAsync();
+
+            _observers.ForEach(o => o.Dispose());
+            _cts.Dispose();
+            _disposed = true;
+        }
+    }
+#endif
 
     private async Task ProcessIncomingMessages()
     {
@@ -205,8 +214,8 @@ public class MessageBus : IObservable<IMessage>, IAsyncDisposable
         var document = JsonDocument.Parse(buffer.AsMemory().Slice(0, count));
 
         if (document.RootElement.ValueKind == JsonValueKind.Object &&
-            document.RootElement.TryGetProperty("kind", out var kindProp) &&
-            Enum.TryParse<MessageKind>(kindProp.GetString(), out var kind))
+            document.RootElement.TryGetProperty("kind", out JsonElement kindProp) &&
+            Enum.TryParse(kindProp.GetString(), out MessageKind kind))
         {
             switch (kind)
             {

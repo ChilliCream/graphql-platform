@@ -5,7 +5,13 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
-public class CSharpGeneratorClient : IAsyncDisposable, IObserver<IMessage>
+public class CSharpGeneratorClient
+#if NETSTANDARD2_0
+    : IDisposable
+#else
+    : IAsyncDisposable
+#endif
+    , IObserver<IMessage>
 {
     private readonly MessageBus _messageBus;
     private readonly IDisposable _subscription;
@@ -54,6 +60,18 @@ public class CSharpGeneratorClient : IAsyncDisposable, IObserver<IMessage>
     {
     }
 
+#if NETSTANDARD2_0
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _tcs?.TrySetCanceled();
+            _subscription.Dispose();
+            _messageBus.Dispose();
+            _disposed = true;
+        }
+    }
+#else
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)
@@ -64,4 +82,5 @@ public class CSharpGeneratorClient : IAsyncDisposable, IObserver<IMessage>
             _disposed = true;
         }
     }
+#endif
 }

@@ -92,7 +92,7 @@ public class InputFieldDescriptor
     }
 
     /// <inheritdoc />
-    public new IInputFieldDescriptor Deprecated(string reason)
+    public new IInputFieldDescriptor Deprecated(string? reason)
     {
         base.Deprecated(reason);
         return this;
