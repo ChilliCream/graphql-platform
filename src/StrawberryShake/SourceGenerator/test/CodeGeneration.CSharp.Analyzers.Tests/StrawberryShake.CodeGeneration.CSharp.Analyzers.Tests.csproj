@@ -8,6 +8,7 @@
     <StrawberryShake_LogFile>$(BaseIntermediateOutputPath)\StrawberryShake.log</StrawberryShake_LogFile>
     <StrawberryShake_PersistedQueryDirectory>$(MSBuildThisFileDirectory)obj\GraphQL</StrawberryShake_PersistedQueryDirectory>
     <StrawberryShake_CodeGenServer>$(MSBuildThisFileDirectory)..\..\src\.server\BerryCodeGen.dll</StrawberryShake_CodeGenServer>
+    <RootNamespace>StrawberryShake.CodeGeneration.CSharp.Analyzers</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
