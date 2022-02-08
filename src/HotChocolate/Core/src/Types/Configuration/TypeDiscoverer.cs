@@ -69,11 +69,11 @@ internal sealed class TypeDiscoverer
 
         _handlers = new ITypeRegistrarHandler[]
         {
-                new ExtendedTypeReferenceHandler(context.TypeInspector),
-                new SchemaTypeReferenceHandler(),
-                new SyntaxTypeReferenceHandler(context.TypeInspector),
-                new FactoryTypeReferenceHandler(context),
-                new DependantFactoryTypeReferenceHandler(context)
+            new ExtendedTypeReferenceHandler(context.TypeInspector),
+            new SchemaTypeReferenceHandler(),
+            new SyntaxTypeReferenceHandler(context.TypeInspector),
+            new FactoryTypeReferenceHandler(context),
+            new DependantFactoryTypeReferenceHandler(context)
         };
 
         _typeInspector = context.TypeInspector;

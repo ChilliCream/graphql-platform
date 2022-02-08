@@ -1,3 +1,3 @@
 using HotChocolate;
 
-[assembly: ModuleName("CustomModule")]
+[assembly: Module("CustomModule")]

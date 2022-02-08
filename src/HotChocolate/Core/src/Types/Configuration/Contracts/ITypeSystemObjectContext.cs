@@ -19,6 +19,12 @@ public interface ITypeSystemObjectContext
     ITypeSystemObject Type { get; }
 
     /// <summary>
+    /// A type reference that points to <see cref="Type"/>.
+    /// </summary>
+    /// <value></value>
+    ITypeReference TypeReference { get; }
+
+    /// <summary>
     /// Defines if <see cref="Type" /> is a type like the object type or interface type.
     /// </summary>
     bool IsType { get; }

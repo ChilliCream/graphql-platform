@@ -100,7 +100,7 @@ namespace HotChocolate.Execution
 
                     enum FooEnum {
                         BAR
-                        BAZ
+                        BAZ_BAR
                     }")
                 .AddResolver<EnumQuery>("Query")
                 .Create();
@@ -108,7 +108,7 @@ namespace HotChocolate.Execution
             // act
             IExecutionResult result =
                 await schema.MakeExecutable().ExecuteAsync(
-                    "{ setEnumValue(value:BAZ) }");
+                    "{ setEnumValue(value:BAZ_BAR) }");
 
             // assert
             Assert.Null(result.Errors);
@@ -196,7 +196,8 @@ namespace HotChocolate.Execution
         public enum FooEnum
         {
             Bar,
-            Baz
+            Baz,
+            BazBar
         }
     }
 }
