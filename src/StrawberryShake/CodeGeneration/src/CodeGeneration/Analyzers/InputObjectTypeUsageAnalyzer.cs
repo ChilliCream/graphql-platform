@@ -26,7 +26,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         protected override void VisitOperationDefinition(
             OperationDefinitionNode node, object? context)
         {
-            ObjectType operationType = _schema.GetOperationType(node.Operation);
+            ObjectType operationType = _schema.GetOperationType(node.Operation)!;
 
             VisitMany(
                 node.VariableDefinitions,
