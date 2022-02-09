@@ -34,16 +34,21 @@ public class CSharpClientGenerator : ISourceGenerator
                 childProcess.StandardOutput.BaseStream,
                 childProcess.StandardInput.BaseStream);
 
-            foreach (var configFileName in GetConfigFiles(context))
+            try
             {
-                ExecuteAsync(context, client, configFileName, documentFileNames)
+                foreach (var configFileName in GetConfigFiles(context))
+                {
+                    ExecuteAsync(context, client, configFileName, documentFileNames)
+                        .GetAwaiter()
+                        .GetResult();
+                }
+            }
+            finally
+            {
+                client.CloseAsync()
                     .GetAwaiter()
                     .GetResult();
             }
-
-            client.CloseAsync()
-                .GetAwaiter()
-                .GetResult();
         }
         catch (Exception ex)
         {
