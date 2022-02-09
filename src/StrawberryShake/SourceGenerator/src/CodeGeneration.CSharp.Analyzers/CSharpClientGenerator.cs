@@ -16,6 +16,8 @@ public class CSharpClientGenerator : ISourceGenerator
     {
         try
         {
+            DebugLog.Log("Process->start");
+
             var codeGenServer = GetCodeGenServerLocation(context);
             var documentFileNames = GetDocumentFileNames(context);
 
@@ -30,12 +32,15 @@ public class CSharpClientGenerator : ISourceGenerator
                     UseShellExecute = false
                 })!;
 
+            DebugLog.Log("Process->started");
+
             using var client = new CSharpGeneratorClient(
                 childProcess.StandardOutput.BaseStream,
                 childProcess.StandardInput.BaseStream);
 
             try
             {
+                DebugLog.Log("Process->gen");
                 foreach (var configFileName in GetConfigFiles(context))
                 {
                     ExecuteAsync(context, client, configFileName, documentFileNames)
@@ -45,6 +50,7 @@ public class CSharpClientGenerator : ISourceGenerator
             }
             finally
             {
+                DebugLog.Log("Process->finished");
                 client.CloseAsync()
                     .GetAwaiter()
                     .GetResult();
@@ -62,6 +68,10 @@ public class CSharpClientGenerator : ISourceGenerator
                         DiagnosticSeverity.Error,
                         true),
                     Microsoft.CodeAnalysis.Location.None));
+        }
+        finally
+        {
+            DebugLog.Log("Process->done");
         }
     }
 

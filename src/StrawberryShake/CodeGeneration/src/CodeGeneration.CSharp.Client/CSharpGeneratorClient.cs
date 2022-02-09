@@ -38,21 +38,27 @@ public class CSharpGeneratorClient
         GeneratorRequest request,
         CancellationToken cancellationToken = default)
     {
+        DebugLog.Log("GenerateAsync");
         var tcs = _tcs = new TaskCompletionSource<GeneratorResponse>();
         await _messageBus.SendAsync(request, cancellationToken);
         cancellationToken.Register(() => tcs.TrySetCanceled());
-        return await _tcs.Task;
+        var result =  await _tcs.Task;
+        DebugLog.Log("GenerateAsync->result");
+        return result;
     }
 
     public async Task CloseAsync(CancellationToken cancellationToken = default)
     {
+        DebugLog.Log("CloseAsync");
         await _messageBus.SendAsync(new CloseMessage(), cancellationToken);
+        DebugLog.Log("CloseAsync->sent");
     }
 
     public void OnNext(IMessage value)
     {
         if (value is GeneratorResponse response)
         {
+            DebugLog.Log("OnNext->response");
             _tcs?.TrySetResult(response);
         }
     }
@@ -70,10 +76,12 @@ public class CSharpGeneratorClient
     {
         if (!_disposed)
         {
+            DebugLog.Log("OnNext->dispose");
             _tcs?.TrySetCanceled();
             _subscription.Dispose();
             _messageBus.Dispose();
             _disposed = true;
+            DebugLog.Log("OnNext->disposed");
         }
     }
 #else
