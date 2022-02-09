@@ -44,6 +44,11 @@ public class CSharpGeneratorClient
         return await _tcs.Task;
     }
 
+    public async Task CloseAsync()
+    {
+        await _messageBus.SendAsync(new CloseMessage(), cancellationToken);
+    }
+
     public void OnNext(IMessage value)
     {
         if (value is GeneratorResponse response)

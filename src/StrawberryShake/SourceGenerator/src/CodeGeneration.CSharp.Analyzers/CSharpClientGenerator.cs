@@ -30,7 +30,7 @@ public class CSharpClientGenerator : ISourceGenerator
                     UseShellExecute = false
                 })!;
 
-            var client = new CSharpGeneratorClient(
+            using var client = new CSharpGeneratorClient(
                 childProcess.StandardOutput.BaseStream,
                 childProcess.StandardInput.BaseStream);
 
@@ -40,6 +40,8 @@ public class CSharpClientGenerator : ISourceGenerator
                     .GetAwaiter()
                     .GetResult();
             }
+
+            await client.CloseAsync();
         }
         catch (Exception ex)
         {
