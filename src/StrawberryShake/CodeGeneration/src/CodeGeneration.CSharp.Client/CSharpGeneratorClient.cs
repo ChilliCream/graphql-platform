@@ -44,7 +44,7 @@ public class CSharpGeneratorClient
         return await _tcs.Task;
     }
 
-    public async Task CloseAsync()
+    public async Task CloseAsync(CancellationToken cancellationToken = default)
     {
         await _messageBus.SendAsync(new CloseMessage(), cancellationToken);
     }

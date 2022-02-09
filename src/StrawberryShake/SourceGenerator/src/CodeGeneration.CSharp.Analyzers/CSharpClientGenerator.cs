@@ -41,7 +41,9 @@ public class CSharpClientGenerator : ISourceGenerator
                     .GetResult();
             }
 
-            await client.CloseAsync();
+            client.CloseAsync()
+                .GetAwaiter()
+                .GetResult();
         }
         catch (Exception ex)
         {

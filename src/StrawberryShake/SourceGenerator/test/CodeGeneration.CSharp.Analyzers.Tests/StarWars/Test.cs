@@ -10,6 +10,7 @@ public static class DependencyInjection
     }
 }
 
+/*
 public static class Utilities
 {
     private static string? GetGeneratedOutput(string sourceCode)
@@ -26,7 +27,7 @@ public static class Utilities
                       references,
                       new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-        // Source Generator to test 
+        // Source Generator to test
         var generator = new DemoSourceGenerator.DemoSourceGenerator();
 
         CSharpGeneratorDriver.Create(generator)
@@ -41,3 +42,4 @@ public static class Utilities
         return outputCompilation.SyntaxTrees.Skip(1).LastOrDefault()?.ToString();
     }
 }
+*/
