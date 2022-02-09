@@ -38,7 +38,12 @@ public class MessageBus
         _cts = new CancellationTokenSource();
         _abortProcessing = _cts.Token;
 
-        Task.Run(ProcessIncomingMessages);
+        DebugLog.Log("Start->ProcessIncomingMessages");
+        Task.Factory.StartNew(
+            ProcessIncomingMessages,
+            default,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
     }
 
     public IDisposable Subscribe(IObserver<IMessage> observer)
@@ -188,8 +193,10 @@ public class MessageBus
 
                 if (size > 0)
                 {
+                    DebugLog.Log("ProcessIncomingMessages->message");
                     IMessage message = Deserialize(messageBuffer, size);
                     _observers.ForEach(o => o.OnNext(message));
+                    DebugLog.Log("ProcessIncomingMessages->message:" + message.Kind);
 
                     if (message.Kind == MessageKind.Close)
                     {
@@ -198,12 +205,14 @@ public class MessageBus
                 }
             }
         }
-        catch
+        catch(Exception ex)
         {
+            DebugLog.Log("ProcessIncomingMessages->error: " + ex.Message + Environment.NewLine + ex.StackTrace);
             _observers.ForEach(o => o.OnCompleted());
         }
         finally
         {
+            DebugLog.Log("ProcessIncomingMessages->done");
             _observers.ForEach(o => o.Dispose());
             ArrayPool<byte>.Shared.Return(messageBuffer);
         }

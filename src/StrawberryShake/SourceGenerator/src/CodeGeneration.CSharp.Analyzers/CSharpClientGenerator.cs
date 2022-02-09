@@ -16,6 +16,9 @@ public class CSharpClientGenerator : ISourceGenerator
     {
         try
         {
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+            CancellationToken timeout = cts.Token;
+
             DebugLog.Log("Process->start");
 
             var codeGenServer = GetCodeGenServerLocation(context);
@@ -43,7 +46,7 @@ public class CSharpClientGenerator : ISourceGenerator
                 DebugLog.Log("Process->gen");
                 foreach (var configFileName in GetConfigFiles(context))
                 {
-                    ExecuteAsync(context, client, configFileName, documentFileNames)
+                    ExecuteAsync(context, client, configFileName, documentFileNames, timeout)
                         .GetAwaiter()
                         .GetResult();
                 }
@@ -51,7 +54,7 @@ public class CSharpClientGenerator : ISourceGenerator
             finally
             {
                 DebugLog.Log("Process->finished");
-                client.CloseAsync()
+                client.CloseAsync(timeout)
                     .GetAwaiter()
                     .GetResult();
             }
@@ -79,14 +82,15 @@ public class CSharpClientGenerator : ISourceGenerator
         GeneratorExecutionContext context,
         CSharpGeneratorClient client,
         string configFileName,
-        IReadOnlyList<string> documentFileNames)
+        IReadOnlyList<string> documentFileNames,
+        CancellationToken cancellationToken)
     {
         GeneratorRequest request = new(
             configFileName,
             documentFileNames,
             GetDefaultNamespace(context),
             GetPersistedQueryDirectory(context));
-        GeneratorResponse response = await client.GenerateAsync(request);
+        GeneratorResponse response = await client.GenerateAsync(request, cancellationToken);
 
         foreach (GeneratorDocument document in response.Documents.SelectCSharp())
         {
