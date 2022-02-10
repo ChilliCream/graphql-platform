@@ -20,8 +20,7 @@ public class CSharpGeneratorServerTests : IDisposable
         var configFile = FilePath(".graphqlrc.json");
         var documents = new[]
         {
-            FilePath("ChatGetPeople.graphql"),
-            FilePath("Schema.extensions.graphql"),
+            FilePath("ChatGetPeople.graphql"), FilePath("Schema.extensions.graphql"),
             FilePath("Schema.graphql")
         };
 
@@ -43,16 +42,7 @@ public class CSharpGeneratorServerTests : IDisposable
     {
         // arrange
         GeneratorRequest request = CreateConfig(
-            new GraphQLConfig
-            {
-                Extensions =
-                {
-                    StrawberryShake =
-                    {
-                        RazorComponents = true
-                    }
-                }
-            });
+            new GraphQLConfig {Extensions = {StrawberryShake = {RazorComponents = true}}});
 
         var requestSink = RequestFormatter.Format(request);
 
@@ -63,40 +53,265 @@ public class CSharpGeneratorServerTests : IDisposable
         Assert.Equal(0, status);
         ResponseParser.Parse(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
-        Assert.False(File.Exists(Path.Combine(request.RootDirectory, "Client.components.g.cs")));
+        Assert.True(File.Exists(Path.Combine(
+            request.RootDirectory,
+            "Generated",
+            "Client.components.g.cs")));
+    }
+
+    [Fact]
+    public async Task Generate_StarWars_With_PersistedQueries()
+    {
+        // arrange
+        GeneratorRequest request = CreateConfig(
+            new GraphQLConfig
+            {
+                Extensions =
+                {
+                    StrawberryShake =
+                    {
+                        RazorComponents = true,
+                        RequestStrategy = Tools.Configuration.RequestStrategy.PersistedQuery
+                    }
+                }
+            },
+            persistedQueryDirectory: "pq");
+
+        var requestSink = RequestFormatter.Format(request);
+
+        // act
+        var status = await CSharpGeneratorServer.RunAsync(requestSink);
+
+        // assert
+        Assert.Equal(0, status);
+        ResponseParser.Parse(requestSink).MatchSnapshot();
+        Assert.False(File.Exists(requestSink));
+        Assert.True(Directory.Exists(Path.Combine(request.RootDirectory, "Generated")));
+        Assert.True(File.Exists(Path.Combine(
+            request.PersistedQueryDirectory!,
+            "GetPeople.graphql")));
+    }
+
+    [Fact]
+    public async Task Generate_StarWars_With_PersistedQueries2()
+    {
+        // arrange
+        GeneratorRequest request = CreateConfig(
+            new GraphQLConfig
+            {
+                Extensions =
+                {
+                    StrawberryShake =
+                    {
+                        RazorComponents = true,
+                        RequestStrategy = Tools.Configuration.RequestStrategy.PersistedQuery
+                    }
+                }
+            },
+            persistedQueryDirectory: "pq",
+            option: RequestOptions.ExportPersistedQueries);
+
+        var requestSink = RequestFormatter.Format(request);
+
+        // act
+        var status = await CSharpGeneratorServer.RunAsync(requestSink);
+
+        // assert
+        Assert.Equal(0, status);
+        ResponseParser.Parse(requestSink).MatchSnapshot();
+        Assert.False(File.Exists(requestSink));
+        Assert.False(Directory.Exists(Path.Combine(request.RootDirectory, "Generated")));
+        Assert.True(File.Exists(Path.Combine(
+            request.PersistedQueryDirectory!,
+            "GetPeople.graphql")));
+    }
+
+    [Fact]
+    public async Task Generate_StarWars_With_PersistedQueries_Json()
+    {
+        // arrange
+        GeneratorRequest request = CreateConfig(
+            new GraphQLConfig
+            {
+                Extensions =
+                {
+                    StrawberryShake =
+                    {
+                        RazorComponents = true,
+                        RequestStrategy = Tools.Configuration.RequestStrategy.PersistedQuery
+                    }
+                }
+            },
+            persistedQueryDirectory: "pq",
+            option: RequestOptions.ExportPersistedQueriesJson);
+
+        var requestSink = RequestFormatter.Format(request);
+
+        // act
+        var status = await CSharpGeneratorServer.RunAsync(requestSink);
+
+        // assert
+        Assert.Equal(0, status);
+        ResponseParser.Parse(requestSink).MatchSnapshot();
+        Assert.False(File.Exists(requestSink));
+        Assert.False(Directory.Exists(Path.Combine(request.RootDirectory, "Generated")));
+        Assert.True(File.Exists(Path.Combine(
+            request.PersistedQueryDirectory!,
+            "persisted-queries.json")));
+    }
+
+    [Fact]
+    public async Task Generate_StarWars_Generate_CSharpFiles()
+    {
+        // arrange
+        GeneratorRequest request = CreateConfig(
+            new GraphQLConfig
+            {
+                Extensions =
+                {
+                    StrawberryShake =
+                    {
+                        RazorComponents = true,
+                        RequestStrategy = Tools.Configuration.RequestStrategy.PersistedQuery
+                    }
+                }
+            },
+            persistedQueryDirectory: "pq",
+            option: RequestOptions.GenerateCSharpClient);
+
+        var requestSink = RequestFormatter.Format(request);
+
+        // act
+        var status = await CSharpGeneratorServer.RunAsync(requestSink);
+
+        // assert
+        Assert.Equal(0, status);
+        ResponseParser.Parse(requestSink).MatchSnapshot();
+        Assert.False(File.Exists(requestSink));
+        Assert.False(Directory.Exists(request.PersistedQueryDirectory!));
+        Assert.False(File.Exists(Path.Combine(
+            request.RootDirectory,
+            "Generated",
+            "Client.components.g.cs")));
+        Assert.True(File.Exists(Path.Combine(
+            request.RootDirectory,
+            "Generated",
+            "Client.g.cs")));
+    }
+
+    [Fact]
+    public async Task Generate_StarWars_Generate_CSharpFiles_DoNot_Touch_Components()
+    {
+        // arrange
+        GeneratorRequest request = CreateConfig(
+            new GraphQLConfig
+            {
+                Extensions =
+                {
+                    StrawberryShake =
+                    {
+                        RazorComponents = true
+                    }
+                }
+            },
+            option: RequestOptions.Default);
+
+        var requestSink = RequestFormatter.Format(request);
+        var status = await CSharpGeneratorServer.RunAsync(requestSink);
+        Assert.Equal(0, status);
+        Assert.Empty(ResponseParser.Parse(requestSink).Errors);
+        Assert.True(File.Exists(Path.Combine(
+            request.RootDirectory,
+            "Generated",
+            "Client.components.g.cs")));
+
+        request = CreateConfig(
+            new GraphQLConfig
+            {
+                Extensions =
+                {
+                    StrawberryShake =
+                    {
+                        RazorComponents = true,
+                        RequestStrategy = Tools.Configuration.RequestStrategy.PersistedQuery
+                    }
+                }
+            },
+            rootDirectory: request.RootDirectory,
+            persistedQueryDirectory: "pq",
+            option: RequestOptions.GenerateCSharpClient);
+
+        requestSink = RequestFormatter.Format(request);
+
+        // act
+        status = await CSharpGeneratorServer.RunAsync(requestSink);
+
+        // assert
+        Assert.Equal(0, status);
+        ResponseParser.Parse(requestSink).MatchSnapshot();
+        Assert.False(File.Exists(requestSink));
+        Assert.False(Directory.Exists(request.PersistedQueryDirectory!));
+        Assert.True(File.Exists(Path.Combine(
+            request.RootDirectory,
+            "Generated",
+            "Client.components.g.cs")));
+        Assert.True(File.Exists(Path.Combine(
+            request.RootDirectory,
+            "Generated",
+            "Client.g.cs")));
     }
 
     private static string FilePath(string name)
         => Path.Combine("__resources__", name);
 
-    private GeneratorRequest CreateConfig(GraphQLConfig config)
+    private GeneratorRequest CreateConfig(
+        GraphQLConfig config,
+        string? rootDirectory = null,
+        string? defaultNamespace = null,
+        string? persistedQueryDirectory = null,
+        RequestOptions option = RequestOptions.Default)
     {
         const string chatGetPeople = "ChatGetPeople.graphql";
         const string extensions = "Schema.extensions.graphql";
         const string schema = "Schema.graphql";
 
-        var root = Path.GetTempFileName();
-        File.Delete(root);
-        Directory.CreateDirectory(root);
-        _directories.Add(root);
+        var root = rootDirectory;
+
+        if (root is null)
+        {
+            root = Path.GetTempFileName();
+            File.Delete(root);
+            Directory.CreateDirectory(root);
+            _directories.Add(root);
+        }
 
         var configFile = Path.Combine(root, ".graphqlrc.json");
         var chatGetPeopleFile = Path.Combine(root, chatGetPeople);
         var extensionsFile = Path.Combine(root, extensions);
         var schemaFile = Path.Combine(root, schema);
 
-        File.WriteAllText(configFile, config.ToString(), Encoding.UTF8);
-        File.Copy(FilePath(chatGetPeople), chatGetPeopleFile);
-        File.Copy(FilePath(extensions), extensionsFile);
-        File.Copy(FilePath(schema), schemaFile);
-
-        var documents = new[]
+        if (!File.Exists(configFile))
         {
-            chatGetPeopleFile,
-            extensionsFile,
-            schemaFile
-        };
-        return new(configFile, documents, root);
+            File.WriteAllText(configFile, config.ToString(), Encoding.UTF8);
+            File.Copy(FilePath(chatGetPeople), chatGetPeopleFile);
+            File.Copy(FilePath(extensions), extensionsFile);
+            File.Copy(FilePath(schema), schemaFile);
+        }
+
+        if (persistedQueryDirectory is not null)
+        {
+            persistedQueryDirectory = Path.Combine(root, persistedQueryDirectory);
+        }
+
+        var documents = new[] {chatGetPeopleFile, extensionsFile, schemaFile};
+
+        return new(
+            configFile,
+            documents,
+            root,
+            defaultNamespace,
+            persistedQueryDirectory,
+            option);
     }
 
     public void Dispose()
@@ -110,6 +325,7 @@ public class CSharpGeneratorServerTests : IDisposable
                 {
                     File.Delete(file);
                 }
+
                 Directory.Delete(directory, true);
             }
         }

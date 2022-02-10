@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,14 +38,16 @@ public static partial class CSharpGeneratorServer
 
             CSharpGeneratorResult result = CSharpGenerator.Generate(documents, settings);
 
+            await TryWriteCSharpFilesAsync(result.Documents, settings);
             await TryWriteRazorFilesAsync(result.Documents, settings);
             await TryWritePersistedQueriesAsync(result.Documents, settings);
             await TryWritePersistedQueriesJsonAsync(result.Documents, settings);
 
             return CreateResponse(
-                result.Documents.Where(t => t.Kind is SourceDocumentKind.CSharp).ToList(),
-                ConvertErrors(result.Errors),
-                settings.PersistedQueryDirectory);
+                request.Option is RequestOptions.GenerateCSharpClient
+                    ? Array.Empty<SourceDocument>()
+                    : result.Documents.Where(t => t.Kind is SourceDocumentKind.CSharp).ToList(),
+                ConvertErrors(result.Errors));
         }
         catch (GraphQLException ex)
         {
@@ -55,6 +56,57 @@ public static partial class CSharpGeneratorServer
         catch (Exception ex)
         {
             return ExceptionToError(ex);
+        }
+    }
+
+    private static async Task TryWriteCSharpFilesAsync(
+        IReadOnlyList<SourceDocument> documents,
+        CSharpGeneratorServerSettings settings)
+    {
+        if (settings.Option is not RequestOptions.GenerateCSharpClient)
+        {
+            return;
+        }
+
+        var generatedDirectory = Combine(settings.RootDirectoryName, settings.OutputDirectoryName);
+
+        if (!Directory.Exists(generatedDirectory))
+        {
+            Directory.CreateDirectory(generatedDirectory);
+        }
+
+        var generatedFiles = new HashSet<string>();
+
+        foreach (SourceDocument document in
+            documents.Where(t => t.Kind is SourceDocumentKind.CSharp))
+        {
+            var fileName = Combine(generatedDirectory, $"{document.Name}.g.cs");
+            var exists = File.Exists(fileName);
+
+            generatedFiles.Add(fileName);
+
+            if (!exists || !Compare(fileName, document))
+            {
+                if (exists)
+                {
+                    File.Delete(fileName);
+                }
+
+                await File.WriteAllTextAsync(fileName, document.SourceText);
+            }
+        }
+
+        foreach (var file in Directory.GetFiles(generatedDirectory, "*.components.g.cs"))
+        {
+            generatedFiles.Add(file);
+        }
+
+        foreach (var file in Directory.GetFiles(generatedDirectory, "*.g.cs"))
+        {
+            if (!generatedFiles.Contains(file))
+            {
+                File.Delete(file);
+            }
         }
     }
 
@@ -74,15 +126,15 @@ public static partial class CSharpGeneratorServer
             Directory.CreateDirectory(generatedDirectory);
         }
 
-        var razorFiles = new Dictionary<string, SourceDocument>();
+        var generatedFiles = new HashSet<string>();
 
         foreach (SourceDocument document in
             documents.Where(t => t.Kind is SourceDocumentKind.Razor))
         {
-            var fileName = Combine(generatedDirectory, $"{document.Name}.component.g.cs");
+            var fileName = Combine(generatedDirectory, $"{document.Name}.components.g.cs");
             var exists = File.Exists(fileName);
 
-            razorFiles[fileName] = document;
+            generatedFiles.Add(fileName);
 
             if (!exists || !Compare(fileName, document))
             {
@@ -95,9 +147,9 @@ public static partial class CSharpGeneratorServer
             }
         }
 
-        foreach (var file in Directory.GetFiles(generatedDirectory, "*.*"))
+        foreach (var file in Directory.GetFiles(generatedDirectory, "*.components.g.cs"))
         {
-            if (!razorFiles.ContainsKey(file))
+            if (!generatedFiles.Contains(file))
             {
                 File.Delete(file);
             }
@@ -108,13 +160,14 @@ public static partial class CSharpGeneratorServer
         IReadOnlyList<SourceDocument> documents,
         CSharpGeneratorServerSettings settings)
     {
-        if (settings.RequestStrategy is not RequestStrategy.PersistedQuery || 
-            settings.Option is not RequestOptions.ExportPersistedQueries)
+        if (settings.RequestStrategy is not RequestStrategy.PersistedQuery ||
+            settings.Option is not RequestOptions.Default and
+                not RequestOptions.ExportPersistedQueries)
         {
             return;
         }
 
-        string persistedQueryDirectory = settings.PersistedQueryDirectory!;
+        var persistedQueryDirectory = settings.PersistedQueryDirectory!;
 
         if (!Directory.Exists(persistedQueryDirectory))
         {
@@ -123,12 +176,10 @@ public static partial class CSharpGeneratorServer
 
         ClearPersistedQueryDirectory(persistedQueryDirectory);
 
-        var razorFiles = new Dictionary<string, SourceDocument>();
-
         foreach (SourceDocument document in
             documents.Where(t => t.Kind is SourceDocumentKind.GraphQL))
         {
-            string fileName = Path.Combine(persistedQueryDirectory, $"{document.Name}.graphql");
+            var fileName = Combine(persistedQueryDirectory, $"{document.Name}.graphql");
             await File.WriteAllTextAsync(fileName, document.SourceText);
         }
     }
@@ -137,7 +188,7 @@ public static partial class CSharpGeneratorServer
         IReadOnlyList<SourceDocument> documents,
         CSharpGeneratorServerSettings settings)
     {
-        if (settings.RequestStrategy is not RequestStrategy.PersistedQuery || 
+        if (settings.RequestStrategy is not RequestStrategy.PersistedQuery ||
             settings.Option is not RequestOptions.ExportPersistedQueriesJson)
         {
             return;
@@ -161,12 +212,12 @@ public static partial class CSharpGeneratorServer
         foreach (SourceDocument document in
             documents.Where(t => t.Kind is SourceDocumentKind.GraphQL))
         {
-            string hash = BitConverter.ToString(ComputeHash(document)).Replace("-", "");
+            var hash = BitConverter.ToString(ComputeHash(document)).Replace("-", "");
             files[hash] = document.SourceText;
         }
 
         await File.WriteAllBytesAsync(
-            persistedQueryFile, 
+            persistedQueryFile,
             JsonSerializer.SerializeToUtf8Bytes(files));
     }
 
@@ -245,6 +296,11 @@ public static partial class CSharpGeneratorServer
                     generatorSettings.RazorComponents = true;
                     generatorSettings.RequestStrategy = RequestStrategy.Default;
                     break;
+
+                case RequestOptions.GenerateCSharpClient:
+                    generatorSettings.RazorComponents = false;
+                    generatorSettings.RequestStrategy = RequestStrategy.Default;
+                    break;
             }
 
             return generatorSettings;
@@ -270,33 +326,19 @@ public static partial class CSharpGeneratorServer
 
     private static GeneratorResponse CreateResponse(
         IReadOnlyList<SourceDocument> sourceDocuments,
-        IReadOnlyList<GeneratorError> errors,
-        string? persistedQueryDirectory)
+        IReadOnlyList<GeneratorError> errors)
     {
         var generatorDocuments = new List<GeneratorDocument>();
 
         foreach (SourceDocument sourceDocument in sourceDocuments)
         {
-            if (sourceDocument.Kind is SourceDocumentKind.GraphQL)
-            {
-                if (persistedQueryDirectory is not null)
-                {
-                    File.WriteAllText(
-                        Combine(persistedQueryDirectory, sourceDocument.Name),
-                        sourceDocument.SourceText,
-                        Encoding.UTF8);
-                }
-            }
-            else
-            {
-                generatorDocuments.Add(
-                    new GeneratorDocument(
-                        sourceDocument.Name,
-                        sourceDocument.SourceText,
-                        (GeneratorDocumentKind)(int)sourceDocument.Kind,
-                        sourceDocument.Hash,
-                        sourceDocument.Path));
-            }
+            generatorDocuments.Add(
+                new GeneratorDocument(
+                    sourceDocument.Name,
+                    sourceDocument.SourceText,
+                    (GeneratorDocumentKind)(int)sourceDocument.Kind,
+                    sourceDocument.Hash,
+                    sourceDocument.Path));
         }
 
         return new GeneratorResponse(generatorDocuments, errors);
