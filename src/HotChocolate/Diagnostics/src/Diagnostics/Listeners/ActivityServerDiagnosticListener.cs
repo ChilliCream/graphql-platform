@@ -37,8 +37,9 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
             return EmptyScope;
         }
 
-        context.Items[HttpRequestActivity] = activity;
         _enricher.EnrichExecuteHttpRequest(context, kind, activity);
+        activity.SetStatus(ActivityStatusCode.Ok);
+        context.Items[HttpRequestActivity] = activity;
 
         return activity;
     }
@@ -112,6 +113,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         }
 
         _enricher.EnrichParseHttpRequest(context, activity);
+        activity.SetStatus(ActivityStatusCode.Ok);
         context.Items[ParseHttpRequestActivity] = activity;
 
         return activity;
@@ -147,6 +149,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         }
 
         _enricher.EnrichFromatHttpResponse(context, activity);
+        activity.SetStatus(ActivityStatusCode.Ok);
         context.Items[FormatHttpResponseActivity] = activity;
 
         return activity;
