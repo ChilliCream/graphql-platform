@@ -13,6 +13,7 @@ using StrawberryShake.Tools.Configuration;
 using Path = System.IO.Path;
 using static System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.ErrorHelper;
+using System.Text.Json;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
@@ -34,20 +35,13 @@ public static partial class CSharpGeneratorServer
                 {
                     settings.RequestStrategy = RequestStrategy.Default;
                 }
-                else
-                {
-                    if (!Directory.Exists(settings.PersistedQueryDirectory))
-                    {
-                        Directory.CreateDirectory(settings.PersistedQueryDirectory);
-                    }
-
-                    ClearPersistedQueryDirectory(settings.PersistedQueryDirectory);
-                }
             }
 
             CSharpGeneratorResult result = CSharpGenerator.Generate(documents, settings);
 
-            await WriteRazorFilesAsync(result.Documents, settings);
+            await TryWriteRazorFilesAsync(result.Documents, settings);
+            await TryWritePersistedQueriesAsync(result.Documents, settings);
+            await TryWritePersistedQueriesJsonAsync(result.Documents, settings);
 
             return CreateResponse(
                 result.Documents.Where(t => t.Kind is SourceDocumentKind.CSharp).ToList(),
@@ -64,7 +58,7 @@ public static partial class CSharpGeneratorServer
         }
     }
 
-    private static async Task WriteRazorFilesAsync(
+    private static async Task TryWriteRazorFilesAsync(
         IReadOnlyList<SourceDocument> documents,
         CSharpGeneratorServerSettings settings)
     {
@@ -110,6 +104,72 @@ public static partial class CSharpGeneratorServer
         }
     }
 
+    private static async Task TryWritePersistedQueriesAsync(
+        IReadOnlyList<SourceDocument> documents,
+        CSharpGeneratorServerSettings settings)
+    {
+        if (settings.RequestStrategy is not RequestStrategy.PersistedQuery || 
+            settings.Option is not RequestOptions.ExportPersistedQueries)
+        {
+            return;
+        }
+
+        string persistedQueryDirectory = settings.PersistedQueryDirectory!;
+
+        if (!Directory.Exists(persistedQueryDirectory))
+        {
+            Directory.CreateDirectory(persistedQueryDirectory);
+        }
+
+        ClearPersistedQueryDirectory(persistedQueryDirectory);
+
+        var razorFiles = new Dictionary<string, SourceDocument>();
+
+        foreach (SourceDocument document in
+            documents.Where(t => t.Kind is SourceDocumentKind.GraphQL))
+        {
+            string fileName = Path.Combine(persistedQueryDirectory, $"{document.Name}.graphql");
+            await File.WriteAllTextAsync(fileName, document.SourceText);
+        }
+    }
+
+    private static async Task TryWritePersistedQueriesJsonAsync(
+        IReadOnlyList<SourceDocument> documents,
+        CSharpGeneratorServerSettings settings)
+    {
+        if (settings.RequestStrategy is not RequestStrategy.PersistedQuery || 
+            settings.Option is not RequestOptions.ExportPersistedQueriesJson)
+        {
+            return;
+        }
+
+        string persistedQueryDir = settings.PersistedQueryDirectory!;
+        string persistedQueryFile = Path.Combine(persistedQueryDir, "persisted-queries.json");
+
+        if (!Directory.Exists(persistedQueryDir))
+        {
+            Directory.CreateDirectory(persistedQueryDir);
+        }
+
+        if (File.Exists(persistedQueryFile))
+        {
+            File.Delete(persistedQueryFile);
+        }
+
+        var files = new Dictionary<string, string>();
+
+        foreach (SourceDocument document in
+            documents.Where(t => t.Kind is SourceDocumentKind.GraphQL))
+        {
+            string hash = BitConverter.ToString(ComputeHash(document)).Replace("-", "");
+            files[hash] = document.SourceText;
+        }
+
+        await File.WriteAllBytesAsync(
+            persistedQueryFile, 
+            JsonSerializer.SerializeToUtf8Bytes(files));
+    }
+
     private static async Task<CSharpGeneratorServerSettings> LoadSettingsAsync(
         GeneratorRequest request)
     {
@@ -147,7 +207,8 @@ public static partial class CSharpGeneratorServer
                     "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
                     "md5" => new MD5DocumentHashProvider(HashFormat.Hex),
                     _ => new Sha1DocumentHashProvider(HashFormat.Hex)
-                }
+                },
+                Option = request.Option
             };
 
             if (config.Extensions.StrawberryShake.TransportProfiles
@@ -166,6 +227,24 @@ public static partial class CSharpGeneratorServer
                             profile.Mutation,
                             profile.Subscription));
                 }
+            }
+
+            switch (request.Option)
+            {
+                case RequestOptions.ExportPersistedQueries:
+                    generatorSettings.RazorComponents = false;
+                    generatorSettings.RequestStrategy = RequestStrategy.PersistedQuery;
+                    break;
+
+                case RequestOptions.ExportPersistedQueriesJson:
+                    generatorSettings.RazorComponents = false;
+                    generatorSettings.RequestStrategy = RequestStrategy.PersistedQuery;
+                    break;
+
+                case RequestOptions.GenerateRazorComponent:
+                    generatorSettings.RazorComponents = true;
+                    generatorSettings.RequestStrategy = RequestStrategy.Default;
+                    break;
             }
 
             return generatorSettings;

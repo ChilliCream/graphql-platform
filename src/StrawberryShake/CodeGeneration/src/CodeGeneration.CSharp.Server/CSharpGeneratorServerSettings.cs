@@ -24,4 +24,9 @@ public class CSharpGeneratorServerSettings : CSharpGeneratorSettings
     /// The relative output directory for generated code.
     /// </summary>
     public string OutputDirectoryName { get; set; } = "Generated";
+
+    /// <summary>
+    /// Additional request options.
+    /// </summary>
+    public RequestOptions Option { get; set; } = RequestOptions.Default;
 }

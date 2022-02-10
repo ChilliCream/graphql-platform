@@ -7,7 +7,8 @@ public sealed class GeneratorRequest
         IReadOnlyList<string> documentFileNames,
         string? rootDirectory = null,
         string? defaultNamespace = null,
-        string? persistedQueryDirectory = null)
+        string? persistedQueryDirectory = null,
+        RequestOptions option = RequestOptions.Default)
     {
         ConfigFileName = configFileName ??
             throw new ArgumentNullException(nameof(configFileName));
@@ -16,6 +17,7 @@ public sealed class GeneratorRequest
         RootDirectory = rootDirectory ?? Path.GetDirectoryName(configFileName)!;
         DefaultNamespace = defaultNamespace;
         PersistedQueryDirectory = persistedQueryDirectory;
+        Option = option;
     }
 
     public string ConfigFileName { get; }
@@ -27,4 +29,6 @@ public sealed class GeneratorRequest
     public string? DefaultNamespace { get; }
 
     public string? PersistedQueryDirectory { get; }
+
+    public RequestOptions Option { get; }
 }
