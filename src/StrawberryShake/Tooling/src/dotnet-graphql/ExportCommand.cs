@@ -22,6 +22,11 @@ public static class ExportCommand
             "Output Directory.",
             CommandOptionType.SingleValue);
 
+        CommandOption relayFormatArg = generate.Option(
+            "-r|--relayFormat",
+            "Export Persisted Queries as Relay Format.",
+            CommandOptionType.NoValue);
+
         CommandOption jsonArg = generate.Option(
             "-j|--json",
             "Console output as JSON.",
@@ -31,7 +36,8 @@ public static class ExportCommand
         {
             var arguments = new ExportCommandArguments(
                 pathArg.Value ?? CurrentDirectory,
-                razorArg.Value()!);
+                razorArg.Value()!,
+                relayFormatArg.HasValue());
             var handler = CommandTools.CreateHandler<ExportCommandHandler>(jsonArg);
             return handler.ExecuteAsync(arguments, ct);
         });
@@ -50,7 +56,14 @@ public static class ExportCommand
             ExportCommandArguments arguments,
             CancellationToken cancellationToken)
         {
-            using var activity = Output.WriteActivity("Export");
+            using var activity = Output.WriteActivity("Export Persisted Queries");
+
+            if (string.IsNullOrEmpty(arguments.OutputPath))
+            {
+                activity.WriteError(new HotChocolate.Error(
+                    "The Output Directory `-o` must be set!"));
+            }
+
             var generator = new CSharpGeneratorClient(GetCodeGenServerLocation());
             var documents = GetDocuments(arguments.Path);
             var configFiles = GetConfigFiles(arguments.Path);
@@ -60,14 +73,16 @@ public static class ExportCommand
                 var config = await LoadConfigAsync(configFileName);
 
                 var persistedDir = configFiles.Length == 1
-                    ? arguments.Path
-                    : Path.Combine(arguments.Path, config.Extensions.StrawberryShake.Name);
+                    ? arguments.OutputPath
+                    : Path.Combine(arguments.OutputPath, config.Extensions.StrawberryShake.Name);
 
                 var request = new GeneratorRequest(
                     configFileName,
                     documents,
                     persistedQueryDirectory: persistedDir,
-                    option: RequestOptions.ExportPersistedQueries);
+                    option: arguments.RelayFormat
+                        ? RequestOptions.ExportPersistedQueriesJson
+                        : RequestOptions.ExportPersistedQueries);
 
                 var response = generator.Execute(request);
 
@@ -82,21 +97,24 @@ public static class ExportCommand
 
         private static async Task<GraphQLConfig> LoadConfigAsync(string configFileName)
         {
-            string json = await File.ReadAllTextAsync(configFileName);
-            return GraphQLConfig.FromJson(configFileName);
+            var json = await File.ReadAllTextAsync(configFileName);
+            return GraphQLConfig.FromJson(json);
         }
     }
 
     private sealed class ExportCommandArguments
     {
-        public ExportCommandArguments(string path, string outputPath)
+        public ExportCommandArguments(string path, string outputPath, bool relayFormat)
         {
             Path = path;
             OutputPath = outputPath;
+            RelayFormat = relayFormat;
         }
 
         public string Path { get; }
 
         public string OutputPath { get; }
+
+        public bool RelayFormat { get; }
     }
 }

@@ -127,6 +127,63 @@ public class CSharpGeneratorServerTests : IDisposable
     }
 
     [Fact]
+    public async Task Generate_StarWars_With_PersistedQueries_Two_Runs()
+    {
+        // arrange
+        GeneratorRequest request = CreateConfig(
+            new GraphQLConfig
+            {
+                Extensions =
+                {
+                    StrawberryShake =
+                    {
+                        RazorComponents = true,
+                        RequestStrategy = Tools.Configuration.RequestStrategy.PersistedQuery
+                    }
+                }
+            },
+            persistedQueryDirectory: "pq");
+
+        var requestSink = RequestFormatter.Format(request);
+        var status = await CSharpGeneratorServer.RunAsync(requestSink);
+
+        Assert.Equal(0, status);
+        ResponseParser.Parse(requestSink).MatchSnapshot();
+        Assert.False(File.Exists(requestSink));
+        Assert.True(Directory.Exists(Path.Combine(request.RootDirectory, "Generated")));
+        Assert.True(File.Exists(Path.Combine(
+            request.PersistedQueryDirectory!,
+            "GetPeople.graphql")));
+
+        // act
+        request = CreateConfig(
+            new GraphQLConfig
+            {
+                Extensions =
+                {
+                    StrawberryShake =
+                    {
+                        RazorComponents = true,
+                        RequestStrategy = Tools.Configuration.RequestStrategy.PersistedQuery
+                    }
+                }
+            },
+            request.RootDirectory,
+            persistedQueryDirectory: "pq");
+        requestSink = RequestFormatter.Format(request);
+        status = await CSharpGeneratorServer.RunAsync(requestSink);
+
+        // assert
+        Assert.Equal(0, status);
+        ResponseParser.Parse(requestSink).MatchSnapshot();
+        Assert.False(File.Exists(requestSink));
+        Assert.True(Directory.Exists(Path.Combine(request.RootDirectory, "Generated")));
+        Assert.True(File.Exists(Path.Combine(
+            request.PersistedQueryDirectory!,
+            "GetPeople.graphql")));
+    }
+
+    [Fact]
     public async Task Generate_StarWars_With_PersistedQueries_Json()
     {
         // arrange

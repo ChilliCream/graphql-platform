@@ -68,7 +68,9 @@ public static partial class CSharpGeneratorServer
             return;
         }
 
-        var generatedDirectory = Combine(settings.RootDirectoryName, settings.OutputDirectoryName);
+        var generatedDirectory = IsPathRooted(settings.OutputDirectoryName)
+            ? settings.OutputDirectoryName
+            : Combine(settings.RootDirectoryName, settings.OutputDirectoryName);
 
         if (!Directory.Exists(generatedDirectory))
         {
@@ -194,8 +196,8 @@ public static partial class CSharpGeneratorServer
             return;
         }
 
-        string persistedQueryDir = settings.PersistedQueryDirectory!;
-        string persistedQueryFile = Path.Combine(persistedQueryDir, "persisted-queries.json");
+        var persistedQueryDir = settings.PersistedQueryDirectory!;
+        var persistedQueryFile = Combine(persistedQueryDir, "persisted-queries.json");
 
         if (!Directory.Exists(persistedQueryDir))
         {

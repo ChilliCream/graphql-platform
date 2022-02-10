@@ -49,7 +49,11 @@ public static class GenerateCommand
             GenerateCommandArguments arguments,
             CancellationToken cancellationToken)
         {
-            using var activity = Output.WriteActivity("Generate");
+            using var activity = Output.WriteActivity(
+                arguments.RazorOnly
+                    ? "Generate Razor Components"
+                    : "Generate C# Clients");
+
             var generator = new CSharpGeneratorClient(GetCodeGenServerLocation());
             var documents = GetDocuments(arguments.Path);
 
@@ -59,8 +63,8 @@ public static class GenerateCommand
                     configFileName,
                     documents,
                     option: arguments.RazorOnly
-                        ? RequestOptions.GenerateCSharpClient
-                        : RequestOptions.GenerateRazorComponent);
+                        ? RequestOptions.GenerateRazorComponent
+                        : RequestOptions.GenerateCSharpClient);
 
                 var response = generator.Execute(request);
 
