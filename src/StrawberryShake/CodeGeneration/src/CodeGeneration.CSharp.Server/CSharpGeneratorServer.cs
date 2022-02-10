@@ -1,62 +1,37 @@
 using System;
 using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
-public sealed partial class CSharpGeneratorServer : IObserver<IMessage>, IAsyncDisposable
+public static partial class CSharpGeneratorServer
 {
-    private readonly TaskCompletionSource _tcs = new();
-    private readonly MessageBus _messageBus;
-    private readonly IDisposable _subscription;
-    private bool _disposed;
-
-    public CSharpGeneratorServer(Stream readStream, Stream writeStream)
+    private static readonly JsonSerializerOptions _options = new()
     {
-        _messageBus = new MessageBus(readStream, writeStream);
-        _subscription = _messageBus.Subscribe(this);
-    }
+        Converters = { new JsonStringEnumConverter() },
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
-    public Task Completion => _tcs.Task;
-
-    public void OnNext(IMessage value)
+    public static async Task<int> RunAsync(string requestFile)
     {
-        switch (value)
+        try
         {
-            case GeneratorRequest request:
-                Task.Run(async () => await ExecuteGenerateAsync(request));
-                break;
+            var buffer = await File.ReadAllBytesAsync(requestFile);
+            var request = JsonSerializer.Deserialize<GeneratorRequest>(buffer, _options)!;
+            File.Delete(requestFile);
 
-            case CloseMessage:
-                _tcs.TrySetResult();
-                break;
+            var response = await GenerateAsync(request);
+            buffer = JsonSerializer.SerializeToUtf8Bytes(response, _options);
+            await File.WriteAllBytesAsync(requestFile, buffer);
+            return 0;
         }
-    }
-
-    public void OnError(Exception error)
-    {
-    }
-
-    public void OnCompleted()
-    {
-        _tcs.TrySetResult();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (!_disposed)
+        catch(Exception ex)
         {
-            _subscription.Dispose();
-            await _messageBus.DisposeAsync();
-            _disposed = true;
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
+            return 1;
         }
-    }
-
-    public static async Task RunAsync()
-    {
-        await using var server = new CSharpGeneratorServer(
-            Console.OpenStandardInput(),
-            Console.OpenStandardOutput());
-        await server.Completion;
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using static System.IO.Path;
 
@@ -16,47 +15,18 @@ public class CSharpClientGenerator : ISourceGenerator
     {
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-            CancellationToken timeout = cts.Token;
-
             DebugLog.Log("Process->start");
 
             var codeGenServer = GetCodeGenServerLocation(context);
             var documentFileNames = GetDocumentFileNames(context);
 
-            var childProcess = Process.Start(
-                new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = codeGenServer,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                })!;
-
             DebugLog.Log("Process->started");
+            var client = new CodeGeneratorClient(codeGenServer);
 
-            using var client = new CSharpGeneratorClient(
-                childProcess.StandardOutput.BaseStream,
-                childProcess.StandardInput.BaseStream);
-
-            try
+            DebugLog.Log("Process->gen");
+            foreach (var configFileName in GetConfigFiles(context))
             {
-                DebugLog.Log("Process->gen");
-                foreach (var configFileName in GetConfigFiles(context))
-                {
-                    ExecuteAsync(context, client, configFileName, documentFileNames, timeout)
-                        .GetAwaiter()
-                        .GetResult();
-                }
-            }
-            finally
-            {
-                DebugLog.Log("Process->finished");
-                client.CloseAsync(timeout)
-                    .GetAwaiter()
-                    .GetResult();
+                Execute(context, client, configFileName, documentFileNames);
             }
         }
         catch (Exception ex)
@@ -78,19 +48,18 @@ public class CSharpClientGenerator : ISourceGenerator
         }
     }
 
-    private static async Task ExecuteAsync(
+    private static void Execute(
         GeneratorExecutionContext context,
-        CSharpGeneratorClient client,
+        CodeGeneratorClient client,
         string configFileName,
-        IReadOnlyList<string> documentFileNames,
-        CancellationToken cancellationToken)
+        IReadOnlyList<string> documentFileNames)
     {
         GeneratorRequest request = new(
             configFileName,
             documentFileNames,
             GetDefaultNamespace(context),
             GetPersistedQueryDirectory(context));
-        GeneratorResponse response = await client.GenerateAsync(request, cancellationToken);
+        GeneratorResponse response = client.Execute(request);
 
         foreach (GeneratorDocument document in response.Documents.SelectCSharp())
         {

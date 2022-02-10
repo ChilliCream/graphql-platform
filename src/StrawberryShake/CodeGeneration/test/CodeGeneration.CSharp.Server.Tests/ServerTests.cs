@@ -8,6 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 
 public class ServerTests
 {
+    /*
     [Fact]
     public async Task Generate_StarWarsAsync()
     {
@@ -35,4 +36,5 @@ public class ServerTests
 
     private static string FilePath(string name)
         => Path.Combine("__resources__", name);
+    */
 }

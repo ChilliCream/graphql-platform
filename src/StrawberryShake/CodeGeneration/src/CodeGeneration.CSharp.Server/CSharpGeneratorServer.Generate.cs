@@ -14,15 +14,9 @@ using static StrawberryShake.CodeGeneration.CSharp.ErrorHelper;
 namespace StrawberryShake.CodeGeneration.CSharp;
 
 
-public sealed partial class CSharpGeneratorServer
+public static partial class CSharpGeneratorServer
 {
-    private async Task ExecuteGenerateAsync(GeneratorRequest request)
-    {
-        GeneratorResponse response = await GenerateAsync(request);
-        await _messageBus.SendAsync(response, default);
-    }
-
-    private async Task<GeneratorResponse> GenerateAsync(GeneratorRequest request)
+    private static async Task<GeneratorResponse> GenerateAsync(GeneratorRequest request)
     {
         try
         {
@@ -63,7 +57,8 @@ public sealed partial class CSharpGeneratorServer
         }
     }
 
-    private async Task<CSharpGeneratorServerSettings> LoadSettingsAsync(GeneratorRequest request)
+    private static async Task<CSharpGeneratorServerSettings> LoadSettingsAsync(
+        GeneratorRequest request)
     {
         try
         {
@@ -126,7 +121,7 @@ public sealed partial class CSharpGeneratorServer
         }
     }
 
-    private IReadOnlyList<string> GetMatchingDocuments(
+    private static IReadOnlyList<string> GetMatchingDocuments(
         GeneratorRequest request,
         CSharpGeneratorServerSettings settings)
     {
