@@ -7,7 +7,7 @@ public static class SourceDocumentExtensions
 {
     public static IEnumerable<GeneratorDocument> SelectCSharp(
         this IEnumerable<GeneratorDocument> documents) =>
-        documents.Where(t => t.Kind is GeneratorDocumentKind.CSharp or GeneratorDocumentKind.CSharp);
+        documents.Where(t => t.Kind is GeneratorDocumentKind.CSharp or GeneratorDocumentKind.Razor);
 
     public static IEnumerable<GeneratorDocument> SelectGraphQL(
         this IEnumerable<GeneratorDocument> documents) =>

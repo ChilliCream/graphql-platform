@@ -125,7 +125,7 @@ public static partial class CSharpGeneratorServer
         GeneratorRequest request,
         CSharpGeneratorServerSettings settings)
     {
-        var rootDirectory = GetDirectoryName(request.ConfigFileName) + DirectorySeparatorChar;
+        var rootDirectory = request.RootDirectory + DirectorySeparatorChar;
 
         var glob = Glob.Parse(settings.Documents);
 

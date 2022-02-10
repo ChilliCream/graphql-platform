@@ -15,15 +15,11 @@ public class CSharpClientGenerator : ISourceGenerator
     {
         try
         {
-            DebugLog.Log("Process->start");
-
             var codeGenServer = GetCodeGenServerLocation(context);
             var documentFileNames = GetDocumentFileNames(context);
 
-            DebugLog.Log("Process->started");
             var client = new CodeGeneratorClient(codeGenServer);
 
-            DebugLog.Log("Process->gen");
             foreach (var configFileName in GetConfigFiles(context))
             {
                 Execute(context, client, configFileName, documentFileNames);
@@ -42,10 +38,6 @@ public class CSharpClientGenerator : ISourceGenerator
                         true),
                     Microsoft.CodeAnalysis.Location.None));
         }
-        finally
-        {
-            DebugLog.Log("Process->done");
-        }
     }
 
     private static void Execute(
@@ -57,13 +49,17 @@ public class CSharpClientGenerator : ISourceGenerator
         GeneratorRequest request = new(
             configFileName,
             documentFileNames,
+            Path.GetDirectoryName(configFileName),
             GetDefaultNamespace(context),
             GetPersistedQueryDirectory(context));
         GeneratorResponse response = client.Execute(request);
 
         foreach (GeneratorDocument document in response.Documents.SelectCSharp())
         {
-            context.AddSource(document.Name, document.SourceText);
+            string name = document.Kind is GeneratorDocumentKind.CSharp
+                ? document.Name + ".g.cs"
+                : document.Name + "components.g.cs";
+            context.AddSource(name, document.SourceText);
         }
 
         if (response.Errors.Count > 0)
