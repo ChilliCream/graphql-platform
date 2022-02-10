@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace StrawberryShake.Tools
 {
@@ -17,7 +18,7 @@ namespace StrawberryShake.Tools
         {
             string json = JsonSerializer.Serialize(_data, new JsonSerializerOptions
             {
-                IgnoreNullValues = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 IgnoreReadOnlyProperties = false
             });
             Console.WriteLine(json);
