@@ -9,9 +9,9 @@ using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
-public class ServerTests : IDisposable
+public class CSharpGeneratorServerTests : IDisposable
 {
-    private readonly List<string> _files = new();
+    private readonly List<string> _directories = new();
 
     [Fact]
     public async Task Generate_StarWars()
@@ -42,7 +42,7 @@ public class ServerTests : IDisposable
     public async Task Generate_StarWars_With_Razor_Components()
     {
         // arrange
-        var configFile = CreateConfig(
+        GeneratorRequest request = CreateConfig(
             new GraphQLConfig
             {
                 Extensions =
@@ -54,14 +54,6 @@ public class ServerTests : IDisposable
                 }
             });
 
-        var documents = new[]
-        {
-            FilePath("ChatGetPeople.graphql"),
-            FilePath("Schema.extensions.graphql"),
-            FilePath("Schema.graphql")
-        };
-
-        GeneratorRequest request = new(configFile, documents, "__resources__");
         var requestSink = RequestFormatter.Format(request);
 
         // act
@@ -71,26 +63,54 @@ public class ServerTests : IDisposable
         Assert.Equal(0, status);
         ResponseParser.Parse(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
+        Assert.False(File.Exists(Path.Combine(request.RootDirectory, "Client.components.g.cs")));
     }
 
     private static string FilePath(string name)
         => Path.Combine("__resources__", name);
 
-    private string CreateConfig(GraphQLConfig config)
+    private GeneratorRequest CreateConfig(GraphQLConfig config)
     {
-        var fileName = Path.GetTempFileName();
-        _files.Add(fileName);
-        File.WriteAllText(fileName, config.ToString(), Encoding.UTF8);
-        return fileName;
+        const string chatGetPeople = "ChatGetPeople.graphql";
+        const string extensions = "Schema.extensions.graphql";
+        const string schema = "Schema.graphql";
+
+        var root = Path.GetTempFileName();
+        File.Delete(root);
+        Directory.CreateDirectory(root);
+        _directories.Add(root);
+
+        var configFile = Path.Combine(root, ".graphqlrc.json");
+        var chatGetPeopleFile = Path.Combine(root, chatGetPeople);
+        var extensionsFile = Path.Combine(root, extensions);
+        var schemaFile = Path.Combine(root, schema);
+
+        File.WriteAllText(configFile, config.ToString(), Encoding.UTF8);
+        File.Copy(FilePath(chatGetPeople), chatGetPeopleFile);
+        File.Copy(FilePath(extensions), extensionsFile);
+        File.Copy(FilePath(schema), schemaFile);
+
+        var documents = new[]
+        {
+            chatGetPeopleFile,
+            extensionsFile,
+            schemaFile
+        };
+        return new(configFile, documents, root);
     }
 
     public void Dispose()
     {
-        if (_files.Count > 0)
+        if (_directories.Count > 0)
         {
-            foreach (var file in _files)
+            foreach (var directory in _directories)
             {
-                File.Delete(file);
+                foreach (var file in
+                    Directory.GetFiles(directory, "*.*", SearchOption.AllDirectories))
+                {
+                    File.Delete(file);
+                }
+                Directory.Delete(directory, true);
             }
         }
     }

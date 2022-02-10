@@ -2,12 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Intrinsics.Arm;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using DotNet.Globbing;
 using HotChocolate;
 using HotChocolate.Language;
 using StrawberryShake.Tools.Configuration;
+using Path = System.IO.Path;
 using static System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.ErrorHelper;
 
@@ -16,6 +19,8 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 
 public static partial class CSharpGeneratorServer
 {
+    private static readonly SHA256 _sha256 = SHA256.Create();
+
     private static async Task<GeneratorResponse> GenerateAsync(GeneratorRequest request)
     {
         try
@@ -42,8 +47,10 @@ public static partial class CSharpGeneratorServer
 
             CSharpGeneratorResult result = CSharpGenerator.Generate(documents, settings);
 
+            await WriteRazorFilesAsync(result.Documents, settings);
+
             return CreateResponse(
-                result.Documents,
+                result.Documents.Where(t => t.Kind is SourceDocumentKind.CSharp).ToList(),
                 ConvertErrors(result.Errors),
                 settings.PersistedQueryDirectory);
         }
@@ -57,6 +64,52 @@ public static partial class CSharpGeneratorServer
         }
     }
 
+    private static async Task WriteRazorFilesAsync(
+        IReadOnlyList<SourceDocument> documents,
+        CSharpGeneratorServerSettings settings)
+    {
+        if (!settings.RazorComponents)
+        {
+            return;
+        }
+
+        var generatedDirectory = Combine(settings.RootDirectoryName, settings.OutputDirectoryName);
+
+        if (!Directory.Exists(generatedDirectory))
+        {
+            Directory.CreateDirectory(generatedDirectory);
+        }
+
+        var razorFiles = new Dictionary<string, SourceDocument>();
+
+        foreach (SourceDocument document in
+            documents.Where(t => t.Kind is SourceDocumentKind.Razor))
+        {
+            var fileName = Combine(generatedDirectory, $"{document.Name}.component.g.cs");
+            var exists = File.Exists(fileName);
+
+            razorFiles[fileName] = document;
+
+            if (!exists || !Compare(fileName, document))
+            {
+                if (exists)
+                {
+                    File.Delete(fileName);
+                }
+
+                await File.WriteAllTextAsync(fileName, document.SourceText);
+            }
+        }
+
+        foreach (var file in Directory.GetFiles(generatedDirectory, "*.*"))
+        {
+            if (!razorFiles.ContainsKey(file))
+            {
+                File.Delete(file);
+            }
+        }
+    }
+
     private static async Task<CSharpGeneratorServerSettings> LoadSettingsAsync(
         GeneratorRequest request)
     {
@@ -67,11 +120,13 @@ public static partial class CSharpGeneratorServer
 
             if (!NameUtils.IsValidGraphQLName(config.Extensions.StrawberryShake.Name))
             {
-                throw new GraphQLException("The client name is invalid.");
+                throw new GraphQLException(ServerResources.CSharpGeneratorServer_ClientName_Invalid);
             }
 
             var generatorSettings = new CSharpGeneratorServerSettings
             {
+                RootDirectoryName = request.RootDirectory,
+                OutputDirectoryName = config.Extensions.StrawberryShake.OutputDirectoryName,
                 ClientName = config.Extensions.StrawberryShake.Name,
                 Namespace = config.Extensions.StrawberryShake.Namespace ??
                     request.DefaultNamespace ??
@@ -182,5 +237,20 @@ public static partial class CSharpGeneratorServer
                 // We will report on write that there is and issue.
             }
         }
+    }
+
+    private static bool Compare(string fileName, SourceDocument document)
+        => ComputeHash(fileName).SequenceEqual(ComputeHash(document));
+
+    private static byte[] ComputeHash(string fileName)
+    {
+        using FileStream stream = File.OpenRead(fileName);
+        return _sha256.ComputeHash(stream);
+    }
+
+    private static byte[] ComputeHash(SourceDocument document)
+    {
+        var buffer = Encoding.UTF8.GetBytes(document.SourceText);
+        return _sha256.ComputeHash(buffer);
     }
 }

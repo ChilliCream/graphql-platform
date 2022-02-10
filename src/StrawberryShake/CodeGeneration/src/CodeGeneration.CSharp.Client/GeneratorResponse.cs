@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-
 namespace StrawberryShake.CodeGeneration.CSharp;
 
-public sealed class GeneratorResponse : IMessage
+public sealed class GeneratorResponse
 {
     public GeneratorResponse(
         IReadOnlyList<GeneratorDocument>? documents = null,
@@ -17,8 +14,6 @@ public sealed class GeneratorResponse : IMessage
         Documents = documents ?? Array.Empty<GeneratorDocument>();
         Errors = errors ?? Array.Empty<GeneratorError>();
     }
-
-    public MessageKind Kind => MessageKind.Response;
 
     public IReadOnlyList<GeneratorDocument> Documents { get; }
 

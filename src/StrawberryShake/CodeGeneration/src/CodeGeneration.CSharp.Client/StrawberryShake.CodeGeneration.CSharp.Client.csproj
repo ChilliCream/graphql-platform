@@ -2,10 +2,12 @@
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <PublishSingleFile>true</PublishSingleFile>
+    <IsPackable>false</IsPackable>
+    
     <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Client</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
-    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
   </PropertyGroup>
   
   <PropertyGroup>

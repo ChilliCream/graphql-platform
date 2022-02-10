@@ -5,7 +5,7 @@ using static System.IO.Path;
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers;
 
 [Generator]
-public class CSharpClientGenerator : ISourceGenerator
+public class StrawberryShakeSourceGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
@@ -18,7 +18,7 @@ public class CSharpClientGenerator : ISourceGenerator
             var codeGenServer = GetCodeGenServerLocation(context);
             var documentFileNames = GetDocumentFileNames(context);
 
-            var client = new CodeGeneratorClient(codeGenServer);
+            var client = new CSharpGeneratorClient(codeGenServer);
 
             foreach (var configFileName in GetConfigFiles(context))
             {
@@ -30,7 +30,7 @@ public class CSharpClientGenerator : ISourceGenerator
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     new DiagnosticDescriptor(
-                        "SSG002",
+                        "SSG0003",
                         "Generator Error",
                         ex.Message,
                         "Generator",
@@ -42,24 +42,21 @@ public class CSharpClientGenerator : ISourceGenerator
 
     private static void Execute(
         GeneratorExecutionContext context,
-        CodeGeneratorClient client,
+        CSharpGeneratorClient client,
         string configFileName,
         IReadOnlyList<string> documentFileNames)
     {
         GeneratorRequest request = new(
             configFileName,
             documentFileNames,
-            Path.GetDirectoryName(configFileName),
+            GetDirectoryName(configFileName),
             GetDefaultNamespace(context),
             GetPersistedQueryDirectory(context));
         GeneratorResponse response = client.Execute(request);
 
         foreach (GeneratorDocument document in response.Documents.SelectCSharp())
         {
-            string name = document.Kind is GeneratorDocumentKind.CSharp
-                ? document.Name + ".g.cs"
-                : document.Name + ".components.g.cs";
-            context.AddSource(name, document.SourceText);
+            context.AddSource(document.Name + ".g.cs", document.SourceText);
         }
 
         if (response.Errors.Count > 0)

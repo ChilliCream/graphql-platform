@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-
 namespace StrawberryShake.CodeGeneration.CSharp;
 
-public sealed class GeneratorRequest : IMessage
+public sealed class GeneratorRequest
 {
     public GeneratorRequest(
         string configFileName,
@@ -21,8 +17,6 @@ public sealed class GeneratorRequest : IMessage
         DefaultNamespace = defaultNamespace;
         PersistedQueryDirectory = persistedQueryDirectory;
     }
-
-    public MessageKind Kind => MessageKind.Request;
 
     public string ConfigFileName { get; }
 

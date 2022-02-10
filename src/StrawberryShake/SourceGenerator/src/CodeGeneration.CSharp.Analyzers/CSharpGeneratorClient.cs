@@ -2,11 +2,11 @@ using System.Diagnostics;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers;
 
-public class CodeGeneratorClient
+public class CSharpGeneratorClient
 {
     private readonly string _codeGenServer;
 
-    public CodeGeneratorClient(string codeGenServer)
+    public CSharpGeneratorClient(string codeGenServer)
     {
         _codeGenServer = codeGenServer;
     }

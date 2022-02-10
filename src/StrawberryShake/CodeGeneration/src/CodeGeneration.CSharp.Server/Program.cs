@@ -4,19 +4,19 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
-class Program
+static class Program
 {
     static async Task<int> Main(string[] args)
     {
         if (args.Length != 1)
         {
-            Console.WriteLine("You must pass in the request file name.");
+            Console.WriteLine(ServerResources.Main_No_Arguments);
             return 1;
         }
 
         if (!File.Exists(args[0]))
         {
-            Console.WriteLine("The specified request file name is invalid.");
+            Console.WriteLine(ServerResources.Main_Request_File_Does_Not_Exist);
             return 1;
         }
 
