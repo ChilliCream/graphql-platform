@@ -67,6 +67,11 @@ public class ActivityEnricher
                 break;
         }
 
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
+        }
+
         activity.SetTag("graphql.http.kind", kind);
 
         var isDefault = false;
@@ -322,6 +327,11 @@ public class ActivityEnricher
     public virtual void EnrichParseHttpRequest(HttpContext context, Activity activity)
     {
         activity.DisplayName = "Parse HTTP Request";
+
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
+        }
     }
 
     public virtual void EnrichParserErrors(HttpContext context, IError error, Activity activity)
@@ -415,7 +425,7 @@ public class ActivityEnricher
         return null;
     }
 
-    private void UpdateRootActivityName(Activity activity, string operationDisplayName)
+    private void UpdateRootActivityName(Activity activity, string displayName)
     {
         Activity current = activity;
 
@@ -426,15 +436,15 @@ public class ActivityEnricher
 
         if (current != activity)
         {
-            current.DisplayName = CreateRootActivityName(activity, current, operationDisplayName);
+            current.DisplayName = CreateRootActivityName(activity, current, displayName);
         }
     }
 
     protected virtual string CreateRootActivityName(
         Activity activity,
         Activity root,
-        string operationDisplayName)
-        => $"{root.DisplayName}: {operationDisplayName}";
+        string displayName)
+        => $"{root.DisplayName}: {displayName}";
 
     public virtual void EnrichParseDocument(IRequestContext context, Activity activity)
     {
