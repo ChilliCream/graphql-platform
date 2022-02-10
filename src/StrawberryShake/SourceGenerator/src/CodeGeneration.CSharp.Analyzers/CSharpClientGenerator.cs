@@ -58,7 +58,7 @@ public class CSharpClientGenerator : ISourceGenerator
         {
             string name = document.Kind is GeneratorDocumentKind.CSharp
                 ? document.Name + ".g.cs"
-                : document.Name + "components.g.cs";
+                : document.Name + ".components.g.cs";
             context.AddSource(name, document.SourceText);
         }
 
