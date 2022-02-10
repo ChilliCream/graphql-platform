@@ -77,57 +77,6 @@ partial class Build
                     t => t.SetTargetPath(StarWarsTemplateNuSpec),
                     t => t.SetTargetPath(EmptyServerTemplateNuSpec),
                     t => t.SetTargetPath(TemplatesNuSpec)));
-
-            var analyzerProject = ProjectModelTasks
-                .ParseSolution(SgSolutionFile)
-                .GetProjects("*.Analyzers")
-                .Single();
-
-            Project parsedProject = ProjectModelTasks.ParseProject(analyzerProject);
-            ProjectItem packageReference = parsedProject.Items
-                .Single(t =>
-                    t.ItemType == "PackageReference" &&
-                    t.IsImported == false &&
-                    t.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp");
-            packageReference.SetMetadataValue("Version", GitVersion.SemVer);
-            parsedProject.Save();
-
-            DotNetBuild(c => c
-                .SetProjectFile(analyzerProject)
-                .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
-
-            DotNetPack(c => c
-                .SetProject(analyzerProject)
-                .SetNoBuild(InvokedTargets.Contains(Compile))
-                .SetConfiguration(Configuration)
-                .SetOutputDirectory(PackageDirectory)
-                .SetVersion(GitVersion.SemVer));
-
-            var analyzerTestProject = ProjectModelTasks
-                .ParseSolution(SgSolutionFile)
-                .GetProjects("*.Tests")
-                .Single();
-
-            parsedProject = ProjectModelTasks.ParseProject(analyzerTestProject);
-            packageReference = parsedProject.Items
-                .Single(t =>
-                    t.ItemType == "PackageReference" &&
-                    t.IsImported == false &&
-                    t.EvaluatedInclude == "StrawberryShake.CodeGeneration.CSharp.Analyzers");
-            packageReference.SetMetadataValue("Version", GitVersion.SemVer);
-            parsedProject.Save();
-
-            DotNetBuild(c => c
-                .SetProjectFile(analyzerTestProject)
-                .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
         });
 
     Target Publish => _ => _

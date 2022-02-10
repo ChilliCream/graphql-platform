@@ -38,7 +38,7 @@
                 "reveal": "silent"
             },
             "problemMatcher": "$msCompile"
-        }
+        },
         {
             "label": "build hc types analyzer",
             "command": "dotnet",
@@ -46,6 +46,42 @@
             "args": [
                 "build",
                 "src/HotChocolate/Core/test/Types.Analyzers.Tests",
+                // Ask dotnet build to generate full paths for file names.
+                "/property:GenerateFullPaths=true",
+                // Do not generate summary otherwise it leads to duplicate errors in Problems panel
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build ss generator",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "build",
+                "src/StrawberryShake/CodeGeneration",
+                // Ask dotnet build to generate full paths for file names.
+                "/property:GenerateFullPaths=true",
+                // Do not generate summary otherwise it leads to duplicate errors in Problems panel
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build ss source generator",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "build",
+                "src/StrawberryShake/SourceGenerator",
                 // Ask dotnet build to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 // Do not generate summary otherwise it leads to duplicate errors in Problems panel

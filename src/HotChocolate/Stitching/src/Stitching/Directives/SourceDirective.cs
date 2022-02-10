@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Stitching
 {
     public class SourceDirective

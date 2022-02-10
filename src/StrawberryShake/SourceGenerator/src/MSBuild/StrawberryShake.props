@@ -3,9 +3,9 @@
   <PropertyGroup>
     <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
     <StrawberryShake_BuildDirectory>$(MSBuildThisFileDirectory)..\analyzers\dotnet\cs</StrawberryShake_BuildDirectory>
+    <StrawberryShake_CodeGenServer>$(MSBuildThisFileDirectory)gen\BerryCodeGen.dll</StrawberryShake_CodeGenServer>
     <StrawberryShake_LogFile></StrawberryShake_LogFile>
     <StrawberryShake_PersistedQueryDirectory></StrawberryShake_PersistedQueryDirectory>
-    <StrawberryShake_EmitGeneratedCode></StrawberryShake_EmitGeneratedCode>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
