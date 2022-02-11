@@ -6,23 +6,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- GraphQL Files -->
-    <None Remove="@(GraphQL)" />
-    <Content Remove="@(GraphQL)" />
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)graphql.MSBuild.xaml" />
+		<PropertyPageSchema Include="$(MSBuildThisFileDirectory)graphql.MSBuild.ContentType.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- GraphQL Files -->    
     <Watch Include="@(GraphQL)" />
+    <AvailableItemName Include="GraphQL" />
     <AdditionalFiles Include="@(GraphQL)" GraphQL="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQL" />
+    
 
     <!-- GraphQL Config Files -->
-    <None Remove="@(GraphQLConfig)" />
     <Content Remove="@(GraphQLConfig)" />
     <Watch Include="@(GraphQLConfig)" />
+    <AvailableItemName Include="GraphQLConfig" />
     <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
 
     <!-- Build Options -->
     <CompilerVisibleProperty Include="StrawberryShake_DefaultNamespace" />
-    <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
     <CompilerVisibleProperty Include="StrawberryShake_BuildDirectory" />
     <CompilerVisibleProperty Include="StrawberryShake_CodeGenServer" />
     <CompilerVisibleProperty Include="StrawberryShake_PersistedQueryDirectory" />
@@ -33,29 +37,13 @@
   <Import Project="$(MSBuildThisFileDirectory)VSCode.targets" Condition="'$(StrawberryShake_RemoveGeneratedCode)' == 'true'" />
 
   <!--Design Time Code Generation Hook.-->
+  <PropertyGroup>
+    <CoreCompileDependsOn>
+      GraphQLCompile;
+      $(CoreCompileDependsOn)
+    </CoreCompileDependsOn>
+  </PropertyGroup>
+
   <Target Name="GraphQLCompile" />
-
-  <!--Logging / Debug-->
-  <Target
-    Name="StrawberryShakeLogEnvironment"
-    BeforeTargets="BeforeCompile"
-    Condition="'$(StrawberryShake_LogFile)' != ''">
-    <ItemGroup>
-      <Log Include="RoslynTargetsPath: $(RoslynTargetsPath)" />
-      <Log Include="MSBuildSDKsPath: $(MSBuildSDKsPath)" />
-      <Log Include="MSBuildExtensionsPath: $(MSBuildExtensionsPath)" />
-      <Log Include="MSBuildThisFileDirectory: $(MSBuildThisFileDirectory)" />
-    </ItemGroup>
-
-    <PropertyGroup>
-      <StrawberryShake_LogDirectory>$([System.IO.Path]::GetDirectoryName('$(StrawberryShake_LogFile)'))</StrawberryShake_LogDirectory>
-    </PropertyGroup>
-
-    <WriteLinesToFile
-      File="$(StrawberryShake_LogDirectory)\StrawberryShake_EnvironmentInfo.log"
-      Lines="@(Log)"
-      Overwrite="false"
-      Encoding="Unicode"/>
-  </Target>
 
 </Project>

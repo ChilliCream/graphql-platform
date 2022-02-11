@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using DotNet.Globbing;
 using HotChocolate;
@@ -12,7 +13,6 @@ using StrawberryShake.Tools.Configuration;
 using Path = System.IO.Path;
 using static System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.ErrorHelper;
-using System.Text.Json;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
