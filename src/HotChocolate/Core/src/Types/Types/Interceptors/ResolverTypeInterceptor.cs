@@ -188,42 +188,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                         objectTypeDef.RuntimeType,
                         resolverType: member.ReflectedType);
 
-                    if (member is MethodInfo method)
-                    {
-                        foreach (ParameterInfo parameter in
-                            _resolverCompiler.GetArgumentParameters(method.GetParameters()))
-                        {
-                            _parameters[parameter.Name!] = parameter;
-                        }
-
-                        foreach (var argument in field.Arguments)
-                        {
-                            if (_parameters.TryGetValue(argument.Name.Value, out var parameter))
-                            {
-                                argument.Parameter = parameter;
-                                argument.RuntimeType = parameter.ParameterType;
-
-                                if (_typeReferenceResolver.TryGetType(argument.Type!, out var type))
-                                {
-                                    Type? unwrapped = Unwrap(parameter.ParameterType, type);
-                                    if (unwrapped is not null)
-                                    {
-#if NET5_0_OR_GREATER
-                                        _runtimeTypes.TryAdd(type.NamedType().Name, unwrapped);
-#else
-                                        if (!_runtimeTypes.ContainsKey(type.NamedType().Name))
-                                        {
-                                            _runtimeTypes.Add(type.NamedType().Name, unwrapped);
-                                        }
-#endif
-                                    }
-                                }
-                            }
-                        }
-
-                        _parameters.Clear();
-                    }
-
+                    TryBindArgumentRuntimeType(field, member);
                     TrySetRuntimeTypeFromMember(context, field.Type, member);
                 }
             }
@@ -276,6 +241,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             {
                 field.Member = member;
 
+                TryBindArgumentRuntimeType(field, member);
                 ObjectFieldDescriptor.From(_context, field).CreateDefinition();
 
                 if (!field.Resolvers.HasResolvers)
@@ -405,6 +371,47 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                     typeDef.RuntimeType = Unwrap(config.ResultType, type);
                 }
             }
+        }
+    }
+
+    private void TryBindArgumentRuntimeType(
+        ObjectFieldDefinition field, 
+        MemberInfo member)
+    {
+        if (member is MethodInfo method)
+        {
+            foreach (ParameterInfo parameter in
+                _resolverCompiler.GetArgumentParameters(method.GetParameters()))
+            {
+                _parameters[parameter.Name!] = parameter;
+            }
+
+            foreach (ArgumentDefinition argument in field.Arguments)
+            {
+                if (_parameters.TryGetValue(argument.Name.Value, out ParameterInfo? parameter))
+                {
+                    argument.Parameter = parameter;
+                    argument.RuntimeType = parameter.ParameterType;
+
+                    if (_typeReferenceResolver.TryGetType(argument.Type!, out IType? type))
+                    {
+                        Type? unwrapped = Unwrap(parameter.ParameterType, type);
+                        if (unwrapped is not null)
+                        {
+#if NET5_0_OR_GREATER
+                            _runtimeTypes.TryAdd(type.NamedType().Name, unwrapped);
+#else
+                            if (!_runtimeTypes.ContainsKey(type.NamedType().Name))
+                            {
+                                _runtimeTypes.Add(type.NamedType().Name, unwrapped);
+                            }
+#endif
+                        }
+                    }
+                }
+            }
+
+            _parameters.Clear();
         }
     }
 
