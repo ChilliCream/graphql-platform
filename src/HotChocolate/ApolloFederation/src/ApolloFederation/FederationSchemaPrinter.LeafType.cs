@@ -1,6 +1,5 @@
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -8,20 +7,12 @@ internal static partial class FederationSchemaPrinter
 {
     private static EnumTypeDefinitionNode SerializeEnumType(
         EnumType enumType,
-        ReferencedTypes referenced)
+        Context context)
     {
-        var directives = enumType.Directives
-            .Select(
-                t => SerializeDirective(
-                    t,
-                    referenced))
-            .ToList();
+        var directives = SerializeDirectives(enumType.Directives, context);
 
         var values = enumType.Values
-            .Select(
-                t => SerializeEnumValue(
-                    t,
-                    referenced))
+            .Select(t => SerializeEnumValue(t, context))
             .ToList();
 
         return new EnumTypeDefinitionNode(
@@ -34,30 +25,38 @@ internal static partial class FederationSchemaPrinter
 
     private static EnumValueDefinitionNode SerializeEnumValue(
         IEnumValue enumValue,
-        ReferencedTypes referenced)
+        Context context)
     {
-        var directives = enumValue.Directives
-            .Select(
-                t => SerializeDirective(
-                    t,
-                    referenced))
-            .ToList();
+        var directives = SerializeDirectives(enumValue.Directives, context);
+
+        if (enumValue.IsDeprecated)
+        {
+            var deprecateDirective = DeprecatedDirective.CreateNode(enumValue.DeprecationReason);
+
+            if(directives.Count == 0)
+            {
+                directives = new[] { deprecateDirective };
+            }
+            else
+            {
+                var temp = directives.ToList();
+                temp.Add(deprecateDirective);
+                directives = temp;
+            }
+        }
 
         return new EnumValueDefinitionNode(
             null,
             new NameNode(enumValue.Name),
             SerializeDescription(enumValue.Description),
-            directives
-        );
+            directives);
     }
 
     private static ScalarTypeDefinitionNode SerializeScalarType(
         ScalarType scalarType,
-        ReferencedTypes referenced)
+        Context context)
     {
-        var directives = scalarType.Directives
-            .Select(d => SerializeDirective(d, referenced))
-            .ToList();
+        var directives = SerializeDirectives(scalarType.Directives, context);
 
         return new(
             null,

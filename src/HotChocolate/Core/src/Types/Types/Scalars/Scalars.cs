@@ -63,6 +63,9 @@ public static class Scalars
         { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
         { ScalarNames.Name, typeof(NameType) },
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
+
+        // legacy support
+        { ScalarNames.PaginationAmount, typeof(PaginationAmountType) },
     };
 
     private static readonly Dictionary<Type, ValueKind> _scalarKinds = new()

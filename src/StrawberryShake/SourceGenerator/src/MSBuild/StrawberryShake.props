@@ -1,33 +1,25 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
     <StrawberryShake_BuildDirectory>$(MSBuildThisFileDirectory)..\analyzers\dotnet\cs</StrawberryShake_BuildDirectory>
-    <StrawberryShake_LogFile></StrawberryShake_LogFile>
+    <StrawberryShake_CodeGenServer>$(MSBuildThisFileDirectory)gen\BerryCodeGen.dll</StrawberryShake_CodeGenServer>
     <StrawberryShake_PersistedQueryDirectory></StrawberryShake_PersistedQueryDirectory>
-    <StrawberryShake_EmitGeneratedCode></StrawberryShake_EmitGeneratedCode>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
     <GraphQL>
-      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:GraphQLCompile</Generator>
     </GraphQL>
     <GraphQLConfig>
-      <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:GraphQLCompile</Generator>
     </GraphQLConfig>
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <PropertyPageSchema Include="$(GraphQLPropertyPageSchema)">
-      <Context>File;BrowseObject</Context>
-    </PropertyPageSchema>
-    <AvailableItemName Include="GraphQL" />
-    <AvailableItemName Include="GraphQLConfig" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <GraphQL Include="**\*.graphql" />
-    <GraphQLConfig Include="**\.graphqlrc.json" />
-  </ItemGroup>
+    <None Remove="**/*.graphql" />
+    <GraphQL Include="**/*.graphql" />
+    <None Remove="**/.graphqlrc.json" />
+    <GraphQLConfig Include="**/.graphqlrc.json" />
+	</ItemGroup>
 
 </Project>

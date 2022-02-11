@@ -1,4 +1,7 @@
 using System;
+using System.Reflection;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -154,30 +157,6 @@ public class FederationSchemaPrinterTests
         FederationSchemaPrinter.Print(schema).MatchSnapshot();
     }
 
-    [Fact(Skip = "Wait for SchemaFirstFixes!")]
-    public void TestFederationPrinterApolloTypeExtensionSchemaFirst()
-    {
-        // arrange
-        ISchema schema = SchemaBuilder.New()
-            .AddApolloFederation()
-            .AddDocumentFromString(
-                @"
-                extend type TestType @key(fields: ""id"") {
-                    id: Int!
-                    name: String!
-                }
-
-                type Query {
-                    someField(a: Int): TestType
-                }")
-            .Use(_ => _ => default)
-            .Create();
-
-        // act
-        // assert
-        FederationSchemaPrinter.Print(schema).MatchSnapshot();
-    }
-
     [Fact]
     public void TestFederationPrinterApolloDirectivesPureCodeFirst()
     {
@@ -199,6 +178,34 @@ public class FederationSchemaPrinterTests
         ISchema schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<QueryRoot<Product>>()
+            .Create();
+
+        // act
+        // assert
+        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+    }
+
+    [Fact]
+    public void CustomDirective_IsPublic()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithDirective>()
+            .AddDirectiveType(new CustomDirectiveType(true))
+            .Create();
+
+        // act
+        // assert
+        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+    }
+
+    [Fact]
+    public void CustomDirective_IsInternal()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithDirective>()
+            .AddDirectiveType(new CustomDirectiveType(false))
             .Create();
 
         // act
@@ -234,5 +241,83 @@ public class FederationSchemaPrinterTests
     {
         [Key]
         public string Upc { get; set; } = default!;
+    }
+
+    public class QueryWithDirective : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor
+                .Name("Query")
+                .Field("foo")
+                .Resolve("bar")
+                .Directive("custom");
+
+            descriptor
+                .Field("deprecated1")
+                .Resolve("abc")
+                .Deprecated("deprecated")
+                .Type<EnumType<EnumWithDeprecatedValue>>();
+
+            descriptor
+                .Field("deprecated2")
+                .Resolve("abc")
+                .Deprecated("deprecated")
+                .Directive("custom")
+                .Type<EnumType<EnumWithDeprecatedValue>>();
+        }
+    }
+
+    public class CustomDirectiveType : DirectiveType
+    {
+        private readonly bool _isPublic;
+
+        public CustomDirectiveType(bool isPublic)
+        {
+            _isPublic = isPublic;
+        }
+
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor
+                .Name("custom")
+                .Location(DirectiveLocation.FieldDefinition)
+                .Location(DirectiveLocation.EnumValue);
+
+            if (_isPublic)
+            {
+                descriptor.Public();
+            }
+            else
+            {
+                descriptor.Internal();
+            }
+        }
+    }
+
+    public enum EnumWithDeprecatedValue
+    {
+        [Obsolete]
+        Deprecated1,
+
+        [CustomDirective]
+        [Obsolete]
+        Deprecated2,
+
+        Active
+    }
+
+    public class CustomDirectiveAttribute : DescriptorAttribute
+    {
+        protected override void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element)
+        {
+            if (descriptor is EnumValueDescriptor enumValue)
+            {
+                enumValue.Directive("custom");
+            }
+        }
     }
 }

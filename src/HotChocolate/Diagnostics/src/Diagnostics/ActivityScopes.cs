@@ -17,13 +17,15 @@ public enum ActivityScopes
     CompileOperation = 256,
     ExecuteOperation = 512,
     ResolveFieldValue = 1024,
+    DataLoaderBatch = 2048,
     Default =
         ExecuteHttpRequest |
         ParseHttpRequest |
         ValidateDocument |
         CompileOperation |
         ResolveFieldValue |
-        FormatHttpResponse,
+        FormatHttpResponse |
+        DataLoaderBatch,
     All =
         ExecuteHttpRequest |
         ParseHttpRequest |

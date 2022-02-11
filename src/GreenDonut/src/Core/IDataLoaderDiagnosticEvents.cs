@@ -31,7 +31,8 @@ namespace GreenDonut
         /// </returns>
         IDisposable ExecuteBatch<TKey>(
             IDataLoader dataLoader,
-            IReadOnlyList<TKey> keys);
+            IReadOnlyList<TKey> keys)
+            where TKey : notnull;
 
         /// <summary>
         /// This event is raised whenever the executed batch yielded a result.
@@ -53,7 +54,8 @@ namespace GreenDonut
         /// <typeparam name="TKey">The type of the keys.</typeparam>
         void BatchError<TKey>(
             IReadOnlyList<TKey> keys,
-            Exception error);
+            Exception error)
+            where TKey : notnull;
 
         /// <summary>
         /// This event is raised whenever there is an error for a specific key
@@ -64,6 +66,7 @@ namespace GreenDonut
         /// <typeparam name="TKey">The type of the key.</typeparam>
         void BatchItemError<TKey>(
             TKey key,
-            Exception error);
+            Exception error)
+            where TKey : notnull;
     }
 }

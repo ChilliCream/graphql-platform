@@ -7,6 +7,11 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
+using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate
 {
@@ -64,6 +69,72 @@ namespace HotChocolate
             IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result = await executor.ExecuteAsync(query);
             result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_Against_Schema_With_Interface_Schema()
+        {
+            Snapshot.FullName();
+
+            var source = @"
+                type Query {
+                    pet: Pet
+                }
+
+                interface Pet {
+                    name: String
+                }
+
+                type Cat implements Pet {
+                    name: String
+                }
+
+                type Dog implements Pet {
+                    name: String
+                }
+            ";
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(source)
+                .AddResolver<PetQuery>("Query")
+                .BindRuntimeType<Cat>()
+                .BindRuntimeType<Dog>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Execute_Against_Schema_With_Interface_Execute()
+        {
+            Snapshot.FullName();
+
+            var source = @"
+                type Query {
+                    pet: Pet
+                }
+
+                interface Pet {
+                    name: String
+                }
+
+                type Cat implements Pet {
+                    name: String
+                }
+
+                type Dog implements Pet {
+                    name: String
+                }
+            ";
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(source)
+                .AddResolver<PetQuery>("Query")
+                .BindRuntimeType<Cat>()
+                .BindRuntimeType<Dog>()
+                .ExecuteRequestAsync("{ pet { name __typename } }")
+                .MatchSnapshotAsync();
         }
 
         [Fact]
@@ -408,45 +479,168 @@ namespace HotChocolate
             // assert
             schema.Print().MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Apply_Schema_Building_Directive()
+        {
+            // arrange
+            var sdl = "type Person { name: String! @desc(value: \"abc\") }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .AddQueryType<QueryCodeFirst>()
+                    .BindRuntimeType<Person>()
+                    .ConfigureSchema(sb => sb.AddSchemaDirective(new CustomDescriptionDirective()))
+                    .BuildSchemaAsync();
+
+            // assert
+            Assert.Equal(
+                "abc",
+                schema.GetType<ObjectType>("Person")?.Fields["name"].Description);
+        }
+
+        [Fact]
+        public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound()
+        {
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(@"
+                    type Query {
+                        book(input: TestEnumInput): TestEnum
+                    }
+
+                    enum TestEnumInput { FOO_BAR_INPUT }
+                    enum TestEnum { FOO_BAR }")
+                .AddResolver<QueryEnumExample>("Query")
+                .ExecuteRequestAsync("{ book(input: FOO_BAR_INPUT) }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound_When_Using_BindRuntimeType()
+        {
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(@"
+                    type Query {
+                        book(input: TestEnumInput): TestEnum
+                    }
+
+                    enum TestEnumInput { FOO_BAR_INPUT }
+                    enum TestEnum { FOO_BAR }")
+                .BindRuntimeType<QueryEnumExample>("Query")
+                .ExecuteRequestAsync("{ book(input: FOO_BAR_INPUT) }")
+                .MatchSnapshotAsync();
+        }
+
+        public class Query
+        {
+            public string Hello() => "World";
+        }
+
+        public class QueryWithItems
+        {
+            [UsePaging]
+            public string[] GetItems() => new[] { "a", "b" };
+        }
+
+        public class QueryWithOffsetItems
+        {
+            [UseOffsetPaging]
+            public string[] GetItems() => new[] { "a", "b" };
+        }
+
+        public class QueryWithPersons
+        {
+            [UsePaging]
+            public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
+        }
+
+        public class QueryWithOffsetPersons
+        {
+            [UseOffsetPaging]
+            public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
+        }
+
+        public class QueryCodeFirst
+        {
+            [GraphQLType("Person!")]
+            public object GetPerson() => new Person { Name = "Hello" };
+        }
+
+        public class Person
+        {
+            public string Name { get; set; }
+        }
+
+        public class CustomDescriptionDirective : ISchemaDirective
+        {
+            public NameString Name => "desc";
+
+            public void ApplyConfiguration(
+                IDescriptorContext context,
+                DirectiveNode directiveNode,
+                IDefinition definition,
+                Stack<IDefinition> path)
+            {
+                if (definition is ObjectFieldDefinition objectField)
+                {
+                    objectField.Description = (string)directiveNode.Arguments.First().Value.Value;
+                }
+            }
+        }
+
+        public class PetQuery
+        {
+            public IPet GetPet() => new Cat("Mauzi");
+        }
+
+        public interface IPet
+        {
+            string Name { get; }
+        }
+
+        public class Cat : IPet
+        {
+            public Cat(string name)
+            {
+                Name = name;
+            }
+
+            public string Name { get; }
+        }
+
+        public class Dog : IPet
+        {
+            public Dog(string name)
+            {
+                Name = name;
+            }
+
+            public string Name { get; }
+        }
     }
 
-    public class Query
+    public class QueryEnumExample
     {
-        public string Hello() => "World";
+        public TestEnum GetBook(TestEnumInput input)
+        {
+            return TestEnum.FooBar;
+        }
     }
 
-    public class QueryWithItems
+    public enum TestEnum
     {
-        [UsePaging]
-        public string[] GetItems() => new[] { "a", "b" };
+        FooBar
     }
 
-    public class QueryWithOffsetItems
+    public enum TestEnumInput
     {
-        [UseOffsetPaging]
-        public string[] GetItems() => new[] { "a", "b" };
-    }
-
-    public class QueryWithPersons
-    {
-        [UsePaging]
-        public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
-    }
-
-    public class QueryWithOffsetPersons
-    {
-        [UseOffsetPaging]
-        public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
-    }
-
-    public class QueryCodeFirst
-    {
-        [GraphQLType("Person!")]
-        public object GetPerson() => new Person { Name = "Hello" };
-    }
-
-    public class Person
-    {
-        public string Name { get; set; }
+        FooBarInput
     }
 }

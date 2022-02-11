@@ -1,14 +1,15 @@
-using System;
-using HotChocolate.ApolloFederation;
+using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Descriptors;
 using HotChocolate.Language;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
+using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 
 namespace HotChocolate.Types;
 
 /// <summary>
 /// Provides extensions for type system descriptors.
 /// </summary>
-public static class ApolloFederationDescriptorExtensions
+public static partial class ApolloFederationDescriptorExtensions
 {
     /// <summary>
     /// Adds the @external directive which is used to mark a field as owned by another service.
@@ -40,7 +41,7 @@ public static class ApolloFederationDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        return descriptor.Directive(new ExternalDirectiveType());
+        return descriptor.Directive(WellKnownTypeNames.External);
     }
 
     /// <summary>
@@ -67,7 +68,7 @@ public static class ApolloFederationDescriptorExtensions
     /// <exception cref="ArgumentException">
     /// <paramref name="fieldSet"/> is <c>null</c> or <see cref="string.Empty"/>.
     /// </exception>
-    public static IObjectTypeDescriptor Key(
+    public static IEntityResolverDescriptor Key(
         this IObjectTypeDescriptor descriptor,
         string fieldSet)
     {
@@ -83,11 +84,13 @@ public static class ApolloFederationDescriptorExtensions
                 nameof(fieldSet));
         }
 
-        return descriptor.Directive(
+        descriptor.Directive(
             WellKnownTypeNames.Key,
             new ArgumentNode(
                 WellKnownArgumentNames.Fields,
                 new StringValueNode(fieldSet)));
+
+        return new EntityResolverDescriptor<object>(descriptor);
     }
 
     /// <summary>
@@ -200,5 +203,25 @@ public static class ApolloFederationDescriptorExtensions
             new ArgumentNode(
                 WellKnownArgumentNames.Fields,
                 new StringValueNode(fieldSet)));
+    }
+
+    /// <summary>
+    /// Mark the type as an extension
+    /// of a type that is defined by another service when
+    /// using apollo federation.
+    /// </summary>
+    public static IObjectTypeDescriptor ExtendServiceType(
+        this IObjectTypeDescriptor descriptor)
+    {
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        descriptor
+            .Extend()
+            .OnBeforeCreate(d => d.ContextData[ExtendMarker] = true);
+
+        return descriptor;
     }
 }

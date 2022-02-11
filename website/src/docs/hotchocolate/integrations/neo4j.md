@@ -15,6 +15,8 @@ To use the Neo4J integration, you need to install the package `HotChocolate.Data
 dotnet add package HotChocolate.Data.Neo4J
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 # Neo4JExecutable
 
 The whole integration builds around `IExecutable<T>`.

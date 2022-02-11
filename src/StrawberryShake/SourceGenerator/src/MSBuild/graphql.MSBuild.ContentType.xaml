@@ -1,0 +1,9 @@
+<ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <ContentType Name="GraphQL" DisplayName="GraphQL query or schema file" ItemType="GraphQL" />
+  <ItemType Name="GraphQL" DisplayName="GraphQL compiler" />
+  <FileExtension Name=".graphql" ContentType="GraphQL" />
+  
+  <ContentType Name="GraphQLConfig" DisplayName="GraphQL configuration file" ItemType="GraphQLConfig" />
+  <ItemType Name="GraphQLConfig" DisplayName="GraphQL compiler" />
+  <FileExtension Name=".graphqlrc.json" ContentType="GraphQLConfig" />
+</ProjectSchemaDefinitions>

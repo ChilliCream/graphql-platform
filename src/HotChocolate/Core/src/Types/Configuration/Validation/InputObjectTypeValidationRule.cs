@@ -20,6 +20,7 @@ public class InputObjectTypeValidationRule : ISchemaValidationRule
                 EnsureTypeHasFields(type, errors);
                 EnsureFieldNamesAreValid(type, errors);
                 EnsureOneOfFieldsAreValid(type, errors);
+                EnsureFieldDeprecationIsValid(type, errors);
             }
         }
     }

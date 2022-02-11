@@ -322,6 +322,11 @@ public class DefaultNamingConventions
             }
         }
 
+        if (value is ICustomAttributeProvider provider)
+        {
+            return provider.IsDeprecated(out reason);
+        }
+
         reason = null;
         return false;
     }

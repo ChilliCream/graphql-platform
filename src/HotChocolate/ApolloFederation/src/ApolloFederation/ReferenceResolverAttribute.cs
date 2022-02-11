@@ -1,6 +1,5 @@
-using System;
 using System.Reflection;
-using HotChocolate.Types;
+using HotChocolate.ApolloFederation.Descriptors;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
@@ -41,7 +40,7 @@ public class ReferenceResolverAttribute : DescriptorAttribute
 
     private void OnConfigure(IObjectTypeDescriptor descriptor, Type type)
     {
-        var entityResolverDescriptor = new EntityResolverDescriptor(descriptor);
+        var entityResolverDescriptor = new EntityResolverDescriptor<object>(descriptor);
 
         if (EntityResolverType is not null)
         {
@@ -56,11 +55,11 @@ public class ReferenceResolverAttribute : DescriptorAttribute
                         EntityResolver);
                 }
 
-                entityResolverDescriptor.ResolveEntityWith(method);
+                entityResolverDescriptor.ResolveReferenceWith(method);
             }
             else
             {
-                entityResolverDescriptor.ResolveEntityWith(EntityResolverType);
+                entityResolverDescriptor.ResolveReferenceWith(EntityResolverType);
             }
         }
         else if (EntityResolver is not null)
@@ -74,17 +73,17 @@ public class ReferenceResolverAttribute : DescriptorAttribute
                     EntityResolver);
             }
 
-            entityResolverDescriptor.ResolveEntityWith(method);
+            entityResolverDescriptor.ResolveReferenceWith(method);
         }
         else
         {
-            entityResolverDescriptor.ResolveEntityWith(type);
+            entityResolverDescriptor.ResolveReferenceWith(type);
         }
     }
 
     private void OnConfigure(IObjectTypeDescriptor descriptor, MethodInfo method)
     {
-        var entityResolverDescriptor = new EntityResolverDescriptor(descriptor);
-        entityResolverDescriptor.ResolveEntityWith(method);
+        var entityResolverDescriptor = new EntityResolverDescriptor<object>(descriptor);
+        entityResolverDescriptor.ResolveReferenceWith(method);
     }
 }

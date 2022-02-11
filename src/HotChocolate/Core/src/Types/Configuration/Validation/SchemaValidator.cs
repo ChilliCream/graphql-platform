@@ -12,6 +12,7 @@ internal static class SchemaValidator
         new ObjectTypeValidationRule(),
         new InterfaceTypeValidationRule(),
         new InputObjectTypeValidationRule(),
+        new DirectiveValidationRule(),
         new InterfaceHasAtLeastOneImplementationRule()
     };
 

@@ -291,9 +291,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (fragmentDefinitionSyntax is not null)
             {
-                if (_schema.TryGetType(
+                if (_schema.TryGetType<INamedType>(
                     fragmentDefinitionSyntax.TypeCondition.Name.Value,
-                    out INamedType type))
+                    out var type))
                 {
                     return new Fragment(
                         fragmentName,

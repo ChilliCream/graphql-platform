@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Security.Cryptography;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;

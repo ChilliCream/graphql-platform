@@ -1,6 +1,5 @@
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -8,14 +7,12 @@ internal static partial class FederationSchemaPrinter
 {
     private static InputObjectTypeDefinitionNode SerializeInputObjectType(
         InputObjectType inputObjectType,
-        ReferencedTypes referenced)
+        Context context)
     {
-        var directives = inputObjectType.Directives
-            .Select(t => SerializeDirective(t, referenced))
-            .ToList();
+        var directives = SerializeDirectives(inputObjectType.Directives, context);
 
         var fields = inputObjectType.Fields
-            .Select(t => SerializeInputField(t, referenced))
+            .Select(t => SerializeInputField(t, context))
             .ToList();
 
         return new InputObjectTypeDefinitionNode(
@@ -28,14 +25,16 @@ internal static partial class FederationSchemaPrinter
 
     private static InputValueDefinitionNode SerializeInputField(
         IInputField inputValue,
-        ReferencedTypes referenced)
+        Context context)
     {
+        var directives = SerializeDirectives(inputValue.Directives, context);
+
         return new InputValueDefinitionNode(
             null,
             new NameNode(inputValue.Name),
             SerializeDescription(inputValue.Description),
-            SerializeType(inputValue.Type, referenced),
+            SerializeType(inputValue.Type, context),
             inputValue.DefaultValue,
-            inputValue.Directives.Select(t => SerializeDirective(t, referenced)).ToList());
+            directives);
     }
 }

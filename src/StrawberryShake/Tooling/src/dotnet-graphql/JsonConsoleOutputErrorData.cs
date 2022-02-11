@@ -7,11 +7,11 @@ namespace StrawberryShake.Tools
         public JsonConsoleOutputErrorData(HotChocolate.IError error)
         {
             Message = error.Message;
-            Code = error.Code;
+            Code = error.Code!;
 
             if (error.Extensions is { } && error.Extensions.ContainsKey("fileName"))
             {
-                FileName = $"{Path.GetFullPath((string)error.Extensions["fileName"])}";
+                FileName = $"{Path.GetFullPath((string)error.Extensions["fileName"]!)}";
             }
 
             if (error.Locations is { } && error.Locations.Count > 0)

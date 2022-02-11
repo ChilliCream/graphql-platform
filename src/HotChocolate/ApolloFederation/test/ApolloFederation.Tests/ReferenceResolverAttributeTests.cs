@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Xunit;
+using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -68,6 +69,46 @@ public class ReferenceResolverAttributeTests
     }
 
     [Fact]
+    public async void ExternalFields_Set()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddQueryType<QueryWithExternalField>()
+            .Create();
+
+        // act
+        ObjectType type = schema.GetType<ObjectType>(nameof(ExternalFields));
+        var representation = new ObjectValueNode(
+            new ObjectFieldNode("id", "id_123"),
+            new ObjectFieldNode("foo", "bar"));
+
+        // assert
+        var result = await ResolveRef(schema, type, representation);
+
+        Assert.Equal("bar", Assert.IsType<ExternalFields>(result).Foo);
+    }
+
+    [Fact]
+    public async void ExternalFields_Not_Set()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddQueryType<QueryWithExternalField>()
+            .Create();
+
+        // act
+        ObjectType type = schema.GetType<ObjectType>(nameof(ExternalFields));
+        var representation = new ObjectValueNode(new ObjectFieldNode("id", "id_123"));
+
+        // assert
+        var result = await ResolveRef(schema, type, representation);
+
+        Assert.Null(Assert.IsType<ExternalFields>(result).Foo);
+    }
+
+    [Fact]
     public async void MultiKey_CompiledResolver()
     {
         // arrange
@@ -120,7 +161,7 @@ public class ReferenceResolverAttributeTests
 
         // act
         // assert
-        Assert.Throws<SchemaException>((Action) SchemaCreation);
+        Assert.Throws<SchemaException>((Action)SchemaCreation);
     }
 
     [Fact]
@@ -137,26 +178,36 @@ public class ReferenceResolverAttributeTests
 
         // act
         // assert
-        Assert.Throws<SchemaException>((Action) SchemaCreation);
+        Assert.Throws<SchemaException>((Action)SchemaCreation);
     }
 
     private ValueTask<object?> ResolveRef(ISchema schema, ObjectType type)
         => ResolveRef(schema, type, new ObjectValueNode(new ObjectFieldNode("id", "abc")));
 
-    private ValueTask<object?> ResolveRef(
+    private async ValueTask<object?> ResolveRef(
         ISchema schema,
         ObjectType type,
         ObjectValueNode representation)
     {
-        var inClassResolverContextObject =
-            type.ContextData[WellKnownContextData.EntityResolver];
+        var inClassResolverContextObject = type.ContextData[EntityResolver];
         Assert.NotNull(inClassResolverContextObject);
         FieldResolverDelegate inClassResolverDelegate =
             Assert.IsType<FieldResolverDelegate>(inClassResolverContextObject);
         IResolverContext context = CreateResolverContext(schema, type);
 
-        context.SetLocalValue(AnyType.DataField, representation);
-        return inClassResolverDelegate.Invoke(context);
+        context.SetLocalValue(DataField, representation);
+        context.SetLocalValue(TypeField, type);
+
+        var entity = await inClassResolverDelegate.Invoke(context);
+
+        if (entity is not null &&
+            type!.ContextData.TryGetValue(ExternalSetter, out var value) &&
+            value is Action<ObjectType, IValueNode, object> setExternals)
+        {
+            setExternals(type, representation!, entity);
+        }
+
+        return entity;
     }
 
     public class Query_InClass_Invalid
@@ -209,6 +260,11 @@ public class ReferenceResolverAttributeTests
         public ExternalMultiKeyResolver ExternalRefResolver { get; set; } = default!;
     }
 
+    public class QueryWithExternalField
+    {
+        public ExternalFields ExternalRefResolver { get; set; } = default!;
+    }
+
     [ReferenceResolver(EntityResolver = nameof(GetAsync))]
     public class InClassRefResolver
     {
@@ -240,6 +296,19 @@ public class ReferenceResolverAttributeTests
 
         public static Task<ExternalSingleKeyResolver> GetAsync(string id)
             => Task.FromResult(new ExternalSingleKeyResolver { Id = id });
+    }
+
+    [ReferenceResolver(EntityResolver = nameof(GetAsync))]
+    public class ExternalFields
+    {
+        [Key]
+        public string Id { get; set; } = default!;
+
+        [External]
+        public string Foo { get; private set; } = default!;
+
+        public static Task<ExternalFields> GetAsync(string id)
+            => Task.FromResult(new ExternalFields { Id = id });
     }
 
     [Key("id")]

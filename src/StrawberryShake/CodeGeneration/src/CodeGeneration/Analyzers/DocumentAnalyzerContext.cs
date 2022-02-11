@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Schema = schema ?? throw new ArgumentNullException(nameof(document));
             Document = document ?? throw new ArgumentNullException(nameof(document));
             OperationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
-            OperationType = schema.GetOperationType(OperationDefinition.Operation);
+            OperationType = schema.GetOperationType(OperationDefinition.Operation)!;
             OperationName = OperationDefinition.Name!.Value;
             RootPath = Path.Root.Append(OperationName);
 

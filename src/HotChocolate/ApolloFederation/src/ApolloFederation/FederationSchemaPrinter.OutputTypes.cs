@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -12,11 +7,11 @@ internal static partial class FederationSchemaPrinter
 {
     private static IDefinitionNode? SerializeObjectType(
         ObjectType objectType,
-        ReferencedTypes referenced)
+        Context context)
     {
         var fields = objectType.Fields
             .Where(IncludeField)
-            .Select(t => SerializeObjectField(t, referenced))
+            .Select(t => SerializeObjectField(t, context))
             .ToList();
 
         if (fields.Count == 0)
@@ -24,15 +19,13 @@ internal static partial class FederationSchemaPrinter
             return null;
         }
 
-        var directives = objectType.Directives
-            .Select(t => SerializeDirective(t, referenced))
-            .ToList();
+        var directives = SerializeDirectives(objectType.Directives, context);
 
         var interfaces = objectType.Implements
-            .Select(t => SerializeNamedType(t, referenced))
+            .Select(t => SerializeNamedType(t, context))
             .ToList();
 
-        if (objectType.ContextData.ContainsKey(WellKnownContextData.ExtendMarker))
+        if (objectType.ContextData.ContainsKey(Constants.WellKnownContextData.ExtendMarker))
         {
             return new ObjectTypeExtensionNode(
                 null,
@@ -53,14 +46,12 @@ internal static partial class FederationSchemaPrinter
 
     private static InterfaceTypeDefinitionNode SerializeInterfaceType(
         InterfaceType interfaceType,
-        ReferencedTypes referenced)
+        Context context)
     {
-        var directives = interfaceType.Directives
-            .Select(t => SerializeDirective(t, referenced))
-            .ToList();
+        var directives = SerializeDirectives(interfaceType.Directives, context);
 
         var fields = interfaceType.Fields
-            .Select(t => SerializeObjectField(t, referenced))
+            .Select(t => SerializeObjectField(t, context))
             .ToList();
 
         return new InterfaceTypeDefinitionNode(
@@ -74,14 +65,12 @@ internal static partial class FederationSchemaPrinter
 
     private static UnionTypeDefinitionNode SerializeUnionType(
         UnionType unionType,
-        ReferencedTypes referenced)
+        Context context)
     {
-        var directives = unionType.Directives
-            .Select(t => SerializeDirective(t, referenced))
-            .ToList();
+        var directives = SerializeDirectives(unionType.Directives, context);
 
         var types = unionType.Types.Values
-            .Select(t => SerializeNamedType(t, referenced))
+            .Select(t => SerializeNamedType(t, context))
             .ToList();
 
         return new UnionTypeDefinitionNode(
@@ -94,22 +83,36 @@ internal static partial class FederationSchemaPrinter
 
     private static FieldDefinitionNode SerializeObjectField(
         IOutputField field,
-        ReferencedTypes referenced)
+        Context context)
     {
         var arguments = field.Arguments
-            .Select(t => SerializeInputField(t, referenced))
+            .Select(t => SerializeInputField(t, context))
             .ToList();
 
-        var directives = field.Directives
-            .Select(t => SerializeDirective(t, referenced))
-            .ToList();
+        var directives = SerializeDirectives(field.Directives, context);
+
+        if (field.IsDeprecated)
+        {
+            var deprecateDirective = DeprecatedDirective.CreateNode(field.DeprecationReason);
+
+            if(directives.Count == 0)
+            {
+                directives = new[] { deprecateDirective };
+            }
+            else
+            {
+                var temp = directives.ToList();
+                temp.Add(deprecateDirective);
+                directives = temp;
+            }
+        }
 
         return new FieldDefinitionNode(
             null,
             new NameNode(field.Name),
             SerializeDescription(field.Description),
             arguments,
-            SerializeType(field.Type, referenced),
+            SerializeType(field.Type, context),
             directives);
     }
 }

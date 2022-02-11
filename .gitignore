@@ -320,3 +320,5 @@ appsettings.user.json
 conferences.db
 conferences.db-shm
 conferences.db-wal
+
+.server/

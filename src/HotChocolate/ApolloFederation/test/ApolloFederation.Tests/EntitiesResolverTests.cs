@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Xunit;
@@ -9,7 +10,7 @@ namespace HotChocolate.ApolloFederation;
 
 public class EntitiesResolverTests
 {
-    [Fact(Skip = "Needs to be fixed!")]
+    [Fact]
     public async void TestResolveViaForeignServiceType()
     {
         // arrange
@@ -24,19 +25,19 @@ public class EntitiesResolverTests
         var representations = new List<Representation>
         {
             new("ForeignType", new ObjectValueNode(
-                new ObjectFieldNode("Id", "1"),
-                new ObjectFieldNode("SomeExternalField", "someExternalField")))
+                new ObjectFieldNode("id", "1"),
+                new ObjectFieldNode("someExternalField", "someExternalField")))
         };
 
         // assert
-        List<object?> result = await EntitiesResolver._Entities(schema, representations, context);
+        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
         ForeignType obj = Assert.IsType<ForeignType>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("someExternalField", obj.SomeExternalField);
         Assert.Equal("InternalValue", obj.InternalField);
     }
 
-    [Fact(Skip = "Needs to be fixed!")]
+    [Fact]
     public async void TestResolveViaForeignServiceType_MixedTypes()
     {
         // arrange
@@ -51,12 +52,12 @@ public class EntitiesResolverTests
         var representations = new List<Representation>
         {
             new("MixedFieldTypes",new ObjectValueNode(
-                new ObjectFieldNode("Id", "1"),
-                new ObjectFieldNode("IntField", 25)))
+                new ObjectFieldNode("id", "1"),
+                new ObjectFieldNode("intField", 25)))
         };
 
         // assert
-        List<object?> result = await EntitiesResolver._Entities(schema, representations, context);
+        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
         MixedFieldTypes obj = Assert.IsType<MixedFieldTypes>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal(25, obj.IntField);
@@ -80,7 +81,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        List<object?> result = await EntitiesResolver._Entities(schema, representations, context);
+        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
         TypeWithReferenceResolver obj = Assert.IsType<TypeWithReferenceResolver>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("SomeField", obj.SomeField);
@@ -103,7 +104,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        Task ShouldThrow() => EntitiesResolver._Entities(schema, representations, context);
+        Task ShouldThrow() => EntitiesResolver.ResolveAsync(schema, representations, context);
         await Assert.ThrowsAsync<SchemaException>(ShouldThrow);
     }
 
@@ -124,7 +125,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        Task ShouldThrow() => EntitiesResolver._Entities(schema, representations, context);
+        Task ShouldThrow() => EntitiesResolver.ResolveAsync(schema, representations, context);
         await Assert.ThrowsAsync<SchemaException>(ShouldThrow);
     }
 
@@ -160,26 +161,45 @@ public class EntitiesResolverTests
     [ExtendServiceType]
     public class ForeignType
     {
+        public ForeignType(string id, string someExternalField)
+        {
+            Id = id;
+            SomeExternalField = someExternalField;
+        }
+
         [Key]
         [External]
-        public string Id { get; set; } = default!;
+        public string Id { get; }
 
         [External]
-        public string SomeExternalField { get; set; } = default!;
+        public string SomeExternalField { get; }
 
-        public string InternalField { get; set; } = "InternalValue";
+        public string InternalField => "InternalValue";
+
+        [ReferenceResolver]
+        public static ForeignType GetById(string id, string someExternalField)
+            => new(id, someExternalField);
     }
 
     [ExtendServiceType]
     public class MixedFieldTypes
     {
+        public MixedFieldTypes(string id, int intField)
+        {
+            Id = id;
+            IntField = intField;
+        }
+
         [Key]
         [External]
-        public string Id { get; set; } = default!;
+        public string Id { get; }
 
         [External]
-        public int IntField { get; set; }
+        public int IntField { get; }
 
         public string InternalField { get; set; } = "InternalValue";
+
+        [ReferenceResolver]
+        public static MixedFieldTypes GetByExternal(string id, int intField) => new(id, intField);
     }
 }

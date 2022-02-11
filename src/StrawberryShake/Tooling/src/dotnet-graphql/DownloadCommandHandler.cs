@@ -44,7 +44,7 @@ namespace StrawberryShake.Tools
                 CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
 
             FileSystem.EnsureDirectoryExists(
-                FileSystem.GetDirectoryName(context.FileName));
+                FileSystem.GetDirectoryName(context.FileName)!);
 
             return await DownloadSchemaAsync(
                 context, cancellationToken)
