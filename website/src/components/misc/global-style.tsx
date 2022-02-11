@@ -12,7 +12,7 @@ export const GlobalStyle = createGlobalStyle`
 
     --border-radius: 4px;
     --font-size: .833rem;
-  }
+  } 
 
   html {
     height: 100vh;
@@ -35,12 +35,10 @@ export const GlobalStyle = createGlobalStyle`
 
     > div:first-child {
       display: block;
-      height: 100vh;
 
       > div {
         display: flex;
         flex-direction: column;
-        height: 100vh;
       }
     }
   }
