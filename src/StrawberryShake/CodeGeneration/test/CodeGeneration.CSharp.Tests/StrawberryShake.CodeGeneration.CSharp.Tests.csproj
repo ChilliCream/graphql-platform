@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Tests</AssemblyName>
-    <RootNamespace>StrawberryShake</RootNamespace>
+
+  <PropertyGroup>    
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
