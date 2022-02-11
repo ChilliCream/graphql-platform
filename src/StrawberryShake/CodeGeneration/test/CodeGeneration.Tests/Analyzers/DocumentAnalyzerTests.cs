@@ -75,5 +75,78 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     Assert.Equal("IGetHero_Hero", fieldResultType.Name);
                 });
         }
+
+
+         [Fact]
+        public async Task One_Fragment_One_Deferred_Fragment()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddStarWarsRepositories()
+                    .AddGraphQL()
+                    .AddStarWars()
+                    .BuildSchemaAsync();
+
+            schema =
+                SchemaHelper.Load(
+                    new GraphQLFile[]
+                    {
+                        new(schema.ToDocument()),
+                        new(Utf8GraphQLParser.Parse(
+                            @"extend scalar String @runtimeType(name: ""Abc"")"))
+                    });
+
+            DocumentNode document =
+                Utf8GraphQLParser.Parse(@"
+                    query GetHero {
+                        hero(episode: NEW_HOPE) {
+                            ... HeroName
+                            ... HeroAppearsIn @defer
+                        }
+                    }
+
+                    fragment HeroName on Character {
+                        name
+                    }
+
+                    fragment HeroAppearsIn on Character {
+                        appearsIn
+                    }");
+
+            // act
+            ClientModel clientModel =
+                DocumentAnalyzer
+                    .New()
+                    .SetSchema(schema)
+                    .AddDocument(document)
+                    .Analyze();
+
+            // assert
+            Assert.Empty(clientModel.InputObjectTypes);
+
+            Assert.Collection(
+                clientModel.LeafTypes,
+                type =>
+                {
+                    Assert.Equal("String", type.Name);
+                    Assert.Equal("Abc", type.RuntimeType);
+                });
+
+            Assert.Collection(
+                clientModel.Operations,
+                op =>
+                {
+                    Assert.Equal("IGetHero", op.ResultType.Name);
+
+                    Assert.Collection(
+                        op.GetImplementations(op.ResultType),
+                        model => Assert.Equal("GetHero", model.Name));
+
+                    OutputTypeModel fieldResultType = op.GetFieldResultType(
+                        op.ResultType.Fields.Single().SyntaxNode);
+                    Assert.Equal("IGetHero_Hero", fieldResultType.Name);
+                });
+        }
     }
 }

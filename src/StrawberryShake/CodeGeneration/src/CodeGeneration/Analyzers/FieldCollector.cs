@@ -262,25 +262,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
 
-        private static bool FieldSelectionsAreEqual(
-            IReadOnlyList<FieldSelection> a,
-            IReadOnlyList<FieldSelection> b)
-        {
-            if (a.Count == b.Count)
-            {
-                for (var i = 0; i < a.Count; i++)
-                {
-                    if (!ReferenceEquals(a[i].SyntaxNode, b[i].SyntaxNode))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            return false;
-        }
+        private bool TryGetDeferDirective(IHasDirectives directives, )
 
         private Fragment CreateFragment(string fragmentName)
         {

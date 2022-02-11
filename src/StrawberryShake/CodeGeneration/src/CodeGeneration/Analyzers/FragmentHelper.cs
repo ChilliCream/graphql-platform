@@ -393,7 +393,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             bool appendTypeName = false)
         {
             INamedType namedType = selectionSet.Type.NamedType();
-            string name = CreateName(path, GetClassName);
+            var name = CreateName(path, GetClassName);
 
             if (appendTypeName)
             {

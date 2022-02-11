@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -7,13 +8,17 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     {
         public FragmentNode(
             Fragment fragment,
-            IReadOnlyList<FragmentNode>? nodes = null)
+            IReadOnlyList<FragmentNode>? nodes = null,
+            DeferDirective? defer = null)
         {
             Fragment = fragment ?? throw new ArgumentNullException(nameof(fragment));
             Nodes = nodes ?? Array.Empty<FragmentNode>();
+            Defer = defer;
         }
 
         public Fragment Fragment { get; }
+
+        public DeferDirective? Defer { get; }
 
         public IReadOnlyList<FragmentNode> Nodes { get; }
 
