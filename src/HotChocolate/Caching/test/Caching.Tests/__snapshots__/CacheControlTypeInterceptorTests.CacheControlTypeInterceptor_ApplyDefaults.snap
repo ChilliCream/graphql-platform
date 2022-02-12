@@ -5,11 +5,11 @@
 }
 
 interface CachableContract @cacheControl(maxAge: 180) {
-  myProperty: Int!
+  myProperty: Int! @cacheControl(inheritMaxAge: true)
 }
 
 interface Contract {
-  myProperty: Int!
+  myProperty: Int! @cacheControl(inheritMaxAge: true)
 }
 
 type CachableUser @cacheControl(maxAge: 120) {

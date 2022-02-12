@@ -44,7 +44,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         if (_cacheControlOptions.ApplyDefaults &&
             !discoveryContext.IsIntrospectionType &&
             definition is ObjectTypeDefinition objectDef &&
-            objectDef.Fields.Any(CanApplyDefaultCacheControl))
+            objectDef.Fields.Any(HasCacheControlDirective))
         {
             IExtendedType directive =
                 discoveryContext.TypeInspector.GetType(typeof(CacheControlDirectiveType));
@@ -65,45 +65,81 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 
         if (completionContext.IsIntrospectionType ||
             completionContext.IsSubscriptionType == true ||
-            completionContext.IsMutationType == true ||
-            definition is not ObjectTypeDefinition objectDef)
+            completionContext.IsMutationType == true)
         {
             return;
         }
 
-        // todo: what about interface fields?
-        foreach (ObjectFieldDefinition field in objectDef.Fields)
+        if (definition is ObjectTypeDefinition objectDef)
         {
-            if (!CanApplyDefaultCacheControl(field))
+            foreach (ObjectFieldDefinition field in objectDef.Fields)
             {
-                continue;
+                if (field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
+                ITypeReference? typeRef = field.Type;
+
+                if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
+                    !_typeRegistry.TryGetType(typeRef, out RegisteredType? registeredType))
+                {
+                    // todo: maybe throw error
+                    continue;
+                }
+
+                if (HasCacheControlDirective(field) || HasCacheControlDirective(registeredType.Type))
+                {
+                    continue;
+                }
+
+                var isComplexType = registeredType.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
+
+                if (completionContext.IsQueryType == true ||
+                    isComplexType ||
+                    IsDataResolver(field))
+                {
+                    ApplyCacheControlWithDefaultMaxAge(field);
+                }
+                else if (registeredType.Kind == TypeKind.Scalar)
+                {
+                    ApplyCacheControlWithInheritMaxAge(field);
+                }
             }
-
-            ITypeReference? typeRef = field.Type;
-
-            if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
-                !_typeRegistry.TryGetType(typeRef, out RegisteredType? type))
+        }
+        else if (definition is InterfaceTypeDefinition interfaceDef)
+        {
+            foreach (InterfaceFieldDefinition field in interfaceDef.Fields)
             {
-                // todo: maybe throw error
-                continue;
-            }
+                ITypeReference? typeRef = field.Type;
 
-            var isComplexType = type.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
+                if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
+                    !_typeRegistry.TryGetType(typeRef, out RegisteredType? registeredType))
+                {
+                    // todo: maybe throw error
+                    continue;
+                }
 
-            if (completionContext.IsQueryType == true ||
-                isComplexType ||
-                IsDataResolver(field))
-            {
-                ApplyCacheControlWithDefaultMaxAge(field);
-            }
-            else if (type.Kind == TypeKind.Scalar)
-            {
-                ApplyCacheControlWithInheritMaxAge(field);
+                if (HasCacheControlDirective(field) || HasCacheControlDirective(registeredType.Type))
+                {
+                    continue;
+                }
+
+                var isComplexType = registeredType.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
+
+                if (completionContext.IsQueryType == true || isComplexType)
+                {
+                    ApplyCacheControlWithDefaultMaxAge(field);
+                }
+                else if (registeredType.Kind == TypeKind.Scalar)
+                {
+                    ApplyCacheControlWithInheritMaxAge(field);
+                }
             }
         }
     }
 
-    private void ApplyCacheControlWithDefaultMaxAge(ObjectFieldDefinition field)
+    private void ApplyCacheControlWithDefaultMaxAge(OutputFieldDefinitionBase field)
     {
         field.Directives.Add(
             new DirectiveDefinition(
@@ -112,7 +148,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
                     new ArgumentNode("maxAge", _cacheControlOptions.DefaultMaxAge))));
     }
 
-    private static void ApplyCacheControlWithInheritMaxAge(ObjectFieldDefinition field)
+    private static void ApplyCacheControlWithInheritMaxAge(OutputFieldDefinitionBase field)
     {
         field.Directives.Add(
             new DirectiveDefinition(
@@ -155,16 +191,20 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         return false;
     }
 
-    // todo: check if field type contains annotation
-    private static bool CanApplyDefaultCacheControl(ObjectFieldDefinition field)
+    private static bool HasCacheControlDirective(OutputFieldDefinitionBase field)
     {
-        if (field.IsIntrospectionField)
+        IReadOnlyList<DirectiveDefinition> directives = field.GetDirectives();
+        return directives.Any(IsCacheControlDirective);
+    }
+
+    private static bool HasCacheControlDirective(ITypeSystemObject typeSystemObject)
+    {
+        if (typeSystemObject is not Language.IHasDirectives type)
         {
             return false;
         }
 
-        IReadOnlyList<DirectiveDefinition> directives = field.GetDirectives();
-        return directives.Count == 0 || !directives.Any(IsCacheControlDirective);
+        return type.Directives.Any(IsCacheControlDirective);
     }
 
     private static bool IsCacheControlDirective(DirectiveDefinition directive)
@@ -181,6 +221,12 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         }
 
         return false;
+    }
+
+    private static bool IsCacheControlDirective(DirectiveNode directive)
+    {
+        // todo: implement
+        return true;
     }
 
     private void EnsureCacheControlSettingsAreLoaded(IDescriptorContext descriptorContext)
