@@ -10,11 +10,11 @@ namespace HotChocolate.Caching;
 // todo: rework this
 internal sealed class CacheControlValidatorVisitor : TypeDocumentValidatorVisitor
 {
-    private readonly IQueryCacheSettings _settings;
+    private readonly ICacheControlOptions _options;
 
-    public CacheControlValidatorVisitor(IQueryCacheSettings settings)
+    public CacheControlValidatorVisitor(ICacheControlOptions options)
     {
-        _settings = settings;
+        _options = options;
     }
 
     protected override ISyntaxVisitorAction Enter(
@@ -47,7 +47,7 @@ internal sealed class CacheControlValidatorVisitor : TypeDocumentValidatorVisito
 
         if (!result.MaxAge.HasValue)
         {
-            result.MaxAge = _settings.DefaultMaxAge;
+            result.MaxAge = _options.DefaultMaxAge;
         }
 
         return base.Enter(node, context);
@@ -96,7 +96,7 @@ internal sealed class CacheControlValidatorVisitor : TypeDocumentValidatorVisito
             }
             else
             {
-                result.MaxAge = _settings.DefaultMaxAge;
+                result.MaxAge = _options.DefaultMaxAge;
             }
 
             // we want to determine the most restrictive cache scope
@@ -107,7 +107,7 @@ internal sealed class CacheControlValidatorVisitor : TypeDocumentValidatorVisito
         }
         else
         {
-            result.MaxAge = _settings.DefaultMaxAge;
+            result.MaxAge = _options.DefaultMaxAge;
         }
 
         return Continue;

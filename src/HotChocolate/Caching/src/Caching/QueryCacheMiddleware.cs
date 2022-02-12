@@ -9,32 +9,32 @@ namespace HotChocolate.Caching;
 
 public sealed class QueryCacheMiddleware
 {
-    private static readonly string _contextKey = nameof(QueryCacheSettings);
+    private static readonly string _contextKey = nameof(CacheControlOptions);
 
     private readonly RequestDelegate _next;
     private readonly DocumentValidatorContextPool _contextPool;
     private readonly IQueryCache _cache;
     private readonly CacheControlValidatorVisitor _compiler;
-    private readonly IQueryCacheSettings _settings;
+    private readonly ICacheControlOptions _options;
 
     public QueryCacheMiddleware(
         RequestDelegate next,
         DocumentValidatorContextPool contextPool,
-        IQueryCacheOptionsAccessor optionsAccessor,
+        ICacheControlOptionsAccessor optionsAccessor,
         IQueryCache cache)
     {
         _next = next;
         _contextPool = contextPool;
         _cache = cache;
 
-        _settings = optionsAccessor.QueryCache;
-        _compiler = new CacheControlValidatorVisitor(_settings);
+        _options = optionsAccessor.CacheControl;
+        _compiler = new CacheControlValidatorVisitor(_options);
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
         // todo: add context key for skipping the query cache on a per-request basis
-        if (!_settings.Enable)
+        if (!_options.Enable)
         {
             await _next(context).ConfigureAwait(false);
         }
@@ -43,7 +43,7 @@ public sealed class QueryCacheMiddleware
             if (_cache.ShouldReadResultFromCache(context))
             {
                 IQueryResult? cachedResult =
-                    await _cache.TryReadCachedQueryResultAsync(context, _settings);
+                    await _cache.TryReadCachedQueryResultAsync(context, _options);
 
                 if (cachedResult is not null)
                 {
@@ -74,7 +74,7 @@ public sealed class QueryCacheMiddleware
                     return;
                 }
 
-                await _cache.CacheQueryResultAsync(context, result, _settings);
+                await _cache.CacheQueryResultAsync(context, result, _options);
             }
         }
     }

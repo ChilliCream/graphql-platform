@@ -32,6 +32,29 @@ public static class RequestExecutorBuilderExtensions
             .UseOperationExecution();
     }
 
+    public static IRequestExecutorBuilder AddCacheControl(this IRequestExecutorBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        return builder.ConfigureSchema(b => b.AddCacheControl());
+    }
+
+    public static IRequestExecutorBuilder ModifyCacheControlOptions(this IRequestExecutorBuilder builder,
+        Action<CacheControlOptions> modifyOptions)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.AddSingleton(modifyOptions);
+
+        return builder;
+    }
+
     public static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder)
         where TCache : class, IQueryCache
     {
@@ -59,19 +82,6 @@ public static class RequestExecutorBuilderExtensions
         return builder.AddQueryCacheInternals();
     }
 
-    public static IRequestExecutorBuilder ModifyQueryCacheOptions(this IRequestExecutorBuilder builder,
-        Action<QueryCacheSettings> modifyOptions)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        builder.Services.AddSingleton(modifyOptions);
-
-        return builder;
-    }
-
     private static IRequestExecutorBuilder AddQueryCacheInternals(this IRequestExecutorBuilder builder)
     {
         if (builder is null)
@@ -79,20 +89,18 @@ public static class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.Services.AddSingleton<IQueryCacheOptionsAccessor>(sp =>
+        builder.Services.AddSingleton<ICacheControlOptionsAccessor>(sp =>
         {
-            var accessor = new QueryCacheOptionsAccessor();
+            var accessor = new CacheControlOptionsAccessor();
 
-            foreach (Action<QueryCacheSettings> configure in sp.GetServices<Action<QueryCacheSettings>>())
+            foreach (Action<CacheControlOptions> configure in sp.GetServices<Action<CacheControlOptions>>())
             {
-                configure(accessor.QueryCache);
+                configure(accessor.CacheControl);
             }
 
             return accessor;
         });
 
-        return builder
-            .AddDirectiveType<CacheControlDirectiveType>()
-            .AddType<CacheControlScopeType>();
+        return builder.AddCacheControl();
     }
 }

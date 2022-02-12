@@ -11,8 +11,8 @@ public interface IQueryCache
 
     // todo: find proper return type
     Task<IQueryResult?> TryReadCachedQueryResultAsync(IRequestContext context,
-        IQueryCacheSettings settings);
+        ICacheControlOptions options);
 
     Task CacheQueryResultAsync(IRequestContext context, CacheControlResult result,
-        IQueryCacheSettings settings);
+        ICacheControlOptions options);
 }

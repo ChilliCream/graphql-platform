@@ -209,14 +209,16 @@ public class ObjectFieldQueryCacheTests
     {
         public CacheControlResult? Result { get; set; }
 
-        public override Task CacheQueryResultAsync(IRequestContext context, CacheControlResult result, IQueryCacheSettings settings)
+        public override Task CacheQueryResultAsync(IRequestContext context, CacheControlResult result,
+            ICacheControlOptions options)
         {
             Result = result;
 
             return Task.CompletedTask;
         }
 
-        public override Task<IQueryResult?> TryReadCachedQueryResultAsync(IRequestContext context, IQueryCacheSettings settings)
+        public override Task<IQueryResult?> TryReadCachedQueryResultAsync(IRequestContext context,
+            ICacheControlOptions options)
         {
             return Task.FromResult<IQueryResult?>(null);
         }

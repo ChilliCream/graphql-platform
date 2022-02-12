@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
@@ -7,10 +6,10 @@ using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
-public class QueryCacheSettingsTests
+public class CacheControlOptionsTests
 {
     [Fact]
-    public async Task QueryCacheSettings_Default()
+    public async Task CacheControlOptions_Default()
     {
         var cache = new TestQueryCache();
 
@@ -25,14 +24,15 @@ public class QueryCacheSettingsTests
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
 
         Assert.Null(result.Errors);
-        Assert.NotNull(cache.Settings);
-        Assert.True(cache.Settings.Enable);
-        Assert.Equal(0, cache.Settings.DefaultMaxAge);
-        Assert.Null(cache.Settings.GetSessionId);
+        Assert.NotNull(cache.Options);
+        Assert.True(cache.Options?.Enable);
+        Assert.Equal(0, cache.Options?.DefaultMaxAge);
+        Assert.True(cache.Options?.ApplyDefaults);
+        Assert.Null(cache.Options?.GetSessionId);
     }
 
     [Fact]
-    public async Task QueryCacheSettings_Modified()
+    public async Task CacheControlOptions_Modified()
     {
         var cache = new TestQueryCache();
 
@@ -40,10 +40,11 @@ public class QueryCacheSettingsTests
             .AddGraphQLServer()
             .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
             .UseField(_ => _ => default)
-            .ModifyQueryCacheOptions(options =>
+            .ModifyCacheControlOptions(options =>
             {
-                options.GetSessionId = context => "Test";
                 options.DefaultMaxAge = 100;
+                options.ApplyDefaults = false;
+                options.GetSessionId = context => "Test";
             })
             .AddQueryCache(_ => cache)
             .UseQueryCachePipeline()
@@ -52,14 +53,15 @@ public class QueryCacheSettingsTests
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
 
         Assert.Null(result.Errors);
-        Assert.NotNull(cache.Settings);
-        Assert.True(cache.Settings.Enable);
-        Assert.Equal(100, cache.Settings.DefaultMaxAge);
-        Assert.NotNull(cache.Settings.GetSessionId);
+        Assert.NotNull(cache.Options);
+        Assert.True(cache.Options?.Enable);
+        Assert.Equal(100, cache.Options?.DefaultMaxAge);
+        Assert.False(cache.Options?.ApplyDefaults);
+        Assert.NotNull(cache.Options?.GetSessionId);
     }
 
     [Fact]
-    public async Task QueryCacheSettings_Modified_AfterPipeline()
+    public async Task CacheControlOptions_Modified_Twice()
     {
         var cache = new TestQueryCache();
 
@@ -68,19 +70,21 @@ public class QueryCacheSettingsTests
             .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
             .UseField(_ => _ => default)
             .AddQueryCache(_ => cache)
+            .ModifyCacheControlOptions(options => options.DefaultMaxAge = 10)
+            .ModifyCacheControlOptions(options => options.ApplyDefaults = false)
             .UseQueryCachePipeline()
-            .ModifyQueryCacheOptions(options => options.DefaultMaxAge = 10)
             .BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
 
         Assert.Null(result.Errors);
-        Assert.NotNull(cache.Settings);
-        Assert.Equal(10, cache.Settings.DefaultMaxAge);
+        Assert.NotNull(cache.Options);
+        Assert.Equal(10, cache.Options?.DefaultMaxAge);
+        Assert.False(cache.Options?.ApplyDefaults);
     }
 
     [Fact]
-    public async Task QueryCacheSettings_Disable()
+    public async Task CacheControlOptions_Modified_AfterRegistrations()
     {
         var cache = new TestQueryCache();
 
@@ -88,7 +92,28 @@ public class QueryCacheSettingsTests
             .AddGraphQLServer()
             .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
             .UseField(_ => _ => default)
-            .ModifyQueryCacheOptions(options => options.Enable = false)
+            .ModifyCacheControlOptions(options => options.DefaultMaxAge = 10)
+            .UseQueryCachePipeline()
+            .AddQueryCache(_ => cache)
+            .BuildRequestExecutorAsync();
+
+        IExecutionResult result = await executor.ExecuteAsync("{ field }");
+
+        Assert.Null(result.Errors);
+        Assert.NotNull(cache.Options);
+        Assert.Equal(10, cache.Options?.DefaultMaxAge);
+    }
+
+    [Fact]
+    public async Task CacheControlOptions_Disable()
+    {
+        var cache = new TestQueryCache();
+
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
+            .UseField(_ => _ => default)
+            .ModifyCacheControlOptions(options => options.Enable = false)
             .AddQueryCache(_ => cache)
             .UseQueryCachePipeline()
             .BuildRequestExecutorAsync();
@@ -96,21 +121,23 @@ public class QueryCacheSettingsTests
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
 
         Assert.Null(result.Errors);
-        Assert.Null(cache.Settings);
+        Assert.Null(cache.Options);
     }
 
     private class TestQueryCache : DefaultQueryCache
     {
-        public IQueryCacheSettings? Settings { get; private set; }
+        public ICacheControlOptions? Options { get; private set; }
 
-        public override Task CacheQueryResultAsync(IRequestContext context, CacheControlResult result, IQueryCacheSettings settings)
+        public override Task CacheQueryResultAsync(IRequestContext context, CacheControlResult result,
+            ICacheControlOptions options)
         {
-            Settings = settings;
+            Options = options;
 
             return Task.CompletedTask;
         }
 
-        public override Task<IQueryResult?> TryReadCachedQueryResultAsync(IRequestContext context, IQueryCacheSettings settings)
+        public override Task<IQueryResult?> TryReadCachedQueryResultAsync(IRequestContext context,
+            ICacheControlOptions options)
         {
             return Task.FromResult<IQueryResult?>(null);
         }
