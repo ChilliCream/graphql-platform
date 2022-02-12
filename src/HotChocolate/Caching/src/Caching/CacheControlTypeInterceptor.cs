@@ -5,15 +5,29 @@ using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Caching;
 
-internal class CacheControlTypeInterceptor : TypeInterceptor
+internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 {
-    private bool _optionsResolved;
-    private ICacheControlOptions _options = default!;
+    private bool _cacheControlOptionsResolved;
+    private ICacheControlOptions _cacheControlOptions = default!;
+    private TypeRegistry _typeRegistry = default!;
+    private TypeLookup _typeLookup = default!;
+
+    internal override void InitializeContext(
+        IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeReferenceResolver typeReferenceResolver)
+    {
+        _typeRegistry = typeRegistry;
+        _typeLookup = typeLookup;
+    }
 
     public override void OnBeforeRegisterDependencies(
        ITypeDiscoveryContext discoveryContext,
@@ -22,12 +36,12 @@ internal class CacheControlTypeInterceptor : TypeInterceptor
     {
         EnsureCacheControlSettingsAreLoaded(discoveryContext.DescriptorContext);
 
-        if (!_options.Enable)
+        if (!_cacheControlOptions.Enable)
         {
             return;
         }
 
-        if (_options.ApplyDefaults &&
+        if (_cacheControlOptions.ApplyDefaults &&
             !discoveryContext.IsIntrospectionType &&
             definition is ObjectTypeDefinition objectDef &&
             objectDef.Fields.Any(CanApplyDefaultCacheControl))
@@ -44,7 +58,7 @@ internal class CacheControlTypeInterceptor : TypeInterceptor
     public override void OnBeforeCompleteType(ITypeCompletionContext completionContext,
         DefinitionBase? definition, IDictionary<string, object?> contextData)
     {
-        if (!_options.Enable || !_options.ApplyDefaults)
+        if (!_cacheControlOptions.Enable || !_cacheControlOptions.ApplyDefaults)
         {
             return;
         }
@@ -65,27 +79,40 @@ internal class CacheControlTypeInterceptor : TypeInterceptor
                 continue;
             }
 
-            if (completionContext.IsQueryType == true || IsDataResolver(field))
+            ITypeReference? typeRef = field.Type;
+
+            if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
+                !_typeRegistry.TryGetType(typeRef, out RegisteredType? type))
             {
-                ApplyDataResolverCacheControl(field);
+                // todo: maybe throw error
+                continue;
             }
-            else
+
+            var isComplexType = type.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
+
+            if (completionContext.IsQueryType == true ||
+                isComplexType ||
+                IsDataResolver(field))
             {
-                ApplyPureResolverCacheControl(field);
+                ApplyCacheControlWithDefaultMaxAge(field);
+            }
+            else if (type.Kind == TypeKind.Scalar)
+            {
+                ApplyCacheControlWithInheritMaxAge(field);
             }
         }
     }
 
-    private void ApplyDataResolverCacheControl(ObjectFieldDefinition field)
+    private void ApplyCacheControlWithDefaultMaxAge(ObjectFieldDefinition field)
     {
         field.Directives.Add(
             new DirectiveDefinition(
                 new DirectiveNode(
                     "cacheControl",
-                    new ArgumentNode("maxAge", _options.DefaultMaxAge))));
+                    new ArgumentNode("maxAge", _cacheControlOptions.DefaultMaxAge))));
     }
 
-    private static void ApplyPureResolverCacheControl(ObjectFieldDefinition field)
+    private static void ApplyCacheControlWithInheritMaxAge(ObjectFieldDefinition field)
     {
         field.Directives.Add(
             new DirectiveDefinition(
@@ -158,16 +185,16 @@ internal class CacheControlTypeInterceptor : TypeInterceptor
 
     private void EnsureCacheControlSettingsAreLoaded(IDescriptorContext descriptorContext)
     {
-        if (!_optionsResolved)
+        if (!_cacheControlOptionsResolved)
         {
             // todo: load proper settings
-            _options =
+            _cacheControlOptions =
                 descriptorContext.ContextData.TryGetValue("TODO", out var value) &&
                 value is ICacheControlOptions cacheControlOptions
                     ? cacheControlOptions
                     : new CacheControlOptions();
 
-            _optionsResolved = true;
+            _cacheControlOptionsResolved = true;
         }
     }
 }

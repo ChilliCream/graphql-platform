@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -20,6 +21,10 @@ public class CacheControlTypeInterceptorTests
             .AddSubscriptionType<Subscription>()
             .AddType<TextPost>()
             .AddType<PicturePost>()
+            .AddType<Contract1>()
+            .AddType<Contract2>()
+            .AddType<Contract3>()
+            .AddType<Contract4>()
             .AddCacheControl()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -49,7 +54,7 @@ public class CacheControlTypeInterceptorTests
     //         .MatchSnapshotAsync();
     // }
 
-    public class Query
+    public class Query : NestedType
     {
         // public string PureField { get; } = "PureField";
 
@@ -61,15 +66,68 @@ public class CacheControlTypeInterceptorTests
 
         // public IQueryable<string> QueryableField() => default!;
 
-        public IPost UnionTypeHasNoCache() => default!;
+        public NestedType Nested { get; } = new();
+    }
+
+    public class NestedType
+    {
+        #region Scalars
+        public string? Scalar() => default!;
 
         [CacheControl(500)]
-        public IPost UnionTypeHasNoCacheButFieldHas() => default!;
+        public string? Scalar_FieldCache() => default!;
 
-        public ICachablePost UnionTypeHasCache() => default!;
+        public string NonNullScalar() => default!;
 
         [CacheControl(500)]
-        public ICachablePost UnionTypeHasCacheAndFieldHas() => default!;
+        public string NonNullScalar_FieldCache() => default!;
+
+        public List<string?> ScalarList() => default!;
+
+        [CacheControl(500)]
+        public List<string?> ScalarList_FieldCache() => default!;
+
+        public List<string> NonNullScalarList() => default!;
+
+        [CacheControl(500)]
+        public List<string> NonNullScalarList_FieldCache() => default!;
+        #endregion
+
+        #region Object Types
+        public User ObjectType() => default!;
+
+        [CacheControl(500)]
+        public User ObjectType_FieldCache() => default!;
+
+        public CachableUser ObjectType_TypeCache() => default!;
+
+        [CacheControl(500)]
+        public CachableUser ObjectType_FieldCache_TypeCache() => default!;
+        #endregion
+
+        #region Interface Types
+        public IContract InterfaceType() => default!;
+
+        [CacheControl(500)]
+        public IContract InterfaceType_FieldCache() => default!;
+
+        public ICachableContract InterfaceType_TypeCache() => default!;
+
+        [CacheControl(500)]
+        public ICachableContract InterfaceType_FieldCache_TypeCache() => default!;
+        #endregion
+
+        #region Union Types
+        public IPost UnionType() => default!;
+
+        [CacheControl(500)]
+        public IPost UnionType_FieldCache() => default!;
+
+        public ICachablePost UnionType_TypeCache() => default!;
+
+        [CacheControl(500)]
+        public ICachablePost UnionType_FieldCache_TypeCache() => default!;
+        #endregion
     }
 
     public class Mutation
@@ -80,6 +138,50 @@ public class CacheControlTypeInterceptorTests
     public class Subscription
     {
         public ISourceStream<string> OnEvent() => default!;
+    }
+
+    public class User
+    {
+        public int MyProperty { get; set; }
+    }
+
+    [CacheControl(120)]
+    public class CachableUser
+    {
+        public int MyProperty { get; set; }
+    }
+
+    [InterfaceType("Contract")]
+    public interface IContract
+    {
+        int MyProperty { get; set; }
+    }
+
+    [InterfaceType("CachableContract")]
+    [CacheControl(180)]
+    public interface ICachableContract
+    {
+        int MyProperty { get; set; }
+    }
+
+    public class Contract1 : IContract
+    {
+        public int MyProperty { get; set; }
+    }
+
+    public class Contract2 : IContract
+    {
+        public int MyProperty { get; set; }
+    }
+
+    public class Contract3 : ICachableContract
+    {
+        public int MyProperty { get; set; }
+    }
+
+    public class Contract4 : ICachableContract
+    {
+        public int MyProperty { get; set; }
     }
 
     [UnionType("Post")]

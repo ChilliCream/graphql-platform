@@ -26,7 +26,7 @@ public sealed class CacheControlAttribute : DescriptorAttribute
         _maxAge = maxAge;
     }
 
-    protected override void TryConfigure(
+    protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
         ICustomAttributeProvider element)

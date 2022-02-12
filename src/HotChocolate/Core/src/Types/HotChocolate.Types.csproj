@@ -16,6 +16,7 @@
     <InternalsVisibleTo Include="HotChocolate.Validation" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
     <InternalsVisibleTo Include="HotChocolate.ApolloFederation" />
+    <InternalsVisibleTo Include="HotChocolate.Caching" />
 
     <!--Legacy Support-->
     <InternalsVisibleTo Include="HotChocolate.Types.Filters" />
