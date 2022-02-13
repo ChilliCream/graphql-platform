@@ -56,16 +56,6 @@ public class CacheControlTypeInterceptorTests
 
     public class Query : NestedType
     {
-        // public string PureField { get; } = "PureField";
-
-        // public Task<string> TaskField() => default!;
-
-        // public ValueTask<string> ValueTaskField() => default!;
-
-        // public IExecutable<string> ExecutableField() => default!;
-
-        // public IQueryable<string> QueryableField() => default!;
-
         public NestedType Nested { get; } = new();
     }
 
@@ -128,6 +118,22 @@ public class CacheControlTypeInterceptorTests
         [CacheControl(500)]
         public ICachablePost UnionType_FieldCache_TypeCache() => default!;
         #endregion
+
+        public string PureField { get; } = default!;
+
+        public Task<string> TaskField() => default!;
+
+        public ValueTask<string> ValueTaskField() => default!;
+
+        public IExecutable<string> ExecutableField() => default!;
+
+        public IQueryable<string> QueryableField() => default!;
+
+        [UsePaging]
+        public IQueryable<string> QueryableFieldWithConnection() => default!;
+
+        [UseOffsetPaging]
+        public IQueryable<string> QueryableFieldWithCollectionSegment() => default!;
     }
 
     public class Mutation

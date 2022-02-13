@@ -40,21 +40,9 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         {
             return;
         }
-
-        if (_cacheControlOptions.ApplyDefaults &&
-            !discoveryContext.IsIntrospectionType &&
-            definition is ObjectTypeDefinition objectDef &&
-            objectDef.Fields.Any(HasCacheControlDirective))
-        {
-            IExtendedType directive =
-                discoveryContext.TypeInspector.GetType(typeof(CacheControlDirectiveType));
-
-            discoveryContext.Dependencies.Add(new(
-                TypeReference.Create(directive),
-                TypeDependencyKind.Completed));
-        }
     }
 
+    // todo: ignore pagination types
     public override void OnBeforeCompleteType(ITypeCompletionContext completionContext,
         DefinitionBase? definition, IDictionary<string, object?> contextData)
     {
@@ -76,66 +64,64 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
             {
                 if (field.IsIntrospectionField)
                 {
+                    // Introspection fields do not need to be declared as cachable.
                     continue;
                 }
 
-                ITypeReference? typeRef = field.Type;
-
-                if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
-                    !_typeRegistry.TryGetType(typeRef, out RegisteredType? registeredType))
-                {
-                    // todo: maybe throw error
-                    continue;
-                }
-
-                if (HasCacheControlDirective(field) || HasCacheControlDirective(registeredType.Type))
+                // todo: if this does not specify anything regarding maxAge, we should still consider it
+                if (!CanApplyCacheControlDirective(field))
                 {
                     continue;
                 }
 
-                var isComplexType = registeredType.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
-
-                if (completionContext.IsQueryType == true ||
-                    isComplexType ||
-                    IsDataResolver(field))
+                if (completionContext.IsQueryType == true || IsDataResolver(field))
                 {
+                    // Each field on the query type is treated as a field 
+                    // that needs to be explicitly cached.
                     ApplyCacheControlWithDefaultMaxAge(field);
+
+                    continue;
                 }
-                else if (registeredType.Kind == TypeKind.Scalar)
-                {
-                    ApplyCacheControlWithInheritMaxAge(field);
-                }
+
+                MarkField(field);
+
+                // todo: handle @cacheControl existing on interface field
             }
         }
         else if (definition is InterfaceTypeDefinition interfaceDef)
         {
             foreach (InterfaceFieldDefinition field in interfaceDef.Fields)
             {
-                ITypeReference? typeRef = field.Type;
-
-                if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
-                    !_typeRegistry.TryGetType(typeRef, out RegisteredType? registeredType))
-                {
-                    // todo: maybe throw error
-                    continue;
-                }
-
-                if (HasCacheControlDirective(field) || HasCacheControlDirective(registeredType.Type))
-                {
-                    continue;
-                }
-
-                var isComplexType = registeredType.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union;
-
-                if (completionContext.IsQueryType == true || isComplexType)
-                {
-                    ApplyCacheControlWithDefaultMaxAge(field);
-                }
-                else if (registeredType.Kind == TypeKind.Scalar)
-                {
-                    ApplyCacheControlWithInheritMaxAge(field);
-                }
+                MarkField(field);
             }
+        }
+    }
+
+    // todo: rename, handle directive with maxage on type, etc.
+    private void MarkField(OutputFieldDefinitionBase field)
+    {
+        if (!CanApplyCacheControlDirective(field))
+        {
+            return;
+        }
+
+        ITypeReference? typeRef = field.Type;
+
+        if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
+            !_typeRegistry.TryGetType(typeRef, out RegisteredType? registeredType))
+        {
+            // todo: maybe throw error
+            return;
+        }
+
+        if (HasCacheControlDirective(registeredType.Type))
+        {
+            return;
+        }
+
+        if (registeredType.Kind == TypeKind.Scalar)
+        {
+            ApplyCacheControlWithInheritMaxAge(field);
         }
     }
 
@@ -191,10 +177,10 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         return false;
     }
 
-    private static bool HasCacheControlDirective(OutputFieldDefinitionBase field)
+    private static bool CanApplyCacheControlDirective(OutputFieldDefinitionBase field)
     {
         IReadOnlyList<DirectiveDefinition> directives = field.GetDirectives();
-        return directives.Any(IsCacheControlDirective);
+        return directives.Count == 0 || !directives.Any(IsCacheControlDirective);
     }
 
     private static bool HasCacheControlDirective(ITypeSystemObject typeSystemObject)

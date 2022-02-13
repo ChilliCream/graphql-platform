@@ -16,6 +16,14 @@ type CachableUser @cacheControl(maxAge: 120) {
   myProperty: Int! @cacheControl(inheritMaxAge: true)
 }
 
+"Information about the offset pagination."
+type CollectionSegmentInfo {
+  "Indicates whether more items exist following the set defined by the clients arguments."
+  hasNextPage: Boolean! @cacheControl(inheritMaxAge: true)
+  "Indicates whether more items exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean! @cacheControl(inheritMaxAge: true)
+}
+
 type Contract1 implements Contract {
   myProperty: Int! @cacheControl(inheritMaxAge: true)
 }
@@ -45,18 +53,37 @@ type NestedType {
   scalarList_FieldCache: [String]! @cacheControl(maxAge: 500)
   nonNullScalarList: [String!]! @cacheControl(inheritMaxAge: true)
   nonNullScalarList_FieldCache: [String!]! @cacheControl(maxAge: 500)
-  objectType: User! @cacheControl(maxAge: 0)
+  objectType: User!
   objectType_FieldCache: User! @cacheControl(maxAge: 500)
-  objectType_TypeCache: CachableUser! @cacheControl(maxAge: 0)
+  objectType_TypeCache: CachableUser!
   objectType_FieldCache_TypeCache: CachableUser! @cacheControl(maxAge: 500)
-  interfaceType: Contract! @cacheControl(maxAge: 0)
+  interfaceType: Contract!
   interfaceType_FieldCache: Contract! @cacheControl(maxAge: 500)
-  interfaceType_TypeCache: CachableContract! @cacheControl(maxAge: 0)
+  interfaceType_TypeCache: CachableContract!
   interfaceType_FieldCache_TypeCache: CachableContract! @cacheControl(maxAge: 500)
-  unionType: Post! @cacheControl(maxAge: 0)
+  unionType: Post!
   unionType_FieldCache: Post! @cacheControl(maxAge: 500)
-  unionType_TypeCache: CachablePost! @cacheControl(maxAge: 0)
+  unionType_TypeCache: CachablePost!
   unionType_FieldCache_TypeCache: CachablePost! @cacheControl(maxAge: 500)
+  taskField: String! @cacheControl(maxAge: 0)
+  valueTaskField: String! @cacheControl(maxAge: 0)
+  executableField: [String!]! @cacheControl(maxAge: 0)
+  queryableField: [String!]! @cacheControl(maxAge: 0)
+  queryableFieldWithConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionConnection @cacheControl(maxAge: 0)
+  queryableFieldWithCollectionSegment(skip: Int take: Int): StringCollectionSegment @cacheControl(maxAge: 0)
+  pureField: String! @cacheControl(inheritMaxAge: true)
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean! @cacheControl(inheritMaxAge: true)
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean! @cacheControl(inheritMaxAge: true)
+  "When paginating backwards, the cursor to continue."
+  startCursor: String @cacheControl(inheritMaxAge: true)
+  "When paginating forwards, the cursor to continue."
+  endCursor: String @cacheControl(inheritMaxAge: true)
 }
 
 type PicturePost {
@@ -84,7 +111,38 @@ type Query {
   unionType_FieldCache: Post! @cacheControl(maxAge: 500)
   unionType_TypeCache: CachablePost! @cacheControl(maxAge: 0)
   unionType_FieldCache_TypeCache: CachablePost! @cacheControl(maxAge: 500)
+  taskField: String! @cacheControl(maxAge: 0)
+  valueTaskField: String! @cacheControl(maxAge: 0)
+  executableField: [String!]! @cacheControl(maxAge: 0)
+  queryableField: [String!]! @cacheControl(maxAge: 0)
+  queryableFieldWithConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionConnection @cacheControl(maxAge: 0)
+  queryableFieldWithCollectionSegment(skip: Int take: Int): StringCollectionSegment @cacheControl(maxAge: 0)
   nested: NestedType! @cacheControl(maxAge: 0)
+  pureField: String! @cacheControl(maxAge: 0)
+}
+
+"A connection to a list of items."
+type QueryableFieldWithConnectionConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [QueryableFieldWithConnectionEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!] @cacheControl(inheritMaxAge: true)
+}
+
+"An edge in a connection."
+type QueryableFieldWithConnectionEdge {
+  "A cursor for use in pagination."
+  cursor: String! @cacheControl(inheritMaxAge: true)
+  "The item at the end of the edge."
+  node: String! @cacheControl(inheritMaxAge: true)
+}
+
+type StringCollectionSegment {
+  items: [String!] @cacheControl(inheritMaxAge: true)
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
 }
 
 type Subscription {
