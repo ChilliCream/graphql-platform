@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
@@ -13,7 +14,7 @@ public sealed class QueryCacheMiddleware
 
     private readonly RequestDelegate _next;
     private readonly DocumentValidatorContextPool _contextPool;
-    private readonly IQueryCache _cache;
+    private readonly IQueryCache[] _caches;
     private readonly CacheControlValidatorVisitor _compiler;
     private readonly ICacheControlOptions _options;
 
@@ -21,11 +22,11 @@ public sealed class QueryCacheMiddleware
         RequestDelegate next,
         DocumentValidatorContextPool contextPool,
         ICacheControlOptionsAccessor optionsAccessor,
-        IQueryCache cache)
+        IEnumerable<IQueryCache> caches)
     {
         _next = next;
         _contextPool = contextPool;
-        _cache = cache;
+        _caches = caches.ToArray();
 
         _options = optionsAccessor.CacheControl;
         _compiler = new CacheControlValidatorVisitor(_options);
@@ -40,10 +41,15 @@ public sealed class QueryCacheMiddleware
         }
         else
         {
-            if (_cache.ShouldReadResultFromCache(context))
+            foreach (IQueryCache cache in _caches)
             {
+                if (!cache.ShouldReadResultFromCache(context))
+                {
+                    continue;
+                }
+
                 IQueryResult? cachedResult =
-                    await _cache.TryReadCachedQueryResultAsync(context, _options);
+                    await cache.TryReadCachedQueryResultAsync(context, _options);
 
                 if (cachedResult is not null)
                 {
@@ -56,8 +62,7 @@ public sealed class QueryCacheMiddleware
 
             if (context.DocumentId is not null &&
                 context.OperationId is not null &&
-                context.Document is not null &&
-                _cache.ShouldWriteResultToCache(context))
+                context.Document is not null)
             {
                 DocumentNode document = context.Document;
                 OperationDefinitionNode operationDefinition =
@@ -67,6 +72,8 @@ public sealed class QueryCacheMiddleware
                 // todo: try to get from operation cache
                 // var cacheId = context.CreateCacheId(context.OperationId);
 
+                // todo: we do this computation without knowing 
+                // whether one of the caches actually wants to cache it...
                 CacheControlResult? result = ComputeCacheControlResult(context, document, operationDefinition);
 
                 if (result is null)
@@ -74,7 +81,15 @@ public sealed class QueryCacheMiddleware
                     return;
                 }
 
-                await _cache.CacheQueryResultAsync(context, result, _options);
+                foreach (IQueryCache cache in _caches)
+                {
+                    if (!cache.ShouldWriteResultToCache(context))
+                    {
+                        continue;
+                    }
+
+                    await cache.CacheQueryResultAsync(context, result, _options);
+                }
             }
         }
     }
@@ -95,6 +110,11 @@ public sealed class QueryCacheMiddleware
 
             foreach (CacheControlResult cacheControlResult in cacheControlResults)
             {
+                if (!cacheControlResult.MaxAge.HasValue)
+                {
+                    cacheControlResult.MaxAge = _options.DefaultMaxAge;
+                }
+
                 if (cacheControlResult.OperationDefinitionNode == operationDefinition)
                 {
                     operationCacheControlResult = cacheControlResult;
