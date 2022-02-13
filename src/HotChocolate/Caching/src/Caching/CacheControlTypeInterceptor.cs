@@ -42,7 +42,6 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         }
     }
 
-    // todo: ignore pagination types
     public override void OnBeforeCompleteType(ITypeCompletionContext completionContext,
         DefinitionBase? definition, IDictionary<string, object?> contextData)
     {
@@ -76,8 +75,8 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 
                 if (completionContext.IsQueryType == true || IsDataResolver(field))
                 {
-                    // Each field on the query type is treated as a field 
-                    // that needs to be explicitly cached.
+                    // Each field on the query type or data resolver fields
+                    // are treated as fields that need to be explicitly cached.
                     ApplyCacheControlWithDefaultMaxAge(field);
 
                     continue;

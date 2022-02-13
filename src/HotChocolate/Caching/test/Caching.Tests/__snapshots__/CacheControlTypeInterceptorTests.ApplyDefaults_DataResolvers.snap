@@ -1,19 +1,5 @@
 ﻿schema {
   query: Query
-  mutation: Mutation
-  subscription: Subscription
-}
-
-interface CachableContract @cacheControl(maxAge: 180) {
-  myProperty: Int! @cacheControl(inheritMaxAge: true)
-}
-
-interface Contract {
-  myProperty: Int! @cacheControl(inheritMaxAge: true)
-}
-
-type CachableUser @cacheControl(maxAge: 120) {
-  myProperty: Int! @cacheControl(inheritMaxAge: true)
 }
 
 "Information about the offset pagination."
@@ -24,47 +10,7 @@ type CollectionSegmentInfo {
   hasPreviousPage: Boolean! @cacheControl(inheritMaxAge: true)
 }
 
-type Contract1 implements Contract {
-  myProperty: Int! @cacheControl(inheritMaxAge: true)
-}
-
-type Contract2 implements Contract {
-  myProperty: Int! @cacheControl(inheritMaxAge: true)
-}
-
-type Contract3 implements CachableContract {
-  myProperty: Int! @cacheControl(inheritMaxAge: true)
-}
-
-type Contract4 implements CachableContract {
-  myProperty: Int! @cacheControl(inheritMaxAge: true)
-}
-
-type Mutation {
-  addString: String!
-}
-
 type NestedType {
-  scalar: String @cacheControl(inheritMaxAge: true)
-  scalar_FieldCache: String @cacheControl(maxAge: 500)
-  nonNullScalar: String! @cacheControl(inheritMaxAge: true)
-  nonNullScalar_FieldCache: String! @cacheControl(maxAge: 500)
-  scalarList: [String]! @cacheControl(inheritMaxAge: true)
-  scalarList_FieldCache: [String]! @cacheControl(maxAge: 500)
-  nonNullScalarList: [String!]! @cacheControl(inheritMaxAge: true)
-  nonNullScalarList_FieldCache: [String!]! @cacheControl(maxAge: 500)
-  objectType: User!
-  objectType_FieldCache: User! @cacheControl(maxAge: 500)
-  objectType_TypeCache: CachableUser!
-  objectType_FieldCache_TypeCache: CachableUser! @cacheControl(maxAge: 500)
-  interfaceType: Contract!
-  interfaceType_FieldCache: Contract! @cacheControl(maxAge: 500)
-  interfaceType_TypeCache: CachableContract!
-  interfaceType_FieldCache_TypeCache: CachableContract! @cacheControl(maxAge: 500)
-  unionType: Post!
-  unionType_FieldCache: Post! @cacheControl(maxAge: 500)
-  unionType_TypeCache: CachablePost!
-  unionType_FieldCache_TypeCache: CachablePost! @cacheControl(maxAge: 500)
   taskField: String! @cacheControl(maxAge: 0)
   valueTaskField: String! @cacheControl(maxAge: 0)
   executableField: [String!]! @cacheControl(maxAge: 0)
@@ -86,31 +32,7 @@ type PageInfo {
   endCursor: String @cacheControl(inheritMaxAge: true)
 }
 
-type PicturePost {
-  myProperty: Int! @cacheControl(inheritMaxAge: true)
-}
-
 type Query {
-  scalar: String @cacheControl(maxAge: 0)
-  scalar_FieldCache: String @cacheControl(maxAge: 500)
-  nonNullScalar: String! @cacheControl(maxAge: 0)
-  nonNullScalar_FieldCache: String! @cacheControl(maxAge: 500)
-  scalarList: [String]! @cacheControl(maxAge: 0)
-  scalarList_FieldCache: [String]! @cacheControl(maxAge: 500)
-  nonNullScalarList: [String!]! @cacheControl(maxAge: 0)
-  nonNullScalarList_FieldCache: [String!]! @cacheControl(maxAge: 500)
-  objectType: User! @cacheControl(maxAge: 0)
-  objectType_FieldCache: User! @cacheControl(maxAge: 500)
-  objectType_TypeCache: CachableUser! @cacheControl(maxAge: 0)
-  objectType_FieldCache_TypeCache: CachableUser! @cacheControl(maxAge: 500)
-  interfaceType: Contract! @cacheControl(maxAge: 0)
-  interfaceType_FieldCache: Contract! @cacheControl(maxAge: 500)
-  interfaceType_TypeCache: CachableContract! @cacheControl(maxAge: 0)
-  interfaceType_FieldCache_TypeCache: CachableContract! @cacheControl(maxAge: 500)
-  unionType: Post! @cacheControl(maxAge: 0)
-  unionType_FieldCache: Post! @cacheControl(maxAge: 500)
-  unionType_TypeCache: CachablePost! @cacheControl(maxAge: 0)
-  unionType_FieldCache_TypeCache: CachablePost! @cacheControl(maxAge: 500)
   taskField: String! @cacheControl(maxAge: 0)
   valueTaskField: String! @cacheControl(maxAge: 0)
   executableField: [String!]! @cacheControl(maxAge: 0)
@@ -144,22 +66,6 @@ type StringCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
 }
-
-type Subscription {
-  onEvent: [String!]!
-}
-
-type TextPost {
-  myProperty: Int! @cacheControl(inheritMaxAge: true)
-}
-
-type User {
-  myProperty: Int! @cacheControl(inheritMaxAge: true)
-}
-
-union CachablePost @cacheControl(maxAge: 60) = TextPost | PicturePost
-
-union Post = TextPost | PicturePost
 
 "TODO"
 enum CacheControlScope {

@@ -52,6 +52,13 @@ public static class RequestExecutorBuilderExtensions
 
         builder.Services.AddSingleton(modifyOptions);
 
+        // todo: do this properly
+        var options = new CacheControlOptions();
+
+        modifyOptions(options);
+
+        builder.SetContextData("TODO", options);
+
         return builder;
     }
 

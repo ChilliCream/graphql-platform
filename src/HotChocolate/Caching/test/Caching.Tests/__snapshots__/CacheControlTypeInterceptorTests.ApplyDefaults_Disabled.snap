@@ -1,0 +1,125 @@
+﻿schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+interface CachableInterface @cacheControl(maxAge: 60, scope: PRIVATE) {
+  field: String
+}
+
+interface DefaultInterface {
+  field: String
+}
+
+type CachableInterfaceImplementation implements CachableInterface {
+  field: String
+}
+
+type CachableObjectType @cacheControl(maxAge: 180, scope: PRIVATE) {
+  field: String
+}
+
+type DefaultInterfaceImplementation implements DefaultInterface {
+  field: String
+}
+
+type DefaultObjectType {
+  field: String
+}
+
+type Mutation {
+  addObject: DefaultObjectType
+}
+
+type NestedObjectType {
+  scalar: String
+  scalarList: [String]
+  object: DefaultObjectType
+  objectList: [DefaultObjectType]
+  union: DefaultUnion
+  unionList: [DefaultUnion]
+  interface: DefaultInterface
+  interfaceList: [DefaultInterface]
+  scalar_fieldCache: String @cacheControl(maxAge: 100, scope: PRIVATE)
+  scalarList_fieldCache: [String] @cacheControl(maxAge: 100, scope: PRIVATE)
+  object_fieldCache: DefaultObjectType @cacheControl(maxAge: 100, scope: PRIVATE)
+  objectList_fieldCache: [DefaultObjectType] @cacheControl(maxAge: 100, scope: PRIVATE)
+  union_fieldCache: DefaultUnion @cacheControl(maxAge: 100, scope: PRIVATE)
+  unionList_fieldCache: [DefaultUnion] @cacheControl(maxAge: 100, scope: PRIVATE)
+  interface_fieldCache: DefaultInterface @cacheControl(maxAge: 100, scope: PRIVATE)
+  interfaceList_fieldCache: [DefaultInterface] @cacheControl(maxAge: 100, scope: PRIVATE)
+  object_typeCache: CachableObjectType
+  objectList_typeCache: [CachableObjectType]
+  union_typeCache: CachableUnion
+  unionList_typeCache: [CachableUnion]
+  interface_typeCache: CachableInterface
+  interfaceList_typeCache: [CachableInterface]
+  object_fieldCache_typeCache: CachableObjectType @cacheControl(maxAge: 100, scope: PRIVATE)
+  objectList_fieldCache_typeCache: [CachableObjectType] @cacheControl(maxAge: 100, scope: PRIVATE)
+  union_fieldCache_typeCache: CachableUnion @cacheControl(maxAge: 100, scope: PRIVATE)
+  unionList_fieldCache_typeCache: [CachableUnion] @cacheControl(maxAge: 100, scope: PRIVATE)
+  interface_fieldCache_typeCache: CachableInterface @cacheControl(maxAge: 100, scope: PRIVATE)
+  interfaceList_fieldCache_typeCache: [CachableInterface] @cacheControl(maxAge: 100, scope: PRIVATE)
+}
+
+type Query {
+  scalar: String
+  scalarList: [String]
+  object: DefaultObjectType
+  objectList: [DefaultObjectType]
+  union: DefaultUnion
+  unionList: [DefaultUnion]
+  interface: DefaultInterface
+  interfaceList: [DefaultInterface]
+  scalar_fieldCache: String @cacheControl(maxAge: 100, scope: PRIVATE)
+  scalarList_fieldCache: [String] @cacheControl(maxAge: 100, scope: PRIVATE)
+  object_fieldCache: DefaultObjectType @cacheControl(maxAge: 100, scope: PRIVATE)
+  objectList_fieldCache: [DefaultObjectType] @cacheControl(maxAge: 100, scope: PRIVATE)
+  union_fieldCache: DefaultUnion @cacheControl(maxAge: 100, scope: PRIVATE)
+  unionList_fieldCache: [DefaultUnion] @cacheControl(maxAge: 100, scope: PRIVATE)
+  interface_fieldCache: DefaultInterface @cacheControl(maxAge: 100, scope: PRIVATE)
+  interfaceList_fieldCache: [DefaultInterface] @cacheControl(maxAge: 100, scope: PRIVATE)
+  object_typeCache: CachableObjectType
+  objectList_typeCache: [CachableObjectType]
+  union_typeCache: CachableUnion
+  unionList_typeCache: [CachableUnion]
+  interface_typeCache: CachableInterface
+  interfaceList_typeCache: [CachableInterface]
+  object_fieldCache_typeCache: CachableObjectType @cacheControl(maxAge: 100, scope: PRIVATE)
+  objectList_fieldCache_typeCache: [CachableObjectType] @cacheControl(maxAge: 100, scope: PRIVATE)
+  union_fieldCache_typeCache: CachableUnion @cacheControl(maxAge: 100, scope: PRIVATE)
+  unionList_fieldCache_typeCache: [CachableUnion] @cacheControl(maxAge: 100, scope: PRIVATE)
+  interface_fieldCache_typeCache: CachableInterface @cacheControl(maxAge: 100, scope: PRIVATE)
+  interfaceList_fieldCache_typeCache: [CachableInterface] @cacheControl(maxAge: 100, scope: PRIVATE)
+  nestedObject: NestedObjectType
+  regular: String
+  fieldCache: String @cacheControl(maxAge: 1, scope: PRIVATE)
+  typeCache: CachableObjectType
+  fieldAndTypeCache: CachableObjectType @cacheControl(maxAge: 2, scope: PRIVATE)
+}
+
+type Subscription {
+  objectAdded: DefaultObjectType
+}
+
+union CachableUnion @cacheControl(maxAge: 120, scope: PRIVATE) = DefaultObjectType | CachableObjectType
+
+union DefaultUnion = DefaultObjectType | CachableObjectType
+
+"TODO"
+enum CacheControlScope {
+  "TODO"
+  PUBLIC
+  "TODO"
+  PRIVATE
+}
+
+"TODO"
+directive @cacheControl("TODO" maxAge: Int "TODO" scope: CacheControlScope "TODO" inheritMaxAge: Boolean) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
+directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! = 0 "Streamed when true." if: Boolean) on FIELD

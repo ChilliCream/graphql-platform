@@ -1,16 +1,137 @@
 type Query {
-  field: String
-  maxAge1: String @cacheControl(maxAge: 1)
-  maxAge2: String @cacheControl(maxAge: 2)
-  scopePrivate: String @cacheControl(scope: PRIVATE)
-  scopePublic: String @cacheControl(scope: PRIVATE)
-  child: Child
+  # fields and types have no cache
+  scalar: String
+  scalarList: [String]
+  object: DefaultObjectType
+  objectList: [DefaultObjectType]
+  union: DefaultUnion
+  unionList: [DefaultUnion]
+  interface: DefaultInterface
+  interfaceList: [DefaultInterface]
+  # fields have cache, but types do not
+  scalar_fieldCache: String @cacheControl(maxAge: 100, scope: PRIVATE)
+  scalarList_fieldCache: [String] @cacheControl(maxAge: 100, scope: PRIVATE)
+  object_fieldCache: DefaultObjectType
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  objectList_fieldCache: [DefaultObjectType]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  union_fieldCache: DefaultUnion @cacheControl(maxAge: 100, scope: PRIVATE)
+  unionList_fieldCache: [DefaultUnion]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  interface_fieldCache: DefaultInterface
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  interfaceList_fieldCache: [DefaultInterface]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  # fields have no cache, but types do
+  object_typeCache: CachableObjectType
+  objectList_typeCache: [CachableObjectType]
+  union_typeCache: CachableUnion
+  unionList_typeCache: [CachableUnion]
+  interface_typeCache: CachableInterface
+  interfaceList_typeCache: [CachableInterface]
+  # fields and types have cache
+  object_fieldCache_typeCache: CachableObjectType
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  objectList_fieldCache_typeCache: [CachableObjectType]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  union_fieldCache_typeCache: CachableUnion
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  unionList_fieldCache_typeCache: [CachableUnion]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  interface_fieldCache_typeCache: CachableInterface
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  interfaceList_fieldCache_typeCache: [CachableInterface]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+
+  # tests
+  nestedObject: NestedObjectType
+
+  regular: String
+  fieldCache: String @cacheControl(maxAge: 1, scope: PRIVATE)
+  typeCache: CachableObjectType
+  fieldAndTypeCache: CachableObjectType @cacheControl(maxAge: 2, scope: PRIVATE)
 }
 
-type Child {
+type Mutation {
+  addObject: DefaultObjectType
+}
+
+type Subscription {
+  objectAdded: DefaultObjectType
+}
+
+type NestedObjectType {
+  # fields and types have no cache
+  scalar: String
+  scalarList: [String]
+  object: DefaultObjectType
+  objectList: [DefaultObjectType]
+  union: DefaultUnion
+  unionList: [DefaultUnion]
+  interface: DefaultInterface
+  interfaceList: [DefaultInterface]
+  # fields have cache, but types do not
+  scalar_fieldCache: String @cacheControl(maxAge: 100, scope: PRIVATE)
+  scalarList_fieldCache: [String] @cacheControl(maxAge: 100, scope: PRIVATE)
+  object_fieldCache: DefaultObjectType
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  objectList_fieldCache: [DefaultObjectType]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  union_fieldCache: DefaultUnion @cacheControl(maxAge: 100, scope: PRIVATE)
+  unionList_fieldCache: [DefaultUnion]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  interface_fieldCache: DefaultInterface
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  interfaceList_fieldCache: [DefaultInterface]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  # fields have no cache, but types do
+  object_typeCache: CachableObjectType
+  objectList_typeCache: [CachableObjectType]
+  union_typeCache: CachableUnion
+  unionList_typeCache: [CachableUnion]
+  interface_typeCache: CachableInterface
+  interfaceList_typeCache: [CachableInterface]
+  # fields and types have cache
+  object_fieldCache_typeCache: CachableObjectType
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  objectList_fieldCache_typeCache: [CachableObjectType]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  union_fieldCache_typeCache: CachableUnion
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  unionList_fieldCache_typeCache: [CachableUnion]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  interface_fieldCache_typeCache: CachableInterface
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+  interfaceList_fieldCache_typeCache: [CachableInterface]
+    @cacheControl(maxAge: 100, scope: PRIVATE)
+}
+
+interface DefaultInterface {
   field: String
-  maxAge1: String @cacheControl(maxAge: 1)
-  maxAge2: String @cacheControl(maxAge: 2)
-  scopePrivate: String @cacheControl(scope: PRIVATE)
-  scopePublic: String @cacheControl(scope: PRIVATE)
+}
+
+interface CachableInterface @cacheControl(maxAge: 60, scope: PRIVATE) {
+  field: String
+}
+
+union DefaultUnion = DefaultObjectType | CachableObjectType
+
+union CachableUnion @cacheControl(maxAge: 120, scope: PRIVATE) =
+    DefaultObjectType
+  | CachableObjectType
+
+type DefaultObjectType {
+  field: String
+}
+
+type CachableObjectType @cacheControl(maxAge: 180, scope: PRIVATE) {
+  field: String
+}
+
+type DefaultInterfaceImplementation implements DefaultInterface {
+  field: String
+}
+
+type CachableInterfaceImplementation implements CachableInterface {
+  field: String
 }

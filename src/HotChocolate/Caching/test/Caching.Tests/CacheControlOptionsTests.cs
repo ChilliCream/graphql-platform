@@ -21,7 +21,7 @@ public class CacheControlOptionsTests
             .UseQueryCachePipeline()
             .BuildRequestExecutorAsync();
 
-        IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IExecutionResult result = await executor.ExecuteAsync("{ scalar }");
 
         Assert.Null(result.Errors);
         Assert.NotNull(cache.Options);
@@ -50,7 +50,7 @@ public class CacheControlOptionsTests
             .UseQueryCachePipeline()
             .BuildRequestExecutorAsync();
 
-        IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IExecutionResult result = await executor.ExecuteAsync("{ scalar }");
 
         Assert.Null(result.Errors);
         Assert.NotNull(cache.Options);
@@ -75,7 +75,7 @@ public class CacheControlOptionsTests
             .UseQueryCachePipeline()
             .BuildRequestExecutorAsync();
 
-        IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IExecutionResult result = await executor.ExecuteAsync("{ scalar }");
 
         Assert.Null(result.Errors);
         Assert.NotNull(cache.Options);
@@ -97,7 +97,7 @@ public class CacheControlOptionsTests
             .AddQueryCache(_ => cache)
             .BuildRequestExecutorAsync();
 
-        IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IExecutionResult result = await executor.ExecuteAsync("{ scalar }");
 
         Assert.Null(result.Errors);
         Assert.NotNull(cache.Options);
@@ -118,7 +118,7 @@ public class CacheControlOptionsTests
             .UseQueryCachePipeline()
             .BuildRequestExecutorAsync();
 
-        IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IExecutionResult result = await executor.ExecuteAsync("{ scalar }");
 
         Assert.Null(result.Errors);
         Assert.Null(cache.Options);
