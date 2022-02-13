@@ -1,6 +1,6 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 using HotChocolate;
@@ -57,16 +57,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             var list = new List<FragmentNode>();
 
-            foreach (var child in fragmentNode.Nodes)
+            foreach (FragmentNode child in fragmentNode.Nodes)
             {
-                if (child.Fragment.Kind == FragmentKind.Named)
-                {
-                    list.Add(RewriteForConcreteType(child));
-                }
-                else
-                {
-                    list.Add(child);
-                }
+                list.Add(child.Fragment.Kind is FragmentKind.Named
+                    ? RewriteForConcreteType(child)
+                    : child);
             }
 
             if (fragmentNode.Fragment.TypeCondition.IsInterfaceType())
@@ -127,10 +122,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fragmentNode.Fragment.TypeCondition,
                 fragmentNode.Fragment.SelectionSet,
                 fields,
-                new[]
-                {
-                    @interface
-                });
+                new[] { @interface },
+                AggregateDeferMap(@interface));
             context.RegisterModel(name, typeModel);
 
             return typeModel;
@@ -143,7 +136,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IEnumerable<OutputTypeModel>? implements = null)
         {
             var levels = new Stack<ISet<string>>();
-            var rootImplements = implements?.ToList() ?? new List<OutputTypeModel>();
+            List<OutputTypeModel> rootImplements = implements?.ToList() ?? new();
             levels.Push(new HashSet<string>());
             return CreateInterface(context, fragmentNode, path, levels, rootImplements);
         }
@@ -170,11 +163,17 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     implementedFields,
                     rootImplements);
 
+            IReadOnlyDictionary<string, OutputTypeModel>? deferred =
+                CreateDeferredMap(
+                    context,
+                    fragmentNode,
+                    path);
+
             // We will check for a cached version of this type to have essentially one instance
             // for each type.
             if (context.TryGetModel(name, out OutputTypeModel? typeModel))
             {
-                foreach (var model in implements)
+                foreach (OutputTypeModel model in implements)
                 {
                     if (!typeModel.Implements.Contains(model))
                     {
@@ -193,7 +192,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             // implements and the root implements.
             if (levels.Count == 1 && rootImplements.Count > 0)
             {
-                foreach (var model in implements)
+                foreach (OutputTypeModel model in implements)
                 {
                     if (!rootImplements.Contains(model))
                     {
@@ -209,7 +208,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             // this discovery.
             var implementsCopy = implements.ToList();
 
-            foreach (var model in implements)
+            foreach (OutputTypeModel model in implements)
             {
                 AddImplementedFields(model, implementedFields);
 
@@ -228,7 +227,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fragmentNode.Fragment.TypeCondition,
                 fragmentNode.Fragment.SelectionSet,
                 CreateFields(fragmentNode, implementedFields, path),
-                implements);
+                implements,
+                deferred);
             context.RegisterModel(name, typeModel);
 
             return typeModel;
@@ -281,9 +281,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IDictionary<string, FieldSelection> fields,
             Path path)
         {
-            foreach (var inlineFragment in fragmentNode.Nodes.Where(
-                         t => t.Fragment.Kind == FragmentKind.Inline &&
-                             t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
+            foreach (FragmentNode inlineFragment in fragmentNode.Nodes.Where(
+                t => t.Fragment.Kind == FragmentKind.Inline &&
+                    t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
             {
                 CollectFields(inlineFragment, outputType, fields, path);
             }
@@ -299,7 +299,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             OutputTypeModel @interface,
             ISet<string> implementedFields)
         {
-            foreach (var field in @interface.Fields)
+            foreach (OutputFieldModel field in @interface.Fields)
             {
                 implementedFields.Add(
                     field.SyntaxNode.Alias?.Value ??
@@ -311,7 +311,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IEnumerable<OutputTypeModel> implements,
             OutputTypeModel possibleInterface)
         {
-            foreach (var impl in implements)
+            foreach (OutputTypeModel impl in implements)
             {
                 if (IsImplementedBy(impl, possibleInterface))
                 {
@@ -336,7 +336,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 return true;
             }
 
-            foreach (var impl in parent.Implements)
+            foreach (OutputTypeModel impl in parent.Implements)
             {
                 if (IsImplementedBy(impl, possibleInterface))
                 {
@@ -364,7 +364,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             var implements = new List<OutputTypeModel>();
 
             foreach (FragmentNode child in parentFragmentNode.Nodes.Where(
-                         t => t.Fragment.Kind == FragmentKind.Named))
+                t => t.Fragment.Kind is FragmentKind.Named && t.Defer is null))
             {
                 // we create a new field level with the fields that are implemented by this level.
                 var fields = new HashSet<string>();
@@ -375,7 +375,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                 // we add all the fields of this interface to the parent fields level so that we
                 // do not create the interface field multiple time on the various levels.
-                foreach (string fieldName in fields)
+                foreach (var fieldName in fields)
                 {
                     parentFields.Add(fieldName);
                 }
@@ -385,6 +385,61 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
 
             return implements;
+        }
+
+        private static IReadOnlyDictionary<string, OutputTypeModel>? CreateDeferredMap(
+            IDocumentAnalyzerContext context,
+            FragmentNode parentFragmentNode,
+            Path selectionPath)
+        {
+            // if the parent fragment has no nested fragments we will stop crawling the tree.
+            if (parentFragmentNode.Nodes.Count == 0)
+            {
+                return null;
+            }
+
+            Dictionary<string, OutputTypeModel>? deferred = null;
+
+            foreach (FragmentNode child in parentFragmentNode.Nodes.Where(
+                t => t.Fragment.Kind is FragmentKind.Named && t.Defer is not null))
+            {
+                (deferred ??= new()).Add(
+                    GetDeferLabel(child.Defer!),
+                    CreateInterface(context, child, selectionPath));
+            }
+
+            return deferred;
+        }
+
+        private static IReadOnlyDictionary<string, OutputTypeModel>? AggregateDeferMap(
+            OutputTypeModel @interface)
+        {
+            var interfaces = new Stack<OutputTypeModel>();
+            Dictionary<string, OutputTypeModel>? deferMap = null;
+
+            interfaces.Push(@interface);
+
+            while (interfaces.Count > 0)
+            {
+                OutputTypeModel current = interfaces.Pop();
+
+                foreach (OutputTypeModel child in current.Implements)
+                {
+                    interfaces.Push(child);
+                }
+
+                if (current.Deferred.Count > 0)
+                {
+                    Dictionary<string, OutputTypeModel> map = deferMap ??= new();
+
+                    foreach ((var key, OutputTypeModel? value) in current.Deferred)
+                    {
+                        map[key] = value;
+                    }
+                }
+            }
+
+            return deferMap;
         }
 
         public static FragmentNode CreateFragmentNode(
@@ -417,7 +472,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             SelectionSet selectionSet,
             bool appendTypeName = false)
         {
-            string name = CreateName(selectionPath, GetClassName);
+            var name = CreateName(selectionPath, GetClassName);
 
             if (appendTypeName)
             {
@@ -433,7 +488,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 selectionSet.FragmentNodes);
         }
 
-        public static string CreateName(
+        private static string CreateName(
             Path selectionPath,
             Func<string, string> nameFormatter)
         {
@@ -444,7 +499,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 if (current is NamePathSegment name)
                 {
-                    string part = GetClassName(name.Name);
+                    var part = GetClassName(name.Name);
 
                     if (nameBuilder.Length > 0)
                     {
@@ -454,10 +509,23 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     nameBuilder.Insert(0, part);
                 }
 
-                current = current?.Parent;
-            } while (current is not null && current != Path.Root);
+                current = current.Parent;
+            } while (current is not null && !current.Equals(Path.Root));
 
             return nameFormatter(nameBuilder.ToString());
+        }
+
+        private static string GetDeferLabel(DirectiveNode directive)
+        {
+            ArgumentNode? argument = directive.Arguments.FirstOrDefault(
+                t => t.Name.Value.EqualsOrdinal(WellKnownDirectives.LabelArgument));
+
+            if (argument?.Value is not StringValueNode { Value.Length: > 0 } sv)
+            {
+                throw new GraphQLException("A defer directive label must always expose a label.");
+            }
+
+            return sv.Value;
         }
     }
 }

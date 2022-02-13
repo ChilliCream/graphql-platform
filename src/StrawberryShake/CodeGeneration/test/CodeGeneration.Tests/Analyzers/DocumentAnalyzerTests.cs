@@ -102,7 +102,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     query GetHero {
                         hero(episode: NEW_HOPE) {
                             ... HeroName
-                            ... HeroAppearsIn @defer
+                            ... HeroAppearsIn @defer(label: ""HeroAppearsIn"")
                         }
                     }
 

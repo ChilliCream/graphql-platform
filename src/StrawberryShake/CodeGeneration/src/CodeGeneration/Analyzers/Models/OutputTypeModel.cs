@@ -8,6 +8,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
     public sealed class OutputTypeModel : ITypeModel
     {
+        private static readonly IReadOnlyDictionary<string, OutputTypeModel> _emptyDeferredMap =
+            new Dictionary<string, OutputTypeModel>();
+
         public OutputTypeModel(
             NameString name,
             string? description,
@@ -15,7 +18,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             INamedType type,
             SelectionSetNode selectionSet,
             IReadOnlyList<OutputFieldModel> fields,
-            IReadOnlyList<OutputTypeModel>? implements = null)
+            IReadOnlyList<OutputTypeModel>? implements = null,
+            IReadOnlyDictionary<string, OutputTypeModel>? deferred = null)
         {
             Name = name.EnsureNotEmpty(nameof(name));
             Description = description;
@@ -27,6 +31,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             Fields = fields ??
                 throw new ArgumentNullException(nameof(fields));
             Implements = implements ?? Array.Empty<OutputTypeModel>();
+            Deferred = deferred ?? _emptyDeferredMap;
         }
 
         public NameString Name { get; }
@@ -38,6 +43,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         public INamedType Type { get; }
 
         public SelectionSetNode SelectionSet { get; }
+
+        public IReadOnlyDictionary<string, OutputTypeModel> Deferred { get; }
 
         public IReadOnlyList<OutputTypeModel> Implements { get; }
 

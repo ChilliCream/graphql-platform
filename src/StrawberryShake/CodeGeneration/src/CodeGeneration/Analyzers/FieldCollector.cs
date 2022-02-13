@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -80,11 +81,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     }
                 }
 
-                if (variants is null)
-                {
-                    variants = new SelectionSetVariants(returnType);
-                }
-
+                variants ??= new SelectionSetVariants(returnType);
                 cache.Add(selectionSetSyntax, variants);
             }
 
@@ -225,8 +222,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (DoesTypeApply(fragment.TypeCondition, type))
             {
+                var deferDirective = fragmentSpreadSyntax.Directives.GetDeferDirective();
                 var nodes = new List<FragmentNode>();
-                var fragmentNode = new FragmentNode(fragment, nodes);
+                var fragmentNode = new FragmentNode(fragment, nodes, deferDirective);
                 fragmentNodes.Add(fragmentNode);
 
                 CollectFields(
@@ -249,8 +247,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (DoesTypeApply(fragment.TypeCondition, type))
             {
+                var deferDirective = inlineFragmentSyntax.Directives.GetDeferDirective();
                 var nodes = new List<FragmentNode>();
-                var fragmentNode = new FragmentNode(fragment, nodes);
+                var fragmentNode = new FragmentNode(fragment, nodes, deferDirective);
                 fragmentNodes.Add(fragmentNode);
 
                 CollectFields(
@@ -261,8 +260,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     nodes);
             }
         }
-
-        private bool TryGetDeferDirective(IHasDirectives directives, )
 
         private Fragment CreateFragment(string fragmentName)
         {
@@ -275,7 +272,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 if (_schema.TryGetType<INamedType>(
                     fragmentDefinitionSyntax.TypeCondition.Name.Value,
-                    out var type))
+                    out INamedType? type))
                 {
                     return new Fragment(
                         fragmentName,
@@ -294,7 +291,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             InlineFragmentNode inlineFragmentSyntax,
             INamedOutputType parentType)
         {
-            string fragmentName = CreateInlineFragmentName(inlineFragmentSyntax);
+            var fragmentName = CreateInlineFragmentName(inlineFragmentSyntax);
 
             if (!_fragments.TryGetValue(fragmentName, out Fragment? fragment))
             {
