@@ -104,11 +104,11 @@ public class HttpCachingTests : ServerTestBase
 
 public class GraphQLResult
 {
-    public HttpResponseHeaders Headers { get; set; }
+    public HttpResponseHeaders Headers { get; set; } = default!;
 
-    public HttpContentHeaders ContentHeaders { get; set; }
+    public HttpContentHeaders ContentHeaders { get; set; } = default!;
 
-    public string Body { get; set; }
+    public string Body { get; set; } = default!;
 }
 
 internal static class TestServerExtensions

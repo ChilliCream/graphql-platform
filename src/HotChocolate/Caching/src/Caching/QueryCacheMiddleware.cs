@@ -29,7 +29,7 @@ public sealed class QueryCacheMiddleware
         _caches = caches.ToArray();
 
         _options = optionsAccessor.CacheControl;
-        _compiler = new CacheControlValidatorVisitor(_options);
+        _compiler = new CacheControlValidatorVisitor();
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
@@ -110,7 +110,7 @@ public sealed class QueryCacheMiddleware
 
             foreach (CacheControlResult cacheControlResult in cacheControlResults)
             {
-                if (!cacheControlResult.MaxAge.HasValue)
+                if (!cacheControlResult.MaxAgeHasValue)
                 {
                     cacheControlResult.MaxAge = _options.DefaultMaxAge;
                 }
