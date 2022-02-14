@@ -444,12 +444,22 @@ public class ActivityEnricher
         Activity activity,
         Activity root,
         string displayName)
-        => $"{root.DisplayName}: {displayName}";
+    {
+        const string key = "originalDisplayName";
+
+        if (root.GetCustomProperty(key) is not string rootDisplayName)
+        {
+            rootDisplayName = root.DisplayName;
+            root.SetCustomProperty(key, rootDisplayName);
+        }
+
+        return $"{rootDisplayName}: {displayName}";
+    }
 
     public virtual void EnrichParseDocument(IRequestContext context, Activity activity)
     {
         activity.DisplayName = "Parse Document";
-        
+
         if (_options.RenameRootActivity)
         {
             UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
@@ -465,6 +475,12 @@ public class ActivityEnricher
     public virtual void EnrichValidateDocument(IRequestContext context, Activity activity)
     {
         activity.DisplayName = "Validate Document";
+
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
+        }
+
         activity.SetTag("graphql.document.id", context.DocumentId);
         activity.SetTag("graphql.document.hash", context.DocumentHash);
     }

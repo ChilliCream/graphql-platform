@@ -122,7 +122,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ abc123 }");
 
             // assert
-            Assert.Equal("CaptureActivities: Begin Parse Document", Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities: Begin Validate Document", Activity.Current!.DisplayName);
         }
     }
 
