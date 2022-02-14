@@ -8,34 +8,36 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild> <!-- Generates a package at build -->
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
+    <ImplicitUsings>enable</ImplicitUsings>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.Text.Json" Version="4.7.0">
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="12.0.0-preview.26" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="DotNet.Glob" Version="3.1.2" PrivateAssets="all" GeneratePathProperty="true" />
+    <Compile Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Client\*.cs" />
+    <ProjectReference Include="..\..\..\Tooling\src\Configuration\StrawberryShake.Tools.Configuration.csproj">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
     <!-- Package the generator in the analyzer directory of the nuget package -->
     <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\GraphQL.xaml" Pack="true" PackagePath="build/GraphQL.xaml" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\.server\**\*.*" Pack="true" PackagePath="build/gen" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\graphql.MSBuild.xaml" Pack="true" PackagePath="build/graphql.MSBuild.xaml" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\graphql.MSBuild.ContentType.xaml" Pack="true" PackagePath="build/graphql.MSBuild.ContentType.xaml" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.props" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.props" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.targets" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.targets" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\VSCode.targets" Pack="true" PackagePath="build/VSCode.targets" Visible="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Tooling\src\Configuration\StrawberryShake.Tools.Configuration.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,5 +54,11 @@
       <DependentUpon>AnalyzerResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
+
+  <Target Name="PublishingCodeGenerationServer" BeforeTargets="BeforeBuild">
+    <Message Text="Publishing Code Generation Server" Importance="high" />
+    <Message Text="dotnet publish $(MSBuildThisFileDirectory)..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Server -f net6.0 -c $(Configuration) --output $(MSBuildThisFileDirectory)..\.server/" Importance="high" />
+    <Exec Command="dotnet publish $(MSBuildThisFileDirectory)..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Server -f net6.0 -c $(Configuration) --output $(MSBuildThisFileDirectory)..\.server/" />
+  </Target>
 
 </Project>

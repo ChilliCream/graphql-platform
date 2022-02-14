@@ -59,11 +59,6 @@ namespace StrawberryShake.Tools.Configuration
         public bool NoStore { get; set; } = false;
 
         /// <summary>
-        /// Defines if the generated code shall be emitted.
-        /// </summary>
-        public bool EmitGeneratedCode { get; set; } = true;
-
-        /// <summary>
         /// Defines if the generator shall generate blazor query components.
         /// </summary>
         public bool RazorComponents { get; set; } = false;

@@ -764,7 +764,7 @@ namespace HotChocolate.Types
         {
             public string? YourFieldName { get; set; }
 
-            public string YourFieldname { get; set; }
+            public string YourFieldname { get; set; } = default!;
         }
 
         public class DeprecatedInputFields

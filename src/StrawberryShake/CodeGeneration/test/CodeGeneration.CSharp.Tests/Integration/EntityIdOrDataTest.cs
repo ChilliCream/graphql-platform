@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Types;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets;
 using Xunit;
@@ -61,22 +61,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
 
         public class Baz : IBar
         {
-            public string Id { get; set; }
+            public string Id { get; set; } = default!;
         }
 
         public class Baz2 : IBar
         {
-            public string Id { get; set; }
+            public string Id { get; set; } = default!;
         }
 
         public class Quox : IBar
         {
-            public string Foo { get; set; }
+            public string Foo { get; set; } = default!;
         }
 
         public class Quox2 : IBar
         {
-            public string Foo { get; set; }
+            public string Foo { get; set; } = default!;
         }
     }
 }

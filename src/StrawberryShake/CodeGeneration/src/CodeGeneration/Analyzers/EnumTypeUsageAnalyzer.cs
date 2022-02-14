@@ -29,7 +29,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             OperationDefinitionNode node,
             object? context)
         {
-            ObjectType operationType = _schema.GetOperationType(node.Operation);
+            ObjectType operationType = _schema.GetOperationType(node.Operation)!;
 
             _typeContext.Push(operationType);
 

@@ -11,6 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class ResultFromEntityTypeMapperGenerator : TypeMapperGenerator
     {
         private const string _entity = "entity";
+        protected const string entityStore = "entityStore";
         private const string _entityStore = "_entityStore";
         private const string _map = "Map";
         private const string _snapshot = "snapshot";
