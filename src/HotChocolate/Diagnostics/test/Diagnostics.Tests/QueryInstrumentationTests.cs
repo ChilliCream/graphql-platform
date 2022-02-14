@@ -85,6 +85,48 @@ public partial class QueryInstrumentationTests
     }
 
     [Fact]
+    public async Task Parsing_error_when_rename_root_is_activated()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.RenameRootActivity = true;
+                    o.Scopes = ActivityScopes.All;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ sayHello");
+
+            // assert
+            Assert.Equal("CaptureActivities: Begin Parse Document", Activity.Current!.DisplayName);
+        }
+    }
+
+    [Fact]
+    public async Task Validation_error_when_rename_root_is_activated()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.RenameRootActivity = true;
+                    o.Scopes = ActivityScopes.All;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ abc123 }");
+
+            // assert
+            Assert.Equal("CaptureActivities: Begin Parse Document", Activity.Current!.DisplayName);
+        }
+    }
+
+    [Fact]
     public async Task Create_operation_display_name_with_1_field()
     {
         using (CaptureActivities(out var activities))
