@@ -77,7 +77,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         }
 
 
-         [Fact]
+        [Fact]
         public async Task One_Fragment_One_Deferred_Fragment()
         {
             // arrange
@@ -94,7 +94,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     {
                         new(schema.ToDocument()),
                         new(Utf8GraphQLParser.Parse(
-                            @"extend scalar String @runtimeType(name: ""Abc"")"))
+                            @"extend scalar String @runtimeType(name: ""Abc"")")),
+                        new(Utf8GraphQLParser.Parse(
+                            "extend schema @key(fields: \"id\")"))
                     });
 
             DocumentNode document =
@@ -123,30 +125,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     .Analyze();
 
             // assert
-            Assert.Empty(clientModel.InputObjectTypes);
+            var human = clientModel.OutputTypes.First(t => t.Name.Equals("GetHero_Hero_Human"));
+
+            Assert.True(
+                human.Deferred.ContainsKey("HeroAppearsIn"),
+                "Human does not contain deferred model `HeroAppearsIn`.");
 
             Assert.Collection(
-                clientModel.LeafTypes,
-                type =>
-                {
-                    Assert.Equal("String", type.Name);
-                    Assert.Equal("Abc", type.RuntimeType);
-                });
-
-            Assert.Collection(
-                clientModel.Operations,
-                op =>
-                {
-                    Assert.Equal("IGetHero", op.ResultType.Name);
-
-                    Assert.Collection(
-                        op.GetImplementations(op.ResultType),
-                        model => Assert.Equal("GetHero", model.Name));
-
-                    OutputTypeModel fieldResultType = op.GetFieldResultType(
-                        op.ResultType.Fields.Single().SyntaxNode);
-                    Assert.Equal("IGetHero_Hero", fieldResultType.Name);
-                });
+                human.Deferred["HeroAppearsIn"].Class.Fields,
+                field => Assert.Equal("AppearsIn", field.Name.Value));
         }
     }
 }

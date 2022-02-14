@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -103,7 +102,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 return typeModel;
             }
 
+            var fieldNames = new HashSet<string>();
+            CollectFieldNames(@interface, fieldNames);
+
             var fields = selectionSet.Fields
+                .Where(t => fieldNames.Contains(t.ResponseName))
                 .Select(
                     t => new OutputFieldModel(
                         GetPropertyName(t.ResponseName),
@@ -114,6 +117,39 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         t.SyntaxNode,
                         t.Path))
                 .ToList();
+
+            typeModel = new OutputTypeModel(
+                name,
+                fragmentNode.Fragment.TypeCondition.Description,
+                isInterface: false,
+                fragmentNode.Fragment.TypeCondition,
+                fragmentNode.Fragment.SelectionSet,
+                fields,
+                new[] { @interface },
+                AggregateDeferMap(@interface));
+            context.RegisterModel(name, typeModel);
+
+            return typeModel;
+        }
+
+        private static OutputTypeModel CreateClassFromInterface(
+            IDocumentAnalyzerContext context,
+            FragmentNode fragmentNode,
+            OutputTypeModel @interface)
+        {
+            NameString name = context.ResolveTypeName(
+                GetClassName(fragmentNode.Fragment.Name),
+                fragmentNode.Fragment.SelectionSet);
+
+            // We will check for a cached version of this type to have essentially one instance
+            // for each type.
+            if (context.TryGetModel(name, out OutputTypeModel? typeModel))
+            {
+                return typeModel;
+            }
+
+            var fields = new List<OutputFieldModel>();
+            CollectFields(@interface, fields);
 
             typeModel = new OutputTypeModel(
                 name,
@@ -163,7 +199,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     implementedFields,
                     rootImplements);
 
-            IReadOnlyDictionary<string, OutputTypeModel>? deferred =
+            IReadOnlyDictionary<string, DeferredFragmentModel>? deferred =
                 CreateDeferredMap(
                     context,
                     fragmentNode,
@@ -295,6 +331,58 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
 
+        private static void CollectFields(
+            OutputTypeModel @interface,
+            List<OutputFieldModel> fields)
+        {
+            var stack = new Stack<OutputTypeModel>();
+            var fieldNames = new HashSet<string>();
+
+            stack.Push(@interface);
+
+            while (stack.Count > 0)
+            {
+                OutputTypeModel current = stack.Pop();
+
+                foreach (OutputTypeModel child in current.Implements)
+                {
+                    stack.Push(child);
+                }
+
+                foreach (OutputFieldModel field in current.Fields)
+                {
+                    if (fieldNames.Add(field.ResponseName))
+                    {
+                        fields.Add(field);
+                    }
+                }
+            }
+        }
+
+        private static void CollectFieldNames(
+            OutputTypeModel @interface,
+            HashSet<string> fieldNames)
+        {
+            var stack = new Stack<OutputTypeModel>();
+
+            stack.Push(@interface);
+
+            while (stack.Count > 0)
+            {
+                OutputTypeModel current = stack.Pop();
+
+                foreach (OutputTypeModel child in current.Implements)
+                {
+                    stack.Push(child);
+                }
+
+                foreach (OutputFieldModel field in current.Fields)
+                {
+                    fieldNames.Add(field.ResponseName);
+                }
+            }
+        }
+
         private static void AddImplementedFields(
             OutputTypeModel @interface,
             ISet<string> implementedFields)
@@ -387,7 +475,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return implements;
         }
 
-        private static IReadOnlyDictionary<string, OutputTypeModel>? CreateDeferredMap(
+        private static IReadOnlyDictionary<string, DeferredFragmentModel>? CreateDeferredMap(
             IDocumentAnalyzerContext context,
             FragmentNode parentFragmentNode,
             Path selectionPath)
@@ -398,24 +486,27 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 return null;
             }
 
-            Dictionary<string, OutputTypeModel>? deferred = null;
+            Dictionary<string, DeferredFragmentModel>? deferred = null;
 
             foreach (FragmentNode child in parentFragmentNode.Nodes.Where(
                 t => t.Fragment.Kind is FragmentKind.Named && t.Defer is not null))
             {
-                (deferred ??= new()).Add(
-                    GetDeferLabel(child.Defer!),
-                    CreateInterface(context, child, selectionPath));
+                var label = GetDeferLabel(child.Defer!);
+                OutputTypeModel @interface = CreateInterface(context, child, selectionPath);
+                OutputTypeModel @class = CreateClassFromInterface(context, child, @interface);
+                var model = new DeferredFragmentModel(label, @interface, @class);
+
+                (deferred ??= new()).Add(label, model);
             }
 
             return deferred;
         }
 
-        private static IReadOnlyDictionary<string, OutputTypeModel>? AggregateDeferMap(
+        private static IReadOnlyDictionary<string, DeferredFragmentModel>? AggregateDeferMap(
             OutputTypeModel @interface)
         {
             var interfaces = new Stack<OutputTypeModel>();
-            Dictionary<string, OutputTypeModel>? deferMap = null;
+            Dictionary<string, DeferredFragmentModel>? deferMap = null;
 
             interfaces.Push(@interface);
 
@@ -430,9 +521,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                 if (current.Deferred.Count > 0)
                 {
-                    Dictionary<string, OutputTypeModel> map = deferMap ??= new();
+                    Dictionary<string, DeferredFragmentModel> map = deferMap ??= new();
 
-                    foreach ((var key, OutputTypeModel? value) in current.Deferred)
+                    foreach ((var key, DeferredFragmentModel? value) in current.Deferred)
                     {
                         map[key] = value;
                     }

@@ -8,8 +8,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
     public sealed class OutputTypeModel : ITypeModel
     {
-        private static readonly IReadOnlyDictionary<string, OutputTypeModel> _emptyDeferredMap =
-            new Dictionary<string, OutputTypeModel>();
+        private static readonly IReadOnlyDictionary<string, DeferredFragmentModel> _empty =
+            new Dictionary<string, DeferredFragmentModel>();
 
         public OutputTypeModel(
             NameString name,
@@ -19,7 +19,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             SelectionSetNode selectionSet,
             IReadOnlyList<OutputFieldModel> fields,
             IReadOnlyList<OutputTypeModel>? implements = null,
-            IReadOnlyDictionary<string, OutputTypeModel>? deferred = null)
+            IReadOnlyDictionary<string, DeferredFragmentModel>? deferred = null)
         {
             Name = name.EnsureNotEmpty(nameof(name));
             Description = description;
@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             Fields = fields ??
                 throw new ArgumentNullException(nameof(fields));
             Implements = implements ?? Array.Empty<OutputTypeModel>();
-            Deferred = deferred ?? _emptyDeferredMap;
+            Deferred = deferred ?? _empty;
         }
 
         public NameString Name { get; }
@@ -44,15 +44,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public SelectionSetNode SelectionSet { get; }
 
-        public IReadOnlyDictionary<string, OutputTypeModel> Deferred { get; }
+        public IReadOnlyDictionary<string, DeferredFragmentModel> Deferred { get; }
 
         public IReadOnlyList<OutputTypeModel> Implements { get; }
 
         public IReadOnlyList<OutputFieldModel> Fields { get; }
 
-        public override string ToString()
-        {
-            return Name;
-        }
+        public override string ToString() => Name;
     }
 }
