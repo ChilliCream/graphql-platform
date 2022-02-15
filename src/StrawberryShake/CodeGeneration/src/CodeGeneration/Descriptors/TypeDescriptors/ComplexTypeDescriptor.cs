@@ -11,6 +11,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
             TypeKind typeKind,
             RuntimeTypeInfo runtimeType,
             IReadOnlyList<NameString> implements,
+            IReadOnlyList<DeferredFragmentDescriptor>? deferred,
             string? description,
             RuntimeTypeInfo? parentRuntimeType = null)
         {
@@ -18,6 +19,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
             Kind = typeKind;
             RuntimeType = runtimeType;
             Implements = implements;
+            Deferred = deferred ?? Array.Empty<DeferredFragmentDescriptor>();
             Description = description;
             ParentRuntimeType = parentRuntimeType;
         }
@@ -53,6 +55,11 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
         /// A list of interface names the type implements
         /// </summary>
         public IReadOnlyList<NameString> Implements { get; }
+
+        /// <summary>
+        /// Gets the deferred fragments of this type.
+        /// </summary>
+        public IReadOnlyList<DeferredFragmentDescriptor> Deferred { get; }
 
         /// <summary>
         /// Gets the .NET runtime type of the parent. If there is no parent type, this property is

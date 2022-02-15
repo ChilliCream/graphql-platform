@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             InputObjectTypeDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings)
         {
-            string name = NamingConventions.CreateInputValueInfo(descriptor.Name);
+            var name = NamingConventions.CreateInputValueInfo(descriptor.Name);
 
             InterfaceDeclarationSyntax interfaceDeclaration =
                 SyntaxFactory.InterfaceDeclaration(name)

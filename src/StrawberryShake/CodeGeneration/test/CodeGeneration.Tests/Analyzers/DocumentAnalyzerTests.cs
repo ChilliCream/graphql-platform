@@ -126,6 +126,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             // assert
             var human = clientModel.OutputTypes.First(t => t.Name.Equals("GetHero_Hero_Human"));
+            Assert.Equal(1, human.Fields.Count);
 
             Assert.True(
                 human.Deferred.ContainsKey("HeroAppearsIn"),

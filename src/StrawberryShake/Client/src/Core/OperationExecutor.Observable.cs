@@ -76,8 +76,10 @@ namespace StrawberryShake
                     CancellationToken token = session.RequestSession.Token;
                     IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
 
-                    await foreach (var response in
-                        _connection.ExecuteAsync(_request, token).ConfigureAwait(false))
+                    await foreach (Response<TData>? response in
+                        _connection.ExecuteAsync(_request)
+                            .WithCancellation(token)
+                            .ConfigureAwait(false))
                     {
                         if (token.IsCancellationRequested)
                         {

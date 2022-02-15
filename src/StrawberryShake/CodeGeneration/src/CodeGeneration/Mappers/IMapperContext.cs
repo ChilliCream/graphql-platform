@@ -63,5 +63,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
 
         RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind);
+
+        T GetType<T>(string runtimeTypeName) where T : INamedTypeDescriptor;
     }
 }

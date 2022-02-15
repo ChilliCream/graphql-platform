@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Net.Http.Headers;
 using Snapshooter.Xunit;
 using Xunit;
 

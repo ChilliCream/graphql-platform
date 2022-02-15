@@ -11,9 +11,17 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
             RuntimeTypeInfo runtimeType,
             IReadOnlyCollection<ObjectTypeDescriptor> implementedBy,
             IReadOnlyList<NameString> implements,
+            IReadOnlyList<DeferredFragmentDescriptor>? deferred,
             string? description,
             RuntimeTypeInfo? parentRuntimeType = null)
-            : base(name, typeKind, runtimeType, implements, description, parentRuntimeType)
+            : base(
+                name,
+                typeKind,
+                runtimeType,
+                implements,
+                deferred,
+                description,
+                parentRuntimeType)
         {
             ImplementedBy = implementedBy;
         }

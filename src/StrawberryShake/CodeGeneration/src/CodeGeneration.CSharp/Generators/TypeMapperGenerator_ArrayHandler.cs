@@ -75,7 +75,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             AddMapMethod(
                 settings,
-                listVarName,
                 listTypeDescriptor.InnerType,
                 classBuilder,
                 constructorBuilder,

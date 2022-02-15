@@ -23,7 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetComment(descriptor.Description)
                 .SetName(fileName);
 
-            foreach (var prop in descriptor.Properties)
+            foreach (PropertyDescriptor prop in descriptor.Properties)
             {
                 interfaceBuilder
                     .AddProperty(prop.Name)
@@ -33,6 +33,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             interfaceBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
+
+            foreach (DeferredFragmentDescriptor deferred in descriptor.Deferred)
+            {
+                // Add fragment interface
+                interfaceBuilder
+                    .AddImplements(TypeNames.Fragment.WithGeneric(deferred.InterfaceName));
+            }
+
             interfaceBuilder.Build(writer);
         }
     }

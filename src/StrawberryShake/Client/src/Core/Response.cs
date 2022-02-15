@@ -23,7 +23,11 @@ namespace StrawberryShake
         /// <param name="exception">
         /// The transport exception.
         /// </param>
-        public Response(TBody? body, Exception? exception)
+        /// <param name="isPatch">
+        /// Defines if this is a partial result that
+        /// shall be patched onto a previous one.
+        /// </param>
+        public Response(TBody? body, Exception? exception, bool isPatch = false)
         {
             if (body is null && exception is null)
             {
@@ -32,6 +36,7 @@ namespace StrawberryShake
 
             Body = body;
             Exception = exception;
+            IsPatch = isPatch;
         }
 
         /// <summary>
@@ -43,6 +48,12 @@ namespace StrawberryShake
         /// The transport exception.
         /// </summary>
         public Exception? Exception { get; }
+
+        /// <summary>
+        /// Defines if this is a partial result that
+        /// shall be patched onto a previous one.
+        /// </summary>
+        public bool IsPatch { get; }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing,

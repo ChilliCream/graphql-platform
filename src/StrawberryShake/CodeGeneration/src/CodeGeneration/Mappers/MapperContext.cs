@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.Mappers
@@ -72,27 +74,27 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {
-            foreach (var entityTypeDescriptor in EntityTypes)
+            foreach (EntityTypeDescriptor entityTypeDescriptor in EntityTypes)
             {
                 yield return entityTypeDescriptor;
             }
 
-            foreach (var type in Types)
+            foreach (INamedTypeDescriptor type in Types)
             {
                 yield return type;
             }
 
-            foreach (var type in Operations)
+            foreach (OperationDescriptor type in Operations)
             {
                 yield return type;
             }
 
-            foreach (var resultBuilder in ResultBuilders)
+            foreach (ResultBuilderDescriptor resultBuilder in ResultBuilders)
             {
                 yield return resultBuilder;
             }
 
-            foreach (var dataType in DataTypes)
+            foreach (DataTypeDescriptor dataType in DataTypes)
             {
                 yield return dataType;
             }
@@ -110,6 +112,9 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             return _runtimeTypes[(typeName, kind)];
         }
+
+        public T GetType<T>(string runtimeTypeName) where T : INamedTypeDescriptor
+            => _types.OfType<T>().Single(t => t.RuntimeType.Name.Equals(runtimeTypeName));
 
         public void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors)
         {

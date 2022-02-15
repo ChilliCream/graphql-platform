@@ -6,17 +6,17 @@ public class DeferredFragmentModel
 {
     public DeferredFragmentModel(
         string label,
-        OutputTypeModel @class,
-        OutputTypeModel @interface)
+        OutputTypeModel @interface,
+        OutputTypeModel @class)
     {
         Label = label ?? throw new ArgumentNullException(nameof(label));
-        Class = @class ?? throw new ArgumentNullException(nameof(@class));
         Interface = @interface ?? throw new ArgumentNullException(nameof(@interface));
+        Class = @class ?? throw new ArgumentNullException(nameof(@class));
     }
 
     public string Label { get; }
 
-    public OutputTypeModel Class { get; }
-
     public OutputTypeModel Interface { get; }
+
+    public OutputTypeModel Class { get; }
 }

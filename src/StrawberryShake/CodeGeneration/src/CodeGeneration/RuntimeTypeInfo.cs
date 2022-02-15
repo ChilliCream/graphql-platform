@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration
     {
         public RuntimeTypeInfo(string fullName, bool isValueType = false)
         {
-            string[] parts = fullName.Split('.');
+            var parts = fullName.Split('.');
             Name = parts.Last();
             Namespace = string.Join(".", parts.Take(parts.Length - 1));
             IsValueType = isValueType;

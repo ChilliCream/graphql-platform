@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             return (classBuilder, constructorBuilder);
         }
 
-        protected void AddConstructorAssignedField(
+        private void AddConstructorAssignedField(
             TypeReferenceBuilder type,
             string fieldName,
             string paramName,

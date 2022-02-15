@@ -25,6 +25,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             method
                 .AddParameter(_entityId)
                 .SetType(TypeNames.EntityId.MakeNullable(!isNonNullable));
+
             method
                 .AddParameter(_snapshot)
                 .SetType(TypeNames.IEntityStoreSnapshot);

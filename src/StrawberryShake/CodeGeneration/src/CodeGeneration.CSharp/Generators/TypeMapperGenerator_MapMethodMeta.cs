@@ -15,7 +15,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         /// </summary>
         protected void AddRequiredMapMethods(
             CSharpSyntaxGeneratorSettings settings,
-            string propAccess,
             ComplexTypeDescriptor typeDescriptor,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
@@ -24,11 +23,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             if (typeDescriptor is InterfaceTypeDescriptor interfaceType)
             {
-                foreach (var objectTypeDescriptor in interfaceType.ImplementedBy)
+                foreach (ObjectTypeDescriptor objectTypeDescriptor in interfaceType.ImplementedBy)
                 {
                     AddRequiredMapMethods(
                         settings,
-                        propAccess,
                         objectTypeDescriptor,
                         classBuilder,
                         constructorBuilder,
@@ -37,11 +35,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
             else
             {
-                foreach (var property in typeDescriptor.Properties)
+                foreach (PropertyDescriptor property in typeDescriptor.Properties)
                 {
                     AddMapMethod(
                         settings,
-                        propAccess,
                         property.Type,
                         classBuilder,
                         constructorBuilder,
@@ -52,7 +49,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     {
                         AddRequiredMapMethods(
                             settings,
-                            propAccess,
                             ct,
                             classBuilder,
                             constructorBuilder,
@@ -63,9 +59,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private static string MapMethodNameFromTypeName(ITypeDescriptor typeDescriptor)
-        {
-            return "Map" + BuildMapMethodName(typeDescriptor);
-        }
+            => "Map" + BuildMapMethodName(typeDescriptor);
 
         private static string BuildMapMethodName(
             ITypeDescriptor typeDescriptor,
@@ -81,10 +75,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 InterfaceTypeDescriptor
                 {
-                    ImplementedBy: { Count: > 1 },
+                    ImplementedBy.Count: > 1,
                     Kind: TypeKind.Entity,
                     ParentRuntimeType: { } parentRuntimeType
-                } => parentRuntimeType!.Name,
+                } => parentRuntimeType.Name,
 
                 INamedTypeDescriptor namedTypeDescriptor =>
                     namedTypeDescriptor.RuntimeType.Name,
@@ -99,13 +93,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
         private void AddMapMethod(
             CSharpSyntaxGeneratorSettings settings,
-            string propAccess,
             ITypeDescriptor typeReference,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             HashSet<string> processed)
         {
-            string methodName = MapMethodNameFromTypeName(typeReference);
+            var methodName = MapMethodNameFromTypeName(typeReference);
 
             if (!typeReference.IsLeaf() && processed.Add(methodName))
             {
@@ -127,7 +120,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
         }
 
-        private CodeBlockBuilder EnsureProperNullability(
+        private static CodeBlockBuilder EnsureProperNullability(
             string propertyName,
             bool isNonNullType = false)
         {
@@ -265,6 +258,59 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 default:
                     throw new ArgumentOutOfRangeException(nameof(typeDescriptor));
             }
+        }
+
+        protected void AddMapFragmentMethod(
+            ClassBuilder classBuilder,
+            ConstructorBuilder constructorBuilder,
+            ObjectTypeDescriptor fragmentTypeDescriptor,
+            string fragmentInterfaceName,
+            string entityTypeName,
+            HashSet<string> processed)
+        {
+            var mapperName = $"{fragmentTypeDescriptor.RuntimeType.Name}Mapper";
+
+            if (!processed.Add(mapperName))
+            {
+                return;
+            }
+
+            const string entity = nameof(entity);
+            const string snapshot = nameof(snapshot);
+            var methodName = $"Map{fragmentTypeDescriptor.RuntimeType.Name}";
+            var fieldName = GetFieldName(mapperName);
+
+            MethodBuilder methodBuilder = MethodBuilder
+                .New()
+                .SetAccessModifier(AccessModifier.Private)
+                .SetName(methodName)
+                .AddParameter(ParameterBuilder.New()
+                    .SetName(entity)
+                    .SetType(entityTypeName))
+                .AddParameter(ParameterBuilder.New()
+                    .SetName(snapshot)
+                    .SetType(TypeNames.IEntityStoreSnapshot))
+                .SetReturnType($"{fragmentInterfaceName}?");
+
+            classBuilder.AddMethod(methodBuilder);
+
+            methodBuilder.AddCode(
+                IfBuilder.New()
+                    .SetCondition($"!{entity}.Is{fragmentTypeDescriptor.RuntimeType.Name}Fulfilled")
+                    .AddCode("return null;"));
+
+            var mapperType = TypeNames.IEntityMapper.WithGeneric(
+                entityTypeName,
+                fragmentTypeDescriptor.RuntimeType.FullName);
+
+            AddConstructorAssignedField(
+                mapperType,
+                GetFieldName(mapperName),
+                GetParameterName(mapperName),
+                classBuilder,
+                constructorBuilder);
+
+            methodBuilder.AddCode($"return {fieldName}.Map({entity}, {snapshot});");
         }
     }
 }

@@ -11,12 +11,14 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
             NameString name,
             NameString fieldName,
             ITypeDescriptor type,
-            string? description)
+            string? description,
+            PropertyKind kind = PropertyKind.Field)
         {
             Name = name;
             FieldName = fieldName;
             Type = type;
             Description = description;
+            Kind = kind;
         }
 
         /// <summary>
@@ -38,5 +40,10 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
         /// The description of the property
         /// </summary>
         public string? Description { get; }
+
+        /// <summary>
+        /// Defines the kind of this property.
+        /// </summary>
+        public PropertyKind Kind { get; }
     }
 }

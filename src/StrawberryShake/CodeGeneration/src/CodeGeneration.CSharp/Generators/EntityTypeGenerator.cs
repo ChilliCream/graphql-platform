@@ -35,18 +35,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         ConstructorDeclaration(descriptor.RuntimeType.Name)
                             .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
-                    foreach (PropertyDescriptor property in descriptor.Properties.Select(t =>
-                        t.Value))
+                    foreach (PropertyDescriptor property in
+                        descriptor.Properties.Select(t => t.Value))
                     {
                         constructor = constructor.AddStateParameter(property);
                     }
 
                     recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(constructor);
 
-                    foreach (PropertyDescriptor property in descriptor.Properties.Select(t =>
-                        t.Value))
+                    foreach (PropertyDescriptor property in
+                        descriptor.Properties.Select(t => t.Value))
                     {
-                        recordDeclarationSyntax = recordDeclarationSyntax.AddStateProperty(property);
+                        recordDeclarationSyntax =
+                            recordDeclarationSyntax.AddStateProperty(property);
                     }
                 }
 
@@ -74,8 +75,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     ConstructorDeclaration(descriptor.RuntimeType.Name)
                         .AddModifiers(Token(SyntaxKind.PublicKeyword));
 
-                foreach (PropertyDescriptor property in descriptor.Properties.Select(t =>
-                    t.Value))
+                foreach (PropertyDescriptor property in
+                    descriptor.Properties.Select(t => t.Value))
                 {
                     constructor = constructor.AddStateParameter(property);
                 }

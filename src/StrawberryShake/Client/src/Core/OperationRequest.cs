@@ -15,7 +15,6 @@ namespace StrawberryShake
     /// </summary>
     public sealed class OperationRequest : IEquatable<OperationRequest>
     {
-        private readonly IReadOnlyDictionary<string, object?> _variables;
         private Dictionary<string, object?>? _extensions;
         private Dictionary<string, object?>? _contextData;
         private string? _hash;
@@ -54,7 +53,7 @@ namespace StrawberryShake
             Id = id;
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Document = document ?? throw new ArgumentNullException(nameof(document));
-            _variables = variables ?? ImmutableDictionary<string, object?>.Empty;
+            Variables = variables ?? ImmutableDictionary<string, object?>.Empty;
             Strategy = strategy;
         }
 
@@ -80,7 +79,7 @@ namespace StrawberryShake
             id = Id;
             name = Name;
             document = Document;
-            variables = _variables;
+            variables = Variables;
             extensions = _extensions;
             contextData = _contextData;
             strategy = Strategy;
@@ -104,7 +103,7 @@ namespace StrawberryShake
         /// <summary>
         /// Gets the request variable values.
         /// </summary>
-        public IReadOnlyDictionary<string, object?> Variables => _variables;
+        public IReadOnlyDictionary<string, object?> Variables { get; }
 
         /// <summary>
         /// Gets the request extension values.
@@ -160,7 +159,7 @@ namespace StrawberryShake
             return Id == other.Id &&
                 Name == other.Name &&
                 Document.Equals(other.Document) &&
-                EqualsVariables(other._variables);
+                EqualsVariables(other.Variables);
         }
 
         public override bool Equals(object? obj)
@@ -186,20 +185,20 @@ namespace StrawberryShake
         private bool EqualsVariables(IReadOnlyDictionary<string, object?> others)
         {
             // the variables dictionary is the same or both are null.
-            if (ReferenceEquals(_variables, others))
+            if (ReferenceEquals(Variables, others))
             {
                 return true;
             }
 
-            if (_variables.Count != others.Count)
+            if (Variables.Count != others.Count)
             {
                 return false;
             }
 
-            foreach (var key in _variables.Keys)
+            foreach (var key in Variables.Keys)
             {
-                if (!_variables.TryGetValue(key, out object? a) ||
-                    !others.TryGetValue(key, out object? b))
+                if (!Variables.TryGetValue(key, out var a) ||
+                    !others.TryGetValue(key, out var b))
                 {
                     return false;
                 }
@@ -230,7 +229,7 @@ namespace StrawberryShake
                 serializer.Serialize(this, writer, ignoreExtensions: true);
 
                 using var sha256 = SHA256.Create();
-                byte[] buffer = sha256.ComputeHash(writer.GetInternalBuffer(), 0, writer.Length);
+                var buffer = sha256.ComputeHash(writer.GetInternalBuffer(), 0, writer.Length);
                 _hash = Convert.ToBase64String(buffer);
             }
 
@@ -246,7 +245,7 @@ namespace StrawberryShake
                     Name.GetHashCode() * 397 ^
                     Document.GetHashCode() * 397;
 
-                foreach (KeyValuePair<string, object?> variable in _variables)
+                foreach (KeyValuePair<string, object?> variable in Variables)
                 {
                     if (variable.Value is IEnumerable inner)
                     {

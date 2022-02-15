@@ -6,7 +6,7 @@ using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
-    public class ResultBuilderDescriptorMapper
+    public static class ResultBuilderDescriptorMapper
     {
         public static void Map(ClientModel model, IMapperContext context)
         {
@@ -26,12 +26,12 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         modelOperation.LeafTypes.Select(
                             leafType =>
                             {
-                                string runtimeType =
+                                var runtimeType =
                                     leafType.RuntimeType.Contains('.')
                                         ? leafType.RuntimeType
                                         : $"{context.Namespace}.{leafType.RuntimeType}";
 
-                                string serializationType =
+                                var serializationType =
                                     leafType.SerializationType.Contains('.')
                                         ? leafType.SerializationType
                                         : $"{context.Namespace}.{leafType.SerializationType}";

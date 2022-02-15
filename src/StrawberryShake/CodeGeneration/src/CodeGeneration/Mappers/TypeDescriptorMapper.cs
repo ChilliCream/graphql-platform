@@ -8,10 +8,10 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Utilities;
 using TypeKind = StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.TypeKind;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
-using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -38,7 +38,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // with these two completed we can create the properties for all output
             // types and complete them since we know now all the property types.
-            AddProperties(model, context, typeDescriptors, leafTypeDescriptors);
+            AddProperties(model, typeDescriptors, leafTypeDescriptors);
 
             // last but not least we will collect all the input object types ...
             CollectInputTypes(model, context, inputTypeDescriptors);
@@ -59,8 +59,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
             IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors)
         {
-            var unionTypes = model.Schema.Types.OfType<UnionType>().ToList();
-
             foreach (OperationModel operation in model.Operations)
             {
                 foreach (OutputTypeModel outputType in operation.GetImplementations(
@@ -71,18 +69,17 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         context,
                         typeDescriptors,
                         outputType,
-                        unionTypes,
                         TypeKind.Result);
                 }
 
-                foreach (var outputType in operation.OutputTypes.Where(t => !t.IsInterface))
+                foreach (OutputTypeModel outputType in
+                    operation.OutputTypes.Where(t => !t.IsInterface))
                 {
                     RegisterType(
                         model,
                         context,
                         typeDescriptors,
-                        outputType,
-                        unionTypes);
+                        outputType);
                 }
 
                 RegisterType(
@@ -90,11 +87,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     context,
                     typeDescriptors,
                     operation.ResultType,
-                    unionTypes,
                     TypeKind.Result,
                     operation);
 
-                foreach (var outputType in operation.OutputTypes.Where(t => t.IsInterface))
+                foreach (OutputTypeModel outputType in
+                    operation.OutputTypes.Where(t => t.IsInterface))
                 {
                     if (!typeDescriptors.TryGetValue(
                         outputType.Name,
@@ -105,7 +102,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             context,
                             typeDescriptors,
                             outputType,
-                            unionTypes,
                             operationModel: operation);
                     }
                 }
@@ -117,7 +113,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
             IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
             OutputTypeModel outputType,
-            List<UnionType> unionTypes,
             TypeKind? kind = null,
             OperationModel? operationModel = null)
         {
@@ -135,8 +130,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     context,
                     typeDescriptors,
                     outputType,
-                    unionTypes,
-                    descriptorModel,
                     operationModel,
                     kind);
             }
@@ -145,10 +138,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 descriptorModel = CreateObjectTypeModel(
                     model,
                     context,
-                    typeDescriptors,
                     outputType,
-                    unionTypes,
-                    descriptorModel,
                     kind);
             }
 
@@ -199,7 +189,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 }
                 else
                 {
-                    OutputTypeModel? mostAbstractTypeModel = outputType;
+                    OutputTypeModel mostAbstractTypeModel = outputType;
                     while (mostAbstractTypeModel.Implements.Count > 0)
                     {
                         mostAbstractTypeModel = mostAbstractTypeModel.Implements[0];
@@ -252,6 +242,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 .ToList();
         }
 
+        private static IReadOnlyList<DeferredFragmentDescriptor> ExtractDeferredFragments(
+            OutputTypeModel outputType)
+            => outputType.Deferred.Values
+                .Select(t => new DeferredFragmentDescriptor(
+                    t.Label,
+                    t.Interface.Name,
+                    t.Class.Name))
+                .ToArray();
+
         private static RuntimeTypeInfo ExtractRuntimeType(
             ClientModel clientModel,
             IMapperContext context,
@@ -292,8 +291,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
             IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
             OutputTypeModel outputType,
-            List<UnionType> unionTypes,
-            TypeDescriptorModel descriptorModel,
             OperationModel operationModel,
             TypeKind? kind = null)
         {
@@ -314,18 +311,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             TypeKind typeKind = kind ?? extractedKind;
 
-            IReadOnlyList<NameString> implements =
-                ExtractImplementsBy(model, context, outputType, typeKind);
-            RuntimeTypeInfo runtimeType = ExtractRuntimeType(model, context, outputType, typeKind);
-
             return new TypeDescriptorModel(
                 outputType,
                 new InterfaceTypeDescriptor(
                     outputType.Type.Name,
                     typeKind,
-                    runtimeType,
+                    ExtractRuntimeType(model, context, outputType, typeKind),
                     implementedBy,
-                    implements,
+                    ExtractImplementsBy(model, context, outputType, typeKind),
+                    ExtractDeferredFragments(outputType),
                     outputType.Description,
                     parentRuntimeType));
         }
@@ -333,10 +327,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private static TypeDescriptorModel CreateObjectTypeModel(
             ClientModel model,
             IMapperContext context,
-            Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
             OutputTypeModel outputType,
-            List<UnionType> unionTypes,
-            TypeDescriptorModel descriptorModel,
             TypeKind? kind = null)
         {
             ExtractTypeKindAndParentRuntimeType(
@@ -348,17 +339,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             TypeKind typeKind = kind ?? extractedKind;
 
-            IReadOnlyList<NameString> implements =
-                ExtractImplementsBy(model, context, outputType, typeKind);
-            RuntimeTypeInfo runtimeType = ExtractRuntimeType(model, context, outputType, typeKind);
-
             return new TypeDescriptorModel(
                 outputType,
                 new ObjectTypeDescriptor(
                     outputType.Type.Name,
                     typeKind,
-                    runtimeType,
-                    implements,
+                    ExtractRuntimeType(model, context, outputType, typeKind),
+                    ExtractImplementsBy(model, context, outputType, typeKind),
+                    ExtractDeferredFragments(outputType),
                     outputType.Description,
                     parentRuntimeType));
         }
@@ -370,7 +358,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
             HashSet<ObjectTypeDescriptor> implementations)
         {
-            foreach (var type in operation.GetImplementations(outputType))
+            foreach (OutputTypeModel type in operation.GetImplementations(outputType))
             {
                 if (type.IsInterface)
                 {
@@ -390,7 +378,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         private static void AddProperties(
             ClientModel model,
-            IMapperContext context,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
             Dictionary<NameString, INamedTypeDescriptor> leafTypeDescriptors)
         {
@@ -398,7 +385,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 var properties = new List<PropertyDescriptor>();
 
-                foreach (var field in typeDescriptorModel.Model.Fields)
+                foreach (OutputFieldModel field in typeDescriptorModel.Model.Fields)
                 {
                     INamedTypeDescriptor? fieldType;
                     INamedType namedType = field.Type.NamedType();
@@ -435,7 +422,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             IMapperContext context,
             Dictionary<NameString, INamedTypeDescriptor> leafTypeDescriptors)
         {
-            foreach (var leafType in model.LeafTypes)
+            foreach (LeafTypeModel leafType in model.LeafTypes)
             {
                 INamedTypeDescriptor descriptor;
 
@@ -473,7 +460,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             INamedType fieldNamedType,
             Dictionary<NameString, TypeDescriptorModel> typeDescriptors)
         {
-            foreach (var operation in model.Operations)
+            foreach (OperationModel operation in model.Operations)
             {
                 if (operation.TryGetFieldResultType(
                     fieldSyntax,

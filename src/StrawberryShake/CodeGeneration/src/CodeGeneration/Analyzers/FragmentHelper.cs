@@ -66,9 +66,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             if (fragmentNode.Fragment.TypeCondition.IsInterfaceType())
             {
                 Fragment? objectFragment =
-                    list
-                        .FirstOrDefault(t => t.Fragment.TypeCondition.IsObjectType())
-                        ?.Fragment;
+                    list.FirstOrDefault(t => t.Fragment.TypeCondition.IsObjectType())?.Fragment;
 
                 if (objectFragment is not null)
                 {
@@ -78,11 +76,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         objectFragment.TypeCondition,
                         fragmentNode.Fragment.SelectionSet);
 
-                    return new FragmentNode(fragment, list);
+                    return new FragmentNode(fragment, list, fragmentNode.Defer);
                 }
             }
 
-            return new FragmentNode(fragmentNode.Fragment, list);
+            return new FragmentNode(fragmentNode.Fragment, list, fragmentNode.Defer);
         }
 
         public static OutputTypeModel CreateClass(

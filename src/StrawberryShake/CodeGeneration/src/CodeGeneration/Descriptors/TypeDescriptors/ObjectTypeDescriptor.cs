@@ -10,10 +10,18 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
             TypeKind typeKind,
             RuntimeTypeInfo runtimeType,
             IReadOnlyList<NameString> implements,
+            IReadOnlyList<DeferredFragmentDescriptor>? deferred,
             string? description,
             RuntimeTypeInfo? parentRuntimeType = null,
             IReadOnlyList<PropertyDescriptor>? properties = null)
-            : base(name, typeKind, runtimeType, implements, description, parentRuntimeType)
+            : base(
+                name,
+                typeKind,
+                runtimeType,
+                implements,
+                deferred,
+                description,
+                parentRuntimeType)
         {
             if (properties is not null)
             {

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading;
 
 namespace StrawberryShake
 {
@@ -16,14 +15,9 @@ namespace StrawberryShake
         /// <param name="request">
         /// The operation request that shall be send to the server.
         /// </param>
-        /// <param name="cancellationToken">
-        /// The cancellation token.
-        /// </param>
         /// <returns>
         /// The results of the request.
         /// </returns>
-        IAsyncEnumerable<Response<TResponseBody>> ExecuteAsync(
-            OperationRequest request,
-            CancellationToken cancellationToken = default);
+        IAsyncEnumerable<Response<TResponseBody>> ExecuteAsync(OperationRequest request);
     }
 }

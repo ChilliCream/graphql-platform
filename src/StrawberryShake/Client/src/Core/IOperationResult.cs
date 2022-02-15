@@ -6,9 +6,7 @@ namespace StrawberryShake
     /// <summary>
     /// The result of a GraphQL operation.
     /// </summary>
-    public interface IOperationResult<TResultData>
-        : IOperationResult
-        where TResultData : class
+    public interface IOperationResult<TResultData> : IOperationResult where TResultData : class
     {
         /// <summary>
         /// Gets the data object or <c>null</c>.
@@ -21,6 +19,18 @@ namespace StrawberryShake
         /// </summary>
         new IOperationResultDataFactory<TResultData> DataFactory { get; }
 
+        /// <summary>
+        /// Create a new result object with the specified data and dataInfo.
+        /// </summary>
+        /// <param name="data">
+        /// The data of the new result object.
+        /// </param>
+        /// <param name="dataInfo">
+        /// The data info describes the structure of the data object.
+        /// </param>
+        /// <returns>
+        /// Returns the new result object with the specified data and dataInfo.
+        /// </returns>
         IOperationResult<TResultData> WithData(TResultData data, IOperationResultDataInfo dataInfo);
     }
 
@@ -56,8 +66,14 @@ namespace StrawberryShake
         /// </summary>
         IReadOnlyList<IClientError> Errors { get; }
 
+        /// <summary>
+        /// Gets custom transport data specified by the server.
+        /// </summary>
         IReadOnlyDictionary<string, object?> Extensions { get; }
 
+        /// <summary>
+        /// Gets custom context data provided by the transport pipeline.
+        /// </summary>
         IReadOnlyDictionary<string, object?> ContextData { get; }
     }
 }

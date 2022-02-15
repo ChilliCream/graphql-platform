@@ -12,6 +12,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
 {
     public static class EntityTypeDescriptorMapper
     {
+        private static readonly ScalarTypeDescriptor _boolean = new(
+            "Boolean",
+            new RuntimeTypeInfo(TypeNames.Boolean, true),
+            new RuntimeTypeInfo(TypeNames.Boolean, true));
+
         public static void Map(ClientModel model, IMapperContext context)
         {
             context.Register(CollectEntityTypes(model, context));
@@ -21,12 +26,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ClientModel model,
             IMapperContext context)
         {
-            var entityTypes = new Dictionary<NameString, HashSet<NameString>>();
+            var entityTypes = new Dictionary<NameString, Dictionary<NameString, bool>>();
             var descriptions = new Dictionary<NameString, string?>();
 
             foreach (OperationModel operation in model.Operations)
             {
-                foreach (var outputType in operation.OutputTypes.Where(t => !t.IsInterface))
+                foreach (OutputTypeModel outputType in
+                    operation.OutputTypes.Where(t => !t.IsInterface))
                 {
                     INamedType namedType = outputType.Type.NamedType();
                     descriptions[namedType.Name] = outputType.Description;
@@ -34,38 +40,64 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     {
                         if (!entityTypes.TryGetValue(
                             namedType.Name,
-                            out HashSet<NameString>? components))
+                            out Dictionary<NameString, bool>? components))
                         {
-                            components = new HashSet<NameString>();
+                            components = new Dictionary<NameString, bool>();
                             entityTypes.Add(namedType.Name, components);
                         }
 
-                        components.Add(outputType.Name);
+                        components.Add(outputType.Name, false);
+
+                        if (outputType.Deferred.Count > 0)
+                        {
+                            foreach (DeferredFragmentModel deferred in outputType.Deferred.Values)
+                            {
+                                components.Add(deferred.Class.Name, true);
+                            }
+                        }
                     }
                 }
             }
 
-            foreach (KeyValuePair<NameString, HashSet<NameString>> entityType in entityTypes)
+            foreach ((NameString key, Dictionary<NameString, bool>? value) in entityTypes)
             {
-                RuntimeTypeInfo runtimeType =
-                    CreateEntityType(entityType.Key, context.Namespace);
-
-                descriptions.TryGetValue(entityType.Key, out var description);
-
-                var possibleTypes = entityType.Value
-                    .Select(name => context.Types.Single(t => t.RuntimeType.Name.Equals(name)))
-                    .OfType<ComplexTypeDescriptor>()
-                    .ToList();
+                RuntimeTypeInfo runtimeType = CreateEntityType(key, context.Namespace);
+                descriptions.TryGetValue(key, out var description);
+                var properties = new Dictionary<string, PropertyDescriptor>();
 
                 var entityTypeDescriptor = new EntityTypeDescriptor(
-                    entityType.Key,
+                    key,
                     runtimeType,
-                    possibleTypes,
+                    properties,
                     description);
 
-                foreach (var type in possibleTypes.OfType<ObjectTypeDescriptor>())
+                foreach ((NameString typeName, var isFragment) in value)
                 {
-                    type.CompleteEntityType(entityTypeDescriptor);
+                    ComplexTypeDescriptor type = context.GetType<ComplexTypeDescriptor>(typeName);
+
+                    if (isFragment)
+                    {
+                        var indicator = new PropertyDescriptor(
+                            $"Is{typeName}Fulfilled",
+                            $"_is{typeName}Fulfilled",
+                            _boolean,
+                            null,
+                            PropertyKind.FragmentIndicator);
+                        properties.Add(indicator.Name, indicator);
+                    }
+
+                    foreach (PropertyDescriptor property in type.Properties)
+                    {
+                        if (!properties.ContainsKey(property.Name))
+                        {
+                            properties.Add(property.Name, property);
+                        }
+                    }
+
+                    if (type is ObjectTypeDescriptor objectType)
+                    {
+                        objectType.CompleteEntityType(entityTypeDescriptor);
+                    }
                 }
 
                 yield return entityTypeDescriptor;

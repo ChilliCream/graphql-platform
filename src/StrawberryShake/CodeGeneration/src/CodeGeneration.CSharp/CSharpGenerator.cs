@@ -193,6 +193,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             DataTypeDescriptorMapper.Map(clientModel, context);
             EntityTypeDescriptorMapper.Map(clientModel, context);
             ResultBuilderDescriptorMapper.Map(clientModel, context);
+            DeferredFragmentMapper.Map(context);
 
             // We generate the client mapper next as we have all components of the client generated
             ClientDescriptorMapper.Map(clientModel, context);

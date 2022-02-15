@@ -5,7 +5,7 @@ using static StrawberryShake.CodeGeneration.TypeNames;
 
 namespace StrawberryShake.CodeGeneration
 {
-    public class TypeInfos
+    public sealed class TypeInfos
     {
         private readonly Dictionary<string, RuntimeTypeInfo> _infos = new()
         {
@@ -120,7 +120,9 @@ namespace StrawberryShake.CodeGeneration
             if (!_infos.TryGetValue(fullTypeName, out RuntimeTypeInfo? typeInfo))
             {
                 typeInfo = factory();
-                Debug.Assert(typeInfo.FullName == fullTypeName, $"Expected generated type '{typeInfo.FullName}' to equal '{fullTypeName}'.");
+                Debug.Assert(
+                    typeInfo.FullName == fullTypeName, 
+                    $"Expected generated type '{typeInfo.FullName}' to equal '{fullTypeName}'.");
                 _infos.Add(fullTypeName, typeInfo);
             }
 

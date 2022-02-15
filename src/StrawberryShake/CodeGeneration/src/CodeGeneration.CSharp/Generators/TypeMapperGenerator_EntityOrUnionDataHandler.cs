@@ -97,7 +97,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             AddRequiredMapMethods(
                 settings,
-                _dataParameterName,
                 complexTypeDescriptor,
                 classBuilder,
                 constructorBuilder,

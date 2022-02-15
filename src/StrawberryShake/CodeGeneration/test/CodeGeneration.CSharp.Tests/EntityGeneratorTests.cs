@@ -109,5 +109,35 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 FileResource.Open("BookSchema.graphql"));
         }
 #endif
+
+        [Fact]
+        public void Generate_StarWars_Client_With_Defer()
+        {
+            AssertStarWarsResult(
+                @"query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        ... HeroName
+                        ... HeroAppearsIn @defer(label: ""HeroAppearsIn"")
+                    }
+                }
+
+                fragment HeroName on Character {
+                    name
+                    friends {
+                        nodes {
+                            name
+                            ... HeroAppearsIn2 @defer(label: ""HeroAppearsIn2"")
+                        }
+                    }
+                }
+
+                fragment HeroAppearsIn on Character {
+                    appearsIn
+                }
+                
+                fragment HeroAppearsIn2 on Character {
+                    appearsIn
+                }");
+        }
     }
 }

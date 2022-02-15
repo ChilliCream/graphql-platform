@@ -78,7 +78,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     dataTypeInfo.Name,
                     NamingConventions.CreateStateNamespace(context.Namespace),
                     dataTypeInfo.Components
-                        .Select(name => context.Types.Single(t => t.RuntimeType.Name.Equals(name)))
+                        .Select(name => context.Types.Single(
+                            t => t.RuntimeType.Name.Equals(name)))
                         .OfType<ComplexTypeDescriptor>()
                         .ToList(),
                     implements,

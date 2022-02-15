@@ -53,10 +53,21 @@ namespace StrawberryShake
             IOperationResult<TResult>? result = null;
             IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
 
-            await foreach (var response in _connection.ExecuteAsync(request, cancellationToken))
+            await foreach (Response<TData> response in
+                _connection.ExecuteAsync(request)
+                    .WithCancellation(cancellationToken)
+                    .ConfigureAwait(false))
             {
-                result = resultBuilder.Build(response);
-                _operationStore.Set(request, result);
+                if (response.IsPatch)
+                {
+                    result = resultBuilder.Patch(response, result);
+                    _operationStore.Set(request, result);
+                }
+                else
+                {
+                    result = resultBuilder.Build(response);
+                    _operationStore.Set(request, result);
+                }
             }
 
             if (result is null)

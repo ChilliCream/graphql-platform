@@ -30,7 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddConstructor()
                 .SetTypeName(fileName);
 
-            foreach (var prop in descriptor.Properties)
+            foreach (PropertyDescriptor prop in descriptor.Properties)
             {
                 TypeReferenceBuilder propTypeBuilder = prop.Type.ToTypeReference();
 
@@ -53,6 +53,42 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             classBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
+
+            foreach (DeferredFragmentDescriptor deferred in descriptor.Deferred)
+            {
+                var fieldName = GetFieldName(deferred.Label);
+                var paramName = GetParameterName(deferred.Label);
+
+                // Add backing field
+                classBuilder
+                    .AddField(FieldBuilder
+                        .New()
+                        .SetName(fieldName)
+                        .SetReadOnly()
+                        .SetType($"{deferred.InterfaceName}?"));
+
+                // Add fragment data resolver
+                classBuilder
+                    .AddMethod("TryGetData")
+                    .AddParameter(ParameterBuilder
+                        .New()
+                        .SetName("data")
+                        .SetType($"out {deferred.InterfaceName}?"))
+                    .SetReturnType(TypeNames.Boolean)
+                    .SetPublic()
+                    .AddBody()
+                    .AddLine($"data = {fieldName};")
+                    .AddLine($"return data != null;");
+
+                // Add initialization of property to the constructor
+                constructorBuilder
+                    .AddParameter(paramName, x => x.SetType($"{deferred.InterfaceName}?"))
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(GetLeftPropertyAssignment(fieldName))
+                        .SetRighthandSide(paramName));
+            }
+
             classBuilder.Build(writer);
         }
     }
