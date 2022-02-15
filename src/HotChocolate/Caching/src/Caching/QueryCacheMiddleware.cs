@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -5,6 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Validation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Caching;
 
@@ -21,14 +23,15 @@ public sealed class QueryCacheMiddleware
     public QueryCacheMiddleware(
         RequestDelegate next,
         DocumentValidatorContextPool contextPool,
-        ICacheControlOptionsAccessor optionsAccessor,
         IEnumerable<IQueryCache> caches)
     {
         _next = next;
         _contextPool = contextPool;
         _caches = caches.ToArray();
 
-        _options = optionsAccessor.CacheControl;
+        // todo: how to properly access options in this middleware?
+        //       schema service which accesses the context?
+        _options = new CacheControlOptions();
         _compiler = new CacheControlValidatorVisitor();
     }
 
@@ -48,49 +51,51 @@ public sealed class QueryCacheMiddleware
                     continue;
                 }
 
+                // todo: new JSON stream implementation for IQueryResult
                 IQueryResult? cachedResult =
                     await cache.TryReadCachedQueryResultAsync(context, _options);
 
                 if (cachedResult is not null)
                 {
-                    // todo: return result served from cache and short circuit
-                    //       without caching again
+                    context.Result = cachedResult;
+                    return;
                 }
             }
 
             await _next(context).ConfigureAwait(false);
 
-            if (context.DocumentId is not null &&
-                context.OperationId is not null &&
-                context.Document is not null)
-            {
-                DocumentNode document = context.Document;
-                OperationDefinitionNode operationDefinition =
-                    context.Operation?.Definition ??
-                    document.GetOperation(context.Request.OperationName);
+            // todo: implement
+            //     if (context.DocumentId is not null &&
+            //         context.Operation is not null)
+            //     {
+            //         IPreparedOperation operation = context.Operation;
 
-                // todo: try to get from operation cache
-                // var cacheId = context.CreateCacheId(context.OperationId);
+            //         var set = operation.GetRootSelectionSet().Selections[0].SelectionSet;
+            //         var type = operation.GetPossibleTypes(set).First();
+            //         var set2 = operation.GetSelectionSet(set, type);
 
-                // todo: we do this computation without knowing 
-                // whether one of the caches actually wants to cache it...
-                CacheControlResult? result = ComputeCacheControlResult(context, document, operationDefinition);
+            //         // todo: try to get CacheControlResult from operation cache
+            //         // var cacheId = context.CreateCacheId(context.OperationId);
 
-                if (result is null)
-                {
-                    return;
-                }
+            //         // todo: we do this computation without knowing 
+            //         //       whether one of the caches actually wants to cache it...
+            //         // CacheControlResult? result = ComputeCacheControlResult(context, document, operationDefinition);
 
-                foreach (IQueryCache cache in _caches)
-                {
-                    if (!cache.ShouldWriteResultToCache(context))
-                    {
-                        continue;
-                    }
+            //         if (result is null)
+            //         {
+            //             return;
+            //         }
 
-                    await cache.CacheQueryResultAsync(context, result, _options);
-                }
-            }
+            //         foreach (IQueryCache cache in _caches)
+            //         {
+            //             if (!cache.ShouldWriteResultToCache(context))
+            //             {
+            //                 continue;
+            //             }
+
+            //             await cache.CacheQueryResultAsync(context, result, _options);
+            //         }
+            //     }
         }
     }
 

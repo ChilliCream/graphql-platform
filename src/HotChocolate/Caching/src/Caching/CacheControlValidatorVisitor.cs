@@ -7,6 +7,7 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Caching;
 
+// todo: retire in favor of PreparedOperation on IRequestContext
 internal sealed class CacheControlValidatorVisitor : TypeDocumentValidatorVisitor
 {
     protected override ISyntaxVisitorAction Enter(

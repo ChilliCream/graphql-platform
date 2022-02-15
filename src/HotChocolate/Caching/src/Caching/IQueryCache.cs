@@ -9,7 +9,6 @@ public interface IQueryCache
 
     bool ShouldWriteResultToCache(IRequestContext context);
 
-    // todo: find proper return type
     Task<IQueryResult?> TryReadCachedQueryResultAsync(IRequestContext context,
         ICacheControlOptions options);
 

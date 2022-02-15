@@ -21,10 +21,11 @@ public abstract class DefaultQueryCache : IQueryCache
     {
         if (context.Result is not IReadOnlyQueryResult result)
         {
+            // Result is a potentially deferred, we can not cache the entire query.
             return false;
         }
 
-        // operations other than query should not be cached.
+        // Operations other than query should not be cached.
         if (context.Operation is null
             || context.Operation.Definition.Operation != OperationType.Query)
         {
@@ -33,7 +34,7 @@ public abstract class DefaultQueryCache : IQueryCache
 
         if (result.Errors is { Count: > 0 })
         {
-            // result has unexpected errors, we do not want to cache it
+            // Result has unexpected errors, we do not want to cache it.
 
             return false;
         }

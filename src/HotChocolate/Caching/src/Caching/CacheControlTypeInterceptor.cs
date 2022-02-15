@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -13,7 +12,6 @@ namespace HotChocolate.Caching;
 
 internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 {
-    private bool _cacheControlOptionsResolved;
     private ICacheControlOptions _cacheControlOptions = default!;
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
@@ -27,18 +25,55 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
     {
         _typeRegistry = typeRegistry;
         _typeLookup = typeLookup;
+
+        if (!context.ContextData.TryGetValue("TODO", out var options) ||
+            options is not ICacheControlOptions typedOptions)
+        {
+            typedOptions = new CacheControlOptions();
+        }
+
+        _cacheControlOptions = typedOptions;
     }
 
-    public override void OnBeforeRegisterDependencies(
-       ITypeDiscoveryContext discoveryContext,
-       DefinitionBase? definition,
-       IDictionary<string, object?> contextData)
+    public override void OnValidateType(ITypeSystemObjectContext validationContext, DefinitionBase? definition, IDictionary<string, object?> contextData)
     {
-        EnsureCacheControlSettingsAreLoaded(discoveryContext.DescriptorContext);
-
-        if (!_cacheControlOptions.Enable)
+        if (validationContext.Type is not ObjectType obj)
         {
             return;
+        }
+
+        foreach (ObjectField field in obj.Fields)
+        {
+            CacheControlDirective? directive = field.Directives.FirstOrDefault(d =>
+                d.Name == "cacheControl")?.ToObject<CacheControlDirective>();
+
+            if (directive is null)
+            {
+                continue;
+            }
+
+            if (directive.MaxAge.HasValue)
+            {
+                if (directive.MaxAge.Value < 0)
+                {
+                    // todo: error helper and more information about location
+                    ISchemaError error = SchemaErrorBuilder.New()
+                                .SetMessage("Value of `maxAge` on @cacheControl directive can not be negative.")
+                                .Build();
+
+                    validationContext.ReportError(error);
+                }
+
+                if (directive.InheritMaxAge == true)
+                {
+                    // todo: error helper and more information about location
+                    ISchemaError error = SchemaErrorBuilder.New()
+                                .SetMessage("@cacheControl directive can not specify `inheritMaxAge: true` and a value for `maxAge`.")
+                                .Build();
+
+                    validationContext.ReportError(error);
+                }
+            }
         }
     }
 
@@ -212,20 +247,5 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
     {
         // todo: implement
         return true;
-    }
-
-    private void EnsureCacheControlSettingsAreLoaded(IDescriptorContext descriptorContext)
-    {
-        if (!_cacheControlOptionsResolved)
-        {
-            // todo: load proper settings
-            _cacheControlOptions =
-                descriptorContext.ContextData.TryGetValue("TODO", out var value) &&
-                value is ICacheControlOptions cacheControlOptions
-                    ? cacheControlOptions
-                    : new CacheControlOptions();
-
-            _cacheControlOptionsResolved = true;
-        }
     }
 }

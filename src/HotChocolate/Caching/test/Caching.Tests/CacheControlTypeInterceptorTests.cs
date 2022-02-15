@@ -11,6 +11,8 @@ namespace HotChocolate.Caching.Tests;
 
 public class CacheControlTypeInterceptorTests
 {
+    // todo: test validation of maxAge / inheritMaxAge
+
     [Fact]
     public async Task ApplyDefaults()
     {

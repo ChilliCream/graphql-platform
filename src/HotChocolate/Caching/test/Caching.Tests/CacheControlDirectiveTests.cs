@@ -1,23 +1,10 @@
 using Xunit;
 using HotChocolate.Caching;
-using System;
 
 namespace Caching.Tests;
 
 public class CacheControlDirectiveTests
 {
-    [Fact]
-    public void MaxAgeBelowZero()
-    {
-        void Action() => new CacheControlDirective(-1);
-        void Action1() => new CacheControlDirective(-1, null);
-        void Action2() => new CacheControlDirective(-1, null, false);
-
-        Assert.Throws<Exception>(Action);
-        Assert.Throws<Exception>(Action1);
-        Assert.Throws<Exception>(Action2);
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData(0)]

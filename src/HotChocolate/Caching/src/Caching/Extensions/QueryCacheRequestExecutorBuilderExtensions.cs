@@ -4,7 +4,7 @@ using HotChocolate.Execution.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class RequestExecutorBuilderExtensions
+public static class QueryCacheRequestExecutorBuilderExtensions
 {
     public static IRequestExecutorBuilder UseQueryCache(
         this IRequestExecutorBuilder builder) =>
@@ -21,10 +21,10 @@ public static class RequestExecutorBuilderExtensions
             .UseInstrumentations()
             .UseExceptions()
             .UseTimeout()
-            .UseQueryCache()
             .UseDocumentCache()
             .UseDocumentParser()
             .UseDocumentValidation()
+            .UseQueryCache()
             .UseOperationCache()
             .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
@@ -50,18 +50,24 @@ public static class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.Services.AddSingleton(modifyOptions);
+        builder.ConfigureSchema(s =>
+        {
+            if (!s.ContextData.TryGetValue("TODO", out var options) ||
+                options is not CacheControlOptions typedOptions)
+            {
+                typedOptions = new CacheControlOptions();
+            }
 
-        // todo: do this properly
-        var options = new CacheControlOptions();
+            modifyOptions(typedOptions);
 
-        modifyOptions(options);
-
-        builder.SetContextData("TODO", options);
+            s.SetContextData("TODO", typedOptions);
+        });
 
         return builder;
     }
 
+    // todo: these should probably also not be added as global DI services?
+    //       Using ConfigureSchemaServices you seem to not be able to access it as a IEnumerable<IQueryCache> though...
     public static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder)
         where TCache : class, IQueryCache
     {
@@ -72,7 +78,7 @@ public static class RequestExecutorBuilderExtensions
 
         builder.Services.AddSingleton<IQueryCache, TCache>();
 
-        return builder.AddQueryCacheInternals();
+        return builder.AddCacheControl();
     }
 
     public static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder,
@@ -85,28 +91,6 @@ public static class RequestExecutorBuilderExtensions
         }
 
         builder.Services.AddSingleton<IQueryCache>(cacheFactory);
-
-        return builder.AddQueryCacheInternals();
-    }
-
-    private static IRequestExecutorBuilder AddQueryCacheInternals(this IRequestExecutorBuilder builder)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        builder.Services.AddSingleton<ICacheControlOptionsAccessor>(sp =>
-        {
-            var accessor = new CacheControlOptionsAccessor();
-
-            foreach (Action<CacheControlOptions> configure in sp.GetServices<Action<CacheControlOptions>>())
-            {
-                configure(accessor.CacheControl);
-            }
-
-            return accessor;
-        });
 
         return builder.AddCacheControl();
     }

@@ -16,9 +16,6 @@ public static class SchemaBuilderExtensions
         return builder
             .AddCacheControlScopeType()
             .AddCacheControlDirectiveType()
-            // todo: this depends on the ICacheControlOptionsAccessor.
-            // We need to add the options to the context.
-            // --> Unify options API throughout project
             .TryAddTypeInterceptor<CacheControlTypeInterceptor>();
     }
 }
