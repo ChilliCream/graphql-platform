@@ -10,7 +10,7 @@ public class CacheControlValidatorVisitorTests : CacheControlTestBase
     [Fact]
     public async Task Ignore_Introspection()
     {
-        CacheControlResult result = await ValidateResultAsync("{ __typename }");
+        ICacheControlResult result = await ValidateResultAsync("{ __typename }");
 
         Assert.Equal(0, result.MaxAge);
         Assert.Equal(CacheControlScope.Public, result.Scope);
@@ -19,7 +19,7 @@ public class CacheControlValidatorVisitorTests : CacheControlTestBase
     [Fact]
     public async Task NoCacheControl()
     {
-        CacheControlResult result = await ValidateResultAsync("{ regular }");
+        ICacheControlResult result = await ValidateResultAsync("{ regular }");
 
         Assert.Equal(0, result.MaxAge);
         Assert.Equal(CacheControlScope.Public, result.Scope);
@@ -28,7 +28,7 @@ public class CacheControlValidatorVisitorTests : CacheControlTestBase
     [Fact]
     public async Task FieldHasCacheControl()
     {
-        CacheControlResult result = await ValidateResultAsync("{ fieldCache }");
+        ICacheControlResult result = await ValidateResultAsync("{ fieldCache }");
 
         Assert.Equal(1, result.MaxAge);
         Assert.Equal(CacheControlScope.Private, result.Scope);
@@ -37,7 +37,7 @@ public class CacheControlValidatorVisitorTests : CacheControlTestBase
     [Fact]
     public async Task TypeHasCacheControl()
     {
-        CacheControlResult result = await ValidateResultAsync("{ typeCache { field } }");
+        ICacheControlResult result = await ValidateResultAsync("{ typeCache { field } }");
 
         Assert.Equal(180, result.MaxAge);
         Assert.Equal(CacheControlScope.Private, result.Scope);
@@ -46,7 +46,7 @@ public class CacheControlValidatorVisitorTests : CacheControlTestBase
     [Fact]
     public async Task FieldAndTypeHaveCacheControl()
     {
-        CacheControlResult result = await ValidateResultAsync("{ fieldAndTypeCache { field } }");
+        ICacheControlResult result = await ValidateResultAsync("{ fieldAndTypeCache { field } }");
 
         Assert.Equal(2, result.MaxAge);
         Assert.Equal(CacheControlScope.Private, result.Scope);

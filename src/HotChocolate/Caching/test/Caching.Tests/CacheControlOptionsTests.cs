@@ -130,7 +130,7 @@ namespace HotChocolate.Caching.Tests;
 //     {
 //         public ICacheControlOptions? Options { get; private set; }
 
-//         public override Task CacheQueryResultAsync(IRequestContext context, CacheControlResult result,
+//         public override Task CacheQueryResultAsync(IRequestContext context, ICacheControlResult result,
 //             ICacheControlOptions options)
 //         {
 //             Options = options;

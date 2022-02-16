@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,7 +18,6 @@ public sealed class QueryCacheMiddleware
     private readonly RequestDelegate _next;
     private readonly DocumentValidatorContextPool _contextPool;
     private readonly IQueryCache[] _caches;
-    private readonly CacheControlValidatorVisitor _compiler;
     private readonly ICacheControlOptions _options;
 
     public QueryCacheMiddleware(
@@ -32,7 +32,6 @@ public sealed class QueryCacheMiddleware
         // todo: how to properly access options in this middleware?
         //       schema service which accesses the context?
         _options = new CacheControlOptions();
-        _compiler = new CacheControlValidatorVisitor();
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
@@ -64,98 +63,142 @@ public sealed class QueryCacheMiddleware
 
             await _next(context).ConfigureAwait(false);
 
-            // todo: implement
-            //     if (context.DocumentId is not null &&
-            //         context.Operation is not null)
-            //     {
-            //         IPreparedOperation operation = context.Operation;
+            if (context.DocumentId is not null &&
+                context.Operation is not null)
+            {
+                var result = new CacheControlResult();
 
-            //         var set = operation.GetRootSelectionSet().Selections[0].SelectionSet;
-            //         var type = operation.GetPossibleTypes(set).First();
-            //         var set2 = operation.GetSelectionSet(set, type);
+                IPreparedOperation operation = context.Operation;
+                IReadOnlyList<ISelection> rootSelections =
+                    operation.GetRootSelectionSet().Selections;
 
-            //         // todo: try to get CacheControlResult from operation cache
-            //         // var cacheId = context.CreateCacheId(context.OperationId);
+                foreach (ISelection rootSelection in rootSelections)
+                {
+                    ProcessSelection(rootSelection, result, operation);
+                }
 
-            //         // todo: we do this computation without knowing 
-            //         //       whether one of the caches actually wants to cache it...
-            //         // CacheControlResult? result = ComputeCacheControlResult(context, document, operationDefinition);
+                if (!result.MaxAge.HasValue)
+                {
+                    result.MaxAge = _options.DefaultMaxAge;
+                }
 
-            //         if (result is null)
-            //         {
-            //             return;
-            //         }
+                foreach (IQueryCache cache in _caches)
+                {
+                    if (!cache.ShouldWriteResultToCache(context))
+                    {
+                        continue;
+                    }
 
-            //         foreach (IQueryCache cache in _caches)
-            //         {
-            //             if (!cache.ShouldWriteResultToCache(context))
-            //             {
-            //                 continue;
-            //             }
-
-            //             await cache.CacheQueryResultAsync(context, result, _options);
-            //         }
-            //     }
+                    await cache.CacheQueryResultAsync(context,
+                        result, _options);
+                }
+            }
         }
     }
 
-    private CacheControlResult? ComputeCacheControlResult(IRequestContext context,
-        DocumentNode document, OperationDefinitionNode operationDefinition)
+    private static void ProcessSelection(ISelection selection,
+        CacheControlResult result, IPreparedOperation operation)
     {
-        DocumentValidatorContext validatorContext = _contextPool.Get();
-        CacheControlResult? operationCacheControlResult = null;
+        IObjectField field = selection.Field;
 
-        try
+        CacheControlDirective? directive = field.Directives
+            .FirstOrDefault(d => d.Name == "cacheControl")?
+            .ToObject<CacheControlDirective>();
+
+        var maxAgeSet = false;
+        var scopeSet = false;
+
+        if (directive is not null)
         {
-            PrepareContext(context, document, validatorContext);
+            // The @cacheControl directive was specified on this field.
 
-            _compiler.Visit(document, validatorContext);
-
-            var cacheControlResults = (List<CacheControlResult>)validatorContext.List.Peek()!;
-
-            foreach (CacheControlResult cacheControlResult in cacheControlResults)
+            if (directive.MaxAge.HasValue &&
+                (!result.MaxAge.HasValue ||
+                    directive.MaxAge < result.MaxAge.Value))
             {
-                if (!cacheControlResult.MaxAgeHasValue)
-                {
-                    cacheControlResult.MaxAge = _options.DefaultMaxAge;
-                }
-
-                if (cacheControlResult.OperationDefinitionNode == operationDefinition)
-                {
-                    operationCacheControlResult = cacheControlResult;
-                }
-
-                // todo: add to operation cache
-                // var cacheId = context.CreateCacheId(
-                //          CreateOperationId(
-                //              context.DocumentId!,
-                //              cacheControlResult.OperationDefinitionNode.Name?.Value));
+                // The maxAge of the @cacheControl on this field is lower
+                // than the computed maxAge value.
+                result.MaxAge = directive.MaxAge.Value;
+                maxAgeSet = true;
             }
-        }
-        finally
-        {
-            validatorContext.Clear();
-            _contextPool.Return(validatorContext);
-        }
-
-        // todo: handle dynamic cache hints set via IResolverContext
-
-        return operationCacheControlResult!;
-    }
-
-    private static void PrepareContext(IRequestContext requestContext,
-        DocumentNode document, DocumentValidatorContext validatorContext)
-    {
-        validatorContext.Schema = requestContext.Schema;
-
-        for (var i = 0; i < document.Definitions.Count; i++)
-        {
-            if (document.Definitions[i] is FragmentDefinitionNode fragmentDefinition)
+            else if (directive.InheritMaxAge == true)
             {
-                validatorContext.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
+                // If inheritMaxAge is set, we keep the computed maxAge value as is.
+                maxAgeSet = true;
+            }
+
+            if (directive.Scope.HasValue &&
+                directive.Scope < result.Scope)
+            {
+                // The scope of the @cacheControl on this field is more restrivive
+                // than the computed scope.
+                result.Scope = directive.Scope.Value;
+                scopeSet = true;
             }
         }
 
-        validatorContext.ContextData = requestContext.ContextData;
+        if (!maxAgeSet || !scopeSet)
+        {
+            // Either maxAge or scope have not been specified by the @cacheControl
+            // directive on the field, so we try to infer these details
+            // from the type of the field.
+
+            // todo: this might not contain union types
+            if (field.Type is IComplexOutputType type)
+            {
+                // The type of the field is complex and can therefore be
+                // annotated with a @cacheControl directive.
+
+                directive = type.Directives
+                    .FirstOrDefault(d => d.Name == "cacheControl")?
+                    .ToObject<CacheControlDirective>();
+
+                if (directive is not null)
+                {
+                    // The @cacheControl directive was specified on this type.
+
+                    if (!maxAgeSet && directive.MaxAge.HasValue &&
+                        (!result.MaxAge.HasValue
+                            || directive.MaxAge < result.MaxAge.Value))
+                    {
+                        // The field did not specify a value for maxAge and the
+                        // maxAge of the @cacheControl directive on this type 
+                        // is lower than the computed maxAge value.
+                        result.MaxAge = directive.MaxAge.Value;
+                    }
+
+                    if (!scopeSet && directive.Scope.HasValue &&
+                        directive.Scope < result.Scope)
+                    {
+                        // The field did not specify a value for scope and the
+                        // scope of the @cacheControl directive on this type 
+                        // is more restrictive than the computed scope.
+                        result.Scope = directive.Scope.Value;
+                    }
+                }
+            }
+        }
+
+        SelectionSetNode? childSelection = selection.SelectionSet;
+
+        if (childSelection is null)
+        {
+            // No fields are selected below the current field.
+            return;
+        }
+
+        IEnumerable<IObjectType> possibleTypes =
+            operation.GetPossibleTypes(childSelection);
+
+        foreach (IObjectType type in possibleTypes)
+        {
+            IReadOnlyList<ISelection> typeSet =
+                operation.GetSelectionSet(childSelection, type).Selections;
+
+            foreach (ISelection typeSelection in typeSet)
+            {
+                ProcessSelection(typeSelection, result, operation);
+            }
+        }
     }
 }

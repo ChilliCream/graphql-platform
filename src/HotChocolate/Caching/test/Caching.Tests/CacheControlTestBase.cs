@@ -10,7 +10,7 @@ namespace HotChocolate.Caching.Tests;
 
 public abstract class CacheControlTestBase
 {
-    public Task<CacheControlResult> ValidateResultAsync(
+    public Task<ICacheControlResult> ValidateResultAsync(
         string query,
         Action<IRequestExecutorBuilder>? configureExecutor = null)
     {
@@ -18,7 +18,7 @@ public abstract class CacheControlTestBase
             configureExecutor);
     }
 
-    public async Task<CacheControlResult> ValidateResultAsync(
+    public async Task<ICacheControlResult> ValidateResultAsync(
         Func<IRequestExecutor, Task<IExecutionResult>> executeRequest,
         Action<IRequestExecutorBuilder>? configureExecutor = null)
     {
@@ -46,9 +46,9 @@ public abstract class CacheControlTestBase
 
     private class TestQueryCache : DefaultQueryCache
     {
-        public CacheControlResult? Result { get; set; }
+        public ICacheControlResult? Result { get; set; }
 
-        public override Task CacheQueryResultAsync(IRequestContext context, CacheControlResult result,
+        public override Task CacheQueryResultAsync(IRequestContext context, ICacheControlResult result,
             ICacheControlOptions options)
         {
             Result = result;

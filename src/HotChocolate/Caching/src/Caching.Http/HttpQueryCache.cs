@@ -27,7 +27,7 @@ internal sealed class HttpQueryCache : DefaultQueryCache
     }
 
     public override Task CacheQueryResultAsync(IRequestContext context,
-        CacheControlResult result, ICacheControlOptions options)
+        ICacheControlResult result, ICacheControlOptions options)
     {
         if (!context.ContextData.TryGetValue(_httpContextKey, out var httpContextValue)
             || httpContextValue is not HttpContext httpContext)

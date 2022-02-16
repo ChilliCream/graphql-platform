@@ -12,6 +12,6 @@ public interface IQueryCache
     Task<IQueryResult?> TryReadCachedQueryResultAsync(IRequestContext context,
         ICacheControlOptions options);
 
-    Task CacheQueryResultAsync(IRequestContext context, CacheControlResult result,
+    Task CacheQueryResultAsync(IRequestContext context, ICacheControlResult result,
         ICacheControlOptions options);
 }

@@ -1,21 +1,10 @@
-using HotChocolate.Language;
-
 namespace HotChocolate.Caching;
 
-public class CacheControlResult
+internal class CacheControlResult : ICacheControlResult
 {
-    private int? _maxAge;
+    int ICacheControlResult.MaxAge => MaxAge ?? 0;
 
-    internal CacheControlResult(OperationDefinitionNode operationDefinitionNode)
-    {
-        OperationDefinitionNode = operationDefinitionNode;
-    }
+    public CacheControlScope Scope { get; internal set; } = CacheControlScope.Public;
 
-    public int MaxAge { get => _maxAge ?? 0; internal set => _maxAge = value; }
-
-    public CacheControlScope Scope { get; internal set; }
-
-    internal OperationDefinitionNode OperationDefinitionNode { get; }
-
-    internal bool MaxAgeHasValue => _maxAge.HasValue;
+    internal int? MaxAge { get; set; }
 }
