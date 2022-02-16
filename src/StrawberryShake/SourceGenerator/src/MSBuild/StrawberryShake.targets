@@ -6,22 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)graphql.MSBuild.xaml" />
-		<PropertyPageSchema Include="$(MSBuildThisFileDirectory)graphql.MSBuild.ContentType.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- GraphQL Files -->    
+    <!-- GraphQL Files -->
+    <GraphQL Include="**/*.graphql" />
+    <None Remove="@(GraphQL)" />
     <Watch Include="@(GraphQL)" />
-    <AvailableItemName Include="GraphQL" />
     <AdditionalFiles Include="@(GraphQL)" GraphQL="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQL" />
     
-
     <!-- GraphQL Config Files -->
+    <GraphQLConfig Include="**/.graphqlrc.json" />
+    <None Remove="@(GraphQLConfig)" />
     <Content Remove="@(GraphQLConfig)" />
     <Watch Include="@(GraphQLConfig)" />
-    <AvailableItemName Include="GraphQLConfig" />
     <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
 
@@ -33,8 +29,6 @@
     <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
     <CompilerVisibleProperty Include="MSBuildProjectFile" />
   </ItemGroup>
-
-  <Import Project="$(MSBuildThisFileDirectory)VSCode.targets" Condition="'$(StrawberryShake_RemoveGeneratedCode)' == 'true'" />
 
   <!--Design Time Code Generation Hook.-->
   <PropertyGroup>
