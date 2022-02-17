@@ -83,7 +83,7 @@ partial class Build
                 .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server"));
 
             DotNetBuild(SonarBuildAll);
-            
+
             try
             {
                 DotNetTest(
@@ -148,5 +148,6 @@ partial class Build
         => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName)) &&
             !fileName.Contains("example") &&
             !fileName.Contains("sample") &&
-            !fileName.Contains("HotChocolate.Types.Analyzers");
+            !fileName.Contains("HotChocolate.Types.Analyzers") &&
+            !fileName.Contains("StrawberryShake.CodeGeneration.CSharp.Analyzers");
 }
