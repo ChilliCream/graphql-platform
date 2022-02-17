@@ -1,12 +1,11 @@
-namespace HotChocolate.Stitching.Delegation
-{
-    public sealed class SerializedData
-    {
-        public SerializedData(object? data)
-        {
-            Data = data;
-        }
+namespace HotChocolate.Stitching.Delegation;
 
-        public object? Data { get; }
+public sealed class SerializedData
+{
+    public SerializedData(object? data)
+    {
+        Data = data;
     }
+
+    public object? Data { get; }
 }

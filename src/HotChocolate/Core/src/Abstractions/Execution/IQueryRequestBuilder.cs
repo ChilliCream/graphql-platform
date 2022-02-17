@@ -59,6 +59,9 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder TryAddProperty(
         string name, object? value);
 
+    IQueryRequestBuilder TryRemoveProperty(
+        string name);
+
     IQueryRequestBuilder SetProperty(
         string name, object? value);
 

@@ -10,12 +10,10 @@ using DotNet.Globbing;
 using HotChocolate;
 using HotChocolate.Language;
 using StrawberryShake.Tools.Configuration;
-using Path = System.IO.Path;
 using static System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.ErrorHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
-
 
 public static partial class CSharpGeneratorServer
 {

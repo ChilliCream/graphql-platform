@@ -1,29 +1,27 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HotChocolate.Stitching.Merge.Handlers
+namespace HotChocolate.Stitching.Merge.Handlers;
+
+internal class ScalarTypeMergeHandler : TypeMergeHandlerBase<ScalarTypeInfo>
 {
-    internal class ScalarTypeMergeHandler
-        : ITypeMergeHandler
+    public ScalarTypeMergeHandler(MergeTypeRuleDelegate next)
+        : base(next)
     {
-        private readonly MergeTypeRuleDelegate _next;
-
-        public ScalarTypeMergeHandler(MergeTypeRuleDelegate next)
-        {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-        }
-
-        public void Merge(
-            ISchemaMergeContext context,
-            IReadOnlyList<ITypeInfo> types)
-        {
-            IReadOnlyList<ITypeInfo> unhandled =
-                types.OfType<ScalarTypeInfo>().Any()
-                    ? types.NotOfType<ScalarTypeInfo>()
-                    : types;
-
-            _next.Invoke(context, unhandled);
-        }
     }
+
+    protected override void MergeTypes(
+        ISchemaMergeContext context,
+        IReadOnlyList<ScalarTypeInfo> types,
+        NameString newTypeName)
+    {
+        ScalarTypeInfo scalar =
+            types.FirstOrDefault(t => t.Definition.Description is not null) ??
+                types.First();
+
+        context.AddType(scalar.Definition);
+    }
+
+    protected override bool CanBeMerged(ScalarTypeInfo left, ScalarTypeInfo right)
+        => left.Definition.Name.Value.Equals(right.Definition.Name.Value);
 }

@@ -1,8 +1,8 @@
 trigger: none
 
 stages:
-  - stage: ubuntu
-    displayName: "Ubuntu 20.04"
+  - stage: release
+    displayName: "Release"
     dependsOn: []
     pool:
       vmImage: "ubuntu-20.04"
