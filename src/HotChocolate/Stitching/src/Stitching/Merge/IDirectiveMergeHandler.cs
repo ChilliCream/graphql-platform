@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+public interface IDirectiveMergeHandler
 {
-    public interface IDirectiveMergeHandler
-    {
-        void Merge(
-            ISchemaMergeContext context,
-            IReadOnlyList<IDirectiveTypeInfo> directives);
-    }
+    void Merge(
+        ISchemaMergeContext context,
+        IReadOnlyList<IDirectiveTypeInfo> directives);
 }

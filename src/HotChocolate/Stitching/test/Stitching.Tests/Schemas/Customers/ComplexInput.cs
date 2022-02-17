@@ -1,13 +1,12 @@
-namespace HotChocolate.Stitching.Schemas.Customers
+namespace HotChocolate.Stitching.Schemas.Customers;
+
+public class ComplexInput
 {
-    public class ComplexInput
-    {
-        public string Value { get; set; }
+    public string Value { get; set; }
 
-        public ComplexInput Deeper { get; set; }
+    public ComplexInput Deeper { get; set; }
 
-        public string[] ValueArray { get; set; }
+    public string[] ValueArray { get; set; }
 
-        public ComplexInput[] DeeperArray { get; set; }
-    }
+    public ComplexInput[] DeeperArray { get; set; }
 }

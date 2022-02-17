@@ -1,9 +1,8 @@
-namespace HotChocolate.Stitching.Schemas.Contracts
-{
-    public interface IContract
-    {
-        string Id { get; }
+namespace HotChocolate.Stitching.Schemas.Contracts;
 
-        string CustomerId { get; }
-    }
+public interface IContract
+{
+    string Id { get; }
+
+    string CustomerId { get; }
 }
