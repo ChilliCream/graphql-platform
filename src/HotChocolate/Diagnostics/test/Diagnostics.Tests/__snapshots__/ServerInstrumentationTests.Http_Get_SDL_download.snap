@@ -3,7 +3,7 @@
     {
       "OperationName": "ExecuteHttpRequest",
       "DisplayName": "GraphQL HTTP GET SDL",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
           "Key": "graphql.schema.name",

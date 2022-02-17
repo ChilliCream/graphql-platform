@@ -50,6 +50,10 @@
           "Value": "/dataLoader"
         },
         {
+          "Key": "graphql.selection.hierarchy",
+          "Value": "/dataLoader"
+        },
+        {
           "Key": "graphql.selection.field.name",
           "Value": "dataLoader"
         },

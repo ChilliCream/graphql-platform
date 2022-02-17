@@ -1,18 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Microsoft.Build.Evaluation;
 using Nuke.Common;
 using Nuke.Common.IO;
-using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.NuGet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 using static Nuke.Common.Tools.NuGet.NuGetTasks;
-using Project = Microsoft.Build.Evaluation.Project;
 
 
 partial class Build
@@ -33,8 +29,6 @@ partial class Build
         .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
-            Environment.SetEnvironmentVariable("Version", GitVersion.SemVer);
-
             var projFile = File.ReadAllText(StarWarsProj);
             File.WriteAllText(StarWarsProj, projFile.Replace("11.1.0", GitVersion.SemVer));
 
@@ -53,7 +47,20 @@ partial class Build
                     !Path.GetFileNameWithoutExtension(file)
                         .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
+            DotNetRestore(c => c.SetProjectFile(PackSolutionFile));
+
+            DotNetBuild(c => c
+                .SetNoRestore(true)
+                .SetProjectFile(PackSolutionFile)
+                .SetConfiguration(Configuration)
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
+                .SetVersion(GitVersion.SemVer));
+
             DotNetPack(c => c
+                .SetNoRestore(true)
+                .SetNoBuild(true)
                 .SetProject(PackSolutionFile)
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
