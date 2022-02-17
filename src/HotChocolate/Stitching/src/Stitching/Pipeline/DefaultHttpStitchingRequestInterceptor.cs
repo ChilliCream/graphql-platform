@@ -5,7 +5,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Stitching.Pipeline;
 
-public class HttpStitchingRequestInterceptor : IHttpStitchingRequestInterceptor
+public class DefaultHttpStitchingRequestInterceptor : IHttpStitchingRequestInterceptor
 {
     public virtual ValueTask OnCreateRequestAsync(
         NameString targetSchema,
@@ -26,3 +26,4 @@ public class HttpStitchingRequestInterceptor : IHttpStitchingRequestInterceptor
         return new ValueTask<IQueryResult>(result);
     }
 }
+

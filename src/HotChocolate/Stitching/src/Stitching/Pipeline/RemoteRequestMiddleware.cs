@@ -4,12 +4,12 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Stitching.Pipeline;
 
-internal class HttpRequestMiddleware
+internal sealed class RemoteRequestMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly HttpRequestClient _httpRequestClient;
 
-    public HttpRequestMiddleware(
+    public RemoteRequestMiddleware(
         RequestDelegate next,
         [SchemaService] HttpRequestClient httpRequestClient)
     {

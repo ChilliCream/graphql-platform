@@ -48,7 +48,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.UseRequest<HttpRequestMiddleware>();
+        return builder.UseRequest<RemoteRequestMiddleware>();
     }
 
     public static IRequestExecutorBuilder UseHttpRequestPipeline(
@@ -196,7 +196,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
 
                 services.TryAddSingleton<
                     IHttpStitchingRequestInterceptor,
-                    HttpStitchingRequestInterceptor>();
+                    DefaultHttpStitchingRequestInterceptor>();
             })
             .ConfigureSchemaAsync(
                 async (services, schemaBuilder, cancellationToken) =>
