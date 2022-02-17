@@ -32,7 +32,6 @@ namespace StrawberryShake.Transport.WebSockets
         /// </summary>
         bool IsClosed { get; }
 
-
         /// <summary>
         /// Sends data asynchronously to a connected Socket object.
         /// </summary>
