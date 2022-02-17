@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
     <LangVersion>preview</LangVersion>
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -31,12 +32,6 @@
     <Compile Include="..\..\..\SourceGenerator\src\CodeGeneration.CSharp.Analyzers\CSharpGeneratorClient.cs" />
     <None Include="$(MSBuildThisFileDirectory)..\.server\**\*.*" Pack="true" PackagePath="build/gen" Visible="false" />
   </ItemGroup>
-
-  <Target Name="PublishingCodeGenerationServer" BeforeTargets="BeforeBuild">
-    <Message Text="Publishing Code Generation Server" Importance="high" />
-    <Message Text="dotnet publish $(MSBuildThisFileDirectory)..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Server -f net6.0 -c $(Configuration) --output $(MSBuildThisFileDirectory)..\.server/" Importance="high" />
-    <Exec Command="dotnet publish $(MSBuildThisFileDirectory)..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Server -f net6.0 -c $(Configuration) --output $(MSBuildThisFileDirectory)..\.server/" />
-  </Target>
 
   <PropertyGroup>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>

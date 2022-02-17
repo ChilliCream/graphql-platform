@@ -5,6 +5,7 @@
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
     <IsPackable>false</IsPackable>
     <IncludeSymbols>false</IncludeSymbols>
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
   <PropertyGroup>
