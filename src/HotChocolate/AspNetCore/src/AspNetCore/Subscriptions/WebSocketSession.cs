@@ -39,7 +39,7 @@ public class WebSocketSession : ISocketSession
     public async Task HandleAsync(CancellationToken cancellationToken)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
-            new [] { cancellationToken, _applicationStopping });
+            cancellationToken, _applicationStopping);
 
         if (await _connection.TryOpenAsync())
         {
