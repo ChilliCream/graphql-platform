@@ -33,6 +33,8 @@ partial class Build
         .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
+            Environment.SetEnvironmentVariable("Version", GitVersion.SemVer);
+
             var projFile = File.ReadAllText(StarWarsProj);
             File.WriteAllText(StarWarsProj, projFile.Replace("11.1.0", GitVersion.SemVer));
 
@@ -44,9 +46,7 @@ partial class Build
 
             projFile = File.ReadAllText(EmptyAzf12Proj);
             File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
-        })
-        .Executes(() =>
-        {
+  
             DotNetBuildSonarSolution(
                 PackSolutionFile,
                 include: file =>
