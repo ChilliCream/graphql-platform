@@ -103,6 +103,10 @@
                   "Value": "/a"
                 },
                 {
+                  "Key": "graphql.selection.hierarchy",
+                  "Value": "/a"
+                },
+                {
                   "Key": "graphql.selection.field.name",
                   "Value": "sayHello"
                 },
@@ -139,6 +143,10 @@
                   "Value": "/b"
                 },
                 {
+                  "Key": "graphql.selection.hierarchy",
+                  "Value": "/b"
+                },
+                {
                   "Key": "graphql.selection.field.name",
                   "Value": "sayHello"
                 },
@@ -172,6 +180,10 @@
                 },
                 {
                   "Key": "graphql.selection.path",
+                  "Value": "/c"
+                },
+                {
+                  "Key": "graphql.selection.hierarchy",
                   "Value": "/c"
                 },
                 {
