@@ -12,18 +12,13 @@ public class DefaultHttpStitchingRequestInterceptor : IHttpStitchingRequestInter
         IQueryRequest request,
         HttpRequestMessage requestMessage,
         CancellationToken cancellationToken = default)
-    {
-        return default;
-    }
+        => default;
 
-    public ValueTask<IQueryResult> OnReceivedResultAsync(
+    public virtual ValueTask<IQueryResult> OnReceivedResultAsync(
         NameString targetSchema,
         IQueryRequest request,
         IQueryResult result,
         HttpResponseMessage responseMessage,
-        CancellationToken cancellationToken = default)
-    {
-        return new ValueTask<IQueryResult>(result);
-    }
+        CancellationToken cancellationToken = default) => new(result);
 }
 

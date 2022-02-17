@@ -130,9 +130,9 @@ internal class HttpRequestClient
             .ReadAsStreamAsync(cancellationToken)
             .ConfigureAwait(false);
 #else
-            using Stream stream = await responseMessage.Content
-                .ReadAsStreamAsync()
-                .ConfigureAwait(false);
+        using Stream stream = await responseMessage.Content
+            .ReadAsStreamAsync()
+            .ConfigureAwait(false);
 #endif
 
         try
@@ -158,8 +158,8 @@ internal class HttpRequestClient
                 await stream.ReadAsync(buffer, cancellationToken)
                     .ConfigureAwait(false);
 #else
-                    await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
-                        .ConfigureAwait(false);
+                await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
+                    .ConfigureAwait(false);
 #endif
                 responseBody = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
             }
@@ -180,9 +180,9 @@ internal class HttpRequestClient
             .ReadAsStreamAsync(cancellationToken)
             .ConfigureAwait(false);
 #else
-            using Stream stream = await responseMessage.Content
-                .ReadAsStreamAsync()
-                .ConfigureAwait(false);
+        using Stream stream = await responseMessage.Content
+            .ReadAsStreamAsync()
+            .ConfigureAwait(false);
 #endif
 
         IReadOnlyDictionary<string, object?> response =
@@ -331,7 +331,7 @@ internal class HttpRequestClient
 #if NET5_0_OR_GREATER
             number = number[1..];
 #else
-                number = number.Slice(1);
+            number = number.Slice(1);
 #endif
             Span<byte> span = arrayWriter.GetSpan(number.Length);
             number.CopyTo(span);
