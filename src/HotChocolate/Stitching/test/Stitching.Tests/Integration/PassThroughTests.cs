@@ -1,11 +1,11 @@
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+using ChilliCream.Testing;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
-using ChilliCream.Testing;
-using System.Net.Http;
 
 namespace HotChocolate.Stitching.Integration;
 

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace HotChocolate.Stitching.Integration;

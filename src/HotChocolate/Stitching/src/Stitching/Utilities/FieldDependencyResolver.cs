@@ -193,7 +193,7 @@ public class FieldDependencyResolver : QuerySyntaxWalker<FieldDependencyResolver
             return;
         }
 
-        if (_schema.TryGetType<IComplexOutputType>(node.TypeCondition.Name.Value, out var type))
+        if (_schema.TryGetType<IComplexOutputType>(node.TypeCondition.Name.Value, out IComplexOutputType? type))
         {
             newContext = newContext.AddFragment(node.Name.Value).SetTypeContext(type);
         }
@@ -209,7 +209,7 @@ public class FieldDependencyResolver : QuerySyntaxWalker<FieldDependencyResolver
 
         if (node.TypeCondition is not null)
         {
-            if (_schema.TryGetType<IComplexOutputType>(node.TypeCondition.Name.Value, out var type))
+            if (_schema.TryGetType<IComplexOutputType>(node.TypeCondition.Name.Value, out IComplexOutputType? type))
             {
                 newContext = newContext.SetTypeContext(type);
             }

@@ -12,8 +12,8 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using IHasName = HotChocolate.Types.IHasName;
 using static HotChocolate.Stitching.DirectiveFieldNames;
+using IHasName = HotChocolate.Types.IHasName;
 
 namespace HotChocolate.Stitching.Utilities;
 

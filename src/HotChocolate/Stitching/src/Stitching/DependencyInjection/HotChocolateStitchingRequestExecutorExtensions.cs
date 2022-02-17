@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -21,6 +20,7 @@ using HotChocolate.Stitching.SchemaDefinitions;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using static HotChocolate.Stitching.ThrowHelper;
 
 namespace Microsoft.Extensions.DependencyInjection;

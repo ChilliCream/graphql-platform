@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 
-namespace HotChocolate.Stitching.Schemas.Customers
+namespace HotChocolate.Stitching.Schemas.Customers;
+
+public class CustomerRepository
 {
-    public class CustomerRepository
-    {
-        public List<Customer> Customers { get; } = new List<Customer>
+    public List<Customer> Customers { get; } = new List<Customer>
         {
             new Customer
             {
@@ -38,7 +38,7 @@ namespace HotChocolate.Stitching.Schemas.Customers
             }
         };
 
-        public List<Consultant> Consultants { get; } = new List<Consultant>
+    public List<Consultant> Consultants { get; } = new List<Consultant>
         {
             new Consultant
             {
@@ -51,5 +51,4 @@ namespace HotChocolate.Stitching.Schemas.Customers
                 Name = "Gordon Gekko",
             }
         };
-    }
 }

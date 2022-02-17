@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Stitching.Merge
-{
-    public delegate MergeTypeRuleDelegate MergeTypeRuleFactory(
-        MergeTypeRuleDelegate next);
+namespace HotChocolate.Stitching.Merge;
 
-    public delegate void MergeTypeRuleDelegate(
-        ISchemaMergeContext context,
-        IReadOnlyList<ITypeInfo> types);
-}
+public delegate MergeTypeRuleDelegate MergeTypeRuleFactory(
+    MergeTypeRuleDelegate next);
+
+public delegate void MergeTypeRuleDelegate(
+    ISchemaMergeContext context,
+    IReadOnlyList<ITypeInfo> types);

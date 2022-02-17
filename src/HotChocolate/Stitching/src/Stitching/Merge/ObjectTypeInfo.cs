@@ -1,15 +1,14 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+internal class ObjectTypeInfo
+    : TypeInfo<ObjectTypeDefinitionNode>
 {
-    internal class ObjectTypeInfo
-        : TypeInfo<ObjectTypeDefinitionNode>
+    public ObjectTypeInfo(
+        ObjectTypeDefinitionNode typeDefinition,
+        ISchemaInfo schema)
+        : base(typeDefinition, schema)
     {
-        public ObjectTypeInfo(
-            ObjectTypeDefinitionNode typeDefinition,
-            ISchemaInfo schema)
-            : base(typeDefinition, schema)
-        {
-        }
     }
 }
