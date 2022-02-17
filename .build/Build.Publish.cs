@@ -53,20 +53,13 @@ partial class Build
                     !Path.GetFileNameWithoutExtension(file)
                         .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
-            DotNetBuild(c => c
-                .SetProjectFile(PackSolutionFile)
-                .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
-
             DotNetPack(c => c
                 .SetProject(PackSolutionFile)
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
-                .SetNoRestore(true)
-                .SetNoBuild(true)
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
                 .SetVersion(GitVersion.SemVer));
 
             NuGetPack(c => c
