@@ -32,6 +32,26 @@ partial class Build
                 .SetProjectFile(SonarSolutionFile)
                 .SetProcessWorkingDirectory(RootDirectory));
 
+            DotNetBuild(c => c
+                .SetNoRestore(true)
+                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server")
+                .SetConfiguration(Configuration)
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
+                .SetVersion(GitVersion.SemVer));
+
+            DotNetBuild(c => c
+                .SetNoRestore(true)
+                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server")
+                .SetConfiguration(Configuration)
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
+                .SetVersion(GitVersion.SemVer));
+
             SonarScannerBegin(SonarBeginPrSettings);
             DotNetBuild(SonarBuildAll);
             try
@@ -55,6 +75,26 @@ partial class Build
             DotNetRestore(c => c
                 .SetProjectFile(SonarSolutionFile)
                 .SetProcessWorkingDirectory(RootDirectory));
+
+            DotNetBuild(c => c
+                .SetNoRestore(true)
+                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server")
+                .SetConfiguration(Configuration)
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
+                .SetVersion(GitVersion.SemVer));
+
+            DotNetBuild(c => c
+                .SetNoRestore(true)
+                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server")
+                .SetConfiguration(Configuration)
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
+                .SetVersion(GitVersion.SemVer));
 
             Logger.Info("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
 

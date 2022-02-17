@@ -71,7 +71,6 @@ partial class Build
 
             DotNetBuild(c => c
                 .SetNoRestore(true)
-                .SetDisableParallel(true)
                 .SetProjectFile(PackSolutionFile)
                 .SetConfiguration(Configuration)
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
