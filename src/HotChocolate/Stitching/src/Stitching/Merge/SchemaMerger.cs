@@ -12,7 +12,7 @@ namespace HotChocolate.Stitching.Merge
         : ISchemaMerger
     {
         private static readonly List<MergeTypeRuleFactory> _defaultMergeRules =
-            new List<MergeTypeRuleFactory>
+            new()
             {
                 SchemaMergerExtensions.CreateTypeMergeRule<ScalarTypeMergeHandler>(),
                 SchemaMergerExtensions.CreateTypeMergeRule<InputObjectTypeMergeHandler>(),
@@ -22,16 +22,11 @@ namespace HotChocolate.Stitching.Merge
                 SchemaMergerExtensions.CreateTypeMergeRule<UnionTypeMergeHandler>(),
                 SchemaMergerExtensions.CreateTypeMergeRule<EnumTypeMergeHandler>(),
             };
-        private readonly List<MergeTypeRuleFactory> _mergeRules =
-            new List<MergeTypeRuleFactory>();
-        private readonly List<MergeDirectiveRuleFactory> _directiveMergeRules =
-            new List<MergeDirectiveRuleFactory>();
-        private readonly List<ITypeRewriter> _typeRewriters =
-            new List<ITypeRewriter>();
-        private readonly List<IDocumentRewriter> _docRewriters =
-            new List<IDocumentRewriter>();
-        private readonly OrderedDictionary<NameString, DocumentNode> _schemas =
-            new OrderedDictionary<NameString, DocumentNode>();
+        private readonly List<MergeTypeRuleFactory> _mergeRules = new();
+        private readonly List<MergeDirectiveRuleFactory> _directiveMergeRules = new();
+        private readonly List<ITypeRewriter> _typeRewriters = new();
+        private readonly List<IDocumentRewriter> _docRewriters = new();
+        private readonly OrderedDictionary<NameString, DocumentNode> _schemas = new();
 
         [Obsolete("Use AddTypeMergeRule")]
         public ISchemaMerger AddMergeRule(MergeTypeRuleFactory factory) =>
@@ -118,7 +113,7 @@ namespace HotChocolate.Stitching.Merge
 
         private IReadOnlyList<ISchemaInfo> CreateSchemaInfos()
         {
-            List<SchemaInfo> original = _schemas
+            var original = _schemas
                 .Select(t => new SchemaInfo(t.Key, PrepareSchemaDocument(t.Value, t.Key)))
                 .ToList();
 
@@ -273,7 +268,7 @@ namespace HotChocolate.Stitching.Merge
         {
             var types = new List<ITypeInfo>();
 
-            foreach (string typeName in typeNames)
+            foreach (var typeName in typeNames)
             {
                 SetTypes(typeName, schemas, types);
                 merge(context, types);
@@ -283,11 +278,11 @@ namespace HotChocolate.Stitching.Merge
         private static ISet<string> CreateTypesNameSet(
             IReadOnlyCollection<ISchemaInfo> schemas)
         {
-            HashSet<string> names = new HashSet<string>();
+            var names = new HashSet<string>();
 
             foreach (ISchemaInfo schema in schemas)
             {
-                foreach (string name in schema.Types.Keys)
+                foreach (var name in schema.Types.Keys)
                 {
                     names.Add(name);
                 }
@@ -320,7 +315,7 @@ namespace HotChocolate.Stitching.Merge
         {
             var directives = new List<IDirectiveTypeInfo>();
 
-            foreach (string typeName in typeNames)
+            foreach (var typeName in typeNames)
             {
                 SetDirectives(typeName, schemas, directives);
                 merge(context, directives);
@@ -336,8 +331,7 @@ namespace HotChocolate.Stitching.Merge
 
             foreach (ISchemaInfo schema in schemas)
             {
-                if (schema.Types.TryGetValue(name,
-                    out ITypeDefinitionNode typeDefinition))
+                if (schema.Types.TryGetValue(name, out ITypeDefinitionNode typeDefinition))
                 {
                     types.Add(TypeInfo.Create(typeDefinition, schema));
                 }
@@ -364,7 +358,7 @@ namespace HotChocolate.Stitching.Merge
 
         private MergeTypeRuleDelegate CompileMergeTypeDelegate()
         {
-            MergeTypeRuleDelegate current = (c, t) =>
+            MergeTypeRuleDelegate current = (_, t) =>
             {
                 if (t.Count > 0)
                 {

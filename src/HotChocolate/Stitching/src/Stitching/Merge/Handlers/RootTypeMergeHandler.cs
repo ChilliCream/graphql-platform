@@ -1,15 +1,12 @@
-using System.Runtime.InteropServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Delegation.ScopedVariables;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    internal class RootTypeMergeHandler
-         : ITypeMergeHandler
+    internal class RootTypeMergeHandler : ITypeMergeHandler
     {
         private readonly MergeTypeRuleDelegate _next;
 
@@ -18,9 +15,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
-        public void Merge(
-            ISchemaMergeContext context,
-            IReadOnlyList<ITypeInfo> types)
+        public void Merge(ISchemaMergeContext context, IReadOnlyList<ITypeInfo> types)
         {
             if (types.Count > 0)
             {

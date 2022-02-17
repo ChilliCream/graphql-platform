@@ -24,7 +24,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
 
             if (context.ContainsType(name))
             {
-                for (int i = 0; i < types.Count; i++)
+                for (var i = 0; i < types.Count; i++)
                 {
                     name = types[i].CreateUniqueName();
                     if (!context.ContainsType(name))
@@ -37,7 +37,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 {
                     name = types[0].Definition.Name.Value;
 
-                    for (int i = 0; i < _maxRetries; i++)
+                    for (var i = 0; i < _maxRetries; i++)
                     {
                         NameString n = name + $"_{i}";
                         if (!context.ContainsType(name))
@@ -52,8 +52,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             return name;
         }
 
-        public static NameString CreateUniqueName(
-            this ITypeInfo typeInfo)
+        public static NameString CreateUniqueName(this ITypeInfo typeInfo)
         {
             if (typeInfo == null)
             {

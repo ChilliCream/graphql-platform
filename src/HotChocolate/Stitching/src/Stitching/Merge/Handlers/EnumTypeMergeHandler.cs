@@ -5,8 +5,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    internal class EnumTypeMergeHandler
-        : ITypeMergeHandler
+    internal class EnumTypeMergeHandler : ITypeMergeHandler
     {
         private readonly MergeTypeRuleDelegate _next;
 

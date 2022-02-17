@@ -24,7 +24,6 @@ namespace HotChocolate.Stitching.Delegation
         private const string _schemaNameErrorField = "schemaName";
 
         private static readonly RootScopedVariableResolver _resolvers = new();
-
         private readonly FieldDelegate _next;
 
         public DelegateToRemoteSchemaMiddleware(FieldDelegate next)
@@ -34,7 +33,7 @@ namespace HotChocolate.Stitching.Delegation
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            DelegateDirective? delegateDirective = context.Field
+            DelegateDirective? delegateDirective = context.Selection.Field
                 .Directives[DirectiveNames.Delegate]
                 .FirstOrDefault()?.ToObject<DelegateDirective>();
 
@@ -64,7 +63,7 @@ namespace HotChocolate.Stitching.Delegation
 
                 UpdateContextData(context, result, delegateDirective);
 
-                object? value = ExtractData(result.Data, reversePath, context.ResponseName);
+                var value = ExtractData(result.Data, reversePath, context.ResponseName);
                 context.Result = value is null or NullValueNode ? null : new SerializedData(value);
                 if (result.Errors is not null)
                 {
@@ -365,7 +364,7 @@ namespace HotChocolate.Stitching.Delegation
 
             IStitchingContext stitchingContext = context.Service<IStitchingContext>();
             ISchema remoteSchema = stitchingContext.GetRemoteSchema(schemaName);
-            IComplexOutputType type = remoteSchema.GetOperationType(operationType);
+            IComplexOutputType type = remoteSchema.GetOperationType(operationType)!;
             IImmutableStack<SelectionPathComponent> path = reversePath;
 
             while (!path.IsEmpty)
@@ -378,7 +377,7 @@ namespace HotChocolate.Stitching.Delegation
 
                 if (!path.IsEmpty)
                 {
-                    if (!(field.Type.NamedType() is IComplexOutputType complexOutputType))
+                    if (field.Type.NamedType() is not IComplexOutputType complexOutputType)
                     {
                         throw new GraphQLException(
                             new Error(DelegationMiddleware_PathElementTypeUnexpected));
@@ -452,11 +451,11 @@ namespace HotChocolate.Stitching.Delegation
         {
             foreach (VariableDefinitionNode variable in extractedField.Variables)
             {
-                string name = variable.Variable.Name.Value;
+                var name = variable.Variable.Name.Value;
                 INamedInputType namedType = schema.GetType<INamedInputType>(
                     variable.Type.NamedType().Name.Value);
 
-                if (!requestVariables.TryGetVariable(name, out IValueNode value))
+                if (!requestVariables.TryGetVariable(name, out IValueNode? value))
                 {
                     value = NullValueNode.Default;
                 }
@@ -464,7 +463,7 @@ namespace HotChocolate.Stitching.Delegation
                 value = rewriter.RewriteValueNode(
                     schemaName,
                     (IInputType)variable.Type.ToType(namedType),
-                    value);
+                    value!);
 
                 yield return new ScopedVariableValue
                 (

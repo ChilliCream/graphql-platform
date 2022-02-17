@@ -65,7 +65,7 @@ namespace HotChocolate.Stitching.Merge
             {
                 var definitions = current.Definitions.ToList();
 
-                foreach (string notProcessed in context.Extensions.Keys.Except(
+                foreach (var notProcessed in context.Extensions.Keys.Except(
                     current.Definitions.OfType<ITypeDefinitionNode>().Select(t => t.Name.Value)))
                 {
                     definitions.Add(context.Extensions[notProcessed]);
@@ -104,12 +104,12 @@ namespace HotChocolate.Stitching.Merge
             Func<DocumentNode, Dictionary<string, IDefinitionNode>> toDict,
             IEnumerable<string> names)
         {
-            List<IDefinitionNode> definitions = document.Definitions.ToList();
+            var definitions = document.Definitions.ToList();
             Dictionary<string, IDefinitionNode> directives = toDict(document);
 
-            foreach (string name in names)
+            foreach (var name in names)
             {
-                if (directives.TryGetValue(name, out IDefinitionNode directive))
+                if (directives.TryGetValue(name, out IDefinitionNode? directive))
                 {
                     definitions.Remove(directive);
                 }
@@ -126,7 +126,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out ITypeExtensionNode extension))
+                out ITypeExtensionNode? extension))
             {
                 if (extension is UnionTypeExtensionNode unionTypeExtension)
                 {
@@ -183,7 +183,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out ITypeExtensionNode extension))
+                out ITypeExtensionNode? extension))
             {
                 if (extension is ObjectTypeExtensionNode objectTypeExtension)
                 {
@@ -260,7 +260,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out ITypeExtensionNode extension))
+                out ITypeExtensionNode? extension))
             {
                 if (extension is InterfaceTypeExtensionNode ite)
                 {
@@ -332,7 +332,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out ITypeExtensionNode extension))
+                out ITypeExtensionNode? extension))
             {
                 if (extension is InputObjectTypeExtensionNode iote)
                 {
@@ -391,7 +391,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out ITypeExtensionNode extension))
+                out ITypeExtensionNode? extension))
             {
                 if (extension is EnumTypeExtensionNode ete)
                 {

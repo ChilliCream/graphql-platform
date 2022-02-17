@@ -30,12 +30,10 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 StringComparison.Ordinal)
                 && left.Fields.Count == right.Fields.Count)
             {
-                Dictionary<string, FieldDefinitionNode> leftFields =
-                    left.Fields.ToDictionary(t => t.Name.Value);
-                Dictionary<string, FieldDefinitionNode> rightFields =
-                    right.Fields.ToDictionary(t => t.Name.Value);
+                var leftFields = left.Fields.ToDictionary(t => t.Name.Value);
+                var rightFields = right.Fields.ToDictionary(t => t.Name.Value);
 
-                foreach (string name in leftFields.Keys)
+                foreach (var name in leftFields.Keys)
                 {
                     FieldDefinitionNode leftField = leftFields[name];
                     if (!rightFields.TryGetValue(name,
@@ -72,7 +70,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             var leftArgs = left.ToDictionary(t => t.Name.Value);
             var rightArgs = right.ToDictionary(t => t.Name.Value);
 
-            foreach (string name in leftArgs.Keys)
+            foreach (var name in leftArgs.Keys)
             {
                 InputValueDefinitionNode leftArgument = leftArgs[name];
                 if (!rightArgs.TryGetValue(name,
@@ -87,20 +85,17 @@ namespace HotChocolate.Stitching.Merge.Handlers
 
         private static bool HasSameType(ITypeNode left, ITypeNode right)
         {
-            if (left is NonNullTypeNode lnntn
-                && right is NonNullTypeNode rnntn)
+            if (left is NonNullTypeNode lnntn && right is NonNullTypeNode rnntn)
             {
                 return HasSameType(lnntn.Type, rnntn.Type);
             }
 
-            if (left is ListTypeNode lltn
-                && right is ListTypeNode rltn)
+            if (left is ListTypeNode lltn && right is ListTypeNode rltn)
             {
                 return HasSameType(lltn.Type, rltn.Type);
             }
 
-            if (left is NamedTypeNode lntn
-                && right is NamedTypeNode rntn)
+            if (left is NamedTypeNode lntn && right is NamedTypeNode rntn)
             {
                 return lntn.Name.Value.Equals(
                     rntn.Name.Value,

@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    internal class InterfaceTypeMergeHandler
-        : TypeMergeHanlderBase<InterfaceTypeInfo>
+    internal class InterfaceTypeMergeHandler : TypeMergeHandlerBase<InterfaceTypeInfo>
     {
         public InterfaceTypeMergeHandler(MergeTypeRuleDelegate next)
             : base(next)
@@ -18,9 +16,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             IReadOnlyList<InterfaceTypeInfo> types,
             NameString newTypeName)
         {
-            List<InterfaceTypeDefinitionNode> definitions = types
-                .Select(t => t.Definition)
-                .ToList();
+            var definitions = types.Select(t => t.Definition).ToList();
 
             InterfaceTypeDefinitionNode definition =
                 definitions[0].Rename(

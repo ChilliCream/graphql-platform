@@ -1,9 +1,9 @@
-using System.Xml.Linq;
 using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using System;
 using HotChocolate.Stitching.Properties;
+using static HotChocolate.Language.OperationType;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -11,24 +11,15 @@ namespace HotChocolate.Stitching.Merge
         : ISchemaInfo
     {
         private static readonly Dictionary<OperationType, string> _names =
-            new Dictionary<OperationType, string>
+            new()
             {
-                {
-                    OperationType.Query,
-                    OperationType.Query.ToString()
-                },
-                {
-                    OperationType.Mutation,
-                    OperationType.Mutation.ToString()
-                },
-                {
-                    OperationType.Subscription,
-                    OperationType.Subscription.ToString()
-                }
+                { Query, nameof(Query) },
+                { Mutation, nameof(Mutation) },
+                { Subscription, nameof(Subscription) }
             };
-        private ObjectTypeDefinitionNode _queryType;
-        private ObjectTypeDefinitionNode _mutationType;
-        private ObjectTypeDefinitionNode _subscriptionType;
+        private ObjectTypeDefinitionNode? _queryType;
+        private ObjectTypeDefinitionNode? _mutationType;
+        private ObjectTypeDefinitionNode? _subscriptionType;
 
         public SchemaInfo(string name, DocumentNode document)
         {
@@ -39,15 +30,10 @@ namespace HotChocolate.Stitching.Merge
                     nameof(name));
             }
 
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             Name = name;
-            Document = document;
+            Document = document ?? throw new ArgumentNullException(nameof(document));
 
-            Dictionary<string, ITypeDefinitionNode> types =
+            var types =
                 document.Definitions
                     .OfType<ITypeDefinitionNode>()
                     .ToDictionary(t => t.Name.Value);
@@ -57,34 +43,30 @@ namespace HotChocolate.Stitching.Merge
                 .OfType<DirectiveDefinitionNode>()
                 .ToDictionary(t => t.Name.Value);
 
-            SchemaDefinitionNode schemaDefinition = document.Definitions
+            SchemaDefinitionNode? schemaDefinition = document.Definitions
                 .OfType<SchemaDefinitionNode>().FirstOrDefault();
 
-            RootTypes = GetRootTypeMapppings(
+            RootTypes = GetRootTypeMappings(
                 GetRootTypeNameMapppings(schemaDefinition),
                 types);
         }
 
-        protected Dictionary<OperationType, ObjectTypeDefinitionNode> RootTypes
-        { get; }
+        protected Dictionary<OperationType, ObjectTypeDefinitionNode> RootTypes { get; }
 
         public NameString Name { get; }
 
         public DocumentNode Document { get; }
 
-        public IReadOnlyDictionary<string, ITypeDefinitionNode> Types
-        { get; }
+        public IReadOnlyDictionary<string, ITypeDefinitionNode> Types { get; }
 
-        public IReadOnlyDictionary<string, DirectiveDefinitionNode> Directives
-        { get; }
+        public IReadOnlyDictionary<string, DirectiveDefinitionNode> Directives { get; }
 
-        public ObjectTypeDefinitionNode QueryType
+        public ObjectTypeDefinitionNode? QueryType
         {
             get
             {
-                if (_queryType == null
-                    && RootTypes.TryGetValue(OperationType.Query,
-                        out ObjectTypeDefinitionNode type))
+                if (_queryType == null &&
+                    RootTypes.TryGetValue(Query, out ObjectTypeDefinitionNode? type))
                 {
                     _queryType = type;
                 }
@@ -92,13 +74,12 @@ namespace HotChocolate.Stitching.Merge
             }
         }
 
-        public ObjectTypeDefinitionNode MutationType
+        public ObjectTypeDefinitionNode? MutationType
         {
             get
             {
-                if (_mutationType == null
-                    && RootTypes.TryGetValue(OperationType.Mutation,
-                        out ObjectTypeDefinitionNode type))
+                if (_mutationType == null &&
+                    RootTypes.TryGetValue(Mutation, out ObjectTypeDefinitionNode? type))
                 {
                     _mutationType = type;
                 }
@@ -106,16 +87,16 @@ namespace HotChocolate.Stitching.Merge
             }
         }
 
-        public ObjectTypeDefinitionNode SubscriptionType
+        public ObjectTypeDefinitionNode? SubscriptionType
         {
             get
             {
-                if (_subscriptionType == null
-                    && RootTypes.TryGetValue(OperationType.Subscription,
-                        out ObjectTypeDefinitionNode type))
+                if (_subscriptionType == null &&
+                    RootTypes.TryGetValue(Subscription, out ObjectTypeDefinitionNode? type))
                 {
                     _subscriptionType = type;
                 }
+
                 return _subscriptionType;
             }
         }
@@ -149,19 +130,16 @@ namespace HotChocolate.Stitching.Merge
             return false;
         }
 
-        private static Dictionary<OperationType, ObjectTypeDefinitionNode>
-            GetRootTypeMapppings(
-                IDictionary<OperationType, string> nameMappings,
-                IDictionary<string, ITypeDefinitionNode> types)
+        private static Dictionary<OperationType, ObjectTypeDefinitionNode> GetRootTypeMappings(
+            IDictionary<OperationType, string> nameMappings,
+            IDictionary<string, ITypeDefinitionNode> types)
         {
             var map = new Dictionary<OperationType, ObjectTypeDefinitionNode>();
 
-            foreach (KeyValuePair<OperationType, string> nameMapping in
-                nameMappings)
+            foreach (KeyValuePair<OperationType, string> nameMapping in nameMappings)
             {
-                if (types.TryGetValue(nameMapping.Value, out
-                    ITypeDefinitionNode definition)
-                    && definition is ObjectTypeDefinitionNode objectType)
+                if (types.TryGetValue(nameMapping.Value, out ITypeDefinitionNode? definition) &&
+                    definition is ObjectTypeDefinitionNode objectType)
                 {
                     types.Remove(nameMapping.Value);
                     map.Add(nameMapping.Key, objectType);
@@ -171,8 +149,8 @@ namespace HotChocolate.Stitching.Merge
             return map;
         }
 
-        private static IDictionary<OperationType, string>
-            GetRootTypeNameMapppings(SchemaDefinitionNodeBase schemaDefinition)
+        private static IDictionary<OperationType, string> GetRootTypeNameMapppings(
+            SchemaDefinitionNodeBase? schemaDefinition)
         {
             if (schemaDefinition == null)
             {

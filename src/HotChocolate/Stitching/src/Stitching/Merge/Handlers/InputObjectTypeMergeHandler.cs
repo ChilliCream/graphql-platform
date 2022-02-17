@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,8 +5,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    internal class InputObjectTypeMergeHandler
-        : TypeMergeHanlderBase<InputObjectTypeInfo>
+    internal class InputObjectTypeMergeHandler : TypeMergeHandlerBase<InputObjectTypeInfo>
     {
         public InputObjectTypeMergeHandler(MergeTypeRuleDelegate next)
             : base(next)
@@ -19,7 +17,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             IReadOnlyList<InputObjectTypeInfo> types,
             NameString newTypeName)
         {
-            List<InputObjectTypeDefinitionNode> definitions = types
+            var definitions = types
                 .Select(t => t.Definition)
                 .ToList();
 
@@ -71,7 +69,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             if (fieldTypes.Count > 0)
             {
-                foreach (string typeName in fieldTypes)
+                foreach (var typeName in fieldTypes)
                 {
                     if (processed.Add(typeName)
                         && !TryEnqueueFieldType(typePair, typeName, queue))
@@ -161,12 +159,10 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 StringComparison.Ordinal)
                 && left.Fields.Count == right.Fields.Count)
             {
-                Dictionary<string, InputValueDefinitionNode> leftArgs =
-                    left.Fields.ToDictionary(t => t.Name.Value);
-                Dictionary<string, InputValueDefinitionNode> rightArgs =
-                    left.Fields.ToDictionary(t => t.Name.Value);
+                var leftArgs = left.Fields.ToDictionary(t => t.Name.Value);
+                var rightArgs = left.Fields.ToDictionary(t => t.Name.Value);
 
-                foreach (string name in leftArgs.Keys)
+                foreach (var name in leftArgs.Keys)
                 {
                     InputValueDefinitionNode leftArgument = leftArgs[name];
                     if (!rightArgs.TryGetValue(name,
@@ -189,20 +185,17 @@ namespace HotChocolate.Stitching.Merge.Handlers
             ITypeNode right,
             ICollection<string> typesToAnalyze)
         {
-            if (left is NonNullTypeNode lnntn
-                && right is NonNullTypeNode rnntn)
+            if (left is NonNullTypeNode lnntn && right is NonNullTypeNode rnntn)
             {
                 return HasSameType(lnntn.Type, rnntn.Type, typesToAnalyze);
             }
 
-            if (left is ListTypeNode lltn
-                && right is ListTypeNode rltn)
+            if (left is ListTypeNode lltn && right is ListTypeNode rltn)
             {
                 return HasSameType(lltn.Type, rltn.Type, typesToAnalyze);
             }
 
-            if (left is NamedTypeNode lntn
-                && right is NamedTypeNode rntn)
+            if (left is NamedTypeNode lntn && right is NamedTypeNode rntn)
             {
 
                 if (lntn.Name.Value.Equals(

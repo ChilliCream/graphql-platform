@@ -32,10 +32,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             IDirectiveTypeInfo left = notMerged[0];
 
-            var readyToMerge = new List<IDirectiveTypeInfo>();
-            readyToMerge.Add(left);
+            var readyToMerge = new List<IDirectiveTypeInfo> { left };
 
-            for (int i = 1; i < notMerged.Count; i++)
+            for (var i = 1; i < notMerged.Count; i++)
             {
                 if (CanBeMerged(left.Definition, notMerged[i].Definition))
                 {
@@ -47,7 +46,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
 
             if (context.ContainsDirective(name))
             {
-                throw new InvalidOperationException($"Unable to merge {name}, directive with this name already exists.");
+                throw new InvalidOperationException(
+                    $"Unable to merge {name}, directive with this name already exists.");
             }
 
             MergeTypes(context, readyToMerge, name);

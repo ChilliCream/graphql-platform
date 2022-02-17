@@ -4,13 +4,11 @@ using System.Linq;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    public abstract class TypeMergeHanlderBase<T>
-        : ITypeMergeHandler
-        where T : ITypeInfo
+    public abstract class TypeMergeHandlerBase<T> : ITypeMergeHandler where T : ITypeInfo
     {
         private readonly MergeTypeRuleDelegate _next;
 
-        protected TypeMergeHanlderBase(MergeTypeRuleDelegate next)
+        protected TypeMergeHandlerBase(MergeTypeRuleDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
@@ -22,7 +20,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             if (types.OfType<T>().Any())
             {
                 var notMerged = types.OfType<T>().ToList();
-                bool hasLeftovers = types.Count > notMerged.Count;
+                var hasLeftovers = types.Count > notMerged.Count;
 
                 while (notMerged.Count > 0)
                 {
@@ -46,10 +44,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             T left = notMerged[0];
 
-            var readyToMerge = new List<T>();
-            readyToMerge.Add(left);
+            var readyToMerge = new List<T> { left };
 
-            for (int i = 1; i < notMerged.Count; i++)
+            for (var i = 1; i < notMerged.Count; i++)
             {
                 if (CanBeMerged(left, notMerged[i]))
                 {
@@ -57,9 +54,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 }
             }
 
-            NameString newTypeName =
-                TypeMergeHelpers.CreateName<T>(
-                    context, readyToMerge);
+            NameString newTypeName = TypeMergeHelpers.CreateName(context, readyToMerge);
 
             MergeTypes(context, readyToMerge, newTypeName);
             notMerged.RemoveAll(readyToMerge.Contains);

@@ -1,14 +1,10 @@
-using System.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Execution;
-using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    internal class UnionTypeMergeHandler
-        : ITypeMergeHandler
+    internal class UnionTypeMergeHandler : ITypeMergeHandler
     {
         private readonly MergeTypeRuleDelegate _next;
 
@@ -24,9 +20,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
             if (types.OfType<UnionTypeInfo>().Any())
             {
                 var notMerged = types.OfType<UnionTypeInfo>().ToList();
-                bool hasLeftovers = types.Count > notMerged.Count;
+                var hasLeftovers = types.Count > notMerged.Count;
 
-                for (int i = 0; i < notMerged.Count; i++)
+                for (var i = 0; i < notMerged.Count; i++)
                 {
                     context.AddType(notMerged[i].Definition.Rename(
                         TypeMergeHelpers.CreateName(context, notMerged[i]),
