@@ -11,8 +11,8 @@ internal sealed class RemoteRequestExecutor
     : IRemoteRequestExecutor
     , IDisposable
 {
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-    private readonly List<BufferedRequest> _bufferedRequests = new List<BufferedRequest>();
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly List<BufferedRequest> _bufferedRequests = new();
     private readonly IBatchScheduler _batchScheduler;
     private readonly IRequestExecutor _executor;
     private bool _taskRegistered;
@@ -111,35 +111,58 @@ internal sealed class RemoteRequestExecutor
     private async ValueTask ExecuteBufferedRequestBatchAsync(
         CancellationToken cancellationToken)
     {
+        var tasks = new List<Task>();
+
         // first we take all buffered requests and merge them into a single request.
         // we however have to group requests by operation type. This means we should
         // end up with one or two requests (query and mutation).
-        foreach ((IQueryRequest Merged, IEnumerable<BufferedRequest> Requests) batch in
+        foreach ((IQueryRequest merged, IReadOnlyList<BufferedRequest> requests) in
             MergeRequestHelper.MergeRequests(_bufferedRequests))
         {
             // now we take this merged request and run it against the executor.
-            IExecutionResult result = await _executor
-                .ExecuteAsync(batch.Merged, cancellationToken)
-                .ConfigureAwait(false);
+            tasks.Add(ExecuteBatchAsync(merged, requests, _executor, cancellationToken));
+        }
 
-            if (result is IQueryResult queryResult)
+        await Task.WhenAll(tasks);
+
+        static async Task ExecuteBatchAsync(
+            IQueryRequest merged,
+            IReadOnlyList<BufferedRequest> requests,
+            IRequestExecutor executor,
+            CancellationToken cancellationToken)
+        {
+            try
             {
-                // last we will extract the results for the original buffered requests
-                // and fulfil the promises.
-                MergeRequestHelper.DispatchResults(queryResult, batch.Requests);
-            }
-            else
-            {
-                // since we only support query/mutation at this point we will just fail
-                // in the event that something else was returned.
-                foreach (BufferedRequest request in batch.Requests)
+                IExecutionResult result = await executor.ExecuteAsync(merged, cancellationToken);
+
+                if (result is IQueryResult queryResult)
                 {
-                    request.Promise.SetException(new NotSupportedException(
-                        "Only IQueryResult is supported when batching."));
+                    // last we will extract the results for the original buffered requests
+                    // and fulfil the promises.
+                    MergeRequestHelper.DispatchResults(queryResult, requests);
+                }
+                else
+                {
+                    // since we only support query/mutation at this point we will just fail
+                    // in the event that something else was returned.
+                    foreach (BufferedRequest request in requests)
+                    {
+                        request.Promise.SetException(new NotSupportedException(
+                            "Only IQueryResult is supported when batching."));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                foreach (BufferedRequest request in requests)
+                {
+                    request.Promise.TrySetException(ex);
                 }
             }
         }
     }
+
+
 
     public void Dispose()
     {

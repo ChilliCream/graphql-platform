@@ -2,8 +2,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Customers;
 
-public class QueryType
-    : ObjectType<Query>
+public class QueryType : ObjectType<Query>
 {
     protected override void Configure(
         IObjectTypeDescriptor<Query> descriptor)

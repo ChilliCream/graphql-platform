@@ -5,21 +5,19 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Customers;
 
-public class CustomerType
-    : ObjectType<Customer>
+public class CustomerType : ObjectType<Customer>
 {
-    [System.Obsolete]
     protected override void Configure(
         IObjectTypeDescriptor<Customer> descriptor)
     {
         descriptor
-            .AsNode()
+            .ImplementsNode()
             .IdField(t => t.Id)
-            .NodeResolver((ctx, id) =>
+            .ResolveNode((ctx, id) =>
             {
                 return Task.FromResult(
                     ctx.Service<CustomerRepository>()
-                        .Customers.FirstOrDefault(t => t.Id.Equals(id)));
+                        .Customers.Find(t => t.Id.Equals(id)));
             });
 
         descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();

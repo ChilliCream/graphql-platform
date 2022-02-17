@@ -12,10 +12,27 @@ namespace HotChocolate.Stitching.Requests;
 
 internal static class MergeRequestHelper
 {
-    public static IEnumerable<(IQueryRequest, IEnumerable<BufferedRequest>)> MergeRequests(
-        IEnumerable<BufferedRequest> requests)
+    public static IEnumerable<(IQueryRequest, IReadOnlyList<BufferedRequest>)> MergeRequests(
+        IReadOnlyList<BufferedRequest> requests)
     {
-        foreach (IGrouping<OperationType, BufferedRequest>? group in requests.GroupBy(t => t.Operation.Operation))
+        var localCopy = requests.ToList();
+
+        foreach (BufferedRequest request in requests)
+        {
+            if (!request.IsBatchable)
+            {
+                localCopy.Remove(request);
+                yield return (request.Request, new[] { request });
+            }
+        }
+
+        if (localCopy.Count == 1)
+        {
+            BufferedRequest request = localCopy[0];
+            yield return (request.Request, new[] { request });
+        }
+
+        foreach (var group in localCopy.GroupBy(t => t.Operation.Operation))
         {
             var rewriter = new MergeRequestRewriter();
             var variableValues = new Dictionary<string, object?>();
@@ -47,13 +64,13 @@ internal static class MergeRequestHelper
                     .TrySetServices(first.Request.Services)
                     .Create();
 
-            yield return (batch, group);
+            yield return (batch, group.ToArray());
         }
     }
 
     public static void DispatchResults(
         IQueryResult mergedResult,
-        IEnumerable<BufferedRequest> requests)
+        IReadOnlyList<BufferedRequest> requests)
     {
         try
         {

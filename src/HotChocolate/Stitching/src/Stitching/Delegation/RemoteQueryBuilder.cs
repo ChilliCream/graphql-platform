@@ -9,15 +9,11 @@ namespace HotChocolate.Stitching.Delegation;
 
 public class RemoteQueryBuilder
 {
-    private static readonly CollectUsedVariableVisitor _usedVariables =
-        new CollectUsedVariableVisitor();
-    private readonly List<FieldNode> _additionalFields =
-        new List<FieldNode>();
-    private readonly List<VariableDefinitionNode> _variables =
-        new List<VariableDefinitionNode>();
-    private readonly List<FragmentDefinitionNode> _fragments =
-        new List<FragmentDefinitionNode>();
-    private NameNode _operationName = new NameNode("fetch");
+    private static readonly CollectUsedVariableVisitor _usedVariables = new();
+    private readonly List<FieldNode> _additionalFields = new();
+    private readonly List<VariableDefinitionNode> _variables = new();
+    private readonly List<FragmentDefinitionNode> _fragments = new();
+    private NameNode _operationName = new("fetch");
     private OperationType _operation = OperationType.Query;
     private IImmutableStack<SelectionPathComponent> _path =
         ImmutableStack<SelectionPathComponent>.Empty;
@@ -97,7 +93,6 @@ public class RemoteQueryBuilder
         }
 
         _variables.Add(variable);
-
         return this;
     }
 
@@ -110,7 +105,6 @@ public class RemoteQueryBuilder
         }
 
         _variables.AddRange(variables);
-
         return this;
     }
 
@@ -123,7 +117,6 @@ public class RemoteQueryBuilder
         }
 
         _fragments.AddRange(fragments);
-
         return this;
     }
 
@@ -148,8 +141,7 @@ public class RemoteQueryBuilder
                 new[] { requestField });
         }
 
-        var fields = new List<FieldNode>();
-        fields.Add(_requestField);
+        var fields = new List<FieldNode> { _requestField };
         fields.AddRange(_additionalFields);
 
         return CreateDelegationQuery(
@@ -196,7 +188,7 @@ public class RemoteQueryBuilder
             fields.Add(current);
         }
 
-        List<VariableDefinitionNode> variables = _variables
+        var variables = _variables
             .Where(t => usedVariables.Contains(t.Variable.Name.Value))
             .ToList();
 
@@ -243,7 +235,7 @@ public class RemoteQueryBuilder
     {
         path = path.Pop(out SelectionPathComponent component);
 
-        string responseName = requestedField.Alias == null
+        var responseName = requestedField.Alias == null
             ? requestedField.Name.Value
             : requestedField.Alias.Value;
 
@@ -330,5 +322,5 @@ public class RemoteQueryBuilder
         }
     }
 
-    public static RemoteQueryBuilder New() => new RemoteQueryBuilder();
+    public static RemoteQueryBuilder New() => new();
 }

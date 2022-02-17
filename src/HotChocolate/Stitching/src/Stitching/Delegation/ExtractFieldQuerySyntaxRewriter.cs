@@ -9,7 +9,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Delegation;
 
-public partial class ExtractFieldQuerySyntaxRewriter
+public partial class ExtractFieldQuerySyntaxRewriter 
     : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
 {
     private readonly ISchema _schema;
@@ -67,8 +67,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
             FieldNode field = RewriteField(syntaxNode, context);
 
             if (selection.Field.Type.NamedType().IsLeafType() ||
-                (field.SelectionSet is not null &&
-                field.SelectionSet.Selections.Count > 0))
+                field.SelectionSet?.Selections.Count > 0)
             {
                 syntaxNodes.Add(field);
             }
@@ -87,9 +86,12 @@ public partial class ExtractFieldQuerySyntaxRewriter
     {
         sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
 
-        var context = new Context(sourceSchema, null, null, null);
-        context.InputType = inputType;
-        return RewriteValue(value, context);
+        return RewriteValue(
+            value,
+            new Context(sourceSchema, null, null, null)
+            {
+                InputType = inputType
+            });
     }
 
     protected override FieldNode RewriteField(
@@ -226,7 +228,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
 
         SelectionSetNode current = node;
 
-        for (int i = 0; i < _rewriters.Length; i++)
+        for (var i = 0; i < _rewriters.Length; i++)
         {
             current = _rewriters[i].OnRewriteSelectionSet(
                 context.Schema,
@@ -274,10 +276,8 @@ public partial class ExtractFieldQuerySyntaxRewriter
     {
         ObjectFieldNode current = node;
 
-        if (context.InputType != null
-            && context.InputType.NamedType() is InputObjectType inputType
-            && inputType.Fields.TryGetField(current.Name.Value,
-            out InputField? inputField))
+        if (context.InputType?.NamedType() is InputObjectType inputType &&
+            inputType.Fields.TryGetField(current.Name.Value, out InputField? inputField))
         {
             Context cloned = context.Clone();
             cloned.InputField = inputField;
@@ -320,15 +320,11 @@ public partial class ExtractFieldQuerySyntaxRewriter
     protected override DirectiveNode RewriteDirective(
         DirectiveNode node,
         Context context)
-    {
-        DirectiveNode current = node;
-
-        current = Rewrite(current, current.Arguments, context,
+        => Rewrite(
+            node,
+            node.Arguments, context,
             (p, c) => RewriteMany(p, c, RewriteArgument),
-            current.WithArguments);
-
-        return current;
-    }
+            node.WithArguments);
 
     private static bool IsDelegationField(IDirectiveCollection directives)
     {
@@ -400,7 +396,8 @@ public partial class ExtractFieldQuerySyntaxRewriter
         FragmentSpreadNode node,
         Context context)
     {
-        string name = node.Name.Value;
+        var name = node.Name.Value;
+
         if (!context.Fragments.TryGetValue(name, out FragmentDefinitionNode? fragment))
         {
             fragment = context.Document!.Definitions
@@ -425,7 +422,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
             return node;
         }
 
-        if (_schema.TryGetType(current.TypeCondition.Name.Value, out IComplexOutputType type))
+        if (_schema.TryGetType<IComplexOutputType>(current.TypeCondition.Name.Value, out var type))
         {
             currentContext = currentContext.Clone();
             currentContext.TypeContext = type;
@@ -449,7 +446,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
         Context currentContext = context;
         InlineFragmentNode current = node;
 
-        if (_schema.TryGetType(current.TypeCondition!.Name.Value, out IComplexOutputType type))
+        if (_schema.TryGetType<IComplexOutputType>(current.TypeCondition!.Name.Value, out var type))
         {
             currentContext = currentContext.Clone();
             currentContext.TypeContext = type;

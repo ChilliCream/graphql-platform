@@ -2,8 +2,7 @@ using System;
 
 namespace HotChocolate.Stitching.Schemas.Customers;
 
-public class Customer
-    : ICustomerOrConsultant
+public class Customer : ICustomerOrConsultant
 {
     public string Id { get; set; }
     public string Name { get; set; }

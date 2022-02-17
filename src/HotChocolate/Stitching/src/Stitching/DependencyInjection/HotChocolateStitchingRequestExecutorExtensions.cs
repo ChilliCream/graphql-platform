@@ -689,16 +689,21 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
                     throw RequestExecutorBuilder_ResourceNotFound(key);
                 }
 
-#if NET5_0 || NET6_0
+#if NET5_0_OR_GREATER
                 await using (stream)
+                {
+                    var buffer = new byte[stream.Length];
+                    await stream.ReadAsync(buffer, ct).ConfigureAwait(false);
+                    s.AddTypeExtensions(Utf8GraphQLParser.Parse(buffer));
+                }
 #else
-                    using (stream)
-#endif
+                using (stream)
                 {
                     var buffer = new byte[stream.Length];
                     await stream.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
                     s.AddTypeExtensions(Utf8GraphQLParser.Parse(buffer));
                 }
+#endif
             });
     }
 

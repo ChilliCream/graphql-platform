@@ -1,6 +1,4 @@
-using System.Linq;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Stitching.Schemas.Customers;
 

@@ -17,13 +17,15 @@ internal sealed class BufferedRequest
     private BufferedRequest(
         IQueryRequest request,
         DocumentNode document,
-        OperationDefinitionNode operation)
+        OperationDefinitionNode operation,
+        bool isBatchable)
     {
         Request = request;
         Document = document;
         Operation = operation;
         Promise = new TaskCompletionSource<IExecutionResult>(
             TaskCreationOptions.RunContinuationsAsynchronously);
+        IsBatchable = isBatchable;
     }
 
     public IQueryRequest Request { get; }
@@ -33,6 +35,8 @@ internal sealed class BufferedRequest
     public OperationDefinitionNode Operation { get; }
 
     public TaskCompletionSource<IExecutionResult> Promise { get; }
+
+    public bool IsBatchable { get; }
 
     public IDictionary<string, string>? Aliases { get; set; }
 
@@ -60,12 +64,15 @@ internal sealed class BufferedRequest
                 ? doc.Document
                 : Utf8GraphQLParser.Parse(request.Query.AsSpan());
 
-        OperationDefinitionNode operation =
-            ResolveOperation(document, request.OperationName);
+        OperationDefinitionNode operation = ResolveOperation(document, request.OperationName);
 
         request = NormalizeRequest(request, operation, schema);
 
-        return new BufferedRequest(request, document, operation);
+        return new BufferedRequest(
+            request,
+            document,
+            operation,
+            request.ContextData?.ContainsKey(WellKnownContextData.IsBatchable) ?? false);
     }
 
     internal static OperationDefinitionNode ResolveOperation(

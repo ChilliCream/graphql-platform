@@ -5,7 +5,6 @@ namespace HotChocolate.Stitching.Schemas.Customers;
 
 public static class CustomerSchemaRequestExecutorBuilderExtensions
 {
-    [System.Obsolete]
     public static IRequestExecutorBuilder AddCustomerSchema(
         this IRequestExecutorBuilder builder)
     {
@@ -16,6 +15,6 @@ public static class CustomerSchemaRequestExecutorBuilderExtensions
         return builder
             .AddQueryType<QueryType>()
             .AddMutationType<MutationType>()
-            .EnableRelaySupport();
+            .AddGlobalObjectIdentification();
     }
 }

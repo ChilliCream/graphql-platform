@@ -112,18 +112,18 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    me {
-                        id
-                        name
-                        reviews {
-                            body
-                            product {
-                                upc
-                            }
+                me {
+                    id
+                    name
+                    reviews {
+                        body
+                        product {
+                            upc
                         }
                     }
-                    local
-                }");
+                }
+                local
+            }");
 
         // assert
         result.ToJson().MatchSnapshot();
