@@ -6,13 +6,15 @@ using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using System.Text;
+using Snapshooter.Xunit;
+using System;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Caching.Tests;
 
 public class CacheControlTypeInterceptorTests
 {
-    // todo: test validation of maxAge / inheritMaxAge
-
     [Fact]
     public async Task ApplyDefaults()
     {
@@ -60,6 +62,60 @@ public class CacheControlTypeInterceptorTests
             .AddCacheControl()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public void NegativeMaxAge()
+    {
+        ExpectErrors(builder => builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: String @cacheControl(maxAge: -10)
+                }
+            ")
+            .Use(_ => _ => default)
+            .AddCacheControl());
+    }
+
+    [Fact]
+    public void MaxAgeAndInheritMaxAgeOnSameField()
+    {
+        ExpectErrors(builder => builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: String @cacheControl(maxAge: 10 inheritMaxAge: true)
+                }
+            ")
+            .Use(_ => _ => default)
+            .AddCacheControl());
+    }
+
+    private static void ExpectErrors(Action<SchemaBuilder> configureBuilder)
+    {
+        try
+        {
+            var builder = SchemaBuilder.New();
+
+            configureBuilder(builder);
+
+            builder.Create();
+
+            Assert.False(true, "Expected error!");
+        }
+        catch (SchemaException ex)
+        {
+            Assert.NotEmpty(ex.Errors);
+
+            var text = new StringBuilder();
+
+            foreach (ISchemaError error in ex.Errors)
+            {
+                text.AppendLine(error.ToString());
+                text.AppendLine();
+            }
+
+            text.ToString().MatchSnapshot();
+        }
     }
 
     public class Query : NestedType

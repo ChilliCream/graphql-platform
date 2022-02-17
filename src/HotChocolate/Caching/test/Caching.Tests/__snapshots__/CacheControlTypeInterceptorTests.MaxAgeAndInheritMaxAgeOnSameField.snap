@@ -1,0 +1,5 @@
+﻿{
+  "message": "@cacheControl directive can not specify `inheritMaxAge: true` and a value for `maxAge`.",
+  "extensions": {}
+}
+
