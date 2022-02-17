@@ -29,8 +29,6 @@ partial class Build
         .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
-            Environment.SetEnvironmentVariable("Version", GitVersion.SemVer);
-
             var projFile = File.ReadAllText(StarWarsProj);
             File.WriteAllText(StarWarsProj, projFile.Replace("11.1.0", GitVersion.SemVer));
 
@@ -49,10 +47,12 @@ partial class Build
                     !Path.GetFileNameWithoutExtension(file)
                         .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
+            DotNetRestore(c => c.SetProjectFile(PackSolutionFile));
+
             DotNetBuild(c => c
+                .SetNoRestore(true)
                 .SetProjectFile(PackSolutionFile)
                 .SetConfiguration(Configuration)
-                .SetOutputDirectory(PackageDirectory)
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
                 .SetFileVersion(GitVersion.AssemblySemFileVer)
                 .SetInformationalVersion(GitVersion.InformationalVersion)
