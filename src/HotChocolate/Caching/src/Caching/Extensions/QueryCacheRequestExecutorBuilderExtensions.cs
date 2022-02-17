@@ -52,7 +52,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
 
         builder.ConfigureSchema(s =>
         {
-            if (!s.ContextData.TryGetValue("TODO", out var options) ||
+            if (!s.ContextData.TryGetValue(WellKnownContextData.CacheControlOptions, out var options) ||
                 options is not CacheControlOptions typedOptions)
             {
                 typedOptions = new CacheControlOptions();
@@ -60,7 +60,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
 
             modifyOptions(typedOptions);
 
-            s.SetContextData("TODO", typedOptions);
+            s.SetContextData(WellKnownContextData.CacheControlOptions, typedOptions);
         });
 
         return builder;

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +6,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation;
-using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.Caching.WellKnownContextData;
 
 namespace HotChocolate.Caching;
 
@@ -36,8 +35,7 @@ public sealed class QueryCacheMiddleware
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
-        // todo: add context key for skipping the query cache on a per-request basis
-        if (!_options.Enable)
+        if (!_options.Enable || context.ContextData.ContainsKey(SkipQueryCaching))
         {
             await _next(context).ConfigureAwait(false);
         }

@@ -5,9 +5,9 @@
 "Information about the offset pagination."
 type CollectionSegmentInfo {
   "Indicates whether more items exist following the set defined by the clients arguments."
-  hasNextPage: Boolean! @cacheControl(inheritMaxAge: true)
+  hasNextPage: Boolean!
   "Indicates whether more items exist prior the set defined by the clients arguments."
-  hasPreviousPage: Boolean! @cacheControl(inheritMaxAge: true)
+  hasPreviousPage: Boolean!
 }
 
 type NestedType {
@@ -17,19 +17,19 @@ type NestedType {
   queryableField: [String!]! @cacheControl(maxAge: 0)
   queryableFieldWithConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionConnection @cacheControl(maxAge: 0)
   queryableFieldWithCollectionSegment(skip: Int take: Int): StringCollectionSegment @cacheControl(maxAge: 0)
-  pureField: String! @cacheControl(inheritMaxAge: true)
+  pureField: String!
 }
 
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
-  hasNextPage: Boolean! @cacheControl(inheritMaxAge: true)
+  hasNextPage: Boolean!
   "Indicates whether more edges exist prior the set defined by the clients arguments."
-  hasPreviousPage: Boolean! @cacheControl(inheritMaxAge: true)
+  hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
-  startCursor: String @cacheControl(inheritMaxAge: true)
+  startCursor: String
   "When paginating forwards, the cursor to continue."
-  endCursor: String @cacheControl(inheritMaxAge: true)
+  endCursor: String
 }
 
 type Query {
@@ -46,25 +46,25 @@ type Query {
 "A connection to a list of items."
 type QueryableFieldWithConnectionConnection {
   "Information to aid in pagination."
-  pageInfo: PageInfo!
+  pageInfo: PageInfo! @cacheControl(inheritMaxAge: true)
   "A list of edges."
-  edges: [QueryableFieldWithConnectionEdge!]
+  edges: [QueryableFieldWithConnectionEdge!] @cacheControl(inheritMaxAge: true)
   "A flattened list of the nodes."
-  nodes: [String!] @cacheControl(inheritMaxAge: true)
+  nodes: [String!]
 }
 
 "An edge in a connection."
 type QueryableFieldWithConnectionEdge {
   "A cursor for use in pagination."
-  cursor: String! @cacheControl(inheritMaxAge: true)
+  cursor: String!
   "The item at the end of the edge."
-  node: String! @cacheControl(inheritMaxAge: true)
+  node: String!
 }
 
 type StringCollectionSegment {
-  items: [String!] @cacheControl(inheritMaxAge: true)
+  items: [String!]
   "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
+  pageInfo: CollectionSegmentInfo! @cacheControl(inheritMaxAge: true)
 }
 
 "TODO"

@@ -5,27 +5,27 @@
 }
 
 interface CachableInterface @cacheControl(maxAge: 60, scope: PRIVATE) {
-  field: String @cacheControl(inheritMaxAge: true)
+  field: String
 }
 
 interface DefaultInterface {
-  field: String @cacheControl(inheritMaxAge: true)
+  field: String
 }
 
 type CachableInterfaceImplementation implements CachableInterface {
-  field: String @cacheControl(inheritMaxAge: true)
+  field: String
 }
 
 type CachableObjectType @cacheControl(maxAge: 180, scope: PRIVATE) {
-  field: String @cacheControl(inheritMaxAge: true)
+  field: String
 }
 
 type DefaultInterfaceImplementation implements DefaultInterface {
-  field: String @cacheControl(inheritMaxAge: true)
+  field: String
 }
 
 type DefaultObjectType {
-  field: String @cacheControl(inheritMaxAge: true)
+  field: String
 }
 
 type Mutation {
@@ -33,14 +33,14 @@ type Mutation {
 }
 
 type NestedObjectType {
-  scalar: String @cacheControl(inheritMaxAge: true)
-  scalarList: [String] @cacheControl(inheritMaxAge: true)
-  object: DefaultObjectType
-  objectList: [DefaultObjectType]
-  union: DefaultUnion
-  unionList: [DefaultUnion]
-  interface: DefaultInterface
-  interfaceList: [DefaultInterface]
+  scalar: String
+  scalarList: [String]
+  object: DefaultObjectType @cacheControl(inheritMaxAge: true)
+  objectList: [DefaultObjectType] @cacheControl(inheritMaxAge: true)
+  union: DefaultUnion @cacheControl(inheritMaxAge: true)
+  unionList: [DefaultUnion] @cacheControl(inheritMaxAge: true)
+  interface: DefaultInterface @cacheControl(inheritMaxAge: true)
+  interfaceList: [DefaultInterface] @cacheControl(inheritMaxAge: true)
   scalar_fieldCache: String @cacheControl(maxAge: 100, scope: PRIVATE)
   scalarList_fieldCache: [String] @cacheControl(maxAge: 100, scope: PRIVATE)
   object_fieldCache: DefaultObjectType @cacheControl(maxAge: 100, scope: PRIVATE)
@@ -49,12 +49,12 @@ type NestedObjectType {
   unionList_fieldCache: [DefaultUnion] @cacheControl(maxAge: 100, scope: PRIVATE)
   interface_fieldCache: DefaultInterface @cacheControl(maxAge: 100, scope: PRIVATE)
   interfaceList_fieldCache: [DefaultInterface] @cacheControl(maxAge: 100, scope: PRIVATE)
-  object_typeCache: CachableObjectType
-  objectList_typeCache: [CachableObjectType]
-  union_typeCache: CachableUnion
-  unionList_typeCache: [CachableUnion]
-  interface_typeCache: CachableInterface
-  interfaceList_typeCache: [CachableInterface]
+  object_typeCache: CachableObjectType @cacheControl(inheritMaxAge: true)
+  objectList_typeCache: [CachableObjectType] @cacheControl(inheritMaxAge: true)
+  union_typeCache: CachableUnion @cacheControl(inheritMaxAge: true)
+  unionList_typeCache: [CachableUnion] @cacheControl(inheritMaxAge: true)
+  interface_typeCache: CachableInterface @cacheControl(inheritMaxAge: true)
+  interfaceList_typeCache: [CachableInterface] @cacheControl(inheritMaxAge: true)
   object_fieldCache_typeCache: CachableObjectType @cacheControl(maxAge: 100, scope: PRIVATE)
   objectList_fieldCache_typeCache: [CachableObjectType] @cacheControl(maxAge: 100, scope: PRIVATE)
   union_fieldCache_typeCache: CachableUnion @cacheControl(maxAge: 100, scope: PRIVATE)

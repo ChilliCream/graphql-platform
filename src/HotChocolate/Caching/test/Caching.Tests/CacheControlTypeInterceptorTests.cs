@@ -90,6 +90,63 @@ public class CacheControlTypeInterceptorTests
             .AddCacheControl());
     }
 
+    [Fact(Skip = "Not yet implemented")]
+    public void InheritMaxAgeOnObjectType()
+    {
+        ExpectErrors(builder => builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: ObjectType
+                }
+
+                type ObjectType @cacheControl(inheritMaxAge: true) {
+                    field: String
+                }
+            ")
+            .Use(_ => _ => default)
+            .AddCacheControl());
+    }
+
+    [Fact(Skip = "Not yet implemented")]
+    public void InheritMaxAgeOnInterfaceType()
+    {
+        ExpectErrors(builder => builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: InterfaceType
+                }
+
+                type InterfaceType @cacheControl(inheritMaxAge: true) {
+                    field: String
+                }
+
+                type ObjectType {
+                    field: String
+                }
+            ")
+            .Use(_ => _ => default)
+            .AddCacheControl());
+    }
+
+    [Fact(Skip = "Not yet implemented")]
+    public void InheritMaxAgeOnUnionType()
+    {
+        ExpectErrors(builder => builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: UnionType
+                }
+
+                union UnionType @cacheControl(inheritMaxAge: true) = ObjectType
+
+                type ObjectType {
+                    field: String
+                }
+            ")
+            .Use(_ => _ => default)
+            .AddCacheControl());
+    }
+
     private static void ExpectErrors(Action<SchemaBuilder> configureBuilder)
     {
         try

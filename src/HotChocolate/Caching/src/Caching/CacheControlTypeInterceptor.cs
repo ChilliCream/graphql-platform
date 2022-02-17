@@ -26,7 +26,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         _typeRegistry = typeRegistry;
         _typeLookup = typeLookup;
 
-        if (!context.ContextData.TryGetValue("TODO", out var options) ||
+        if (!context.ContextData.TryGetValue(WellKnownContextData.CacheControlOptions, out var options) ||
             options is not ICacheControlOptions typedOptions)
         {
             typedOptions = new CacheControlOptions();
@@ -35,7 +35,8 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         _cacheControlOptions = typedOptions;
     }
 
-    public override void OnValidateType(ITypeSystemObjectContext validationContext, DefinitionBase? definition, IDictionary<string, object?> contextData)
+    public override void OnValidateType(ITypeSystemObjectContext validationContext, DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
     {
         if (validationContext.Type is not ObjectType obj)
         {
@@ -153,7 +154,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
             return;
         }
 
-        if (registeredType.Kind == TypeKind.Scalar)
+        if (registeredType.Kind != TypeKind.Scalar)
         {
             ApplyCacheControlWithInheritMaxAge(field);
         }
