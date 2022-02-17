@@ -22,7 +22,7 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
         : base(next, executorResolver, resultSerializer, schemaName)
     {
         _diagnosticEvents = diagnosticEvents ??
-                            throw new ArgumentNullException(nameof(diagnosticEvents));
+            throw new ArgumentNullException(nameof(diagnosticEvents));
         _hostLifetime = hostLifetime;
     }
 
