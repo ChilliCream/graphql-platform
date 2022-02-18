@@ -25,6 +25,7 @@ internal class ObjectTypeValidationRule : ISchemaValidationRule
                 EnsureTypeHasFields(type, errors);
                 EnsureFieldNamesAreValid(type, errors);
                 EnsureInterfacesAreCorrectlyImplemented(type, errors);
+                EnsureArgumentDeprecationIsValid(type, errors);
             }
         }
     }

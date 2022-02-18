@@ -1,0 +1,14 @@
+﻿query abc($id: ID, $if: Boolean) {
+  a: customer(id: $id) {
+    name @include(id: $if)
+  }
+}
+-------
+query exec_batch($__0__id: ID, $__0__if: Boolean, $__1__id: ID, $__1__if: Boolean) {
+  __0__b: customer(id: $__0__id) {
+    id @include(id: $__0__if)
+  }
+  __1__c: customer(id: $__1__id) {
+    id @include(id: $__1__if)
+  }
+}

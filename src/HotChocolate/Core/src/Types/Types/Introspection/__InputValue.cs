@@ -21,6 +21,7 @@ internal sealed class __InputValue : ObjectType
         SyntaxTypeReference stringType = Create(ScalarNames.String);
         SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
         SyntaxTypeReference nonNullTypeType = Parse($"{nameof(__Type)}!");
+        SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
         var def = new ObjectTypeDefinition(
@@ -29,15 +30,21 @@ internal sealed class __InputValue : ObjectType
             typeof(IInputField))
         {
             Fields =
-                {
-                    new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
-                    new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
-                    new(Names.Type, type: nonNullTypeType, pureResolver: Resolvers.Type),
-                    new(Names.DefaultValue,
-                        InputValue_DefaultValue,
-                        stringType,
-                        pureResolver: Resolvers.DefaultValue),
-                }
+            {
+                new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
+                new(Names.Type, type: nonNullTypeType, pureResolver: Resolvers.Type),
+                new(Names.DefaultValue,
+                    InputValue_DefaultValue,
+                    stringType,
+                    pureResolver: Resolvers.DefaultValue),
+                new(Names.IsDeprecated,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.IsDeprecated),
+                new(Names.DeprecationReason,
+                    type: stringType,
+                    pureResolver: Resolvers.DeprecationReason),
+            }
         };
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
@@ -62,6 +69,12 @@ internal sealed class __InputValue : ObjectType
         public static object Type(IPureResolverContext context)
             => context.Parent<IInputField>().Type;
 
+        public static object IsDeprecated(IPureResolverContext context)
+            => context.Parent<IInputField>().IsDeprecated;
+
+        public static object? DeprecationReason(IPureResolverContext context)
+            => context.Parent<IInputField>().DeprecationReason;
+
         public static object? DefaultValue(IPureResolverContext context)
         {
             IInputField field = context.Parent<IInputField>();
@@ -69,7 +82,8 @@ internal sealed class __InputValue : ObjectType
         }
 
         public static object AppliedDirectives(IPureResolverContext context)
-            => context.Parent<IInputField>().Directives
+            => context.Parent<IInputField>()
+                .Directives
                 .Where(t => t.Type.IsPublic)
                 .Select(d => d.ToNode());
     }
@@ -82,6 +96,8 @@ internal sealed class __InputValue : ObjectType
         public const string DefaultValue = "defaultValue";
         public const string Type = "type";
         public const string AppliedDirectives = "appliedDirectives";
+        public const string IsDeprecated = "isDeprecated";
+        public const string DeprecationReason = "deprecationReason";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

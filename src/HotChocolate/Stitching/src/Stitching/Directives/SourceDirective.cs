@@ -1,11 +1,8 @@
-using System;
+namespace HotChocolate.Stitching;
 
-namespace HotChocolate.Stitching
+public class SourceDirective
 {
-    public class SourceDirective
-    {
-        public NameString Name { get; set; }
+    public NameString Name { get; set; }
 
-        public NameString Schema { get; set; }
-    }
+    public NameString Schema { get; set; }
 }

@@ -75,7 +75,7 @@ type Query {
   consultant(id: ID!): Consultant
   customerOrConsultant(id: ID!): CustomerOrConsultant
   customerByKind(kind: CustomerKind!): Customer
-  allCustomers: [Customer]
+  allCustomers: [Customer!]!
 }
 
 union CustomerOrConsultant = Customer | Consultant

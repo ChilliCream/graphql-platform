@@ -1,0 +1,9 @@
+﻿{
+  "message": "Field names starting with `__` are reserved for the GraphQL specification.",
+  "type": "Foo",
+  "extensions": {
+    "field": "__badField",
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Objects.Type-Validation"
+  }
+}
+

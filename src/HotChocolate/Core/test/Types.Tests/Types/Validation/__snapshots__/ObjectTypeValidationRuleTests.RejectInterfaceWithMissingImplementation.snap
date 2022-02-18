@@ -1,0 +1,9 @@
+﻿{
+  "message": "The field `second` must be implement by object type `Foo`.",
+  "type": "Foo",
+  "extensions": {
+    "implementedField": "second",
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
+  }
+}
+

@@ -8,6 +8,7 @@ namespace HotChocolate;
 /// </summary>
 [AttributeUsage(AttributeTargets.Field // Required for enum values
     | AttributeTargets.Property
+    | AttributeTargets.Parameter
     | AttributeTargets.Method)]
 public sealed class GraphQLDeprecatedAttribute : Attribute
 {

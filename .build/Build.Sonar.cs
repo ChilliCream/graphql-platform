@@ -33,7 +33,19 @@ partial class Build
                 .SetProcessWorkingDirectory(RootDirectory));
 
             SonarScannerBegin(SonarBeginPrSettings);
+
+            DotNetBuild(c => c
+                .SetNoRestore(true)
+                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server"));
+
+            DotNetBuild(c => c
+                .SetNoRestore(true)
+                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server"));
+
             DotNetBuild(SonarBuildAll);
+
             try
             {
                 DotNetTest(
@@ -59,7 +71,19 @@ partial class Build
             Logger.Info("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
 
             SonarScannerBegin(SonarBeginFullSettings);
+
+            DotNetBuild(c => c
+                .SetNoRestore(true)
+                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server"));
+
+            DotNetBuild(c => c
+                .SetNoRestore(true)
+                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server"));
+
             DotNetBuild(SonarBuildAll);
+
             try
             {
                 DotNetTest(
@@ -124,5 +148,6 @@ partial class Build
         => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName)) &&
             !fileName.Contains("example") &&
             !fileName.Contains("sample") &&
-            !fileName.Contains("HotChocolate.Types.Analyzers");
+            !fileName.Contains("HotChocolate.Types.Analyzers") &&
+            !fileName.Contains("StrawberryShake.CodeGeneration.CSharp.Analyzers");
 }

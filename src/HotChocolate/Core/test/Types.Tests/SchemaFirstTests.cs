@@ -502,6 +502,42 @@ namespace HotChocolate
                 schema.GetType<ObjectType>("Person")?.Fields["name"].Description);
         }
 
+        [Fact]
+        public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound()
+        {
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(@"
+                    type Query {
+                        book(input: TestEnumInput): TestEnum
+                    }
+
+                    enum TestEnumInput { FOO_BAR_INPUT }
+                    enum TestEnum { FOO_BAR }")
+                .AddResolver<QueryEnumExample>("Query")
+                .ExecuteRequestAsync("{ book(input: FOO_BAR_INPUT) }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound_When_Using_BindRuntimeType()
+        {
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(@"
+                    type Query {
+                        book(input: TestEnumInput): TestEnum
+                    }
+
+                    enum TestEnumInput { FOO_BAR_INPUT }
+                    enum TestEnum { FOO_BAR }")
+                .BindRuntimeType<QueryEnumExample>("Query")
+                .ExecuteRequestAsync("{ book(input: FOO_BAR_INPUT) }")
+                .MatchSnapshotAsync();
+        }
+
         public class Query
         {
             public string Hello() => "World";
@@ -588,5 +624,23 @@ namespace HotChocolate
 
             public string Name { get; }
         }
+    }
+
+    public class QueryEnumExample
+    {
+        public TestEnum GetBook(TestEnumInput input)
+        {
+            return TestEnum.FooBar;
+        }
+    }
+
+    public enum TestEnum
+    {
+        FooBar
+    }
+
+    public enum TestEnumInput
+    {
+        FooBarInput
     }
 }

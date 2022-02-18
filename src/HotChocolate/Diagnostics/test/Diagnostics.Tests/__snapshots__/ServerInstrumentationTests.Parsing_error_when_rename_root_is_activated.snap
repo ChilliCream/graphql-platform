@@ -1,0 +1,47 @@
+﻿{
+  "activities": [
+    {
+      "OperationName": "ExecuteHttpRequest",
+      "DisplayName": "GraphQL HTTP POST: Begin Parse HTTP Request",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.schema.name",
+          "Value": "_Default"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ParseHttpRequest",
+          "DisplayName": "Parse HTTP Request",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "ERROR"
+            }
+          ],
+          "event": [
+            {
+              "Name": "Error",
+              "Tags": {
+                "graphql.error.message": "Expected a `Name`-token, but found a `Integer`-token.",
+                "graphql.error.code": "HC0011",
+                "graphql.error.location.column": 21,
+                "graphql.error.location.line": 3
+              }
+            }
+          ]
+        },
+        {
+          "OperationName": "FormatHttpResponse",
+          "DisplayName": "Format HTTP Response",
+          "Status": "Ok",
+          "tags": [],
+          "event": []
+        }
+      ]
+    }
+  ]
+}

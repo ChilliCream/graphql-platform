@@ -140,5 +140,4 @@ public sealed class ArgumentValue : IInputFieldInfo
     /// If this argument has error this represents the argument error.
     /// </summary>
     public IError? Error { get; }
-
 }

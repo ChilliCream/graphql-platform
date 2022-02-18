@@ -109,4 +109,10 @@ public static class WellKnownContextData
     /// The key to the schema building directives.
     /// </summary>
     public const string SchemaDirectives = "HotChocolate.Schema.Building.Directives";
+
+    /// <summary>
+    /// The key to the optionall schema documents.
+    /// </summary>
+    public const string SchemaDocuments = "HotChocolate.Schema.Building.Documents";
+
 }

@@ -21,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
             }
         }
 
-        public EntityTypeDescriptor EntityTypeDescriptor { get; private set; }
+        public EntityTypeDescriptor EntityTypeDescriptor { get; private set; } = default!;
 
         public void CompleteEntityType(EntityTypeDescriptor descriptor)
         {

@@ -283,7 +283,8 @@ public class ServerInstrumentationTests : ServerTestBase
                             }
                         }
                     }
-                }"});
+                }"
+            });
 
             // assert
             activities.MatchSnapshot();
@@ -317,7 +318,62 @@ public class ServerInstrumentationTests : ServerTestBase
                             }
                         }
                     }
-                }"});
+                }"
+            });
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Parsing_error_when_rename_root_is_activated()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using TestServer server = CreateInstrumentedServer(
+                o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.RenameRootActivity = true;
+                });
+
+            // act
+            await server.PostRawAsync(new ClientQueryRequest
+            {
+                Query = @"
+                {
+                    1
+                }"
+            });
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Validation_error_when_rename_root_is_activated()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using TestServer server = CreateInstrumentedServer(
+                o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.RenameRootActivity = true;
+                });
+
+            // act
+            await server.PostRawAsync(new ClientQueryRequest
+            {
+                Query = @"
+                {
+                    abc
+                }"
+            });
 
             // assert
             activities.MatchSnapshot();

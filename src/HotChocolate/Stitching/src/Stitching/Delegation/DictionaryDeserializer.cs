@@ -4,43 +4,43 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching.Delegation;
+
+internal static class DictionaryDeserializer
 {
-    internal static class DictionaryDeserializer
+    public static object? DeserializeResult(
+        IType fieldType,
+        object? obj,
+        InputParser parser,
+        Path path)
     {
-        public static object? DeserializeResult(
-            IType fieldType,
-            object? obj,
-            InputParser parser,
-            Path path)
+        INamedType namedType = fieldType.NamedType();
+
+        if (namedType is IInputType && fieldType is IInputType inputType)
         {
-            INamedType namedType = fieldType.NamedType();
-
-            if (namedType is IInputType && fieldType is IInputType inputType)
+            if (namedType.Kind == TypeKind.Enum)
             {
-                if (namedType.Kind == TypeKind.Enum)
-                {
-                    return DeserializeEnumResult(inputType, obj, parser, path);
-                }
-
-                if (namedType.Kind == TypeKind.Scalar)
-                {
-                    return DeserializeScalarResult(inputType, obj, parser, path);
-                }
+                return DeserializeEnumResult(inputType, obj, parser, path);
             }
 
-            return obj is NullValueNode ? null : obj;
+            if (namedType.Kind == TypeKind.Scalar)
+            {
+                return DeserializeScalarResult(inputType, obj, parser, path);
+            }
         }
 
-        private static object? DeserializeEnumResult(
-            IInputType inputType,
-            object? value,
-            InputParser parser,
-            Path path)
+        return obj is NullValueNode ? null : obj;
+    }
+
+    private static object? DeserializeEnumResult(
+        IInputType inputType,
+        object? value,
+        InputParser parser,
+        Path path)
+    {
+        switch (value)
         {
-            switch (value)
-            {
-                case IReadOnlyList<object> list:
+            case IReadOnlyList<object> list:
                 {
                     var elementType = (IInputType)inputType.ElementType();
                     var deserializedList = (IList)Activator.CreateInstance(inputType.RuntimeType)!;
@@ -55,7 +55,7 @@ namespace HotChocolate.Stitching.Delegation
                     return deserializedList;
                 }
 
-                case ListValueNode listLiteral:
+            case ListValueNode listLiteral:
                 {
                     var elementType = (IInputType)inputType.ElementType();
                     var list = new List<object?>();
@@ -70,26 +70,26 @@ namespace HotChocolate.Stitching.Delegation
                     return list;
                 }
 
-                case StringValueNode stringLiteral:
-                    return parser.ParseResult(stringLiteral.Value, inputType, path);
+            case StringValueNode stringLiteral:
+                return parser.ParseResult(stringLiteral.Value, inputType, path);
 
-                case IValueNode literal:
-                    return parser.ParseLiteral(literal, inputType, path);
+            case IValueNode literal:
+                return parser.ParseLiteral(literal, inputType, path);
 
-                default:
-                    return parser.ParseResult(value, inputType, path);
-            }
+            default:
+                return parser.ParseResult(value, inputType, path);
         }
+    }
 
-        private static object? DeserializeScalarResult(
-            IInputType inputType,
-            object? value,
-            InputParser parser,
-            Path path)
+    private static object? DeserializeScalarResult(
+        IInputType inputType,
+        object? value,
+        InputParser parser,
+        Path path)
+    {
+        switch (value)
         {
-            switch (value)
-            {
-                case IReadOnlyList<object> list:
+            case IReadOnlyList<object> list:
                 {
                     IInputType elementType = inputType;
                     Type runtimeType = typeof(List<object>);
@@ -112,7 +112,7 @@ namespace HotChocolate.Stitching.Delegation
                     return deserializedList;
                 }
 
-                case ListValueNode listLiteral:
+            case ListValueNode listLiteral:
                 {
                     var elementType = (IInputType)inputType.ElementType();
                     var list = new List<object?>();
@@ -127,12 +127,11 @@ namespace HotChocolate.Stitching.Delegation
                     return list;
                 }
 
-                case IValueNode literal:
-                    return parser.ParseLiteral(literal, inputType, path);
+            case IValueNode literal:
+                return parser.ParseLiteral(literal, inputType, path);
 
-                default:
-                    return parser.ParseResult(value, inputType, path);
-            }
+            default:
+                return parser.ParseResult(value, inputType, path);
         }
     }
 }

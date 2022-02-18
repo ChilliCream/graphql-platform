@@ -15,9 +15,8 @@ internal sealed class UnionTypeFactory
         Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new UnionTypeDefinition(
-            node.Name.Value,
-            node.Description?.Value);
+        var typeDefinition = new UnionTypeDefinition(node.Name.Value, node.Description?.Value);
+
         typeDefinition.BindTo = node.GetBindingValue();
 
         if (preserveSyntaxNodes)

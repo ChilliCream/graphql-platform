@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 
-namespace HotChocolate.Stitching.Schemas.Contracts
+namespace HotChocolate.Stitching.Schemas.Contracts;
+
+public class ContractStorage
 {
-    public class ContractStorage
-    {
-        public List<IContract> Contracts { get; } = new List<IContract>
+    public List<IContract> Contracts { get; } = new List<IContract>
         {
             new LifeInsuranceContract
             {
@@ -50,5 +50,4 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                 ExpiryDate = new DateTime(2020, 1, 1, 0,0,0, DateTimeKind.Utc)
             }
         };
-    }
 }

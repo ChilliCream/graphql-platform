@@ -15,7 +15,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             Context context)
         {
             context.Nodes.Push(node);
-            context.Types.Push(context.Schema.GetOperationType(node.Operation));
+            context.Types.Push(context.Schema.GetOperationType(node.Operation)!);
             node = base.RewriteOperationDefinition(node, context);
             context.Types.Pop();
             context.Nodes.Pop();
