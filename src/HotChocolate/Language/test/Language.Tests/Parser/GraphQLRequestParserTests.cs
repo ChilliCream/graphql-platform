@@ -726,7 +726,7 @@ public class GraphQLRequestParserTests
             });
     }
 
-    private sealed class GraphQLRequestDto
+    private class GraphQLRequestDto
     {
         [JsonProperty("operationName")]
         public string OperationName { get; set; }

@@ -59,16 +59,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder
-            .UseInstrumentations()
-            .UseExceptions()
-            .UseDocumentCache()
-            .UseDocumentParser()
-            .UseDocumentValidation()
-            .UseOperationCache()
-            .UseOperationResolver()
-            .UseOperationVariableCoercion()
-            .UseHttpRequests();
+        return builder.UseHttpRequests();
     }
 
     public static IRequestExecutorBuilder AddRemoteSchema(

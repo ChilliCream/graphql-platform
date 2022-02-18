@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Pipeline;
 
@@ -31,7 +32,7 @@ internal sealed class RemoteRequestMiddleware
         if (requestHandler is null)
         {
             throw new NotSupportedException(
-                "The specified request is not supported by the downstream service.");
+                StitchingResources.RemoteRequestMiddleware_Request_Not_Supported);
         }
 
         context.Result = await requestHandler.ExecuteAsync(request, ct).ConfigureAwait(false);

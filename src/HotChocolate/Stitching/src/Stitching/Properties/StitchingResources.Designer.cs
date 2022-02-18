@@ -296,5 +296,11 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("HttpRequestClient_UnknownVariableValueKind", resourceCulture);
             }
         }
+        
+        internal static string RemoteRequestMiddleware_Request_Not_Supported {
+            get {
+                return ResourceManager.GetString("RemoteRequestMiddleware_Request_Not_Supported", resourceCulture);
+            }
+        }
     }
 }
