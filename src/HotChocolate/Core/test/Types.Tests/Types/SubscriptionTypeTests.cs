@@ -884,7 +884,7 @@ namespace HotChocolate.Types
                 return new(OnSomethingObj());
             }
 
-            private class StringObservable
+            private sealed class StringObservable
                 : IObservable<string>
                 , IObservable<object>
             {
@@ -898,7 +898,7 @@ namespace HotChocolate.Types
                     return new Subscription(observer);
                 }
 
-                private class Subscription : IDisposable
+                private sealed class Subscription : IDisposable
                 {
                     public Subscription(IObserver<string> observer)
                     {

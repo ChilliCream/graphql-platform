@@ -211,7 +211,7 @@ internal class InputObjectTypeMergeHandler : TypeMergeHandlerBase<InputObjectTyp
         throw new NotSupportedException();
     }
 
-    private class TypePair
+    private sealed class TypePair
     {
         public TypePair(
             ITypeInfo left,

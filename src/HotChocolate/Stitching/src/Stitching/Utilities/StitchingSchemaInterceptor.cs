@@ -17,7 +17,7 @@ using IHasName = HotChocolate.Types.IHasName;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal class StitchingSchemaInterceptor : SchemaInterceptor
+internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
 {
     public override void OnBeforeCreate(
         IDescriptorContext context,

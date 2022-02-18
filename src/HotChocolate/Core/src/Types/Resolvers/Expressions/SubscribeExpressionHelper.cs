@@ -153,7 +153,7 @@ internal static class SubscribeExpressionHelper
         return new SourceStreamWrapper(new Enumerate<T>(enumerable));
     }
 
-    private class Enumerate<T> : IAsyncEnumerable<object>
+    private sealed class Enumerate<T> : IAsyncEnumerable<object>
     {
         private readonly IAsyncEnumerable<T> _enumerable;
 

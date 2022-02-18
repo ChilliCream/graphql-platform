@@ -156,7 +156,7 @@ internal static class WebSocketExtensions
             Utf8GraphQLRequestParser.ParseJson(stream.ToArray());
     }
 
-    private class HelperOperationMessage
+    private sealed class HelperOperationMessage
         : OperationMessage
     {
         public HelperOperationMessage(

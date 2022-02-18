@@ -11,11 +11,9 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Stitching.Pipeline;
 
-internal class HttpRequestClient
+internal static class RemoteRequestHelper
 {
     private static readonly (string Key, string Value) _contentType =
         ("Content-Type", "application/json; charset=utf-8");
@@ -27,101 +25,24 @@ internal class HttpRequestClient
             Indented = false
         };
 
-    private readonly IHttpClientFactory _clientFactory;
-    private readonly IErrorHandler _errorHandler;
-    private readonly IHttpStitchingRequestInterceptor _requestInterceptor;
-
-    public HttpRequestClient(
-        IHttpClientFactory clientFactory,
-        IErrorHandler errorHandler,
-        IHttpStitchingRequestInterceptor requestInterceptor)
+    public static async ValueTask<IQueryResult> ParseResponseMessageAsync(
+        HttpResponseMessage responseMessage,
+        CancellationToken cancellationToken)
     {
-        _clientFactory = clientFactory;
-        _errorHandler = errorHandler;
-        _requestInterceptor = requestInterceptor;
-    }
-
-    public async Task<IQueryResult> FetchAsync(
-        IQueryRequest request,
-        NameString targetSchema,
-        CancellationToken cancellationToken = default)
-    {
-        using var writer = new ArrayWriter();
-
-        using HttpRequestMessage requestMessage =
-            await CreateRequestAsync(writer, request, targetSchema, cancellationToken)
-                .ConfigureAwait(false);
-
-        return await FetchAsync(
-            request,
-            requestMessage,
-            targetSchema,
-            cancellationToken)
+#if NET5_0_OR_GREATER
+        await using Stream stream = await responseMessage.Content
+            .ReadAsStreamAsync(cancellationToken)
             .ConfigureAwait(false);
+#else
+        using Stream stream = await responseMessage.Content
+            .ReadAsStreamAsync()
+            .ConfigureAwait(false);
+#endif
+
+        return await ParseResultAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<IQueryResult> FetchAsync(
-        IQueryRequest request,
-        HttpRequestMessage requestMessage,
-        NameString targetSchema,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            using HttpClient httpClient = _clientFactory.CreateClient(targetSchema);
-
-            using HttpResponseMessage responseMessage = await httpClient
-                .SendAsync(requestMessage, cancellationToken)
-                .ConfigureAwait(false);
-
-            IQueryResult result =
-                responseMessage.IsSuccessStatusCode
-                    ? await ParseResponseMessageAsync(responseMessage, cancellationToken)
-                        .ConfigureAwait(false)
-                    : await ParseErrorResponseMessageAsync(responseMessage, cancellationToken)
-                        .ConfigureAwait(false);
-
-            return await _requestInterceptor.OnReceivedResultAsync(
-                targetSchema,
-                request,
-                result,
-                responseMessage,
-                cancellationToken)
-                .ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            IError error = _errorHandler.CreateUnexpectedError(ex)
-                .SetCode(ErrorCodes.Stitching.UnknownRequestException)
-                .Build();
-
-            return QueryResultBuilder.CreateError(error);
-        }
-    }
-
-    internal static async ValueTask<HttpRequestMessage> CreateRequestMessageAsync(
-        ArrayWriter writer,
-        IQueryRequest request,
-        CancellationToken cancellationToken)
-    {
-        await using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
-
-        WriteJsonRequest(writer, jsonWriter, request);
-        await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-        var requestMessage = new HttpRequestMessage
-        {
-            Method = HttpMethod.Post,
-            Content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length)
-            {
-                Headers = { { _contentType.Key, _contentType.Value } }
-            }
-        };
-
-        return requestMessage;
-    }
-
-    private static async ValueTask<IQueryResult> ParseErrorResponseMessageAsync(
+    public static async ValueTask<IQueryResult> ParseErrorResponseMessageAsync(
         HttpResponseMessage responseMessage,
         CancellationToken cancellationToken)
     {
@@ -137,14 +58,7 @@ internal class HttpRequestClient
 
         try
         {
-            IReadOnlyDictionary<string, object?> response =
-                await BufferHelper.ReadAsync(
-                    stream,
-                    ParseResponse,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-            return HttpResponseDeserializer.Deserialize(response);
+            return await ParseResultAsync(stream, cancellationToken).ConfigureAwait(false);
         }
         catch
         {
@@ -155,13 +69,14 @@ internal class HttpRequestClient
                 var buffer = new byte[stream.Length];
                 stream.Seek(0, SeekOrigin.Begin);
 #if NET5_0_OR_GREATER
-                await stream.ReadAsync(buffer, cancellationToken)
+                var read = await stream.ReadAsync(buffer, cancellationToken)
                     .ConfigureAwait(false);
+                responseBody = Encoding.UTF8.GetString(buffer, 0, read);
 #else
-                await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
+                var read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
                     .ConfigureAwait(false);
+                responseBody = Encoding.UTF8.GetString(buffer, 0, read);
 #endif
-                responseBody = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
             }
 
             return QueryResultBuilder.CreateError(
@@ -171,50 +86,42 @@ internal class HttpRequestClient
         }
     }
 
-    internal static async ValueTask<IQueryResult> ParseResponseMessageAsync(
-        HttpResponseMessage responseMessage,
+    public static async ValueTask<IQueryResult> ParseResultAsync(
+        Stream stream,
         CancellationToken cancellationToken)
     {
-#if NET5_0_OR_GREATER
-        await using Stream stream = await responseMessage.Content
-            .ReadAsStreamAsync(cancellationToken)
-            .ConfigureAwait(false);
-#else
-        using Stream stream = await responseMessage.Content
-            .ReadAsStreamAsync()
-            .ConfigureAwait(false);
-#endif
-
         IReadOnlyDictionary<string, object?> response =
             await BufferHelper.ReadAsync(
-                stream,
-                ParseResponse,
-                cancellationToken)
+                    stream,
+                    ParseResponse,
+                    cancellationToken)
                 .ConfigureAwait(false);
 
         return HttpResponseDeserializer.Deserialize(response);
     }
 
-    private async ValueTask<HttpRequestMessage> CreateRequestAsync(
-        ArrayWriter writer,
-        IQueryRequest request,
-        NameString targetSchema,
-        CancellationToken cancellationToken = default)
-    {
-        HttpRequestMessage requestMessage =
-            await CreateRequestMessageAsync(writer, request, cancellationToken)
-            .ConfigureAwait(false);
-
-        await _requestInterceptor
-            .OnCreateRequestAsync(targetSchema, request, requestMessage, cancellationToken)
-            .ConfigureAwait(false);
-
-        return requestMessage;
-    }
-
     private static IReadOnlyDictionary<string, object?> ParseResponse(
         byte[] buffer, int bytesBuffered) =>
         Utf8GraphQLRequestParser.ParseResponse(buffer.AsSpan(0, bytesBuffered))!;
+
+    internal static async ValueTask<HttpRequestMessage> CreateRequestMessageAsync(
+        ArrayWriter writer,
+        IQueryRequest request,
+        CancellationToken cancellationToken)
+    {
+        await using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
+        WriteJsonRequest(writer, jsonWriter, request);
+        await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+        return new HttpRequestMessage
+        {
+            Method = HttpMethod.Post,
+            Content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length)
+            {
+                Headers = { { _contentType.Key, _contentType.Value } }
+            }
+        };
+    }
 
     private static void WriteJsonRequest(
         ArrayWriter writer,

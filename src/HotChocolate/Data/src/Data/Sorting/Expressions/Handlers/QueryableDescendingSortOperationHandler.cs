@@ -18,7 +18,7 @@ public class QueryableDescendingSortOperationHandler : QueryableOperationHandler
         return DescendingSortOperation.From(fieldSelector);
     }
 
-    private class DescendingSortOperation : QueryableSortOperation
+    private sealed class DescendingSortOperation : QueryableSortOperation
     {
         protected DescendingSortOperation(QueryableFieldSelector fieldSelector)
             : base(fieldSelector)

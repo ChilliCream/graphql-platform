@@ -93,7 +93,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        private class TestListener : ExecutionDiagnosticEventListener
+        private sealed class TestListener : ExecutionDiagnosticEventListener
         {
             public List<object> Results { get; } = new();
 
@@ -104,7 +104,7 @@ namespace HotChocolate.Execution.Instrumentation
                 return new ResolverActivityScope(context, Results);
             }
 
-            private class ResolverActivityScope : IDisposable
+            private sealed class ResolverActivityScope : IDisposable
             {
                 public ResolverActivityScope(IMiddlewareContext context, List<object> results)
                 {

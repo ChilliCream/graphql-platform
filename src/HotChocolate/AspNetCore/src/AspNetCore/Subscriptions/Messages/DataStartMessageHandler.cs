@@ -2,6 +2,7 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using static HotChocolate.AspNetCore.ThrowHelper;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages;
 
@@ -51,7 +52,7 @@ public sealed class DataStartMessageHandler : MessageHandler<DataStartMessage>
 
                     // while a subscription result must be disposed we are not handling it here
                     // and leave this responsibility to the subscription session.
-                    ISubscription subscription = GetSubscription(result);
+                    ISubscription subscription = GetSubscription(subscriptionResult);
 
                     var subscriptionSession = new SubscriptionSession(
                         session,
@@ -96,6 +97,10 @@ public sealed class DataStartMessageHandler : MessageHandler<DataStartMessage>
                     break;
 
                 default:
+                    if (result is IDisposable d)
+                    {
+                        d.Dispose();
+                    }
                     throw DataStartMessageHandler_RequestTypeNotSupported();
             }
         }
@@ -164,10 +169,10 @@ public sealed class DataStartMessageHandler : MessageHandler<DataStartMessage>
             cancellationToken);
     }
 
-    private ISubscription GetSubscription(IExecutionResult result)
+    private static ISubscription GetSubscription(SubscriptionResult subscriptionResult)
     {
-        if (result.ContextData is not null &&
-            result.ContextData.TryGetValue(WellKnownContextData.Subscription, out var value) &&
+        if (subscriptionResult.ContextData is not null &&
+            subscriptionResult.ContextData.TryGetValue(Subscription, out var value) &&
             value is ISubscription subscription)
         {
             return subscription;

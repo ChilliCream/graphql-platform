@@ -13,20 +13,17 @@ internal static class HttpResponseDeserializer
     private const string _extensions = "extensions";
     private const string _errors = "errors";
 
-    private static readonly ObjectValueToDictionaryConverter _converter =
-        new ObjectValueToDictionaryConverter();
-
     public static IQueryResult Deserialize(
         IReadOnlyDictionary<string, object?> serializedResult)
     {
         var result = new QueryResultBuilder();
 
-        if (serializedResult.TryGetValue(_data, out object? data))
+        if (serializedResult.TryGetValue(_data, out var data))
         {
             result.SetData(data as IReadOnlyDictionary<string, object?>);
         }
 
-        if (serializedResult.TryGetValue(_extensions, out object? extensionData))
+        if (serializedResult.TryGetValue(_extensions, out var extensionData))
         {
             result.SetExtensions(extensionData as IReadOnlyDictionary<string, object?>);
         }
@@ -40,7 +37,7 @@ internal static class HttpResponseDeserializer
         IQueryResultBuilder result,
         IReadOnlyDictionary<string, object?> serializedResult)
     {
-        if (serializedResult.TryGetValue(_errors, out object? o)
+        if (serializedResult.TryGetValue(_errors, out var o)
             && o is IReadOnlyList<object> errors)
         {
             foreach (var obj in errors)

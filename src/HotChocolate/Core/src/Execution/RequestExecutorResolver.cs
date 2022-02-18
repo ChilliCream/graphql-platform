@@ -424,7 +424,7 @@ internal sealed class RequestExecutorResolver
         }
     }
 
-    private class RegisteredExecutor : IDisposable
+    private sealed class RegisteredExecutor : IDisposable
     {
         private bool _disposed;
 
@@ -559,7 +559,7 @@ internal sealed class RequestExecutorResolver
         }
     }
 
-    private class RequestContextPooledObjectPolicy : PooledObjectPolicy<RequestContext>
+    private sealed class RequestContextPooledObjectPolicy : PooledObjectPolicy<RequestContext>
     {
         private readonly ISchema _schema;
         private readonly ulong _executorVersion;

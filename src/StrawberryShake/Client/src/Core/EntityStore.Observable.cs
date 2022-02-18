@@ -56,7 +56,7 @@ namespace StrawberryShake
             }
         }
 
-        private class EntityUpdateObservable : IObservable<EntityUpdate>
+        private sealed class EntityUpdateObservable : IObservable<EntityUpdate>
         {
             private readonly object _sync = new();
             private ImmutableList<IObserver<EntityUpdate>> _observers =
@@ -98,7 +98,7 @@ namespace StrawberryShake
                 }
             }
 
-            private class Subscription : IDisposable
+            private sealed class Subscription : IDisposable
             {
                 private readonly EntityUpdateObservable _observable;
                 private readonly IObserver<EntityUpdate> _observer;

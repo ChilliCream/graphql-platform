@@ -16,7 +16,7 @@ namespace StrawberryShake.Tools
         {
         }
 
-        private class DummyConsoleContext : IDisposable
+        private sealed class DummyConsoleContext : IDisposable
         {
             public void Dispose()
             {

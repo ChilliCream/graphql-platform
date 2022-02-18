@@ -467,7 +467,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             : extendedType.Source;
     }
 
-    private class CompletionContext
+    private sealed class CompletionContext
     {
         public readonly Dictionary<NameString, FieldResolverConfig> Resolvers = new();
         public readonly Dictionary<NameString, MemberInfo> Members = new();

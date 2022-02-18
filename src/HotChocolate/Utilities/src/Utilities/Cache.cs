@@ -195,7 +195,7 @@ namespace HotChocolate.Utilities
             return true;
         }
 
-        private class Entry
+        private sealed class Entry
         {
             public string Key = default!;
             public TValue Value = default!;

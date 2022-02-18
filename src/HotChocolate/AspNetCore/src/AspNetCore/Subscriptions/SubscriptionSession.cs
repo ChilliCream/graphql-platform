@@ -1,8 +1,4 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using static HotChocolate.AspNetCore.ErrorHelper;
@@ -61,6 +57,9 @@ internal sealed class SubscriptionSession : ISubscriptionSession
 
     /// <inheritdoc />
     public ISubscription Subscription { get; }
+
+    /// <inheritdoc />
+    public bool IsCompleted { get; private set; }
 
     private async Task SendResultsAsync()
     {
@@ -122,6 +121,7 @@ internal sealed class SubscriptionSession : ISubscriptionSession
         {
             // completed should be always invoked to be ensure that disposed subscription is
             // removed from subscription manager
+            IsCompleted = true;
             Completed?.Invoke(this, EventArgs.Empty);
             Dispose();
         }

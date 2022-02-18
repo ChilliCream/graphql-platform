@@ -10,7 +10,7 @@ public class DocumentValidatorContextPool
     {
     }
 
-    private class Policy : IPooledObjectPolicy<DocumentValidatorContext>
+    private sealed class Policy : IPooledObjectPolicy<DocumentValidatorContext>
     {
         public DocumentValidatorContext Create() => new DocumentValidatorContext();
 

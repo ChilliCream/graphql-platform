@@ -11,7 +11,7 @@ internal sealed class SyntaxNodeListPool
     {
     }
 
-    private class Policy : IPooledObjectPolicy<List<ISyntaxNode>>
+    private sealed class Policy : IPooledObjectPolicy<List<ISyntaxNode>>
     {
         public List<ISyntaxNode> Create() => new List<ISyntaxNode>();
 

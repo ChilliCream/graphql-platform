@@ -51,7 +51,7 @@ namespace HotChocolate.Data.Neo4J.Paging
         private static Neo4JOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
             PagingOptions options) => new(options);
 
-        private class Neo4JOffsetPagingHandler<TEntity> : OffsetPagingHandler
+        private sealed class Neo4JOffsetPagingHandler<TEntity> : OffsetPagingHandler
         {
             public Neo4JOffsetPagingHandler(PagingOptions options) : base(options)
             {

@@ -378,7 +378,7 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
             error.MatchSnapshot();
         }
 
-        private class GetHeroQueryDocument : IDocument
+        private sealed class GetHeroQueryDocument : IDocument
         {
             private const string _bodyString =
                 @"query GetHero {

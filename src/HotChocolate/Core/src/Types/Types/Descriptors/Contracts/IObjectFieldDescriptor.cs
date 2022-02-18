@@ -258,7 +258,7 @@ public interface IObjectFieldDescriptor
     /// Given the following resolvers class
     /// <code>
     /// <![CDATA[
-    /// private class Resolvers
+    /// private sealed class Resolvers
     /// {
     ///    public ValueTask<string> GetFoo(
     ///        [Service] IFooService service,
@@ -291,7 +291,7 @@ public interface IObjectFieldDescriptor
     /// Given the following resolvers class
     /// <code>
     /// <![CDATA[
-    /// private class Resolvers
+    /// private sealed class Resolvers
     /// {
     ///    public ValueTask<string> GetFoo(
     ///        [Service] IFooService service,

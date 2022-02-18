@@ -104,7 +104,7 @@ public sealed class DeferredQueryResult
         }
     }
 
-    private class EnumerateResults : IAsyncEnumerable<IQueryResult>
+    private sealed class EnumerateResults : IAsyncEnumerable<IQueryResult>
     {
         private readonly IQueryResult _initialResult;
         private readonly IAsyncEnumerable<IQueryResult> _deferredResults;

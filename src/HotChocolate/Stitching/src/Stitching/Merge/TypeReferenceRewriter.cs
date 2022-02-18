@@ -321,7 +321,7 @@ internal sealed class TypeReferenceRewriter
         { get; }
     }
 
-    private class RenameFieldsContext
+    private sealed class RenameFieldsContext
     {
         public RenameFieldsContext(
             IDictionary<NameString, ComplexTypeDefinitionNodeBase> types,

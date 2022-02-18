@@ -300,7 +300,7 @@ namespace HotChocolate.Types.Sorting
             schema.ToString().MatchSnapshot();
         }
 
-        private class BarType : SortInputType<Bar>
+        private sealed class BarType : SortInputType<Bar>
         {
             protected override void Configure(ISortInputTypeDescriptor<Bar> descriptor)
             {
@@ -309,25 +309,25 @@ namespace HotChocolate.Types.Sorting
             }
         }
 
-        private class FooDirective
+        private sealed class FooDirective
         {
         }
-        private class Foo
+        private sealed class Foo
         {
             public Bar Bar { get; set; }
         }
 
-        private class Bar
+        private sealed class Bar
         {
             public string BarProperty { get; set; }
             public Baz Baz { get; set; }
         }
-        private class Baz
+        private sealed class Baz
         {
             public string BarProperty { get; set; }
             public string BazProperty { get; set; }
         }
-        private class FooDoubleBaz
+        private sealed class FooDoubleBaz
         {
             public Baz Baz2 { get; set; }
             public Baz Baz1 { get; set; }

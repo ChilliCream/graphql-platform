@@ -103,11 +103,11 @@ namespace HotChocolate.Utilities
                 .Message.MatchSnapshot();
         }
 
-        private class ClassWithNoDependencies
+        private sealed class ClassWithNoDependencies
         {
         }
 
-        private class ClassWithDependencies
+        private sealed class ClassWithDependencies
         {
             public ClassWithDependencies(ClassWithNoDependencies dependency)
             {
@@ -117,7 +117,7 @@ namespace HotChocolate.Utilities
             public ClassWithNoDependencies Dependency { get; }
         }
 
-        private class ClassWithException
+        private sealed class ClassWithException
         {
             public ClassWithException()
             {

@@ -21,7 +21,7 @@ internal class EnumTypeMergeHandler : ITypeMergeHandler
         if (types.OfType<EnumTypeInfo>().Any())
         {
             var notMerged = types.OfType<EnumTypeInfo>().ToList();
-            bool hasLeftovers = types.Count > notMerged.Count;
+            var hasLeftovers = types.Count > notMerged.Count;
 
             while (notMerged.Count > 0)
             {
@@ -48,10 +48,9 @@ internal class EnumTypeMergeHandler : ITypeMergeHandler
         var leftValueSet = new HashSet<string>(
         left.Definition.Values.Select(t => t.Name.Value));
 
-        var readyToMerge = new List<EnumTypeInfo>();
-        readyToMerge.Add(left);
+        var readyToMerge = new List<EnumTypeInfo> { left };
 
-        for (int i = 1; i < notMerged.Count; i++)
+        for (var i = 1; i < notMerged.Count; i++)
         {
             if (CanBeMerged(leftValueSet, notMerged[i].Definition))
             {
@@ -69,9 +68,9 @@ internal class EnumTypeMergeHandler : ITypeMergeHandler
     {
         EnumTypeDefinitionNode? definition = types[0].Definition;
 
-        EnumTypeDefinitionNode descriptionDef =
+        EnumTypeDefinitionNode? descriptionDef =
             types.Select(t => t.Definition)
-            .FirstOrDefault(t => t.Description != null);
+                .FirstOrDefault(t => t.Description != null);
 
         if (descriptionDef != null)
         {
@@ -109,7 +108,7 @@ internal class EnumTypeMergeHandler : ITypeMergeHandler
     {
         if (left.Count == right.Values.Count)
         {
-            for (int i = 0; i < right.Values.Count; i++)
+            for (var i = 0; i < right.Values.Count; i++)
             {
                 if (!left.Contains(right.Values[i].Name.Value))
                 {

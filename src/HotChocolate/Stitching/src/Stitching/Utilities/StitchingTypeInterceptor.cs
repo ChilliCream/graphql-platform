@@ -10,10 +10,9 @@ using static HotChocolate.Stitching.WellKnownContextData;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal class StitchingTypeInterceptor : TypeInterceptor
+internal sealed class StitchingTypeInterceptor : TypeInterceptor
 {
-    private readonly HashSet<(NameString, NameString)> _handledExternalFields =
-        new HashSet<(NameString, NameString)>();
+    private readonly HashSet<(NameString, NameString)> _handledExternalFields = new();
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,

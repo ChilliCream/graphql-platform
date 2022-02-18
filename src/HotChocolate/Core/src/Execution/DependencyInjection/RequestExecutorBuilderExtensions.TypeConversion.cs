@@ -113,7 +113,7 @@ public static partial class RequestExecutorBuilderExtensions
             sp => new DelegateChangeTypeProvider(changeType));
     }
 
-    private class DelegateChangeTypeProvider : IChangeTypeProvider
+    private sealed class DelegateChangeTypeProvider : IChangeTypeProvider
     {
         private readonly ChangeTypeProvider _changeTypeProvider;
 
@@ -132,7 +132,7 @@ public static partial class RequestExecutorBuilderExtensions
         }
     }
 
-    private class DelegateChangeTypeProvider<TSource, TTarget> : IChangeTypeProvider
+    private sealed class DelegateChangeTypeProvider<TSource, TTarget> : IChangeTypeProvider
     {
         private readonly ChangeType<TSource, TTarget> _changeType;
 

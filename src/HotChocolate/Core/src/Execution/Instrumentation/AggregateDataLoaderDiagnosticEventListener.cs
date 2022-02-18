@@ -71,7 +71,7 @@ internal class AggregateDataLoaderDiagnosticEventListener : DataLoaderDiagnostic
         }
     }
 
-    private class AggregateEventScope : IDisposable
+    private sealed class AggregateEventScope : IDisposable
     {
         private readonly IDisposable[] _scopes;
 

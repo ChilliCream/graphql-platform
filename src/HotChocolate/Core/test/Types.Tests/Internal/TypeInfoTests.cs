@@ -567,12 +567,12 @@ namespace HotChocolate.Internal
             Assert.IsType<StringType>(type);
         }
 
-        private class CustomStringList
+        private sealed class CustomStringList
             : CustomStringListBase
         {
         }
 
-        private class CustomStringListBase
+        private sealed class CustomStringListBase
             : List<string>
         {
         }

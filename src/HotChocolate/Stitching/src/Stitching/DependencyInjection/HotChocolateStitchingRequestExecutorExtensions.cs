@@ -188,11 +188,12 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             .AddGraphQL(schemaName)
             .ConfigureSchemaServices(services =>
             {
-                services.TryAddSingleton(
-                    sp => new HttpRequestClient(
+                services.AddSingleton<IRemoteRequestHandler>(
+                    sp => new HttpPostRequestHandler(
                         sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
                         sp.GetRequiredService<IErrorHandler>(),
-                        sp.GetRequiredService<IHttpStitchingRequestInterceptor>()));
+                        sp.GetRequiredService<IHttpStitchingRequestInterceptor>(),
+                        schemaName));
 
                 services.TryAddSingleton<
                     IHttpStitchingRequestInterceptor,

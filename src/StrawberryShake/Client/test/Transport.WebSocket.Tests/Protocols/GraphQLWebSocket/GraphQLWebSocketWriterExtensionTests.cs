@@ -154,7 +154,7 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
             Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
         }
 
-        private class GetHeroQueryDocument : IDocument
+        private sealed class GetHeroQueryDocument : IDocument
         {
             private const string _bodyString =
                 @"query GetHero {
@@ -189,7 +189,7 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
             public static GetHeroQueryDocument Instance { get; } = new();
         }
 
-        private class CustomPayload
+        private sealed class CustomPayload
         {
             public string Key { get; set; } = "Value";
         }

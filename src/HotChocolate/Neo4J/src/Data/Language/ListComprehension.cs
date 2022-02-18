@@ -83,7 +83,7 @@ namespace HotChocolate.Data.Neo4J.Language
             ListComprehension Returning();
         }
 
-        private class Builder : IOngoingDefinitionWithVariable, IOngoingDefinitionWithList
+        private sealed class Builder : IOngoingDefinitionWithVariable, IOngoingDefinitionWithList
         {
             private readonly SymbolicName _variable;
             private Expression _listExpression;

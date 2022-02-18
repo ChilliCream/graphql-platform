@@ -112,7 +112,7 @@ namespace HotChocolate.Execution.Processing.Internal
             Assert.Null(dequeuedTask1);
         }
 
-        private class MockTask : IDeferredExecutionTask
+        private sealed class MockTask : IDeferredExecutionTask
         {
             /// <summary>
             /// For debugging only.

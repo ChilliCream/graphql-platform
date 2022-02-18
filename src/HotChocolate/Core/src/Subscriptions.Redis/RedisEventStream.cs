@@ -66,7 +66,7 @@ public class RedisEventStream<TMessage>
         }
     }
 
-    private class EnumerateMessages<T>
+    private sealed class EnumerateMessages<T>
         : IAsyncEnumerable<T>
     {
         private readonly ChannelMessageQueue _channel;

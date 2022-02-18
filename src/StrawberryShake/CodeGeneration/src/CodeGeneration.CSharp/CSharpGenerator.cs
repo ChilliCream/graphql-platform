@@ -458,7 +458,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static DocumentNode MergeDocuments(IReadOnlyList<GraphQLFile> executableFiles) =>
             new(executableFiles.SelectMany(t => t.Document.Definitions).ToList());
 
-        private class GeneratorResult
+        private sealed class GeneratorResult
         {
             public GeneratorResult(Type generator, CSharpSyntaxGeneratorResult result)
             {

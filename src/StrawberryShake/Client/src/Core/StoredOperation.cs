@@ -138,7 +138,7 @@ namespace StrawberryShake
             }
         }
 
-        private class Subscription : IDisposable
+        private sealed class Subscription : IDisposable
         {
             private readonly IObserver<IOperationResult<T>> _observer;
             private readonly Action<Subscription> _unsubscribe;

@@ -116,7 +116,7 @@ namespace StrawberryShake.Json
             Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
         }
 
-        private class Document : IDocument
+        private sealed class Document : IDocument
         {
             public OperationKind Kind => OperationKind.Query;
 
