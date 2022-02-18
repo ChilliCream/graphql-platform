@@ -6,6 +6,7 @@ using static System.IO.Path;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 using static Helpers;
+using Serilog;
 
 partial class Build
 {
@@ -19,10 +20,10 @@ partial class Build
         .Requires(() => GitHubPRNumber != null)
         .Executes(() =>
         {
-            Logger.Info($"GitHubRepository: {GitHubRepository}");
-            Logger.Info($"GitHubHeadRef: {GitHubHeadRef}");
-            Logger.Info($"GitHubBaseRef: {GitHubBaseRef}");
-            Logger.Info($"GitHubPRNumber: {GitHubPRNumber}");
+            Log.Information($"GitHubRepository: {GitHubRepository}");
+            Log.Information($"GitHubHeadRef: {GitHubHeadRef}");
+            Log.Information($"GitHubBaseRef: {GitHubBaseRef}");
+            Log.Information($"GitHubPRNumber: {GitHubPRNumber}");
 
             TryDelete(SonarSolutionFile);
             DotNetBuildSonarSolution(AllSolutionFile);
@@ -68,7 +69,7 @@ partial class Build
                 .SetProjectFile(SonarSolutionFile)
                 .SetProcessWorkingDirectory(RootDirectory));
 
-            Logger.Info("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
+            Log.Information("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
 
             SonarScannerBegin(SonarBeginFullSettings);
 
