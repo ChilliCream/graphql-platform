@@ -38,7 +38,7 @@ namespace HotChocolate.Data.MongoDb.Filters
             MongoDbFilterVisitorContext context,
             Queue<MongoDbFilterDefinition> operations)
         {
-            if (operations.Count < 0)
+            if (operations.Count == 0)
             {
                 throw new InvalidOperationException();
             }
@@ -50,7 +50,7 @@ namespace HotChocolate.Data.MongoDb.Filters
             MongoDbFilterVisitorContext context,
             Queue<MongoDbFilterDefinition> operations)
         {
-            if (operations.Count < 0)
+            if (operations.Count == 0)
             {
                 throw new InvalidOperationException();
             }
