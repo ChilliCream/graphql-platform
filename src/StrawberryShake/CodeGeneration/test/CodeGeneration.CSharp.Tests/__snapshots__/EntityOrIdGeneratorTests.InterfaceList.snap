@@ -524,10 +524,10 @@ namespace Foo.Bar
         = new global::StrawberryShake.DocumentHash("sha1Hash", "4da3763dd1c1e9a34ce3bc150614ec228c54879d");
         public override global::System.String ToString()
         {
-#if NETSTANDARD2_0
-        return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#if NETCOREAPP3_1_OR_GREATER
+        return global::System.Text.Encoding.UTF8.GetString(Body);
 #else
-            return global::System.Text.Encoding.UTF8.GetString(Body);
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
 #endif
         }
     }

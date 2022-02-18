@@ -22,7 +22,6 @@ public abstract class FetchOnceDataLoader<TValue> : CacheDataLoader<string, TVal
     /// A single result which may contain a value or information about the
     /// error which may occurred during the call.
     /// </returns>
-
     public Task<TValue> LoadAsync(CancellationToken cancellationToken)
         => LoadAsync("default", cancellationToken);
 
