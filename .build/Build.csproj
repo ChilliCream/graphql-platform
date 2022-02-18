@@ -16,9 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageDownload Include="GitVersion.Tool" Version="[5.8.1]" />
+    <PackageDownload Include="GitVersion.Tool" Version="[5.8.2]" />
     <PackageDownload Include="NuGet.CommandLine" Version="[6.0.0]" />
-    <PackageDownload Include="dotnet-sonarscanner" Version="[5.4.0]" />
+    <PackageDownload Include="dotnet-sonarscanner" Version="[5.5.3]" />
     <PackageDownload Include="OpenCover" Version="[4.7.1221]" />
     <PackageDownload Include="ReportGenerator" Version="[5.0.0]" />
     <PackageDownload Include="xunit.runner.console" Version="[2.4.1]" />
