@@ -14,10 +14,10 @@ internal sealed class RemoteRequestMiddleware
 
     public RemoteRequestMiddleware(
         RequestDelegate next,
-        [SchemaService] IReadOnlyList<IRemoteRequestHandler> requestHandlers)
+        [SchemaService] IEnumerable<IRemoteRequestHandler> requestHandlers)
     {
         _next = next ?? throw new ArgumentNullException(nameof(next));
-        _requestHandlers = requestHandlers;
+        _requestHandlers = requestHandlers.ToArray();
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
