@@ -3,7 +3,7 @@
     {
       "OperationName": "ExecuteHttpRequest",
       "DisplayName": "GraphQL HTTP POST",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
           "Key": "graphql.schema.name",
@@ -27,8 +27,13 @@
         {
           "OperationName": "ParseHttpRequest",
           "DisplayName": "Parse HTTP Request",
-          "Status": "Unset",
-          "tags": [],
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
           "event": []
         },
         {
@@ -114,6 +119,10 @@
                       "Value": "/hero"
                     },
                     {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/hero"
+                    },
+                    {
                       "Key": "graphql.selection.field.name",
                       "Value": "hero"
                     },
@@ -147,6 +156,10 @@
                     },
                     {
                       "Key": "graphql.selection.path",
+                      "Value": "/hero/friends"
+                    },
+                    {
+                      "Key": "graphql.selection.hierarchy",
                       "Value": "/hero/friends"
                     },
                     {
@@ -186,6 +199,10 @@
                       "Value": "/hero/friends/nodes[2]/friends"
                     },
                     {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/hero/friends/nodes/friends"
+                    },
+                    {
                       "Key": "graphql.selection.field.name",
                       "Value": "friends"
                     },
@@ -220,6 +237,10 @@
                     {
                       "Key": "graphql.selection.path",
                       "Value": "/hero/friends/nodes[1]/friends"
+                    },
+                    {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/hero/friends/nodes/friends"
                     },
                     {
                       "Key": "graphql.selection.field.name",
@@ -258,6 +279,10 @@
                       "Value": "/hero/friends/nodes[0]/friends"
                     },
                     {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/hero/friends/nodes/friends"
+                    },
+                    {
                       "Key": "graphql.selection.field.name",
                       "Value": "friends"
                     },
@@ -283,7 +308,7 @@
         {
           "OperationName": "FormatHttpResponse",
           "DisplayName": "Format HTTP Response",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [],
           "event": []
         }

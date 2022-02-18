@@ -746,10 +746,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         = new global::StrawberryShake.DocumentHash("sha1Hash", "ab273d4e301554c50a6325fad57fa04d3744ef1a");
         public override global::System.String ToString()
         {
-#if NETSTANDARD2_0
-        return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#if NETCOREAPP3_1_OR_GREATER
+        return global::System.Text.Encoding.UTF8.GetString(Body);
 #else
-            return global::System.Text.Encoding.UTF8.GetString(Body);
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
 #endif
         }
     }

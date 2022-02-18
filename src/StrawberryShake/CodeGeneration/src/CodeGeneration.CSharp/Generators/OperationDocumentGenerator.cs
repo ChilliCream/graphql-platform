@@ -87,18 +87,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetPublic()
                 .SetOverride()
                 .SetReturnType(TypeNames.String)
-                .AddCode("#if NETSTANDARD2_0")
-                .AddCode(MethodCallBuilder
-                    .New()
-                    .SetReturn()
-                    .SetMethodName(TypeNames.EncodingUtf8, nameof(Encoding.UTF8.GetString))
-                    .AddArgument("Body.ToArray()"))
-                .AddCode("#else")
+                .AddCode("#if NETCOREAPP3_1_OR_GREATER")
                 .AddCode(MethodCallBuilder
                     .New()
                     .SetReturn()
                     .SetMethodName(TypeNames.EncodingUtf8, nameof(Encoding.UTF8.GetString))
                     .AddArgument("Body"))
+                .AddCode("#else")
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetMethodName(TypeNames.EncodingUtf8, nameof(Encoding.UTF8.GetString))
+                    .AddArgument("Body.ToArray()"))
                 .AddCode("#endif");
 
             classBuilder.Build(writer);
