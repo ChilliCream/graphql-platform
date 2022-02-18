@@ -4,7 +4,8 @@ stages:
   - stage: release
     displayName: "Release"
     dependsOn: []
-    pool: local-pool
+    pool:
+      vmImage: "ubuntu-20.04"
     jobs:
       - job: Test
         displayName: "Test"
