@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using BenchmarkDotNet.Attributes;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
+using System.Data;
 
 namespace HotChocolate.Execution.Benchmarks
 {

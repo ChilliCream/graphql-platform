@@ -4,7 +4,8 @@ namespace HotChocolate;
 
 public sealed class NamePathSegment : Path
 {
-    internal NamePathSegment(Path? parent, NameString name)
+    internal NamePathSegment(Path? parent, NameString name, string pathString)
+        : base(pathString)
     {
         Parent = parent;
         Depth = parent?.Depth + 1 ?? 0;
@@ -21,13 +22,6 @@ public sealed class NamePathSegment : Path
     ///  Gets the name representing a field on a result map.
     /// </summary>
     public NameString Name { get; }
-
-    /// <inheritdoc />
-    public override string Print()
-    {
-        string parent = Parent is null ? string.Empty : Parent.Print();
-        return $"{parent}/{Name}";
-    }
 
     /// <inheritdoc />
     public override bool Equals(Path? other)

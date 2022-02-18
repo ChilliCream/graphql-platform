@@ -1,14 +1,23 @@
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
+using System.Threading;
 using HotChocolate.Properties;
 
 #nullable enable
 
 namespace HotChocolate;
 
-public abstract class Path : IEquatable<Path>
+public abstract partial class Path : IEquatable<Path>
 {
-    internal Path() { }
+    private static readonly Dictionary<string, Path> _cache = new();
+    private static readonly ReaderWriterLockSlim _sync = new();
+    private readonly string _pathString;
+
+    internal Path(string pathString)
+    {
+        _pathString = pathString ?? throw new ArgumentNullException(nameof(pathString));
+    }
 
     /// <summary>
     /// Gets the parent path segment.
@@ -32,7 +41,38 @@ public abstract class Path : IEquatable<Path>
             throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        return new IndexerPathSegment(this, index);
+        var pathString = CreatePath(_pathString, index);
+
+        _sync.EnterUpgradeableReadLock();
+
+        try
+        {
+            if (_cache.TryGetValue(pathString, out Path? cachedPath))
+            {
+                return (IndexerPathSegment)cachedPath;
+            }
+
+            _sync.EnterWriteLock();
+
+            try
+            {
+                var newPath = new IndexerPathSegment(this, index, pathString);
+#if NETCOREAPP3_1_OR_GREATER
+                _cache.TryAdd(pathString, newPath);
+#else
+                _cache[pathString] = newPath;
+#endif
+                return newPath;
+            }
+            finally
+            {
+                _sync.ExitWriteLock();
+            }
+        }
+        finally
+        {
+            _sync.ExitUpgradeableReadLock();
+        }
     }
 
     /// <summary>
@@ -41,10 +81,7 @@ public abstract class Path : IEquatable<Path>
     /// <param name="name">The name of the path segment.</param>
     /// <returns>Returns a new path segment.</returns>
     public virtual NamePathSegment Append(NameString name)
-    {
-        name.EnsureNotEmpty(nameof(name));
-        return new NamePathSegment(this, name);
-    }
+        => CreateNamePathSegment(_pathString, name, this);
 
     /// <summary>
     /// Generates a string that represents the current path.
@@ -52,7 +89,7 @@ public abstract class Path : IEquatable<Path>
     /// <returns>
     /// Returns a string that represents the current path.
     /// </returns>
-    public abstract string Print();
+    public string Print() => _pathString;
 
     /// <summary>
     /// Creates a new list representing the current <see cref="Path"/>.
@@ -80,6 +117,9 @@ public abstract class Path : IEquatable<Path>
 
                 case NamePathSegment name:
                     stack.Insert(0, name.Name);
+                    break;
+
+                case RootPathSegment:
                     break;
 
                 default:
@@ -128,7 +168,8 @@ public abstract class Path : IEquatable<Path>
     /// <returns>
     /// Returns a new root segment.
     /// </returns>
-    public static NamePathSegment New(NameString name) => new(null, name);
+    public static NamePathSegment New(NameString name)
+        => CreateNamePathSegment(string.Empty, name, Root);
 
     public static RootPathSegment Root => RootPathSegment.Instance;
 

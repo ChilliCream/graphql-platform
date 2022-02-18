@@ -4,7 +4,7 @@ namespace HotChocolate;
 
 public sealed class RootPathSegment : Path
 {
-    private RootPathSegment()
+    private RootPathSegment() : base("/")
     {
         Parent = null;
         Depth = 0;
@@ -31,9 +31,6 @@ public sealed class RootPathSegment : Path
         New(name);
 
     /// <inheritdoc />
-    public override string Print() => "/";
-
-    /// <inheritdoc />
     public override bool Equals(Path? other)
     {
         if (ReferenceEquals(other, null))
@@ -56,5 +53,5 @@ public sealed class RootPathSegment : Path
         }
     }
 
-    public static RootPathSegment Instance { get; } = new RootPathSegment();
+    public static RootPathSegment Instance { get; } = new();
 }
