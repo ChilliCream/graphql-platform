@@ -35,15 +35,7 @@ partial class Build
 
             SonarScannerBegin(SonarBeginPrSettings);
 
-            DotNetBuild(c => c
-                .SetNoRestore(true)
-                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
-                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server"));
-
-            DotNetBuild(c => c
-                .SetNoRestore(true)
-                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
-                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server"));
+            BuildCodeGenServer();
 
             DotNetBuild(SonarBuildAll);
 
@@ -73,15 +65,7 @@ partial class Build
 
             SonarScannerBegin(SonarBeginFullSettings);
 
-            DotNetBuild(c => c
-                .SetNoRestore(true)
-                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
-                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server"));
-
-            DotNetBuild(c => c
-                .SetNoRestore(true)
-                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
-                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server"));
+            BuildCodeGenServer();
 
             DotNetBuild(SonarBuildAll);
 

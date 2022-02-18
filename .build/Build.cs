@@ -29,26 +29,7 @@ partial class Build : NukeBuild
         {
             DotNetBuildSonarSolution(AllSolutionFile);
             DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
-
-            DotNetBuild(c => c
-                .SetNoRestore(true)
-                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
-                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server")
-                .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
-
-            DotNetBuild(c => c
-                .SetNoRestore(true)
-                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
-                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server")
-                .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
+            BuildCodeGenServer();
         });
 
     Target Compile => _ => _
@@ -81,4 +62,19 @@ partial class Build : NukeBuild
             DotNetBuildSonarSolution(AllSolutionFile);
             DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
         });
+
+    void BuildCodeGenServer()
+    {
+        DotNetBuild(c => c
+            .SetNoRestore(true)
+            .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+            .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server")
+            .SetConfiguration(Configuration));
+
+        DotNetBuild(c => c
+            .SetNoRestore(true)
+            .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server")
+                .SetConfiguration(Configuration));
+    }
 }
