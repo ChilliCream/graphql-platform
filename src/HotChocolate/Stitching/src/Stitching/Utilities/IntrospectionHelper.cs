@@ -9,7 +9,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.SchemaDefinitions;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using static HotChocolate.Stitching.Pipeline.RemoteRequestHelper;
+using static HotChocolate.Stitching.Execution.RemoteRequestHelper;
 
 namespace HotChocolate.Stitching.Utilities;
 

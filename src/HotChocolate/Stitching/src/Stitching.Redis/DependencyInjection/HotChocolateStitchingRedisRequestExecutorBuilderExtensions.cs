@@ -1,8 +1,8 @@
 using System;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Stitching.Execution;
 using HotChocolate.Stitching.Redis;
-using HotChocolate.Stitching.Requests;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StackExchange.Redis;
 

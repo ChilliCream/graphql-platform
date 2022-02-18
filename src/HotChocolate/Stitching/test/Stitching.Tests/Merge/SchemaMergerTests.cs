@@ -4,6 +4,7 @@ using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.SchemaBuilding;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
