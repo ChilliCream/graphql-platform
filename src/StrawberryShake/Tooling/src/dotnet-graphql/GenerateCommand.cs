@@ -66,7 +66,15 @@ public static class GenerateCommand
                         ? RequestOptions.GenerateRazorComponent
                         : RequestOptions.GenerateCSharpClient);
 
-                var response = generator.Execute(request);
+                var response = generator.Execute(
+                    request,
+                    s =>
+                    {
+                        if (s is not null)
+                        {
+                            Console.WriteLine(s);
+                        }
+                    });
 
                 if (response.TryLogErrors(activity))
                 {

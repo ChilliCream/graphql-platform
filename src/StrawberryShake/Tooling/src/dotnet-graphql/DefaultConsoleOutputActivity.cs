@@ -4,8 +4,7 @@ using System.Diagnostics;
 
 namespace StrawberryShake.Tools
 {
-    public class DefaultConsoleOutputActivity
-        : IActivity
+    public class DefaultConsoleOutputActivity : IActivity
     {
         private readonly string _activityText;
         private readonly string? _path;

@@ -13,7 +13,7 @@ public static class RequestFormatter
 
     public static string Format(GeneratorRequest request)
     {
-        var fileName = Path.GetTempFileName();
+        var fileName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         var buffer = JsonSerializer.SerializeToUtf8Bytes(request, _options);
         File.WriteAllBytes(fileName, buffer);
         return fileName;

@@ -11,7 +11,7 @@ public class CSharpGeneratorClient
         _codeGenServer = codeGenServer;
     }
 
-    public GeneratorResponse Execute(GeneratorRequest request)
+    public GeneratorResponse Execute(GeneratorRequest request, Action<string?>? log = null)
     {
         var sink = RequestFormatter.Format(request);
 
@@ -21,12 +21,19 @@ public class CSharpGeneratorClient
                 FileName = "dotnet",
                 Arguments = $"\"{_codeGenServer}\" \"{sink}\"",
                 CreateNoWindow = true,
-                UseShellExecute = false
+                UseShellExecute = false,
+                RedirectStandardOutput = log is not null
             });
 
         if (childProcess is null)
         {
             throw new Exception("Unable to generate client!");
+        }
+
+        if (log is not null)
+        {
+            childProcess.OutputDataReceived += (_, args) => log(args.Data);
+            childProcess.BeginOutputReadLine();
         }
 
         childProcess.WaitForExit();

@@ -4,8 +4,7 @@ using System.Diagnostics;
 
 namespace StrawberryShake.Tools
 {
-    public class JsonConsoleOutputActivity
-        : IActivity
+    public class JsonConsoleOutputActivity : IActivity
     {
         private readonly JsonConsoleOutputData _data;
         private readonly string _activityText;
