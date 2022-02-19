@@ -75,7 +75,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         return AddRemoteSchema(
             builder,
             schemaName,
-            (__, _) =>
+            (_, _) =>
                 new ValueTask<RemoteSchemaDefinition>(
                     new RemoteSchemaDefinition(
                         schemaName,
@@ -145,6 +145,13 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             {
                 services.AddSingleton<IRemoteRequestHandler>(
                     sp => new HttpPostRequestHandler(
+                        sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
+                        sp.GetRequiredService<IErrorHandler>(),
+                        sp.GetRequiredService<IHttpStitchingRequestInterceptor>(),
+                        schemaName));
+
+                services.AddSingleton<IRemoteBatchRequestHandler>(
+                    sp => new HttpPostBatchRequestHandler(
                         sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
                         sp.GetRequiredService<IErrorHandler>(),
                         sp.GetRequiredService<IHttpStitchingRequestInterceptor>(),

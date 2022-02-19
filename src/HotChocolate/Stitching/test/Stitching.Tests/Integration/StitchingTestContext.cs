@@ -26,6 +26,7 @@ public class StitchingTestContext
                 .AddRouting()
                 .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddCustomerSchema(),
             app => app
                 .UseWebSockets()
@@ -38,6 +39,7 @@ public class StitchingTestContext
                 .AddRouting()
                 .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddContractSchema(),
             app => app
                 .UseWebSockets()

@@ -5,7 +5,6 @@ namespace HotChocolate.Stitching.Schemas.Contracts;
 
 public static class ContractSchemaRequestExecutorBuilderExtensions
 {
-    [System.Obsolete]
     public static IRequestExecutorBuilder AddContractSchema(
         this IRequestExecutorBuilder builder)
     {
@@ -18,6 +17,6 @@ public static class ContractSchemaRequestExecutorBuilderExtensions
             .AddType<LifeInsuranceContractType>()
             .AddType<SomeOtherContractType>()
             .AddDirectiveType<CustomDirectiveType>()
-            .EnableRelaySupport();
+            .AddGlobalObjectIdentification();
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -87,7 +86,7 @@ internal static class RemoteRequestHelper
         }
     }
 
-    private static async ValueTask<IQueryResult> ParseResultAsync(
+    public static async ValueTask<IQueryResult> ParseResultAsync(
         Stream stream,
         CancellationToken cancellationToken)
     {
@@ -104,6 +103,34 @@ internal static class RemoteRequestHelper
     private static IReadOnlyDictionary<string, object?> ParseResponse(
         byte[] buffer, int bytesBuffered) =>
         Utf8GraphQLRequestParser.ParseResponse(buffer.AsSpan(0, bytesBuffered))!;
+
+    public static async ValueTask<IReadOnlyList<IQueryResult>> ParseBatchResultAsync(
+        Stream stream,
+        CancellationToken cancellationToken)
+    {
+        var result = new List<IQueryResult>();
+
+        IReadOnlyList<object?> response =
+            await BufferHelper.ReadAsync(
+                    stream,
+                    ParseBatchResponse,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+        foreach (var item in response)
+        {
+            if (item is IReadOnlyDictionary<string, object?> map)
+            {
+                result.Add(HttpResponseDeserializer.Deserialize(map));
+            }
+        }
+
+        return result;
+    }
+
+    private static IReadOnlyList<object?> ParseBatchResponse(
+        byte[] buffer, int bytesBuffered) =>
+        Utf8GraphQLRequestParser.ParseBatchResponse(buffer.AsSpan(0, bytesBuffered))!;
 
     internal static async ValueTask<HttpRequestMessage> CreateRequestMessageAsync(
         ArrayWriter writer,

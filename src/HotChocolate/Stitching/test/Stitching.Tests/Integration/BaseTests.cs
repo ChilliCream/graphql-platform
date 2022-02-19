@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -644,6 +643,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .AddGraphQL()
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddTypeExtensionsFromString(
                     @"extend type Customer {
                             int: Int!
