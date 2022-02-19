@@ -15,7 +15,7 @@ namespace HotChocolate;
 
 public partial class SchemaErrorBuilder
 {
-    private class Error : ISchemaError
+    private sealed class Error : ISchemaError
     {
         private static readonly JsonWriterOptions _serializationOptions = new()
         {

@@ -150,7 +150,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         }
     }
 
-    private class CloneSelectionSetVisitor : QuerySyntaxRewriter<object>
+    private sealed class CloneSelectionSetVisitor : QuerySyntaxRewriter<object>
     {
         private static readonly object _context = new();
 

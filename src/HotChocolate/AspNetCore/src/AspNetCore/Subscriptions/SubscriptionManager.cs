@@ -1,8 +1,5 @@
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
@@ -31,10 +28,19 @@ public class SubscriptionManager : ISubscriptionManager
 
         if (_subs.TryAdd(subscriptionSession.Id, subscriptionSession))
         {
-            subscriptionSession.Completed += (_, _) =>
+            subscriptionSession.Completed += (_, _) => Unregister(subscriptionSession.Id);
+        }
+
+        if (subscriptionSession.IsCompleted)
+        {
+            try
             {
                 Unregister(subscriptionSession.Id);
-            };
+            }
+            catch (ObjectDisposedException)
+            {
+                // the manager is disposing while we were still at work.
+            }
         }
     }
 
@@ -66,7 +72,7 @@ public class SubscriptionManager : ISubscriptionManager
     {
         if (!_disposed)
         {
-            if (disposing && _subs.Count > 0)
+            if (disposing && !_subs.IsEmpty)
             {
                 ISubscriptionSession?[] subs = _subs.Values.ToArray();
                 _subs.Clear();

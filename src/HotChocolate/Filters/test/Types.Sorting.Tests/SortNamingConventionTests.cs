@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Sorting
             schema.ToString().MatchSnapshot();
         }
 
-        private class CustomConvention : SortingNamingConventionSnakeCase
+        private sealed class CustomConvention : SortingNamingConventionSnakeCase
         {
             public override NameString ArgumentName => "test";
 

@@ -12,10 +12,9 @@ using HotChocolate.Execution.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching;
-using HotChocolate.Stitching.Merge;
-using HotChocolate.Stitching.Merge.Rewriters;
-using HotChocolate.Stitching.Pipeline;
-using HotChocolate.Stitching.Requests;
+using HotChocolate.Stitching.Execution;
+using HotChocolate.Stitching.SchemaBuilding;
+using HotChocolate.Stitching.SchemaBuilding.Rewriters;
 using HotChocolate.Stitching.SchemaDefinitions;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
@@ -27,50 +26,6 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class HotChocolateStitchingRequestExecutorExtensions
 {
-    /// <summary>
-    /// This middleware delegates GraphQL requests to a different GraphQL server using
-    /// GraphQL HTTP requests.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/>.
-    /// </param>
-    /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/>.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// The <paramref name="builder"/> is <c>null</c>.
-    /// </exception>
-    public static IRequestExecutorBuilder UseHttpRequests(
-        this IRequestExecutorBuilder builder)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        return builder.UseRequest<RemoteRequestMiddleware>();
-    }
-
-    public static IRequestExecutorBuilder UseHttpRequestPipeline(
-        this IRequestExecutorBuilder builder)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        return builder
-            .UseInstrumentations()
-            .UseExceptions()
-            .UseDocumentCache()
-            .UseDocumentParser()
-            .UseDocumentValidation()
-            .UseOperationCache()
-            .UseOperationResolver()
-            .UseOperationVariableCoercion()
-            .UseHttpRequests();
-    }
-
     public static IRequestExecutorBuilder AddRemoteSchema(
         this IRequestExecutorBuilder builder,
         NameString schemaName,
@@ -120,7 +75,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         return AddRemoteSchema(
             builder,
             schemaName,
-            (__, _) =>
+            (_, _) =>
                 new ValueTask<RemoteSchemaDefinition>(
                     new RemoteSchemaDefinition(
                         schemaName,
@@ -188,11 +143,19 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             .AddGraphQL(schemaName)
             .ConfigureSchemaServices(services =>
             {
-                services.TryAddSingleton(
-                    sp => new HttpRequestClient(
+                services.AddSingleton<IRemoteRequestHandler>(
+                    sp => new HttpPostRequestHandler(
                         sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
                         sp.GetRequiredService<IErrorHandler>(),
-                        sp.GetRequiredService<IHttpStitchingRequestInterceptor>()));
+                        sp.GetRequiredService<IHttpStitchingRequestInterceptor>(),
+                        schemaName));
+
+                services.AddSingleton<IRemoteBatchRequestHandler>(
+                    sp => new HttpPostBatchRequestHandler(
+                        sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
+                        sp.GetRequiredService<IErrorHandler>(),
+                        sp.GetRequiredService<IHttpStitchingRequestInterceptor>(),
+                        schemaName));
 
                 services.TryAddSingleton<
                     IHttpStitchingRequestInterceptor,
@@ -221,10 +184,13 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
                     // ... which will fail if any resolver is actually used ...
                     schemaBuilder.Use(_ => _ => throw new NotSupportedException());
                 })
-            // ... instead we are using a special request pipeline that does everything like
-            // the standard pipeline except the last middleware will not start the execution
-            // algorithms but delegate the request via HTTP to the downstream schema.
-            .UseHttpRequestPipeline();
+            // ... we also will disable the graphql pipeline.
+            // The actual request will be funneled to a remote request executor which will
+            // relay those to a remote endpoint.
+            //
+            // Using the executor instead of the pipeline has the benefit of petter optimization
+            // if a remote endpoint allows for batching.
+            .UseRequest(_ => _ => throw new NotSupportedException());
 
         // Next, we will register a request executor proxy with the stitched schema,
         // that the stitching runtime will use to send requests to the schema representing
@@ -235,6 +201,8 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
                 IInternalRequestExecutorResolver noLockExecutorResolver =
                     services.GetRequiredService<IInternalRequestExecutorResolver>();
 
+                // this is our downstream executor which we will wrap now into our remote
+                // request executor.
                 IRequestExecutor executor = await noLockExecutorResolver
                     .GetRequestExecutorNoLockAsync(schemaName, cancellationToken)
                     .ConfigureAwait(false);
@@ -245,8 +213,10 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
                         schemaName),
                     executor);
 
+                executor = new RemoteRequestExecutor(autoProxy);
+
                 schemaBuilder
-                    .AddRemoteExecutor(schemaName, autoProxy)
+                    .AddRemoteExecutor(schemaName, executor)
                     .TryAddSchemaInterceptor<StitchingSchemaInterceptor>()
                     .TryAddTypeInterceptor<StitchingTypeInterceptor>()
                     .TryAddTypeInterceptor<MissingScalarsTypeInterceptor>();

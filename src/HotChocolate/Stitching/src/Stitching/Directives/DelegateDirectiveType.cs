@@ -3,16 +3,16 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching;
 
-public class DelegateDirectiveType
-    : DirectiveType<DelegateDirective>
+public sealed class DelegateDirectiveType : DirectiveType<DelegateDirective>
 {
     protected override void Configure(
         IDirectiveTypeDescriptor<DelegateDirective> descriptor)
     {
-        descriptor.Name(DirectiveNames.Delegate)
-            .Description(StitchingResources.DelegateDirectiveType_Description);
-
-        descriptor.Location(DirectiveLocation.FieldDefinition);
+        descriptor
+            .Name(DirectiveNames.Delegate)
+            .Description(StitchingResources.DelegateDirectiveType_Description)
+            .Location(DirectiveLocation.FieldDefinition)
+            .Internal();
 
         descriptor.Argument(t => t.Path)
             .Name(DirectiveFieldNames.Delegate_Path)

@@ -6,10 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Pipeline;
 using HotChocolate.Stitching.SchemaDefinitions;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using static HotChocolate.Stitching.Execution.RemoteRequestHelper;
 
 namespace HotChocolate.Stitching.Utilities;
 
@@ -83,10 +83,9 @@ public class IntrospectionHelper
             .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(
                 SchemaDefinitionFieldNames.SchemaDefinitionField));
 
-        return schemaDefinitionField?.Arguments
-                .Any(t => t.Name.Value.EqualsOrdinal(
-                    SchemaDefinitionFieldNames.ConfigurationArgument)) ??
-               false;
+        return schemaDefinitionField != null &&
+            schemaDefinitionField.Arguments.Any(
+                t => t.Name.Value.EqualsOrdinal(SchemaDefinitionFieldNames.ConfigurationArgument));
     }
 
     private async ValueTask<RemoteSchemaDefinition?> FetchSchemaDefinitionAsync(
@@ -107,17 +106,17 @@ public class IntrospectionHelper
                 .SetVariableValue("c", new StringValueNode(_configuration.Value))
                 .Create();
 
-        HttpRequestMessage requestMessage = await HttpRequestClient
-            .CreateRequestMessageAsync(writer, request, cancellationToken)
-            .ConfigureAwait(false);
+        HttpRequestMessage requestMessage =
+            await CreateRequestMessageAsync(writer, request, cancellationToken)
+                .ConfigureAwait(false);
 
         HttpResponseMessage responseMessage = await _httpClient
             .SendAsync(requestMessage, cancellationToken)
             .ConfigureAwait(false);
 
-        IQueryResult result = await HttpRequestClient
-            .ParseResponseMessageAsync(responseMessage, cancellationToken)
-            .ConfigureAwait(false);
+        IQueryResult result =
+            await ParseResponseMessageAsync(responseMessage, cancellationToken)
+                .ConfigureAwait(false);
 
         if (result.Errors is { Count: > 1 })
         {
@@ -127,11 +126,11 @@ public class IntrospectionHelper
         if (result.Data is not null &&
             result.Data[SchemaDefinitionFieldNames.SchemaDefinitionField]
                 is IReadOnlyDictionary<string, object?> o &&
-            o.TryGetValue("name", out object? n) &&
+            o.TryGetValue("name", out var n) &&
             n is StringValueNode name &&
-            o.TryGetValue("document", out object? d) &&
+            o.TryGetValue("document", out var d) &&
             d is StringValueNode document &&
-            o.TryGetValue("extensionDocuments", out object? e) &&
+            o.TryGetValue("extensionDocuments", out var e) &&
             e is IReadOnlyList<object> extensionDocuments)
         {
             return new RemoteSchemaDefinition(

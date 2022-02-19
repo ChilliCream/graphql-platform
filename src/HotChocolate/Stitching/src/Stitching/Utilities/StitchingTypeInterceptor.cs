@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -10,10 +10,9 @@ using static HotChocolate.Stitching.WellKnownContextData;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal class StitchingTypeInterceptor : TypeInterceptor
+internal sealed class StitchingTypeInterceptor : TypeInterceptor
 {
-    private readonly HashSet<(NameString, NameString)> _handledExternalFields =
-        new HashSet<(NameString, NameString)>();
+    private readonly HashSet<(NameString, NameString)> _handledExternalFields = new();
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,

@@ -6,8 +6,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Merge;
-using HotChocolate.Stitching.Merge.Rewriters;
+using HotChocolate.Stitching.SchemaBuilding;
+using HotChocolate.Stitching.SchemaBuilding.Rewriters;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -17,7 +17,7 @@ using IHasName = HotChocolate.Types.IHasName;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal class StitchingSchemaInterceptor : SchemaInterceptor
+internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
 {
     public override void OnBeforeCreate(
         IDescriptorContext context,

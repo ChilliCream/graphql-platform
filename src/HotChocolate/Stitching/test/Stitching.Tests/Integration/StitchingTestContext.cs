@@ -14,11 +14,11 @@ namespace HotChocolate.Stitching.Integration;
 
 public class StitchingTestContext
 {
-    public TestServerFactory ServerFactory { get; } = new TestServerFactory();
+    public TestServerFactory ServerFactory { get; } = new();
 
-    public NameString CustomerSchema { get; } = "customer";
+    public NameString CustomerSchema => "customer";
 
-    public NameString ContractSchema { get; } = "contract";
+    public NameString ContractSchema => "contract";
 
     public TestServer CreateCustomerService() =>
         ServerFactory.Create(
@@ -26,6 +26,7 @@ public class StitchingTestContext
                 .AddRouting()
                 .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddCustomerSchema(),
             app => app
                 .UseWebSockets()
@@ -38,6 +39,7 @@ public class StitchingTestContext
                 .AddRouting()
                 .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddContractSchema(),
             app => app
                 .UseWebSockets()

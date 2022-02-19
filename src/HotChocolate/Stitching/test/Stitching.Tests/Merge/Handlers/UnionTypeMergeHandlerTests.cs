@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Stitching.SchemaBuilding;
+using HotChocolate.Stitching.SchemaBuilding.Handlers;
 using Snapshooter.Xunit;
 using Xunit;
 

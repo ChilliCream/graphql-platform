@@ -58,7 +58,7 @@ namespace StrawberryShake
             }
         }
 
-        private class OperationStoreObservable
+        private sealed class OperationStoreObservable
             : IObservable<OperationUpdate>
             , IDisposable
         {
@@ -117,7 +117,7 @@ namespace StrawberryShake
                 }
             }
 
-            private class OperationStoreSession
+            private sealed class OperationStoreSession
                 : IDisposable
             {
                 private readonly IObserver<OperationUpdate> _observer;

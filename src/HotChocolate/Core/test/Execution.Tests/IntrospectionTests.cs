@@ -389,7 +389,7 @@ namespace HotChocolate.Execution
                 .Create();
         }
 
-        private class Query : ObjectType
+        private sealed class Query : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
@@ -415,7 +415,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private class BarDirectiveType : DirectiveType
+        private sealed class BarDirectiveType : DirectiveType
         {
             protected override void Configure(IDirectiveTypeDescriptor descriptor)
             {
@@ -426,7 +426,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private class FooInput : InputObjectType
+        private sealed class FooInput : InputObjectType
         {
             protected override void Configure(IInputObjectTypeDescriptor descriptor)
             {
@@ -438,7 +438,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private class Foo : ObjectType
+        private sealed class Foo : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
@@ -450,7 +450,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private class BarType : ObjectType
+        private sealed class BarType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {

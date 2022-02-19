@@ -19,7 +19,7 @@ namespace HotChocolate.Data.Neo4J.Paging
                 (:Foo {Bar: 'f'})
         ";
 
-        private class Foo
+        private sealed class Foo
         {
             public string Bar { get; set; } = default!;
         }

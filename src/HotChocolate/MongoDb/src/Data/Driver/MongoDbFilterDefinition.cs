@@ -28,7 +28,7 @@ namespace HotChocolate.Data.MongoDb
 
         public FilterDefinition<T> ToFilterDefinition<T>() => new FilterDefinitionWrapper<T>(this);
 
-        private class FilterDefinitionWrapper<T> : FilterDefinition<T>
+        private sealed class FilterDefinitionWrapper<T> : FilterDefinition<T>
         {
             private readonly MongoDbFilterDefinition _filter;
 

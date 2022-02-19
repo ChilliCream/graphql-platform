@@ -30,7 +30,7 @@ public class SchemaDefinitionType : ObjectType<RemoteSchemaDefinition>
             .Type<NonNullType<ListType<NonNullType<StringType>>>>();
     }
 
-    private class Resolvers
+    private sealed class Resolvers
     {
         public string GetDocument(
             [Parent] RemoteSchemaDefinition schemaDefinition) =>

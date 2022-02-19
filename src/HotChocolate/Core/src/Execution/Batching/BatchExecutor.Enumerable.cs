@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Batching;
 
 internal partial class BatchExecutor
 {
-    private class BatchExecutorEnumerable : IAsyncEnumerable<IQueryResult>
+    private sealed class BatchExecutorEnumerable : IAsyncEnumerable<IQueryResult>
     {
         private readonly IEnumerable<IQueryRequest> _requestBatch;
         private readonly IRequestExecutor _requestExecutor;

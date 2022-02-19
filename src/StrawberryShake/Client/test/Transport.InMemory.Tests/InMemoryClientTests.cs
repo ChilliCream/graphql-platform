@@ -124,7 +124,7 @@ namespace StrawberryShake.Transport.InMemory
                     Times.Exactly(2));
         }
 
-        private class StubExecutor : IRequestExecutor
+        private sealed class StubExecutor : IRequestExecutor
         {
             public IQueryRequest Request { get; private set; }
 
@@ -157,7 +157,7 @@ namespace StrawberryShake.Transport.InMemory
                     new ServiceCollection().BuildServiceProvider());
         }
 
-        private class DefaultApplicationServiceProvider
+        private sealed class DefaultApplicationServiceProvider
             : IApplicationServiceProvider
         {
             private readonly IServiceProvider _applicationServices;

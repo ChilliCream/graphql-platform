@@ -288,14 +288,14 @@ namespace StrawberryShake.Serialization
             Assert.Same(serializer, resolvedFormatter);
         }
 
-        private class CustomIntSerializer : ScalarSerializer<int>
+        private sealed class CustomIntSerializer : ScalarSerializer<int>
         {
             public CustomIntSerializer() : base("Int")
             {
             }
         }
 
-        private class CustomInputValueFormatter : IInputValueFormatter
+        private sealed class CustomInputValueFormatter : IInputValueFormatter
         {
             public string TypeName => "Foo";
 

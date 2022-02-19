@@ -352,7 +352,7 @@ namespace HotChocolate.Types.Sorting
             schema.ToString().MatchSnapshot();
         }
 
-        private class FooDirectiveType
+        private sealed class FooDirectiveType
           : DirectiveType<FooDirective>
         {
             protected override void Configure(
@@ -363,16 +363,16 @@ namespace HotChocolate.Types.Sorting
                     .Location(DirectiveLocation.InputFieldDefinition);
             }
         }
-        private class FooDirective { }
+        private sealed class FooDirective { }
 
-        private class Foo
+        private sealed class Foo
         {
             public bool? NullableBoolean { get; set; }
             public string Bar { get; set; }
             public string Baz { get; set; }
         }
 
-        private class FooEnumerables
+        private sealed class FooEnumerables
         {
             public string Bar { get; set; }
             public List<string> List { get; set; }

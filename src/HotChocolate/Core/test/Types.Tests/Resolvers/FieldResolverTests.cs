@@ -321,7 +321,7 @@ namespace HotChocolate.Resolvers
                 a => new ValueTask<object>(null));
         }
 
-        private class Foo
+        private sealed class Foo
         {
             public string BarA { get; }
             public string BarB { get; }

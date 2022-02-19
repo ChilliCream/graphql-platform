@@ -13,8 +13,9 @@ internal static class WellKnownContextData
     public const string TypeExtensions = "HotChocolate.Stitching.TypeExtensions";
     public const string MergedDocRewriter = "HotChocolate.Stitching.MergedDocRewriter";
     public const string MergedDocVisitors = "HotChocolate.Stitching.MergedDocVisitors";
-    public const string RequestVarNames = "HotChocolate.Stitching.RequestVarNames";
     public const string ExternalFieldLookup = "HotChocolate.Stitching.ExternalFieldLookup";
     public const string NameLookup = "HotChocolate.Stitching.NameLookup";
     public const string SchemaDefinitions = "HotChocolate.Stitching.SchemaDefinitions";
+    public const string IsQuery = "HotChocolate.Stitching.IsQuery";
+    public const string IsSubscription = "HotChocolate.Stitching.IsSubscription";
 }

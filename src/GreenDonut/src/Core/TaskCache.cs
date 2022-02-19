@@ -228,7 +228,7 @@ namespace GreenDonut
             return true;
         }
 
-        private class Entry
+        private sealed class Entry
         {
             public TaskCacheKey Key;
             public Task Value = default!;

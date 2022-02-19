@@ -304,7 +304,7 @@ internal sealed partial class SubscriptionExecutor
         }
     }
 
-    private class SubscriptionEnumerable : IAsyncEnumerable<IQueryResult>
+    private sealed class SubscriptionEnumerable : IAsyncEnumerable<IQueryResult>
     {
         private readonly ISourceStream _sourceStream;
         private readonly Func<object, Task<IQueryResult>> _onEvent;
@@ -347,7 +347,7 @@ internal sealed partial class SubscriptionExecutor
         }
     }
 
-    private class SubscriptionEnumerator : IAsyncEnumerator<IQueryResult>
+    private sealed class SubscriptionEnumerator : IAsyncEnumerator<IQueryResult>
     {
         private readonly IAsyncEnumerator<object> _eventEnumerator;
         private readonly Func<object, Task<IQueryResult>> _onEvent;
@@ -406,7 +406,7 @@ internal sealed partial class SubscriptionExecutor
         }
     }
 
-    private class ErrorSubscriptionEnumerator : IAsyncEnumerator<IQueryResult>
+    private sealed class ErrorSubscriptionEnumerator : IAsyncEnumerator<IQueryResult>
     {
         public IQueryResult Current => default!;
 

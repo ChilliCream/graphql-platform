@@ -49,7 +49,7 @@ public class InMemorySourceStream<TMessage> : ISourceStream<TMessage>
         return default;
     }
 
-    private class EnumerateMessages<T> : IAsyncEnumerable<T>
+    private sealed class EnumerateMessages<T> : IAsyncEnumerable<T>
     {
         private readonly Channel<T> _channel;
 
@@ -90,7 +90,7 @@ public class InMemorySourceStream<TMessage> : ISourceStream<TMessage>
         }
     }
 
-    private class EnumerateMessages : IAsyncEnumerable<object>
+    private sealed class EnumerateMessages : IAsyncEnumerable<object>
     {
         private readonly IAsyncEnumerable<TMessage> _messages;
 
@@ -109,7 +109,7 @@ public class InMemorySourceStream<TMessage> : ISourceStream<TMessage>
         }
     }
 
-    private class WrappedEnumerator<T> : IAsyncEnumerator<T>
+    private sealed class WrappedEnumerator<T> : IAsyncEnumerator<T>
     {
         private readonly IAsyncEnumerator<T> _enumerator;
         private readonly Func<ValueTask> _dispose;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Delegation.ScopedVariables;
+using HotChocolate.Stitching.Processing.ScopedVariables;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Utilities;
