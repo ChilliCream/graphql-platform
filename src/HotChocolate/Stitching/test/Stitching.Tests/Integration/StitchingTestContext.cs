@@ -14,11 +14,11 @@ namespace HotChocolate.Stitching.Integration;
 
 public class StitchingTestContext
 {
-    public TestServerFactory ServerFactory { get; } = new TestServerFactory();
+    public TestServerFactory ServerFactory { get; } = new();
 
-    public NameString CustomerSchema { get; } = "customer";
+    public NameString CustomerSchema => "customer";
 
-    public NameString ContractSchema { get; } = "contract";
+    public NameString ContractSchema => "contract";
 
     public TestServer CreateCustomerService() =>
         ServerFactory.Create(

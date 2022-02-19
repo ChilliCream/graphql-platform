@@ -13,7 +13,7 @@ public ref partial struct Utf8GraphQLRequestParser
         {
             case TokenKind.String:
                 {
-                    string value = _reader.GetString();
+                    var value = _reader.GetString();
                     _reader.MoveNext();
                     return value;
                 }
@@ -90,9 +90,9 @@ public ref partial struct Utf8GraphQLRequestParser
         {
             case TokenKind.LeftBracket:
                 var list = new List<object?>();
-                _reader.Expect(TokenKind.LeftBrace);
+                _reader.Expect(TokenKind.LeftBracket);
 
-                while (_reader.Kind != TokenKind.RightBrace)
+                while (_reader.Kind != TokenKind.RightBracket)
                 {
                     list.Add(ParseResponse());
                 }

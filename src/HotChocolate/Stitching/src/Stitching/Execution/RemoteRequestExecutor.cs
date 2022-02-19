@@ -21,7 +21,8 @@ internal sealed class RemoteRequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(innerExecutor));
         _requestHandlers =
             innerExecutor.Services.GetServices<IRemoteRequestHandler>().ToArray();
-        _batchRequestHandler = new ParallelBatchRequestHandler(_requestHandlers);
+        _batchRequestHandler =
+            innerExecutor.Services.GetRequiredService<IRemoteBatchRequestHandler>();
     }
 
     public ISchema Schema => _innerExecutor.Schema;
