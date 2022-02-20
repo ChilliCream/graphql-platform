@@ -34,27 +34,28 @@ internal sealed class DelegateSubscribe
 
         context.SetScopedValue(PathField, path);
         context.SetScopedValue(ReversePathField, reversePath);
+        context.SetScopedValue(SchemaName, delegateDirective.Schema);
 
         return new ValueTask<ISourceStream>(
             new RemoteSourceStream(
                 context,
-                delegateDirective,
+                delegateDirective.Schema,
                 CreateQuery(context, delegateDirective.Schema, path!, reversePath!)));
     }
 
     private sealed class RemoteSourceStream : ISourceStream
     {
         private readonly IResolverContext _context;
-        private readonly DelegateDirective _delegateDirective;
+        private readonly NameString _targetSchema;
         private readonly IQueryRequest _request;
 
         public RemoteSourceStream(
             IResolverContext context,
-            DelegateDirective delegateDirective,
+            NameString targetSchema,
             IQueryRequest request)
         {
             _context = context;
-            _delegateDirective = delegateDirective;
+            _targetSchema = targetSchema;
             _request = request;
         }
 
@@ -64,10 +65,8 @@ internal sealed class DelegateSubscribe
                 await ExecuteSubscribeAsync(
                         _context,
                         _request,
-                        _delegateDirective.Schema)
+                        _targetSchema)
                     .ConfigureAwait(false);
-
-            _context.SetScopedValue(SchemaName, _delegateDirective.Schema);
 
             await foreach (IQueryResult queryResult in result.ReadResultsAsync()
                 .WithCancellation(_context.RequestAborted)
@@ -99,7 +98,7 @@ internal sealed class DelegateSubscribe
 
         if (result is IQueryResult {Data: null, Errors.Count: > 0} errorResult)
         {
-            throw new GraphQLException(errorResult.Errors);
+            throw new GraphQLException(errorResult.Errors!);
         }
 
         throw new GraphQLException(
