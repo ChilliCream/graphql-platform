@@ -8,7 +8,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Utilities;
 
-public sealed class MissingScalarsTypeInterceptor : TypeInterceptor
+internal sealed class MissingScalarsTypeInterceptor : TypeInterceptor
 {
     private bool _initialized;
 

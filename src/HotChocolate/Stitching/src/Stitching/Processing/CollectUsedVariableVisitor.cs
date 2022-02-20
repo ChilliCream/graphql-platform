@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Processing;
 
-internal class CollectUsedVariableVisitor : QuerySyntaxWalker<ISet<string>>
+internal sealed class CollectUsedVariableVisitor : QuerySyntaxWalker<ISet<string>>
 {
     public void CollectUsedVariables(
         FieldNode fieldNode,

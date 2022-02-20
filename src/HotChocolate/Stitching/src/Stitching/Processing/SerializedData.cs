@@ -1,6 +1,6 @@
 namespace HotChocolate.Stitching.Processing;
 
-public sealed class SerializedData
+internal sealed class SerializedData
 {
     public SerializedData(object? data)
     {

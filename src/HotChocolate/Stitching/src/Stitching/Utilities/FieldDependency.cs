@@ -3,8 +3,7 @@ using System;
 
 namespace HotChocolate.Stitching.Utilities;
 
-public readonly struct FieldDependency
-    : IEquatable<FieldDependency>
+internal readonly struct FieldDependency : IEquatable<FieldDependency>
 {
     public FieldDependency(NameString typeName, NameString fieldName)
     {

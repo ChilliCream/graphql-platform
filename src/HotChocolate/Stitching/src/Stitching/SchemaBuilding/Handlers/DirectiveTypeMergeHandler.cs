@@ -5,15 +5,8 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.SchemaBuilding.Handlers;
 
-internal class DirectiveTypeMergeHandler
+internal sealed class DirectiveTypeMergeHandler
 {
-    private readonly MergeDirectiveRuleDelegate _next;
-
-    public DirectiveTypeMergeHandler(MergeDirectiveRuleDelegate next)
-    {
-        _next = next ?? throw new ArgumentNullException(nameof(next));
-    }
-
     public void Merge(
         ISchemaMergeContext context,
         IReadOnlyList<IDirectiveTypeInfo> types)

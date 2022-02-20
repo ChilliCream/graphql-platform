@@ -9,8 +9,8 @@ namespace StrawberryShake.Transport.WebSockets
     public interface IWebSocketClient : ISocketClient
     {
         /// <summary>
-        /// The <see cref="ClientWebSocket"/> that is used to communicate with the server
+        /// The <see cref="WebSocket"/> that is used to communicate with the server
         /// </summary>
-        ClientWebSocket Socket { get; }
+        WebSocket Socket { get; }
     }
 }

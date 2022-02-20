@@ -435,6 +435,6 @@ public class FederatedRedisSchemaTests
                 { _reviews, CreateReviewsService(configurationName).CreateClient() },
             };
 
-        return StitchingTestContext.CreateRemoteSchemas(connections);
+        return StitchingTestContext.CreateHttpClientFactory(connections);
     }
 }

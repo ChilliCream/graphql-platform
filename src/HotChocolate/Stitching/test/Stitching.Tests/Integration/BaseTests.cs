@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -9,6 +10,7 @@ using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
+using StrawberryShake.Transport.WebSockets;
 using Xunit;
 
 namespace HotChocolate.Stitching.Integration;
@@ -27,7 +29,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         // act
         ISchema schema =
@@ -47,7 +49,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -61,14 +63,61 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    allCustomers {
-                        id
-                        name
-                    }
-                }");
+                allCustomers {
+                    id
+                    name
+                }
+            }");
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AutoMerge_Subscription()
+    {
+        // arrange
+        IHttpClientFactory httpClientFactory =
+            Context.CreateDefaultHttpClientFactory();
+
+        ISocketClientFactory socketClientFactory =
+            Context.CreateDefaultWebSocketClientFactory();
+
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddSingleton(socketClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema,
+                    capabilities: new EndpointCapabilities
+                    {
+                        Batching = BatchingSupport.RequestBatching,
+                        Subscriptions = SubscriptionSupport.WebSocket
+                    })
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = (SubscriptionResult)await executor.ExecuteAsync(
+            @"subscription Abc {
+                onCustomerChanged {
+                    id
+                    name
+                }
+            }");
+
+        // assert
+        using var cts = new CancellationTokenSource(30_000);
+        var results = new List<string>();
+
+        await foreach (IQueryResult queryResult in result.ReadResultsAsync()
+            .WithCancellation(cts.Token))
+        {
+            results.Add(queryResult.ToJson());
+        }
+
+        results.MatchSnapshot();
     }
 
     [Fact]
@@ -76,7 +125,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -97,22 +146,22 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                customer(id: ""Q3VzdG9tZXIKZDE="") {
+                    name
+                    consultant {
                         name
-                        consultant {
-                            name
+                    }
+                    contracts {
+                        id
+                        ... on LifeInsuranceContract {
+                            premium
                         }
-                        contracts {
-                            id
-                            ... on LifeInsuranceContract {
-                                premium
-                            }
-                            ... on SomeOtherContract {
-                                expiryDate
-                            }
+                        ... on SomeOtherContract {
+                            expiryDate
                         }
                     }
-                }");
+                }
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -123,7 +172,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -144,26 +193,26 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    customer(id: ""Q3VzdG9tZXIKZDE="") {
-                        name
-                        consultant {
-                          name
-                        }
-                        contracts {
-                            id
-                            ...a
-                            ...b
-                        }
+                customer(id: ""Q3VzdG9tZXIKZDE="") {
+                    name
+                    consultant {
+                      name
+                    }
+                    contracts {
+                        id
+                        ...a
+                        ...b
                     }
                 }
+            }
 
-                fragment a on LifeInsuranceContract {
-                    premium
-                }
+            fragment a on LifeInsuranceContract {
+                premium
+            }
 
-                fragment b on SomeOtherContract {
-                    expiryDate
-                }");
+            fragment b on SomeOtherContract {
+                expiryDate
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -174,7 +223,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -264,7 +313,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -285,35 +334,35 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
-                        ...customer
-                        ...consultant
+                customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
+                    ...customer
+                    ...consultant
+                }
+                consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
+                    ...customer
+                    ...consultant
+                }
+            }
+
+            fragment customer on Customer {
+                name
+                consultant {
+                    name
+                }
+                contracts {
+                    id
+                    ... on LifeInsuranceContract {
+                        premium
                     }
-                    consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
-                        ...customer
-                        ...consultant
+                    ... on SomeOtherContract {
+                        expiryDate
                     }
                 }
+            }
 
-                fragment customer on Customer {
-                    name
-                    consultant {
-                        name
-                    }
-                    contracts {
-                        id
-                        ... on LifeInsuranceContract {
-                            premium
-                        }
-                        ... on SomeOtherContract {
-                            expiryDate
-                        }
-                    }
-                }
-
-                fragment consultant on Consultant {
-                    name
-                }");
+            fragment consultant on Consultant {
+                name
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -324,7 +373,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -345,38 +394,38 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
-                        ...customer
-                        ...consultant
-                    }
-                    consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
-                        ...customer
-                        ...consultant
+                customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
+                    ...customer
+                    ...consultant
+                }
+                consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
+                    ...customer
+                    ...consultant
+                }
+            }
+
+            fragment customer on Customer {
+                name
+                consultant {
+                    name
+                }
+                contracts @include(if: true) {
+                    id
+                    ... on LifeInsuranceContract {
+                        premium
                     }
                 }
-
-                fragment customer on Customer {
-                    name
-                    consultant {
-                        name
-                    }
-                    contracts @include(if: true) {
-                        id
-                        ... on LifeInsuranceContract {
-                            premium
-                        }
-                    }
-                    contracts @include(if: true) {
-                        id
-                        ... on SomeOtherContract {
-                            expiryDate
-                        }
+                contracts @include(if: true) {
+                    id
+                    ... on SomeOtherContract {
+                        expiryDate
                     }
                 }
+            }
 
-                fragment consultant on Consultant {
-                    name
-                }");
+            fragment consultant on Consultant {
+                name
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -387,7 +436,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -422,7 +471,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -443,10 +492,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    customer(id: ""Q3VzdG9tZXIKZDE="") {
-                        contractIds
-                    }
-                }");
+                customer(id: ""Q3VzdG9tZXIKZDE="") {
+                    contractIds
+                }
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -457,7 +506,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -478,10 +527,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    consultant {
-                        name
-                    }
-                }");
+                consultant {
+                    name
+                }
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -492,7 +541,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -513,8 +562,8 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    consultantName
-                }");
+                consultantName
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -525,7 +574,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -539,7 +588,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                         }")
                 .MapField(
                     new FieldReference("Customer", "foo"),
-                    next => context =>
+                    _ => context =>
                     {
                         IReadOnlyDictionary<string, object> obj = context.Parent<IReadOnlyDictionary<string, object>>();
                         context.Result = obj["name"] + "_" + obj["id"];
@@ -551,10 +600,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    customer(id: ""Q3VzdG9tZXIKZDE="") {
-                        foo
-                    }
-                }");
+                customer(id: ""Q3VzdG9tZXIKZDE="") {
+                    foo
+                }
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -565,7 +614,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -593,37 +642,37 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"query ($v: Foo) {
-                    customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
-                        ...customer
-                        ...consultant
+                customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
+                    ...customer
+                    ...consultant
+                }
+                consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
+                    ...customer
+                    ...consultant
+                }
+            }
+
+            fragment customer on Customer {
+                name
+                consultant {
+                    name
+                }
+                contracts {
+                    id
+                    ... on LifeInsuranceContract {
+                        premium
+                        a: float_field(f: 1.1)
+                        b: float_field(f: $v)
                     }
-                    consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
-                        ...customer
-                        ...consultant
+                    ... on SomeOtherContract {
+                        expiryDate
                     }
                 }
+            }
 
-                fragment customer on Customer {
-                    name
-                    consultant {
-                        name
-                    }
-                    contracts {
-                        id
-                        ... on LifeInsuranceContract {
-                            premium
-                            a: float_field(f: 1.1)
-                            b: float_field(f: $v)
-                        }
-                        ... on SomeOtherContract {
-                            expiryDate
-                        }
-                    }
-                }
-
-                fragment consultant on Consultant {
-                    name
-                }",
+            fragment consultant on Consultant {
+                name
+            }",
             variables);
 
         // assert
@@ -635,7 +684,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -657,10 +706,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    customer(id: ""Q3VzdG9tZXIKZDE="") {
-                        int
-                    }
-                }");
+                customer(id: ""Q3VzdG9tZXIKZDE="") {
+                    int
+                }
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -671,7 +720,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -692,10 +741,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    customer(id: ""Q3VzdG9tZXIKaTI5OTk="") {
-                        int
-                    }
-                }");
+                customer(id: ""Q3VzdG9tZXIKaTI5OTk="") {
+                    int
+                }
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -706,7 +755,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -727,10 +776,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    customer(id: ""Q3VzdG9tZXIKZDE="") {
-                        guid
-                    }
-                }");
+                customer(id: ""Q3VzdG9tZXIKZDE="") {
+                    guid
+                }
+            }");
 
         // assert
         result.MatchSnapshot();
@@ -741,7 +790,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         // act
         ISchema schema =
@@ -764,7 +813,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         // act
         ISchema schema =
@@ -788,7 +837,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         // act
         async Task Configure() =>
@@ -820,7 +869,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             };
 
         IHttpClientFactory httpClientFactory =
-            StitchingTestContext.CreateRemoteSchemas(connections);
+            StitchingTestContext.CreateHttpClientFactory(connections);
 
         IRequestExecutor executor =
             await new ServiceCollection()
@@ -843,22 +892,22 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         IExecutionResult result = await executor.ExecuteAsync(
             @"{
-                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                customer(id: ""Q3VzdG9tZXIKZDE="") {
+                    name
+                    consultant {
                         name
-                        consultant {
-                            name
+                    }
+                    contracts {
+                        id
+                        ... on LifeInsuranceContract {
+                            premium
                         }
-                        contracts {
-                            id
-                            ... on LifeInsuranceContract {
-                                premium
-                            }
-                            ... on SomeOtherContract {
-                                expiryDate
-                            }
+                        ... on SomeOtherContract {
+                            expiryDate
                         }
                     }
-                }");
+                }
+            }");
 
         // assert
         result.MatchSnapshot();

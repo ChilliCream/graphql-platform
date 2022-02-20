@@ -8,7 +8,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Utilities;
 
-public class FieldDependencyResolver : QuerySyntaxWalker<FieldDependencyResolver.Context>
+internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependencyResolver.Context>
 {
     private readonly ISchema _schema;
 

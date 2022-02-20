@@ -16,6 +16,9 @@ internal static class WellKnownContextData
     public const string ExternalFieldLookup = "HotChocolate.Stitching.ExternalFieldLookup";
     public const string NameLookup = "HotChocolate.Stitching.NameLookup";
     public const string SchemaDefinitions = "HotChocolate.Stitching.SchemaDefinitions";
-    public const string IsQuery = "HotChocolate.Stitching.IsQuery";
     public const string IsSubscription = "HotChocolate.Stitching.IsSubscription";
+    public const string RemoteErrorField = "remote";
+    public const string SchemaNameField = "schemaName";
+    public const string PathField = "schemaName";
+    public const string ReversePathField = "remote";
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Stitching.Properties;
@@ -9,8 +11,7 @@ namespace HotChocolate.Stitching.Execution;
 
 public class StitchingContext : IStitchingContext
 {
-    private readonly Dictionary<NameString, RemoteRequestScheduler> _executors =
-        new Dictionary<NameString, RemoteRequestScheduler>();
+    private readonly Dictionary<NameString, RemoteRequestScheduler> _executors = new();
 
     public StitchingContext(
         IBatchScheduler batchScheduler,
@@ -29,15 +30,42 @@ public class StitchingContext : IStitchingContext
         foreach (KeyValuePair<NameString, IRequestExecutor> executor in
             requestContextAccessor.RequestContext.Schema.GetRemoteExecutors())
         {
-            _executors.Add(
-                executor.Key,
-                new RemoteRequestScheduler(
-                    batchScheduler,
-                    executor.Value));
+            _executors.Add(executor.Key, new(batchScheduler, executor.Value));
         }
     }
 
-    public IRemoteRequestScheduler GetRemoteRequestExecutor(NameString schemaName)
+    public ISchema GetRemoteSchema(NameString schemaName)
+        => GetRemoteRequestScheduler(schemaName).Schema;
+
+    public Task<IExecutionResult> ScheduleRequestAsync(
+        NameString schemaName,
+        IQueryRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request is null)
+        {
+            throw new ArgumentNullException(nameof(request));
+        }
+
+        IRemoteRequestScheduler scheduler = GetRemoteRequestScheduler(schemaName);
+        return scheduler.ScheduleAsync(request, cancellationToken);
+    }
+
+    public Task<IExecutionResult> ExecuteRequestAsync(
+        NameString schemaName,
+        IQueryRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request is null)
+        {
+            throw new ArgumentNullException(nameof(request));
+        }
+
+        IRemoteRequestScheduler scheduler = GetRemoteRequestScheduler(schemaName);
+        return scheduler.Executor.ExecuteAsync(request, cancellationToken);
+    }
+
+    private IRemoteRequestScheduler GetRemoteRequestScheduler(NameString schemaName)
     {
         schemaName.EnsureNotEmpty(nameof(schemaName));
 
@@ -51,7 +79,4 @@ public class StitchingContext : IStitchingContext
             StitchingResources.SchemaName_NotFound,
             schemaName));
     }
-
-    public ISchema GetRemoteSchema(NameString schemaName) =>
-        GetRemoteRequestExecutor(schemaName).Schema;
 }

@@ -7,8 +7,7 @@ namespace HotChocolate.Stitching.Schemas.Customers;
 
 public class CustomerType : ObjectType<Customer>
 {
-    protected override void Configure(
-        IObjectTypeDescriptor<Customer> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Customer> descriptor)
     {
         descriptor
             .ImplementsNode()
