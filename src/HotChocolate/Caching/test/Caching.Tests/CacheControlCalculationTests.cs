@@ -3,54 +3,55 @@ using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
-public class CacheControlValidatorVisitorTests : CacheControlTestBase
+public class CacheControlCalculationTests : CacheControlTestBase
 {
-    // todo: add way more tests for all common scenarios
+    // todo: everything should be opt-in, a introspection query + regular query
+    // should never be cached, since the introspection types are not annotated
 
-    [Fact]
-    public async Task Ignore_Introspection()
-    {
-        ICacheControlResult result = await ValidateResultAsync("{ __typename }");
+    // [Fact]
+    // public async Task Ignore_Introspection()
+    // {
+    //     ICacheControlResult result = await ValidateResultAsync("{ __typename }");
 
-        Assert.Equal(0, result.MaxAge);
-        Assert.Equal(CacheControlScope.Public, result.Scope);
-    }
+    //     Assert.Equal(0, result.MaxAge);
+    //     Assert.Equal(CacheControlScope.Public, result.Scope);
+    // }
 
-    [Fact]
-    public async Task NoCacheControl()
-    {
-        ICacheControlResult result = await ValidateResultAsync("{ regular }");
+    // [Fact]
+    // public async Task NoCacheControl()
+    // {
+    //     ICacheControlResult result = await ValidateResultAsync("{ regular }");
 
-        Assert.Equal(0, result.MaxAge);
-        Assert.Equal(CacheControlScope.Public, result.Scope);
-    }
+    //     Assert.Equal(0, result.MaxAge);
+    //     Assert.Equal(CacheControlScope.Public, result.Scope);
+    // }
 
-    [Fact]
-    public async Task FieldHasCacheControl()
-    {
-        ICacheControlResult result = await ValidateResultAsync("{ fieldCache }");
+    // [Fact]
+    // public async Task FieldHasCacheControl()
+    // {
+    //     ICacheControlResult result = await ValidateResultAsync("{ fieldCache }");
 
-        Assert.Equal(1, result.MaxAge);
-        Assert.Equal(CacheControlScope.Private, result.Scope);
-    }
+    //     Assert.Equal(1, result.MaxAge);
+    //     Assert.Equal(CacheControlScope.Private, result.Scope);
+    // }
 
-    [Fact]
-    public async Task TypeHasCacheControl()
-    {
-        ICacheControlResult result = await ValidateResultAsync("{ typeCache { field } }");
+    // [Fact]
+    // public async Task TypeHasCacheControl()
+    // {
+    //     ICacheControlResult result = await ValidateResultAsync("{ typeCache { field } }");
 
-        Assert.Equal(180, result.MaxAge);
-        Assert.Equal(CacheControlScope.Private, result.Scope);
-    }
+    //     Assert.Equal(180, result.MaxAge);
+    //     Assert.Equal(CacheControlScope.Private, result.Scope);
+    // }
 
-    [Fact]
-    public async Task FieldAndTypeHaveCacheControl()
-    {
-        ICacheControlResult result = await ValidateResultAsync("{ fieldAndTypeCache { field } }");
+    // [Fact]
+    // public async Task FieldAndTypeHaveCacheControl()
+    // {
+    //     ICacheControlResult result = await ValidateResultAsync("{ fieldAndTypeCache { field } }");
 
-        Assert.Equal(2, result.MaxAge);
-        Assert.Equal(CacheControlScope.Private, result.Scope);
-    }
+    //     Assert.Equal(2, result.MaxAge);
+    //     Assert.Equal(CacheControlScope.Private, result.Scope);
+    // }
 
     // [Fact]
     // public async Task OneField_MaxAge_MultipleOperations()

@@ -38,10 +38,12 @@ public sealed class QueryCacheMiddleware
         if (!_options.Enable || context.ContextData.ContainsKey(SkipQueryCaching))
         {
             await _next(context).ConfigureAwait(false);
+            return;
         }
-        else
+
+        foreach (IQueryCache cache in _caches)
         {
-            foreach (IQueryCache cache in _caches)
+            try
             {
                 if (!cache.ShouldReadResultFromCache(context))
                 {
@@ -58,29 +60,43 @@ public sealed class QueryCacheMiddleware
                     return;
                 }
             }
-
-            await _next(context).ConfigureAwait(false);
-
-            if (context.DocumentId is not null &&
-                context.Operation is not null)
+            catch
             {
-                var result = new CacheControlResult();
+                // An exception while trying to retrieve the cached query result
+                // should not error out the actual query, so we are ignoring it.
+            }
+        }
 
-                IPreparedOperation operation = context.Operation;
-                IReadOnlyList<ISelection> rootSelections =
-                    operation.GetRootSelectionSet().Selections;
+        await _next(context).ConfigureAwait(false);
 
-                foreach (ISelection rootSelection in rootSelections)
-                {
-                    ProcessSelection(rootSelection, result, operation);
-                }
+        if (context.DocumentId is null || context.Operation is null)
+        {
+            return;
+        }
 
-                if (!result.MaxAge.HasValue)
-                {
-                    result.MaxAge = _options.DefaultMaxAge;
-                }
+        var result = new CacheControlResult();
 
-                foreach (IQueryCache cache in _caches)
+        try
+        {
+            IPreparedOperation operation = context.Operation;
+            IReadOnlyList<ISelection> rootSelections =
+                operation.GetRootSelectionSet().Selections;
+
+            foreach (ISelection rootSelection in rootSelections)
+            {
+                ProcessSelection(rootSelection, result, operation);
+            }
+
+            if (!result.MaxAge.HasValue)
+            {
+                // No field in the query specified a maxAge value,
+                // so we do not attempt to cache it.
+                return;
+            }
+
+            foreach (IQueryCache cache in _caches)
+            {
+                try
                 {
                     if (!cache.ShouldWriteResultToCache(context))
                     {
@@ -90,7 +106,17 @@ public sealed class QueryCacheMiddleware
                     await cache.CacheQueryResultAsync(context,
                         result, _options);
                 }
+                catch
+                {
+                    // An exception while trying to cache the query result
+                    // should not error out the actual query, so we are ignoring it.
+                }
             }
+        }
+        catch
+        {
+            // An exception during the calculation of the CacheControlResult
+            // should not error out the actual query, so we are ignoring it.
         }
     }
 
@@ -115,7 +141,7 @@ public sealed class QueryCacheMiddleware
                     directive.MaxAge < result.MaxAge.Value))
             {
                 // The maxAge of the @cacheControl on this field is lower
-                // than the computed maxAge value.
+                // than the previously lowest maxAge value.
                 result.MaxAge = directive.MaxAge.Value;
                 maxAgeSet = true;
             }
@@ -161,7 +187,7 @@ public sealed class QueryCacheMiddleware
                     {
                         // The field did not specify a value for maxAge and the
                         // maxAge of the @cacheControl directive on this type 
-                        // is lower than the computed maxAge value.
+                        // is lower than the previously lowest maxAge value.
                         result.MaxAge = directive.MaxAge.Value;
                     }
 
