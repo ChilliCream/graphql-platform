@@ -27,9 +27,9 @@ internal sealed class QueryResultMiddleware
     public async Task InvokeAsync(IMiddlewareContext context)
     {
         if (context.Result is IQueryResult result &&
-            context.ScopedContextData.TryGetValue(SchemaNameField, out var targetSchemaValue) &&
-            context.ScopedContextData.TryGetValue(PathField, out var pathValue) &&
-            context.ScopedContextData.TryGetValue(ReversePathField, out var reversePathValue) &&
+            context.ScopedContextData.TryGetValue(SchemaName, out var targetSchemaValue) &&
+            context.ScopedContextData.TryGetValue(WellKnownContextData.Path, out var pathValue) &&
+            context.ScopedContextData.TryGetValue(ReversePath, out var reversePathValue) &&
             targetSchemaValue is NameString targetSchema &&
             pathValue is IImmutableStack<SelectionPathComponent> path &&
             reversePathValue is IImmutableStack<SelectionPathComponent> reversePath)

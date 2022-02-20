@@ -55,8 +55,8 @@ internal sealed class DelegateResolve
                 await ExecuteQueryAsync(context, request, targetSchema).ConfigureAwait(false);
 
             context.SetScopedValue(SchemaName, targetSchema);
-            context.SetScopedValue(PathField, path);
-            context.SetScopedValue(ReversePathField, reversePath);
+            context.SetScopedValue(WellKnownContextData.Path, path);
+            context.SetScopedValue(ReversePath, reversePath);
 
             context.Result = result;
         }

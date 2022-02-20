@@ -32,8 +32,8 @@ internal sealed class DelegateSubscribe
             reversePath = ImmutableStack.CreateRange(path);
         }
 
-        context.SetScopedValue(PathField, path);
-        context.SetScopedValue(ReversePathField, reversePath);
+        context.SetScopedValue(WellKnownContextData.Path, path);
+        context.SetScopedValue(ReversePath, reversePath);
         context.SetScopedValue(SchemaName, delegateDirective.Schema);
 
         return new ValueTask<ISourceStream>(
