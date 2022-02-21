@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using static StrawberryShake.Properties.Resources;
 
 namespace StrawberryShake
@@ -27,7 +28,18 @@ namespace StrawberryShake
         /// Defines if this is a partial result that
         /// shall be patched onto a previous one.
         /// </param>
-        public Response(TBody? body, Exception? exception, bool isPatch = false)
+        /// <param name="extensions">
+        /// Additional custom data provided by the server.
+        /// </param>
+        /// <param name="contextData">
+        /// Additional custom data provided by client extensions.
+        /// </param>
+        public Response(
+            TBody? body,
+            Exception? exception,
+            bool isPatch = false,
+            IReadOnlyDictionary<string, object?>? extensions = null,
+            IReadOnlyDictionary<string, object?>? contextData = null)
         {
             if (body is null && exception is null)
             {
@@ -36,6 +48,8 @@ namespace StrawberryShake
 
             Body = body;
             Exception = exception;
+            Extensions = extensions;
+            ContextData = contextData;
             IsPatch = isPatch;
         }
 
@@ -54,6 +68,16 @@ namespace StrawberryShake
         /// shall be patched onto a previous one.
         /// </summary>
         public bool IsPatch { get; }
+
+        /// <summary>
+        /// Gets additional custom data provided by the server.
+        /// </summary>
+        public IReadOnlyDictionary<string, object?>? Extensions { get; }
+
+        /// <summary>
+        /// Gets additional custom data provided by client extensions.
+        /// </summary>
+        public IReadOnlyDictionary<string, object?>? ContextData { get; }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing,

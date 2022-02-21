@@ -21,6 +21,12 @@ namespace StrawberryShake.Transport.InMemory
                 throw new ArgumentNullException(nameof(createClientAsync));
         }
 
+        public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
+            OperationRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
         public async IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
             OperationRequest request,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)

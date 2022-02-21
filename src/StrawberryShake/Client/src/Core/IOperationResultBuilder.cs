@@ -23,6 +23,23 @@ namespace StrawberryShake
         /// <returns>
         /// Returns the runtime result.
         /// </returns>
-        IOperationResult<TResultData> Build(Response<TResponseBody> response);
+        IOperationResult<TResultData> Build(
+            Response<TResponseBody> response);
+
+        /// <summary>
+        /// Patch runtime operation result.
+        /// </summary>
+        /// <param name="response">
+        /// The serialized result.
+        /// </param>
+        /// <param name="result">
+        /// The previous result.
+        /// </param>
+        /// <returns>
+        /// Returns the runtime result.
+        /// </returns>
+        IOperationResult<TResultData> Patch(
+            Response<TResponseBody> response,
+            IOperationResult<TResultData> result);
     }
 }

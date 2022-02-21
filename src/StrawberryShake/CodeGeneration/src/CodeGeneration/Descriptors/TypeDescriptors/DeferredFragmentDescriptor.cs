@@ -1,5 +1,4 @@
 using HotChocolate;
-using HotChocolate.Stitching.SchemaDefinitions;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 

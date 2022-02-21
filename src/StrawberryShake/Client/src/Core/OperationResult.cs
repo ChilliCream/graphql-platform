@@ -83,8 +83,8 @@ namespace StrawberryShake
         /// The data info.
         /// </param>
         /// <returns></returns>
-        public IOperationResult<T> WithData(T data, IOperationResultDataInfo dataInfo) =>
-            new OperationResult<T>(data, dataInfo, DataFactory, Errors, Extensions, ContextData);
+        public IOperationResult<T> WithData(T data, IOperationResultDataInfo dataInfo)
+            => new OperationResult<T>(data, dataInfo, DataFactory, Errors, Extensions, ContextData);
     }
 
     /// <summary>
@@ -96,8 +96,8 @@ namespace StrawberryShake
         private static readonly MethodInfo _factory =
             typeof(OperationResult)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .First(m => 
-                    m.IsGenericMethodDefinition && 
+                .First(m =>
+                    m.IsGenericMethodDefinition &&
                     m.Name.Equals(nameof(Create), StringComparison.Ordinal));
 
         public static IOperationResult Create(

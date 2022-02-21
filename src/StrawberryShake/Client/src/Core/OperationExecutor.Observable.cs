@@ -75,6 +75,7 @@ namespace StrawberryShake
                 {
                     CancellationToken token = session.RequestSession.Token;
                     IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
+                    IOperationResult<TResult>? result = null;
 
                     await foreach (Response<TData>? response in
                         _connection.ExecuteAsync(_request)
@@ -86,8 +87,16 @@ namespace StrawberryShake
                             return;
                         }
 
-                        IOperationResult<TResult> result = resultBuilder.Build(response);
-                        _operationStore.Set(_request, result);
+                        if (response.IsPatch)
+                        {
+                            result = resultBuilder.Patch(response, result!);
+                            _operationStore.Set(_request, result);
+                        }
+                        else
+                        {
+                            result = resultBuilder.Build(response);
+                            _operationStore.Set(_request, result);
+                        }
 
                         if (!session.HasStoreSession)
                         {

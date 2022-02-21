@@ -60,7 +60,7 @@ namespace StrawberryShake
             {
                 if (response.IsPatch)
                 {
-                    result = resultBuilder.Patch(response, result);
+                    result = resultBuilder.Patch(response, result!);
                     _operationStore.Set(request, result);
                 }
                 else

@@ -26,6 +26,10 @@ namespace StrawberryShake.Transport.WebSockets
         }
 
         /// <inheritdoc />
+        public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(OperationRequest request)
+        {
+            throw new NotImplementedException();
+        }
         public async IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
             OperationRequest request,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
