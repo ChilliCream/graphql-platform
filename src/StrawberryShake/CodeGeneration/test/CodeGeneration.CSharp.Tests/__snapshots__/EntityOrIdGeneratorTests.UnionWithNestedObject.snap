@@ -297,7 +297,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IStoreUserSettingForResult
+    public partial interface IStoreUserSettingForResult
     {
         public global::Foo.Bar.IStoreUserSettingFor_StoreUserSettingFor StoreUserSettingFor
         {
@@ -307,13 +307,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IStoreUserSettingFor_StoreUserSettingFor
+    public partial interface IStoreUserSettingFor_StoreUserSettingFor
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IStoreUserSettingFor_StoreUserSettingFor_UserSettingSuccess : IStoreUserSettingFor_StoreUserSettingFor
+    public partial interface IStoreUserSettingFor_StoreUserSettingFor_UserSettingSuccess : IStoreUserSettingFor_StoreUserSettingFor
     {
         public global::System.Int32 Id
         {
@@ -323,7 +323,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IStoreUserSettingFor_StoreUserSettingFor_UserSettingError : IStoreUserSettingFor_StoreUserSettingFor
+    public partial interface IStoreUserSettingFor_StoreUserSettingFor_UserSettingError : IStoreUserSettingFor_StoreUserSettingFor
     {
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IStoreUserSettingFor_StoreUserSettingFor_Errors> Errors
         {
@@ -333,7 +333,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IStoreUserSettingFor_StoreUserSettingFor_Errors
+    public partial interface IStoreUserSettingFor_StoreUserSettingFor_Errors
     {
         public global::Foo.Bar.ErrorCode? Code
         {
@@ -348,7 +348,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IStoreUserSettingFor_StoreUserSettingFor_Errors_ErrorNode : IStoreUserSettingFor_StoreUserSettingFor_Errors
+    public partial interface IStoreUserSettingFor_StoreUserSettingFor_Errors_ErrorNode : IStoreUserSettingFor_StoreUserSettingFor_Errors
     {
     }
 
@@ -588,10 +588,10 @@ namespace Foo.Bar
         = new global::StrawberryShake.DocumentHash("sha1Hash", "f33df9abf35b15407c80896d34adc22dd9dc8695");
         public override global::System.String ToString()
         {
-#if NETSTANDARD2_0
-        return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#if NETCOREAPP3_1_OR_GREATER
+        return global::System.Text.Encoding.UTF8.GetString(Body);
 #else
-            return global::System.Text.Encoding.UTF8.GetString(Body);
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
 #endif
         }
     }
@@ -711,7 +711,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IStoreUserSettingForMutation : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IStoreUserSettingForMutation : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IStoreUserSettingForResult>> ExecuteAsync(global::System.Int32 userId, global::System.Int32 customerId, global::Foo.Bar.StoreUserSettingForInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IStoreUserSettingForResult>> Watch(global::System.Int32 userId, global::System.Int32 customerId, global::Foo.Bar.StoreUserSettingForInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -739,7 +739,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IStoreUserSettingForMutation StoreUserSettingFor
         {
@@ -985,7 +985,14 @@ namespace Foo.Bar.State
             }
             else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+                else
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IStoreUserSettingForResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -1276,7 +1283,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
+        private sealed class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
             public ClientServiceProvider(System.IServiceProvider provider)

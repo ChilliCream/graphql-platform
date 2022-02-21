@@ -1,0 +1,7 @@
+﻿type Address @key(fields: "matchCode") {
+  matchCode: String
+}
+
+type Query {
+  address(id: Int!): Address!
+}

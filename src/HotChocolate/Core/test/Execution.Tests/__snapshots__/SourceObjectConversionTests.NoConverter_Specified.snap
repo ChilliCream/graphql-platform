@@ -1,71 +1,20 @@
 ﻿{
-  "Label": null,
-  "Path": null,
-  "Data": {
-    "foo": {
-      "qux": null
-    }
-  },
-  "Errors": [
+  "errors": [
     {
-      "Message": "Unexpected Execution Error",
-      "Code": null,
-      "Path": {
-        "Parent": {
-          "Parent": null,
-          "Depth": 0,
-          "Name": "foo"
-        },
-        "Depth": 1,
-        "Name": "qux"
-      },
-      "Locations": [
-        {
-          "Line": 1,
-          "Column": 9
-        }
+      "message": "The resolver parent type of field \u0060Baz.qux\u0060 is \u0060HotChocolate.Execution.SourceObjectConversionTests\u002BFoo\u0060 but the resolver requested the type \u0060HotChocolate.Execution.SourceObjectConversionTests\u002BBaz\u0060. The resolver was unable to cast the parent type to the requested type.",
+      "path": [
+        "foo",
+        "qux"
       ],
-      "Extensions": null,
-      "Exception": {
-        "ClassName": "System.InvalidCastException",
-        "Message": "Unable to cast object of type 'Foo' to type 'Baz'.",
-        "Data": null,
-        "InnerException": null,
-        "HelpURL": null,
-        "StackTraceString": "   at lambda_method6653(Closure , Object )\n   at HotChocolate.Execution.Processing.SelectionSetExtensions.TryResolveAndCompleteInline(IOperationContext operationContext, IMiddlewareContext middlewareContext, ResultMap resultMap, Object parent, ISelection selection, Int32 responseIndex, Path path) in /Users/michael/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/SelectionSetExtensions.cs:line 198",
-        "RemoteStackTraceString": null,
-        "RemoteStackIndex": 0,
-        "ExceptionMethod": null,
-        "HResult": -2147467262,
-        "Source": "System.Private.CoreLib",
-        "WatsonBuckets": null
-      },
-      "SyntaxNode": {
-        "Kind": "Field",
-        "Alias": null,
-        "Arguments": [],
-        "SelectionSet": null,
-        "Location": {
-          "Start": 8,
-          "End": 13,
-          "Line": 1,
-          "Column": 9
-        },
-        "Name": {
-          "Kind": "Name",
-          "Location": {
-            "Start": 8,
-            "End": 13,
-            "Line": 1,
-            "Column": 9
-          },
-          "Value": "qux"
-        },
-        "Directives": []
+      "extensions": {
+        "field": "Baz.qux",
+        "code": "HC0053"
       }
     }
   ],
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  "data": {
+    "foo": {
+      "qux": null
+    }
+  }
 }

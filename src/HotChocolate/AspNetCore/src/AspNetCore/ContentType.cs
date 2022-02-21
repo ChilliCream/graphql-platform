@@ -1,15 +1,13 @@
-using System;
+namespace HotChocolate.AspNetCore;
 
-namespace HotChocolate.AspNetCore
+internal static class ContentType
 {
-    internal static class ContentType
-    {
-        public const string GraphQL = "application/graphql; charset=utf-8";
-        public const string Json = "application/json; charset=utf-8";
-        public const string MultiPart = "multipart/mixed; boundary=\"-\"";
+    public const string GraphQL = "application/graphql; charset=utf-8";
+    public const string Json = "application/json; charset=utf-8";
+    public const string MultiPart = "multipart/mixed; boundary=\"-\"";
 
-        public static ReadOnlySpan<char> JsonSpan() => new char[]
-        {
+    public static ReadOnlySpan<char> JsonSpan() => new char[]
+    {
             'a',
             'p',
             'p',
@@ -26,10 +24,10 @@ namespace HotChocolate.AspNetCore
             's',
             'o',
             'n'
-        };
+    };
 
-        public static ReadOnlySpan<char> MultiPartSpan() => new char[]
-        {
+    public static ReadOnlySpan<char> MultiPartSpan() => new char[]
+    {
             'm',
             'u',
             'l',
@@ -49,6 +47,5 @@ namespace HotChocolate.AspNetCore
             'a',
             't',
             'a'
-        };
-    }
+    };
 }

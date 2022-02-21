@@ -2,28 +2,177 @@
 title: "Scalars"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
-A GraphQL schema should be built as expressive as possible.
-Just from looking at the schema, a developer should know how to use the API.
-In GraphQL we are not limited to only describing the structure of a type, we can even describe value types.
-Scalar types represent types that can hold data of a specific kind.
-Scalars are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type.
+Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
 
-A scalar must only know how to serialize and deserialize the value of the field.
-GraphQL gives us the freedom to define custom scalar types.
-This makes them the perfect tool for expressive value types.
-We could, for example, create a scalar for `CreditCardNumber` or `NonEmptyString`.
+Besides basic scalars like `String` and `Int`, we can also create custom scalars like `CreditCardNumber` or `SocialSecurityNumber`. These custom scalars can greatly enhance the expressiveness of our schema and help new developers to get a grasp of our API.
 
-The GraphQL specification defines the following scalars
+# GraphQL scalars
 
-| Type      | Description                                                 |
-| --------- | ----------------------------------------------------------- |
-| `Int`     | Signed 32-bit numeric non-fractional value                  |
-| `Float`   | Double-precision fractional values as specified by IEEE 754 |
-| `String`  | UTF-8 character sequences                                   |
-| `Boolean` | Boolean type representing true or false                     |
-| `ID`      | Unique identifier                                           |
+The GraphQL specification defines the following scalars.
+
+## String
+
+```sdl
+type Product {
+  description: String;
+}
+```
+
+This scalar represents an UTF-8 character sequence.
+
+It is automatically inferred from the usage of the .NET [string type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type).
+
+## Boolean
+
+```sdl
+type Product {
+  purchasable: Boolean;
+}
+```
+
+This scalar represent a Boolean value, which can be either `true` or `false`.
+
+It is automatically inferred from the usage of the .NET [bool type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool).
+
+## Int
+
+```sdl
+type Product {
+  quantity: Int;
+}
+```
+
+This scalar represents a signed 32-bit numeric non-fractional value.
+
+It is automatically inferred from the usage of the .NET [int type](https://docs.microsoft.com/dotnet/api/system.int32).
+
+## Float
+
+```sdl
+type Product {
+  price: Float;
+}
+```
+
+This scalar represents double-precision fractional values, as specified by IEEE 754.
+
+It is automatically inferred from the usage of the .NET [float](https://docs.microsoft.com/dotnet/api/system.single) or [double type](https://docs.microsoft.com/dotnet/api/system.double).
+
+> Note: We introduced a separate `Decimal` scalar to handle `decimal` values.
+
+## ID
+
+```sdl
+type Product {
+  id: ID!;
+}
+```
+
+This scalar is used to facilitate technology-specific Ids, like `int`, `string` or `Guid`.
+
+It is **not** automatically inferred and the `IdType` needs to be [explicitly specified](/docs/hotchocolate/defining-a-schema/object-types#explicit-types).
+
+`ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
+
+<ExampleTabs>
+<Annotation>
+
+```csharp
+public class Product
+{
+    [GraphQLType(typeof(IdType))]
+    public int Id { get; set; }
+}
+
+public class Query
+{
+    public Product GetProduct([GraphQLType(typeof(IdType))] int id)
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+</Annotation>
+<Code>
+
+```csharp
+public class Product
+{
+    public int Id { get; set; }
+}
+
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
+    {
+        descriptor.Name("Product");
+
+        descriptor.Field(f => f.Id).Type<IdType>();
+    }
+}
+
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name(OperationTypeNames.Query);
+
+        descriptor
+            .Field("product")
+            .Argument("id", a => a.Type<IdType>())
+            .Type<ProductType>()
+            .Resolve(context =>
+            {
+                var id = context.ArgumentValue<int>("id");
+
+                // Omitted code for brevity
+            });
+    }
+}
+```
+
+</Code>
+<Schema>
+
+```csharp
+public class Product
+{
+    public int Id { get; set; }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+               type Query {
+                 product(id: ID): Product
+               }
+
+               type Product {
+                 id: ID
+               }
+            ")
+            .BindRuntimeType<Product>()
+            .AddResolver("Query", "product", context =>
+            {
+                var id = context.ArgumentValue<int>("id");
+
+                // Omitted code for brevity
+            });
+    }
+}
+```
+
+</Schema>
+</ExampleTabs>
+
+Notice how our code uses `int` for the `Id`, but in a request / response it would be serialized as a `string`. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.
 
 # .NET Scalars
 
@@ -137,6 +286,8 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 dotnet add package HotChocolate.Types.Scalars
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 **Available Scalars:**
 
 | Type             | Description                                                                                                                                              |
@@ -165,13 +316,15 @@ dotnet add package HotChocolate.Types.Scalars
 | PositiveInt      | Signed 32‐bit numeric non‐fractional value of at least the value 1                                                                                       |
 | PostalCode       | Postal code                                                                                                                                              |
 | Port             | TCP port within the range of 0 to 65535                                                                                                                  |
-| Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors)                                                 |
-| Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors)                                                |
+| Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                       |
+| Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                      |
+| SignedByte       | Signed 8-bit numeric non‐fractional value greater than or equal to -127 and smaller than or equal to 128.                                                |
 | UnsignedInt      | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
 | UnsignedLong     | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
+| UnsignedShort    | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.                                                   |
 | UtcOffset        | A value of format `±hh:mm`                                                                                                                               |
 
-[1]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors
+[1]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
 [2]: https://tools.ietf.org/html/rfc3339
 [3]: https://tools.ietf.org/html/rfc7042#page-19
 [4]: https://tools.ietf.org/html/rfc7043
@@ -194,6 +347,8 @@ It can be installed like the following.
 ```bash
 dotnet add package HotChocolate.Types.NodaTime
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 **Available Scalars:**
 

@@ -9,8 +9,7 @@ namespace StrawberryShake.Transport.WebSockets
     /// Represents a client for sending and receiving messages responses over a abstract socket
     /// identified by a URI and name.
     /// </summary>
-    public interface ISocketClient
-        : IAsyncDisposable
+    public interface ISocketClient : IAsyncDisposable
     {
         /// <summary>
         /// The URI where the socket should connect to
@@ -31,7 +30,6 @@ namespace StrawberryShake.Transport.WebSockets
         /// If the socket is open or closed
         /// </summary>
         bool IsClosed { get; }
-
 
         /// <summary>
         /// Sends data asynchronously to a connected Socket object.

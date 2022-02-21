@@ -79,7 +79,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
+        private sealed class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
             public ClientServiceProvider(System.IServiceProvider provider)
@@ -384,9 +384,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
     /// A connection to a list of items.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchHero_Search_Friends_CharacterConnection : global::System.IEquatable<SearchHero_Search_Friends_CharacterConnection>, ISearchHero_Search_Friends_CharacterConnection
+    public partial class SearchHero_Search_Friends_FriendsConnection : global::System.IEquatable<SearchHero_Search_Friends_FriendsConnection>, ISearchHero_Search_Friends_FriendsConnection
     {
-        public SearchHero_Search_Friends_CharacterConnection(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHero_Search_Friends_Nodes?>? nodes)
+        public SearchHero_Search_Friends_FriendsConnection(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHero_Search_Friends_Nodes?>? nodes)
         {
             Nodes = nodes;
         }
@@ -399,7 +399,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             get;
         }
 
-        public virtual global::System.Boolean Equals(SearchHero_Search_Friends_CharacterConnection? other)
+        public virtual global::System.Boolean Equals(SearchHero_Search_Friends_FriendsConnection? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -436,7 +436,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
                 return false;
             }
 
-            return Equals((SearchHero_Search_Friends_CharacterConnection)obj);
+            return Equals((SearchHero_Search_Friends_FriendsConnection)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -592,7 +592,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHeroResult
+    public partial interface ISearchHeroResult
     {
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHero_Search?>? Search
         {
@@ -602,19 +602,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search
+    public partial interface ISearchHero_Search
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Starship : ISearchHero_Search
+    public partial interface ISearchHero_Search_Starship : ISearchHero_Search
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Human : ISearchHero_Search
+    public partial interface ISearchHero_Search_Human : ISearchHero_Search
     {
         public global::System.String Name
         {
@@ -629,7 +629,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Droid : ISearchHero_Search
+    public partial interface ISearchHero_Search_Droid : ISearchHero_Search
     {
         public global::System.String Name
         {
@@ -642,7 +642,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
     /// A connection to a list of items.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Friends
+    public partial interface ISearchHero_Search_Friends
     {
         /// <summary>
         /// A flattened list of the nodes.
@@ -658,13 +658,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
     /// A connection to a list of items.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Friends_CharacterConnection : ISearchHero_Search_Friends
+    public partial interface ISearchHero_Search_Friends_FriendsConnection : ISearchHero_Search_Friends
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Friends_Nodes
+    public partial interface ISearchHero_Search_Friends_Nodes
     {
         public global::System.String Name
         {
@@ -674,13 +674,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Friends_Nodes_Droid : ISearchHero_Search_Friends_Nodes
+    public partial interface ISearchHero_Search_Friends_Nodes_Droid : ISearchHero_Search_Friends_Nodes
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHero_Search_Friends_Nodes_Human : ISearchHero_Search_Friends_Nodes
+    public partial interface ISearchHero_Search_Friends_Nodes_Human : ISearchHero_Search_Friends_Nodes
     {
     }
 
@@ -746,10 +746,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         = new global::StrawberryShake.DocumentHash("sha1Hash", "ab273d4e301554c50a6325fad57fa04d3744ef1a");
         public override global::System.String ToString()
         {
-#if NETSTANDARD2_0
-        return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#if NETCOREAPP3_1_OR_GREATER
+        return global::System.Text.Encoding.UTF8.GetString(Body);
 #else
-            return global::System.Text.Encoding.UTF8.GetString(Body);
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
 #endif
         }
     }
@@ -871,7 +871,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchHeroQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface ISearchHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISearchHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -899,7 +899,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
     /// Represents the StarWarsUnionListClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IStarWarsUnionListClient
+    public partial interface IStarWarsUnionListClient
     {
         global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHeroQuery SearchHero
         {
@@ -920,7 +920,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
-        public HumanEntity(global::System.String name = default !, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.CharacterConnectionData? friends = default !)
+        public HumanEntity(global::System.String name = default !, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.FriendsConnectionData? friends = default !)
         {
             Name = name;
             Friends = friends;
@@ -931,7 +931,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             get;
         }
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.CharacterConnectionData? Friends
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.FriendsConnectionData? Friends
         {
             get;
         }
@@ -1102,7 +1102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             return new SearchHero_Search_Human(entity.Name, MapISearchHero_Search_Friends(entity.Friends, snapshot));
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHero_Search_Friends? MapISearchHero_Search_Friends(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.CharacterConnectionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHero_Search_Friends? MapISearchHero_Search_Friends(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.FriendsConnectionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (data is null)
             {
@@ -1110,9 +1110,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             }
 
             ISearchHero_Search_Friends returnValue = default !;
-            if (data?.__typename.Equals("CharacterConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                returnValue = new SearchHero_Search_Friends_CharacterConnection(MapISearchHero_Search_Friends_NodesArray(data.Nodes, snapshot));
+                returnValue = new SearchHero_Search_Friends_FriendsConnection(MapISearchHero_Search_Friends_NodesArray(data.Nodes, snapshot));
             }
             else
             {
@@ -1266,7 +1266,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             }
             else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+                else
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
 
             return new global::StrawberryShake.OperationResult<ISearchHeroResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -1366,7 +1373,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.CharacterConnectionData? DeserializeISearchHero_Search_Friends(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.FriendsConnectionData? DeserializeISearchHero_Search_Friends(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
@@ -1374,9 +1381,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             }
 
             var typename = obj.Value.GetProperty("__typename").GetString();
-            if (typename?.Equals("CharacterConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (typename?.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.CharacterConnectionData(typename, nodes: UpdateISearchHero_Search_Friends_NodesEntityArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "nodes"), entityIds));
+                return new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.FriendsConnectionData(typename, nodes: UpdateISearchHero_Search_Friends_NodesEntityArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "nodes"), entityIds));
             }
 
             throw new global::System.NotSupportedException();
@@ -1442,9 +1449,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     ///<summary>A connection to a list of items.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class CharacterConnectionData
+    public partial class FriendsConnectionData
     {
-        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = default !)
+        public FriendsConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;

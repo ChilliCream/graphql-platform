@@ -3,26 +3,28 @@ using System.Security.Claims;
 using HotChocolate.Execution.Processing;
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.AspNetCore.Subscriptions;
+
+public class SubscriptionSessionMock : ISubscriptionSession
 {
-    public class SubscriptionSessionMock : ISubscriptionSession
+    public string Id { get; set; } = "abc";
+
+    public ISubscription Subscription => throw new NotImplementedException();
+
+    public bool IsCompleted { get; private set; }
+
+    public bool IsDisposed { get; private set; }
+
+    public event EventHandler Completed;
+
+    public void Complete()
     {
-        public string Id { get; set; } = "abc";
+        IsCompleted = true;
+        Completed?.Invoke(this, EventArgs.Empty);
+    }
 
-        public ISubscription Subscription => throw new NotImplementedException();
-
-        public bool IsDisposed { get; private set; }
-
-        public event EventHandler Completed;
-
-        public void Complete()
-        {
-            Completed?.Invoke(this, EventArgs.Empty);
-        }
-
-        public void Dispose()
-        {
-            IsDisposed = true;
-        }
+    public void Dispose()
+    {
+        IsDisposed = true;
     }
 }

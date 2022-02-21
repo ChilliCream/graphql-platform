@@ -4,9 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Language.Utilities;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 #if NETCOREAPP2_1
 using Snapshooter;
@@ -14,10 +12,11 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public class InputObjectTypeTests
-        : TypeTestBase
+    public class InputObjectTypeTests : TypeTestBase
     {
         [Fact]
         public void InputObjectType_DynamicName()
@@ -118,22 +117,6 @@ namespace HotChocolate.Types
             Assert.Collection(fooType.Fields,
                 t => Assert.Equal("id", t.Name),
                 t => Assert.Equal("name", t.Name));
-        }
-
-        [Fact]
-        public void ParseLiteral()
-        {
-            // arrange
-            ISchema schema = Create();
-            InputObjectType inputObjectType = schema.GetType<InputObjectType>("Object1");
-            ObjectValueNode literal = CreateObjectLiteral();
-
-            // act
-            var obj = inputObjectType.ParseLiteral(literal);
-
-            // assert
-            Assert.IsType<SerializationInputObject1>(obj);
-            obj.MatchSnapshot();
         }
 
         [Fact]
@@ -342,21 +325,7 @@ namespace HotChocolate.Types
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
 
-        private static ObjectValueNode CreateObjectLiteral()
-        {
-            return new(new List<ObjectFieldNode>
-            {
-                new("foo",
-                    new ObjectValueNode(
-                        new List<ObjectFieldNode>
-                        {
-                            new("fooList", new ListValueNode(Array.Empty<IValueNode>()))
-                        })),
-                new("bar", new StringValueNode("123"))
-            });
-        }
-
-        public ISchema Create()
+        private ISchema Create()
         {
             return SchemaBuilder.New()
                 .ModifyOptions(o => o.StrictValidation = false)
@@ -404,13 +373,8 @@ namespace HotChocolate.Types
                     .Create();
 
             // assert
-            Exception ex =
-                Assert.Throws<SchemaException>(Action)
-                   .Errors.First().Exception;
-
-            Assert.Equal(
-                "inputType",
-                Assert.IsType<ArgumentException>(ex).ParamName);
+            Exception? ex = Assert.Throws<SchemaException>(Action).Errors.First().Exception;
+            Assert.Equal("inputType", Assert.IsType<ArgumentException>(ex).ParamName);
         }
 
         [Fact]
@@ -482,21 +446,15 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Convert_Parts_Of_The_Input_Graph()
+        public async Task Convert_Parts_Of_The_Input_Graph()
         {
             // arrange
-            ServiceProvider services = new ServiceCollection()
-                .AddSingleton<ITypeConverter, DefaultTypeConverter>()
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
                 .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text })
                 .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text })
-                .BuildServiceProvider();
-
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .AddServices(services)
-                .Create();
-
-            IRequestExecutor executor = schema.MakeExecutable();
+                .BuildRequestExecutorAsync();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -504,483 +462,6 @@ namespace HotChocolate.Types
 
             // assert
             result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public void IsInstanceOfType_ValueIsNull_True()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type =
-                schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var result = type.IsInstanceOfType((object)null);
-
-            // assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IsInstanceOfType_ValueIsSimpleInput_True()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type =
-                schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var result = type.IsInstanceOfType(new SimpleInput());
-
-            // assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IsInstanceOfType_ValueIsObject_False()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type =
-                schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var result = type.IsInstanceOfType(new object());
-
-            // assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void IValueNode_IsInstanceOfType_ValueIsNull_ArgExec()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            void Action() => type.IsInstanceOfType(default!);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(Action);
-        }
-
-        [Fact]
-        public void IValueNode_IsInstanceOfType_ValueIsNullValueNode_True()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var result = type.IsInstanceOfType(NullValueNode.Default);
-
-            // assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IValueNode_IsInstanceOfType_ValueIsObjectValueNode_True()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var result = type.IsInstanceOfType(new ObjectValueNode());
-
-            // assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IValueNode_IsInstanceOfType_ValueIsStringValueNode_False()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var result = type.IsInstanceOfType(new StringValueNode("foo"));
-
-            // assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void ParseValue_ValueIsNull()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            IValueNode valueNode = type.ParseValue(null);
-
-            // assert
-            valueNode.Print().MatchSnapshot();
-        }
-
-        [Fact]
-        public void ParseValue_ValueIsSimpleInput()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            IValueNode valueNode = type.ParseValue(
-                new SimpleInput
-                {
-                    Id = 1,
-                    Name = "foo"
-                });
-
-            // assert
-            valueNode.Print().MatchSnapshot();
-        }
-
-        [Fact]
-        public void ParseLiteral_ValueIsNull_ArgExec()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            void Action() => type.ParseLiteral(null!);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(Action);
-        }
-
-        [Fact]
-        public void ParseLiteral_ValueIsNullValueNode()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var result = type.ParseLiteral(NullValueNode.Default);
-
-            // assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public void ParseLiteral_ValueIsObjectValueNode()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var result = type.ParseLiteral(
-                new ObjectValueNode(
-                    new ObjectFieldNode("name", new StringValueNode("foo"))));
-
-            // assert
-            Assert.Equal("foo", Assert.IsType<SimpleInput>(result).Name);
-        }
-
-        [Fact]
-        public void ParseLiteral_ValueIsStringValueNode_ArgumentException()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type =
-                schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            void Action() => type.ParseLiteral(new StringValueNode("foo"));
-
-            // assert
-            Assert.Throws<SerializationException>(Action);
-        }
-
-        [Fact]
-        public void Serialize_ValueIsNull()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d.Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type =
-                schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var serialized = type.Serialize(null);
-
-            // assert
-            Assert.Null(serialized);
-        }
-
-        [Fact]
-        public void Serialize_ValueIsSimpleInput()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type =
-                schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var serialized = type.Serialize(
-                new SimpleInput
-                {
-                    Id = 1,
-                    Name = "foo"
-                });
-
-            // assert
-            serialized.MatchSnapshot();
-        }
-
-        [Fact]
-        public void Serialize_ValueIsDictionary()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type =
-                schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var serialized = type.Serialize(
-                new Dictionary<string, object>
-                {
-                    { "name", "foo" }
-                });
-
-            // assert
-            serialized.MatchSnapshot();
-        }
-
-        [Fact]
-        public void Deserialize_ValueIsNull()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type =
-                schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var result = type.TryDeserialize(null, out var value);
-
-            // assert
-            Assert.True(result);
-            Assert.Null(value);
-        }
-
-        [Fact]
-        public void Deserialize_ValueIsDictionary()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType<SimpleInput>(d => d
-                    .Ignore(t => t.Id)))
-                .Create();
-
-            InputObjectType type =
-                schema.GetType<InputObjectType>("SimpleInput");
-
-            // act
-            var result = type.TryDeserialize(
-                new Dictionary<string, object>
-                {
-                    { "name", "foo" }
-                },
-                out var value);
-
-            // assert
-            Assert.True(result);
-            Assert.Equal("foo", Assert.IsType<SimpleInput>(value).Name);
-        }
-
-        [Fact]
-        public void Deserialize_ClrTypeIsObject_ValueIsDictionary()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddType(new InputObjectType(d => d
-                    .Name("Bar")
-                    .Field("name")
-                    .Type<StringType>()))
-                .Create();
-
-            InputObjectType type =
-                schema.GetType<InputObjectType>("Bar");
-
-            // act
-            var result = type.TryDeserialize(
-                new Dictionary<string, object>
-                {
-                    { "name", "foo" }
-                },
-                out var value);
-
-            // assert
-            Assert.True(result);
-            Assert.IsType<Dictionary<string, object>>(value);
         }
 
         [Fact]
@@ -1090,6 +571,21 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Specify_Argument_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddInputObjectType(d =>
+                {
+                    d.Name("Bar");
+                    d.Field("Foo").Type("String");
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public class InputWithInterfaceType : InputObjectType<InputWithInterface>
         {
             protected override void Configure(
@@ -1100,15 +596,204 @@ namespace HotChocolate.Types
             }
         }
 
+        [Fact]
+        public void InputObjectType_InInputObjectType_ThrowsSchemaException()
+        {
+            // arrange
+            // act
+            void Fail()
+                => SchemaBuilder
+                    .New()
+                    .AddQueryType(x => x.Name("Query").Field("Foo").Resolve("bar"))
+                    .AddType<InputObjectType<InputObjectType<Foo>>>()
+                    .ModifyOptions(o => o.StrictRuntimeTypeValidation = true)
+                    .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(Fail).Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Input_Casing_Is_Recognized()
+        {
+            // arrange
+            // act
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddInputObjectType<FieldNameInput>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AnnotationBased_DepreactedInputTypes_NullableFields_Valid()
+        {
+            // arrange
+            // act
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddInputObjectType<DeprecatedInputFields>()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AnnotationBased_DepreactedInputTypes_NonNullableField_Invalid()
+        {
+            // arrange
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .AddInputObjectType<DeprecatedNonNull>()
+                .BuildSchemaAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(call);
+            exception.Errors.Single().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DepreactedInputTypes_NullableFields_Valid()
+        {
+            // arrange
+            // act
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .AddInputObjectType(x => x.Name("Foo").Field("bar").Type<IntType>().Deprecated("b"))
+                .BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DepreactedInputTypes_NonNullableField_Invalid()
+        {
+            // arrange
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .AddInputObjectType(x => x
+                    .Name("Foo")
+                    .Field("bar")
+                    .Type<NonNullType<IntType>>()
+                    .Deprecated("b"))
+                .BuildSchemaAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(call);
+            exception.Errors.Single().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DepreactedInputTypes_NullableFields_Valid()
+        {
+            // arrange
+            // act
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .AddDocumentFromString(@"
+                    input Foo {
+                        bar: String @deprecated(reason: ""reason"")
+                    }
+                ")
+                .BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DepreactedInputTypes_NonNullableField_Invalid()
+        {
+            // arrange
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd"))
+                .AddDocumentFromString(@"
+                    input Foo {
+                        bar: String! @deprecated(reason: ""reason"")
+                    }
+                ")
+                .BuildSchemaAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(call);
+            exception.Errors.Single().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void OneOf_descriptor_is_null()
+        {
+            void Fail() => InputObjectTypeDescriptorExtensions.OneOf(null);
+
+            Assert.Throws<ArgumentNullException>(Fail);
+        }
+
+        [Fact]
+        public void OneOf_generic_descriptor_is_null()
+        {
+            void Fail() => InputObjectTypeDescriptorExtensions.OneOf<object>(null);
+
+            Assert.Throws<ArgumentNullException>(Fail);
+        }
+
+        [Fact]
+        public void Deprecate_fields_with_attribute()
+        {
+            SchemaBuilder.New()
+                .AddInputObjectType<InputWithDeprecatedField>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        public class FieldNameInput
+        {
+            public string? YourFieldName { get; set; }
+
+            public string YourFieldname { get; set; } = default!;
+        }
+
+        public class DeprecatedInputFields
+        {
+            [Obsolete("reason")]
+            public int? ObsoleteWithReason { get; set; }
+
+            [Obsolete]
+            public int? Obsolete { get; set; }
+
+            [GraphQLDeprecated("reason")]
+            public int? Deprecated { get; set; }
+        }
+
+        public class DeprecatedNonNull
+        {
+            [Obsolete("reason")]
+            public int ObsoleteWithReason { get; set; }
+        }
+
         public class QueryWithInterfaceInput
         {
-            public string Test(InputWithInterface input) => "Foo";
+            public string? Test(InputWithInterface? input) => "Foo";
         }
 
         public class InputWithInterface
         {
-            public string Works { get; set; }
-            public IDoesNotWork DoesNotWork { get; set; }
+            public string? Works { get; set; }
+            public IDoesNotWork? DoesNotWork { get; set; }
         }
 
         public interface IDoesNotWork
@@ -1119,18 +804,18 @@ namespace HotChocolate.Types
         public class SimpleInput
         {
             public int Id { get; set; }
-            public string Name { get; set; }
+            public string? Name { get; set; }
         }
 
         public class SerializationInputObject1
         {
-            public SerializationInputObject2 Foo { get; set; }
-            public string Bar { get; set; } = "Bar";
+            public SerializationInputObject2? Foo { get; set; }
+            public string? Bar { get; set; } = "Bar";
         }
 
         public class SerializationInputObject2
         {
-            public List<SerializationInputObject1> FooList { get; set; } =
+            public List<SerializationInputObject1?>? FooList { get; set; } =
                 new() { new SerializationInputObject1() };
         }
 
@@ -1139,8 +824,9 @@ namespace HotChocolate.Types
             protected override void Configure(
                 IDirectiveTypeDescriptor<FooDirective> descriptor)
             {
-                descriptor.Name("foo");
-                descriptor.Location(DirectiveLocation.InputObject)
+                descriptor
+                    .Name("foo")
+                    .Location(DirectiveLocation.InputObject)
                     .Location(DirectiveLocation.InputFieldDefinition);
             }
         }
@@ -1151,11 +837,12 @@ namespace HotChocolate.Types
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
-                descriptor.Name("Query");
-                descriptor.Field("foo")
+                descriptor
+                    .Name("Query")
+                    .Field("foo")
                     .Argument("a", a => a.Type<FooInputType>())
                     .Type<StringType>()
-                    .Resolve(ctx => ctx.ArgumentValue<Foo>("a").Bar.Text);
+                    .Resolve(ctx => ctx.ArgumentValue<Foo>("a").Bar?.Text);
             }
         }
 
@@ -1174,25 +861,25 @@ namespace HotChocolate.Types
 
         public class Foo
         {
-            public Bar Bar { get; set; }
+            public Bar? Bar { get; set; }
         }
 
         public class FooIgnored
         {
             [GraphQLIgnore]
-            public Bar Bar { get; set; }
+            public Bar? Bar { get; set; }
 
-            public Bar Baz { get; set; }
+            public Bar? Baz { get; set; }
         }
 
         public class Bar
         {
-            public string Text { get; set; }
+            public string? Text { get; set; }
         }
 
         public class Baz
         {
-            public string Text { get; set; }
+            public string? Text { get; set; }
         }
 
         public class QueryWithOptionals
@@ -1210,20 +897,20 @@ namespace HotChocolate.Types
 
         public class FooInput
         {
-            public Optional<string> Bar { get; set; }
-            public string Baz { get; set; }
+            public Optional<string?> Bar { get; set; }
+            public string? Baz { get; set; }
         }
 
         public class FooPayload
         {
             public bool IsBarSet { get; set; }
-            public string Bar { get; set; }
-            public string Baz { get; set; }
+            public string? Bar { get; set; }
+            public string? Baz { get; set; }
         }
 
         public class QueryWithImmutables
         {
-            public FooImmutable Do(FooImmutable input)
+            public FooImmutable? Do(FooImmutable? input)
             {
                 return input;
             }
@@ -1236,28 +923,46 @@ namespace HotChocolate.Types
                 Bar = "default";
             }
 
-            public FooImmutable(string bar, string baz)
+            public FooImmutable(string? bar, string? baz)
             {
                 Bar = bar;
                 Baz = baz;
             }
 
-            public string Bar { get; }
+            public string? Bar { get; }
 
-            public string Baz { get; set; }
+            public string? Baz { get; set; }
 
-            public string Qux { get; private set; }
+            public string? Qux { get; private set; }
         }
 
         public class InputWithDefault
         {
             [DefaultValue("abc")]
-            public string WithStringDefault { get; set; }
+            public string? WithStringDefault { get; set; }
 
             [DefaultValue(null)]
-            public string WithNullDefault { get; set; }
+            public string? WithNullDefault { get; set; }
 
-            public string WithoutDefault { get; set; }
+            [DefaultValue(FooEnum.Bar)]
+            public FooEnum Enum { get; set; }
+
+            public string? WithoutDefault { get; set; }
+        }
+
+        public class InputWithDeprecatedField
+        {
+            [Obsolete]
+            public string? A { get; set; }
+
+            [GraphQLDeprecated("Foo Bar")]
+            public string? B { get; set; }
+        }
+
+        public enum FooEnum
+        {
+            Bar,
+            Baz
         }
     }
 }

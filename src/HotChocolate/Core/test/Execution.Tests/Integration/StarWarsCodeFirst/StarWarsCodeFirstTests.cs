@@ -566,7 +566,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult) queryResult;
+                    var item = (IReadOnlyQueryResult)queryResult;
                     eventResult = item;
                     break;
                 }
@@ -610,7 +610,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult) queryResult;
+                    var item = (IReadOnlyQueryResult)queryResult;
                     eventResult = item;
                     break;
                 }
@@ -656,7 +656,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult) queryResult;
+                    var item = (IReadOnlyQueryResult)queryResult;
                     eventResult = item;
                     break;
                 }
@@ -700,7 +700,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult) queryResult;
+                    var item = (IReadOnlyQueryResult)queryResult;
                     eventResult = item;
                     break;
                 }
@@ -762,6 +762,42 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 {
                     AddDefaultConfiguration(c);
                     c.AddMaxExecutionDepthRule(3);
+                });
+        }
+
+        [Fact]
+        public async Task Execution_Depth_Is_Skipped_For_Introspection()
+        {
+            Snapshot.FullName();
+            await ExpectValid(@"
+                query {
+                    __schema {
+                        types {
+                            fields {
+                                type {
+                                    kind
+                                    name
+                                    ofType {
+                                        kind
+                                        name
+                                        ofType {
+                                            kind
+                                            name
+                                            ofType {
+                                                kind
+                                                name
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }",
+                configure: c =>
+                {
+                    AddDefaultConfiguration(c);
+                    c.AddMaxExecutionDepthRule(3, skipIntrospectionFields: true);
                 });
         }
 
@@ -827,7 +863,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         height
                     }
                 }",
-                request: r=> r.SetVariableValue("if", ifValue))
+                request: r => r.SetVariableValue("if", ifValue))
                 .MatchSnapshotAsync();
         }
 
@@ -848,6 +884,36 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
         }
 
         [Fact]
+        public async Task SkipAll_Default_False()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean! = false) {
+                    human(id: ""1000"") @skip(if: $if) {
+                        name
+                        height
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SkipAll_Default_True()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean! = true) {
+                    human(id: ""1000"") @skip(if: $if) {
+                        name
+                        height
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task SkipAllSecondLevelFields()
         {
             Snapshot.FullName();
@@ -858,7 +924,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         name @skip(if: $if)
                     }
                 }",
-                request: r=> r.SetVariableValue("if", true))
+                request: r => r.SetVariableValue("if", true))
                 .MatchSnapshotAsync();
         }
 
@@ -933,7 +999,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         }
                     }
                 }
-                fragment FriendEdge1 on CharacterEdge {
+                fragment FriendEdge1 on FriendsEdge {
                     node {
                         __typename
                         friends {

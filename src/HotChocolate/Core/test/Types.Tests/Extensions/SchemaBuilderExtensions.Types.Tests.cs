@@ -42,7 +42,7 @@ namespace HotChocolate
 
             // act
             SchemaBuilderExtensions.AddQueryType(builder,
-                t => t.Name("Foo").Field("bar").Resolver("result"));
+                t => t.Name("Foo").Field("bar").Resolve("result"));
 
             // assert
             builder.Create().ToString().MatchSnapshot();
@@ -83,7 +83,7 @@ namespace HotChocolate
 
             // act
             SchemaBuilderExtensions.AddMutationType(builder,
-                t => t.Name("Foo").Field("bar").Resolver("result"));
+                t => t.Name("Foo").Field("bar").Resolve("result"));
 
             // assert
             builder.Create().ToString().MatchSnapshot();
@@ -124,7 +124,7 @@ namespace HotChocolate
 
             // act
             SchemaBuilderExtensions.AddSubscriptionType(builder,
-                t => t.Name("Foo").Field("bar").Resolver("result"));
+                t => t.Name("Foo").Field("bar").Resolve("result"));
 
             // assert
             builder.Create().ToString().MatchSnapshot();
@@ -165,7 +165,7 @@ namespace HotChocolate
 
             // act
             SchemaBuilderExtensions.AddQueryType<Foo>(builder,
-                t => t.Name("Foo").Field(f => f.Bar).Resolver("result"));
+                t => t.Name("Foo").Field(f => f.Bar).Resolve("result"));
 
             // assert
             builder.Create().ToString().MatchSnapshot();
@@ -207,7 +207,7 @@ namespace HotChocolate
 
             // act
             SchemaBuilderExtensions.AddMutationType<Foo>(builder,
-                t => t.Name("Foo").Field(f => f.Bar).Resolver("result"));
+                t => t.Name("Foo").Field(f => f.Bar).Resolve("result"));
 
             // assert
             builder.Create().ToString().MatchSnapshot();
@@ -249,7 +249,7 @@ namespace HotChocolate
 
             // act
             SchemaBuilderExtensions.AddSubscriptionType<Foo>(builder,
-                t => t.Name("Foo").Field(f => f.Bar).Resolver("result"));
+                t => t.Name("Foo").Field(f => f.Bar).Resolve("result"));
 
             // assert
             builder.Create().ToString().MatchSnapshot();
@@ -516,7 +516,7 @@ namespace HotChocolate
             var queryType = new ObjectType(t => t
                 .Name("Query")
                 .Field("foo")
-                .Resolver("bar"));
+                .Resolve("bar"));
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -800,7 +800,7 @@ namespace HotChocolate
                 .Name("Foo")
                 .Field("bar")
                 .Type<StringType>()
-                .Resolver("empty"));
+                .Resolve("empty"));
 
             // act
             SchemaBuilderExtensions.AddUnionType(
@@ -861,7 +861,7 @@ namespace HotChocolate
                 .Name("Foo")
                 .Field("bar")
                 .Type<StringType>()
-                .Resolver("empty"));
+                .Resolve("empty"));
 
             // act
             SchemaBuilderExtensions.AddUnionType<IMyInterface>(
@@ -1083,7 +1083,7 @@ namespace HotChocolate
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Query");
-                descriptor.Field("foo").Type<StringType>().Resolver("bar");
+                descriptor.Field("foo").Type<StringType>().Resolve("bar");
             }
         }
 
@@ -1094,7 +1094,7 @@ namespace HotChocolate
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Mutation");
-                descriptor.Field("bar").Type<IntType>().Resolver(123);
+                descriptor.Field("bar").Type<IntType>().Resolve(123);
             }
         }
 
@@ -1105,7 +1105,7 @@ namespace HotChocolate
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Subscription");
-                descriptor.Field("onFoo").Type<IntType>().Resolver(123);
+                descriptor.Field("onFoo").Type<IntType>().Resolve(123);
             }
         }
 

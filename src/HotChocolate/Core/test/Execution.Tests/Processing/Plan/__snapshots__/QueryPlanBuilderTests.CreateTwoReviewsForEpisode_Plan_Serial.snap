@@ -2,6 +2,7 @@
   "type": "Operation",
   "root": {
     "type": "Sequence",
+    "cancelOnError": true,
     "nodes": [
       {
         "type": "Resolver",
@@ -11,7 +12,13 @@
             "id": 0,
             "field": "Mutation.createReview",
             "responseName": "createReview"
-          },
+          }
+        ]
+      },
+      {
+        "type": "Resolver",
+        "strategy": "Serial",
+        "selections": [
           {
             "id": 5,
             "field": "Review.commentary",
@@ -27,7 +34,13 @@
             "id": 1,
             "field": "Mutation.createReview",
             "responseName": "b"
-          },
+          }
+        ]
+      },
+      {
+        "type": "Resolver",
+        "strategy": "Serial",
+        "selections": [
           {
             "id": 3,
             "field": "Review.commentary",

@@ -1,15 +1,14 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
+import { THEME_COLORS } from "../../shared-style";
 import { Link } from "../misc/link";
 
-interface BlogArticleTagsProperties {
-  tags: string[];
+export interface BlogArticleTagsProps {
+  readonly tags: string[];
 }
 
-export const BlogArticleTags: FunctionComponent<BlogArticleTagsProperties> = ({
-  tags,
-}) => {
+export const BlogArticleTags: FC<BlogArticleTagsProps> = ({ tags }) => {
   return (
     <>
       {tags.length > 0 && (
@@ -35,7 +34,7 @@ const Tags = styled.ul`
   margin: 0 20px 20px;
   list-style-type: none;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     margin: 0 50px 20px;
   }
 `;
@@ -45,14 +44,14 @@ const Tag = styled.li`
   margin: 0 5px 5px 0;
   border-radius: var(--border-radius);
   padding: 0;
-  background-color: var(--brand-color);
+  background-color: ${THEME_COLORS.primary};
   font-size: 0.722em;
   letter-spacing: 0.05em;
-  color: var(--text-color-contrast);
+  color: ${THEME_COLORS.textContrast};
 `;
 
 const TagLink = styled(Link)`
   display: block;
   padding: 5px 15px;
-  color: var(--text-color-contrast);
+  color: ${THEME_COLORS.textContrast};
 `;

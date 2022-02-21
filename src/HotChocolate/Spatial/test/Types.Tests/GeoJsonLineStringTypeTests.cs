@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonLineStringTypeTests
     {
-        private readonly LineString _geom = new LineString(new[]
+        private readonly LineString _geom = new(new[]
         {
             new Coordinate(30, 10),
             new Coordinate(10, 30),
@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Spatial
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("test")
-                    .Resolver(_geom))
+                    .Resolve(_geom))
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -51,7 +51,7 @@ namespace HotChocolate.Types.Spatial
                     .Name("Query")
                     .Field("test")
                     .Type<GeoJsonLineStringType>()
-                    .Resolver(_geom))
+                    .Resolve(_geom))
                 .Create();
             IRequestExecutor executor = schema.MakeExecutable();
 
@@ -72,7 +72,7 @@ namespace HotChocolate.Types.Spatial
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("test")
-                    .Resolver(_geom))
+                    .Resolve(_geom))
                 .Create()
                 .Print()
                 .MatchSnapshot();
@@ -88,7 +88,7 @@ namespace HotChocolate.Types.Spatial
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("test")
-                    .Resolver(_geom))
+                    .Resolve(_geom))
                 .Create();
 
             // act

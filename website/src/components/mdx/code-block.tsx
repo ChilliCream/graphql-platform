@@ -1,14 +1,15 @@
 import Highlight, { Language } from "prism-react-renderer";
 import Prism from "prismjs";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
+import { FONT_FAMILY_CODE } from "../../shared-style";
 import { Copy } from "./copy";
 
-interface CodeBlockProps {
-  children: any;
+export interface CodeBlockProps {
+  readonly children: any;
 }
 
-export const CodeBlock: FunctionComponent<CodeBlockProps> = ({ children }) => {
+export const CodeBlock: FC<CodeBlockProps> = ({ children }) => {
   const language = children.props.className.replace(
     /language-/,
     ""
@@ -53,7 +54,7 @@ interface CodeIndicatorProps {
   language: string;
 }
 
-const CodeIndicator: FunctionComponent<CodeIndicatorProps> = ({ language }) => {
+const CodeIndicator: FC<CodeIndicatorProps> = ({ language }) => {
   const codeLanguage = codeLanguages[language];
 
   return codeLanguage ? (
@@ -192,7 +193,7 @@ const Container = styled.div`
   padding-left: 0 !important;
 
   * {
-    font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+    font-family: ${FONT_FAMILY_CODE};
     line-height: 1.5em !important;
   }
 

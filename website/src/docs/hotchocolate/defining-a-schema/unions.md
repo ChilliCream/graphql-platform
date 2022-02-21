@@ -2,7 +2,7 @@
 title: "Unions"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 A union type represents a set of object types. It is very similar to an [interface](/docs/hotchocolate/defining-a-schema/interfaces), except that there is no requirement for common fields between the specified types.
 
@@ -41,7 +41,7 @@ Learn more about unions [here](https://graphql.org/learn/schema/#union-types).
 Unions can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 We can use a marker interface to define object types as part of a union.
 
@@ -84,8 +84,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class TextContent
@@ -144,8 +144,8 @@ Since the types are already registered within the union, we do not have to regis
 
 We can use a marker interface, as in the annotation-based approach, to type our union definition: `UnionType<IMarkerInterface>`
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class TextContent
@@ -182,8 +182,8 @@ public class Startup
 
                 union PostContent = TextContent | ImageContent
             ")
-            .BindComplexType<TextContent>()
-            .BindComplexType<ImageContent>()
+            .BindRuntimeType<TextContent>()
+            .BindRuntimeType<ImageContent>()
             .AddResolver("Query", "content", (context) =>
             {
                 // Omitted code for brevity
@@ -192,5 +192,5 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

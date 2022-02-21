@@ -4,602 +4,723 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Processing;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching.Delegation;
+
+public class DictionaryDeserializerTests
 {
-    public class DictionaryDeserializerTests
+    [Fact]
+    public async Task Deserialize_NullValueNode()
     {
-        [Fact]
-        public async Task Deserialize_NullValueNode()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType<Query>()
-                    .BuildSchemaAsync();
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-            IType person = schema.GetType<ObjectType>("Person");
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .BuildSchemaAsync();
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(person, NullValueNode.Default);
+        IType person = schema.GetType<ObjectType>("Person");
 
-            // assert
-            Assert.Null(value);
-        }
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            person,
+            NullValueNode.Default,
+            inputParser,
+            path);
 
-        [Fact]
-        public async Task Deserialize_Null()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType<Query>()
-                    .BuildSchemaAsync();
+        // assert
+        Assert.Null(value);
+    }
 
-            IType person = schema.GetType<ObjectType>("Person");
+    [Fact]
+    public async Task Deserialize_Null()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(person, null);
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .BuildSchemaAsync();
 
-            // assert
-            Assert.Null(value);
-        }
+        IType person = schema.GetType<ObjectType>("Person");
 
-        [Fact]
-        public async Task Deserialize_Dictionary()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType<Query>()
-                    .BuildSchemaAsync();
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            person,
+            null,
+            inputParser,
+            path);
 
-            IType person = schema.GetType<ObjectType>("Person");
+        // assert
+        Assert.Null(value);
+    }
 
-            var dict = new Dictionary<string, object>();
+    [Fact]
+    public async Task Deserialize_Dictionary()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(person, dict);
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .BuildSchemaAsync();
 
-            // assert
-            Assert.Same(dict, value);
-        }
+        IType person = schema.GetType<ObjectType>("Person");
 
-        [Fact]
-        public async Task Deserialize_String()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType<Query>()
-                    .BuildSchemaAsync();
+        var dict = new Dictionary<string, object>();
 
-            IType stringType = schema.GetType<StringType>("String");
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            person,
+            dict,
+            inputParser,
+            path);
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(stringType, "abc");
+        // assert
+        Assert.Same(dict, value);
+    }
 
-            // assert
-            Assert.Equal("abc", value);
-        }
+    [Fact]
+    public async Task Deserialize_String()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-        [Fact]
-        public async Task Deserialize_StringValueNode()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType<Query>()
-                    .BuildSchemaAsync();
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .BuildSchemaAsync();
 
-            IType stringType = schema.GetType<StringType>("String");
+        IType stringType = schema.GetType<StringType>("String");
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                stringType,
-                new StringValueNode("abc"));
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            stringType,
+            "abc",
+            inputParser,
+            path);
 
-            // assert
-            Assert.Equal("abc", value);
-        }
+        // assert
+        Assert.Equal("abc", value);
+    }
 
-        [Fact]
-        public async Task Deserialize_StringList_StringList()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType<Query>()
-                    .BuildSchemaAsync();
+    [Fact]
+    public async Task Deserialize_StringValueNode()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-            IType stringListType = new ListType(schema.GetType<StringType>("String"));
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .BuildSchemaAsync();
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                stringListType,
-                new List<string> { "abc" });
+        IType stringType = schema.GetType<StringType>("String");
 
-            // assert
-            Assert.Collection(
-                ((IEnumerable<string>)value)!,
-                v => Assert.Equal("abc", v));
-        }
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            stringType,
+            new StringValueNode("abc"),
+            inputParser,
+            path);
 
-        [Fact]
-        public async Task Deserialize_StringList_ListOfStringValueNode()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType<Query>()
-                    .BuildSchemaAsync();
+        // assert
+        Assert.Equal("abc", value);
+    }
 
-            IType stringListType = new ListType(schema.GetType<StringType>("String"));
+    [Fact]
+    public async Task Deserialize_StringList_StringList()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                stringListType,
-                new List<object> { new StringValueNode("abc") });
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .BuildSchemaAsync();
 
-            // assert
-            Assert.Collection(
-                ((IEnumerable<string>)value)!,
-                v => Assert.Equal("abc", v));
-        }
+        IType stringListType = new ListType(schema.GetType<StringType>("String"));
 
-        [Fact]
-        public async Task Deserialize_ListValueNode_Enum()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(Array.Empty<Foo>())
-                            .Type<ListType<EnumType<Foo>>>())
-                    .BuildSchemaAsync();
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            stringListType,
+            new List<string> { "abc" },
+            inputParser,
+            path);
 
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        // assert
+        Assert.Collection(
+            ((IEnumerable<string>)value)!,
+            v => Assert.Equal("abc", v));
+    }
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new ListValueNode(new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz)));
+    [Fact]
+    public async Task Deserialize_StringList_ListOfStringValueNode()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<object>>(value)!,
-                x => Assert.Equal(Foo.Bar, x),
-                x => Assert.Equal(Foo.Baz, x));
-        }
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .BuildSchemaAsync();
 
-        [Fact]
-        public async Task Deserialize_StringValueNode_Enum()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(default(Foo))
-                            .Type<EnumType<Foo>>())
-                    .BuildSchemaAsync();
+        IType stringListType = new ListType(schema.GetType<StringType>("String"));
 
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            stringListType,
+            new List<object> { new StringValueNode("abc") },
+            inputParser,
+            path);
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new StringValueNode("BAZ"));
+        // assert
+        Assert.Collection(
+            ((IEnumerable<string>)value)!,
+            v => Assert.Equal("abc", v));
+    }
 
-            // assert
-            Assert.Equal(Foo.Baz, value);
-        }
+    [Fact]
+    public async Task Deserialize_ListValueNode_Enum()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-        [Fact]
-        public async Task Deserialize_String_Enum()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(default(Foo))
-                            .Type<EnumType<Foo>>())
-                    .BuildSchemaAsync();
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(Array.Empty<Foo>())
+                        .Type<ListType<EnumType<Foo>>>())
+                .BuildSchemaAsync();
 
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type, "BAZ");
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new ListValueNode(new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz)),
+            inputParser,
+            path);
 
-            // assert
-            Assert.Equal(Foo.Baz, value);
-        }
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<object>>(value)!,
+            x => Assert.Equal(Foo.Bar, x),
+            x => Assert.Equal(Foo.Baz, x));
+    }
 
-        [Fact]
-        public async Task Deserialize_EnumValueNode_Enum()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(default(Foo))
-                            .Type<EnumType<Foo>>())
-                    .BuildSchemaAsync();
+    [Fact]
+    public async Task Deserialize_StringValueNode_Enum()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(default(Foo))
+                        .Type<EnumType<Foo>>())
+                .BuildSchemaAsync();
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new EnumValueNode(Foo.Baz));
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
 
-            // assert
-            Assert.Equal(Foo.Baz, value);
-        }
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new StringValueNode("BAZ"),
+            inputParser,
+            path);
 
-        [Fact]
-        public async Task Deserialize_ListEnum()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(Array.Empty<Foo>())
-                            .Type<ListType<EnumType<Foo>>>())
-                    .BuildSchemaAsync();
+        // assert
+        Assert.Equal(Foo.Baz, value);
+    }
 
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+    [Fact]
+    public async Task Deserialize_String_Enum()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) });
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(default(Foo))
+                        .Type<EnumType<Foo>>())
+                .BuildSchemaAsync();
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<Foo?>>(value)!,
-                x => Assert.Equal(Foo.Bar, x),
-                x => Assert.Equal(Foo.Baz, x));
-        }
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
 
-        [Fact]
-        public async Task Deserialize_ListNestedEnum()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(Array.Empty<Foo>())
-                            .Type<ListType<ListType<EnumType<Foo>>>>())
-                    .BuildSchemaAsync();
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            "BAZ",
+            inputParser,
+            path);
 
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        // assert
+        Assert.Equal(Foo.Baz, value);
+    }
+
+    [Fact]
+    public async Task Deserialize_EnumValueNode_Enum()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
+
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(default(Foo))
+                        .Type<EnumType<Foo>>())
+                .BuildSchemaAsync();
+
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new EnumValueNode(Foo.Baz),
+            inputParser,
+            path);
+
+        // assert
+        Assert.Equal(Foo.Baz, value);
+    }
+
+    [Fact]
+    public async Task Deserialize_ListEnum()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
+
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(Array.Empty<Foo>())
+                        .Type<ListType<EnumType<Foo>>>())
+                .BuildSchemaAsync();
+
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) },
+            inputParser,
+            path);
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<Foo?>>(value)!,
+            x => Assert.Equal(Foo.Bar, x),
+            x => Assert.Equal(Foo.Baz, x));
+    }
+
+    [Fact]
+    public async Task Deserialize_ListNestedEnum()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
+
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(Array.Empty<Foo>())
+                        .Type<ListType<ListType<EnumType<Foo>>>>())
+                .BuildSchemaAsync();
+
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
 
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new List<object>
-                {
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new List<object>
+            {
                     new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) }
-                });
+            },
+            inputParser,
+            path);
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<Foo?>>(Assert.IsType<List<List<Foo?>>>(value)!.First())!,
-                x => Assert.Equal(Foo.Bar, x),
-                x => Assert.Equal(Foo.Baz, x));
-        }
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<Foo?>>(Assert.IsType<List<List<Foo?>>>(value)!.First())!,
+            x => Assert.Equal(Foo.Bar, x),
+            x => Assert.Equal(Foo.Baz, x));
+    }
 
-        [Fact]
-        public async Task Deserialize_NonNull_ListEnum()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(Array.Empty<Foo>())
-                            .Type<ListType<NonNullType<EnumType<Foo>>>>())
-                    .BuildSchemaAsync();
+    [Fact]
+    public async Task Deserialize_NonNull_ListEnum()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(Array.Empty<Foo>())
+                        .Type<ListType<NonNullType<EnumType<Foo>>>>())
+                .BuildSchemaAsync();
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) });
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<Foo>>(value)!,
-                x => Assert.Equal(Foo.Bar, x),
-                x => Assert.Equal(Foo.Baz, x));
-        }
+        // act
+        object value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) },
+            inputParser,
+            path);
 
-        [Fact]
-        public async Task Deserialize_NonNull_ListNestedEnum()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(Array.Empty<Foo>())
-                            .Type<ListType<ListType<NonNullType<EnumType<Foo>>>>>())
-                    .BuildSchemaAsync();
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<Foo>>(value)!,
+            x => Assert.Equal(Foo.Bar, x),
+            x => Assert.Equal(Foo.Baz, x));
+    }
 
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+    [Fact]
+    public async Task Deserialize_NonNull_ListNestedEnum()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
+
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(Array.Empty<Foo>())
+                        .Type<ListType<ListType<NonNullType<EnumType<Foo>>>>>())
+                .BuildSchemaAsync();
+
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
 
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new List<object>
-                {
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new List<object>
+            {
                     new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) }
-                });
+            },
+            inputParser,
+            path);
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<Foo>>(Assert.IsType<List<List<Foo>>>(value)!.First())!,
-                x => Assert.Equal(Foo.Bar, x),
-                x => Assert.Equal(Foo.Baz, x));
-        }
-
-
-        [Fact]
-        public async Task Deserialize_ListValueNode_Int()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(Array.Empty<int>())
-                            .Type<ListType<IntType>>())
-                    .BuildSchemaAsync();
-
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
-
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new ListValueNode(new IntValueNode(1), new IntValueNode(2)));
-
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<object>>(value)!,
-                x => Assert.Equal(1, x),
-                x => Assert.Equal(2, x));
-        }
-
-        [Fact]
-        public async Task Deserialize_IntValueNode_Int()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(1)
-                            .Type<IntType>())
-                    .BuildSchemaAsync();
-
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
-
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new IntValueNode(2));
-
-            // assert
-            Assert.Equal(2, value);
-        }
-
-        [Fact]
-        public async Task Deserialize_Int_Int()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(1)
-                            .Type<IntType>())
-                    .BuildSchemaAsync();
-
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
-
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type, 2);
-
-            // assert
-            Assert.Equal(2, value);
-        }
-
-        [Fact]
-        public async Task Deserialize_ListInt()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(Array.Empty<int>())
-                            .Type<ListType<IntType>>())
-                    .BuildSchemaAsync();
-
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
-
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new List<object> { new IntValueNode(1), new IntValueNode(2) });
-
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<int?>>(value)!,
-                x => Assert.Equal(1, x),
-                x => Assert.Equal(2, x));
-        }
-
-        [Fact]
-        public async Task Deserialize_ListNestedInt()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(Array.Empty<int>())
-                            .Type<ListType<ListType<IntType>>>())
-                    .BuildSchemaAsync();
-
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<Foo>>(Assert.IsType<List<List<Foo>>>(value)!.First())!,
+            x => Assert.Equal(Foo.Bar, x),
+            x => Assert.Equal(Foo.Baz, x));
+    }
 
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new List<object> { new List<object> { new IntValueNode(1), new IntValueNode(2) } });
+    [Fact]
+    public async Task Deserialize_ListValueNode_Int()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<int?>>(Assert.IsType<List<List<int?>>>(value)!.First())!,
-                x => Assert.Equal(1, x),
-                x => Assert.Equal(2, x));
-        }
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(Array.Empty<int>())
+                        .Type<ListType<IntType>>())
+                .BuildSchemaAsync();
 
-        [Fact]
-        public async Task Deserialize_NonNull_ListInt()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(Array.Empty<int>())
-                            .Type<ListType<NonNullType<IntType>>>())
-                    .BuildSchemaAsync();
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
 
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new ListValueNode(new IntValueNode(1), new IntValueNode(2)),
+            inputParser,
+            path);
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new List<object> { new IntValueNode(1), new IntValueNode(2) });
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<object>>(value)!,
+            x => Assert.Equal(1, x),
+            x => Assert.Equal(2, x));
+    }
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<int>>(value)!,
-                x => Assert.Equal(1, x),
-                x => Assert.Equal(2, x));
-        }
+    [Fact]
+    public async Task Deserialize_IntValueNode_Int()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-        [Fact]
-        public async Task Deserialize_NonNull_ListNestedInt()
-        {
-            // arrange
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddGraphQLServer()
-                    .AddQueryType(x =>
-                        x.Name("Query")
-                            .Field("Foo")
-                            .Resolver(Array.Empty<int>())
-                            .Type<ListType<ListType<NonNullType<IntType>>>>())
-                    .BuildSchemaAsync();
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(1)
+                        .Type<IntType>())
+                .BuildSchemaAsync();
 
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new IntValueNode(2),
+            inputParser,
+            path);
+
+        // assert
+        Assert.Equal(2, value);
+    }
+
+    [Fact]
+    public async Task Deserialize_Int_Int()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
+
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(1)
+                        .Type<IntType>())
+                .BuildSchemaAsync();
+
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            2,
+            inputParser,
+            path);
+
+        // assert
+        Assert.Equal(2, value);
+    }
+
+    [Fact]
+    public async Task Deserialize_ListInt()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
+
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(Array.Empty<int>())
+                        .Type<ListType<IntType>>())
+                .BuildSchemaAsync();
+
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new List<object> { new IntValueNode(1), new IntValueNode(2) },
+            inputParser,
+            path);
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<int?>>(value)!,
+            x => Assert.Equal(1, x),
+            x => Assert.Equal(2, x));
+    }
+
+    [Fact]
+    public async Task Deserialize_ListNestedInt()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
+
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(Array.Empty<int>())
+                        .Type<ListType<ListType<IntType>>>())
+                .BuildSchemaAsync();
+
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
 
 
-            // act
-            object value = DictionaryDeserializer.DeserializeResult(
-                fooField!.Type,
-                new List<object> { new List<object> { new IntValueNode(1), new IntValueNode(2) } });
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new List<object> { new List<object> { new IntValueNode(1), new IntValueNode(2) } },
+            inputParser,
+            path);
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<List<int>>(Assert.IsType<List<List<int>>>(value)!.First())!,
-                x => Assert.Equal(1, x),
-                x => Assert.Equal(2, x));
-        }
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<int?>>(Assert.IsType<List<List<int?>>>(value)!.First())!,
+            x => Assert.Equal(1, x),
+            x => Assert.Equal(2, x));
+    }
 
-        public class Query
-        {
-            public Person GetPerson() => new Person();
-        }
+    [Fact]
+    public async Task Deserialize_NonNull_ListInt()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
 
-        public class Person
-        {
-            public string Name { get; } = "Jon Doe";
-        }
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(Array.Empty<int>())
+                        .Type<ListType<NonNullType<IntType>>>())
+                .BuildSchemaAsync();
 
-        public enum Foo
-        {
-            Bar,
-            Baz
-        }
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new List<object> { new IntValueNode(1), new IntValueNode(2) },
+            inputParser,
+            path);
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<int>>(value)!,
+            x => Assert.Equal(1, x),
+            x => Assert.Equal(2, x));
+    }
+
+    [Fact]
+    public async Task Deserialize_NonNull_ListNestedInt()
+    {
+        // arrange
+        var inputParser = new InputParser(new DefaultTypeConverter());
+        Path path = Path.New("root");
+
+        ISchema schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(x =>
+                    x.Name("Query")
+                        .Field("Foo")
+                        .Resolve(Array.Empty<int>())
+                        .Type<ListType<ListType<NonNullType<IntType>>>>())
+                .BuildSchemaAsync();
+
+        ObjectType queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+
+
+        // act
+        var value = DictionaryDeserializer.DeserializeResult(
+            fooField!.Type,
+            new List<object> { new List<object> { new IntValueNode(1), new IntValueNode(2) } },
+            inputParser,
+            path);
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<int>>(Assert.IsType<List<List<int>>>(value)!.First())!,
+            x => Assert.Equal(1, x),
+            x => Assert.Equal(2, x));
+    }
+
+    public class Query
+    {
+        public Person GetPerson() => new Person();
+    }
+
+    public class Person
+    {
+        public string Name { get; } = "Jon Doe";
+    }
+
+    public enum Foo
+    {
+        Bar,
+        Baz
     }
 }

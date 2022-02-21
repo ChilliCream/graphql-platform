@@ -6,16 +6,6 @@
           "fields": [
             {
               "appliedDirectives": []
-            }
-          ]
-        },
-        {
-          "fields": null
-        },
-        {
-          "fields": [
-            {
-              "appliedDirectives": []
             },
             {
               "appliedDirectives": []
@@ -94,6 +84,12 @@
             },
             {
               "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
             }
           ]
         },
@@ -181,6 +177,16 @@
               "appliedDirectives": []
             }
           ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": null
         },
         {
           "fields": null

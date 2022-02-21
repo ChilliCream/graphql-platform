@@ -1,16 +1,16 @@
 import { graphql } from "gatsby";
 import { Disqus } from "gatsby-plugin-disqus";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { ArticleCommentsFragment } from "../../../graphql-types";
 
-interface ArticleCommentsProperties {
-  data: ArticleCommentsFragment;
-  path: string;
-  title: string;
+export interface ArticleCommentsProps {
+  readonly data: ArticleCommentsFragment;
+  readonly path: string;
+  readonly title: string;
 }
 
-export const ArticleComments: FunctionComponent<ArticleCommentsProperties> = ({
+export const ArticleComments: FC<ArticleCommentsProps> = ({
   data,
   path,
   title,
@@ -37,7 +37,7 @@ export const ArticleCommentsGraphQLFragment = graphql`
 const DisqusWrapper = styled(Disqus)`
   margin: 0 20px 60px;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     margin: 0 50px 60px;
   }
 `;

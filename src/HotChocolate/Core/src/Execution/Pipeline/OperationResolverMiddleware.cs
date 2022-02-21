@@ -2,40 +2,43 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.OperationCompiler;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Pipeline;
+
+internal sealed class OperationResolverMiddleware
 {
-    internal sealed class OperationResolverMiddleware
+    private readonly RequestDelegate _next;
+    private readonly IReadOnlyList<ISelectionOptimizer>? _optimizers;
+    private readonly InputParser _inputParser;
+
+    public OperationResolverMiddleware(
+        RequestDelegate next,
+        InputParser inputParser,
+        IEnumerable<ISelectionOptimizer> optimizers)
     {
-        private readonly RequestDelegate _next;
-        private readonly IReadOnlyList<ISelectionOptimizer>? _optimizers;
-
-        public OperationResolverMiddleware(
-            RequestDelegate next,
-            IEnumerable<ISelectionOptimizer> optimizers)
+        if (optimizers is null)
         {
-            if (optimizers is null)
-            {
-                throw new ArgumentNullException(nameof(optimizers));
-            }
-
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
-            _optimizers = optimizers.ToArray();
+            throw new ArgumentNullException(nameof(optimizers));
         }
 
-        public async ValueTask InvokeAsync(IRequestContext context)
+        _next = next ?? throw new ArgumentNullException(nameof(next));
+        _inputParser = inputParser ?? throw new ArgumentNullException(nameof(inputParser));
+        _optimizers = optimizers.ToArray();
+    }
+
+    public async ValueTask InvokeAsync(IRequestContext context)
+    {
+        if (context.Operation is not null)
         {
-            if (context.Operation is not null)
-            {
-                await _next(context).ConfigureAwait(false);
-            }
-            else if (context.Document is not null && context.IsValidDocument)
+            await _next(context).ConfigureAwait(false);
+        }
+        else if (context.Document is not null && context.IsValidDocument)
+        {
+            using (context.DiagnosticEvents.CompileOperation(context))
             {
                 OperationDefinitionNode operation =
                     context.Document.GetOperation(context.Request.OperationName);
@@ -54,25 +57,26 @@ namespace HotChocolate.Execution.Pipeline
                     operation,
                     context.Schema,
                     rootType,
+                    _inputParser,
                     _optimizers);
                 context.OperationId = context.Operation.Id;
+            }
 
-                await _next(context).ConfigureAwait(false);
-            }
-            else
-            {
-                context.Result = ErrorHelper.StateInvalidForOperationResolver();
-            }
+            await _next(context).ConfigureAwait(false);
         }
-
-        private static ObjectType? ResolveRootType(
-            OperationType operationType, ISchema schema) =>
-            operationType switch
-            {
-                OperationType.Query => schema.QueryType,
-                OperationType.Mutation => schema.MutationType,
-                OperationType.Subscription => schema.SubscriptionType,
-                _ => throw ThrowHelper.RootTypeNotSupported(operationType)
-            };
+        else
+        {
+            context.Result = ErrorHelper.StateInvalidForOperationResolver();
+        }
     }
+
+    private static ObjectType? ResolveRootType(
+        OperationType operationType, ISchema schema) =>
+        operationType switch
+        {
+            OperationType.Query => schema.QueryType,
+            OperationType.Mutation => schema.MutationType,
+            OperationType.Subscription => schema.SubscriptionType,
+            _ => throw ThrowHelper.RootTypeNotSupported(operationType)
+        };
 }

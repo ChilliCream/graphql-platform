@@ -3,7 +3,7 @@
   "type": "Foo",
   "extensions": {
     "implementedField": "cde",
-    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
   }
 }
 
@@ -12,7 +12,7 @@
   "type": "Foo",
   "extensions": {
     "implementedField": "cde",
-    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
   }
 }
 

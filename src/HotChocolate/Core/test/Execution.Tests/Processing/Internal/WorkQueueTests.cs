@@ -137,12 +137,12 @@ namespace HotChocolate.Execution.Processing.Internal
         public class MockExecutionTask : IExecutionTask
         {
             public ExecutionTaskKind Kind { get; }
-            public bool IsCompleted { get; }
-            public IExecutionTask Parent { get; set; }
-            public IExecutionTask Next { get; set; }
-            public IExecutionTask Previous { get; set; }
-            public object State { get; set; }
+            public ExecutionTaskStatus Status { get; }
+            public IExecutionTask? Next { get; set; }
+            public IExecutionTask? Previous { get; set; }
+            public object? State { get; set; }
             public bool IsSerial { get; set; }
+            public bool IsRegistered { get; set; }
 
             public void BeginExecute(CancellationToken cancellationToken)
             {

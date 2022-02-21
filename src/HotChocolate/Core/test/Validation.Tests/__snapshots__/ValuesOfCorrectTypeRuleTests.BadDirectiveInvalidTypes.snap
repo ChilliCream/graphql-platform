@@ -17,7 +17,7 @@
       "argument": "if",
       "argumentValue": "\"yes\"",
       "locationType": "Boolean!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -54,7 +54,7 @@
       "argument": "if",
       "argumentValue": "ENUM",
       "locationType": "Boolean!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null,
     "SyntaxNode": {

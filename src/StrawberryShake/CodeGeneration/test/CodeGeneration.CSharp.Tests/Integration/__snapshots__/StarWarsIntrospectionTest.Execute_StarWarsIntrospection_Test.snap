@@ -70,7 +70,18 @@
             {
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "Scalar",
+                    "Name": "Boolean",
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "NonNull",
                 "Name": null,
@@ -388,7 +399,18 @@
             {
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "Scalar",
+                    "Name": "Boolean",
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "NonNull",
                 "Name": null,
@@ -510,6 +532,34 @@
             {
               "Name": "defaultValue",
               "Description": "A GraphQL-formatted string representing the default value for this input value.",
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "String",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "isDeprecated",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "deprecationReason",
+              "Description": null,
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
@@ -784,7 +834,18 @@
             {
               "Name": "inputFields",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "Scalar",
+                    "Name": "Boolean",
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "List",
                 "Name": null,
@@ -1235,7 +1296,7 @@
               "Args": [
                 {
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1245,7 +1306,7 @@
                 },
                 {
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1255,7 +1316,7 @@
                 },
                 {
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1265,7 +1326,7 @@
                 },
                 {
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1276,7 +1337,7 @@
               ],
               "Type": {
                 "Kind": "Object",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1400,7 +1461,7 @@
               "Args": [
                 {
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1410,7 +1471,7 @@
                 },
                 {
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1420,7 +1481,7 @@
                 },
                 {
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1430,7 +1491,7 @@
                 },
                 {
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1441,7 +1502,7 @@
               ],
               "Type": {
                 "Kind": "Object",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1525,8 +1586,8 @@
         },
         {
           "Kind": "Scalar",
-          "Name": "Boolean",
-          "Description": "The `Boolean` scalar type represents `true` or `false`.",
+          "Name": "String",
+          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -1535,8 +1596,8 @@
         },
         {
           "Kind": "Scalar",
-          "Name": "String",
-          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "Name": "Boolean",
+          "Description": "The `Boolean` scalar type represents `true` or `false`.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -1596,7 +1657,7 @@
               "Args": [
                 {
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1606,7 +1667,7 @@
                 },
                 {
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1616,7 +1677,7 @@
                 },
                 {
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1626,7 +1687,7 @@
                 },
                 {
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1637,7 +1698,7 @@
               ],
               "Type": {
                 "Kind": "Object",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1811,7 +1872,7 @@
         },
         {
           "Kind": "Object",
-          "Name": "CharacterConnection",
+          "Name": "FriendsConnection",
           "Description": "A connection to a list of items.",
           "Fields": [
             {
@@ -1842,7 +1903,7 @@
                   "Name": null,
                   "OfType": {
                     "Kind": "Object",
-                    "Name": "CharacterEdge",
+                    "Name": "FriendsEdge",
                     "OfType": null
                   }
                 }
@@ -2044,7 +2105,7 @@
         },
         {
           "Kind": "Object",
-          "Name": "CharacterEdge",
+          "Name": "FriendsEdge",
           "Description": "An edge in a connection.",
           "Fields": [
             {
@@ -2184,19 +2245,15 @@
                   "OfType": null
                 }
               },
-              "DefaultValue": null
+              "DefaultValue": "0"
             },
             {
               "Name": "if",
               "Description": "Streamed when true.",
               "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "Boolean",
-                  "OfType": null
-                }
+                "Kind": "Scalar",
+                "Name": "Boolean",
+                "OfType": null
               },
               "DefaultValue": null
             }
@@ -2400,7 +2457,26 @@
               "__typename": "__Field",
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": "Boolean",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -2902,7 +2978,26 @@
               "__typename": "__Field",
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": "Boolean",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -3132,6 +3227,57 @@
               "__typename": "__Field",
               "Name": "defaultValue",
               "Description": "A GraphQL-formatted string representing the default value for this input value.",
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "isDeprecated",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "deprecationReason",
+              "Description": null,
               "Args": [],
               "Type": {
                 "__typename": "__Type",
@@ -3652,7 +3798,26 @@
               "__typename": "__Field",
               "Name": "inputFields",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": "Boolean",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -4447,7 +4612,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4465,7 +4630,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4483,7 +4648,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4501,7 +4666,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4519,7 +4684,7 @@
               ],
               "Type": {
                 "__typename": "__Type",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "Kind": "Object",
                 "Description": null,
                 "Fields": null,
@@ -4738,7 +4903,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4756,7 +4921,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4774,7 +4939,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4792,7 +4957,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4810,7 +4975,7 @@
               ],
               "Type": {
                 "__typename": "__Type",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "Kind": "Object",
                 "Description": null,
                 "Fields": null,
@@ -4938,9 +5103,9 @@
         },
         {
           "__typename": "__Type",
-          "Name": "Boolean",
+          "Name": "String",
           "Kind": "Scalar",
-          "Description": "The `Boolean` scalar type represents `true` or `false`.",
+          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -4950,9 +5115,9 @@
         },
         {
           "__typename": "__Type",
-          "Name": "String",
+          "Name": "Boolean",
           "Kind": "Scalar",
-          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "Description": "The `Boolean` scalar type represents `true` or `false`.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -5048,7 +5213,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -5066,7 +5231,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -5084,7 +5249,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -5102,7 +5267,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -5120,7 +5285,7 @@
               ],
               "Type": {
                 "__typename": "__Type",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "Kind": "Object",
                 "Description": null,
                 "Fields": null,
@@ -5422,7 +5587,7 @@
         },
         {
           "__typename": "__Type",
-          "Name": "CharacterConnection",
+          "Name": "FriendsConnection",
           "Kind": "Object",
           "Description": "A connection to a list of items.",
           "Fields": [
@@ -5484,7 +5649,7 @@
                   "PossibleTypes": null,
                   "OfType": {
                     "__typename": "__Type",
-                    "Name": "CharacterEdge",
+                    "Name": "FriendsEdge",
                     "Kind": "Object",
                     "Description": null,
                     "Fields": null,
@@ -5818,7 +5983,7 @@
         },
         {
           "__typename": "__Type",
-          "Name": "CharacterEdge",
+          "Name": "FriendsEdge",
           "Kind": "Object",
           "Description": "An edge in a connection.",
           "Fields": [
@@ -6056,7 +6221,7 @@
                   "OfType": null
                 }
               },
-              "DefaultValue": null
+              "DefaultValue": "0"
             },
             {
               "__typename": "__InputValue",
@@ -6064,26 +6229,15 @@
               "Description": "Streamed when true.",
               "Type": {
                 "__typename": "__Type",
-                "Name": null,
-                "Kind": "NonNull",
+                "Name": "Boolean",
+                "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
                 "InputFields": null,
                 "Interfaces": null,
                 "EnumValues": null,
                 "PossibleTypes": null,
-                "OfType": {
-                  "__typename": "__Type",
-                  "Name": "Boolean",
-                  "Kind": "Scalar",
-                  "Description": null,
-                  "Fields": null,
-                  "InputFields": null,
-                  "Interfaces": null,
-                  "EnumValues": null,
-                  "PossibleTypes": null,
-                  "OfType": null
-                }
+                "OfType": null
               },
               "DefaultValue": null
             }

@@ -75,7 +75,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
+        private sealed class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
             public ClientServiceProvider(System.IServiceProvider provider)
@@ -2400,7 +2400,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQueryResult
+    public partial interface IIntrospectionQueryResult
     {
         /// <summary>
         /// Access the current type schema of this server.
@@ -2416,7 +2416,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema
+    public partial interface IIntrospectionQuery___schema
     {
         /// <summary>
         /// The type that query operations will be rooted at.
@@ -2464,7 +2464,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema___Schema : IIntrospectionQuery___schema
+    public partial interface IIntrospectionQuery___schema___Schema : IIntrospectionQuery___schema
     {
     }
 
@@ -2475,33 +2475,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_QueryType
-    {
-        public global::System.String? Name
-        {
-            get;
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    /// <summary>
-    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
-    /// 
-    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_QueryType___Type : IIntrospectionQuery___schema_QueryType
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    /// <summary>
-    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
-    /// 
-    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_MutationType
+    public partial interface IIntrospectionQuery___schema_QueryType
     {
         public global::System.String? Name
         {
@@ -2516,7 +2490,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_MutationType___Type : IIntrospectionQuery___schema_MutationType
+    public partial interface IIntrospectionQuery___schema_QueryType___Type : IIntrospectionQuery___schema_QueryType
     {
     }
 
@@ -2527,7 +2501,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_SubscriptionType
+    public partial interface IIntrospectionQuery___schema_MutationType
     {
         public global::System.String? Name
         {
@@ -2542,7 +2516,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_SubscriptionType___Type : IIntrospectionQuery___schema_SubscriptionType
+    public partial interface IIntrospectionQuery___schema_MutationType___Type : IIntrospectionQuery___schema_MutationType
     {
     }
 
@@ -2553,7 +2527,33 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFullType
+    public partial interface IIntrospectionQuery___schema_SubscriptionType
+    {
+        public global::System.String? Name
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+    /// 
+    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IIntrospectionQuery___schema_SubscriptionType___Type : IIntrospectionQuery___schema_SubscriptionType
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+    /// 
+    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IFullType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind
         {
@@ -2603,7 +2603,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types : IFullType
+    public partial interface IIntrospectionQuery___schema_Types : IFullType
     {
     }
 
@@ -2614,7 +2614,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types___Type : IIntrospectionQuery___schema_Types
+    public partial interface IIntrospectionQuery___schema_Types___Type : IIntrospectionQuery___schema_Types
     {
     }
 
@@ -2625,7 +2625,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// In some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Directives
+    public partial interface IIntrospectionQuery___schema_Directives
     {
         public global::System.String Name
         {
@@ -2665,7 +2665,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// In some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Directives___Directive : IIntrospectionQuery___schema_Directives
+    public partial interface IIntrospectionQuery___schema_Directives___Directive : IIntrospectionQuery___schema_Directives
     {
     }
 
@@ -2674,7 +2674,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Fields
+    public partial interface IIntrospectionQuery___schema_Types_Fields
     {
         public global::System.String Name
         {
@@ -2712,7 +2712,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Fields___Field : IIntrospectionQuery___schema_Types_Fields
+    public partial interface IIntrospectionQuery___schema_Types_Fields___Field : IIntrospectionQuery___schema_Types_Fields
     {
     }
 
@@ -2721,7 +2721,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IInputValue
+    public partial interface IInputValue
     {
         public global::System.String Name
         {
@@ -2752,7 +2752,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_InputFields : IInputValue
+    public partial interface IIntrospectionQuery___schema_Types_InputFields : IInputValue
     {
     }
 
@@ -2761,7 +2761,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_InputFields___InputValue : IIntrospectionQuery___schema_Types_InputFields
+    public partial interface IIntrospectionQuery___schema_Types_InputFields___InputValue : IIntrospectionQuery___schema_Types_InputFields
     {
     }
 
@@ -2772,7 +2772,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ITypeRef
+    public partial interface ITypeRef
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind
         {
@@ -2797,7 +2797,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Interfaces : ITypeRef
+    public partial interface IIntrospectionQuery___schema_Types_Interfaces : ITypeRef
     {
     }
 
@@ -2808,7 +2808,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Interfaces___Type : IIntrospectionQuery___schema_Types_Interfaces
+    public partial interface IIntrospectionQuery___schema_Types_Interfaces___Type : IIntrospectionQuery___schema_Types_Interfaces
     {
     }
 
@@ -2817,7 +2817,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_EnumValues
+    public partial interface IIntrospectionQuery___schema_Types_EnumValues
     {
         public global::System.String Name
         {
@@ -2845,7 +2845,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_EnumValues___EnumValue : IIntrospectionQuery___schema_Types_EnumValues
+    public partial interface IIntrospectionQuery___schema_Types_EnumValues___EnumValue : IIntrospectionQuery___schema_Types_EnumValues
     {
     }
 
@@ -2856,7 +2856,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_PossibleTypes : ITypeRef
+    public partial interface IIntrospectionQuery___schema_Types_PossibleTypes : ITypeRef
     {
     }
 
@@ -2867,7 +2867,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_PossibleTypes___Type : IIntrospectionQuery___schema_Types_PossibleTypes
+    public partial interface IIntrospectionQuery___schema_Types_PossibleTypes___Type : IIntrospectionQuery___schema_Types_PossibleTypes
     {
     }
 
@@ -2876,7 +2876,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Directives_Args : IInputValue
+    public partial interface IIntrospectionQuery___schema_Directives_Args : IInputValue
     {
     }
 
@@ -2885,7 +2885,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Directives_Args___InputValue : IIntrospectionQuery___schema_Directives_Args
+    public partial interface IIntrospectionQuery___schema_Directives_Args___InputValue : IIntrospectionQuery___schema_Directives_Args
     {
     }
 
@@ -2894,7 +2894,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Fields_Args : IInputValue
+    public partial interface IIntrospectionQuery___schema_Types_Fields_Args : IInputValue
     {
     }
 
@@ -2903,7 +2903,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Fields_Args___InputValue : IIntrospectionQuery___schema_Types_Fields_Args
+    public partial interface IIntrospectionQuery___schema_Types_Fields_Args___InputValue : IIntrospectionQuery___schema_Types_Fields_Args
     {
     }
 
@@ -2914,7 +2914,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Fields_Type : ITypeRef
+    public partial interface IIntrospectionQuery___schema_Types_Fields_Type : ITypeRef
     {
     }
 
@@ -2925,7 +2925,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Fields_Type___Type : IIntrospectionQuery___schema_Types_Fields_Type
+    public partial interface IIntrospectionQuery___schema_Types_Fields_Type___Type : IIntrospectionQuery___schema_Types_Fields_Type
     {
     }
 
@@ -2936,7 +2936,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_InputFields_Type : ITypeRef
+    public partial interface IIntrospectionQuery___schema_Types_InputFields_Type : ITypeRef
     {
     }
 
@@ -2947,7 +2947,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_InputFields_Type___Type : IIntrospectionQuery___schema_Types_InputFields_Type
+    public partial interface IIntrospectionQuery___schema_Types_InputFields_Type___Type : IIntrospectionQuery___schema_Types_InputFields_Type
     {
     }
 
@@ -2958,7 +2958,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Interfaces_OfType
+    public partial interface IIntrospectionQuery___schema_Types_Interfaces_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind
         {
@@ -2983,7 +2983,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Interfaces_OfType___Type : IIntrospectionQuery___schema_Types_Interfaces_OfType
+    public partial interface IIntrospectionQuery___schema_Types_Interfaces_OfType___Type : IIntrospectionQuery___schema_Types_Interfaces_OfType
     {
     }
 
@@ -2994,87 +2994,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_PossibleTypes_OfType
-    {
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind
-        {
-            get;
-        }
-
-        public global::System.String? Name
-        {
-            get;
-        }
-
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType? OfType
-        {
-            get;
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    /// <summary>
-    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
-    /// 
-    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_PossibleTypes_OfType___Type : IIntrospectionQuery___schema_Types_PossibleTypes_OfType
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    /// <summary>
-    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
-    /// 
-    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Directives_Args_Type : ITypeRef
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    /// <summary>
-    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
-    /// 
-    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Directives_Args_Type___Type : IIntrospectionQuery___schema_Directives_Args_Type
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    /// <summary>
-    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
-    /// 
-    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Fields_Args_Type : ITypeRef
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    /// <summary>
-    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
-    /// 
-    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Fields_Args_Type___Type : IIntrospectionQuery___schema_Types_Fields_Args_Type
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    /// <summary>
-    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
-    /// 
-    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Fields_Type_OfType
+    public partial interface IIntrospectionQuery___schema_Types_PossibleTypes_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind
         {
@@ -3099,7 +3019,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Fields_Type_OfType___Type : IIntrospectionQuery___schema_Types_Fields_Type_OfType
+    public partial interface IIntrospectionQuery___schema_Types_PossibleTypes_OfType___Type : IIntrospectionQuery___schema_Types_PossibleTypes_OfType
     {
     }
 
@@ -3110,7 +3030,51 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_InputFields_Type_OfType
+    public partial interface IIntrospectionQuery___schema_Directives_Args_Type : ITypeRef
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+    /// 
+    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IIntrospectionQuery___schema_Directives_Args_Type___Type : IIntrospectionQuery___schema_Directives_Args_Type
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+    /// 
+    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IIntrospectionQuery___schema_Types_Fields_Args_Type : ITypeRef
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+    /// 
+    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IIntrospectionQuery___schema_Types_Fields_Args_Type___Type : IIntrospectionQuery___schema_Types_Fields_Args_Type
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+    /// 
+    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IIntrospectionQuery___schema_Types_Fields_Type_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind
         {
@@ -3135,7 +3099,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_InputFields_Type_OfType___Type : IIntrospectionQuery___schema_Types_InputFields_Type_OfType
+    public partial interface IIntrospectionQuery___schema_Types_Fields_Type_OfType___Type : IIntrospectionQuery___schema_Types_Fields_Type_OfType
     {
     }
 
@@ -3146,7 +3110,43 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType
+    public partial interface IIntrospectionQuery___schema_Types_InputFields_Type_OfType
+    {
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind
+        {
+            get;
+        }
+
+        public global::System.String? Name
+        {
+            get;
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType? OfType
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+    /// 
+    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IIntrospectionQuery___schema_Types_InputFields_Type_OfType___Type : IIntrospectionQuery___schema_Types_InputFields_Type_OfType
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+    /// The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+    /// 
+    /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind
         {
@@ -3171,7 +3171,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType___Type : IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType
+    public partial interface IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType___Type : IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType
     {
     }
 
@@ -3182,7 +3182,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType
+    public partial interface IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind
         {
@@ -3202,7 +3202,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType___Type : IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType
+    public partial interface IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType___Type : IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType
     {
     }
 
@@ -3400,10 +3400,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         = new global::StrawberryShake.DocumentHash("sha1Hash", "5902e9f9fd92bc2e9785f0821db6ff925e660fde");
         public override global::System.String ToString()
         {
-#if NETSTANDARD2_0
-        return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#if NETCOREAPP3_1_OR_GREATER
+        return global::System.Text.Encoding.UTF8.GetString(Body);
 #else
-            return global::System.Text.Encoding.UTF8.GetString(Body);
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
 #endif
         }
     }
@@ -3665,7 +3665,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IIntrospectionQueryQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IIntrospectionQueryQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IIntrospectionQueryResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IIntrospectionQueryResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -3693,7 +3693,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     /// Represents the StarWarsIntrospectionClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IStarWarsIntrospectionClient
+    public partial interface IStarWarsIntrospectionClient
     {
         global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery IntrospectionQuery
         {
@@ -4252,7 +4252,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
             else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                {
+                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                }
+                else
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
 
             return new global::StrawberryShake.OperationResult<IIntrospectionQueryResult>(data?.Result, data?.Info, _resultDataFactory, errors);

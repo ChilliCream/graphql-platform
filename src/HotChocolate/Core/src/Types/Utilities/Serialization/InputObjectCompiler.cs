@@ -1,176 +1,179 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types;
+using static HotChocolate.Utilities.Serialization.InputObjectConstructorResolver;
 
 #nullable enable
 
-namespace HotChocolate.Utilities.Serialization
+namespace HotChocolate.Utilities.Serialization;
+
+internal static class InputObjectCompiler
 {
-    internal static class InputObjectCompiler
+    private static readonly ParameterExpression _obj =
+        Expression.Parameter(typeof(object), "obj");
+    private static readonly ParameterExpression _fieldValues =
+        Expression.Parameter(typeof(object?[]), "fieldValues");
+
+    public static Func<object?[], object> CompileFactory(
+        InputObjectType inputType,
+        ConstructorInfo? constructor = null)
     {
-        private static readonly MethodInfo _createOptionalValue =
-            typeof(InputObjectCompiler).GetMethod(
-                nameof(CreateOptionalValue),
-                BindingFlags.Static | BindingFlags.NonPublic)!;
+        Dictionary<string, InputField> fields = CreateFieldMap(inputType);
+        constructor ??= GetCompatibleConstructor(inputType.RuntimeType, fields);
 
-        private static readonly MethodInfo _createValue =
-            typeof(InputObjectCompiler).GetMethod(
-                nameof(CreateValue),
-                BindingFlags.Static | BindingFlags.NonPublic)!;
+        Expression instance = constructor is null
+            ? Expression.New(inputType.RuntimeType)
+            : CreateInstance(fields, constructor, _fieldValues);
 
-        public static InputObjectFactory CompileFactory(
-            InputObjectType inputType,
-            ConstructorInfo? constructor)
+        if (fields.Count == 0)
         {
-            ParameterExpression data =
-                Expression.Parameter(typeof(IReadOnlyDictionary<string, object>));
-            ParameterExpression converter =
-                Expression.Parameter(typeof(ITypeConverter));
-
-            ParameterExpression variable = Expression.Variable(inputType.RuntimeType, "obj");
-
-            Expression instance = constructor is null
-                ? Expression.New(inputType.RuntimeType)
-                : CreateInstance(inputType, constructor, data, converter);
-
-            ParameterInfo[] parameters = constructor is null
-                ? Array.Empty<ParameterInfo>()
-                : constructor.GetParameters();
-
-            var expressions = new List<Expression>();
-            expressions.Add(Expression.Assign(variable, instance));
-            expressions.AddRange(SetFields(inputType, parameters, variable, data, converter));
-            expressions.Add(Expression.Convert(variable, typeof(object)));
-
-            Expression body = Expression.Block(
-                new[] { variable },
-                expressions);
-
-            return Expression.Lambda<InputObjectFactory>(body, data, converter).Compile();
+            Expression casted = Expression.Convert(instance, typeof(object));
+            return Expression.Lambda<Func<object?[], object>>(casted, _fieldValues).Compile();
         }
 
-        private static Expression CreateInstance(
-            InputObjectType inputType,
-            ConstructorInfo constructor,
-            Expression data,
-            Expression converter)
+        ParameterExpression variable = Expression.Variable(inputType.RuntimeType, "obj");
+
+        var expressions = new List<Expression>();
+        expressions.Add(Expression.Assign(variable, instance));
+        CompileSetProperties(variable, fields.Values, _fieldValues, expressions);
+        expressions.Add(Expression.Convert(variable, typeof(object)));
+        Expression body = Expression.Block(new[] { variable }, expressions);
+
+        return Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
+    }
+
+    public static Action<object, object?[]> CompileGetFieldValues(InputObjectType inputType)
+    {
+        Dictionary<string, InputField> fields = CreateFieldMap(inputType);
+
+        Expression instance = _obj;
+
+        if (inputType.RuntimeType != typeof(object))
         {
-            return Expression.New(
-                constructor,
-                CreateParameters(inputType, constructor, data, converter));
+            instance = Expression.Convert(instance, inputType.RuntimeType);
         }
 
-        private static IEnumerable<Expression> CreateParameters(
-            InputObjectType inputType,
-            ConstructorInfo constructor,
-            Expression data,
-            Expression converter)
+        var expressions = new List<Expression>();
+        CompileGetProperties(instance, fields.Values, _fieldValues, expressions);
+        Expression body = Expression.Block(expressions);
+
+        return Expression.Lambda<Action<object, object?[]>>(body, _obj, _fieldValues).Compile();
+    }
+
+    private static Expression CreateInstance(
+        Dictionary<string, InputField> fields,
+        ConstructorInfo constructor,
+        Expression fieldValues)
+    {
+        return Expression.New(
+            constructor,
+            CompileAssignParameters(fields, constructor, fieldValues));
+    }
+
+    private static Expression[] CompileAssignParameters(
+        Dictionary<string, InputField> fields,
+        ConstructorInfo constructor,
+        Expression fieldValues)
+    {
+        ParameterInfo[] parameters = constructor.GetParameters();
+
+        if (parameters.Length == 0)
         {
-            ParameterInfo[] parameters = constructor.GetParameters();
-
-            if (parameters.Length == 0)
-            {
-                yield break;
-            }
-
-            Dictionary<string, InputField> fields = inputType.Fields.ToDictionary(t =>
-                t.Property!.Name,
-                StringComparer.OrdinalIgnoreCase);
-
-            Dictionary<ParameterInfo, InputField> parameterMap =
-                CreateParameterMap(parameters, fields);
-
-            foreach (ParameterInfo parameter in parameters)
-            {
-                yield return GetFieldValue(parameterMap[parameter], data, converter);
-            }
+            return Array.Empty<Expression>();
         }
 
-        private static Dictionary<ParameterInfo, InputField> CreateParameterMap(
-            ParameterInfo[] parameters,
-            Dictionary<string, InputField> fields)
+        var expressions = new Expression[parameters.Length];
+
+        for (var i = 0; i < parameters.Length; i++)
         {
-            var map = new Dictionary<ParameterInfo, InputField>();
+            ParameterInfo parameter = parameters[i];
 
-            for (var i = 0; i < parameters.Length; i++)
+            if (fields.TryGetParameter(parameter, out InputField? field))
             {
-                ParameterInfo parameter = parameters[i];
-                map[parameter] = fields[parameter.Name!];
-            }
+                fields.Remove(field.Property!.Name);
+                Expression value = GetFieldValue(field, fieldValues);
 
-            return map;
-        }
+                if (field.IsOptional)
+                {
+                    value = CreateOptional(value, field.RuntimeType);
+                }
 
-        private static IEnumerable<Expression> SetFields(
-            InputObjectType inputType,
-            IEnumerable<ParameterInfo> parameters,
-            Expression instance,
-            Expression data,
-            Expression converter)
-        {
-            Dictionary<string, InputField> fields = inputType.Fields.ToDictionary(t =>
-                t.Property!.Name,
-                StringComparer.OrdinalIgnoreCase);
-
-            foreach (ParameterInfo parameter in parameters)
-            {
-                fields.Remove(parameter.Name!);
-            }
-
-            foreach (InputField field in fields.Values)
-            {
-                Expression value = GetFieldValue(field, data, converter);
-                yield return Expression.Call(instance, field.Property!.GetSetMethod(true)!, value);
-            }
-        }
-
-        private static Expression GetFieldValue(
-            InputField field,
-            Expression data,
-            Expression converter)
-        {
-            Type fieldType = field.Property!.PropertyType;
-            Expression name = Expression.Constant(field.Name.Value);
-
-            if (fieldType.IsGenericType
-                && fieldType.GetGenericTypeDefinition() == typeof(Optional<>))
-            {
-                MethodInfo createValue = _createOptionalValue.MakeGenericMethod(
-                    fieldType.GetGenericArguments());
-                return Expression.Call(createValue, data, name, converter);
+                expressions[i] = Expression.Convert(value, parameter.ParameterType);
             }
             else
             {
-                MethodInfo createValue = _createValue.MakeGenericMethod(fieldType);
-                return Expression.Call(createValue, data, name, converter);
+                throw new InvalidOperationException("Could not resolver parameter.");
             }
         }
 
-        private static Optional<T> CreateOptionalValue<T>(
-            IReadOnlyDictionary<string, object> values,
-            string fieldName,
-            ITypeConverter converter)
-        {
-            if (values.TryGetValue(fieldName, out var o))
-            {
-                return o is T casted ? casted : converter.Convert<object, T>(o);
-            }
-            return default;
-        }
+        return expressions;
+    }
 
-        private static T CreateValue<T>(
-            IReadOnlyDictionary<string, object> values,
-            string fieldName,
-            ITypeConverter converter)
+    private static void CompileSetProperties(
+        Expression instance,
+        IEnumerable<InputField> fields,
+        Expression fieldValues,
+        List<Expression> currentBlock)
+    {
+        foreach (InputField field in fields)
         {
-            if (values.TryGetValue(fieldName, out var o))
+            MethodInfo setter = field.Property!.GetSetMethod(true)!;
+            Expression value = GetFieldValue(field, fieldValues);
+
+            if (field.IsOptional)
             {
-                return o is T casted ? casted : converter.Convert<object, T>(o);
+                value = CreateOptional(value, field.RuntimeType);
             }
-            return default!;
+
+            value = Expression.Convert(value, field.Property.PropertyType);
+            Expression setPropertyValue = Expression.Call(instance, setter, value);
+            currentBlock.Add(setPropertyValue);
         }
+    }
+
+    private static void CompileGetProperties(
+        Expression instance,
+        IEnumerable<InputField> fields,
+        Expression fieldValues,
+        List<Expression> currentBlock)
+    {
+        foreach (InputField field in fields)
+        {
+            MethodInfo getter = field.Property!.GetGetMethod(true)!;
+            Expression fieldValue = Expression.Call(instance, getter);
+            currentBlock.Add(SetFieldValue(field, fieldValues, fieldValue));
+        }
+    }
+
+    private static Expression GetFieldValue(InputField field, Expression fieldValues)
+        => Expression.ArrayIndex(fieldValues, Expression.Constant(field.Index));
+
+    private static Expression SetFieldValue(
+        InputField field,
+        Expression fieldValues,
+        Expression fieldValue)
+    {
+        Expression index = Expression.Constant(field.Index);
+        Expression element = Expression.ArrayAccess(fieldValues, index);
+        Expression casted = Expression.Convert(fieldValue, typeof(object));
+        return Expression.Assign(element, casted);
+    }
+
+    private static Dictionary<string, InputField> CreateFieldMap(InputObjectType type)
+        => type.Fields.ToDictionary(t => t.Property!.Name, StringComparer.Ordinal);
+
+    private static Expression CreateOptional(Expression fieldValue, Type runtimeType)
+    {
+        MethodInfo from =
+            typeof(Optional<>)
+                .MakeGenericType(runtimeType)
+                .GetMethod("From", BindingFlags.Public | BindingFlags.Static)!;
+        Debug.Assert(from is not null, "From helper on Optional<T> is missing.");
+        fieldValue = Expression.Convert(fieldValue, typeof(IOptional));
+        return Expression.Call(from!, fieldValue);
     }
 }

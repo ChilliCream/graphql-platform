@@ -519,7 +519,7 @@ namespace HotChocolate.Execution.Benchmarks
             throw new System.NotImplementedException();
         }
 
-        private class Entry
+        private sealed class Entry
         {
             public T Item { get; set; }
         }

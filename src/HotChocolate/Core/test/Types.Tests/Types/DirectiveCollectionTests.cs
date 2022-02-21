@@ -15,7 +15,7 @@ namespace HotChocolate.Types
                 t.Name("Foo")
                     .Field("abc")
                     .Type<StringType>()
-                    .Resolver("abc")
+                    .Resolve("abc")
                     .Directive(new DirectiveNode("foo"))
                     .Directive(new DirectiveNode("bar")));
 
@@ -49,7 +49,7 @@ namespace HotChocolate.Types
                 t.Name("Foo")
                     .Field("abc")
                     .Type<StringType>()
-                    .Resolver("abc")
+                    .Resolve("abc")
                     .Directive(new DirectiveNode("foo"))
                     .Directive(new DirectiveNode("foo")));
 
@@ -79,7 +79,7 @@ namespace HotChocolate.Types
                 t.Name("Foo")
                     .Field("abc")
                     .Type<StringType>()
-                    .Resolver("abc")
+                    .Resolve("abc")
                     .Directive(new DirectiveNode("foo"))
                     .Directive(new DirectiveNode("foo")));
 
@@ -109,7 +109,7 @@ namespace HotChocolate.Types
                 .Name("Foo")
                 .Field("abc")
                 .Type<StringType>()
-                .Resolver("abc")
+                .Resolve("abc")
                 .Directive(new DirectiveNode("foo")));
 
             var foo = new DirectiveType(d => d

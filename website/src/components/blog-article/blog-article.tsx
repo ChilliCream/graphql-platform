@@ -1,7 +1,7 @@
 import { graphql } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { BlogArticleFragment } from "../../../graphql-types";
 import { Article } from "../articles/article";
@@ -15,13 +15,11 @@ import { BlogArticleMetadata } from "./blog-article-metadata";
 import { BlogArticleSharebar } from "./blog-article-sharebar";
 import { BlogArticleTags } from "./blog-article-tags";
 
-interface BlogArticleProperties {
-  data: BlogArticleFragment;
+export interface BlogArticleProps {
+  readonly data: BlogArticleFragment;
 }
 
-export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
-  data,
-}) => {
+export const BlogArticle: FC<BlogArticleProps> = ({ data }) => {
   const { mdx } = data;
   const { frontmatter, body } = mdx!;
   const path = frontmatter!.path!;
@@ -29,8 +27,8 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   const existingTags: string[] = frontmatter!.tags!
     ? (frontmatter!.tags!.filter((tag) => tag && tag.length > 0) as string[])
     : [];
-  const featuredImage = frontmatter!.featuredImage?.childImageSharp
-    ?.gatsbyImageData;
+  const featuredImage =
+    frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
 
   return (
     <Container>
@@ -60,11 +58,7 @@ export const BlogArticleGraphQLFragment = graphql`
       frontmatter {
         featuredImage {
           childImageSharp {
-            gatsbyImageData(
-              layout: CONSTRAINED
-              width: 800
-              pngOptions: { quality: 90 }
-            )
+            gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
           }
         }
         path
@@ -84,7 +78,7 @@ const ArticleWrapper = styled.div`
   grid-template-rows: 1fr auto;
   padding: 0;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     padding: 20px 10px 0;
   }
 `;
@@ -94,5 +88,8 @@ const Container = styled.div`
   flex: 0 0 auto;
   flex-direction: row;
   width: 100%;
-  max-width: 820px;
+
+  @media only screen and (min-width: 860px) {
+    max-width: 820px;
+  }
 `;

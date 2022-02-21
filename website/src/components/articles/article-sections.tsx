@@ -1,24 +1,23 @@
 import { graphql, Link } from "gatsby";
 import GithubSlugger from "github-slugger";
-import React, { FunctionComponent, useEffect, useMemo, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { asyncScheduler } from "rxjs";
 import { throttleTime } from "rxjs/operators";
 import styled, { css } from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
+import { THEME_COLORS } from "../../shared-style";
 import { useObservable } from "../../state";
 import { closeAside } from "../../state/common";
 import { MostProminentSection } from "../doc-page/doc-page-elements";
 
 const MAX_TOC_DEPTH = 2;
 
-interface ArticleSectionsProperties {
+export interface ArticleSectionsProps {
   readonly data: ArticleSectionsFragment;
 }
 
-export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
-  data,
-}) => {
+export const ArticleSections: FC<ArticleSectionsProps> = ({ data }) => {
   const dispatch = useDispatch();
 
   const tocItems = useMemo(
@@ -52,7 +51,7 @@ interface TableOfContentProps {
   readonly activeHeadingLink?: string;
 }
 
-const TableOfContent: FunctionComponent<TableOfContentProps> = ({
+const TableOfContent: FC<TableOfContentProps> = ({
   items,
   activeHeadingLink,
 }) => {
@@ -91,9 +90,7 @@ export const ArticleSectionsGraphQLFragment = graphql`
   }
 `;
 
-const Container = styled.section`
-  margin-bottom: 20px;
-`;
+const Container = styled.section``;
 
 const Title = styled.h6`
   padding: 0 25px;
@@ -117,22 +114,25 @@ const TocItemContainer = styled.ul`
 
 const TocLink = styled((props) => <Link {...props} />)`
   font-size: 0.833em;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 
   :hover {
     color: #000;
   }
 `;
 
-interface TocListItemProperties {
+interface TocListItemProps {
   readonly active: boolean;
 }
 
-const TocListItem = styled.li<TocListItemProperties>`
+const TocListItem = styled.li<TocListItemProps>`
   flex: 0 0 auto;
   margin: 5px 0;
   padding: 0;
   line-height: initial;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
 
   > ${TocItemContainer} {
     padding-right: 0;

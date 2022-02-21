@@ -1,15 +1,14 @@
-namespace HotChocolate.Stitching.Schemas.Inventory
+namespace HotChocolate.Stitching.Schemas.Inventory;
+
+public class InventoryInfo
 {
-    public class InventoryInfo
+    public InventoryInfo(int upc, bool isInStock)
     {
-        public InventoryInfo(int upc, bool isInStock)
-        {
-            Upc = upc;
-            IsInStock = isInStock;
-        }
-
-        public int Upc { get; }
-
-        public bool IsInStock { get; }
+        Upc = upc;
+        IsInStock = isInStock;
     }
+
+    public int Upc { get; }
+
+    public bool IsInStock { get; }
 }

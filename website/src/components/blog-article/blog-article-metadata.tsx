@@ -1,14 +1,15 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { BlogArticleMetadataFragment } from "../../../graphql-types";
+import { THEME_COLORS } from "../../shared-style";
 import { Link } from "../misc/link";
 
-interface BlogArticleMetadataProperties {
-  data: BlogArticleMetadataFragment;
+export interface BlogArticleMetadataProps {
+  readonly data: BlogArticleMetadataFragment;
 }
 
-export const BlogArticleMetadata: FunctionComponent<BlogArticleMetadataProperties> = ({
+export const BlogArticleMetadata: FC<BlogArticleMetadataProps> = ({
   data: { fields, frontmatter },
 }) => {
   return (
@@ -45,7 +46,7 @@ const Metadata = styled.div`
   margin: 0 20px 20px;
   font-size: 0.778em;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     margin: 0 50px 20px;
   }
 `;
@@ -55,7 +56,7 @@ const AuthorLink = styled(Link)`
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
 `;
 
 const AuthorImage = styled.img`

@@ -1,17 +1,17 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { LinkedinShareButton, TwitterShareButton } from "react-share";
 import styled from "styled-components";
 import { BlogArticleSharebarFragment } from "../../../graphql-types";
 import LinkedinIconSvg from "../../images/linkedin-square.svg";
 import TwitterIconSvg from "../../images/twitter-square.svg";
 
-interface BlogArticleSharebarProperties {
-  data: BlogArticleSharebarFragment;
-  tags: string[];
+export interface BlogArticleSharebarProps {
+  readonly data: BlogArticleSharebarFragment;
+  readonly tags: string[];
 }
 
-export const BlogArticleSharebar: FunctionComponent<BlogArticleSharebarProperties> = ({
+export const BlogArticleSharebar: FC<BlogArticleSharebarProps> = ({
   data: { mdx, site },
   tags,
 }) => {

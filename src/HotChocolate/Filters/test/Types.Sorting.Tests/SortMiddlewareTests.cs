@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Sorting
         private static void AddField<T>(IObjectTypeDescriptor ctx, T resolvedItems)
         {
             ctx.Field("foo")
-                .Resolver(resolvedItems)
+                .Resolve(resolvedItems)
                 .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
                 .UseSorting();
         }
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Sorting
             result.MatchSnapshot(scenarioName);
         }
 
-        private class Foo
+        private sealed class Foo
         {
             public string Bar { get; set; }
         }

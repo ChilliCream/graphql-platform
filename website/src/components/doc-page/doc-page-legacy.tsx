@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect } from "react";
+import React, { FC, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
@@ -7,7 +7,7 @@ import { State } from "../../state";
 import { hideLegacyDocHeader, showLegacyDocInfo } from "../../state/common";
 import { Link } from "../misc/link";
 
-export const DocPageLegacy: FunctionComponent = () => {
+export const DocPageLegacy: FC = () => {
   const show = useSelector<State, boolean>(
     (state) => state.common.showLegacyDocInfo
   );
@@ -58,7 +58,7 @@ const Dialog = styled.div<{ show: boolean }>`
   display: ${({ show }) => (show ? "initial" : "none")};
   background-color: #ffb806;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     > .gatsby-image-wrapper {
       border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
@@ -70,7 +70,7 @@ const Container = styled.div`
   flex-direction: row;
   padding: 10px 20px;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     padding: 10px 50px;
   }
 `;

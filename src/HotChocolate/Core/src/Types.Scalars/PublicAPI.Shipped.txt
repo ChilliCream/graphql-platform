@@ -80,12 +80,18 @@ HotChocolate.Types.RgbaType.RgbaType(HotChocolate.NameString name, string? descr
 HotChocolate.Types.RgbType
 HotChocolate.Types.RgbType.RgbType() -> void
 HotChocolate.Types.RgbType.RgbType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.SignedByteType
+HotChocolate.Types.SignedByteType.SignedByteType() -> void
+HotChocolate.Types.SignedByteType.SignedByteType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
 HotChocolate.Types.UnsignedIntType
 HotChocolate.Types.UnsignedIntType.UnsignedIntType() -> void
 HotChocolate.Types.UnsignedIntType.UnsignedIntType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
 HotChocolate.Types.UnsignedLongType
 HotChocolate.Types.UnsignedLongType.UnsignedLongType() -> void
 HotChocolate.Types.UnsignedLongType.UnsignedLongType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.UnsignedShortType
+HotChocolate.Types.UnsignedShortType.UnsignedShortType() -> void
+HotChocolate.Types.UnsignedShortType.UnsignedShortType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
 HotChocolate.Types.UtcOffsetType
 HotChocolate.Types.UtcOffsetType.UtcOffsetType() -> void
 HotChocolate.Types.UtcOffsetType.UtcOffsetType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Implicit) -> void
@@ -194,6 +200,13 @@ override HotChocolate.Types.RgbaType.CreateParseLiteralError(HotChocolate.Langua
 override HotChocolate.Types.RgbaType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
 override HotChocolate.Types.RgbType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
 override HotChocolate.Types.RgbType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.SignedByteType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.SignedByteType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.SignedByteType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.SignedByteType.IsInstanceOfType(HotChocolate.Language.IntValueNode! valueSyntax) -> bool
+override HotChocolate.Types.SignedByteType.IsInstanceOfType(sbyte runtimeValue) -> bool
+override HotChocolate.Types.SignedByteType.ParseLiteral(HotChocolate.Language.IntValueNode! valueSyntax) -> sbyte
+override HotChocolate.Types.SignedByteType.ParseValue(sbyte runtimeValue) -> HotChocolate.Language.IntValueNode!
 override HotChocolate.Types.UnsignedIntType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
 override HotChocolate.Types.UnsignedIntType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
 override HotChocolate.Types.UnsignedIntType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
@@ -208,6 +221,13 @@ override HotChocolate.Types.UnsignedLongType.IsInstanceOfType(HotChocolate.Langu
 override HotChocolate.Types.UnsignedLongType.IsInstanceOfType(ulong runtimeValue) -> bool
 override HotChocolate.Types.UnsignedLongType.ParseLiteral(HotChocolate.Language.IntValueNode! valueSyntax) -> ulong
 override HotChocolate.Types.UnsignedLongType.ParseValue(ulong runtimeValue) -> HotChocolate.Language.IntValueNode!
+override HotChocolate.Types.UnsignedShortType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.UnsignedShortType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.UnsignedShortType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.UnsignedShortType.IsInstanceOfType(HotChocolate.Language.IntValueNode! valueSyntax) -> bool
+override HotChocolate.Types.UnsignedShortType.IsInstanceOfType(ushort runtimeValue) -> bool
+override HotChocolate.Types.UnsignedShortType.ParseLiteral(HotChocolate.Language.IntValueNode! valueSyntax) -> ushort
+override HotChocolate.Types.UnsignedShortType.ParseValue(ushort runtimeValue) -> HotChocolate.Language.IntValueNode!
 override HotChocolate.Types.UtcOffsetType.ParseLiteral(HotChocolate.Language.StringValueNode! valueSyntax) -> System.TimeSpan
 override HotChocolate.Types.UtcOffsetType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
 override HotChocolate.Types.UtcOffsetType.ParseValue(System.TimeSpan runtimeValue) -> HotChocolate.Language.StringValueNode!

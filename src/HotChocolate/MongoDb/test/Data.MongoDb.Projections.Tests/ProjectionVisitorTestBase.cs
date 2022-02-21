@@ -46,15 +46,17 @@ namespace HotChocolate.Data.MongoDb.Projections
 
             return builder
                 .AddMongoDbProjections()
+                .AddObjectIdConverters()
                 .AddMongoDbFiltering()
                 .AddMongoDbSorting()
+                .AddMongoDbPagingProviders()
                 .AddQueryType(
                     new ObjectType<StubObject<TEntity>>(
                         c =>
                         {
                             c.Name("Query");
                             ApplyConfigurationToFieldDescriptor<TEntity>(
-                                c.Field(x => x.Root).Resolver(resolver),
+                                c.Field(x => x.Root).Resolve(resolver),
                                 usePaging,
                                 useOffsetPaging);
                         }))
@@ -88,12 +90,12 @@ namespace HotChocolate.Data.MongoDb.Projections
         {
             if (usePaging)
             {
-                descriptor.UseMongoDbPaging<ObjectType<TEntity>>();
+                descriptor.UsePaging<ObjectType<TEntity>>();
             }
 
             if (useOffsetPaging)
             {
-                descriptor.UseMongoDbOffsetPaging<ObjectType<TEntity>>();
+                descriptor.UseOffsetPaging<ObjectType<TEntity>>();
             }
 
             descriptor

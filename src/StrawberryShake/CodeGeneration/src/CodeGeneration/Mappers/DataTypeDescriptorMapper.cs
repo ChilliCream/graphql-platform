@@ -86,7 +86,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             }
         }
 
-        private class DataTypeInfo
+        private sealed class DataTypeInfo
         {
             public DataTypeInfo(NameString name, string? description)
             {

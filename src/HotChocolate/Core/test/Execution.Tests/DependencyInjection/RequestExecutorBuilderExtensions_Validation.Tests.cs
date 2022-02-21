@@ -92,6 +92,58 @@ namespace HotChocolate.DependencyInjection
         }
 
         [Fact]
+        public async Task AllowIntrospection_IntegrationTest_NotAllowed()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .AllowIntrospection(false)
+                .ExecuteRequestAsync(
+                    QueryRequestBuilder
+                        .New()
+                        .SetQuery("{ __schema { description } }")
+                        .Create())
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task AllowIntrospection_IntegrationTest_Allowed()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .AllowIntrospection(true)
+                .ExecuteRequestAsync(
+                    QueryRequestBuilder
+                        .New()
+                        .SetQuery("{ __schema { description } }")
+                        .Create())
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task AllowIntrospection_IntegrationTest_NotAllowed_CustomMessage()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .AllowIntrospection(false)
+                .ExecuteRequestAsync(
+                    QueryRequestBuilder
+                        .New()
+                        .SetQuery("{ __schema { description } }")
+                        .SetIntrospectionNotAllowedMessage("Bar")
+                        .Create())
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessageFact()
         {
             Snapshot.FullName();
@@ -159,6 +211,15 @@ namespace HotChocolate.DependencyInjection
             results.Add(result.ToJson());
 
             results.MatchSnapshot();
+        }
+
+        [Fact]
+        public void SetMaxAllowedValidationErrors_Builder_Is_Null()
+        {
+            void Fail()
+                => RequestExecutorBuilderExtensions.SetMaxAllowedValidationErrors(null!, 6);
+
+            Assert.Throws<ArgumentNullException>(Fail);
         }
 
         public class MockVisitor : DocumentValidatorVisitor

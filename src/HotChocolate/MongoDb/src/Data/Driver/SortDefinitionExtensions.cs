@@ -4,12 +4,12 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb
 {
-    internal static class SortDefinitionExtensions
+    public static class SortDefinitionExtensions
     {
         public static MongoDbSortDefinition Wrap<T>(this SortDefinition<T> sortDefinition) =>
             new SortDefinitionWrapper<T>(sortDefinition);
 
-        private class SortDefinitionWrapper<TDocument> : MongoDbSortDefinition
+        private sealed class SortDefinitionWrapper<TDocument> : MongoDbSortDefinition
         {
             private readonly SortDefinition<TDocument> _sort;
 

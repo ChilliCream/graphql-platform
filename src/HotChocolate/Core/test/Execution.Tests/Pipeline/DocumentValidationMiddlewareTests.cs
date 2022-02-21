@@ -16,6 +16,7 @@ namespace HotChocolate.Execution.Pipeline
         {
             // arrange
             var validator = new Mock<IDocumentValidator>();
+            validator.SetupGet(t => t.HasDynamicRules).Returns(false);
             validator.Setup(t => t.Validate(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
@@ -25,7 +26,47 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentValidationMiddleware(
                 _ => default,
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
+                validator.Object);
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ a }")
+                .SetQueryId("a")
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+            var validationResult = new DocumentValidatorResult(Array.Empty<IError>());
+
+            var requestContext = new Mock<IRequestContext>();
+            requestContext.SetupGet(t => t.Request).Returns(request);
+            requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
+            requestContext.SetupProperty(t => t.Document, document);
+            requestContext.SetupProperty(t => t.ValidationResult, validationResult);
+
+            // act
+            await middleware.InvokeAsync(requestContext.Object);
+
+            // assert
+            Assert.Equal(validationResult, requestContext.Object.ValidationResult);
+            Assert.False(requestContext.Object.ValidationResult!.HasErrors);
+        }
+
+        [Fact]
+        public async Task DocumentIsValidated_Dynamic()
+        {
+            // arrange
+            var validator = new Mock<IDocumentValidator>();
+            validator.SetupGet(t => t.HasDynamicRules).Returns(true);
+            validator.Setup(t => t.Validate(
+                    It.IsAny<ISchema>(),
+                    It.IsAny<DocumentNode>(),
+                    It.IsAny<IDictionary<string, object>>(),
+                    It.Is<bool>(b => true)))
+                .Returns(DocumentValidatorResult.Ok);
+
+            var middleware = new DocumentValidationMiddleware(
+                _ => default,
+                new NoopExecutionDiagnosticEvents(),
                 validator.Object);
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
@@ -64,7 +105,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentValidationMiddleware(
                 _ => default,
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 validator.Object);
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
@@ -105,7 +146,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentValidationMiddleware(
                 _ => throw new Exception("Should not be called."),
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 validator.Object);
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
@@ -145,7 +186,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentValidationMiddleware(
                 _ => throw new Exception("Should not be called."),
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 validator.Object);
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()

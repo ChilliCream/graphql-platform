@@ -1,18 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0</TargetFrameworks>
-    <TargetFramework>net5.0</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Tests</AssemblyName>
-    <RootNamespace>StrawberryShake</RootNamespace>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Tests</AssemblyName>
+    <AssemblyName>StrawberryShake.CodeGeneration.Razor.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
   </PropertyGroup>
 

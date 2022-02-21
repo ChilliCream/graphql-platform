@@ -112,14 +112,16 @@ namespace HotChocolate.Execution.Processing.Internal
             Assert.Null(dequeuedTask1);
         }
 
-        private class MockTask : IDeferredExecutionTask
+        private sealed class MockTask : IDeferredExecutionTask
         {
             /// <summary>
             /// For debugging only.
             /// </summary>
             public int Id { get; set; }
 
-            public Task<IQueryResult> ExecuteAsync(IOperationContext operationContext)
+            public bool IsCompleted => false;
+
+            public Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext)
             {
                 throw new System.NotImplementedException();
             }

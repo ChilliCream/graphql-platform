@@ -1,64 +1,54 @@
 import { createGlobalStyle } from "styled-components";
-
-export const GlobalLayoutStyle = createGlobalStyle`
- html {
-    overflow: hidden;
-    height: 100%;
-  }
-
-  body {
-    overflow: hidden;
-    height: 100%;
-    margin: 0;
-
-    > div:first-child {
-        height: 100%;
-        display: block;
-        > div {
-          height: 100%;
-          display: grid;
-          grid-template-rows: 60px auto;
-          grid-template-columns: 1fr;
-        }
-      }
-  }
-`;
+import {
+  DEFAULT_THEME_COLORS,
+  FONT_FAMILY,
+  FONT_FAMILY_HEADING,
+  THEME_COLORS,
+} from "../../shared-style";
 
 export const GlobalStyle = createGlobalStyle`
   :root {
-    --brand-color: #f40010;
-    --brand-color-hover: #b7020a;
-    --text-color: #667;
-    --heading-text-color: #334;
-    --footer-text-color: #c6c6ce;
-    --text-color-contrast: #fff;
-    --box-highlight-color: #ddd;
-    --box-border-color: #ccc;
-    --warning-color: #ffba00;
+    ${DEFAULT_THEME_COLORS}
+
     --border-radius: 4px;
     --font-size: .833rem;
   }
 
   html {
-    font-family: sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    font-family: ${FONT_FAMILY};
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
     font-size: 18px;
     line-height: 30px;
-    color: var(--text-color);
+    color: ${THEME_COLORS.text};
     scroll-behavior: smooth;
-
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    > div:first-child {
+      display: block;
+      height: 100vh;
+
+      > div {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+    }
   }
 
   * {
     margin: 0;
     padding: 0;
-    font-family: sans-serif;
+    font-family: ${FONT_FAMILY};
     font-size: 1em;
     line-height: 1em;
     font-weight: normal;
@@ -73,7 +63,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   a {
-    color: var(--brand-color);
+    color: ${THEME_COLORS.link};
     text-decoration: none;
   }
 
@@ -90,11 +80,11 @@ export const GlobalStyle = createGlobalStyle`
   h5,
   h6 {
     margin-bottom: 10px;
-    font-family: "Roboto", sans-serif;
+    font-family: ${FONT_FAMILY_HEADING};
     font-weight: bold;
     line-height: 1.250em;
     text-rendering: optimizeLegibility;
-    color: var(--heading-text-color);
+    color: ${THEME_COLORS.heading};
   }
 
   p {
@@ -143,7 +133,7 @@ export const GlobalStyle = createGlobalStyle`
 
   blockquote {
     margin-bottom: 20px;
-    background-color: #e7e9eb;
+    background-color: #e8ecf5;
 
     > p:last-child {
       margin-bottom: 0;
@@ -197,7 +187,7 @@ export const GlobalStyle = createGlobalStyle`
     }
 
     > tr:hover {
-      background-color: #e7e9eb;
+      background-color: #e8ecf5;
     }
   }
 
@@ -208,7 +198,6 @@ export const GlobalStyle = createGlobalStyle`
     font-feature-settings: "tnum";
     font-size: var(--font-size);
     line-height: 1.667em;
-    text-align: left;
   }
 
   th {
@@ -231,15 +220,14 @@ export const GlobalStyle = createGlobalStyle`
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
-
   }
 
   /* Inline code style */
   :not(pre) > code {
-    border: 1px solid var(--box-border-color);
+    border: 1px solid ${THEME_COLORS.boxBorder};
     border-radius: .3em;
     background-color: initial;
-    color: var(--text-color);
+    color: ${THEME_COLORS.text};
   }
 
   a.anchor {
@@ -247,7 +235,7 @@ export const GlobalStyle = createGlobalStyle`
     left: 0;
     visibility: hidden;
   }
-  
+
   h1:hover a.anchor,
   h2:hover a.anchor,
   h3:hover a.anchor,
@@ -255,5 +243,5 @@ export const GlobalStyle = createGlobalStyle`
   h5:hover a.anchor,
   h6:hover a.anchor {
     visibility: visible;
-  }  
+  }
 `;

@@ -15,6 +15,8 @@ To use the MongoDB integration, you need to install the package `HotChocolate.Da
 dotnet add package HotChocolate.Data.MongoDb
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 # MongoExecutable
 
 The whole integration builds around `IExecutable<T>`.
@@ -174,14 +176,22 @@ _Mongo Query_
 
 # Paging
 
-The integration comes with providers for offset and cursor-based pagination
+In order to use pagination with MongoDB, we have to register the MongoDB specific pagination providers.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddMongoDbPagingProviders();
+```
+
+[Learn more about pagination providers](/docs/hotchocolate/fetching-data/pagination#providers)
 
 ## Cursor Pagination
 
-To use cursor based pagination annoate you resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
+To use cursor based pagination annoate you resolver with `[UsePaging]` or `.UsePaging()`
 
 ```csharp
-[UseMongoDbPaging]
+[UsePaging]
 public IExecutable<Person> GetPersons([Service] IMongoCollection<Person> collection)
 {
     return collection.AsExecutable();
@@ -211,10 +221,10 @@ query GetPersons {
 
 ## Offset Pagination
 
-To use cursor based pagination annoate you resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
+To use offset based pagination annoate you resolver with `[UseOffsetPaging]` or `.UseOffsetPaging()`
 
 ```csharp
-[UseMongoDbOffsetPaging]
+[UseOffsetPaging]
 public IExecutable<Person> GetPersons([Service] IMongoCollection<Person> collection)
 {
     return collection.AsExecutable();

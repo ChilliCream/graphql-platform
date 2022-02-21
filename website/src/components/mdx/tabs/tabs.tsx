@@ -1,26 +1,5 @@
-import React, {
-  createContext,
-  FunctionComponent,
-  ReactNode,
-  useContext,
-} from "react";
-import { List } from "./list";
-import { Panel, PanelProps } from "./panel";
-import { Tab, TabProps } from "./tab";
+import React, { createContext, FC, ReactNode, useContext } from "react";
 import { useActiveTab } from "./tab-groups";
-
-interface TabsContext {
-  activeTab: string;
-  setActiveTab: (value: string) => void;
-}
-
-export interface TabsComposition {
-  Tab: FunctionComponent<TabProps>;
-  Panel: FunctionComponent<PanelProps>;
-  List: FunctionComponent;
-}
-
-const TabsContext = createContext<TabsContext | undefined>(undefined);
 
 export interface TabsProps {
   readonly defaultValue: string;
@@ -28,11 +7,7 @@ export interface TabsProps {
   readonly children: ReactNode;
 }
 
-export const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
-  defaultValue,
-  groupId,
-  children,
-}) => {
+export const Tabs: FC<TabsProps> = ({ defaultValue, groupId, children }) => {
   const [activeTab, setActiveTab] = useActiveTab(defaultValue, groupId);
 
   return (
@@ -47,6 +22,13 @@ export const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
   );
 };
 
+interface TabsContext {
+  readonly activeTab: string;
+  readonly setActiveTab: (value: string) => void;
+}
+
+const TabsContext = createContext<TabsContext | undefined>(undefined);
+
 export const useTabs = (): TabsContext => {
   const context = useContext(TabsContext);
   if (!context) {
@@ -54,7 +36,3 @@ export const useTabs = (): TabsContext => {
   }
   return context;
 };
-
-Tabs.Tab = Tab;
-Tabs.Panel = Panel;
-Tabs.List = List;

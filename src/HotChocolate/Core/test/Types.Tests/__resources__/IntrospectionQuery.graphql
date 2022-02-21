@@ -9,7 +9,7 @@
       directives {
         name
         description
-        args {
+        args(includeDeprecated: true) {
           ...InputValue
         }
         onOperation
@@ -26,7 +26,7 @@
     fields(includeDeprecated: true) {
       name
       description
-      args {
+      args(includeDeprecated: true) {
         ...InputValue
       }
       type {
@@ -35,8 +35,8 @@
       isDeprecated
       deprecationReason
     }
-    inputFields {
-      ...InputValue
+    inputFields(includeDeprecated: true) {
+        ...InputValue
     }
     interfaces {
       ...TypeRef
@@ -57,6 +57,8 @@
     description
     type { ...TypeRef }
     defaultValue
+    isDeprecated
+    deprecationReason
   }
 
   fragment TypeRef on __Type {

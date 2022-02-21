@@ -206,7 +206,7 @@ namespace StrawberryShake.Transport.WebSockets
             Assert.Empty(results);
         }
 
-        private class GetHeroQueryDocument : IDocument
+        private sealed class GetHeroQueryDocument : IDocument
         {
             private const string _bodyString =
                 @"query GetHero {

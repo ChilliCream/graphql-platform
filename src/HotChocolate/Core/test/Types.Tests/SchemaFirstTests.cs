@@ -1,12 +1,17 @@
-using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
+using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate
 {
@@ -64,6 +69,72 @@ namespace HotChocolate
             IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result = await executor.ExecuteAsync(query);
             result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_Against_Schema_With_Interface_Schema()
+        {
+            Snapshot.FullName();
+
+            var source = @"
+                type Query {
+                    pet: Pet
+                }
+
+                interface Pet {
+                    name: String
+                }
+
+                type Cat implements Pet {
+                    name: String
+                }
+
+                type Dog implements Pet {
+                    name: String
+                }
+            ";
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(source)
+                .AddResolver<PetQuery>("Query")
+                .BindRuntimeType<Cat>()
+                .BindRuntimeType<Dog>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Execute_Against_Schema_With_Interface_Execute()
+        {
+            Snapshot.FullName();
+
+            var source = @"
+                type Query {
+                    pet: Pet
+                }
+
+                interface Pet {
+                    name: String
+                }
+
+                type Cat implements Pet {
+                    name: String
+                }
+
+                type Dog implements Pet {
+                    name: String
+                }
+            ";
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(source)
+                .AddResolver<PetQuery>("Query")
+                .BindRuntimeType<Cat>()
+                .BindRuntimeType<Dog>()
+                .ExecuteRequestAsync("{ pet { name __typename } }")
+                .MatchSnapshotAsync();
         }
 
         [Fact]
@@ -263,9 +334,313 @@ namespace HotChocolate
             result.ToJson().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task SchemaFirst_Cursor_Paging()
+        {
+            // arrange
+            var sdl = "type Query { items: [String!] }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithItems>("Query")
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_Cursor_OffsetPaging()
+        {
+            // arrange
+            var sdl = "type Query { items: [String!] }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithOffsetItems>("Query")
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_Cursor_Paging_With_Objects()
+        {
+            // arrange
+            var sdl = "type Query { items: [Person!] } type Person { name: String }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithPersons>("Query")
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        // we need to apply the changes we did to cursor paging to offset paging.
+        [Fact(Skip = "Offset paging for schema first is not supported in 12.")]
+        public async Task SchemaFirst_Cursor_OffSetPaging_With_Objects()
+        {
+            // arrange
+            var sdl = "type Query { items: [Person!] } type Person { name: String }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithOffsetPersons>("Query")
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_Cursor_Paging_Execute()
+        {
+            // arrange
+            var sdl = "type Query { items: [String!] }";
+
+            // act
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithItems>("Query")
+                    .ExecuteRequestAsync("{ items { nodes } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_Cursor_Paging_With_Objects_Execute()
+        {
+            // arrange
+            var sdl = "type Query { items: [Person!] } type Person { name: String }";
+
+            // act
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithPersons>("Query")
+                    .ExecuteRequestAsync("{ items { nodes { name } } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_Cursor_Paging_With_Resolver()
+        {
+            // arrange
+            var sdl = "type Query { items: [String!] }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .AddResolver<QueryWithItems>("Query")
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Reference_Schema_First_Types_From_Code_First_Models()
+        {
+            // arrange
+            var sdl = "type Person { name: String! }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .AddQueryType<QueryCodeFirst>()
+                    .BindRuntimeType<Person>()
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Apply_Schema_Building_Directive()
+        {
+            // arrange
+            var sdl = "type Person { name: String! @desc(value: \"abc\") }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .AddQueryType<QueryCodeFirst>()
+                    .BindRuntimeType<Person>()
+                    .ConfigureSchema(sb => sb.AddSchemaDirective(new CustomDescriptionDirective()))
+                    .BuildSchemaAsync();
+
+            // assert
+            Assert.Equal(
+                "abc",
+                schema.GetType<ObjectType>("Person")?.Fields["name"].Description);
+        }
+
+        [Fact]
+        public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound()
+        {
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(@"
+                    type Query {
+                        book(input: TestEnumInput): TestEnum
+                    }
+
+                    enum TestEnumInput { FOO_BAR_INPUT }
+                    enum TestEnum { FOO_BAR }")
+                .AddResolver<QueryEnumExample>("Query")
+                .ExecuteRequestAsync("{ book(input: FOO_BAR_INPUT) }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound_When_Using_BindRuntimeType()
+        {
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(@"
+                    type Query {
+                        book(input: TestEnumInput): TestEnum
+                    }
+
+                    enum TestEnumInput { FOO_BAR_INPUT }
+                    enum TestEnum { FOO_BAR }")
+                .BindRuntimeType<QueryEnumExample>("Query")
+                .ExecuteRequestAsync("{ book(input: FOO_BAR_INPUT) }")
+                .MatchSnapshotAsync();
+        }
+
         public class Query
         {
             public string Hello() => "World";
         }
+
+        public class QueryWithItems
+        {
+            [UsePaging]
+            public string[] GetItems() => new[] { "a", "b" };
+        }
+
+        public class QueryWithOffsetItems
+        {
+            [UseOffsetPaging]
+            public string[] GetItems() => new[] { "a", "b" };
+        }
+
+        public class QueryWithPersons
+        {
+            [UsePaging]
+            public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
+        }
+
+        public class QueryWithOffsetPersons
+        {
+            [UseOffsetPaging]
+            public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
+        }
+
+        public class QueryCodeFirst
+        {
+            [GraphQLType("Person!")]
+            public object GetPerson() => new Person { Name = "Hello" };
+        }
+
+        public class Person
+        {
+            public string Name { get; set; }
+        }
+
+        public class CustomDescriptionDirective : ISchemaDirective
+        {
+            public NameString Name => "desc";
+
+            public void ApplyConfiguration(
+                IDescriptorContext context,
+                DirectiveNode directiveNode,
+                IDefinition definition,
+                Stack<IDefinition> path)
+            {
+                if (definition is ObjectFieldDefinition objectField)
+                {
+                    objectField.Description = (string)directiveNode.Arguments.First().Value.Value;
+                }
+            }
+        }
+
+        public class PetQuery
+        {
+            public IPet GetPet() => new Cat("Mauzi");
+        }
+
+        public interface IPet
+        {
+            string Name { get; }
+        }
+
+        public class Cat : IPet
+        {
+            public Cat(string name)
+            {
+                Name = name;
+            }
+
+            public string Name { get; }
+        }
+
+        public class Dog : IPet
+        {
+            public Dog(string name)
+            {
+                Name = name;
+            }
+
+            public string Name { get; }
+        }
+    }
+
+    public class QueryEnumExample
+    {
+        public TestEnum GetBook(TestEnumInput input)
+        {
+            return TestEnum.FooBar;
+        }
+    }
+
+    public enum TestEnum
+    {
+        FooBar
+    }
+
+    public enum TestEnumInput
+    {
+        FooBarInput
     }
 }

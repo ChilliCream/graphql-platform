@@ -18,6 +18,8 @@ You will need to add a package reference to `HotChocolate.Stitching.Redis` to al
 dotnet add package HotChocolate.Stitching.Redis
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 ## Configuration of a domain service
 
 A domain service has to _publish the schema definition_.
@@ -102,6 +104,8 @@ You will need to add a package reference to `HotChocolate.Stitching` to all your
 ```cli
 dotnet add package HotChocolate.Stitching
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 ## Configuration of a domain service
 

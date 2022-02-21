@@ -1,9 +1,9 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
+import { Layout } from "../components/layout";
 import { SEO } from "../components/misc/seo";
-import { Layout } from "../components/structure/layout";
 
-const NotFoundPage: FunctionComponent = () => (
+const NotFoundPage: FC = () => (
   <Layout>
     <SEO title="404: Not found" />
     <Container>
@@ -24,10 +24,10 @@ const Container = styled.div`
   flex: 0 0 auto;
   flex-direction: row;
   width: 100%;
-  max-width: 820px;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     padding: 20px 10px 0;
+    max-width: 820px;
   }
 `;
 
@@ -38,7 +38,7 @@ const Article = styled.article`
   margin-bottom: 60px;
   padding-bottom: 20px;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     border-radius: var(--border-radius);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
   }
@@ -50,7 +50,7 @@ const Title = styled.h1`
   margin-left: 20px;
   font-size: 2em;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     margin-right: 50px;
     margin-left: 50px;
   }
@@ -62,7 +62,7 @@ const Content = styled.div`
     padding-left: 20px;
   }
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     > * {
       padding-right: 50px;
       padding-left: 50px;

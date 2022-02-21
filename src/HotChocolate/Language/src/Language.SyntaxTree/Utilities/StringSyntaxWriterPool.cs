@@ -1,24 +1,23 @@
 using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Language.Utilities
+namespace HotChocolate.Language.Utilities;
+
+internal sealed class StringSyntaxWriterPool
+    : DefaultObjectPool<StringSyntaxWriter>
 {
-    internal sealed class StringSyntaxWriterPool
-        : DefaultObjectPool<StringSyntaxWriter>
+    public StringSyntaxWriterPool()
+        : base(new Policy(), 8)
     {
-        public StringSyntaxWriterPool()
-            : base(new Policy(), 8)
-        {
-        }
+    }
 
-        private class Policy : IPooledObjectPolicy<StringSyntaxWriter>
-        {
-            public StringSyntaxWriter Create() => new StringSyntaxWriter();
+    private sealed class Policy : IPooledObjectPolicy<StringSyntaxWriter>
+    {
+        public StringSyntaxWriter Create() => new StringSyntaxWriter();
 
-            public bool Return(StringSyntaxWriter obj)
-            {
-                obj.Clear();
-                return true;
-            }
+        public bool Return(StringSyntaxWriter obj)
+        {
+            obj.Clear();
+            return true;
         }
     }
 }

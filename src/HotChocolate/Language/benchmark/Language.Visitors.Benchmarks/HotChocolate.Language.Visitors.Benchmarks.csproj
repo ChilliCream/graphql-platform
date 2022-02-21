@@ -19,4 +19,8 @@
     <EmbeddedResource Include="Resources\IntrospectionQuery.graphql" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+  </PropertyGroup>
+
 </Project>

@@ -1,13 +1,8 @@
 import { graphql, Link } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import React, { FC, useCallback, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { DocPageFragment } from "../../../graphql-types";
 import ListAltIconSvg from "../../images/list-alt.svg";
 import NewspaperIconSvg from "../../images/newspaper.svg";
@@ -17,6 +12,7 @@ import {
   IsPhablet,
   IsSmallDesktop,
   IsTablet,
+  THEME_COLORS,
 } from "../../shared-style";
 import { useObservable } from "../../state";
 import { toggleAside, toggleTOC } from "../../state/common";
@@ -29,7 +25,7 @@ import {
   ArticleTitle,
 } from "../articles/article-elements";
 import { ArticleSections } from "../articles/article-sections";
-import { TabGroupProvider } from "../mdx/tabs/tab-groups";
+import { TabGroupProvider } from "../mdx/tabs";
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -37,17 +33,18 @@ import {
 import { Aside, DocPageAside } from "./doc-page-aside";
 import { DocPageCommunity } from "./doc-page-community";
 import { DocPageLegacy } from "./doc-page-legacy";
-import { DocPageNavigation, Navigation } from "./doc-page-navigation";
+import {
+  DocPageNavigation,
+  Navigation,
+  ScrollContainer,
+} from "./doc-page-navigation";
 
-interface DocPageProperties {
+export interface DocPageProps {
   readonly data: DocPageFragment;
   readonly originPath: string;
 }
 
-export const DocPage: FunctionComponent<DocPageProperties> = ({
-  data,
-  originPath,
-}) => {
+export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const dispatch = useDispatch();
   const responsiveMenuRef = useRef<HTMLDivElement>(null);
 
@@ -122,7 +119,6 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
               </ArticleHeader>
               <ArticleContent>
                 <MDXRenderer>{body}</MDXRenderer>
-
                 <ArticleContentFooter
                   lastUpdated={fields!.lastUpdated!}
                   lastAuthorName={fields!.lastAuthorName!}
@@ -134,7 +130,9 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
         </ArticleWrapper>
         <DocPageAside>
           <DocPageCommunity data={data} originPath={originPath} />
-          <ArticleSections data={data.file!.childMdx!} />
+          <ScrollContainer>
+            <ArticleSections data={data.file!.childMdx!} />
+          </ScrollContainer>
         </DocPageAside>
       </Container>
     </TabGroupProvider>
@@ -201,11 +199,11 @@ const ArticleContainer = styled.div`
   grid-row: 1;
   grid-column: 3;
 
-  ${IsSmallDesktop(`
-      grid-column: 1;
+  ${IsSmallDesktop(css`
+    grid-column: 1;
   `)};
 
-  ${IsPhablet(`
+  ${IsPhablet(css`
     width: 100%;
     padding: 0;
   `)}
@@ -213,13 +211,15 @@ const ArticleContainer = styled.div`
 
 const Container = styled.div`
   display: grid;
+
   ${DocPageDesktopGridColumns};
-  ${IsSmallDesktop(`
+
+  ${IsSmallDesktop(css`
     grid-template-columns: 250px 1fr;
     width: auto;
   `)}
 
-  ${IsTablet(`
+  ${IsTablet(css`
     grid-template-columns: 1fr;
   `)}
 
@@ -232,7 +232,7 @@ const Container = styled.div`
     grid-row: 1;
     grid-column: 2;
 
-    ${IsSmallDesktop(`
+    ${IsSmallDesktop(css`
       grid-column: 1;
     `)}
   }
@@ -241,11 +241,11 @@ const Container = styled.div`
     grid-row: 1;
     grid-column: 1 / 6;
 
-    ${IsSmallDesktop(`
+    ${IsSmallDesktop(css`
       grid-column: 2 / 5;
     `)}
 
-    ${IsTablet(`
+    ${IsTablet(css`
       grid-column: 1 / 5;
     `)}
   }
@@ -254,7 +254,7 @@ const Container = styled.div`
     grid-row: 1;
     grid-column: 4;
 
-    ${IsPhablet(`
+    ${IsPhablet(css`
       grid-column: 1;
     `)}
   }
@@ -284,26 +284,25 @@ const ResponsiveMenu = styled.div`
     top: 60px;
   }
 
-  ${IsPhablet(`
+  ${IsPhablet(css`
     left: 0;
     width: auto;
     right: 0;
-    margin-left: 0;
-    margin-right: 0;
+    margin: 0;
     top: 60px;
   `)}
 
-  ${IsDesktop(`
+  ${IsDesktop(css`
     display: none;
   `)}
 
-  ${IsSmallDesktop(`
+  ${IsSmallDesktop(css`
     > .toc-toggle {
       display: none;
     }
   `)}
 
-  ${IsTablet(`
+  ${IsTablet(css`
     > .toc-toggle {
       display: initial;
     }
@@ -314,7 +313,7 @@ const Button = styled.button`
   display: flex;
   flex-direction: row;
   align-items: center;
-  color: var(--text-color);
+  color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
 
   &.aside-toggle {
@@ -333,15 +332,15 @@ const Button = styled.button`
     margin-right: 5px;
     width: 16px;
     height: 16px;
-    fill: var(--text-color);
+    fill: ${THEME_COLORS.text};
     transition: fill 0.2s ease-in-out;
   }
 `;
 
 const OutdatedDocumentationWarning = styled.div`
   padding: 20px 20px;
-  background-color: var(--warning-color);
-  color: var(--text-color-contrast);
+  background-color: ${THEME_COLORS.warning};
+  color: ${THEME_COLORS.textContrast};
   line-height: 1.4;
 
   > br {
@@ -354,18 +353,16 @@ const OutdatedDocumentationWarning = styled.div`
     text-decoration: underline;
   }
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     padding: 20px 50px;
   }
 `;
 
-interface DocumentationNotesProperties {
+interface DocumentationNotesProps {
   readonly product: ProductInformation;
 }
 
-const DocumentationNotes: FunctionComponent<DocumentationNotesProperties> = ({
-  product,
-}) => {
+const DocumentationNotes: FC<DocumentationNotesProps> = ({ product }) => {
   if (product.version === "") {
     return null;
   }

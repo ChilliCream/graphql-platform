@@ -45,6 +45,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             TypeNames.JsonSerializer
         };
 
+        private static readonly Dictionary<string, string> _alternativeTypeNames = new()
+        {
+            ["Uuid"] = TypeNames.UUIDSerializer,
+            ["Guid"] = TypeNames.UUIDSerializer,
+            ["URL"] = TypeNames.UrlSerializer,
+            ["Uri"] = TypeNames.UrlSerializer,
+            ["URI"] = TypeNames.UrlSerializer
+        };
+
         protected override void Generate(
             DependencyInjectionDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings,
@@ -474,6 +483,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddArgument(_services);
             }
 
+            foreach (var scalarTypes in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+            {
+                if (_alternativeTypeNames.TryGetValue(scalarTypes.Name.Value, out var serializer))
+                {
+                    body.AddMethodCall()
+                        .SetMethodName(TypeNames.AddSingleton)
+                        .AddGeneric(TypeNames.ISerializer)
+                        .AddArgument(_services)
+                        .AddArgument(MethodCallBuilder
+                            .Inline()
+                            .SetNew()
+                            .SetMethodName(serializer)
+                            .AddArgument(scalarTypes.Name.AsStringToken()));
+                }
+            }
+
             var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
             foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
             {
@@ -749,7 +774,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                     .Inline()
                                     .SetMethodName(
                                         _clientFactory,
-                                        nameof(IHttpClientFactory.CreateClient))
+                                        "CreateClient")
                                     .AddArgument(clientName.AsStringToken()))))));
 
         private static ICode RegisterConnection(TransportType transportProfile, string clientName)
@@ -759,7 +784,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 TransportType.WebSocket => RegisterWebSocketConnection(clientName),
                 TransportType.Http => RegisterHttpConnection(clientName),
                 TransportType.InMemory => RegisterInMemoryConnection(clientName),
-                { } v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
+                var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
             };
         }
 
@@ -872,7 +897,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private static string _clientServiceProvider = @"
-        private class ClientServiceProvider
+        private sealed class ClientServiceProvider
             : System.IServiceProvider
             , System.IDisposable
         {

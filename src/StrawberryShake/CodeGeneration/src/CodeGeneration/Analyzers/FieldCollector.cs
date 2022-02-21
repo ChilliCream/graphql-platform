@@ -291,9 +291,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (fragmentDefinitionSyntax is not null)
             {
-                if (_schema.TryGetType(
+                if (_schema.TryGetType<INamedType>(
                     fragmentDefinitionSyntax.TypeCondition.Name.Value,
-                    out INamedType type))
+                    out var type))
                 {
                     return new Fragment(
                         fragmentName,
@@ -341,15 +341,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         private static string CreateInlineFragmentName(InlineFragmentNode inlineFragmentSyntax) =>
             $"^{inlineFragmentSyntax.Location!.Start}_{inlineFragmentSyntax.Location.End}";
 
-        private class Cache : Dictionary<INamedOutputType, SelectionCache>
+        private sealed class Cache : Dictionary<INamedOutputType, SelectionCache>
         {
         }
 
-        private class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>
+        private sealed class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>
         {
         }
 
-        private class TypeNameField : IOutputField
+        private sealed class TypeNameField : IOutputField
         {
             private TypeNameField()
             {
@@ -384,6 +384,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             ITypeSystemObject IField.DeclaringType => throw new NotImplementedException();
 
             public FieldCoordinate Coordinate => throw new NotImplementedException();
+
+            public int Index => 0;
 
             public static TypeNameField Default { get; } = new();
         }

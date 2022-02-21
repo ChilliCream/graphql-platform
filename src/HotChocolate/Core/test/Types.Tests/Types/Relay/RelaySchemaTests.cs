@@ -1,5 +1,7 @@
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -9,6 +11,7 @@ namespace HotChocolate.Types.Relay
 {
     public class RelaySchemaTests
     {
+        [Obsolete]
         [Fact]
         public void EnableRelay_Node_Field_On_Query_Exists()
         {
@@ -23,6 +26,7 @@ namespace HotChocolate.Types.Relay
             schema.ToString().MatchSnapshot();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads()
         {
@@ -37,6 +41,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_With_Extensions()
         {
@@ -52,6 +57,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_With_Different_FieldName()
         {
@@ -70,6 +76,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_With_Different_PayloadPredicate()
         {
@@ -88,6 +95,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_Refetch_SomeId()
         {
@@ -102,6 +110,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_Refetch_SomeId_With_Query_Inst()
         {
@@ -116,6 +125,46 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task Relay_ShouldReturnNonNullError_When_IdIsNull()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("user")
+                    .Type<UserType>()
+                    .Resolve(c => new User
+                    {
+                        Name = "TEST"
+                    }))
+                .AddGlobalObjectIdentification()
+                .ExecuteRequestAsync("query { user { id name } } ")
+                .MatchSnapshotAsync();
+        }
+
+        public class User
+        {
+            public string Id { get; set; }
+
+            public string Name { get; set; }
+        }
+
+        public class UserType : ObjectType<User>
+        {
+            protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+            {
+                descriptor
+                    .ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(ResolveNode);
+            }
+
+            private Task<User> ResolveNode(IResolverContext context, string id)
+            {
+                return Task.FromResult(new User { Name = "TEST" });
+            }
+        }
 
         public class QueryType : ObjectType
         {
@@ -124,7 +173,7 @@ namespace HotChocolate.Types.Relay
                 descriptor
                     .Field("some")
                     .Type<SomeType>()
-                    .Resolver(new object());
+                    .Resolve(new object());
             }
         }
 
@@ -140,7 +189,7 @@ namespace HotChocolate.Types.Relay
                 descriptor
                     .Field("id")
                     .Type<NonNullType<IdType>>()
-                    .Resolver("bar");
+                    .Resolve("bar");
             }
         }
 
@@ -175,13 +224,17 @@ namespace HotChocolate.Types.Relay
             public FooPayload Foo() => new();
         }
 
-        public class FooPayload { }
+        public class FooPayload
+        {
+        }
 
         public class BazPayload
         {
             public string Some { get; set; }
         }
 
-        public class BarResult { }
+        public class BarResult
+        {
+        }
     }
 }

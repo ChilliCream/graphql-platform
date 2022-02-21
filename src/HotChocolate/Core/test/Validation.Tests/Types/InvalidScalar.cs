@@ -2,10 +2,11 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate.Validation.Types
 {
-    public class InvalidScalar
-        : ScalarType<string>
+    public class InvalidScalar : ScalarType<string>
     {
         public InvalidScalar()
             : base("Invalid", BindingBehavior.Explicit)
@@ -17,17 +18,17 @@ namespace HotChocolate.Validation.Types
             return false;
         }
 
-        public override object ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+        public override object? ParseLiteral(IValueNode valueSyntax)
         {
             throw new InvalidOperationException();
         }
 
-        public override IValueNode ParseValue(object value)
+        public override IValueNode ParseValue(object? value)
         {
             throw new InvalidOperationException();
         }
 
-        public override IValueNode ParseResult(object resultValue)
+        public override IValueNode ParseResult(object? resultValue)
         {
             throw new InvalidOperationException();
         }

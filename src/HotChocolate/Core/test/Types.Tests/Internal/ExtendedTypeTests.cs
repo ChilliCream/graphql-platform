@@ -389,22 +389,22 @@ namespace HotChocolate.Internal
             Assert.True(dict.IsArrayOrList);
         }
 
-        private class CustomStringList1
+        private sealed class CustomStringList1
             : List<string>
         {
         }
 
-        private class CustomStringList2<T>
+        private sealed class CustomStringList2<T>
             : List<T>
             where T : notnull
         {
         }
 
-        private class CustomStringList3<T, TK>
+        private sealed class CustomStringList3<T, TK>
             : List<T>
             where T : notnull
         {
-            public TK Foo { get; set; }
+            public TK Foo { get; set; } = default!;
         }
 
 #nullable enable

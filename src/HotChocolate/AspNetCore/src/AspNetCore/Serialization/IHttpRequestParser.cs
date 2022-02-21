@@ -1,22 +1,48 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.Language;
 
-namespace HotChocolate.AspNetCore.Serialization
+namespace HotChocolate.AspNetCore.Serialization;
+
+/// <summary>
+/// A helper to parse GraphQL HTTP requests.
+/// </summary>
+public interface IHttpRequestParser
 {
-    public interface IHttpRequestParser
-    {
-        ValueTask<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
-            Stream stream,
-            CancellationToken cancellationToken);
+    /// <summary>
+    /// Parses a JSON GraphQL request from the request body.
+    /// </summary>
+    /// <param name="requestBody">
+    /// A stream representing the HTTP request body.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The request cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns the parsed GraphQL request.
+    /// </returns>
+    ValueTask<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
+        Stream requestBody,
+        CancellationToken cancellationToken);
 
-        GraphQLRequest ReadParamsRequest(
-            IQueryCollection parameters);
+    /// <summary>
+    /// Parses a GraphQL HTTP GET request from the HTTP query parameters.
+    /// </summary>
+    /// <param name="parameters">
+    /// The HTTP query parameter collection.
+    /// </param>
+    /// <returns>
+    /// Returns the parsed GraphQL request.
+    /// </returns>
+    GraphQLRequest ReadParamsRequest(IQueryCollection parameters);
 
-        IReadOnlyList<GraphQLRequest> ReadOperationsRequest(
-            string operations);
-    }
+    /// <summary>
+    /// Parses the operations string from an GraphQL HTTP MultiPart request.
+    /// </summary>
+    /// <param name="operations">
+    /// The operations string.
+    /// </param>
+    /// <returns>
+    /// Returns the parsed GraphQL request.
+    /// </returns>
+    IReadOnlyList<GraphQLRequest> ReadOperationsRequest(string operations);
 }

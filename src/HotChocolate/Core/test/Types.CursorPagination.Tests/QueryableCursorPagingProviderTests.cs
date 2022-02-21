@@ -455,12 +455,12 @@ namespace HotChocolate.Types.Pagination
 
             public bool HasErrors => throw new NotImplementedException();
 
-            public IImmutableDictionary<string, object> ScopedContextData
+            public IImmutableDictionary<string, object?> ScopedContextData
             {
                 get => throw new NotImplementedException();
                 set => throw new NotImplementedException();
             }
-            public IImmutableDictionary<string, object> LocalContextData
+            public IImmutableDictionary<string, object?> LocalContextData
             {
                 get => throw new NotImplementedException();
                 set => throw new NotImplementedException();
@@ -542,6 +542,11 @@ namespace HotChocolate.Types.Pagination
                 throw new NotSupportedException();
             }
 
+            public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+            {
+                throw new NotImplementedException();
+            }
+
             public IReadOnlyList<IFieldSelection> GetSelections(
                 ObjectType typeContext,
                 SelectionSetNode? selectionSet = null,
@@ -615,7 +620,7 @@ namespace HotChocolate.Types.Pagination
 
             public string Print()
             {
-                return _source.ToString();
+                return _source.ToString()!;
             }
         }
     }

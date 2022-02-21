@@ -1,77 +1,88 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types.Factories
-{
-    internal sealed class InputObjectTypeFactory
-        : ITypeFactory<InputObjectTypeDefinitionNode, InputObjectType>
-        , ITypeFactory<InputObjectTypeExtensionNode, InputObjectTypeExtension>
-    {
-        public InputObjectType Create(
-            IDescriptorContext context,
-            InputObjectTypeDefinitionNode node)
-        {
-            var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+namespace HotChocolate.Types.Factories;
 
-            var typeDefinition = new InputObjectTypeDefinition(
-                node.Name.Value,
-                node.Description?.Value);
-            typeDefinition.BindTo = node.GetBindingValue();
+internal sealed class InputObjectTypeFactory
+    : ITypeFactory<InputObjectTypeDefinitionNode, InputObjectType>
+    , ITypeFactory<InputObjectTypeExtensionNode, InputObjectTypeExtension>
+{
+    public InputObjectType Create(
+        IDescriptorContext context,
+        InputObjectTypeDefinitionNode node)
+    {
+        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        path.Clear();
+
+        var typeDefinition = new InputObjectTypeDefinition(
+            node.Name.Value,
+            node.Description?.Value);
+        typeDefinition.BindTo = node.GetBindingValue();
+
+        if (preserveSyntaxNodes)
+        {
+            typeDefinition.SyntaxNode = node;
+        }
+
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
+
+        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
+
+        return InputObjectType.CreateUnsafe(typeDefinition);
+    }
+
+    public InputObjectTypeExtension Create(IDescriptorContext context, InputObjectTypeExtensionNode node)
+    {
+        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        path.Clear();
+
+        var typeDefinition = new InputObjectTypeDefinition(node.Name.Value);
+        typeDefinition.BindTo = node.GetBindingValue();
+
+        SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
+
+        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
+
+        return InputObjectTypeExtension.CreateUnsafe(typeDefinition);
+    }
+
+    private static void DeclareFields(
+        IDescriptorContext context,
+        InputObjectTypeDefinition parent,
+        IReadOnlyCollection<InputValueDefinitionNode> fields,
+        Stack<IDefinition> path,
+        bool preserveSyntaxNodes)
+    {
+        path.Push(parent);
+
+        foreach (InputValueDefinitionNode inputField in fields)
+        {
+            var inputFieldDefinition = new InputFieldDefinition(
+                inputField.Name.Value,
+                inputField.Description?.Value,
+                TypeReference.Create(inputField.Type),
+                inputField.DefaultValue);
+            inputFieldDefinition.BindTo = inputField.GetBindingValue();
 
             if (preserveSyntaxNodes)
             {
-                typeDefinition.SyntaxNode = node;
+                inputFieldDefinition.SyntaxNode = inputField;
             }
 
-            SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
-
-            DeclareFields(typeDefinition, node.Fields, preserveSyntaxNodes);
-
-            return InputObjectType.CreateUnsafe(typeDefinition);
-        }
-
-        public InputObjectTypeExtension Create(IDescriptorContext context, InputObjectTypeExtensionNode node)
-        {
-            var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
-
-            var typeDefinition = new InputObjectTypeDefinition(node.Name.Value);
-            typeDefinition.BindTo = node.GetBindingValue();
-
-            SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
-
-            DeclareFields(typeDefinition, node.Fields, preserveSyntaxNodes);
-
-            return InputObjectTypeExtension.CreateUnsafe(typeDefinition);
-        }
-
-        private static void DeclareFields(
-            InputObjectTypeDefinition parent,
-            IReadOnlyCollection<InputValueDefinitionNode> fields,
-            bool preserveSyntaxNodes)
-        {
-            foreach (InputValueDefinitionNode inputField in fields)
+            if (inputField.DeprecationReason() is { Length: > 0 } reason)
             {
-                var inputFieldDefinition = new InputFieldDefinition(
-                    inputField.Name.Value,
-                    inputField.Description?.Value,
-                    TypeReference.Create(inputField.Type),
-                    inputField.DefaultValue);
-                inputFieldDefinition.BindTo = inputField.GetBindingValue();
-
-                if (preserveSyntaxNodes)
-                {
-                    inputFieldDefinition.SyntaxNode = inputField;
-                }
-
-                SdlToTypeSystemHelper.AddDirectives(inputFieldDefinition, inputField);
-
-                parent.Fields.Add(inputFieldDefinition);
+                inputFieldDefinition.DeprecationReason = reason;
             }
+
+            SdlToTypeSystemHelper.AddDirectives(context, inputFieldDefinition, inputField, path);
+
+            parent.Fields.Add(inputFieldDefinition);
         }
+
+        path.Pop();
     }
 }

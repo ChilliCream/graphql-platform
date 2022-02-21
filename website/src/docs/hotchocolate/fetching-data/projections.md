@@ -2,7 +2,7 @@
 title: Projections
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 Every GraphQL request specifies exactly what data should be returned. Over or under fetching can be reduced
 or even eliminated. Hot Chocolate projections leverage this concept and directly projects incoming queries
@@ -35,14 +35,16 @@ LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
 Filtering is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
 
 ```bash
-  dotnet add package HotChocolate.Data
+dotnet add package HotChocolate.Data
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 To use projections with your GraphQL endpoint you have to register projections on the schema:
 
 ```csharp
 services.AddGraphQLServer()
-  // Your schmea configuration
+  // Your schema configuration
   .AddProjections();
 ```
 
@@ -53,7 +55,7 @@ are members of a type will be projected. Fields that define a customer resolver 
 to the database. If the middleware encounters a field that specifies `UseProjection()` this field will be skipped.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -64,8 +66,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType<Query>
@@ -83,12 +85,12 @@ public class Query
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ⚠️ Schema-first does currently not support projections!
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 > ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjection > UseFiltering > UseSorting
@@ -202,7 +204,7 @@ related data from another service. With projections, this resolver could only wo
 for the `email` field. To ensure a field is always projected you have to use `IsProjected(true)`.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class User
@@ -215,8 +217,8 @@ public class User
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -229,12 +231,12 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ⚠️ Schema-first does currently not support projections!
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ```graphql
@@ -260,7 +262,7 @@ The projections middleware skips a field in two cases. Either the visitor encoun
 itself, or it defines `IsProjected(false)`.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class User
@@ -273,8 +275,8 @@ public class User
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -287,12 +289,12 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ⚠️ Schema-first does currently not support projections!
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ```graphql

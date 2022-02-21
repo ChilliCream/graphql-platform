@@ -1,359 +1,368 @@
 using System;
 using System.Runtime.CompilerServices;
+using HotChocolate.Execution.Processing.Tasks;
 
-namespace HotChocolate.Execution.Processing.Plan
+namespace HotChocolate.Execution.Processing.Plan;
+
+internal sealed class QueryPlanStateMachine
 {
-    internal sealed class QueryPlanStateMachine
+    // by default we will have 8 slots to store state on.
+    private State[] _stepState = { new(), new(), new(), new(), new(), new(), new(), new() };
+
+    // the count of active query plan steps.
+    private int _running;
+
+    // the count of serial query plan steps.
+    private int _serial;
+
+    // the current operation context
+    private IQueryPlanState _planState = default!;
+
+    // the current query plan
+    private QueryPlan _plan = default!;
+
+    /// <summary>
+    /// Defines if processing the query plan is completed.
+    /// </summary>
+    public bool IsCompleted => _running == 0;
+
+    /// <summary>
+    /// The current execution strategy for the main task processor.
+    /// </summary>
+    public ExecutionStrategy Strategy { get; private set; }
+
+    /// <summary>
+    /// Defines if the main processor execution strategy is serial.
+    /// </summary>
+    public bool IsSerial => Strategy is ExecutionStrategy.Serial;
+
+    /// <summary>
+    /// Initializes the state machine.
+    /// </summary>
+    /// <param name="state">
+    /// The operation context.
+    /// </param>
+    /// <param name="plan">
+    /// The query plan.
+    /// </param>
+    public void Initialize(IQueryPlanState state, QueryPlan plan)
     {
-        // by default we will have 8 slots to store state on.
-        private State[] _state = { new(), new(), new(), new(), new(), new(), new(), new() };
+        _planState = state;
+        _plan = plan;
+        Strategy = ExecutionStrategy.Parallel;
 
-        // since it is likely that we hit one specific state multiple time we keep the last touched
-        // cached for faster access.
-        private State? _current;
-
-        // the count of active query plan steps.
-        private int _running;
-
-        // the count of serial query plan steps.
-        private int _serial;
-
-        // the current operation context
-        private IOperationContext _context = default!;
-
-        // the current query plan
-        private QueryPlan _plan = default!;
-
-        /// <summary>
-        /// Defines if processing the query plan is completed.
-        /// </summary>
-        public bool IsCompleted => _running == 0;
-
-        /// <summary>
-        /// The current execution strategy for the main task processor.
-        /// </summary>
-        public ExecutionStrategy Strategy { get; private set; }
-
-        /// <summary>
-        /// Defines if the main processor execution strategy is serial.
-        /// </summary>
-        public bool IsSerial => Strategy == ExecutionStrategy.Serial;
-
-        /// <summary>
-        /// Initializes the state machine.
-        /// </summary>
-        /// <param name="context">
-        /// The operation context.
-        /// </param>
-        /// <param name="plan">
-        /// The query plan.
-        /// </param>
-        public void Initialize(IOperationContext context, QueryPlan plan)
+        // we first ensure that the state machine has enough state slots for the current
+        // query plan.
+        if (_stepState.Length < plan.Count)
         {
-            _context = context;
-            _plan = plan;
-            Strategy = ExecutionStrategy.Parallel;
+            // if the query plan has more steps than we have state slots we will resize
+            // the state array.
+            Array.Resize(ref _stepState, plan.Count);
 
-            // we first ensure that the state machine has enough state slots for the current
-            // query plan.
-            if (_state.Length < plan.Count)
+            // also we create new state objects for the empty slots.
+            for (var i = 0; i < plan.Count; i++)
             {
-                // if the query plan has more steps than we have state slots we will resize
-                // the state array.
-                Array.Resize(ref _state, plan.Count);
-
-                // also we create new state objects for the empty slots.
-                for (var i = 0; i < _state.Length; i++)
-                {
-                    _state[i] ??= new();
-                }
+                _stepState[i] ??= new();
             }
+        }
+    }
 
-            // last we activate the query plan by activating the first steps.
-            Activate(plan.Root);
+    public void Start()
+    {
+        Activate(_plan.Root);
+    }
+
+    public void TryInitializeTask(IExecutionTask task)
+    {
+        if (task.State is null && _plan.TryGetStep(task, out ExecutionStep? step))
+        {
+            task.State = step;
+
+            if (task is ResolverTask resolverTask)
+            {
+                _planState.Selections.Add(resolverTask.Selection.Id);
+            }
+        }
+    }
+
+    public bool RegisterTask(IExecutionTask task)
+    {
+        if (task.State is ExecutionStep step)
+        {
+            State state = GetState(step);
+
+            state.Tasks++;
+            task.State = step;
+            task.IsSerial = state.IsSerial;
+            return state.IsActive;
         }
 
-        public object? TryGetStep(IExecutionTask task)
-        {
-            return _plan.TryGetStep(task, out var step) ? step : null;
-        }
+        return true;
+    }
 
-        public bool RegisterTask(IExecutionTask task, object? step)
+    public bool Complete(IExecutionTask task)
+    {
+        if (task.State is ExecutionStep step)
         {
-            if (step is QueryPlanStep s)
+            State state = GetState(step);
+            step.CompleteTask(_planState, task);
+
+            if (task.Status is not ExecutionTaskStatus.Completed)
             {
-                InitializeState(s, out State state);
-
-                state.Tasks++;
-                task.State = step;
-                task.IsSerial = state.IsSerial;
-                return state.IsActive;
+                state.Failed = true;
             }
 
-            return true;
+            if (--state.Tasks == 0)
+            {
+                return Complete(step, !state.Failed);
+            }
         }
 
-        public bool RegisterTask(IExecutionTask task)
+        return false;
+    }
+
+    public bool IsSuspended(IExecutionTask task)
+    {
+        if (task.State is ExecutionStep step)
         {
-            if (task.State is QueryPlanStep step)
-            {
-                InitializeState(step, out State state);
-
-                state.Tasks++;
-                task.State = step;
-                task.IsSerial = state.IsSerial;
-                return state.IsActive;
-            }
-
-            return true;
+            State state = GetState(step);
+            return !state.IsActive;
         }
 
-        public bool Complete(IExecutionTask task)
+        return false;
+    }
+
+    public void Clear()
+    {
+        foreach (State? state in _stepState)
         {
-            if (task.State is QueryPlanStep step)
-            {
-                InitializeState(step, out State state);
+            state.Clear();
+        }
 
-                if (--state.Tasks == 0)
-                {
-                    return Complete(step);
-                }
-            }
+        _plan = default!;
+        _running = default;
+        _serial = default;
+        _planState = default!;
+    }
 
+    private bool Activate(ExecutionStep step)
+    {
+        // first we try to activate the step, if that cannot be done we will mark the state
+        // for this step as not active which will cause this step to be skipped.
+        if (!step.TryActivate(_planState))
+        {
+            SetSkipped(step.Id);
             return false;
         }
 
-        public bool Complete(object taskState)
+        if (step is ResolverStep { Strategy: ExecutionStrategy.Serial })
         {
-            if (taskState is QueryPlanStep step)
-            {
-                InitializeState(step, out State state);
-
-                if (--state.Tasks == 0)
-                {
-                    return Complete(step);
-                }
-            }
-
-            return false;
+            _serial++;
+            Strategy = ExecutionStrategy.Serial;
         }
-
-        public bool IsSuspended(IExecutionTask task)
+        else if (step is SequenceStep sequence)
         {
-            if (task.State is QueryPlanStep step)
+            ExecutionStep? current = sequence.Steps[0];
+            var success = false;
+
+            while (current is not null)
             {
-                InitializeState(step, out State state);
-                return !state.IsActive;
-            }
-
-            return false;
-        }
-
-        public void Clear()
-        {
-            for (var i = 0; i < _state.Length; i++)
-            {
-                _state[i].Clear();
-            }
-
-            _current = _state[0];
-            _plan = default!;
-            _running = default;
-            _serial = default;
-        }
-
-        private bool Activate(QueryPlanStep step)
-        {
-            while (true)
-            {
-                if (!step.Initialize(_context))
+                if (Activate(current))
                 {
-                    SetActiveStatus(step.Id, true);
-                    SetActiveStatus(step.Id, false);
-                    return false;
-                }
-
-                if (step is ResolverQueryPlanStep { Strategy: ExecutionStrategy.Serial })
-                {
-                    _serial++;
-                    Strategy = ExecutionStrategy.Serial;
-                }
-
-                if (step is SequenceQueryPlanStep sequence)
-                {
-                    SetActiveStatus(sequence.Id, true);
-                    step = sequence.Steps[0];
-                    continue;
-                }
-
-                if (step is ParallelQueryPlanStep parallel)
-                {
-                    SetActiveStatus(parallel.Id, true);
-
-                    for (var i = 0; i < parallel.Steps.Count; i++)
-                    {
-                        Activate(parallel.Steps[i]);
-                    }
-
+                    success = true;
                     break;
                 }
 
-                SetActiveStatus(step.Id, true);
-                break;
+                current = current.Next;
             }
 
-            return true;
-        }
-
-        private bool Complete(QueryPlanStep step)
-        {
-            while (true)
+            if (!success)
             {
-                SetActiveStatus(step.Id, false);
+                SetSkipped(step.Id);
+                return false;
+            }
+        }
+        else if (step is ParallelStep parallel)
+        {
+            var allSkipped = true;
 
-                if (step is ResolverQueryPlanStep { Strategy: ExecutionStrategy.Serial })
+            for (var i = 0; i < parallel.Steps.Count; i++)
+            {
+                if (Activate(parallel.Steps[i]))
                 {
-                    if (--_serial == 0)
-                    {
-                        Strategy = ExecutionStrategy.Parallel;
-                    }
+                    allSkipped = false;
                 }
+            }
 
-                if (step.Parent is SequenceQueryPlanStep sequence)
-                {
-                    QueryPlanStep current = step;
-
-                    while (true)
-                    {
-                        QueryPlanStep? next = sequence.GetNextStep(current);
-
-                        if (next is null)
-                        {
-                            break;
-                        }
-
-                        if (Activate(next))
-                        {
-                            return true;
-                        }
-
-                        current = next;
-                    }
-
-                    step = sequence;
-                    continue;
-                }
-
-                if (step.Parent is ParallelQueryPlanStep parallel)
-                {
-                    for (var i = 0; i < parallel.Steps.Count; i++)
-                    {
-                        if (_state[parallel.Steps[i].Id].IsActive)
-                        {
-                            return false;
-                        }
-                    }
-
-                    step = parallel;
-                    continue;
-                }
-
+            if (allSkipped)
+            {
+                SetSkipped(step.Id);
                 return false;
             }
         }
 
-        public bool CompleteNext()
+        SetActiveStatus(step.Id, true);
+        return true;
+    }
+
+    private bool Complete(ExecutionStep step, bool success)
+    {
+        while (true)
         {
-TryAgain:
-            for (var i = 0; i < _state.Length; i++)
+            SetActiveStatus(step.Id, false);
+
+            if (step is ResolverStep { Strategy: ExecutionStrategy.Serial })
             {
-                State state = _state[i];
-
-                if (state.IsActive && state.Tasks == 0)
+                if (--_serial == 0)
                 {
-                    if (_plan.TryGetStep(state.Id, out QueryPlanStep? step) &&
-                        step is not SequenceQueryPlanStep and not ParallelQueryPlanStep)
-                    {
-                        if (Complete(step))
-                        {
-                            return true;
-                        }
+                    Strategy = ExecutionStrategy.Parallel;
+                }
+            }
 
-                        goto TryAgain;
+            if (step.Parent is SequenceStep sequence)
+            {
+                if (!success && sequence.CancelOnError)
+                {
+                    step = sequence;
+                    continue;
+                }
+
+                ExecutionStep current = step;
+
+                while (true)
+                {
+                    ExecutionStep? next = current.Next;
+
+                    if (next is null)
+                    {
+                        break;
+                    }
+
+                    if (Activate(next))
+                    {
+                        return true;
+                    }
+
+                    current = next;
+                }
+
+                step = sequence;
+                continue;
+            }
+
+            if (step.Parent is ParallelStep parallel)
+            {
+                success = true;
+
+                for (var i = 0; i < parallel.Steps.Count; i++)
+                {
+                    if (_stepState[parallel.Steps[i].Id].IsActive)
+                    {
+                        return false;
                     }
                 }
+
+                step = parallel;
+                continue;
             }
 
             return false;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetActiveStatus(int stepId, bool active)
+    public bool CompleteNext()
+    {
+TryAgain:
+        for (var i = 0; i < _plan.Count; i++)
         {
-            State? state = _current;
+            State state = _stepState[i];
 
-            if (state is null || state.Id != stepId)
+            if (state.IsActive && state.Tasks == 0)
             {
-                _current = state = _state[stepId];
-                state.Id = stepId;
-            }
-
-            state.IsActive = active;
-
-            if (active)
-            {
-                _running++;
-            }
-            else
-            {
-                _running--;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void InitializeState(QueryPlanStep step, out State state)
-        {
-            state = _current!;
-
-            if (state is null! || state.Id != step.Id || !state.IsInitialized)
-            {
-                _current = state = _state[step.Id];
-                if (!state.IsInitialized)
+                if (_plan.TryGetStep(state.Id, out ExecutionStep? step) &&
+                    step is not SequenceStep and not ParallelStep)
                 {
-                    state.Id = step.Id;
-                    state.IsSerial = step is ResolverQueryPlanStep
-                        { Strategy: ExecutionStrategy.Serial };
-                    state.IsInitialized = true;
+                    if (Complete(step, !state.Failed))
+                    {
+                        return true;
+                    }
+
+                    goto TryAgain;
                 }
             }
         }
 
-        private sealed class State
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SetActiveStatus(int stepId, bool active)
+    {
+        State state = _stepState[stepId];
+        state.Id = stepId;
+        state.IsActive = active;
+
+        if (active)
         {
-            public int Id;
-            public bool IsActive;
-            public int Tasks;
-            public bool IsSerial;
-            public bool IsInitialized;
+            _running++;
+        }
+        else
+        {
+            _running--;
+        }
+    }
 
-            public void Clear()
-            {
-                Id = default;
-                IsActive = default;
-                IsSerial = default;
-                IsInitialized = default;
-                Tasks = default;
-            }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SetSkipped(int stepId)
+    {
+        State state = _stepState[stepId];
+        state.Id = stepId;
+        state.IsActive = false;
+    }
 
-            /// <summary>
-            /// Debug visualization.
-            /// </summary>
-            public override string ToString()
-            {
-                string active = IsActive ? " active" : "";
-                string tasks = Tasks > 0 ? $" tasks: {Tasks}" : "";
-                return $"{Id}{active}{tasks}";
-            }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private State GetState(ExecutionStep step)
+    {
+        State state = _stepState[step.Id];
+
+        if (!state.IsInitialized)
+        {
+            state.Id = step.Id;
+            state.IsSerial = step is ResolverStep
+            { Strategy: ExecutionStrategy.Serial };
+            state.IsInitialized = true;
+        }
+
+        return state;
+    }
+
+    private sealed class State
+    {
+        public int Id;
+        public bool IsActive;
+        public int Tasks;
+        public bool IsSerial;
+        public bool IsInitialized;
+        public bool Failed = false;
+
+        public void Clear()
+        {
+            Id = default;
+            IsActive = default;
+            IsSerial = default;
+            IsInitialized = default;
+            Tasks = default;
+            Failed = default;
+        }
+
+        /// <summary>
+        /// Debug visualization.
+        /// </summary>
+        public override string ToString()
+        {
+            string active = IsActive ? " active" : "";
+            string tasks = Tasks > 0 ? $" tasks: {Tasks}" : "";
+            return $"{Id}{active}{tasks}";
         }
     }
 }

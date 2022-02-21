@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Utilities
 {
+#pragma warning disable CA1724
     public sealed class Cache<TValue>
     {
         private const int _minimumSize = 10;
@@ -97,7 +98,7 @@ namespace HotChocolate.Utilities
 
                 do
                 {
-                    keys[index++] = current!.Key;
+                    keys[index++] = current.Key;
                     current = current.Next!;
 
                 } while (current != _head);
@@ -194,7 +195,7 @@ namespace HotChocolate.Utilities
             return true;
         }
 
-        private class Entry
+        private sealed class Entry
         {
             public string Key = default!;
             public TValue Value = default!;
@@ -202,4 +203,5 @@ namespace HotChocolate.Utilities
             public Entry? Previous;
         }
     }
+    #pragma warning restore CA1724
 }

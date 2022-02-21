@@ -6,19 +6,19 @@
  */
 
 import { graphql, useStaticQuery } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { Helmet } from "react-helmet";
 
-interface SEOProperties {
-  description?: string;
-  imageUrl?: string;
-  isArticle?: boolean;
-  lang?: string;
-  meta?: JSX.IntrinsicElements["meta"][];
-  title: string;
+export interface SEOProps {
+  readonly description?: string;
+  readonly imageUrl?: string;
+  readonly isArticle?: boolean;
+  readonly lang?: string;
+  readonly meta?: JSX.IntrinsicElements["meta"][];
+  readonly title: string;
 }
 
-export const SEO: FunctionComponent<SEOProperties> = ({
+export const SEO: FC<SEOProps> = ({
   description,
   imageUrl,
   isArticle,
@@ -42,11 +42,7 @@ export const SEO: FunctionComponent<SEOProperties> = ({
           sourceInstanceName: { eq: "images" }
         ) {
           childImageSharp {
-            gatsbyImageData(
-              layout: FIXED
-              width: 1200
-              pngOptions: { quality: 90 }
-            )
+            gatsbyImageData(layout: FIXED, width: 1200, quality: 100)
           }
         }
       }
@@ -56,7 +52,7 @@ export const SEO: FunctionComponent<SEOProperties> = ({
   const metaAuthor = `@${site.siteMetadata.author}`;
   const metaDescription = description || site.siteMetadata.description;
   const metaImageUrl = `${site.siteMetadata.siteUrl}${
-    imageUrl || image?.childImageSharp!.gatsbyImageData!.src
+    imageUrl ?? image?.childImageSharp!.gatsbyImageData!.images.fallback.src
   }`;
 
   return (

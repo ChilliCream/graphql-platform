@@ -1,9 +1,8 @@
 using System;
 
-namespace HotChocolate.Execution.Configuration
+namespace HotChocolate.Execution.Configuration;
+
+public interface IApplicationServiceProvider
+    : IServiceProvider
 {
-    public interface IApplicationServiceProvider
-        : IServiceProvider
-    {
-    }
 }

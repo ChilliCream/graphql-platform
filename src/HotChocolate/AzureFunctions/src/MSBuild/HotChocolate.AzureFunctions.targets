@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <HotChocolateImplicitUsings Condition="'$(ImplicitUsings)' == 'enable' AND '$(HotChocolateImplicitUsings)' != 'disable'">enable</HotChocolateImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(HotChocolateImplicitUsings)' == 'enable'">
+    <Using Include="HotChocolate" />
+    <Using Include="HotChocolate.AzureFunctions" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Types.Relay" />
+    <Using Include="GreenDonut" />
+  </ItemGroup>
+</Project>

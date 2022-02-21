@@ -1,62 +1,113 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Execution.Properties;
 
-namespace HotChocolate.Execution.Processing.Plan
+namespace HotChocolate.Execution.Processing.Plan;
+
+internal sealed class QueryPlan
 {
-    internal class QueryPlan
+    private readonly List<ExecutionStep> _steps = new();
+    private readonly Dictionary<int, ExecutionStep> _stepBySelectionId = new();
+    private readonly QueryPlan[] _deferredPlans;
+    private readonly Dictionary<int, QueryPlan>? _streamPlans;
+
+    public QueryPlan(
+        ExecutionStep root,
+        QueryPlan[]? deferredPlans = null,
+        Dictionary<int, QueryPlan>? streamPlans = null)
     {
-        private readonly QueryPlan[] _deferredPlans;
+        Root = root;
+        _deferredPlans = deferredPlans ?? Array.Empty<QueryPlan>();
+        _streamPlans = streamPlans;
 
-        public QueryPlan(QueryPlanStep root)
-            : this(root, Array.Empty<QueryPlan>())
+        var count = 0;
+        AssignId(root, ref count);
+        Count = count;
+    }
+
+    public ExecutionStep Root { get; }
+
+    public int Count { get; }
+
+    public QueryPlan GetDeferredPlan(int fragmentId)
+    {
+        if (fragmentId >= _deferredPlans.Length)
         {
+            throw new ArgumentException(
+                Resources.QueryPlan_InvalidFragmentId,
+                nameof(fragmentId));
         }
 
-        public QueryPlan(QueryPlanStep root, QueryPlan[] deferredPlans)
-        {
-            Root = root;
-            _deferredPlans = deferredPlans;
+        return _deferredPlans[fragmentId];
+    }
 
-            var count = 0;
-            AssignId(root, ref count);
-            Count = count;
+    public QueryPlan GetStreamPlan(int selectionId)
+    {
+        if (_streamPlans is null)
+        {
+            throw new NotSupportedException("This query plan has no streams.");
         }
 
-        public QueryPlanStep Root { get; }
+        return _streamPlans[selectionId];
+    }
 
-        public int Count { get; }
-
-        public QueryPlan GetDeferredPlan(int fragmentId)
+    internal bool TryGetStep(IExecutionTask task, [MaybeNullWhen(false)] out ExecutionStep step)
+    {
+        if (task.State is ExecutionStep ts1)
         {
-            if (fragmentId >= _deferredPlans.Length)
+            step = ts1;
+            return true;
+        }
+
+        if (task is ResolverTask resolverTask &&
+            _stepBySelectionId.TryGetValue(resolverTask.Selection.Id, out step))
+        {
+            return true;
+        }
+
+        foreach (ExecutionStep ts2 in _steps)
+        {
+            if (ts2.IsOwningTask(task))
             {
-                throw new ArgumentException(
-                    Resources.QueryPlan_InvalidFragmentId,
-                    nameof(fragmentId));
+                step = ts2;
+                return true;
             }
-
-            return _deferredPlans[fragmentId];
         }
 
-        internal bool TryGetStep(
-            IExecutionTask executionTask,
-            [MaybeNullWhen(false)] out QueryPlanStep step) =>
-            Root.TryGetStep(executionTask, out step);
+        step = null;
+        return false;
+    }
 
-        internal bool TryGetStep(
-            int  stepId,
-            [MaybeNullWhen(false)] out QueryPlanStep step) =>
-            Root.TryGetStep(stepId, out step);
-
-        private static void AssignId(QueryPlanStep node, ref int stepId)
+    internal bool TryGetStep(int stepId, [MaybeNullWhen(false)] out ExecutionStep step)
+    {
+        if (stepId < _steps.Count)
         {
-            node.Id = stepId++;
+            step = _steps[stepId];
+            return true;
+        }
 
-            for (var i = 0; i < node.Steps.Count; i++)
+        step = null;
+        return false;
+    }
+
+    private void AssignId(ExecutionStep current, ref int stepId)
+    {
+        current.Id = stepId++;
+        _steps.Add(current);
+
+        if (current is ResolverStep resolverStep)
+        {
+            foreach (ISelection selection in resolverStep.Selections)
             {
-                AssignId(node.Steps[i], ref stepId);
+                _stepBySelectionId[selection.Id] = current;
             }
+        }
+
+        foreach (ExecutionStep? step in current.Steps)
+        {
+            AssignId(step, ref stepId);
         }
     }
 }

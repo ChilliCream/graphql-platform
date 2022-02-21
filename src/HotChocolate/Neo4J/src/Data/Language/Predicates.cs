@@ -105,7 +105,7 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <summary>
         ///
         /// </summary>
-        private class Builder
+        private sealed class Builder
             : IOngoingListBasedPredicateFunction
             , IOngoingListBasedPredicateFunctionWithList
         {

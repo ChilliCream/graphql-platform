@@ -1,16 +1,16 @@
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class InterfaceField : OutputFieldBase<InterfaceFieldDefinition>
 {
-    public class InterfaceField
-        : OutputFieldBase<InterfaceFieldDefinition>
+    public InterfaceField(InterfaceFieldDefinition definition, int index)
+        : base(definition, index)
     {
-        public InterfaceField(
-            InterfaceFieldDefinition definition,
-            FieldCoordinate fieldCoordinate,
-            bool sortArgumentsByName = false)
-            : base(definition, fieldCoordinate, sortArgumentsByName)
-        {
-        }
     }
+
+    /// <summary>
+    /// Gets the type that declares this field.
+    /// </summary>
+    public new InterfaceType DeclaringType => (InterfaceType)base.DeclaringType;
 }
