@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Delegation.ScopedVariables;
+using HotChocolate.Stitching.Processing.ScopedVariables;
 using HotChocolate.Types;
 using Moq;
 using Xunit;

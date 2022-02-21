@@ -108,7 +108,7 @@ internal sealed class DeferredStream : IDeferredExecutionTask
     }
 
 
-    private class StreamExecutionTask : ExecutionTask
+    private sealed class StreamExecutionTask : ExecutionTask
     {
         private readonly IOperationContext _operationContext;
         private readonly DeferredStream _deferredStream;

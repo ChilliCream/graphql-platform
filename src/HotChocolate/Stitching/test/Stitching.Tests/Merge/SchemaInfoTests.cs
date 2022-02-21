@@ -1,6 +1,7 @@
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
+using HotChocolate.Stitching.SchemaBuilding;
 using Xunit;
 
 namespace HotChocolate.Stitching;

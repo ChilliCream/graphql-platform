@@ -879,7 +879,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private static string _clientServiceProvider = @"
-        private class ClientServiceProvider
+        private sealed class ClientServiceProvider
             : System.IServiceProvider
             , System.IDisposable
         {

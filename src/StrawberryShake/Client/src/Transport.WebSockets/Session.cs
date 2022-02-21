@@ -93,7 +93,7 @@ namespace StrawberryShake.Transport.WebSockets
             }
         }
 
-        /// <inhe      /// <summary>
+        /// <summary>
         /// Opens a session over the socket
         /// </summary>
         /// <param name="cancellationToken">The cancellation token to cancel the operation</param>

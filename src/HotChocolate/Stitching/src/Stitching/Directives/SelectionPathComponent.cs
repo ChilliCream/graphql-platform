@@ -6,7 +6,7 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Stitching;
 
-public class SelectionPathComponent
+public sealed class SelectionPathComponent
 {
     public SelectionPathComponent(
         NameNode name,
@@ -34,7 +34,7 @@ public class SelectionPathComponent
         sb.Append('(');
         sb.Append(SerializeArgument(Arguments[0]));
 
-        for (int i = 1; i < Arguments.Count; i++)
+        for (var i = 1; i < Arguments.Count; i++)
         {
             sb.Append(',');
             sb.Append(' ');
@@ -46,9 +46,7 @@ public class SelectionPathComponent
     }
 
     private static string SerializeArgument(ArgumentNode argument)
-    {
-        return $"{argument.Name.Value}: {SerializeValue(argument.Value)}";
-    }
+        => $"{argument.Name.Value}: {SerializeValue(argument.Value)}";
 
     private static string SerializeValue(IValueNode value)
     {

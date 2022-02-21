@@ -266,7 +266,7 @@ public sealed class DescriptorContext : IDescriptorContext
             typeInterceptor ?? new AggregateTypeInterceptor());
     }
 
-    private class NoOpStringBuilderPool : ObjectPool<StringBuilder>
+    private sealed class NoOpStringBuilderPool : ObjectPool<StringBuilder>
     {
         public override StringBuilder Get() => new();
 

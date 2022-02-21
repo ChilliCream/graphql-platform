@@ -4,7 +4,7 @@ namespace HotChocolate.Execution.Processing.Plan;
 
 internal static partial class QueryPlanBuilder
 {
-    private class QueryPlanContext
+    private sealed class QueryPlanContext
     {
         public QueryPlanContext(IPreparedOperation operation)
         {

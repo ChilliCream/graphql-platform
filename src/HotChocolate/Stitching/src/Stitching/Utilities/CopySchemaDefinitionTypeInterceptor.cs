@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Stitching.Utilities;
 
-public class CopySchemaDefinitionTypeInterceptor : TypeInterceptor
+internal sealed class CopySchemaDefinitionTypeInterceptor : TypeInterceptor
 {
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,

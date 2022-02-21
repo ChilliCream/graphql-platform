@@ -83,11 +83,7 @@ public sealed class QueryResult
                 disposable.Dispose();
             }
 
-            if (_disposable is not null)
-            {
-                _disposable.Dispose();
-            }
-
+            _disposable?.Dispose();
             _disposed = true;
         }
     }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Processing;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;

@@ -4,8 +4,7 @@ namespace StrawberryShake.Transport.WebSockets.Messages
     /// The <see cref="OperationMessage"/> is used as a data transport structure to send messages
     /// over a <see cref="ISocketProtocol"/> to the <see cref="SocketOperation"/>
     /// </summary>
-    public abstract class OperationMessage<T>
-        : OperationMessage
+    public abstract class OperationMessage<T> : OperationMessage
     {
         /// <summary>
         /// Creates a new instance of a <see cref="OperationMessage"/>

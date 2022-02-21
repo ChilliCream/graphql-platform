@@ -252,11 +252,11 @@ public class FilterConventionExtensionsTests
             x => Assert.Equal(provider2, x));
     }
 
-    private class MockProviderExtensions : FilterProviderExtensions<QueryableFilterContext>
+    private sealed class MockProviderExtensions : FilterProviderExtensions<QueryableFilterContext>
     {
     }
 
-    private class MockProvider : IFilterProvider
+    private sealed class MockProvider : IFilterProvider
     {
         public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers { get; } = null!;
 
@@ -271,7 +271,7 @@ public class FilterConventionExtensionsTests
         }
     }
 
-    private class MockFilterConvention : FilterConvention
+    private sealed class MockFilterConvention : FilterConvention
     {
         public MockFilterConvention(
             Action<IFilterConventionDescriptor> configure)

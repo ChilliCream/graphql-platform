@@ -40,7 +40,7 @@ namespace StrawberryShake.Transport.WebSockets
             await using ISocketOperation operation =
                 await session.StartOperationAsync(request, cancellationToken);
 
-            await foreach (var message in operation.ReadAsync(cancellationToken))
+            await foreach (OperationMessage message in operation.ReadAsync(cancellationToken))
             {
                 switch (message.Type)
                 {
@@ -48,16 +48,20 @@ namespace StrawberryShake.Transport.WebSockets
                         when message is DataDocumentOperationMessage<JsonDocument> msg:
                         yield return new Response<JsonDocument>(msg.Payload, null);
                         break;
+
                     case OperationMessageType.Error when message is ErrorOperationMessage msg:
                         var operationEx = new SocketOperationException(msg.Message);
                         yield return new Response<JsonDocument>(null, operationEx);
                         yield break;
+
                     case OperationMessageType.Cancelled:
                         var canceledException = new OperationCanceledException();
                         yield return new Response<JsonDocument>(null, canceledException);
                         yield break;
+
                     case OperationMessageType.Complete:
                         yield break;
+
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

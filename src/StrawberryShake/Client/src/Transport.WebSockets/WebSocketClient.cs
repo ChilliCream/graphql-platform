@@ -13,12 +13,10 @@ namespace StrawberryShake.Transport.WebSockets
     /// Represents a client for sending and receiving messages responses over a websocket
     /// identified by a URI and name.
     /// </summary>
-    public sealed class WebSocketClient
-        : IWebSocketClient
+    public sealed class WebSocketClient : IWebSocketClient
     {
         private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
         private readonly ClientWebSocket _socket;
-        private readonly string _name;
 
         private const int _maxMessageSize = 1024 * 4;
 
@@ -34,7 +32,7 @@ namespace StrawberryShake.Transport.WebSockets
             string name,
             IReadOnlyList<ISocketProtocolFactory> protocolFactories)
         {
-            _name = name ?? throw new ArgumentNullException(nameof(name));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
             _protocolFactories = protocolFactories ??
                 throw new ArgumentNullException(nameof(protocolFactories));
             _socket = new ClientWebSocket();
@@ -53,16 +51,16 @@ namespace StrawberryShake.Transport.WebSockets
             DefaultSocketConnectionInterceptor.Instance;
 
         /// <inheritdoc />
-        public string Name => _name;
+        public string Name { get; }
 
         /// <inheritdoc />
         public bool IsClosed =>
             _disposed
-            || _socket.CloseStatus.HasValue 
+            || _socket.CloseStatus.HasValue
             || _socket.State == WebSocketState.Aborted;
 
         /// <inheritdoc />
-        public ClientWebSocket Socket => _socket;
+        public WebSocket Socket => _socket;
 
         /// <inheritdoc />
         public async Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)
@@ -91,9 +89,9 @@ namespace StrawberryShake.Transport.WebSockets
             if (_activeProtocol is null)
             {
                 await CloseAsync(
-                        Resources.SocketClient_FailedToInitializeProtocol,
-                        SocketCloseStatus.ProtocolError,
-                        cancellationToken)
+                    Resources.SocketClient_FailedToInitializeProtocol,
+                    SocketCloseStatus.ProtocolError,
+                    cancellationToken)
                     .ConfigureAwait(false);
 
                 throw ThrowHelper.SocketClient_ProtocolNotFound(_socket.SubProtocol ?? "null");
@@ -219,31 +217,19 @@ namespace StrawberryShake.Transport.WebSockets
         }
 
         private static WebSocketCloseStatus MapCloseStatus(SocketCloseStatus closeStatus)
-        {
-            switch (closeStatus)
+            => closeStatus switch
             {
-                case SocketCloseStatus.EndpointUnavailable:
-                    return WebSocketCloseStatus.EndpointUnavailable;
-                case SocketCloseStatus.InternalServerError:
-                    return WebSocketCloseStatus.InternalServerError;
-                case SocketCloseStatus.InvalidMessageType:
-                    return WebSocketCloseStatus.InvalidMessageType;
-                case SocketCloseStatus.InvalidPayloadData:
-                    return WebSocketCloseStatus.InvalidPayloadData;
-                case SocketCloseStatus.MandatoryExtension:
-                    return WebSocketCloseStatus.MandatoryExtension;
-                case SocketCloseStatus.MessageTooBig:
-                    return WebSocketCloseStatus.MessageTooBig;
-                case SocketCloseStatus.NormalClosure:
-                    return WebSocketCloseStatus.NormalClosure;
-                case SocketCloseStatus.PolicyViolation:
-                    return WebSocketCloseStatus.PolicyViolation;
-                case SocketCloseStatus.ProtocolError:
-                    return WebSocketCloseStatus.ProtocolError;
-                default:
-                    return WebSocketCloseStatus.Empty;
-            }
-        }
+                SocketCloseStatus.EndpointUnavailable => WebSocketCloseStatus.EndpointUnavailable,
+                SocketCloseStatus.InternalServerError => WebSocketCloseStatus.InternalServerError,
+                SocketCloseStatus.InvalidMessageType => WebSocketCloseStatus.InvalidMessageType,
+                SocketCloseStatus.InvalidPayloadData => WebSocketCloseStatus.InvalidPayloadData,
+                SocketCloseStatus.MandatoryExtension => WebSocketCloseStatus.MandatoryExtension,
+                SocketCloseStatus.MessageTooBig => WebSocketCloseStatus.MessageTooBig,
+                SocketCloseStatus.NormalClosure => WebSocketCloseStatus.NormalClosure,
+                SocketCloseStatus.PolicyViolation => WebSocketCloseStatus.PolicyViolation,
+                SocketCloseStatus.ProtocolError => WebSocketCloseStatus.ProtocolError,
+                _ => WebSocketCloseStatus.Empty
+            };
 
         /// <inheritdoc />
         public async ValueTask DisposeAsync()

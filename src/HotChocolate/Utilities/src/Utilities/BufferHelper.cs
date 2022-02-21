@@ -10,17 +10,29 @@ namespace HotChocolate.Utilities
     {
         public static Task<T> ReadAsync<T>(
            Stream stream,
-           Func<byte[], int, T> handle,
-           CancellationToken cancellationToken) =>
-           ReadAsync(stream, handle, null, cancellationToken);
+           Func<byte[], int, T> deserialize,
+           CancellationToken cancellationToken)
+        {
+            if (stream is null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            if (deserialize is null)
+            {
+                throw new ArgumentNullException(nameof(deserialize));
+            }
+
+            return ReadAsync(stream, deserialize, null, cancellationToken);
+        }
 
         public static async Task<T> ReadAsync<T>(
             Stream stream,
-            Func<byte[], int, T> handle,
+            Func<byte[], int, T> deserialize,
             Action<int>? checkSize,
             CancellationToken cancellationToken)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
+            var buffer = ArrayPool<byte>.Shared.Rent(1024);
             var bytesBuffered = 0;
 
             try
@@ -31,7 +43,7 @@ namespace HotChocolate.Utilities
 
                     if (bytesRemaining == 0)
                     {
-                        byte[] next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
+                        var next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
                         Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
                         ArrayPool<byte>.Shared.Return(buffer);
                         buffer = next;
@@ -53,7 +65,7 @@ namespace HotChocolate.Utilities
                     checkSize?.Invoke(bytesBuffered);
                 }
 
-                return handle(buffer, bytesBuffered);
+                return deserialize(buffer, bytesBuffered);
             }
             finally
             {

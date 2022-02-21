@@ -312,7 +312,7 @@ namespace StrawberryShake.Transport.WebSockets
             }
         }
 
-        private class MockDocument : IDocument
+        private sealed class MockDocument : IDocument
         {
             private readonly byte[] _query;
 
@@ -328,7 +328,7 @@ namespace StrawberryShake.Transport.WebSockets
             public DocumentHash Hash { get; } = new("MD5", "ABC");
         }
 
-        private class StubSessionInterceptor : DefaultSocketSessionInterceptor
+        private sealed class StubSessionInterceptor : DefaultSocketSessionInterceptor
         {
             public override ValueTask<ConnectionStatus> OnConnectAsync(
                 ISocketConnection connection,
@@ -342,7 +342,7 @@ namespace StrawberryShake.Transport.WebSockets
             public InitializeConnectionMessage? InitializeConnectionMessage { get; private set; }
         }
 
-        private class StubConnectionInterceptor : ISocketConnectionInterceptor
+        private sealed class StubConnectionInterceptor : ISocketConnectionInterceptor
         {
             private readonly object? _payload;
 

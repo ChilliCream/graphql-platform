@@ -3,17 +3,18 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching;
 
-public class ComputedDirectiveType
-    : DirectiveType<ComputedDirective>
+public sealed class ComputedDirectiveType : DirectiveType<ComputedDirective>
 {
     protected override void Configure(
         IDirectiveTypeDescriptor<ComputedDirective> descriptor)
     {
-        descriptor.Name(DirectiveNames.Computed);
+        descriptor
+            .Name(DirectiveNames.Computed)
+            .Location(DirectiveLocation.FieldDefinition)
+            .Internal();
 
-        descriptor.Location(DirectiveLocation.FieldDefinition);
-
-        descriptor.Argument(t => t.DependantOn)
+        descriptor
+            .Argument(t => t.DependantOn)
             .Name(DirectiveFieldNames.Computed_DependantOn)
             .Type<ListType<NonNullType<NameType>>>()
             .Description(StitchingResources.ComputedDirectiveType_Description);

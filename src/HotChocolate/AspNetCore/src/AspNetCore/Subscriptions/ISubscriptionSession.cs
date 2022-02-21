@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -24,4 +23,9 @@ public interface ISubscriptionSession : IDisposable
     /// Gets the underlying subscription.
     /// </summary>
     ISubscription Subscription { get; }
+
+    /// <summary>
+    /// Specifies if this session is completed and will yield no further results.
+    /// </summary>
+    bool IsCompleted { get; }
 }

@@ -1,6 +1,6 @@
 namespace HotChocolate.Stitching;
 
-public class ComputedDirective
+public sealed class ComputedDirective
 {
-    public NameString[] DependantOn { get; set; }
+    public NameString[]? DependantOn { get; set; }
 }

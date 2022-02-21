@@ -66,7 +66,7 @@ namespace HotChocolate.Types.Spatial.Transformation
         /// <summary>
         /// Default projector. Does not modify the geometry
         /// </summary>
-        private class DefaultProjector : IGeometryTransformer
+        private sealed class DefaultProjector : IGeometryTransformer
         {
             private DefaultProjector()
             {

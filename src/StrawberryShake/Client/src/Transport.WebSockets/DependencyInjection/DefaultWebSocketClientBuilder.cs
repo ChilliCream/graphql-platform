@@ -6,8 +6,7 @@ namespace StrawberryShake.Transport.WebSockets
     /// <summary>
     /// Builder for a <see cref="IWebSocketClientBuilder"/>
     /// </summary>
-    internal class DefaultWebSocketClientBuilder
-        : IWebSocketClientBuilder
+    internal class DefaultWebSocketClientBuilder : IWebSocketClientBuilder
     {
         /// <summary>
         /// Initializes a new instance of <see cref="DefaultSocketClientFactory"/>

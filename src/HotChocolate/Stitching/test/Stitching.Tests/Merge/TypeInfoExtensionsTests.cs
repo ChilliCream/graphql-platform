@@ -1,5 +1,6 @@
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Stitching.SchemaBuilding;
 using Xunit;
 
 namespace HotChocolate.Stitching.Merge;

@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Stitching.SchemaBuilding;
 using Snapshooter.Xunit;
 using Xunit;
 

@@ -375,7 +375,7 @@ namespace StrawberryShake.Transport.WebSockets
             });
         }
 
-        private class GetHeroQueryDocument : IDocument
+        private sealed class GetHeroQueryDocument : IDocument
         {
             private const string _bodyString =
                 @"query GetHero {

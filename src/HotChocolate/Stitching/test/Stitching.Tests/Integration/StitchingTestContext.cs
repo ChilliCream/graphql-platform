@@ -9,16 +9,19 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using StrawberryShake.Transport.WebSockets;
+using StrawberryShake.Transport.WebSockets.Protocols;
+using WebSocketClient = Microsoft.AspNetCore.TestHost.WebSocketClient;
 
 namespace HotChocolate.Stitching.Integration;
 
 public class StitchingTestContext
 {
-    public TestServerFactory ServerFactory { get; } = new TestServerFactory();
+    public TestServerFactory ServerFactory { get; } = new();
 
-    public NameString CustomerSchema { get; } = "customer";
+    public NameString CustomerSchema => "customer";
 
-    public NameString ContractSchema { get; } = "contract";
+    public NameString ContractSchema => "contract";
 
     public TestServer CreateCustomerService() =>
         ServerFactory.Create(
@@ -26,6 +29,7 @@ public class StitchingTestContext
                 .AddRouting()
                 .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddCustomerSchema(),
             app => app
                 .UseWebSockets()
@@ -38,13 +42,14 @@ public class StitchingTestContext
                 .AddRouting()
                 .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddContractSchema(),
             app => app
                 .UseWebSockets()
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
 
-    public IHttpClientFactory CreateDefaultRemoteSchemas()
+    public IHttpClientFactory CreateDefaultHttpClientFactory()
     {
         var connections = new Dictionary<string, HttpClient>
             {
@@ -52,15 +57,52 @@ public class StitchingTestContext
                 { ContractSchema, CreateContractService().CreateClient() }
             };
 
-        return CreateRemoteSchemas(connections);
+        return CreateHttpClientFactory(connections);
     }
 
-    public static IHttpClientFactory CreateRemoteSchemas(
+    public ISocketClientFactory CreateDefaultWebSocketClientFactory()
+    {
+        WebSocketClient client = CreateCustomerService().CreateWebSocketClient();
+        client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");
+
+        var connections = new Dictionary<string, ISocketClient>
+        {
+            {
+                CustomerSchema,
+                new TestWebSocketClient(
+                    CustomerSchema,
+                    new ISocketProtocolFactory[] { new GraphQLWebSocketProtocolFactory() },
+                    (uri, ct) => client.ConnectAsync(uri, ct))
+            },
+        };
+
+        return CreateSocketClientFactory(connections);
+    }
+
+    public static IHttpClientFactory CreateHttpClientFactory(
         Dictionary<string, HttpClient> connections)
     {
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
             .Returns(new Func<string, HttpClient>(n =>
+            {
+                if (connections.ContainsKey(n))
+                {
+                    return connections[n];
+                }
+
+                throw new Exception();
+            }));
+
+        return httpClientFactory.Object;
+    }
+
+    public static ISocketClientFactory CreateSocketClientFactory(
+        Dictionary<string, ISocketClient> connections)
+    {
+        var httpClientFactory = new Mock<ISocketClientFactory>();
+        httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
+            .Returns(new Func<string, ISocketClient>(n =>
             {
                 if (connections.ContainsKey(n))
                 {

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Stitching.SchemaBuilding;
+using HotChocolate.Stitching.SchemaBuilding.Handlers;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -34,7 +36,7 @@ public class DirectiveTypeMergeHandlerTests
         var context = new SchemaMergeContext();
 
         // act
-        var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        var typeMerger = new DirectiveTypeMergeHandler();
         typeMerger.Merge(context, types);
 
         // assert
@@ -66,7 +68,7 @@ public class DirectiveTypeMergeHandlerTests
         var context = new SchemaMergeContext();
 
         // act
-        var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        var typeMerger = new DirectiveTypeMergeHandler();
 
         Assert.Throws<InvalidOperationException>(
             () => typeMerger.Merge(context, types));
@@ -96,7 +98,7 @@ public class DirectiveTypeMergeHandlerTests
         var context = new SchemaMergeContext();
 
         // act
-        var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        var typeMerger = new DirectiveTypeMergeHandler();
 
         Assert.Throws<InvalidOperationException>(
             () => typeMerger.Merge(context, types));
@@ -126,7 +128,7 @@ public class DirectiveTypeMergeHandlerTests
         var context = new SchemaMergeContext();
 
         // act
-        var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        var typeMerger = new DirectiveTypeMergeHandler();
 
         Assert.Throws<InvalidOperationException>(
             () => typeMerger.Merge(context, types));
@@ -162,7 +164,7 @@ public class DirectiveTypeMergeHandlerTests
         var context = new SchemaMergeContext();
 
         // act
-        var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        var typeMerger = new DirectiveTypeMergeHandler();
         typeMerger.Merge(context, types);
 
         // assert

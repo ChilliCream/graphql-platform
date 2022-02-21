@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Stitching.Processing;
 using Snapshooter.Xunit;
 using Xunit;
 

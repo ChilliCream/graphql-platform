@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Merge;
-using HotChocolate.Stitching.Merge.Rewriters;
+using HotChocolate.Stitching.SchemaBuilding;
+using HotChocolate.Stitching.SchemaBuilding.Rewriters;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Stitching.ThrowHelper;
 using static HotChocolate.Stitching.WellKnownContextData;
@@ -264,7 +264,7 @@ internal static class ContextDataExtensions
     public static IReadOnlyDictionary<NameString, ISet<NameString>> GetExternalFieldLookup(
         this IHasContextData hasContextData)
     {
-        if (hasContextData.ContextData.TryGetValue(ExternalFieldLookup, out object? value) &&
+        if (hasContextData.ContextData.TryGetValue(ExternalFieldLookup, out var value) &&
             value is IReadOnlyDictionary<NameString, ISet<NameString>> dict)
         {
             return dict;

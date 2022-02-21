@@ -1,6 +1,6 @@
 namespace HotChocolate.Stitching;
 
-public class SourceDirective
+public sealed class SourceDirective
 {
     public NameString Name { get; set; }
 

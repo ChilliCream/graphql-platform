@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.AzurePipelines;
@@ -17,7 +14,6 @@ using Nuke.Common.Tools.ReportGenerator;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
-using static Nuke.Common.Tools.Codecov.CodecovTasks;
 using static Helpers;
 
 partial class Build

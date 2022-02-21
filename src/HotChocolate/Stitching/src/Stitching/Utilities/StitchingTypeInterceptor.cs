@@ -2,42 +2,24 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 using static HotChocolate.Stitching.WellKnownContextData;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal class StitchingTypeInterceptor : TypeInterceptor
+internal sealed class StitchingTypeInterceptor : TypeInterceptor
 {
-    private readonly HashSet<(NameString, NameString)> _handledExternalFields =
-        new HashSet<(NameString, NameString)>();
+    private readonly HashSet<(NameString, NameString)> _handledExternalFields = new();
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        if (definition is ObjectTypeDefinition objectTypeDef)
-        {
-            foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
-            {
-                if (objectField.GetDirectives().Any(IsDelegatedField))
-                {
-                    FieldMiddleware handleDictionary =
-                        FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
-                    FieldMiddleware delegateToSchema =
-                        FieldClassMiddlewareFactory.Create<DelegateToRemoteSchemaMiddleware>();
-
-                    objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
-                    objectField.MiddlewareDefinitions.Insert(0, new(delegateToSchema));
-                    _handledExternalFields.Add((objectTypeDef.Name, objectField.Name));
-                }
-            }
-        }
-
         if (definition is SchemaTypeDefinition)
         {
             if (discoveryContext.ContextData.TryGetValue(RemoteExecutors, out var value))
@@ -60,6 +42,42 @@ internal class StitchingTypeInterceptor : TypeInterceptor
         if (completionContext.Type is ObjectType objectType &&
             definition is ObjectTypeDefinition objectTypeDef)
         {
+            if (completionContext.IsSubscriptionType ?? false)
+            {
+                foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
+                {
+                    if (objectField.GetDirectives().Any(IsDelegatedField))
+                    {
+                        FieldMiddleware handleDictionary = Create<DictionaryResultMiddleware>();
+                        FieldMiddleware handleQueryResult = Create<QueryResultMiddleware>();
+                        FieldMiddleware copyResult = Create<CopyEventMessageMiddleware>();
+
+                        objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
+                        objectField.MiddlewareDefinitions.Insert(0, new(handleQueryResult));
+                        objectField.MiddlewareDefinitions.Insert(0, new(copyResult));
+                        objectField.SubscribeResolver = DelegateSubscribe.SubscribeAsync;
+                        _handledExternalFields.Add((objectTypeDef.Name, objectField.Name));
+                    }
+                }
+            }
+            else
+            {
+                foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
+                {
+                    if (objectField.GetDirectives().Any(IsDelegatedField))
+                    {
+                        FieldMiddleware handleDictionary = Create<DictionaryResultMiddleware>();
+                        FieldMiddleware handleQueryResult = Create<QueryResultMiddleware>();
+                        FieldMiddleware delegateResolve = Create<DelegateResolve>();
+
+                        objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
+                        objectField.MiddlewareDefinitions.Insert(0, new(handleQueryResult));
+                        objectField.MiddlewareDefinitions.Insert(0, new(delegateResolve));
+                        _handledExternalFields.Add((objectTypeDef.Name, objectField.Name));
+                    }
+                }
+            }
+
             IReadOnlyDictionary<NameString, ISet<NameString>> externalFieldLookup =
                 completionContext.GetExternalFieldLookup();
             if (externalFieldLookup.TryGetValue(objectType.Name, out ISet<NameString>? external))

@@ -10,7 +10,7 @@ namespace HotChocolate.Data.MongoDb
             this FilterDefinition<T> filterDefinition) =>
             new FilterDefinitionWrapper<T>(filterDefinition);
 
-        private class FilterDefinitionWrapper<TDocument> : MongoDbFilterDefinition
+        private sealed class FilterDefinitionWrapper<TDocument> : MongoDbFilterDefinition
         {
             private readonly FilterDefinition<TDocument> _filter;
 

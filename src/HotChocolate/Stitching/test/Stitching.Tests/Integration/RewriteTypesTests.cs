@@ -26,7 +26,7 @@ public class RewriteTypesTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         // act
         IServiceProvider services =
@@ -76,7 +76,7 @@ public class RewriteTypesTests : IClassFixture<StitchingTestContext>
         Assert.True(executor.Schema.TryGetDirectiveType("translatable", out _));
     }
 
-    private class DocumentRewriter : SchemaSyntaxRewriter<object>
+    private sealed class DocumentRewriter : SchemaSyntaxRewriter<object>
     {
         protected override FieldDefinitionNode RewriteFieldDefinition(
             FieldDefinitionNode node,
