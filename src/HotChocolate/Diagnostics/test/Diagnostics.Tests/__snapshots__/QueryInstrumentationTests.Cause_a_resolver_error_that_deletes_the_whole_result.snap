@@ -115,6 +115,10 @@
                   "Value": "/causeFatalError"
                 },
                 {
+                  "Key": "graphql.selection.hierarchy",
+                  "Value": "/causeFatalError"
+                },
+                {
                   "Key": "graphql.selection.field.name",
                   "Value": "causeFatalError"
                 },

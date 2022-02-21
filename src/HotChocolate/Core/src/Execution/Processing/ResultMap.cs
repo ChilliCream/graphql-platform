@@ -103,7 +103,7 @@ public sealed class ResultMap
 
         while (length > 0)
         {
-            length -= 1;
+            length--;
 
             if (name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i).Name))
             {

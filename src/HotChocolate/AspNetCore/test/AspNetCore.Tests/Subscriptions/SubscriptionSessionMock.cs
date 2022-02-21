@@ -11,12 +11,15 @@ public class SubscriptionSessionMock : ISubscriptionSession
 
     public ISubscription Subscription => throw new NotImplementedException();
 
+    public bool IsCompleted { get; private set; }
+
     public bool IsDisposed { get; private set; }
 
     public event EventHandler Completed;
 
     public void Complete()
     {
+        IsCompleted = true;
         Completed?.Invoke(this, EventArgs.Empty);
     }
 

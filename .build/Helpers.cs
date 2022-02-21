@@ -6,7 +6,7 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 
-class Helpers
+static class Helpers
 {
     static readonly string[] Directories =
     {

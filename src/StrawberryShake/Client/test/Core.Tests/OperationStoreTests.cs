@@ -130,7 +130,7 @@ namespace StrawberryShake
             }
         }
 
-        private class MockEntityChangeObservable
+        private sealed class MockEntityChangeObservable
             : IObservable<EntityUpdate>
             , IDisposable
         {

@@ -6,7 +6,7 @@ namespace StrawberryShake
 {
     public partial class StorelessOperationExecutor<TData, TResult>
     {
-        private class StorelessOperationExecutorObservable : IObservable<IOperationResult<TResult>>
+        private sealed class StorelessOperationExecutorObservable : IObservable<IOperationResult<TResult>>
         {
             private readonly IConnection<TData> _connection;
             private readonly Func<IOperationResultBuilder<TData, TResult>> _resultBuilder;

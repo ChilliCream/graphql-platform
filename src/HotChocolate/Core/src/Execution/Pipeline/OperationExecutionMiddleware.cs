@@ -276,7 +276,7 @@ internal sealed class OperationExecutionMiddleware
         return false;
     }
 
-    private class StreamSession : IDisposable
+    private sealed class StreamSession : IDisposable
     {
         private readonly IDisposable[] _disposables;
         private bool _disposed;

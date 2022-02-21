@@ -10,7 +10,7 @@ internal sealed class FieldInfoListBufferPool
     {
     }
 
-    private class Policy : IPooledObjectPolicy<FieldInfoListBuffer>
+    private sealed class Policy : IPooledObjectPolicy<FieldInfoListBuffer>
     {
         public FieldInfoListBuffer Create() => new FieldInfoListBuffer();
 

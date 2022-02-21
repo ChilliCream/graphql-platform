@@ -9,7 +9,7 @@ namespace HotChocolate.Data.MongoDb
         public static MongoDbSortDefinition Wrap<T>(this SortDefinition<T> sortDefinition) =>
             new SortDefinitionWrapper<T>(sortDefinition);
 
-        private class SortDefinitionWrapper<TDocument> : MongoDbSortDefinition
+        private sealed class SortDefinitionWrapper<TDocument> : MongoDbSortDefinition
         {
             private readonly SortDefinition<TDocument> _sort;
 

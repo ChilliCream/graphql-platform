@@ -3,7 +3,7 @@
     {
       "OperationName": "ExecuteHttpRequest",
       "DisplayName": "GraphQL HTTP POST",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
           "Key": "graphql.schema.name",
@@ -16,7 +16,12 @@
           "OperationName": "ParseHttpRequest",
           "DisplayName": "Parse HTTP Request",
           "Status": "Error",
-          "tags": [],
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "ERROR"
+            }
+          ],
           "event": [
             {
               "Name": "Error",
@@ -32,7 +37,7 @@
         {
           "OperationName": "FormatHttpResponse",
           "DisplayName": "Format HTTP Response",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [],
           "event": []
         }

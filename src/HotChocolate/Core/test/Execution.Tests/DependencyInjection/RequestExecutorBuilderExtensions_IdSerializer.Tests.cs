@@ -268,7 +268,7 @@ namespace HotChocolate.Execution.DependencyInjection
             Assert.Throws<ArgumentNullException>(Fail);
         }
 
-        private class MockSerializer : IIdSerializer
+        private sealed class MockSerializer : IIdSerializer
         {
             public string Serialize<T>(NameString schemaName, NameString typeName, T id)
             {

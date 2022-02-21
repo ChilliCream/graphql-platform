@@ -7,28 +7,6 @@ using Nuke.Common.Tools.DotNet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 
-[AzurePipelines(
-    suffix: "test-pr-hotchocolate",
-    AzurePipelinesImage.UbuntuLatest,
-    InvokedTargets = new[] { nameof(Sonar) },
-    PullRequestsAutoCancel = true,
-    PullRequestsBranchesInclude = new[] { "master" },
-    AutoGenerate = false)]
-[GitHubActions(
-    "sonar-pr-hotchocolate",
-    GitHubActionsImage.UbuntuLatest,
-    On = new[] { GitHubActionsTrigger.PullRequest },
-    InvokedTargets = new[] { nameof(SonarPr) },
-    ImportGitHubTokenAs = nameof(GitHubToken),
-    ImportSecrets = new[] { nameof(SonarToken) },
-    AutoGenerate = false)]
-[GitHubActions(
-    "tests-pr-hotchocolate",
-    GitHubActionsImage.UbuntuLatest,
-    On = new[] { GitHubActionsTrigger.PullRequest },
-    InvokedTargets = new[] { nameof(Test) },
-    ImportGitHubTokenAs = nameof(GitHubToken),
-    AutoGenerate = false)]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 partial class Build : NukeBuild
@@ -51,6 +29,7 @@ partial class Build : NukeBuild
         {
             DotNetBuildSonarSolution(AllSolutionFile);
             DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
+            BuildCodeGenServer();
         });
 
     Target Compile => _ => _
@@ -83,4 +62,19 @@ partial class Build : NukeBuild
             DotNetBuildSonarSolution(AllSolutionFile);
             DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
         });
+
+    void BuildCodeGenServer()
+    {
+        DotNetBuild(c => c
+            .SetNoRestore(true)
+            .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+            .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server")
+            .SetConfiguration(Configuration));
+
+        DotNetBuild(c => c
+            .SetNoRestore(true)
+            .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
+                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server")
+                .SetConfiguration(Configuration));
+    }
 }

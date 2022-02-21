@@ -123,7 +123,7 @@ public static class DataLoaderObjectFieldExtensions
         return false;
     }
 
-    private class GroupedDataLoaderMiddleware<TDataLoader, TKey, TValue>
+    private sealed class GroupedDataLoaderMiddleware<TDataLoader, TKey, TValue>
         where TKey : notnull
         where TDataLoader : IDataLoader<TKey, TValue[]>
     {
@@ -166,7 +166,7 @@ public static class DataLoaderObjectFieldExtensions
         }
     }
 
-    private class DataLoaderMiddleware<TDataLoader, TKey, TValue>
+    private sealed class DataLoaderMiddleware<TDataLoader, TKey, TValue>
         where TKey : notnull
         where TDataLoader : IDataLoader<TKey, TValue>
     {

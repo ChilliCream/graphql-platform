@@ -19,7 +19,7 @@ namespace HotChocolate.Utilities.StreamAdapters
             CancellationToken cancellationToken = default)
             => new Enumerator(_enumerable.GetEnumerator(), cancellationToken);
 
-        private class Enumerator : IAsyncEnumerator<object?>
+        private sealed class Enumerator : IAsyncEnumerator<object?>
         {
             private readonly IEnumerator _enumerator;
             private readonly CancellationToken _cancellationToken;
@@ -61,7 +61,7 @@ namespace HotChocolate.Utilities.StreamAdapters
             CancellationToken cancellationToken = default)
             => new Enumerator(_enumerable.GetEnumerator(), cancellationToken);
 
-        private class Enumerator : IAsyncEnumerator<object?>
+        private sealed class Enumerator : IAsyncEnumerator<object?>
         {
             private readonly IEnumerator<T> _enumerator;
             private readonly CancellationToken _cancellationToken;

@@ -10,7 +10,7 @@ internal sealed class StringSyntaxWriterPool
     {
     }
 
-    private class Policy : IPooledObjectPolicy<StringSyntaxWriter>
+    private sealed class Policy : IPooledObjectPolicy<StringSyntaxWriter>
     {
         public StringSyntaxWriter Create() => new StringSyntaxWriter();
 

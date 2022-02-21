@@ -77,7 +77,7 @@ internal sealed class __Schema : ObjectType
             => context.Parent<ISchema>().SubscriptionType;
 
         public static object Directives(IPureResolverContext context)
-            => context.Parent<ISchema>().DirectiveTypes;
+            => context.Parent<ISchema>().DirectiveTypes.Where(t => t.IsPublic);
 
         public static object AppliedDirectives(IPureResolverContext context)
             => context.Parent<ISchema>().Directives

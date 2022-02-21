@@ -320,15 +320,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         private static string CreateInlineFragmentName(InlineFragmentNode inlineFragmentSyntax) =>
             $"^{inlineFragmentSyntax.Location!.Start}_{inlineFragmentSyntax.Location.End}";
 
-        private class Cache : Dictionary<INamedOutputType, SelectionCache>
+        private sealed class Cache : Dictionary<INamedOutputType, SelectionCache>
         {
         }
 
-        private class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>
+        private sealed class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>
         {
         }
 
-        private class TypeNameField : IOutputField
+        private sealed class TypeNameField : IOutputField
         {
             private TypeNameField()
             {

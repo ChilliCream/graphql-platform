@@ -122,7 +122,7 @@ namespace StrawberryShake.Extensions
             Assert.Throws<ArgumentNullException>(Throws);
         }
 
-        private class ResultMock : IOperationResult
+        private sealed class ResultMock : IOperationResult
         {
             public ResultMock()
             {

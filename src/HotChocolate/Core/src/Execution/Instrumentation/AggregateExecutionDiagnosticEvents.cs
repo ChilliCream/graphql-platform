@@ -359,7 +359,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    private class AggregateActivityScope : IDisposable
+    private sealed class AggregateActivityScope : IDisposable
     {
         private readonly IDisposable[] _scopes;
         private bool _disposed;

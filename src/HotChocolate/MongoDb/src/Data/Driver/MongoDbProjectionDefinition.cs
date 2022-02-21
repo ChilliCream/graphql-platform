@@ -29,7 +29,7 @@ namespace HotChocolate.Data.MongoDb
         public ProjectionDefinition<T> ToProjectionDefinition<T>() =>
             new ProjectionDefinitionWrapper<T>(this);
 
-        private class ProjectionDefinitionWrapper<T> : ProjectionDefinition<T>
+        private sealed class ProjectionDefinitionWrapper<T> : ProjectionDefinition<T>
         {
             private readonly MongoDbProjectionDefinition _filter;
 

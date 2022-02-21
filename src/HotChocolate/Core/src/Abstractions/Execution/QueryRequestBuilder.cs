@@ -97,7 +97,6 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         Dictionary<string, object?>? variableValues) =>
         SetVariableValues((IDictionary<string, object?>?)variableValues);
 
-
     public IQueryRequestBuilder SetVariableValues(
         IDictionary<string, object?>? variableValues)
     {
@@ -149,7 +148,6 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         Dictionary<string, object?>? properties) =>
         SetProperties((IDictionary<string, object?>?)properties);
 
-
     public IQueryRequestBuilder SetProperties(
         IDictionary<string, object?>? properties)
     {
@@ -193,6 +191,22 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         if (!_properties!.ContainsKey(name))
         {
             _properties.Add(name, value);
+        }
+        return this;
+    }
+
+    public IQueryRequestBuilder TryRemoveProperty(string name)
+    {
+        if (_readOnlyProperties is null && _properties is null)
+        {
+            return this;
+        }
+
+        InitializeProperties();
+
+        if (!_properties!.ContainsKey(name))
+        {
+            _properties.Remove(name);
         }
         return this;
     }
@@ -249,21 +263,19 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     }
 
     public IReadOnlyQueryRequest Create()
-    {
-        return new QueryRequest
+        => new QueryRequest
         (
             query: _query,
             queryId: _queryName,
             queryHash: _queryHash,
             operationName: _operationName,
-            initialValue: _initialValue,
-            services: _services,
             variableValues: GetVariableValues(),
             contextData: GetProperties(),
             extensions: GetExtensions(),
+            services: _services,
+            initialValue: _initialValue,
             allowedOperations: _allowedOperations
         );
-    }
 
     private IReadOnlyDictionary<string, object?> GetVariableValues()
     {

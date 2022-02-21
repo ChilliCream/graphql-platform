@@ -756,7 +756,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                     .Inline()
                                     .SetMethodName(
                                         _clientFactory,
-                                        nameof(IHttpClientFactory.CreateClient))
+                                        "CreateClient")
                                     .AddArgument(clientName.AsStringToken()))))));
 
         private static ICode RegisterConnection(TransportType transportProfile, string clientName)
@@ -766,7 +766,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 TransportType.WebSocket => RegisterWebSocketConnection(clientName),
                 TransportType.Http => RegisterHttpConnection(clientName),
                 TransportType.InMemory => RegisterInMemoryConnection(clientName),
-                { } v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
+                var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
             };
         }
 
@@ -879,7 +879,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private static string _clientServiceProvider = @"
-        private class ClientServiceProvider
+        private sealed class ClientServiceProvider
             : System.IServiceProvider
             , System.IDisposable
         {

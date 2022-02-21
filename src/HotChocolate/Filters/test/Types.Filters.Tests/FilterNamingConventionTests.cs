@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-        private class CustomConvention : FilterNamingConventionSnakeCase
+        private sealed class CustomConvention : FilterNamingConventionSnakeCase
         {
             public override NameString ArgumentName => "test";
 

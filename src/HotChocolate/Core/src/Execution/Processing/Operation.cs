@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -126,7 +127,7 @@ internal sealed class Operation : IPreparedOperation
         return new SelectionSetNode(fragments);
     }
 
-    private FieldNode CreateSelection(Selection selection, SelectionSetNode? selectionSet)
+    private static FieldNode CreateSelection(Selection selection, SelectionSetNode? selectionSet)
     {
         var directives = new List<DirectiveNode>();
 

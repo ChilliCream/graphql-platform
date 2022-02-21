@@ -153,7 +153,7 @@ public class ToolConfigurationFileMiddlewareTests
         };
     }
 
-    private class Result
+    private sealed class Result
     {
         public string Content { get; set; }
 

@@ -207,7 +207,7 @@ namespace StrawberryShake.Transport.InMemory
             results.Select(x => x.RootElement.ToString()).ToList().MatchSnapshot();
         }
 
-        private class MockDocument : IDocument
+        private sealed class MockDocument : IDocument
         {
             private readonly byte[] _query;
 

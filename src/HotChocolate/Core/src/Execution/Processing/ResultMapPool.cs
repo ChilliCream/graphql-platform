@@ -10,7 +10,7 @@ internal sealed class ResultMapPool
     {
     }
 
-    private class BufferPolicy : IPooledObjectPolicy<ResultObjectBuffer<ResultMap>>
+    private sealed class BufferPolicy : IPooledObjectPolicy<ResultObjectBuffer<ResultMap>>
     {
         private static readonly ResultMapPolicy _policy = new();
 
@@ -23,7 +23,7 @@ internal sealed class ResultMapPool
         }
     }
 
-    private class ResultMapPolicy : IPooledObjectPolicy<ResultMap>
+    private sealed class ResultMapPolicy : IPooledObjectPolicy<ResultMap>
     {
         public ResultMap Create() => new();
 

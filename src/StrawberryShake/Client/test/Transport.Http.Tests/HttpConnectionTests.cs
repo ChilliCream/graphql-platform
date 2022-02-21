@@ -48,7 +48,7 @@ namespace StrawberryShake.Transport.Http
         }
 
 
-        private class MockDocument : IDocument
+        private sealed class MockDocument : IDocument
         {
             private readonly byte[] _query;
 

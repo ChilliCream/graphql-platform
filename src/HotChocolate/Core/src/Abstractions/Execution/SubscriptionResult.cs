@@ -10,9 +10,6 @@ namespace HotChocolate.Execution;
 public sealed class SubscriptionResult : ISubscriptionResult
 {
     private readonly Func<IAsyncEnumerable<IQueryResult>>? _resultStreamFactory;
-    private readonly IReadOnlyList<IError>? _errors;
-    private readonly IReadOnlyDictionary<string, object?>? _extensions;
-    private readonly IReadOnlyDictionary<string, object?>? _contextData;
     private IAsyncDisposable? _session;
     private bool _isRead;
     private bool _disposed;
@@ -30,9 +27,9 @@ public sealed class SubscriptionResult : ISubscriptionResult
         }
 
         _resultStreamFactory = resultStreamFactory;
-        _errors = errors;
-        _extensions = extensions;
-        _contextData = contextData;
+        Errors = errors;
+        Extensions = extensions;
+        ContextData = contextData;
         _session = session;
     }
 
@@ -41,9 +38,9 @@ public sealed class SubscriptionResult : ISubscriptionResult
         IAsyncDisposable? session = null)
     {
         _resultStreamFactory = subscriptionResult._resultStreamFactory;
-        _errors = subscriptionResult._errors;
-        _extensions = subscriptionResult._extensions;
-        _contextData = subscriptionResult._contextData;
+        Errors = subscriptionResult.Errors;
+        Extensions = subscriptionResult.Extensions;
+        ContextData = subscriptionResult.ContextData;
         _session = session is null
             ? subscriptionResult
             : subscriptionResult.Combine(session);
@@ -54,19 +51,19 @@ public sealed class SubscriptionResult : ISubscriptionResult
        IDisposable? session = null)
     {
         _resultStreamFactory = subscriptionResult._resultStreamFactory;
-        _errors = subscriptionResult._errors;
-        _extensions = subscriptionResult._extensions;
-        _contextData = subscriptionResult._contextData;
+        Errors = subscriptionResult.Errors;
+        Extensions = subscriptionResult.Extensions;
+        ContextData = subscriptionResult.ContextData;
         _session = session is null
             ? subscriptionResult
-            : DisposableExtensions.Combine((IAsyncDisposable)subscriptionResult, session);
+            : ((IAsyncDisposable)subscriptionResult).Combine(session);
     }
 
-    public IReadOnlyList<IError>? Errors => _errors;
+    public IReadOnlyList<IError>? Errors { get; }
 
-    public IReadOnlyDictionary<string, object?>? Extensions => _extensions;
+    public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
-    public IReadOnlyDictionary<string, object?>? ContextData => _contextData;
+    public IReadOnlyDictionary<string, object?>? ContextData { get; }
 
     public IAsyncEnumerable<IQueryResult> ReadResultsAsync()
     {
