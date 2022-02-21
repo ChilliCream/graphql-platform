@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ internal sealed class ParallelBatchRequestHandler : IRemoteBatchRequestHandler
             foreach (IQueryRequest request in _requestBatch)
             {
                 IRemoteRequestHandler? requestHandler =
-                    _requestHandlers.FirstOrDefault(handler => handler.CanHandle(request));
+                    Array.Find(_requestHandlers, handler => handler.CanHandle(request));
 
                 if (requestHandler is null)
                 {
@@ -60,7 +61,7 @@ internal sealed class ParallelBatchRequestHandler : IRemoteBatchRequestHandler
 
             foreach (Task<IExecutionResult> task in tasks)
             {
-                if (task.IsCompletedSuccessfully)
+                if (task.IsCompleted && !task.IsCanceled && !task.IsFaulted)
                 {
                     yield return (IQueryResult)task.Result;
                 }
