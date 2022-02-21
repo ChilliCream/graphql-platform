@@ -7,7 +7,7 @@ namespace HotChocolate.Stitching.Utilities;
 
 public class SchemaExtensionsRewriter : SchemaSyntaxRewriter<string>
 {
-    private readonly List<DirectiveNode> _directives = new List<DirectiveNode>();
+    private readonly List<DirectiveNode> _directives = new();
 
     public IReadOnlyList<DirectiveNode> SchemaActions => _directives;
 

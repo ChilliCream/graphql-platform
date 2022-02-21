@@ -18,7 +18,7 @@ internal static class WebSocketExtensions
     private const int _maxMessageSize = 1024 * 4;
 
     private static readonly JsonSerializerSettings _settings =
-        new JsonSerializerSettings
+        new()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             NullValueHandling = NullValueHandling.Ignore
@@ -29,7 +29,7 @@ internal static class WebSocketExtensions
     {
         return SendMessageAsync(
             webSocket,
-            new InitializeConnectionMessage(null));
+            new InitializeConnectionMessage());
     }
 
     public static Task SendTerminateConnectionAsync(
@@ -85,7 +85,7 @@ internal static class WebSocketExtensions
 
         do
         {
-            read = stream.Read(buffer, 0, buffer.Length);
+            read = await stream.ReadAsync(buffer);
             var segment = new ArraySegment<byte>(buffer, 0, read);
             var isEndOfMessage = stream.Position == stream.Length;
 
@@ -156,8 +156,7 @@ internal static class WebSocketExtensions
             Utf8GraphQLRequestParser.ParseJson(stream.ToArray());
     }
 
-    private sealed class HelperOperationMessage
-        : OperationMessage
+    private sealed class HelperOperationMessage : OperationMessage
     {
         public HelperOperationMessage(
             string type, string id, object payload)

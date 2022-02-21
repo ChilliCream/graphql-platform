@@ -36,7 +36,7 @@ public class DirectiveTypeMergeHandlerTests
         var context = new SchemaMergeContext();
 
         // act
-        var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        var typeMerger = new DirectiveTypeMergeHandler();
         typeMerger.Merge(context, types);
 
         // assert
@@ -68,7 +68,7 @@ public class DirectiveTypeMergeHandlerTests
         var context = new SchemaMergeContext();
 
         // act
-        var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        var typeMerger = new DirectiveTypeMergeHandler();
 
         Assert.Throws<InvalidOperationException>(
             () => typeMerger.Merge(context, types));
@@ -98,7 +98,7 @@ public class DirectiveTypeMergeHandlerTests
         var context = new SchemaMergeContext();
 
         // act
-        var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        var typeMerger = new DirectiveTypeMergeHandler();
 
         Assert.Throws<InvalidOperationException>(
             () => typeMerger.Merge(context, types));
@@ -128,7 +128,7 @@ public class DirectiveTypeMergeHandlerTests
         var context = new SchemaMergeContext();
 
         // act
-        var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        var typeMerger = new DirectiveTypeMergeHandler();
 
         Assert.Throws<InvalidOperationException>(
             () => typeMerger.Merge(context, types));
@@ -164,7 +164,7 @@ public class DirectiveTypeMergeHandlerTests
         var context = new SchemaMergeContext();
 
         // act
-        var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        var typeMerger = new DirectiveTypeMergeHandler();
         typeMerger.Merge(context, types);
 
         // assert

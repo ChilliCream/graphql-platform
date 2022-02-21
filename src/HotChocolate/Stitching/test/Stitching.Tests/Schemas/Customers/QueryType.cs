@@ -4,8 +4,7 @@ namespace HotChocolate.Stitching.Schemas.Customers;
 
 public class QueryType : ObjectType<Query>
 {
-    protected override void Configure(
-        IObjectTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
         descriptor.Field(t => t.GetCustomer(default(string)))
             .Argument("id", a => a.Type<NonNullType<IdType>>())

@@ -1,6 +1,7 @@
 ﻿schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
 "The node interface is implemented by entities that have a global unique identifier."
@@ -76,6 +77,10 @@ type Query {
   customerOrConsultant(id: ID!): CustomerOrConsultant
   customerByKind(kind: CustomerKind!): Customer
   allCustomers: [Customer!]!
+}
+
+type Subscription {
+  onCustomerChanged: Customer
 }
 
 union CustomerOrConsultant = Customer | Consultant

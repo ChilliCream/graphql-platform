@@ -17,6 +17,11 @@ public interface IRemoteRequestScheduler : IDisposable
     ISchema Schema { get; }
 
     /// <summary>
+    /// Gets the underlying request executor.
+    /// </summary>
+    IRequestExecutor Executor { get; }
+
+    /// <summary>
     /// Schedules the given GraphQL <paramref name="request" />.
     /// </summary>
     /// <param name="request">

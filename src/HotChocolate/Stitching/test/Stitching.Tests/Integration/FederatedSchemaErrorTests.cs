@@ -245,6 +245,6 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
                 { _reviews, CreateReviewsService().CreateClient() },
             };
 
-        return StitchingTestContext.CreateRemoteSchemas(connections);
+        return StitchingTestContext.CreateHttpClientFactory(connections);
     }
 }

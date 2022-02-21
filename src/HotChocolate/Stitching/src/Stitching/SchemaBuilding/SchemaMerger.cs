@@ -8,8 +8,7 @@ using HotChocolate.Stitching.SchemaBuilding.Rewriters;
 
 namespace HotChocolate.Stitching.SchemaBuilding;
 
-public class SchemaMerger
-    : ISchemaMerger
+public class SchemaMerger : ISchemaMerger
 {
     private static readonly List<MergeTypeRuleFactory> _defaultMergeRules =
         new()
@@ -247,8 +246,7 @@ public class SchemaMerger
 
         foreach (ISchemaInfo schema in schemas)
         {
-            ObjectTypeDefinitionNode rootType = schema.GetRootType(operation);
-            if (rootType is not null)
+            if (schema.GetRootType(operation) is { } rootType)
             {
                 types.Add(new ObjectTypeInfo(rootType, schema));
             }
@@ -294,11 +292,11 @@ public class SchemaMerger
     private static ISet<string> CreateDirectivesNameSet(
         IReadOnlyCollection<ISchemaInfo> schemas)
     {
-        HashSet<string> names = new HashSet<string>();
+        var names = new HashSet<string>();
 
         foreach (ISchemaInfo schema in schemas)
         {
-            foreach (string name in schema.Directives.Keys)
+            foreach (var name in schema.Directives.Keys)
             {
                 names.Add(name);
             }
@@ -331,7 +329,7 @@ public class SchemaMerger
 
         foreach (ISchemaInfo schema in schemas)
         {
-            if (schema.Types.TryGetValue(name, out ITypeDefinitionNode typeDefinition))
+            if (schema.Types.TryGetValue(name, out ITypeDefinitionNode? typeDefinition))
             {
                 types.Add(TypeInfo.Create(typeDefinition, schema));
             }
@@ -347,11 +345,9 @@ public class SchemaMerger
 
         foreach (ISchemaInfo schema in schemas)
         {
-            if (schema.Directives.TryGetValue(name,
-                out DirectiveDefinitionNode directiveDefinition))
+            if (schema.Directives.TryGetValue(name, out DirectiveDefinitionNode? directive))
             {
-                directives.Add(new DirectiveTypeInfo(
-                    directiveDefinition, schema));
+                directives.Add(new DirectiveTypeInfo(directive, schema));
             }
         }
     }
@@ -381,7 +377,7 @@ public class SchemaMerger
 
     private MergeDirectiveRuleDelegate CompileMergeDirectiveDelegate()
     {
-        MergeDirectiveRuleDelegate current = (c, t) =>
+        MergeDirectiveRuleDelegate current = (_, t) =>
         {
             if (t.Count > 0)
             {
@@ -392,7 +388,7 @@ public class SchemaMerger
 
         var handlers = new List<MergeDirectiveRuleFactory>();
         handlers.AddRange(_directiveMergeRules);
-        handlers.Add(c => new DirectiveTypeMergeHandler(c).Merge);
+        handlers.Add(_ => new DirectiveTypeMergeHandler().Merge);
 
         for (var i = handlers.Count - 1; i >= 0; i--)
         {
@@ -402,5 +398,5 @@ public class SchemaMerger
         return current;
     }
 
-    public static SchemaMerger New() => new SchemaMerger();
+    public static SchemaMerger New() => new();
 }

@@ -164,7 +164,7 @@ namespace StrawberryShake.Transport.WebSockets
         private sealed class SessionProxy : ISession
         {
             private readonly Session _session;
-            private SessionPool _pool;
+            private readonly SessionPool _pool;
 
             public SessionProxy(
                 Session session,
@@ -175,6 +175,11 @@ namespace StrawberryShake.Transport.WebSockets
             }
 
             public string Name => _session.Name;
+
+            public Task OpenSessionAsync(CancellationToken cancellationToken = default)
+            {
+                return _session.OpenSessionAsync(cancellationToken);
+            }
 
             public Task<ISocketOperation> StartOperationAsync(
                 OperationRequest request,
