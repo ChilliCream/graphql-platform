@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Processing;
 
-public class DictionaryResultMiddleware
+internal sealed class DictionaryResultMiddleware
 {
     private readonly FieldDelegate _next;
 

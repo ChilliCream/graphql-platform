@@ -13,7 +13,6 @@ internal sealed class RemoteRequestScheduler : IRemoteRequestScheduler
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly List<BufferedRequest> _bufferedRequests = new();
     private readonly IBatchScheduler _batchScheduler;
-    private readonly IRequestExecutor _executor;
     private bool _taskRegistered;
 
     public RemoteRequestScheduler(
@@ -22,12 +21,15 @@ internal sealed class RemoteRequestScheduler : IRemoteRequestScheduler
     {
         _batchScheduler = batchScheduler ??
             throw new ArgumentNullException(nameof(batchScheduler));
-        _executor = executor ??
+        Executor = executor ??
             throw new ArgumentNullException(nameof(executor));
     }
 
     /// <inheritdoc />
-    public ISchema Schema => _executor.Schema;
+    public ISchema Schema => Executor.Schema;
+
+    /// <inheritdoc />
+    public IRequestExecutor Executor { get; }
 
     /// <inheritdoc />
     public Task<IExecutionResult> ScheduleAsync(
@@ -87,7 +89,7 @@ internal sealed class RemoteRequestScheduler : IRemoteRequestScheduler
     {
         BufferedRequest request = _bufferedRequests[0];
 
-        IExecutionResult result = await _executor
+        IExecutionResult result = await Executor
             .ExecuteAsync(request.Request, cancellationToken)
             .ConfigureAwait(false);
 
@@ -110,10 +112,10 @@ internal sealed class RemoteRequestScheduler : IRemoteRequestScheduler
         try
         {
             IBatchQueryResult batchQueryResult =
-                await _executor.ExecuteBatchAsync(
-                        _bufferedRequests.Select(t => t.Request),
-                        true,
-                        cancellationToken)
+                await Executor.ExecuteBatchAsync(
+                    _bufferedRequests.Select(t => t.Request),
+                    true,
+                    cancellationToken)
                     .ConfigureAwait(false);
 
             var i = 0;
@@ -137,7 +139,7 @@ internal sealed class RemoteRequestScheduler : IRemoteRequestScheduler
     {
         _semaphore.Dispose();
 
-        if (_executor is IDisposable d)
+        if (Executor is IDisposable d)
         {
             d.Dispose();
         }

@@ -264,7 +264,7 @@ internal static class ContextDataExtensions
     public static IReadOnlyDictionary<NameString, ISet<NameString>> GetExternalFieldLookup(
         this IHasContextData hasContextData)
     {
-        if (hasContextData.ContextData.TryGetValue(ExternalFieldLookup, out object? value) &&
+        if (hasContextData.ContextData.TryGetValue(ExternalFieldLookup, out var value) &&
             value is IReadOnlyDictionary<NameString, ISet<NameString>> dict)
         {
             return dict;

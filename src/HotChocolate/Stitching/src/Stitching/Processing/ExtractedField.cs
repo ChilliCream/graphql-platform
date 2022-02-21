@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Processing;
 
-public class ExtractedField
+internal sealed class ExtractedField
 {
     public ExtractedField(
         IReadOnlyList<FieldNode> syntaxNodes,

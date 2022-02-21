@@ -26,7 +26,7 @@ public class RewriteTypesTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultRemoteSchemas();
+            Context.CreateDefaultHttpClientFactory();
 
         // act
         IServiceProvider services =

@@ -3,8 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Utilities;
 
-public class QueryDelegationRewriterBase
-    : IQueryDelegationRewriter
+public class QueryDelegationRewriterBase : IQueryDelegationRewriter
 {
     /// <summary>
     /// This method will be called after the stitching layer

@@ -7,7 +7,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Processing;
 
-public class RemoteQueryBuilder
+internal sealed class RemoteQueryBuilder
 {
     private static readonly CollectUsedVariableVisitor _usedVariables = new();
     private readonly List<FieldNode> _additionalFields = new();

@@ -43,7 +43,7 @@ public class PassThroughTests : IClassFixture<StitchingTestContext>
             {
                 { coinService, new HttpClient() }
             };
-            return StitchingTestContext.CreateRemoteSchemas(connections);
+            return StitchingTestContext.CreateHttpClientFactory(connections);
         }
     }
 }

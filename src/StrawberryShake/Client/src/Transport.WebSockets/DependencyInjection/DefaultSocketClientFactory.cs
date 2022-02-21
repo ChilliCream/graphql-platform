@@ -6,8 +6,7 @@ using Microsoft.Extensions.Options;
 namespace StrawberryShake.Transport.WebSockets
 {
     /// <inheritdoc />
-    public class DefaultSocketClientFactory
-        : ISocketClientFactory
+    public class DefaultSocketClientFactory : ISocketClientFactory
     {
         private readonly IOptionsMonitor<SocketClientFactoryOptions> _optionsMonitor;
         private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;

@@ -29,6 +29,8 @@ internal sealed partial class SubscriptionExecutor
         private readonly Func<object?> _resolveQueryRootValue;
         private ISourceStream _sourceStream = default!;
         private object? _cachedRootValue;
+        private IImmutableDictionary<string, object?> _scopedContextData =
+            ImmutableDictionary<string, object?>.Empty;
         private bool _disposed;
 
         private Subscription(
@@ -163,9 +165,8 @@ internal sealed partial class SubscriptionExecutor
 
                 // we store the event payload on the scoped context so that it is accessible
                 // in the resolvers.
-                ImmutableDictionary<string, object?> scopedContext =
-                    ImmutableDictionary<string, object?>.Empty
-                        .SetItem(WellKnownContextData.EventMessage, payload);
+                IImmutableDictionary<string, object?> scopedContext =
+                    _scopedContextData.SetItem(WellKnownContextData.EventMessage, payload);
 
                 // next we resolve the subscription instance.
                 var rootValue = RootValueResolver.Resolve(
@@ -256,7 +257,7 @@ internal sealed partial class SubscriptionExecutor
                     1,
                     rootValue,
                     Path.New(rootSelection.ResponseName),
-                    ImmutableDictionary<string, object?>.Empty);
+                    _scopedContextData);
 
                 // it is important that we correctly coerce the arguments before
                 // invoking subscribe.
@@ -278,6 +279,7 @@ internal sealed partial class SubscriptionExecutor
                 ISourceStream sourceStream =
                     await rootSelection.Field.SubscribeResolver!.Invoke(middlewareContext)
                         .ConfigureAwait(false);
+                _scopedContextData = middlewareContext.ScopedContextData;
 
                 if (operationContext.Result.Errors.Count > 0)
                 {

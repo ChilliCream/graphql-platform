@@ -20,6 +20,7 @@ using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using StrawberryShake.Transport.WebSockets;
 using static HotChocolate.Stitching.ThrowHelper;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -29,7 +30,8 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
     public static IRequestExecutorBuilder AddRemoteSchema(
         this IRequestExecutorBuilder builder,
         NameString schemaName,
-        bool ignoreRootTypes = false)
+        bool ignoreRootTypes = false,
+        EndpointCapabilities capabilities = default)
     {
         if (builder == null)
         {
@@ -56,14 +58,16 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
                 .GetSchemaDefinitionAsync(cancellationToken)
                 .ConfigureAwait(false);
             },
-            ignoreRootTypes);
+            ignoreRootTypes,
+            capabilities);
     }
 
     public static IRequestExecutorBuilder AddRemoteSchemaFromString(
         this IRequestExecutorBuilder builder,
         NameString schemaName,
         string schemaSdl,
-        bool ignoreRootTypes = false)
+        bool ignoreRootTypes = false,
+        EndpointCapabilities capabilities = default)
     {
         if (builder == null)
         {
@@ -80,14 +84,16 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
                     new RemoteSchemaDefinition(
                         schemaName,
                         Utf8GraphQLParser.Parse(schemaSdl))),
-            ignoreRootTypes);
+            ignoreRootTypes,
+            capabilities);
     }
 
     public static IRequestExecutorBuilder AddRemoteSchemaFromFile(
         this IRequestExecutorBuilder builder,
         NameString schemaName,
         string fileName,
-        bool ignoreRootTypes = false)
+        bool ignoreRootTypes = false,
+        EndpointCapabilities capabilities = default)
     {
         if (builder == null)
         {
@@ -102,9 +108,9 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             async (_, cancellationToken) =>
             {
 #if NETSTANDARD2_0
-                    var schemaSdl = await Task
-                        .Run(() => File.ReadAllBytes(fileName), cancellationToken)
-                        .ConfigureAwait(false);
+                var schemaSdl = await Task
+                    .Run(() => File.ReadAllBytes(fileName), cancellationToken)
+                    .ConfigureAwait(false);
 #else
                 var schemaSdl = await File
                     .ReadAllBytesAsync(fileName, cancellationToken)
@@ -115,14 +121,16 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
                     schemaName,
                     Utf8GraphQLParser.Parse(schemaSdl));
             },
-            ignoreRootTypes);
+            ignoreRootTypes,
+            capabilities);
     }
 
     public static IRequestExecutorBuilder AddRemoteSchema(
         this IRequestExecutorBuilder builder,
         NameString schemaName,
         Func<IServiceProvider, CancellationToken, ValueTask<RemoteSchemaDefinition>> loadSchema,
-        bool ignoreRootTypes = false)
+        bool ignoreRootTypes = false,
+        EndpointCapabilities capabilities = default)
     {
         if (builder is null)
         {
@@ -143,6 +151,14 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             .AddGraphQL(schemaName)
             .ConfigureSchemaServices(services =>
             {
+                if (capabilities.Subscriptions is SubscriptionSupport.WebSocket)
+                {
+                    services.AddSingleton<IRemoteRequestHandler>(
+                        sp => new SubscriptionRequestHandler(
+                            sp.GetCombinedServices().GetRequiredService<ISocketClientFactory>(),
+                            schemaName));
+                }
+
                 services.AddSingleton<IRemoteRequestHandler>(
                     sp => new HttpPostRequestHandler(
                         sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),

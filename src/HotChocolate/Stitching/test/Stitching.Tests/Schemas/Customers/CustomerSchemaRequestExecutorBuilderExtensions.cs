@@ -15,6 +15,7 @@ public static class CustomerSchemaRequestExecutorBuilderExtensions
         return builder
             .AddQueryType<QueryType>()
             .AddMutationType<MutationType>()
+            .AddSubscriptionType<Subscription>()
             .AddGlobalObjectIdentification();
     }
 }

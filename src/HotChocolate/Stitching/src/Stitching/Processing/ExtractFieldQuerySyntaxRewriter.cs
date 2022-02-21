@@ -9,7 +9,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Processing;
 
-public partial class ExtractFieldQuerySyntaxRewriter 
+internal sealed partial class ExtractFieldQuerySyntaxRewriter
     : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
 {
     private readonly ISchema _schema;

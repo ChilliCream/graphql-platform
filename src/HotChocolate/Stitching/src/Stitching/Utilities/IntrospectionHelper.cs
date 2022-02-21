@@ -13,7 +13,7 @@ using static HotChocolate.Stitching.Execution.RemoteRequestHelper;
 
 namespace HotChocolate.Stitching.Utilities;
 
-public class IntrospectionHelper
+internal sealed class IntrospectionHelper
 {
     private readonly HttpClient _httpClient;
     private readonly NameString _configuration;
