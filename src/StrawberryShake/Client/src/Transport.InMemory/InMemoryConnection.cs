@@ -8,87 +8,86 @@ using HotChocolate;
 using HotChocolate.Execution;
 using StrawberryShake.Properties;
 
-namespace StrawberryShake.Transport.InMemory
+namespace StrawberryShake.Transport.InMemory;
+
+public class InMemoryConnection : IInMemoryConnection
 {
-    public class InMemoryConnection : IInMemoryConnection
+    private readonly Func<CancellationToken, ValueTask<IInMemoryClient>> _createClientAsync;
+
+    public InMemoryConnection(
+        Func<CancellationToken, ValueTask<IInMemoryClient>> createClientAsync)
     {
-        private readonly Func<CancellationToken, ValueTask<IInMemoryClient>> _createClientAsync;
+        _createClientAsync = createClientAsync ??
+            throw new ArgumentNullException(nameof(createClientAsync));
+    }
 
-        public InMemoryConnection(
-            Func<CancellationToken, ValueTask<IInMemoryClient>> createClientAsync)
+    public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
+        OperationRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
+        OperationRequest request,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        IInMemoryClient client = await _createClientAsync(cancellationToken);
+
+        Exception? exception = null;
+        IExecutionResult? result = null;
+        try
         {
-            _createClientAsync = createClientAsync ??
-                throw new ArgumentNullException(nameof(createClientAsync));
+            result = await client.ExecuteAsync(request, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
         }
 
-        public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
-            OperationRequest request)
+        if (exception is not null || result is null)
         {
-            throw new NotImplementedException();
-        }
-
-        public async IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
-            OperationRequest request,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
-            IInMemoryClient client = await _createClientAsync(cancellationToken);
-
-            Exception? exception = null;
-            IExecutionResult? result = null;
-            try
-            {
-                result = await client.ExecuteAsync(request, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-            }
-
-            if (exception is not null || result is null)
-            {
-                yield return new Response<JsonDocument>(null, exception);
-                yield break;
-            }
-
-
-            await foreach (var response in ProcessResultAsync(result, cancellationToken)
-                .ConfigureAwait(false))
-            {
-                yield return response;
-            }
+            yield return new Response<JsonDocument>(null, exception);
+            yield break;
         }
 
 
-        private async IAsyncEnumerable<Response<JsonDocument>> ProcessResultAsync(
-            IExecutionResult executionResult,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        await foreach (var response in ProcessResultAsync(result, cancellationToken)
+            .ConfigureAwait(false))
         {
-            switch (executionResult)
-            {
-                case IQueryResult queryResult:
-                    yield return new Response<JsonDocument>(
-                        JsonDocument.Parse(await queryResult.ToJsonAsync()),
-                        null);
-                    break;
-                case SubscriptionResult streamResult:
-                    await foreach (var result in streamResult.ReadResultsAsync()
-                        .WithCancellation(cancellationToken))
+            yield return response;
+        }
+    }
+
+
+    private async IAsyncEnumerable<Response<JsonDocument>> ProcessResultAsync(
+        IExecutionResult executionResult,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        switch (executionResult)
+        {
+            case IQueryResult queryResult:
+                yield return new Response<JsonDocument>(
+                    JsonDocument.Parse(await queryResult.ToJsonAsync()),
+                    null);
+                break;
+            case SubscriptionResult streamResult:
+                await foreach (var result in streamResult.ReadResultsAsync()
+                    .WithCancellation(cancellationToken))
+                {
+                    await foreach (var response in ProcessResultAsync(result, cancellationToken)
+                        .ConfigureAwait(false))
                     {
-                        await foreach (var response in ProcessResultAsync(result, cancellationToken)
-                            .ConfigureAwait(false))
-                        {
-                            yield return response;
-                        }
+                        yield return response;
                     }
+                }
 
-                    break;
-                default:
-                    yield return new Response<JsonDocument>(
-                        null,
-                        new GraphQLClientException(
-                            Resources.InMemoryConnection_InvalidResponseFormat));
-                    yield break;
-            }
+                break;
+            default:
+                yield return new Response<JsonDocument>(
+                    null,
+                    new GraphQLClientException(
+                        Resources.InMemoryConnection_InvalidResponseFormat));
+                yield break;
         }
     }
 }

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
+using static System.StringComparison;
 
 namespace StrawberryShake.Transport.Http;
 
@@ -50,14 +52,17 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
 #else
             var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
+
             _context = new ConnectionContext(client, request, response, stream);
 
             if (response.Content.Headers.ContentType is { } contentType &&
                 string.Equals(contentType.MediaType, "multipart/mixed"))
             {
+                NameValueHeaderValue boundary =
+                    contentType.Parameters.First(t => string.Equals(t.Name, "boundary", Ordinal));
+
                 _reader = new MultipartReader(
-                    contentType.Parameters.First(
-                        t => string.Equals(t.Name, "boundary", StringComparison.Ordinal)).Value,
+                    boundary.Value!.Trim('"'),
                     stream);
             }
             else
@@ -77,11 +82,10 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
             return false;
         }
 
-
 #if NETCOREAPP3_1_OR_GREATER
         await using Stream body = multipartSection.Body;
 #else
-            using Stream body = multipartSection.Body;
+        using Stream body = multipartSection.Body;
 #endif
 
         Current = await body.TryParseResponse(_abort).ConfigureAwait(false);

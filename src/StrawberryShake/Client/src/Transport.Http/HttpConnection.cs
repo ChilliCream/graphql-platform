@@ -7,41 +7,40 @@ using StrawberryShake.Internal;
 using StrawberryShake.Json;
 using static StrawberryShake.Transport.Http.ResponseEnumerable;
 
-namespace StrawberryShake.Transport.Http
+namespace StrawberryShake.Transport.Http;
+
+public class HttpConnection : IHttpConnection
 {
-    public class HttpConnection : IHttpConnection
+    private readonly Func<HttpClient> _createClient;
+    private readonly JsonOperationRequestSerializer _serializer = new();
+
+    public HttpConnection(Func<HttpClient> createClient)
     {
-        private readonly Func<HttpClient> _createClient;
-        private readonly JsonOperationRequestSerializer _serializer = new();
+        _createClient = createClient ?? throw new ArgumentNullException(nameof(createClient));
+    }
 
-        public HttpConnection(Func<HttpClient> createClient)
+    public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(OperationRequest request)
+        => Create(_createClient, () => CreateRequestMessage(request));
+
+    protected virtual HttpRequestMessage CreateRequestMessage(OperationRequest request)
+    {
+        var content = new ByteArrayContent(CreateRequestMessageBody(request));
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+        return new HttpRequestMessage
         {
-            _createClient = createClient ?? throw new ArgumentNullException(nameof(createClient));
-        }
+            Method = HttpMethod.Post,
+            Content = content
+        };
+    }
 
-        public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(OperationRequest request)
-            => Create(_createClient, () => CreateRequestMessage(request));
-
-        protected virtual HttpRequestMessage CreateRequestMessage(OperationRequest request)
-        {
-            var content = new ByteArrayContent(CreateRequestMessageBody(request));
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            return new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                Content = content
-            };
-        }
-
-        private byte[] CreateRequestMessageBody(
-            OperationRequest request)
-        {
-            using var arrayWriter = new ArrayWriter();
-            _serializer.Serialize(request, arrayWriter);
-            var buffer = new byte[arrayWriter.Length];
-            arrayWriter.Body.Span.CopyTo(buffer);
-            return buffer;
-        }
+    private byte[] CreateRequestMessageBody(
+        OperationRequest request)
+    {
+        using var arrayWriter = new ArrayWriter();
+        _serializer.Serialize(request, arrayWriter);
+        var buffer = new byte[arrayWriter.Length];
+        arrayWriter.Body.Span.CopyTo(buffer);
+        return buffer;
     }
 }
