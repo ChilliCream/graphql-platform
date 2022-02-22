@@ -48,8 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 .AddArgument(
                                     BuildUpdateMethodCall(
                                         listTypeDescriptor.InnerType,
-                                        CodeInlineBuilder.From(_child),
-                                        "!!!CompileError!!!"))))
+                                        CodeInlineBuilder.From(_child)))))
                 .AddEmptyLine()
                 .AddCode($"return {listVarName};");
 

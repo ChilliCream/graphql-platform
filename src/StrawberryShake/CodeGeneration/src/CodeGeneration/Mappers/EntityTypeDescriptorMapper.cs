@@ -80,7 +80,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         var indicator = new PropertyDescriptor(
                             $"Is{typeName}Fulfilled",
                             $"_is{typeName}Fulfilled",
-                            _boolean,
+                            new NonNullTypeDescriptor(_boolean),
                             null,
                             PropertyKind.FragmentIndicator);
                         properties.Add(indicator.Name, indicator);

@@ -95,7 +95,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             ObjectTypeDescriptor objectTypeDescriptor,
             bool assignDefault)
         {
-            var propertyLookup = objectTypeDescriptor.Properties.ToDictionary(x => x.Name.Value);
+            var propertyLookup = objectTypeDescriptor.Properties.ToDictionary(x => x.Name);
+            var fragments = objectTypeDescriptor.Deferred.ToDictionary(t => t.FragmentIndicator);
+
+            // include properties from fragments
+            foreach (DeferredFragmentDescriptor fragment in fragments.Values)
+            {
+                foreach (PropertyDescriptor property in fragment.Class.Properties)
+                {
+                    if (!propertyLookup.ContainsKey(property.Name))
+                    {
+                        propertyLookup.Add(property.Name, property);
+                    }
+                }
+            }
 
             MethodCallBuilder newEntity = MethodCallBuilder
                 .Inline()
@@ -105,9 +118,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             foreach (PropertyDescriptor property in
                 objectTypeDescriptor.EntityTypeDescriptor.Properties.Values)
             {
-                if (propertyLookup.TryGetValue(property.Name.Value, out var ownProperty))
+                if (propertyLookup.TryGetValue(property.Name, out PropertyDescriptor? prop))
                 {
-                    newEntity.AddArgument(BuildUpdateMethodCall(ownProperty));
+                    newEntity.AddArgument(BuildUpdateMethodCall(prop));
+                }
+                else if (fragments.TryGetValue(property.Name, out DeferredFragmentDescriptor? frag))
+                {
+                    newEntity.AddArgument(BuildFragmentMethodCall(frag));
                 }
                 else if (assignDefault)
                 {
@@ -135,20 +152,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetMethodName(_session, "CurrentSnapshot", "TryGetEntity")
                     .AddArgument(_entityId)
                     .AddOutArgument(_entity, entityType.ToString()));
-        }
-
-        private void WritePropertyAssignments<T>(
-            ICodeContainer<T> codeContainer,
-            IReadOnlyList<PropertyDescriptor> properties)
-        {
-            foreach (PropertyDescriptor property in properties)
-            {
-                codeContainer.AddCode(
-                    AssignmentBuilder
-                        .New()
-                        .SetLefthandSide($"{_entity}.{property.Name}")
-                        .SetRighthandSide(BuildUpdateMethodCall(property)));
-            }
         }
     }
 }

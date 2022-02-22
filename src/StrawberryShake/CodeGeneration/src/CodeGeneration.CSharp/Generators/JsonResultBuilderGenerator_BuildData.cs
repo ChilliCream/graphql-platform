@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
@@ -12,9 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public partial class JsonResultBuilderGenerator
     {
         private const string _session = "session";
-        private const string _resultInfo = "resultInfo";
         private const string _snapshot = "snapshot";
-        private const string _dataProp = "dataProp";
 
         private void AddBuildDataMethod(
             CSharpSyntaxGeneratorSettings settings,
@@ -32,7 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetOverride()
                 .SetName("BuildData")
                 .SetReturnType(TypeNames.IOperationResultDataInfo)
-                .AddParameter(_dataProp, x => x.SetType(TypeNames.JsonElement));
+                .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement));
 
             // var entityIds = new HashSet<EntityId>();
             // var pathToEntityId = new Dictionary<string, EntityId>();
@@ -47,16 +44,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 .Inline()
                                 .SetNew()
                                 .SetMethodName(TypeNames.HashSet)
-                                .AddGeneric(TypeNames.EntityId)))
-                    .AddCode(
-                        AssignmentBuilder
-                            .New()
-                            .SetLefthandSide($"var {GetParameterName(_pathToEntityId)}")
-                            .SetRighthandSide(MethodCallBuilder
-                                .Inline()
-                                .SetNew()
-                                .SetMethodName(TypeNames.Dictionary)
-                                .AddGeneric(TypeNames.String)
                                 .AddGeneric(TypeNames.EntityId)))
                     .AddCode(
                         AssignmentBuilder

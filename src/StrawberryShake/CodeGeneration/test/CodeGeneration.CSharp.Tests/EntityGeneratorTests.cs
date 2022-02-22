@@ -115,28 +115,28 @@ public class EntityGeneratorTests
     {
         AssertStarWarsResult(
             @"query GetHero {
-                    hero(episode: NEW_HOPE) {
-                        ... HeroName
-                        ... HeroAppearsIn @defer(label: ""HeroAppearsIn"")
+                hero(episode: NEW_HOPE) {
+                    ... HeroName
+                    ... HeroAppearsIn @defer(label: ""HeroAppearsInAbc"")
+                }
+            }
+
+            fragment HeroName on Character {
+                name
+                friends {
+                    nodes {
+                        name
+                        ... HeroAppearsIn2 @defer(label: ""HeroAppearsIn2"")
                     }
                 }
+            }
 
-                fragment HeroName on Character {
-                    name
-                    friends {
-                        nodes {
-                            name
-                            ... HeroAppearsIn2 @defer(label: ""HeroAppearsIn2"")
-                        }
-                    }
-                }
+            fragment HeroAppearsIn on Character {
+                appearsIn
+            }
 
-                fragment HeroAppearsIn on Character {
-                    appearsIn
-                }
-                
-                fragment HeroAppearsIn2 on Character {
-                    appearsIn
-                }");
+            fragment HeroAppearsIn2 on Character {
+                appearsIn
+            }");
     }
 }

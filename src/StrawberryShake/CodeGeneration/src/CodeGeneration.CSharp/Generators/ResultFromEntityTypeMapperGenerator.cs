@@ -74,8 +74,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .New()
                         .SetType(
                             descriptor.Kind is TypeKind.Entity
-                                ? entityType.NamespaceWithoutGlobal
-                                : descriptor.Name)
+                                ? entityType.FullName
+                                : descriptor.Name.Value)
                         .SetName(_entity))
                 .AddParameter(
                     _snapshot,

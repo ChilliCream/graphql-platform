@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -18,11 +17,11 @@ public class WebSocketConnectionTests
     public void Constructor_AllArgs_CreateObject()
     {
         // arrange
-        Func<CancellationToken, ValueTask<ISession>> sessionFactory =
-            (ct) => new(new Mock<ISession>().Object);
+        ValueTask<ISession> SessionFactory(CancellationToken cancellationToken)
+            => new(new Mock<ISession>().Object);
 
         // act
-        Exception? exception = Record.Exception(() => new WebSocketConnection(sessionFactory));
+        Exception? exception = Record.Exception(() => new WebSocketConnection(SessionFactory));
 
         // assert
         Assert.Null(exception);
@@ -45,11 +44,12 @@ public class WebSocketConnectionTests
     public async Task ExecuteAsync_Completed_Complete()
     {
         // arrange
-        IAsyncEnumerable<OperationMessage> Producer(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+#pragma warning disable CS1998
+        async IAsyncEnumerable<OperationMessage> Producer()
         {
             yield break;
         }
+#pragma warning restore CS1998
 
         var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
         var managerMock = new Mock<ISession>();
@@ -58,13 +58,12 @@ public class WebSocketConnectionTests
             .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
             .ReturnsAsync(operationMock.Object);
         operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-        Func<CancellationToken, ValueTask<ISession>> sessionFactory =
-            (ct) => new(managerMock.Object);
-        var connection = new WebSocketConnection(sessionFactory);
+        ValueTask<ISession> SessionFactory(CancellationToken ct) => new(managerMock.Object);
+        var connection = new WebSocketConnection(SessionFactory);
         var results = new List<Response<JsonDocument>>();
 
         // act
-        await foreach (var response in connection.ExecuteAsync(operationRequest))
+        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(operationRequest))
         {
             results.Add(response);
         }
@@ -77,14 +76,15 @@ public class WebSocketConnectionTests
     public async Task ExecuteAsync_Data_ParseJson()
     {
         // arrange
-        IAsyncEnumerable<OperationMessage> Producer(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+#pragma warning disable CS1998
+        async IAsyncEnumerable<OperationMessage> Producer()
         {
             var messageData = JsonDocument.Parse(@"{""Foo"": ""Bar""}");
             var msg =
                 new DataDocumentOperationMessage<JsonDocument>(messageData);
             yield return msg;
         }
+#pragma warning restore CS1998
 
         var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
         var managerMock = new Mock<ISession>();
@@ -93,30 +93,31 @@ public class WebSocketConnectionTests
             .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
             .ReturnsAsync(operationMock.Object);
         operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-        Func<CancellationToken, ValueTask<ISession>> sessionFactory =
-            (ct) => new(managerMock.Object);
-        var connection = new WebSocketConnection(sessionFactory);
+        ValueTask<ISession> SessionFactory(CancellationToken cancellationToken)
+            => new(managerMock.Object);
+        var connection = new WebSocketConnection(SessionFactory);
         var results = new List<Response<JsonDocument>>();
 
         // act
-        await foreach (var response in connection.ExecuteAsync(operationRequest))
+        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(operationRequest))
         {
             results.Add(response);
         }
 
         // assert
-        Assert.Single(results)!.Body!.RootElement!.MatchSnapshot();
+        Assert.Single(results)!.Body!.RootElement.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Error_ReturnResult()
     {
         // arrange
-        IAsyncEnumerable<OperationMessage> Producer(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+#pragma warning disable CS1998
+        async IAsyncEnumerable<OperationMessage> Producer()
         {
             yield return ErrorOperationMessage.ConnectionInitializationError;
         }
+#pragma warning restore CS1998
 
         var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
         var managerMock = new Mock<ISession>();
@@ -125,13 +126,13 @@ public class WebSocketConnectionTests
             .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
             .ReturnsAsync(operationMock.Object);
         operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-        Func<CancellationToken, ValueTask<ISession>> sessionFactory =
-            (ct) => new(managerMock.Object);
-        var connection = new WebSocketConnection(sessionFactory);
+        ValueTask<ISession> SessionFactory(CancellationToken cancellationToken)
+            => new(managerMock.Object);
+        var connection = new WebSocketConnection(SessionFactory);
         var results = new List<Response<JsonDocument>>();
 
         // act
-        await foreach (var response in connection.ExecuteAsync(operationRequest))
+        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(operationRequest))
         {
             results.Add(response);
         }
@@ -145,11 +146,12 @@ public class WebSocketConnectionTests
     public async Task ExecuteAsync_Cancelled_ReturnResult()
     {
         // arrange
-        IAsyncEnumerable<OperationMessage> Producer(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+#pragma warning disable CS1998
+        async IAsyncEnumerable<OperationMessage> Producer()
         {
             yield return CancelledOperationMessage.Default;
         }
+#pragma warning restore CS1998
 
         var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
         var managerMock = new Mock<ISession>();
@@ -158,13 +160,13 @@ public class WebSocketConnectionTests
             .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
             .ReturnsAsync(operationMock.Object);
         operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-        Func<CancellationToken, ValueTask<ISession>> sessionFactory =
-            (ct) => new(managerMock.Object);
-        var connection = new WebSocketConnection(sessionFactory);
+        ValueTask<ISession> SessionFactory(CancellationToken cancellationToken)
+            => new(managerMock.Object);
+        var connection = new WebSocketConnection(SessionFactory);
         var results = new List<Response<JsonDocument>>();
 
         // act
-        await foreach (var response in connection.ExecuteAsync(operationRequest))
+        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(operationRequest))
         {
             results.Add(response);
         }
@@ -178,11 +180,12 @@ public class WebSocketConnectionTests
     public async Task ExecuteAsync_Completed_ReturnResult()
     {
         // arrange
-        IAsyncEnumerable<OperationMessage> Producer(
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+#pragma warning disable CS1998
+        async IAsyncEnumerable<OperationMessage> Producer()
         {
             yield return CompleteOperationMessage.Default;
         }
+#pragma warning restore CS1998
 
         var operationRequest = new OperationRequest("foo", GetHeroQueryDocument.Instance);
         var managerMock = new Mock<ISession>();
@@ -191,13 +194,13 @@ public class WebSocketConnectionTests
             .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
             .ReturnsAsync(operationMock.Object);
         operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-        Func<CancellationToken, ValueTask<ISession>> sessionFactory =
-            (ct) => new(managerMock.Object);
-        var connection = new WebSocketConnection(sessionFactory);
+        ValueTask<ISession> SessionFactory(CancellationToken cancellationToken)
+            => new(managerMock.Object);
+        var connection = new WebSocketConnection(SessionFactory);
         var results = new List<Response<JsonDocument>>();
 
         // act
-        await foreach (var response in connection.ExecuteAsync(operationRequest))
+        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(operationRequest))
         {
             results.Add(response);
         }

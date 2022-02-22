@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -18,9 +19,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _resultDataFactory = "ResultDataFactory";
         private const string _serializerResolver = "serializerResolver";
         private const string _entityIds = "entityIds";
-        private const string _pathToEntityId = "pathToEntityId";
         private const string _obj = "obj";
-        private const string _response = "response";
 
         protected override void Generate(
             ResultBuilderDescriptor resultBuilderDescriptor,
@@ -144,26 +143,37 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             ClassBuilder classBuilder,
             HashSet<string> processed)
         {
-            if (namedTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
+            if (namedTypeDescriptor is InterfaceTypeDescriptor interfaceType)
             {
-                foreach (ObjectTypeDescriptor @class in interfaceTypeDescriptor.ImplementedBy)
+                foreach (ObjectTypeDescriptor @class in interfaceType.ImplementedBy)
                 {
                     AddRequiredDeserializeMethods(@class, classBuilder, processed);
                 }
             }
-            else if (namedTypeDescriptor is ComplexTypeDescriptor complexTypeDescriptor)
+            else if (namedTypeDescriptor is ObjectTypeDescriptor objectType)
             {
-                foreach (PropertyDescriptor property in complexTypeDescriptor.Properties)
-                {
-                    AddDeserializeMethod(
-                        property.Type,
-                        classBuilder,
-                        processed);
+                var propertyProcessed = new HashSet<NameString>();
+                var properties = new List<PropertyDescriptor>(objectType.Properties);
 
-                    if (property.Type.NamedType() is INamedTypeDescriptor nt &&
-                        !nt.IsLeaf())
+                // include properties from fragments
+                foreach (DeferredFragmentDescriptor fragment in objectType.Deferred)
+                {
+                    foreach (PropertyDescriptor property in fragment.Class.Properties)
                     {
-                        AddRequiredDeserializeMethods(nt, classBuilder, processed);
+                        properties.Add(property);
+                    }
+                }
+
+                foreach (PropertyDescriptor property in properties)
+                {
+                    if (propertyProcessed.Add(property.Name))
+                    {
+                        AddDeserializeMethod(property.Type, classBuilder, processed);
+
+                        if (property.Type.NamedType() is INamedTypeDescriptor nt && !nt.IsLeaf())
+                        {
+                            AddRequiredDeserializeMethods(nt, classBuilder, processed);
+                        }
                     }
                 }
             }
@@ -264,26 +274,29 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
         private MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property)
         {
-            var fieldName = property.FieldName.Value;
-            var fieldPath = $"/{fieldName}";
-
             MethodCallBuilder propertyAccessor = MethodCallBuilder
                 .Inline()
                 .SetMethodName(TypeNames.GetPropertyOrNull)
                 .AddArgument(_obj)
-                .AddArgument(fieldName.AsStringToken());
+                .AddArgument(property.FieldName.Value.AsStringToken());
 
-            return BuildUpdateMethodCall(
-                    property.Type,
-                    propertyAccessor,
-                    fieldPath.AsStringToken())
-                .SetWrapArguments();
+            return BuildUpdateMethodCall(property.Type, propertyAccessor).SetWrapArguments();
+        }
+
+        private MethodCallBuilder BuildFragmentMethodCall(DeferredFragmentDescriptor fragment)
+        {
+            MethodCallBuilder propertyAccessor = MethodCallBuilder
+                .Inline()
+                .SetMethodName(TypeNames.ContainsFragment)
+                .AddArgument(_obj)
+                .AddArgument(fragment.FragmentIndicatorField.Value.AsStringToken());
+
+            return propertyAccessor;
         }
 
         private MethodCallBuilder BuildUpdateMethodCall(
             ITypeDescriptor property,
-            ICode argument,
-            string fieldPath)
+            ICode argument)
         {
             MethodCallBuilder deserializeMethodCaller = MethodCallBuilder
                 .Inline()
@@ -294,9 +307,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 deserializeMethodCaller
                     .AddArgument(_session)
                     .AddArgument(argument)
-                    .AddArgument(_entityIds)
-                    .AddArgument(_pathToEntityId)
-                    .AddArgument(fieldPath);
+                    .AddArgument(_entityIds);
             }
             else
             {
@@ -308,7 +319,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
         private static string DeserializerMethodNameFromTypeName(ITypeDescriptor typeDescriptor)
         {
-            var ret = typeDescriptor.IsEntity() ? "Update" : "Deserialize";
+            var ret = typeDescriptor.IsEntity() ? "Update_" : "Deserialize_";
             ret += BuildDeserializeMethodName(typeDescriptor);
             return ret;
         }

@@ -139,10 +139,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            string modifier = _accessModifier.ToString().ToLowerInvariant();
+            var modifier = _accessModifier.ToString().ToLowerInvariant();
 
             writer.WriteIndent();
-
 
             if (_interface is null && !_isOnlyDeclaration)
             {
@@ -236,21 +235,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         }
 
         private string CreateInheritance()
-        {
-            switch (_inheritance)
+            => _inheritance switch
             {
-                case Inheritance.Override:
-                    return "override ";
-
-                case Inheritance.Sealed:
-                    return "sealed override ";
-
-                case Inheritance.Virtual:
-                    return "virtual ";
-
-                default:
-                    return string.Empty;
-            }
-        }
+                Inheritance.Override => "override ",
+                Inheritance.Sealed => "sealed override ",
+                Inheritance.Virtual => "virtual ",
+                _ => string.Empty,
+            };
     }
 }

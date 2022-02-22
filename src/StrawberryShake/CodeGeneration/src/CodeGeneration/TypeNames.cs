@@ -88,6 +88,9 @@ namespace StrawberryShake.CodeGeneration
         public const string GetPropertyOrNull =
             StrawberryShakeNamespace + "Json.JsonElementExtensions.GetPropertyOrNull";
 
+        public const string ContainsFragment =
+            StrawberryShakeNamespace + "Json.JsonElementExtensions.ContainsFragment";
+
         public const string HttpConnection =
             StrawberryShakeNamespace + "Transport.Http.HttpConnection";
 

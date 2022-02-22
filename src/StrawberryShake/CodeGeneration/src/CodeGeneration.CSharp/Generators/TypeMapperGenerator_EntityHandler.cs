@@ -37,21 +37,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
             {
-                foreach (ObjectTypeDescriptor implementee in interfaceTypeDescriptor.ImplementedBy
-                    .Where(x => x.IsEntity()))
+                foreach (ObjectTypeDescriptor implementer in
+                    interfaceTypeDescriptor.ImplementedBy.Where(x => x.IsEntity()))
                 {
                     NameString dataMapperName =
-                        CreateEntityMapperName(implementee.RuntimeType.Name, implementee.Name);
+                        CreateEntityMapperName(
+                            implementer.RuntimeType.Name,
+                            implementer.Name.Value);
 
                     if (processed.Add(dataMapperName))
                     {
                         var dataMapperType =
                             TypeNames.IEntityMapper.WithGeneric(
                                 CreateEntityType(
-                                        implementee.Name,
-                                        implementee.RuntimeType.NamespaceWithoutGlobal)
-                                    .ToString(),
-                                implementee.RuntimeType.Name);
+                                    implementer.Name.Value,
+                                    implementer.RuntimeType.NamespaceWithoutGlobal).ToString(),
+                                implementer.RuntimeType.Name);
 
                         AddConstructorAssignedField(
                             dataMapperType,
@@ -61,7 +62,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             constructorBuilder);
                     }
 
-                    method.AddCode(GenerateEntityHandlerIfClause(implementee, isNonNullable));
+                    method.AddCode(GenerateEntityHandlerIfClause(implementer, isNonNullable));
                 }
             }
 

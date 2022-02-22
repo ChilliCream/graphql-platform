@@ -21,6 +21,8 @@ public class DeferredFragmentDescriptor
         Label = label;
         InterfaceName = interfaceName;
         ClassName = className;
+        FragmentIndicator = $"Is{ClassName.Value}Fulfilled";
+        FragmentIndicatorField = $"_is{ClassName.Value}Fulfilled";
     }
 
     /// <summary>
@@ -47,6 +49,16 @@ public class DeferredFragmentDescriptor
     /// The class descriptor representing this deferred fragment.
     /// </summary>
     public ObjectTypeDescriptor Class { get; private set; } = default!;
+
+    /// <summary>
+    /// The entity property that represents the fragment indicator.
+    /// </summary>
+    public NameString FragmentIndicator { get; private set; }
+
+    /// <summary>
+    /// The result field that represents the fragment indicator.
+    /// </summary>
+    public NameString FragmentIndicatorField { get; private set; }
 
     internal void Complete(
         InterfaceTypeDescriptor @interface,

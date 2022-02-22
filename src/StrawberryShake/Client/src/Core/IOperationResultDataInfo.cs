@@ -16,12 +16,6 @@ public interface IOperationResultDataInfo
     IReadOnlyCollection<EntityId> EntityIds { get; }
 
     /// <summary>
-    /// A read-only dictionary that allows to lookup the <see cref="EntityId" />
-    /// by a response path.
-    /// </summary>
-    IReadOnlyDictionary<string, EntityId> PathToEntityIds { get; }
-
-    /// <summary>
     /// Gets the entity store version.
     /// </summary>
     ulong Version { get; }
