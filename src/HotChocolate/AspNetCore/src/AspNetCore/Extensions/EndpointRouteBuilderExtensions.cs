@@ -13,6 +13,12 @@ namespace Microsoft.AspNetCore.Builder;
 /// </summary>
 public static class EndpointRouteBuilderExtensions
 {
+    private const string GraphQLHttpPath = "/graphql";
+    private const string GraphQLWebSocketPath = "/graphql/ws";
+    private const string GraphQLSchemaPath = "/graphql/sdl";
+    private const string GraphQLToolPath = "/graphql/ui";
+    private const string GraphQLToolRelativeRequestPath = "..";
+
     /// <summary>
     /// Adds a GraphQL endpoint to the endpoint configurations.
     /// </summary>
@@ -31,7 +37,7 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static GraphQLEndpointConventionBuilder MapGraphQL(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string path = "/graphql",
+        string path = GraphQLHttpPath,
         NameString schemaName = default)
         => MapGraphQL(endpointRouteBuilder, new PathString(path), schemaName);
 
@@ -116,7 +122,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern,
+        string pattern = GraphQLHttpPath,
         NameString schemaName = default)
         => MapGraphQLHttp(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -141,7 +147,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        RoutePattern? pattern = default,
+        RoutePattern pattern,
         NameString schemaName = default)
     {
         if (endpointRouteBuilder is null)
@@ -149,7 +155,7 @@ public static class EndpointRouteBuilderExtensions
             throw new ArgumentNullException(nameof(endpointRouteBuilder));
         }
 
-        pattern ??= Parse("/graphql");
+        pattern ??= Parse(GraphQLHttpPath);
 
         IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
@@ -192,7 +198,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static IEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern,
+        string pattern = GraphQLWebSocketPath,
         NameString schemaName = default)
         => MapGraphQLWebSocket(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -217,7 +223,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static IEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        RoutePattern? pattern = default,
+        RoutePattern pattern,
         NameString schemaName = default)
     {
         if (endpointRouteBuilder is null)
@@ -225,7 +231,7 @@ public static class EndpointRouteBuilderExtensions
             throw new ArgumentNullException(nameof(endpointRouteBuilder));
         }
 
-        pattern ??= Parse("/graphql/ws");
+        pattern ??= Parse(GraphQLWebSocketPath);
 
         IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
@@ -266,7 +272,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static IEndpointConventionBuilder MapGraphQLSchema(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern,
+        string pattern = GraphQLSchemaPath,
         NameString schemaName = default)
         => MapGraphQLSchema(endpointRouteBuilder, Parse(pattern), schemaName);
 
@@ -291,7 +297,7 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static IEndpointConventionBuilder MapGraphQLSchema(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        RoutePattern? pattern = default,
+        RoutePattern pattern,
         NameString schemaName = default)
     {
         if (endpointRouteBuilder is null)
@@ -299,7 +305,7 @@ public static class EndpointRouteBuilderExtensions
             throw new ArgumentNullException(nameof(endpointRouteBuilder));
         }
 
-        pattern ??= Parse("/graphql/sdl");
+        pattern ??= Parse(GraphQLSchemaPath);
 
         IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
@@ -328,7 +334,7 @@ public static class EndpointRouteBuilderExtensions
     /// The <see cref="IEndpointConventionBuilder"/>.
     /// </param>
     /// <param name="toolPath">
-    /// The path to which banana cake pop is mapped.
+    /// The path to which Banana Cake Pop is mapped.
     /// </param>
     /// <param name="relativeRequestPath">
     /// The relative path on which the server is listening for GraphQL requests.
@@ -339,18 +345,40 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static BananaCakePopEndpointConventionBuilder MapBananaCakePop(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        PathString? toolPath = default,
-        string? relativeRequestPath = "..")
+        string toolPath = GraphQLToolPath,
+        string? relativeRequestPath = GraphQLToolRelativeRequestPath)
+        => MapBananaCakePop(endpointRouteBuilder, new PathString(toolPath), relativeRequestPath);
+
+    /// <summary>
+    /// Adds a Banana Cake Pop endpoint to the endpoint configurations.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointConventionBuilder"/>.
+    /// </param>
+    /// <param name="toolPath">
+    /// The path to which Banana Cake Pop is mapped.
+    /// </param>
+    /// <param name="relativeRequestPath">
+    /// The relative path on which the server is listening for GraphQL requests.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    public static BananaCakePopEndpointConventionBuilder MapBananaCakePop(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        PathString toolPath,
+        string? relativeRequestPath = GraphQLToolRelativeRequestPath)
     {
         if (endpointRouteBuilder is null)
         {
             throw new ArgumentNullException(nameof(endpointRouteBuilder));
         }
 
-        toolPath ??= "/graphql/ui";
-        relativeRequestPath ??= "..";
+        toolPath = toolPath.ToString().TrimEnd('/');
+        relativeRequestPath ??= GraphQLToolRelativeRequestPath;
 
-        RoutePattern pattern = Parse(toolPath.ToString() + "/{**slug}");
+        RoutePattern pattern = Parse(toolPath + "/{**slug}");
         IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         IFileProvider fileProvider = CreateFileProvider();
 
