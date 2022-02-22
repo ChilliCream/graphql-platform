@@ -3,6 +3,7 @@ using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
@@ -24,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetRighthandSide(
                         MethodCallBuilder
                             .Inline()
-                            .SetMethodName(_idSerializer, "Parse")
+                            .SetMethodName(GetFieldName(_idSerializer), "Parse")
                             .AddArgument($"{_obj}.Value")));
 
             methodBuilder.AddCode(

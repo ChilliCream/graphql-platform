@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _value;
         private string? _interface;
         private bool _isStatic;
+        private bool _isOverride;
 
         public static PropertyBuilder New() => new();
 
@@ -26,6 +27,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public PropertyBuilder SetStatic()
         {
             _isStatic = true;
+            return this;
+        }
+
+        public PropertyBuilder SetOverride()
+        {
+            _isOverride = true;
             return this;
         }
 
@@ -117,6 +124,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 if (_isStatic)
                 {
                     writer.Write("static");
+                    writer.WriteSpace();
+                }
+
+                if (_isOverride)
+                {
+                    writer.Write("override");
                     writer.WriteSpace();
                 }
             }

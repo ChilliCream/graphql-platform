@@ -10,6 +10,8 @@ using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.CSharp.Generators;
@@ -20,6 +22,7 @@ using StrawberryShake.Tools.Configuration;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -341,6 +344,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             SourceDocumentKind kind,
             ICollection<SourceDocument> documents)
         {
+            var workspace = new AdhocWorkspace();
+            OptionSet options = workspace.Options
+                .WithChangedOption(IndentationSize, LanguageNames.CSharp, 4)
+                .WithChangedOption(SmartIndent, LanguageNames.CSharp, IndentStyle.Smart)
+                .WithChangedOption(UseTabs, LanguageNames.CSharp, false);
+
             foreach (var group in results.GroupBy(t => t.Result.Namespace).OrderBy(t => t.Key))
             {
                 foreach (var item in group)
@@ -358,7 +367,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             NamespaceDeclaration(IdentifierName(group.Key)).AddMembers(
                                 typeDeclaration));
 
-                    compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
+                    SyntaxNode formatted = Formatter.Format(compilationUnit, workspace, options);
 
                     var code = new StringBuilder();
 
@@ -369,7 +378,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     code.AppendLine("#nullable enable");
 
                     code.AppendLine();
-                    code.AppendLine(compilationUnit.ToFullString());
+                    code.AppendLine(formatted.ToFullString());
 
                     documents.Add(new(
                         item.Result.FileName,

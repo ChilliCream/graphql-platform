@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _session = "session";
         private const string _resultInfo = "resultInfo";
         private const string _snapshot = "snapshot";
+        private const string _dataProp = "dataProp";
 
         private void AddBuildDataMethod(
             CSharpSyntaxGeneratorSettings settings,
@@ -24,23 +25,38 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 CreateResultInfoName(
                     resultNamedType.ImplementedBy.First().RuntimeType.Name);
 
+            // protected override IOperationResultDataInfo BuildData(JsonElement dataProp)
             MethodBuilder buildDataMethod = classBuilder
                 .AddMethod()
-                .SetPrivate()
+                .SetProtected()
+                .SetOverride()
                 .SetName("BuildData")
-                .SetReturnType($"({resultNamedType.RuntimeType.Name}, {concreteType})")
-                .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement));
+                .SetReturnType(TypeNames.IOperationResultDataInfo)
+                .AddParameter(_dataProp, x => x.SetType(TypeNames.JsonElement));
 
+            // var entityIds = new HashSet<EntityId>();
+            // var pathToEntityId = new Dictionary<string, EntityId>();
             if (settings.IsStoreEnabled())
             {
-                buildDataMethod.AddCode(
+                buildDataMethod
+                    .AddCode(
                         AssignmentBuilder
                             .New()
-                            .SetLefthandSide($"var {_entityIds}")
+                            .SetLefthandSide($"var {GetParameterName(_entityIds)}")
                             .SetRighthandSide(MethodCallBuilder
                                 .Inline()
                                 .SetNew()
                                 .SetMethodName(TypeNames.HashSet)
+                                .AddGeneric(TypeNames.EntityId)))
+                    .AddCode(
+                        AssignmentBuilder
+                            .New()
+                            .SetLefthandSide($"var {GetParameterName(_pathToEntityId)}")
+                            .SetRighthandSide(MethodCallBuilder
+                                .Inline()
+                                .SetNew()
+                                .SetMethodName(TypeNames.Dictionary)
+                                .AddGeneric(TypeNames.String)
                                 .AddGeneric(TypeNames.EntityId)))
                     .AddCode(
                         AssignmentBuilder
@@ -51,8 +67,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             buildDataMethod.AddEmptyLine();
 
-
-            CodeBlockBuilder storeUpdateBody = CodeBlockBuilder.New();
+            var storeUpdateBody = CodeBlockBuilder.New();
 
             if (settings.IsStoreEnabled())
             {
@@ -87,7 +102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 buildDataMethod
                     .AddCode(MethodCallBuilder
                         .New()
-                        .SetMethodName(_entityStore, "Update")
+                        .SetMethodName(GetFieldName(_entityStore), "Update")
                         .AddArgument(LambdaBuilder
                             .New()
                             .AddArgument(_session)
@@ -98,22 +113,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             buildDataMethod
                 .AddEmptyLine()
                 .AddCode(
-                    AssignmentBuilder
-                        .New()
-                        .SetLefthandSide($"var {_resultInfo}")
-                        .SetRighthandSide(
-                            CreateResultInfoMethodCall(settings, resultNamedType, concreteType)))
-                .AddEmptyLine()
-                .AddCode(
-                    TupleBuilder
-                        .Inline()
+                    CreateResultInfoMethodCall(
+                        settings,
+                        resultNamedType,
+                        concreteType)
                         .SetDetermineStatement(true)
-                        .SetReturn()
-                        .AddMember(MethodCallBuilder
-                            .Inline()
-                            .SetMethodName(_resultDataFactory, "Create")
-                            .AddArgument(_resultInfo))
-                        .AddMember(_resultInfo));
+                        .SetReturn());
         }
 
         private MethodCallBuilder CreateResultInfoMethodCall(

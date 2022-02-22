@@ -38,6 +38,9 @@ namespace StrawberryShake.CodeGeneration
         public const string IOperationResultBuilder =
             StrawberryShakeNamespace + "IOperationResultBuilder";
 
+        public const string OperationResultBuilder =
+            StrawberryShakeNamespace + "OperationResultBuilder";
+
         public const string ISerializerResolver =
             StrawberryShakeNamespace + "Serialization.ISerializerResolver";
 

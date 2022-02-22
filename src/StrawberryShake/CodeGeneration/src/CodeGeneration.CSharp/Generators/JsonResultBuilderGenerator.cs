@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -14,14 +13,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
-        private const string _entityStore = "_entityStore";
-        private const string entityStore = "entityStore";
-        private const string _idSerializer = "_idSerializer";
-        private const string _resultDataFactory = "_resultDataFactory";
-        private const string idSerializer = "idSerializer";
-        private const string resultDataFactory = "resultDataFactory";
+        private const string _entityStore = "entityStore";
+        private const string _idSerializer = "idSerializer";
+        private const string _resultDataFactory = "ResultDataFactory";
         private const string _serializerResolver = "serializerResolver";
         private const string _entityIds = "entityIds";
+        private const string _pathToEntityId = "pathToEntityId";
         private const string _obj = "obj";
         private const string _response = "response";
 
@@ -34,9 +31,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             out string ns)
         {
             InterfaceTypeDescriptor resultTypeDescriptor =
-                resultBuilderDescriptor.ResultNamedType as InterfaceTypeDescriptor
-                ?? throw new InvalidOperationException(
-                    "A result type can only be generated for complex types");
+                resultBuilderDescriptor.ResultNamedType as InterfaceTypeDescriptor ??
+                    throw new InvalidOperationException(
+                        "A result type can only be generated for complex types");
 
             fileName = resultBuilderDescriptor.RuntimeType.Name;
             path = State;
@@ -52,43 +49,54 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             classBuilder
                 .AddImplements(
-                    TypeNames.IOperationResultBuilder.WithGeneric(
-                        TypeNames.JsonDocument,
+                    TypeNames.OperationResultBuilder.WithGeneric(
                         resultTypeDescriptor.RuntimeType.ToString()));
 
             if (settings.IsStoreEnabled())
             {
                 AddConstructorAssignedField(
                     TypeNames.IEntityStore,
-                    _entityStore,
-                    entityStore,
+                    GetFieldName(_entityStore),
+                    GetParameterName(_entityStore),
                     classBuilder,
                     constructorBuilder);
 
                 AddConstructorAssignedField(
                     TypeNames.IEntityIdSerializer,
-                    _idSerializer,
-                    idSerializer,
+                    GetFieldName(_idSerializer),
+                    GetParameterName(_idSerializer),
                     classBuilder,
                     constructorBuilder);
             }
 
-            AddConstructorAssignedField(
-                TypeNames.IOperationResultDataFactory
-                    .WithGeneric(resultTypeDescriptor.RuntimeType.ToString()),
-                _resultDataFactory,
-                resultDataFactory,
-                classBuilder,
-                constructorBuilder);
+            classBuilder.AddProperty(
+                GetPropertyName(_resultDataFactory),
+                b => b.SetType(TypeNames.IOperationResultDataFactory
+                        .WithGeneric(resultTypeDescriptor.RuntimeType.ToString()))
+                    .SetAccessModifier(AccessModifier.Protected)
+                    .SetOverride());
+
+            AssignmentBuilder assignment = AssignmentBuilder
+                .New()
+                .SetLefthandSide(GetPropertyName(_resultDataFactory))
+                .SetRighthandSide(GetParameterName(_resultDataFactory))
+                .SetAssertNonNull();
+
+            constructorBuilder
+                .AddCode(assignment)
+                .AddParameter(
+                    GetParameterName(_resultDataFactory),
+                    b => b.SetType(TypeNames.IOperationResultDataFactory
+                        .WithGeneric(resultTypeDescriptor.RuntimeType.ToString())));
 
             constructorBuilder
                 .AddParameter(_serializerResolver)
                 .SetType(TypeNames.ISerializerResolver);
 
-            IEnumerable<ValueParserDescriptor> valueParsers = resultBuilderDescriptor
-                .ValueParsers
-                .GroupBy(t => t.Name)
-                .Select(t => t.First());
+            IEnumerable<ValueParserDescriptor> valueParsers =
+                resultBuilderDescriptor.ValueParsers
+                    .GroupBy(t => t.Name)
+                    .Select(t => t.First());
 
             foreach (ValueParserDescriptor valueParser in valueParsers)
             {
@@ -97,9 +105,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 classBuilder
                     .AddField(parserFieldName)
                     .SetReadOnly()
-                    .SetType(
-                        TypeNames.ILeafValueParser
-                            .WithGeneric(valueParser.SerializedType, valueParser.RuntimeType));
+                    .SetType(TypeNames.ILeafValueParser
+                        .WithGeneric(valueParser.SerializedType, valueParser.RuntimeType));
 
                 MethodCallBuilder getLeaveValueParser = MethodCallBuilder
                     .Inline()
@@ -121,8 +128,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .SetRighthandSide(getLeaveValueParser));
             }
 
-            AddBuildMethod(resultTypeDescriptor, classBuilder);
-
             AddBuildDataMethod(settings, resultTypeDescriptor, classBuilder);
 
             var processed = new HashSet<string>();
@@ -141,14 +146,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             if (namedTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
             {
-                foreach (var @class in interfaceTypeDescriptor.ImplementedBy)
+                foreach (ObjectTypeDescriptor @class in interfaceTypeDescriptor.ImplementedBy)
                 {
                     AddRequiredDeserializeMethods(@class, classBuilder, processed);
                 }
             }
             else if (namedTypeDescriptor is ComplexTypeDescriptor complexTypeDescriptor)
             {
-                foreach (var property in complexTypeDescriptor.Properties)
+                foreach (PropertyDescriptor property in complexTypeDescriptor.Properties)
                 {
                     AddDeserializeMethod(
                         property.Type,
@@ -169,7 +174,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             ClassBuilder classBuilder,
             HashSet<string> processed)
         {
-            string methodName = DeserializerMethodNameFromTypeName(typeReference);
+            var methodName = DeserializerMethodNameFromTypeName(typeReference);
 
             if (processed.Add(methodName))
             {
@@ -257,170 +262,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
         }
 
-        private void AddBuildMethod(
-            InterfaceTypeDescriptor resultNamedType,
-            ClassBuilder classBuilder)
-        {
-            var buildMethod = classBuilder
-                .AddMethod()
-                .SetAccessModifier(AccessModifier.Public)
-                .SetName("Build")
-                .SetReturnType(
-                    TypeReferenceBuilder
-                        .New()
-                        .SetName(TypeNames.IOperationResult)
-                        .AddGeneric(resultNamedType.RuntimeType.Name));
-
-            buildMethod
-                .AddParameter(_response)
-                .SetType(TypeNames.Response.WithGeneric(TypeNames.JsonDocument));
-
-            var concreteResultType =
-                CreateResultInfoName(resultNamedType.ImplementedBy.First().RuntimeType.Name);
-
-            // (IGetFooResult Result, GetFooResultInfo Info)? data = null;
-            buildMethod.AddCode(
-                AssignmentBuilder
-                    .New()
-                    .SetLefthandSide(
-                        $"({resultNamedType.RuntimeType.Name} Result, {concreteResultType} " +
-                        "Info)? data")
-                    .SetRighthandSide("null"));
-
-            // IReadOnlyList<IClientError>? errors = null;
-            buildMethod.AddCode(
-                AssignmentBuilder
-                    .New()
-                    .SetLefthandSide(
-                        TypeNames.IReadOnlyList
-                            .WithGeneric(TypeNames.IClientError)
-                            .MakeNullable() + " errors")
-                    .SetRighthandSide("null"));
-
-            buildMethod.AddEmptyLine();
-
-            const string errorsElement = nameof(errorsElement);
-
-            buildMethod.AddEmptyLine();
-            buildMethod.AddCode(
-                IfBuilder.New()
-                    .SetCondition("response.Exception is null")
-                    .AddCode(CreateBuildDataSerialization())
-                    .AddElse(
-                        IfBuilder
-                            .New()
-                            .SetCondition(
-                                ConditionBuilder
-                                    .New()
-                                    .Set("response.Body != null")
-                                    .And("response.Body.RootElement.TryGetProperty(" +
-                                        $"\"errors\", out {TypeNames.JsonElement} {errorsElement})"))
-                            .AddCode(
-                                AssignmentBuilder
-                                    .New()
-                                    .SetLefthandSide("errors")
-                                    .SetRighthandSide(MethodCallBuilder
-                                        .Inline()
-                                        .SetMethodName(TypeNames.ParseError)
-                                        .AddArgument(errorsElement))
-                            )
-                            .AddElse(CreateDataError("response.Exception")))
-            );
-
-            buildMethod.AddEmptyLine();
-            buildMethod.AddCode(
-                MethodCallBuilder
-                    .New()
-                    .SetReturn()
-                    .SetNew()
-                    .SetMethodName(TypeNames.OperationResult)
-                    .AddGeneric(resultNamedType.RuntimeType.Name)
-                    .AddArgument("data?.Result")
-                    .AddArgument("data?.Info")
-                    .AddArgument(_resultDataFactory)
-                    .AddArgument("errors"));
-        }
-
-        private TryCatchBuilder CreateBuildDataSerialization()
-        {
-            return TryCatchBuilder
-                .New()
-                .AddTryCode(
-                    IfBuilder
-                        .New()
-                        .SetCondition(
-                            ConditionBuilder
-                                .New()
-                                .Set("response.Body != null"))
-                        .AddCode(
-                            IfBuilder
-                                .New()
-                                .SetCondition(
-                                    ConditionBuilder
-                                        .New()
-                                        .Set("response.Body.RootElement.TryGetProperty(" +
-                                            $"\"data\", out {TypeNames.JsonElement} " +
-                                            "dataElement) && dataElement.ValueKind == " +
-                                            $"{TypeNames.JsonValueKind}.Object"))
-                                .AddCode("data = BuildData(dataElement);"))
-                        .AddCode(
-                            IfBuilder
-                                .New()
-                                .SetCondition(
-                                    ConditionBuilder
-                                        .New()
-                                        .Set(
-                                            "response.Body.RootElement.TryGetProperty(" +
-                                            $"\"errors\", out {TypeNames.JsonElement} " +
-                                            "errorsElement)"))
-                                .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")))
-                .AddCatchBlock(
-                    CatchBlockBuilder
-                        .New()
-                        .SetExceptionVariable("ex")
-                        .AddCode(CreateDataError()));
-        }
-
-        private static AssignmentBuilder CreateDataError(string exception = "ex")
-        {
-            string dict = TypeNames.Dictionary.WithGeneric(
-                TypeNames.String,
-                TypeNames.Object.MakeNullable());
-
-            string body = "response.Body?.RootElement.ToString()";
-
-            MethodCallBuilder createClientError =
-                MethodCallBuilder
-                    .Inline()
-                    .SetNew()
-                    .SetMethodName(TypeNames.ClientError)
-                    .AddArgument($"{exception}.Message")
-                    .AddArgument($"exception: {exception}")
-                    .AddArgument($"extensions: new  {dict} {{ {{ \"body\", {body} }} }}");
-
-            return AssignmentBuilder.New()
-                .SetLefthandSide("errors")
-                .SetRighthandSide(
-                    ArrayBuilder.New()
-                        .SetDetermineStatement(false)
-                        .SetType(TypeNames.IClientError)
-                        .AddAssignment(createClientError));
-        }
-
         private MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property)
         {
+            var fieldName = property.FieldName.Value;
+            var fieldPath = $"/{fieldName}";
+
             MethodCallBuilder propertyAccessor = MethodCallBuilder
                 .Inline()
                 .SetMethodName(TypeNames.GetPropertyOrNull)
                 .AddArgument(_obj)
-                .AddArgument(property.FieldName.AsStringToken());
+                .AddArgument(fieldName.AsStringToken());
 
-            return BuildUpdateMethodCall(property.Type, propertyAccessor).SetWrapArguments();
+            return BuildUpdateMethodCall(
+                    property.Type,
+                    propertyAccessor,
+                    fieldPath.AsStringToken())
+                .SetWrapArguments();
         }
 
         private MethodCallBuilder BuildUpdateMethodCall(
             ITypeDescriptor property,
-            ICode argument)
+            ICode argument,
+            string fieldPath)
         {
             MethodCallBuilder deserializeMethodCaller = MethodCallBuilder
                 .Inline()
@@ -431,7 +294,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 deserializeMethodCaller
                     .AddArgument(_session)
                     .AddArgument(argument)
-                    .AddArgument(_entityIds);
+                    .AddArgument(_entityIds)
+                    .AddArgument(_pathToEntityId)
+                    .AddArgument(fieldPath);
             }
             else
             {
