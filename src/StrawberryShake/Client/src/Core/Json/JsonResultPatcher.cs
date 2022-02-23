@@ -33,6 +33,7 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
 
         _json ??= JsonObject.Create(_response.Body.RootElement);
 
+#if NET5_0_OR_GREATER
         if (_extensions is null && _response.Extensions is not null)
         {
             _extensions = new(_response.Extensions);
@@ -42,6 +43,17 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
         {
             _contextData = new(_response.ContextData);
         }
+#else
+        if (_extensions is null && _response.Extensions is not null)
+        {
+            _extensions = _response.Extensions.ToDictionary(t => t.Key, t => t.Value);
+        }
+
+        if (_contextData is null && _response.ContextData is not null)
+        {
+            _contextData = _response.ContextData.ToDictionary(t => t.Key, t => t.Value);
+        }
+#endif
 
         JsonNode current = _json![Data]!;
 
@@ -71,10 +83,18 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
             {
                 current = current[last.GetString()!]!;
                 var patchData = JsonObject.Create(dataProp)!;
+
+#if NET5_0_OR_GREATER
                 foreach ((var key, JsonNode? value) in patchData)
                 {
                     current[key] = value;
                 }
+#else
+                foreach (KeyValuePair<string, JsonNode?> prop in patchData)
+                {
+                    current[prop.Key] = prop.Value;
+                }
+#endif
             }
             else if (last.ValueKind is JsonValueKind.Number)
             {
@@ -88,10 +108,17 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
                 }
                 else
                 {
+#if NET5_0_OR_GREATER
                     foreach ((var key, JsonNode? value) in patchData)
                     {
                         element[key] = value;
                     }
+#else
+                    foreach (KeyValuePair<string, JsonNode?> prop in patchData)
+                    {
+                        element[prop.Key] = prop.Value;
+                    }
+#endif
                 }
             }
             else
@@ -124,13 +151,24 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
 
         if (target is null)
         {
+#if NET5_0_OR_GREATER
             return new(source);
+#else
+            return source.ToDictionary(t => t.Key, t => t.Value);
+#endif
         }
 
+#if NET5_0_OR_GREATER
         foreach (var (key, value) in source)
         {
             target[key] = value;
         }
+#else
+        foreach (KeyValuePair<string, object?> prop in source)
+        {
+            target[prop.Key] = prop.Value;
+        }
+#endif
 
         return target;
     }
