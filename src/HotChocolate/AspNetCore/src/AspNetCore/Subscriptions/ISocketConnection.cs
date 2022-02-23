@@ -8,7 +8,7 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 /// The socket connection represent an accepted connection with a socket
 /// where the protocol is already negotiated.
 /// </summary>
-public interface ISocketConnection : IDisposable
+public interface ISocketConnection : IHasContextData, IDisposable
 {
     /// <summary>
     /// Gets access to the HTTP Context.
@@ -77,5 +77,10 @@ public interface ISocketConnection : IDisposable
     Task CloseAsync(
         string message,
         ConnectionCloseReason reason,
+        CancellationToken cancellationToken);
+    
+    Task CloseAsync(
+        string message,
+        int reason,
         CancellationToken cancellationToken);
 }

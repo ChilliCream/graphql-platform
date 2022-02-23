@@ -32,6 +32,8 @@ internal sealed class WebSocketConnection : ISocketConnection
 
     public CancellationToken RequestAborted => HttpContext.RequestAborted;
 
+    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
     public async Task<IProtocolHandler?> TryAcceptConnection()
     {
         if (_disposed)

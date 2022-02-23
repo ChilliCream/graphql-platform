@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.AspNetCore.Subscriptions;
 
-public class ConnectionStatus
+public sealed class ConnectionStatus
 {
     private ConnectionStatus(bool accepted, string message, IReadOnlyDictionary<string, object?>? extensions)
     {
@@ -18,8 +15,7 @@ public class ConnectionStatus
 
     public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
-    public static ConnectionStatus Accept() =>
-        new ConnectionStatus(true, "You connection was accepted.", null);
+    public static ConnectionStatus Accept() => new(true, "You connection was accepted.", null);
 
     public static ConnectionStatus Reject(
         string message,

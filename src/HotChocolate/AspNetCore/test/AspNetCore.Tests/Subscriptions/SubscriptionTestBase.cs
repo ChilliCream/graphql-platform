@@ -43,7 +43,7 @@ public class SubscriptionTestBase : ServerTestBase
                 }
 
                 if (message != null &&
-                    !Protocols.Apollo.Messages.Connection.KeepAlive.Equals(message["type"]))
+                    !Protocols.Apollo.Messages.KeepAlive.Equals(message["type"]))
                 {
                     throw new InvalidOperationException(
                         $"Unexpected message type: {message["type"]}");
@@ -90,11 +90,11 @@ public class SubscriptionTestBase : ServerTestBase
         IReadOnlyDictionary<string, object> message =
             await webSocket.ReceiveServerMessageAsync();
         Assert.NotNull(message);
-        Assert.Equal(Protocols.Apollo.Messages.Connection.Accept, message["type"]);
+        Assert.Equal(Protocols.Apollo.Messages.ConnectionAccept, message["type"]);
 
         message = await webSocket.ReceiveServerMessageAsync();
         Assert.NotNull(message);
-        Assert.Equal(Protocols.Apollo.Messages.Connection.KeepAlive, message["type"]);
+        Assert.Equal(Protocols.Apollo.Messages.KeepAlive, message["type"]);
 
         return webSocket;
     }

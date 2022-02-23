@@ -1,4 +1,5 @@
 using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 namespace HotChocolate.AspNetCore;
@@ -20,19 +21,22 @@ public interface ISocketSessionInterceptor
         CancellationToken cancellationToken);
 }
 
-public interface ISocketSessionProtocolInterceptor
+public interface ISocketSessionInterceptor2
 {
     ValueTask<ConnectionStatus> OnConnectAsync(
         ISocketConnection connection,
-        InitializeConnectionMessage message,
+        IProtocolHandler protocolHandler,
+        IConnectMessage message,
         CancellationToken cancellationToken);
 
     ValueTask OnRequestAsync(
         ISocketConnection connection,
+        IProtocolHandler protocolHandler,
         IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken);
 
     ValueTask OnCloseAsync(
         ISocketConnection connection,
+        IProtocolHandler protocolHandler,
         CancellationToken cancellationToken);
 }

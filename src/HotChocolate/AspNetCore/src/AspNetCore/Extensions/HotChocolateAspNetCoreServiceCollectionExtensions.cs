@@ -3,6 +3,7 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using static HotChocolate.AspNetCore.ServerDefaults;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -28,7 +29,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// </exception>
     public static IServiceCollection AddGraphQLServerCore(
         this IServiceCollection services,
-        int maxAllowedRequestSize = 20 * 1000 * 1000)
+        int maxAllowedRequestSize = MaxAllowedRequestSize)
     {
         if (services is null)
         {
@@ -76,7 +77,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IServiceCollection services,
         NameString schemaName = default,
-        int maxAllowedRequestSize = 20 * 1000 * 1000) =>
+        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
         services
             .AddGraphQLServerCore(maxAllowedRequestSize)
             .AddGraphQL(schemaName)
@@ -106,7 +107,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     public static IServiceCollection AddGraphQL(
         this IServiceCollection services,
         ISchema schema,
-        int maxAllowedRequestSize = 20 * 1000 * 1000) =>
+        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
         RequestExecutorBuilderLegacyHelper.SetSchema(
             services
                 .AddGraphQLServerCore(maxAllowedRequestSize)
@@ -122,7 +123,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     public static IServiceCollection AddGraphQL(
         this IServiceCollection services,
         Func<IServiceProvider, ISchema> schemaFactory,
-        int maxAllowedRequestSize = 20 * 1000 * 1000) =>
+        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
         RequestExecutorBuilderLegacyHelper.SetSchema(
                 services
                     .AddGraphQLServerCore(maxAllowedRequestSize)
@@ -138,7 +139,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     public static IServiceCollection AddGraphQL(
         this IServiceCollection services,
         ISchemaBuilder schemaBuilder,
-        int maxAllowedRequestSize = 20 * 1000 * 1000) =>
+        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
         RequestExecutorBuilderLegacyHelper.SetSchemaBuilder(
             services
                 .AddGraphQLServerCore(maxAllowedRequestSize)

@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo.KeepConnectionAliveMessage;
+using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
@@ -47,71 +48,12 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
     }
 
     private static bool TryParseMessage(
-        ReadOnlySequence<byte> slice,
+        ReadOnlySequence<byte> body,
         [NotNullWhen(true)] out OperationMessage? message)
     {
-        ReadOnlySpan<byte> messageData;
-        byte[]? buffer = null;
-
-        if (slice.IsSingleSegment)
-        {
-            messageData = slice.First.Span;
-        }
-        else
-        {
-            buffer = ArrayPool<byte>.Shared.Rent(1024 * 4);
-            var buffered = 0;
-
-            SequencePosition position = slice.Start;
-            while (slice.TryGet(ref position, out ReadOnlyMemory<byte> memory))
-            {
-                ReadOnlySpan<byte> span = memory.Span;
-                var bytesRemaining = buffer.Length - buffered;
-
-                if (span.Length > bytesRemaining)
-                {
-                    // TODO : we need to ensure that the message size is restricted like on the
-                    // http request.
-                    var next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
-                    Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
-                    ArrayPool<byte>.Shared.Return(buffer);
-                    buffer = next;
-                }
-
-                for (var i = 0; i < span.Length; i++)
-                {
-                    buffer[buffered++] = span[i];
-                }
-            }
-
-            messageData = buffer;
-            messageData = messageData.Slice(0, buffered);
-        }
-
-        try
-        {
-            if (messageData.Length == 0 ||
-                (messageData.Length == 1 && messageData[0] == default))
-            {
-                message = null;
-                return false;
-            }
-
-            GraphQLSocketMessage parsedMessage = ParseMessage(messageData);
-            return TryDeserializeMessage(parsedMessage, out message);
-        }
-        catch (SyntaxException)
-        {
-            message = null;
-            return false;
-        }
-        finally
-        {
-            if (buffer is not null)
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-        }
+        message = null;
+        return MessageUtilities.TryParseMessage(body, out GraphQLSocketMessage parsed) &&
+            TryDeserializeMessage(parsed, out message);
     }
 
     private static bool TryDeserializeMessage(

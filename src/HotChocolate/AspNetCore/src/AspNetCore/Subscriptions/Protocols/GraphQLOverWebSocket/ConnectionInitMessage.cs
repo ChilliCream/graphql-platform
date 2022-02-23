@@ -1,12 +1,16 @@
+using System.Text.Json;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket.Messages;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
 internal sealed class ConnectionInitMessage
-    : OperationMessage<IReadOnlyDictionary<string, object?>?>
+    : OperationMessage<JsonElement?>
+    , IConnectMessage
 {
-    public ConnectionInitMessage(IReadOnlyDictionary<string, object?>? payload = null)
+    public ConnectionInitMessage(JsonElement? payload = null)
         : base(ConnectionInitialize, payload)
     {
     }
+
+    public static ConnectionInitMessage Default { get; } = new();
 }

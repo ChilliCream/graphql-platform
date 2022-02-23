@@ -12,8 +12,7 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
-public class LargeMessageTests
-    : SubscriptionTestBase
+public class LargeMessageTests : SubscriptionTestBase
 {
     public LargeMessageTests(TestServerFactory serverFactory)
         : base(serverFactory)
@@ -63,7 +62,7 @@ public class LargeMessageTests
             IReadOnlyDictionary<string, object> message =
                 await WaitForMessage(
                     webSocket,
-                    Protocols.Apollo.Messages.Subscription.Data,
+                    Protocols.Apollo.Messages.Data,
                     TimeSpan.FromSeconds(15));
 
             Assert.NotNull(message);
