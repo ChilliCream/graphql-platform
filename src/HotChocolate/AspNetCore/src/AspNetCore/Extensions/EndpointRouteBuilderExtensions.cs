@@ -155,7 +155,10 @@ public static class EndpointRouteBuilderExtensions
             throw new ArgumentNullException(nameof(endpointRouteBuilder));
         }
 
-        pattern ??= Parse(GraphQLHttpPath);
+        if (pattern is null)
+        {
+            throw new ArgumentNullException(nameof(pattern));
+        }
 
         IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
@@ -231,7 +234,10 @@ public static class EndpointRouteBuilderExtensions
             throw new ArgumentNullException(nameof(endpointRouteBuilder));
         }
 
-        pattern ??= Parse(GraphQLWebSocketPath);
+        if (pattern is null)
+        {
+            throw new ArgumentNullException(nameof(pattern));
+        }
 
         IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
@@ -305,7 +311,10 @@ public static class EndpointRouteBuilderExtensions
             throw new ArgumentNullException(nameof(endpointRouteBuilder));
         }
 
-        pattern ??= Parse(GraphQLSchemaPath);
+        if (pattern is null)
+        {
+            throw new ArgumentNullException(nameof(pattern));
+        }
 
         IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
