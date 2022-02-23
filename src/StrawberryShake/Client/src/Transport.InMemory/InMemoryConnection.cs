@@ -62,7 +62,6 @@ public class InMemoryConnection : IInMemoryConnection
                 yield break;
             }
 
-
             await foreach (Response<JsonDocument> response in
                 ProcessResultAsync(result, cancellationToken).ConfigureAwait(false))
             {
@@ -91,8 +90,10 @@ public class InMemoryConnection : IInMemoryConnection
                         streamResult.ReadResultsAsync().WithCancellation(cancellationToken))
                     {
                         result.WriteTo(writer);
-                        yield return new Response<JsonDocument>(Parse(writer.Body), null);
+                        JsonDocument document = Parse(writer.Body);
                         writer.Clear();
+
+                        yield return new Response<JsonDocument>(document, null);
                     }
                 }
 

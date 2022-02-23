@@ -188,7 +188,7 @@ public class IntegrationTests : ServerTestBase
         IServiceProvider services =
             serviceCollection.BuildServiceProvider();
 
-        List<JsonDocument> results = new();
+        List<string> results = new();
         MockDocument document = new("subscription Test { onTest(id:1) }");
         OperationRequest request = new("Test", document);
 
@@ -196,20 +196,20 @@ public class IntegrationTests : ServerTestBase
             .GetRequiredService<IInMemoryClientFactory>();
 
         // act
-        var connection =
-            new InMemoryConnection(async abort => await factory.CreateAsync("Foo", abort));
+        var connection = new InMemoryConnection(
+            async abort => await factory.CreateAsync("Foo", abort));
 
         await foreach (Response<JsonDocument> response in
             connection.ExecuteAsync(request).WithCancellation(ct))
         {
             if (response.Body is not null)
             {
-                results.Add(response.Body);
+                results.Add(response.Body.RootElement.ToString());
             }
         }
 
         // assert
-        results.Select(x => x.RootElement.ToString()).ToList().MatchSnapshot();
+        results.MatchSnapshot();
     }
 
     private sealed class MockDocument : IDocument
