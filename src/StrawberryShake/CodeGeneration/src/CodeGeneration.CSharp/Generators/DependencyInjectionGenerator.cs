@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
@@ -95,7 +94,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         descriptor.TransportProfiles[0].Name);
             }
 
-            foreach (var profile in descriptor.TransportProfiles)
+            foreach (TransportProfile profile in descriptor.TransportProfiles)
             {
                 GenerateClientForProfile(settings, factory, descriptor, profile);
             }
@@ -129,7 +128,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private static ICode GenerateClientServiceProviderFactory(
             DependencyInjectionDescriptor descriptor)
         {
-            CodeBlockBuilder codeBuilder = CodeBlockBuilder.New();
+            var codeBuilder = CodeBlockBuilder.New();
 
             if (descriptor.TransportProfiles.Count == 1)
             {
@@ -154,7 +153,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .AddArgument(_serviceCollection)));
             }
 
-            IfBuilder ifProfile = IfBuilder.New();
+            var ifProfile = IfBuilder.New();
 
             var enumName = CreateProfileEnumReference(descriptor);
             for (var index = 0; index < descriptor.TransportProfiles.Count; index++)
@@ -423,13 +422,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             body.AddEmptyLine();
 
-            foreach (var typeDescriptor in descriptor.TypeDescriptors
+            foreach (INamedTypeDescriptor typeDescriptor in descriptor.TypeDescriptors
                 .OfType<INamedTypeDescriptor>())
             {
                 if (typeDescriptor.Kind == TypeKind.Entity && !typeDescriptor.IsInterface())
                 {
-                    INamedTypeDescriptor namedTypeDescriptor =
-                        (INamedTypeDescriptor)typeDescriptor.NamedType();
+                    var namedTypeDescriptor = (INamedTypeDescriptor)typeDescriptor.NamedType();
                     NameString className = namedTypeDescriptor.ExtractMapperName();
 
                     var interfaceName =
@@ -447,7 +445,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             body.AddEmptyLine();
 
-            foreach (var enumType in descriptor.EnumTypeDescriptor)
+            foreach (EnumTypeDescriptor enumType in descriptor.EnumTypeDescriptor)
             {
                 body.AddMethodCall()
                     .SetMethodName(TypeNames.AddSingleton)
@@ -465,7 +463,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddArgument(_services);
             }
 
-            foreach (var scalarTypes in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+            foreach (ScalarTypeDescriptor scalarTypes in
+                descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
             {
                 if (_alternativeTypeNames.TryGetValue(scalarTypes.Name.Value, out var serializer))
                 {
@@ -482,7 +481,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
-            foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+            foreach (ScalarTypeDescriptor scalar in
+                descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
             {
                 if (scalar.RuntimeType.Equals(stringTypeInfo) &&
                     scalar.SerializationType.Equals(stringTypeInfo) &&
@@ -500,8 +500,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 }
             }
 
-            foreach (var inputTypeDescriptor in descriptor.TypeDescriptors
-                .Where(x => x.Kind is TypeKind.Input))
+            foreach (ITypeDescriptor inputTypeDescriptor in
+                descriptor.TypeDescriptors.Where(x => x.Kind is TypeKind.Input))
             {
                 var formatter =
                     CreateInputValueFormatter(
@@ -518,7 +518,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             body.AddEmptyLine();
 
-            foreach (var operation in descriptor.Operations)
+            foreach (OperationDescriptor operation in descriptor.Operations)
             {
                 if (!(operation.ResultTypeReference is InterfaceTypeDescriptor typeDescriptor))
                 {
@@ -533,7 +533,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     _ => throw ThrowHelper.DependencyInjection_InvalidOperationKind(operation)
                 };
 
-                string connectionKind = operationKind switch
+                var connectionKind = operationKind switch
                 {
                     TransportType.Http => TypeNames.IHttpConnection,
                     TransportType.WebSocket => TypeNames.IWebSocketConnection,
@@ -541,13 +541,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
                 };
 
-                string operationName = operation.Name;
-                string fullName = operation.RuntimeType.ToString();
-                string operationInterfaceName = operation.InterfaceType.ToString();
-                string resultInterface = typeDescriptor.RuntimeType.ToString();
+                var operationName = operation.Name.Value;
+                var fullName = operation.RuntimeType.ToString();
+                var operationInterfaceName = operation.InterfaceType.ToString();
+                var resultInterface = typeDescriptor.RuntimeType.ToString();
 
                 // The factories are generated based on the concrete result type, which is the
-                // only implementee of the result type interface.
+                // only implementer of the result type interface.
 
                 var factoryName =
                     CreateResultFactoryName(
@@ -696,6 +696,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                                         TypeNames.JsonDocument,
                                                         resultInterface))
                                                 .AddArgument(_sp)))
+                                .AddArgument(
+                                    LambdaBuilder
+                                        .New()
+                                        .SetCode(
+                                            MethodCallBuilder
+                                                .Inline()
+                                                .SetMethodName(
+                                                    TypeNames.GetRequiredService)
+                                                .AddGeneric(
+                                                    TypeNames.IResultPatcher.WithGeneric(
+                                                        TypeNames.JsonDocument))
+                                                .AddArgument(_sp)))
                                 .If(settings.IsStoreEnabled(),
                                     x => x
                                         .AddArgument(
@@ -705,6 +717,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                                 .AddGeneric(TypeNames.IOperationStore)
                                                 .AddArgument(_sp))
                                         .AddArgument(_strategy)))))
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddGeneric(TypeNames.IResultPatcher.WithGeneric(TypeNames.JsonDocument))
+                    .AddGeneric(TypeNames.JsonResultPatcher)
+                    .AddArgument(_services))
                 .AddCode(MethodCallBuilder
                     .New()
                     .SetMethodName(TypeNames.AddSingleton)

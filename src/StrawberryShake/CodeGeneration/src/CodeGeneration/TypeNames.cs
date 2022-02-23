@@ -41,6 +41,12 @@ namespace StrawberryShake.CodeGeneration
         public const string OperationResultBuilder =
             StrawberryShakeNamespace + "OperationResultBuilder";
 
+        public const string IResultPatcher =
+            StrawberryShakeNamespace + "IResultPatcher";
+
+        public const string JsonResultPatcher =
+            StrawberryShakeNamespace + "Json.JsonResultPatcher";
+
         public const string ISerializerResolver =
             StrawberryShakeNamespace + "Serialization.ISerializerResolver";
 
