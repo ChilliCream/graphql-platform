@@ -47,7 +47,7 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
             var request = _createRequest();
             var response = await client.SendAsync(request, _abort).ConfigureAwait(false);
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NET5_0_OR_GREATER
             var stream = await response.Content.ReadAsStreamAsync(_abort).ConfigureAwait(false);
 #else
             var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
