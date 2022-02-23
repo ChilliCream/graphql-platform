@@ -67,7 +67,8 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.GetFooBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.InMemory.IInMemoryConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.InMemory.IInMemoryConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult>>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.GetFooQuery>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.GetFooQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.EntityIdOrDataClientEntityIdFactory>(services);
@@ -111,10 +112,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             Foo = foo;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFoo_Foo?>? Foo
-        {
-            get;
-        }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFoo_Foo?>? Foo { get; }
 
         public virtual global::System.Boolean Equals(GetFooResult? other)
         {
@@ -186,10 +184,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             Id = id;
         }
 
-        public global::System.String? Id
-        {
-            get;
-        }
+        public global::System.String? Id { get; }
 
         public virtual global::System.Boolean Equals(GetFoo_Foo_Baz? other)
         {
@@ -255,10 +250,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             Foo = foo;
         }
 
-        public global::System.String? Foo
-        {
-            get;
-        }
+        public global::System.String? Foo { get; }
 
         public virtual global::System.Boolean Equals(GetFoo_Foo_Quox? other)
         {
@@ -324,10 +316,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             Id = id;
         }
 
-        public global::System.String? Id
-        {
-            get;
-        }
+        public global::System.String? Id { get; }
 
         public virtual global::System.Boolean Equals(GetFoo_Foo_Baz2? other)
         {
@@ -393,10 +382,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             Foo = foo;
         }
 
-        public global::System.String? Foo
-        {
-            get;
-        }
+        public global::System.String? Foo { get; }
 
         public virtual global::System.Boolean Equals(GetFoo_Foo_Quox2? other)
         {
@@ -457,10 +443,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetFooResult
     {
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFoo_Foo?>? Foo
-        {
-            get;
-        }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFoo_Foo?>? Foo { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -473,40 +456,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetFoo_Foo_Baz : IGetFoo_Foo
     {
-        public global::System.String? Id
-        {
-            get;
-        }
+        public global::System.String? Id { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetFoo_Foo_Quox : IGetFoo_Foo
     {
-        public global::System.String? Foo
-        {
-            get;
-        }
+        public global::System.String? Foo { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetFoo_Foo_Baz2 : IGetFoo_Foo
     {
-        public global::System.String? Id
-        {
-            get;
-        }
+        public global::System.String? Id { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetFoo_Foo_Quox2 : IGetFoo_Foo
     {
-        public global::System.String? Foo
-        {
-            get;
-        }
+        public global::System.String? Foo { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -545,20 +516,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
         }
 
-        public static GetFooQueryDocument Instance
-        {
-            get;
-        }
-
-        = new GetFooQueryDocument();
+        public static GetFooQueryDocument Instance { get; } = new GetFooQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x46, 0x6f, 0x6f, 0x20, 0x7b, 0x20, 0x66, 0x6f, 0x6f, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x42, 0x61, 0x7a, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x51, 0x75, 0x6f, 0x78, 0x20, 0x7b, 0x20, 0x66, 0x6f, 0x6f, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x42, 0x61, 0x7a, 0x32, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x51, 0x75, 0x6f, 0x78, 0x32, 0x20, 0x7b, 0x20, 0x66, 0x6f, 0x6f, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x42, 0x61, 0x7a, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x42, 0x61, 0x7a, 0x32, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
-        public global::StrawberryShake.DocumentHash Hash
-        {
-            get;
-        }
-
-        = new global::StrawberryShake.DocumentHash("sha1Hash", "43715bb5e8ecbe7659e99dcb33abcf1ffeadff8e");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "43715bb5e8ecbe7659e99dcb33abcf1ffeadff8e");
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -696,10 +657,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IEntityIdOrDataClient
     {
-        global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooQuery GetFoo
-        {
-            get;
-        }
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooQuery GetFoo { get; }
     }
 }
 
@@ -714,10 +672,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             Id = id;
         }
 
-        public global::System.String? Id
-        {
-            get;
-        }
+        public global::System.String? Id { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
@@ -729,10 +684,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             Id = id;
         }
 
-        public global::System.String? Id
-        {
-            get;
-        }
+        public global::System.String? Id { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
@@ -788,11 +740,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
                 return null;
             }
 
-            if (data.Value.EntityId is
-            {
-            }
-
-            id)
+            if (data.Value.EntityId is { } id)
             {
                 return MapIGetFoo_FooData(id, snapshot);
             }
@@ -869,10 +817,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             _version = version;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityIdOrData?>? Foo
-        {
-            get;
-        }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityIdOrData?>? Foo { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
@@ -926,76 +871,35 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFooBuilder : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult>
+    public partial class GetFooBuilder : global::StrawberryShake.OperationResultBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult> _resultDataFactory;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         public GetFooBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _idSerializer = idSerializer ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
-            _resultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
-        public global::StrawberryShake.IOperationResult<IGetFooResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
-        {
-            (IGetFooResult Result, GetFooResultInfo Info)? data = null;
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            if (response.Exception is null)
-            {
-                try
-                {
-                    if (response.Body != null)
-                    {
-                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
-                        {
-                            data = BuildData(dataElement);
-                        }
+        protected override global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooResult> ResultDataFactory { get; }
 
-                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                        {
-                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
-                        }
-                    }
-                }
-                catch (global::System.Exception ex)
-                {
-                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
-                }
-            }
-            else
-            {
-                if (response.Body != null && response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                {
-                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
-                }
-                else
-                {
-                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
-                }
-            }
-
-            return new global::StrawberryShake.OperationResult<IGetFooResult>(data?.Result, data?.Info, _resultDataFactory, errors);
-        }
-
-        private (IGetFooResult, GetFooResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        protected override global::StrawberryShake.IOperationResultDataInfo BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
             global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityIdOrData?>? fooId = default !;
             _entityStore.Update(session =>
             {
-                fooId = DeserializeIBarDataArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "foo"), entityIds);
+                fooId = Deserialize_IBarDataArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "foo"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
-            var resultInfo = new GetFooResultInfo(fooId, entityIds, snapshot.Version);
-            return (_resultDataFactory.Create(resultInfo), resultInfo);
+            return new GetFooResultInfo(fooId, entityIds, snapshot.Version);
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityIdOrData?>? DeserializeIBarDataArray(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityIdOrData?>? Deserialize_IBarDataArray(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
@@ -1005,13 +909,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             var bars = new global::System.Collections.Generic.List<global::StrawberryShake.EntityIdOrData?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                bars.Add(DeserializeIBarData(session, child, entityIds));
+                bars.Add(Deserialize_IBarData(session, child, entityIds));
             }
 
             return bars;
         }
 
-        private global::StrawberryShake.EntityIdOrData? DeserializeIBarData(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::StrawberryShake.EntityIdOrData? Deserialize_IBarData(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
@@ -1026,11 +930,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
                 {
                     if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity? entity))
                     {
-                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity(DeserializeString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
                     }
                     else
                     {
-                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity(DeserializeString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
                     }
 
                     return new global::StrawberryShake.EntityIdOrData(entityId);
@@ -1039,7 +943,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
 
             if (typename?.Equals("Quox", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.EntityIdOrData(new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.QuoxData(typename, foo: DeserializeString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "foo"))));
+                return new global::StrawberryShake.EntityIdOrData(new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.QuoxData(typename, foo: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "foo"))));
             }
 
             if (typename?.Equals("Baz2", global::System.StringComparison.Ordinal) ?? false)
@@ -1049,11 +953,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
                 {
                     if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity? entity))
                     {
-                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity(DeserializeString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
                     }
                     else
                     {
-                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity(DeserializeString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
                     }
 
                     return new global::StrawberryShake.EntityIdOrData(entityId);
@@ -1062,13 +966,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
 
             if (typename?.Equals("Quox2", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.EntityIdOrData(new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Quox2Data(typename, foo: DeserializeString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "foo"))));
+                return new global::StrawberryShake.EntityIdOrData(new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Quox2Data(typename, foo: Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "foo"))));
             }
 
             throw new global::System.NotSupportedException();
         }
 
-        private global::System.String? DeserializeString(global::System.Text.Json.JsonElement? obj)
+        private global::System.String? Deserialize_String(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
@@ -1083,10 +987,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IBarData
     {
-        global::System.String __typename
-        {
-            get;
-        }
+        global::System.String __typename { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
@@ -1099,15 +1000,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             Foo = foo;
         }
 
-        public global::System.String __typename
-        {
-            get;
-        }
+        public global::System.String __typename { get; }
 
-        public global::System.String? Foo
-        {
-            get;
-        }
+        public global::System.String? Foo { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
@@ -1120,15 +1015,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             Foo = foo;
         }
 
-        public global::System.String __typename
-        {
-            get;
-        }
+        public global::System.String __typename { get; }
 
-        public global::System.String? Foo
-        {
-            get;
-        }
+        public global::System.String? Foo { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
@@ -1142,18 +1031,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
-            "Baz" => ParseBazEntityId(obj, __typename), "Baz2" => ParseBaz2EntityId(obj, __typename), _ => throw new global::System.NotSupportedException()}
-
-            ;
+                "Baz" => ParseBazEntityId(obj, __typename),
+                "Baz2" => ParseBaz2EntityId(obj, __typename),
+                _ => throw new global::System.NotSupportedException()};
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
         {
             return entityId.Name switch
             {
-            "Baz" => FormatBazEntityId(entityId), "Baz2" => FormatBaz2EntityId(entityId), _ => throw new global::System.NotSupportedException()}
-
-            ;
+                "Baz" => FormatBazEntityId(entityId),
+                "Baz2" => FormatBaz2EntityId(entityId),
+                _ => throw new global::System.NotSupportedException()};
         }
 
         private global::StrawberryShake.EntityId ParseBazEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
@@ -1195,7 +1084,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class EntityIdOrDataClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
-        public EntityIdOrDataClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
+        public EntityIdOrDataClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
         {
         }
     }

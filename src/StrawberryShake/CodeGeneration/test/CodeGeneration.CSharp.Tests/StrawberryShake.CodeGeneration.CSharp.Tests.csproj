@@ -36,27 +36,5 @@
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Integration\StarWarsTypeNameOnInterfacesTest.cs" />
-    <Compile Remove="Integration\StarWarsTypeNameOnInterfacesTest.Client.cs" />
-    <Compile Remove="Integration\StarWarsGetHeroTest.Client.cs" />
-    <Compile Remove="Integration\StarWarsGetHeroTest.cs" />
-    <Compile Remove="Integration\StarWarsGetFriendsTest.Client.cs" />
-    <Compile Remove="Integration\StarWarsGetFriendsTest.cs" />
-    <Compile Remove="Integration\StarWarsGetFriendsNoStoreTest.Client.cs" />
-    <Compile Remove="Integration\StarWarsGetFriendsNoStoreTest.cs" />
-    <Compile Remove="Integration\EntityIdOrDataTest.Client.cs" />
-    <Compile Remove="Integration\EntityIdOrDataTest.cs" />
-    <Compile Remove="Integration\AnyScalarDefaultSerializationTest.Client.cs" />
-    <Compile Remove="Integration\AnyScalarDefaultSerializationTest.cs" />
-    <Compile Remove="Integration\MultiProfileTest.cs" />
-    <Compile Remove="Integration\MultiProfileTest.Client.cs" />
-    <Compile Remove="Integration\StarWarsIntrospectionTest.cs" />
-    <Compile Remove="Integration\StarWarsIntrospectionTest.Client.cs" />
-    <Compile Remove="Integration\StarWarsTypeNameOnUnionsTest.cs" />
-    <Compile Remove="Integration\StarWarsTypeNameOnUnionsTest.Client.cs" />
-    <Compile Remove="Integration\StarWarsUnionListTest.cs" />
-    <Compile Remove="Integration\StarWarsUnionListTest.Client.cs" />
-  </ItemGroup>
 
 </Project>

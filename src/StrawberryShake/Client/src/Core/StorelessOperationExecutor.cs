@@ -22,15 +22,19 @@ public partial class StorelessOperationExecutor<TData, TResult>
 {
     private readonly IConnection<TData> _connection;
     private readonly Func<IOperationResultBuilder<TData, TResult>> _resultBuilder;
+    private readonly Func<IResultPatcher<TData>> _resultPatcher;
 
     public StorelessOperationExecutor(
         IConnection<TData> connection,
-        Func<IOperationResultBuilder<TData, TResult>> resultBuilder)
+        Func<IOperationResultBuilder<TData, TResult>> resultBuilder,
+        Func<IResultPatcher<TData>> resultPatcher)
     {
         _connection = connection ??
             throw new ArgumentNullException(nameof(connection));
         _resultBuilder = resultBuilder ??
             throw new ArgumentNullException(nameof(resultBuilder));
+        _resultPatcher = resultPatcher ??
+            throw new ArgumentNullException(nameof(resultPatcher));
     }
 
     /// <inheritdocs />
@@ -45,13 +49,23 @@ public partial class StorelessOperationExecutor<TData, TResult>
 
         IOperationResult<TResult>? result = null;
         IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
+        IResultPatcher<TData> resultPatcher = _resultPatcher();
 
         await foreach (Response<TData> response in
             _connection.ExecuteAsync(request)
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
         {
-            result = resultBuilder.Build(response);
+            if (response.IsPatch)
+            {
+                var patched = resultPatcher.PatchResponse(response);
+                result = resultBuilder.Build(response);
+            }
+            else
+            {
+                resultPatcher.SetResponse(response);
+                result = resultBuilder.Build(response);
+            }
         }
 
         if (result is null)
