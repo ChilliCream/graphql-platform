@@ -52,9 +52,10 @@ public class IntegrationTests : ServerTestBase
 
         // act
         var connection =
-            new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
+            new InMemoryConnection(async abort => await factory.CreateAsync("Foo", abort));
 
-        await foreach (var response in connection.ExecuteAsync(request, ct))
+        await foreach (Response<JsonDocument> response in
+            connection.ExecuteAsync(request).WithCancellation(ct))
         {
             if (response.Body is not null)
             {
@@ -97,9 +98,10 @@ public class IntegrationTests : ServerTestBase
 
         // act
         var connection =
-            new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
+            new InMemoryConnection(async abort => await factory.CreateAsync("Foo", abort));
 
-        await foreach (var response in connection.ExecuteAsync(request, ct))
+        await foreach (Response<JsonDocument> response in
+            connection.ExecuteAsync(request).WithCancellation(ct))
         {
             if (response.Body is not null)
             {
@@ -139,7 +141,7 @@ public class IntegrationTests : ServerTestBase
         IServiceProvider services =
             serviceCollection.BuildServiceProvider();
 
-        List<JsonDocument> results = new();
+        List<string> results = new();
         MockDocument document = new("query Foo { hero { name } }");
         OperationRequest request = new("Foo", document);
 
@@ -148,18 +150,20 @@ public class IntegrationTests : ServerTestBase
 
         // act
         var connection =
-            new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
+            new InMemoryConnection(async abort => await factory.CreateAsync("Foo", abort));
 
-        await foreach (var response in connection.ExecuteAsync(request, ct))
+        await foreach (Response<JsonDocument> response in
+            connection.ExecuteAsync(request).WithCancellation(ct))
         {
             if (response.Body is not null)
             {
-                results.Add(response.Body);
+                results.Add(response.Body.RootElement.ToString());
             }
         }
 
         // assert
         Assert.Equal("bar", result);
+        results.MatchSnapshot();
     }
 
     [Fact]
@@ -193,9 +197,10 @@ public class IntegrationTests : ServerTestBase
 
         // act
         var connection =
-            new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
+            new InMemoryConnection(async abort => await factory.CreateAsync("Foo", abort));
 
-        await foreach (var response in connection.ExecuteAsync(request, ct))
+        await foreach (Response<JsonDocument> response in
+            connection.ExecuteAsync(request).WithCancellation(ct))
         {
             if (response.Body is not null)
             {
@@ -245,7 +250,7 @@ public class IntegrationTests : ServerTestBase
             for (var i = 0; i < 10; i++)
             {
                 await Task.Delay(1);
-                yield return $"{id.Value}num{i}";
+                yield return $"{id}num{i}";
             }
         }
 

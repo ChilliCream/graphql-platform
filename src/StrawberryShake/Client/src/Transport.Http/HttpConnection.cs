@@ -9,7 +9,7 @@ using static StrawberryShake.Transport.Http.ResponseEnumerable;
 
 namespace StrawberryShake.Transport.Http;
 
-public class HttpConnection : IHttpConnection
+public sealed class HttpConnection : IHttpConnection
 {
     private readonly Func<HttpClient> _createClient;
     private readonly JsonOperationRequestSerializer _serializer = new();
@@ -22,7 +22,7 @@ public class HttpConnection : IHttpConnection
     public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(OperationRequest request)
         => Create(_createClient, () => CreateRequestMessage(request));
 
-    protected virtual HttpRequestMessage CreateRequestMessage(OperationRequest request)
+    private HttpRequestMessage CreateRequestMessage(OperationRequest request)
     {
         var content = new ByteArrayContent(CreateRequestMessageBody(request));
         content.Headers.ContentType = new MediaTypeHeaderValue("application/json");

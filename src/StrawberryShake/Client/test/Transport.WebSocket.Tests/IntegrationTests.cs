@@ -57,7 +57,8 @@ public class IntegrationTests : ServerTestBase
                 // act
                 var connection =
                 new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
-            await foreach (var response in connection.ExecuteAsync(request, ct))
+            await foreach (Response<JsonDocument> response in
+                connection.ExecuteAsync(request).WithCancellation(ct))
             {
                 if (response.Body is not null)
                 {
@@ -100,7 +101,8 @@ public class IntegrationTests : ServerTestBase
                 // act
                 var connection =
                 new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
-            await foreach (var response in connection.ExecuteAsync(request, ct))
+            await foreach (Response<JsonDocument> response in
+                connection.ExecuteAsync(request).WithCancellation(ct))
             {
                 if (response.Body is not null)
                 {
@@ -143,7 +145,8 @@ public class IntegrationTests : ServerTestBase
                 // act
                 var connection =
                 new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
-            await foreach (var response in connection.ExecuteAsync(request, ct))
+            await foreach (Response<JsonDocument> response in
+                connection.ExecuteAsync(request).WithCancellation(ct))
             {
                 if (response.Body is not null)
                 {
@@ -163,8 +166,8 @@ public class IntegrationTests : ServerTestBase
 
         await TryTest(async ct =>
         {
-                // arrange
-                var payload = new Dictionary<string, object> { ["Key"] = "Value" };
+            // arrange
+            var payload = new Dictionary<string, object> { ["Key"] = "Value" };
             var sessionInterceptor = new StubSessionInterceptor();
             using IWebHost host = TestServerHelper.CreateServer(
                 x => x
@@ -186,27 +189,28 @@ public class IntegrationTests : ServerTestBase
             ISessionPool sessionPool =
                 services.GetRequiredService<ISessionPool>();
 
-            List<JsonDocument> results = new();
+            List<string> results = new();
             MockDocument document = new("subscription Test { onTest(id:1) }");
             OperationRequest request = new("Test", document);
 
-                // act
-                var connection =
-                new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
-            await foreach (var response in connection.ExecuteAsync(request, ct))
+            // act
+            var connection =
+            new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
+            await foreach (Response<JsonDocument> response in
+                connection.ExecuteAsync(request).WithCancellation(ct))
             {
                 if (response.Body is not null)
                 {
-                    results.Add(response.Body);
+                    results.Add(response.Body.ToString()!);
                 }
             }
 
-                // assert
-                Dictionary<string, object> message =
-                Assert.IsType<Dictionary<string, object>>(
-                    sessionInterceptor.InitializeConnectionMessage?.Payload);
-
+            // assert
+            Dictionary<string, object> message =
+            Assert.IsType<Dictionary<string, object>>(
+                sessionInterceptor.InitializeConnectionMessage?.Payload);
             Assert.Equal(payload["Key"], message["Key"]);
+            results.MatchSnapshot();
         });
     }
 
@@ -242,7 +246,8 @@ public class IntegrationTests : ServerTestBase
                 var document = new MockDocument(
                     $"subscription Test {{ onTest(id:{id.ToString()}) }}");
                 var request = new OperationRequest("Test", document);
-                await foreach (var response in connection.ExecuteAsync(request, ct))
+                await foreach (Response<JsonDocument> response in
+                    connection.ExecuteAsync(request).WithCancellation(ct))
                 {
                     if (response.Body is not null)
                     {

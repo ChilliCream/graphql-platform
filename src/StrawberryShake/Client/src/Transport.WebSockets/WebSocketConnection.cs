@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Transport.WebSockets.Messages;
+using static StrawberryShake.ResultFields;
 
 namespace StrawberryShake.Transport.WebSockets
 {
@@ -28,46 +28,73 @@ namespace StrawberryShake.Transport.WebSockets
         /// <inheritdoc />
         public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(OperationRequest request)
         {
-            throw new NotImplementedException();
-        }
-        public async IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
-            OperationRequest request,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
-        {
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            await using ISession session = await _sessionFactory(cancellationToken);
+            return new ResponseStream(_sessionFactory, request);
+        }
 
-            await using ISocketOperation operation =
-                await session.StartOperationAsync(request, cancellationToken);
+        private sealed class ResponseStream : IAsyncEnumerable<Response<JsonDocument>>
+        {
+            private readonly Func<CancellationToken, ValueTask<ISession>> _sessionFactory;
+            private readonly OperationRequest _request;
 
-            await foreach (OperationMessage message in operation.ReadAsync(cancellationToken))
+            public ResponseStream(
+                Func<CancellationToken, ValueTask<ISession>> sessionFactory,
+                OperationRequest request)
             {
-                switch (message.Type)
+                _sessionFactory = sessionFactory;
+                _request = request;
+            }
+
+            public async IAsyncEnumerator<Response<JsonDocument>> GetAsyncEnumerator(
+                CancellationToken cancellationToken = default)
+            {
+                await using ISession session =
+                    await _sessionFactory(cancellationToken);
+
+                await using ISocketOperation operation =
+                    await session.StartOperationAsync(_request, cancellationToken);
+
+                await foreach (OperationMessage message in operation.ReadAsync(cancellationToken))
                 {
-                    case OperationMessageType.Data
-                        when message is DataDocumentOperationMessage<JsonDocument> msg:
-                        yield return new Response<JsonDocument>(msg.Payload, null);
-                        break;
+                    switch (message.Type)
+                    {
+                        case OperationMessageType.Data
+                            when message is DataDocumentOperationMessage<JsonDocument> msg:
 
-                    case OperationMessageType.Error when message is ErrorOperationMessage msg:
-                        var operationEx = new SocketOperationException(msg.Message);
-                        yield return new Response<JsonDocument>(null, operationEx);
-                        yield break;
+                            JsonElement payload = msg.Payload.RootElement;
 
-                    case OperationMessageType.Cancelled:
-                        var canceledException = new OperationCanceledException();
-                        yield return new Response<JsonDocument>(null, canceledException);
-                        yield break;
+                            var hasNext = false;
+                            var isPatch = payload.TryGetProperty(Path, out _);
 
-                    case OperationMessageType.Complete:
-                        yield break;
+                            if (payload.TryGetProperty(HasNext, out JsonElement hasNextProp) &&
+                                hasNextProp.GetBoolean())
+                            {
+                                hasNext = true;
+                            }
 
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                            yield return new(msg.Payload, null, isPatch, hasNext);
+                            break;
+
+                        case OperationMessageType.Error when message is ErrorOperationMessage msg:
+                            var operationEx = new SocketOperationException(msg.Message);
+                            yield return new(null, operationEx);
+                            yield break;
+
+                        case OperationMessageType.Cancelled:
+                            var canceledException = new OperationCanceledException();
+                            yield return new(null, canceledException);
+                            yield break;
+
+                        case OperationMessageType.Complete:
+                            yield break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
                 }
             }
         }

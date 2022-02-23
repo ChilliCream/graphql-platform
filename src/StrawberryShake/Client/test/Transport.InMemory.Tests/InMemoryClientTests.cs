@@ -85,8 +85,8 @@ public class InMemoryClientTests
         await client.ExecuteAsync(operationRequest);
 
         // assert
-        Assert.Equal(operationRequest.Name, executor.Request.OperationName);
-        Assert.Equal(variables, executor.Request.VariableValues);
+        Assert.Equal(operationRequest.Name, executor.Request!.OperationName);
+        Assert.Equal(variables, executor.Request!.VariableValues);
         Assert.Equal("{ foo }", Encoding.UTF8.GetString(executor.Request.Query!.AsSpan()));
     }
 
