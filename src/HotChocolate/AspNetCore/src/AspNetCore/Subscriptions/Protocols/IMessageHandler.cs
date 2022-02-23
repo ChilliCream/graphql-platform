@@ -1,6 +1,8 @@
-namespace HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
-public interface IMessageHandler
+namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
+
+internal interface IMessageHandler
 {
     Task HandleAsync(
         ISocketConnection connection,

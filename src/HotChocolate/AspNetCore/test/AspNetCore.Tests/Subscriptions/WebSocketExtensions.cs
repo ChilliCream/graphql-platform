@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using Newtonsoft.Json;

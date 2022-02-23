@@ -2,28 +2,29 @@ using System;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
-internal sealed class KeepConnectionAliveJob
+internal sealed class PingPongJob
 {
     private static readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(5);
     private readonly ISocketConnection _connection;
     private readonly TimeSpan _timeout;
 
-    public KeepConnectionAliveJob(ISocketConnection connection)
+    public PingPongJob(ISocketConnection connection)
         : this(connection, _defaultTimeout)
     {
     }
 
-    public KeepConnectionAliveJob(ISocketConnection connection, TimeSpan timeout)
+    public PingPongJob(ISocketConnection connection, TimeSpan timeout)
     {
         _connection = connection;
         _timeout = timeout;
     }
 
-    public void Begin(CancellationToken cancellationToken)
+    public void Begin(IProtocolHandler protocolHandler, CancellationToken cancellationToken)
     {
         Task.Factory.StartNew(
             () => KeepConnectionAliveAsync(cancellationToken),
@@ -37,11 +38,11 @@ internal sealed class KeepConnectionAliveJob
     {
         try
         {
-            while (!_connection.Closed && !cancellationToken.IsCancellationRequested)
+            while (!_connection.IsClosed && !cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(_timeout, cancellationToken);
 
-                if (!_connection.Closed)
+                if (!_connection.IsClosed)
                 {
                     await _connection.SendAsync(
                         KeepConnectionAliveMessage.Default.Serialize(),

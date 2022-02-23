@@ -1,7 +1,8 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Utilities;
 
@@ -55,16 +56,31 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
     private static IRequestExecutorBuilder AddSubscriptionServices(
         this IRequestExecutorBuilder builder)
+        => builder
+            .ConfigureSchemaServices(
+                s => s.TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>())
+            .AddApolloProtocol();
+
+    private static IRequestExecutorBuilder AddApolloProtocol(
+        this IRequestExecutorBuilder builder)
     {
         return builder.ConfigureSchemaServices(s =>
         {
-            s.TryAddSingleton<IMessagePipeline, DefaultMessagePipeline>();
-            s.TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>();
+            // apollo protocol
+            s.TryAddSingleton<DataStartMessageHandler>();
+            s.TryAddSingleton<DataStopMessageHandler>();
+            s.TryAddSingleton<InitializeConnectionMessageHandler>();
+            s.TryAddSingleton<TerminateConnectionMessageHandler>();
 
-            s.AddSingleton<IMessageHandler, DataStartMessageHandler>();
-            s.AddSingleton<IMessageHandler, DataStopMessageHandler>();
-            s.AddSingleton<IMessageHandler, InitializeConnectionMessageHandler>();
-            s.AddSingleton<IMessageHandler, TerminateConnectionMessageHandler>();
+            s.TryAddSingleton<IProtocolHandler>(
+                sp => new ApolloSubscriptionProtocolHandler(
+                    new IMessageHandler[]
+                    {
+                        sp.GetRequiredService<DataStartMessageHandler>(),
+                        sp.GetRequiredService<DataStopMessageHandler>(),
+                        sp.GetRequiredService<InitializeConnectionMessageHandler>(),
+                        sp.GetRequiredService<TerminateConnectionMessageHandler>()
+                    }));
         });
     }
 }

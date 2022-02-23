@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages;
@@ -40,7 +41,7 @@ public class ConnectionTerminateHandlerTests
     public async Task Handle_TerminateMessage_ConnectionClosed()
     {
         // arrange
-        var connection = new SocketConnectionMock { Closed = false };
+        var connection = new SocketConnectionMock { IsClosed = false };
         var interceptor = new SocketSessionInterceptorMock();
         var handler = new TerminateConnectionMessageHandler(interceptor);
         var message = new TerminateConnectionMessage();
@@ -52,6 +53,6 @@ public class ConnectionTerminateHandlerTests
             CancellationToken.None);
 
         // assert
-        Assert.True(connection.Closed);
+        Assert.True(connection.IsClosed);
     }
 }

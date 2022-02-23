@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 namespace HotChocolate.AspNetCore;
 
@@ -11,7 +11,7 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         ISocketConnection connection,
         InitializeConnectionMessage message,
         CancellationToken cancellationToken) =>
-        new ValueTask<ConnectionStatus>(ConnectionStatus.Accept());
+        new(ConnectionStatus.Accept());
 
     public virtual ValueTask OnRequestAsync(
         ISocketConnection connection,

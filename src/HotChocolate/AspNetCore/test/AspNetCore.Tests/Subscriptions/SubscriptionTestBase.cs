@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
@@ -42,7 +43,7 @@ public class SubscriptionTestBase : ServerTestBase
                 }
 
                 if (message != null &&
-                    !MessageTypes.Connection.KeepAlive.Equals(message["type"]))
+                    !Protocols.Apollo.Messages.Connection.KeepAlive.Equals(message["type"]))
                 {
                     throw new InvalidOperationException(
                         $"Unexpected message type: {message["type"]}");
@@ -89,11 +90,11 @@ public class SubscriptionTestBase : ServerTestBase
         IReadOnlyDictionary<string, object> message =
             await webSocket.ReceiveServerMessageAsync();
         Assert.NotNull(message);
-        Assert.Equal(MessageTypes.Connection.Accept, message["type"]);
+        Assert.Equal(Protocols.Apollo.Messages.Connection.Accept, message["type"]);
 
         message = await webSocket.ReceiveServerMessageAsync();
         Assert.NotNull(message);
-        Assert.Equal(MessageTypes.Connection.KeepAlive, message["type"]);
+        Assert.Equal(Protocols.Apollo.Messages.Connection.KeepAlive, message["type"]);
 
         return webSocket;
     }

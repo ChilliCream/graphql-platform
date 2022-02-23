@@ -182,5 +182,17 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("DataStartMessageHandler_Not_A_SubscriptionResult", resourceCulture);
             }
         }
+        
+        internal static string OperationMessage_TypeCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("OperationMessage_TypeCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string TerminateConnectionMessageHandler_Message {
+            get {
+                return ResourceManager.GetString("TerminateConnectionMessageHandler_Message", resourceCulture);
+            }
+        }
     }
 }

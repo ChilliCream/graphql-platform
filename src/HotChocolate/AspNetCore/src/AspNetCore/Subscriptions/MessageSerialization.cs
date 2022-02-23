@@ -1,5 +1,6 @@
 using System.Text;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 

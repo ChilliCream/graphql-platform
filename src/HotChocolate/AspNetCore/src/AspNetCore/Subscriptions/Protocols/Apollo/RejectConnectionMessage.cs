@@ -1,14 +1,14 @@
-namespace HotChocolate.AspNetCore.Subscriptions.Messages;
+using static HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo.Messages;
 
-public sealed class RejectConnectionMessage
+namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
+
+internal sealed class RejectConnectionMessage
     : OperationMessage<IReadOnlyDictionary<string, object?>>
 {
     public RejectConnectionMessage(
         string message,
         IReadOnlyDictionary<string, object?>? extensions = null)
-        : base(
-            MessageTypes.Connection.Error,
-            CreatePayload(message, extensions))
+        : base(ConnectionError, CreatePayload(message, extensions))
     {
     }
 

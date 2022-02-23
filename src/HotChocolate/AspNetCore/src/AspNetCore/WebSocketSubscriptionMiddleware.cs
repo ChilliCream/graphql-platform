@@ -24,14 +24,9 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
 
     public Task InvokeAsync(HttpContext context)
     {
-        if (context.WebSockets.IsWebSocketRequest)
-        {
-            return HandleWebSocketSessionAsync(context);
-        }
-        else
-        {
-            return NextAsync(context);
-        }
+        return context.WebSockets.IsWebSocketRequest
+            ? HandleWebSocketSessionAsync(context)
+            : NextAsync(context);
     }
 
     private async Task HandleWebSocketSessionAsync(HttpContext context)
@@ -45,16 +40,14 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
         {
             try
             {
-                IRequestExecutor requestExecutor = 
+                IRequestExecutor requestExecutor =
                     await GetExecutorAsync(context.RequestAborted);
-                IMessagePipeline? messagePipeline = 
-                    requestExecutor.GetRequiredService<IMessagePipeline>();
-                ISocketSessionInterceptor? socketSessionInterceptor = 
+                ISocketSessionInterceptor socketSessionInterceptor =
                     requestExecutor.GetRequiredService<ISocketSessionInterceptor>();
                 context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
                 await WebSocketSession
-                    .New(context, messagePipeline, socketSessionInterceptor)
+                    .New(context, socketSessionInterceptor)
                     .HandleAsync(context.RequestAborted);
             }
             catch (Exception ex)

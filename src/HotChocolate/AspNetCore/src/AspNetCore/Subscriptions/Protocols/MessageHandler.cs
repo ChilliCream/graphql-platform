@@ -1,4 +1,6 @@
-namespace HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
+
+namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 
 public abstract class MessageHandler<T> : IMessageHandler
     where T : OperationMessage
@@ -19,10 +21,8 @@ public abstract class MessageHandler<T> : IMessageHandler
         {
             return HandleAsync(connection, m, cancellationToken);
         }
-        else
-        {
-            throw new NotSupportedException("The specified message type is not supported.");
-        }
+
+        throw new NotSupportedException("The specified message type is not supported.");
     }
 
     protected abstract Task HandleAsync(

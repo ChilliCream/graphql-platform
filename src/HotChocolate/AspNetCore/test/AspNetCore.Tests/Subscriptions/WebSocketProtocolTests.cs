@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -43,13 +44,13 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             await webSocket.ReceiveServerMessageAsync();
             Assert.NotNull(message);
             Assert.Equal(
-                MessageTypes.Connection.Accept,
+                Protocols.Apollo.Messages.Connection.Accept,
                 message["type"]);
 
             message = await webSocket.ReceiveServerMessageAsync();
             Assert.NotNull(message);
             Assert.Equal(
-                MessageTypes.Connection.KeepAlive,
+                Protocols.Apollo.Messages.Connection.KeepAlive,
                 message["type"]);
         });
     }
@@ -74,13 +75,13 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             await webSocket.ReceiveServerMessageAsync();
             Assert.NotNull(message);
             Assert.Equal(
-                MessageTypes.Connection.Accept,
+                Protocols.Apollo.Messages.Connection.Accept,
                 message["type"]);
 
             message = await webSocket.ReceiveServerMessageAsync();
             Assert.NotNull(message);
             Assert.Equal(
-                MessageTypes.Connection.KeepAlive,
+                Protocols.Apollo.Messages.Connection.KeepAlive,
                 message["type"]);
         });
     }
@@ -105,13 +106,13 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             await webSocket.ReceiveServerMessageAsync();
             Assert.NotNull(message);
             Assert.Equal(
-                MessageTypes.Connection.Accept,
+                Protocols.Apollo.Messages.Connection.Accept,
                 message["type"]);
 
             message = await webSocket.ReceiveServerMessageAsync();
             Assert.NotNull(message);
             Assert.Equal(
-                MessageTypes.Connection.KeepAlive,
+                Protocols.Apollo.Messages.Connection.KeepAlive,
                 message["type"]);
         });
     }
@@ -209,7 +210,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             IReadOnlyDictionary<string, object> message =
                 await WaitForMessage(
                     webSocket,
-                    MessageTypes.Subscription.Data,
+                    Protocols.Apollo.Messages.Subscription.Data,
                     TimeSpan.FromSeconds(15));
 
             Assert.NotNull(message);
@@ -251,7 +252,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
             await WaitForMessage(
                 webSocket,
-                MessageTypes.Subscription.Data,
+                Protocols.Apollo.Messages.Subscription.Data,
                 TimeSpan.FromSeconds(15));
 
             // act
@@ -272,7 +273,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
             IReadOnlyDictionary<string, object> message = await WaitForMessage(
                 webSocket,
-                MessageTypes.Subscription.Data,
+                Protocols.Apollo.Messages.Subscription.Data,
                 TimeSpan.FromSeconds(5));
 
             // assert

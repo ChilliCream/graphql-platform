@@ -1,4 +1,7 @@
-namespace HotChocolate.AspNetCore.Subscriptions.Messages;
+using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
+using static HotChocolate.AspNetCore.Subscriptions.ConnectionCloseReason;
+
+namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 internal sealed class TerminateConnectionMessageHandler
     : MessageHandler<TerminateConnectionMessage>
@@ -17,8 +20,8 @@ internal sealed class TerminateConnectionMessageHandler
         CancellationToken cancellationToken)
     {
         await connection.CloseAsync(
-            "Connection terminated by user.",
-            SocketCloseStatus.NormalClosure,
+            TerminateConnectionMessageHandler_Message,
+            NormalClosure,
             cancellationToken);
 
         await _socketSessionInterceptor.OnCloseAsync(connection, cancellationToken);

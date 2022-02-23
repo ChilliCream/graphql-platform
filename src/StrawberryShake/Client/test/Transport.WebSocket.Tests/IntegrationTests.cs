@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Types;
 using Snapshooter.Xunit;

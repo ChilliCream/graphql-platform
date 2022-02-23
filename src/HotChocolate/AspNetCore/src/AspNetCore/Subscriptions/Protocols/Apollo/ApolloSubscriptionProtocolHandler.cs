@@ -1,22 +1,18 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Language;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
+using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
+using static HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo.KeepConnectionAliveMessage;
 
-namespace HotChocolate.AspNetCore.Subscriptions;
+namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
-internal sealed class DefaultMessagePipeline : IMessagePipeline
+internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 {
     private readonly IMessageHandler[] _messageHandlers;
 
-    public DefaultMessagePipeline(IEnumerable<IMessageHandler> messageHandlers)
+    public ApolloSubscriptionProtocolHandler(IEnumerable<IMessageHandler> messageHandlers)
     {
         if (messageHandlers is null)
         {
@@ -26,22 +22,22 @@ internal sealed class DefaultMessagePipeline : IMessagePipeline
         _messageHandlers = messageHandlers.ToArray();
     }
 
-    public async Task ProcessAsync(
+    public string Name => GraphQL_WS;
+
+    public async Task ExecuteAsync(
         ISocketConnection connection,
-        ReadOnlySequence<byte> slice,
+        ReadOnlySequence<byte> message,
         CancellationToken cancellationToken)
     {
         try
         {
-            if (TryParseMessage(slice, out OperationMessage? message))
+            if (TryParseMessage(message, out OperationMessage? operationMessage))
             {
-                await HandleMessageAsync(connection, message, cancellationToken);
+                await HandleMessageAsync(connection, operationMessage, cancellationToken);
             }
             else
             {
-                await connection.SendAsync(
-                    KeepConnectionAliveMessage.Default,
-                    CancellationToken.None);
+                await connection.SendAsync(Default, CancellationToken.None);
             }
         }
         catch (WebSocketException)
@@ -76,7 +72,7 @@ internal sealed class DefaultMessagePipeline : IMessagePipeline
                 {
                     // TODO : we need to ensure that the message size is restricted like on the
                     // http request.
-                    byte[] next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
+                    var next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
                     Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
                     ArrayPool<byte>.Shared.Return(buffer);
                     buffer = next;
@@ -124,18 +120,18 @@ internal sealed class DefaultMessagePipeline : IMessagePipeline
     {
         switch (parsedMessage.Type)
         {
-            case MessageTypes.Connection.Initialize:
+            case Messages.ConnectionInitialize:
                 message = DeserializeInitConnMessage(parsedMessage);
                 return true;
 
-            case MessageTypes.Connection.Terminate:
+            case Messages.ConnectionTerminate:
                 message = TerminateConnectionMessage.Default;
                 return true;
 
-            case MessageTypes.Subscription.Start:
+            case Messages.Start:
                 return TryDeserializeDataStartMessage(parsedMessage, out message);
 
-            case MessageTypes.Subscription.Stop:
+            case Messages.Stop:
                 message = DeserializeDataStopMessage(parsedMessage);
                 return true;
 
@@ -183,7 +179,7 @@ internal sealed class DefaultMessagePipeline : IMessagePipeline
         OperationMessage message,
         CancellationToken cancellationToken)
     {
-        for (int i = 0; i < _messageHandlers.Length; i++)
+        for (var i = 0; i < _messageHandlers.Length; i++)
         {
             IMessageHandler handler = _messageHandlers[i];
             if (handler.CanHandle(message))

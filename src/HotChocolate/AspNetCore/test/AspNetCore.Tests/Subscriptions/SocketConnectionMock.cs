@@ -1,8 +1,10 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -11,52 +13,41 @@ public class SocketConnectionMock : ISocketConnection
 {
     public SocketConnectionMock()
     {
-        Subscriptions = new SubscriptionManager(this);
+        Subscriptions = new SubscriptionManager();
     }
 
-    public HttpContext HttpContext { get; }
+    public HttpContext HttpContext => default!;
 
-    public bool Closed { get; set; }
+    public bool IsClosed { get; set; }
 
-    public ISubscriptionManager Subscriptions { get; set; }
+    public ISubscriptionManager Subscriptions { get; }
 
-    public IServiceProvider RequestServices { get; set; }
+    public IServiceProvider RequestServices { get; set; } = default!;
 
-    public CancellationToken RequestAborted { get; }
+    public CancellationToken RequestAborted => default;
 
-    public List<byte[]> SentMessages { get; } = new List<byte[]>();
+    public List<byte[]> SentMessages { get; } = new();
 
-    public Task<bool> TryOpenAsync()
-    {
-        return Task.FromResult(true);
-    }
+    public Task<IProtocolHandler> TryAcceptConnection()
+        => throw new NotImplementedException();
 
     public Task CloseAsync(
         string message,
-        SocketCloseStatus closeStatus,
+        ConnectionCloseReason reason,
         CancellationToken cancellationToken)
     {
-        Closed = true;
+        IsClosed = true;
         return Task.CompletedTask;
     }
 
-    public Task SendAsync(
-        byte[] message,
-        CancellationToken cancellationToken)
+    public Task SendAsync(ArraySegment<byte> message, CancellationToken cancellationToken)
     {
-        SentMessages.Add(message);
+        SentMessages.Add(message.ToArray());
         return Task.CompletedTask;
     }
 
-    public Task ReceiveAsync(
-        PipeWriter writer,
-        CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    public Task ReceiveAsync(IBufferWriter<byte> writer, CancellationToken cancellationToken)
+        => throw new NotImplementedException();
 
-    public void Dispose()
-    {
-
-    }
+    public void Dispose() { }
 }

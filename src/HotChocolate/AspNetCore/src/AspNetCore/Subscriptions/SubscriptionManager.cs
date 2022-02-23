@@ -3,16 +3,10 @@ using System.Collections.Concurrent;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
-public class SubscriptionManager : ISubscriptionManager
+public sealed class SubscriptionManager : ISubscriptionManager
 {
     private readonly ConcurrentDictionary<string, ISubscriptionSession> _subs = new();
-    private readonly ISocketConnection _connection;
     private bool _disposed;
-
-    public SubscriptionManager(ISocketConnection connection)
-    {
-        _connection = connection ?? throw new ArgumentNullException(nameof(connection));
-    }
 
     public void Register(ISubscriptionSession subscriptionSession)
     {
@@ -68,7 +62,7 @@ public class SubscriptionManager : ISubscriptionManager
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (!_disposed)
         {

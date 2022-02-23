@@ -1,6 +1,6 @@
-namespace HotChocolate.AspNetCore.Subscriptions.Messages;
+namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
-public sealed class InitializeConnectionMessageHandler
+internal sealed class InitializeConnectionMessageHandler
     : MessageHandler<InitializeConnectionMessage>
 {
     private readonly ISocketSessionInterceptor _socketSessionInterceptor;
@@ -39,7 +39,7 @@ public sealed class InitializeConnectionMessageHandler
 
             await connection.CloseAsync(
                 connectionStatus.Message,
-                SocketCloseStatus.PolicyViolation,
+                ConnectionCloseReason.PolicyViolation,
                 cancellationToken);
         }
     }

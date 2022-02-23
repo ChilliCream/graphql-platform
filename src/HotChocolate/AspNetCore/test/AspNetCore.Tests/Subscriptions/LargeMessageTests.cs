@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.TestHost;
@@ -62,7 +63,7 @@ public class LargeMessageTests
             IReadOnlyDictionary<string, object> message =
                 await WaitForMessage(
                     webSocket,
-                    MessageTypes.Subscription.Data,
+                    Protocols.Apollo.Messages.Subscription.Data,
                     TimeSpan.FromSeconds(15));
 
             Assert.NotNull(message);

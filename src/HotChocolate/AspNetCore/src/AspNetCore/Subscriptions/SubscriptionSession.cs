@@ -1,4 +1,4 @@
-using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using static HotChocolate.AspNetCore.ErrorHelper;
@@ -73,7 +73,7 @@ internal sealed class SubscriptionSession : ISubscriptionSession
             {
                 using (result)
                 {
-                    if (!cancellationToken.IsCancellationRequested && !_connection.Closed)
+                    if (!cancellationToken.IsCancellationRequested && !_connection.IsClosed)
                     {
                         await _connection.SendAsync(
                             new DataResultMessage(Id, result),
@@ -82,7 +82,7 @@ internal sealed class SubscriptionSession : ISubscriptionSession
                 }
             }
 
-            if (!cancellationToken.IsCancellationRequested && !_connection.Closed)
+            if (!cancellationToken.IsCancellationRequested && !_connection.IsClosed)
             {
                 await _connection.SendAsync(new DataCompleteMessage(Id), cancellationToken);
             }
@@ -91,7 +91,7 @@ internal sealed class SubscriptionSession : ISubscriptionSession
         catch (ObjectDisposedException) { }
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
-            if (!_connection.Closed)
+            if (!_connection.IsClosed)
             {
                 try
                 {

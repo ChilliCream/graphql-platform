@@ -87,4 +87,10 @@
   <data name="DataStartMessageHandler_Not_A_SubscriptionResult" xml:space="preserve">
     <value>The specified result object is not a valid subscription result.</value>
   </data>
+  <data name="OperationMessage_TypeCannotBeNullOrEmpty" xml:space="preserve">
+    <value>The message type cannot be null or empty.</value>
+  </data>
+  <data name="TerminateConnectionMessageHandler_Message" xml:space="preserve">
+    <value>Connection terminated by user.</value>
+  </data>
 </root>

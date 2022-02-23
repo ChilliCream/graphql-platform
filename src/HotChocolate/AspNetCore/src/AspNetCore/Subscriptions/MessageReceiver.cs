@@ -1,7 +1,4 @@
-using System;
 using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
@@ -20,25 +17,20 @@ internal sealed class MessageReceiver
     {
         try
         {
-            while (!_connection.Closed && !cancellationToken.IsCancellationRequested)
+            while (!_connection.IsClosed && !cancellationToken.IsCancellationRequested)
             {
                 await _connection.ReceiveAsync(_writer, cancellationToken);
-                await WriteMessageDelimiterAsync(cancellationToken);
+                await _writer.FlushAsync(cancellationToken);
             }
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (OperationCanceledException)
+        {
+            // if the connection was cancelled we will swallow the exception and move on.
+        }
         finally
         {
             // writer should be always completed
             await _writer.CompleteAsync();
         }
-    }
-
-    private async Task WriteMessageDelimiterAsync(CancellationToken cancellationToken)
-    {
-        Memory<byte> memory = _writer.GetMemory(1);
-        memory.Span[0] = SubscriptionSession.Delimiter;
-        _writer.Advance(1);
-        await _writer.FlushAsync(cancellationToken);
     }
 }

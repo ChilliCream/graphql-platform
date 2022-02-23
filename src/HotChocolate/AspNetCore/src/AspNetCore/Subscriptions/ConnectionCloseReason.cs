@@ -1,6 +1,6 @@
 namespace HotChocolate.AspNetCore.Subscriptions;
 
-public enum SocketCloseStatus
+public enum ConnectionCloseReason
 {
     None,
     NormalClosure,

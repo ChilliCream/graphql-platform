@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages;
@@ -122,6 +123,6 @@ public class InitializeConnectionMessageHandlerTests
                     connectionStatus.Extensions)
                     .Serialize()));
             });
-        Assert.True(connection.Closed);
+        Assert.True(connection.IsClosed);
     }
 }

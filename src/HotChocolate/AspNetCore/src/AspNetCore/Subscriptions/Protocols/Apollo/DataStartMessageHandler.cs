@@ -4,9 +4,9 @@ using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using static HotChocolate.AspNetCore.ThrowHelper;
 using static HotChocolate.WellKnownContextData;
 
-namespace HotChocolate.AspNetCore.Subscriptions.Messages;
+namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
-public sealed class DataStartMessageHandler : MessageHandler<DataStartMessage>
+internal sealed class DataStartMessageHandler : MessageHandler<DataStartMessage>
 {
     private readonly IRequestExecutor _requestExecutor;
     private readonly ISocketSessionInterceptor _socketSessionInterceptor;
@@ -113,7 +113,7 @@ public sealed class DataStartMessageHandler : MessageHandler<DataStartMessage>
             }
         }
 
-        async ValueTask<IExecutionResult> ExecuteAsync(CancellationToken cancellationToken)
+        async ValueTask<IExecutionResult> ExecuteAsync(CancellationToken abort)
         {
             try
             {
@@ -122,10 +122,10 @@ public sealed class DataStartMessageHandler : MessageHandler<DataStartMessage>
                         .SetServices(connection.RequestServices);
 
                 await _socketSessionInterceptor.OnRequestAsync(
-                    connection, requestBuilder, cancellationToken);
+                    connection, requestBuilder, abort);
 
                 return await _requestExecutor.ExecuteAsync(
-                    requestBuilder.Create(), cancellationToken);
+                    requestBuilder.Create(), abort);
             }
             catch (Exception ex)
             {

@@ -1,6 +1,6 @@
-namespace HotChocolate.AspNetCore.Subscriptions.Messages;
+namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
-public sealed class DataStopMessageHandler : MessageHandler<DataStopMessage>
+internal sealed class DataStopMessageHandler : MessageHandler<DataStopMessage>
 {
     protected override Task HandleAsync(
         ISocketConnection connection,
