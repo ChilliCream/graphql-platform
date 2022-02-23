@@ -8,15 +8,12 @@
   <ItemGroup>
     <!-- GraphQL Files -->
     <GraphQL Include="**/*.graphql" />
-    <None Remove="@(GraphQL)" />
     <Watch Include="@(GraphQL)" />
     <AdditionalFiles Include="@(GraphQL)" GraphQL="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQL" />
-    
+
     <!-- GraphQL Config Files -->
     <GraphQLConfig Include="**/.graphqlrc.json" />
-    <None Remove="@(GraphQLConfig)" />
-    <Content Remove="@(GraphQLConfig)" />
     <Watch Include="@(GraphQLConfig)" />
     <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />

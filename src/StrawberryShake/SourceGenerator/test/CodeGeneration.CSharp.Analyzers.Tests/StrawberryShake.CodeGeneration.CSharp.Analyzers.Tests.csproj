@@ -47,11 +47,6 @@
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Custom.cs" />
-    <Compile Remove="CustomScalar\Test.cs" />
-    <Compile Remove="StarWars\Test.cs" />
-  </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)..\..\src\MSBuild\StrawberryShake.targets" />
 
