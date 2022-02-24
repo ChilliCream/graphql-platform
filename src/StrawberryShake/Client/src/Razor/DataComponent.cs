@@ -52,20 +52,6 @@ public abstract class DataComponent<TClientOrOperation> : ComponentBase, IDispos
     }
 
     /// <summary>
-    /// Registers a data subscription with the component.
-    /// The component will dispose any registered subscription when it is disposed.
-    /// </summary>
-    /// <param name="subscribe">
-    /// The subscribe delegate creating a data subscription.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="subscribe"/> is <c>null</c>.
-    /// </exception>
-    [Obsolete("Use Register(Func<TClientOrOperation, IDisposable> subscribe)")]
-    public void Subscribe(Func<TClientOrOperation, IDisposable> subscribe) =>
-        Register(subscribe);
-
-    /// <summary>
     /// Performs application-defined tasks associated with freeing,
     /// releasing, or resetting unmanaged resources.
     /// </summary>

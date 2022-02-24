@@ -22,12 +22,12 @@ public class RazorQueryGenerator : CSharpSyntaxGenerator<OperationDescriptor>
         OperationDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
     {
-        string componentName = descriptor.Name.Value + "Renderer";
-        string resultType = descriptor.ResultTypeReference.GetRuntimeType().ToString();
+        var componentName = $"Use{descriptor.Name.Value}";
+        var resultType = descriptor.ResultTypeReference.GetRuntimeType().ToString();
 
         ClassDeclarationSyntax classDeclaration =
             ClassDeclaration(componentName)
-                .AddImplements(TypeNames.QueryBase.WithGeneric(resultType))
+                .AddImplements(TypeNames.UseQuery.WithGeneric(resultType))
                 .AddModifiers(
                     Token(SyntaxKind.PublicKeyword),
                     Token(SyntaxKind.PartialKeyword))

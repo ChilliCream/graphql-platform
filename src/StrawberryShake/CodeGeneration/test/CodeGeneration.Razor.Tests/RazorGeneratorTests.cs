@@ -10,7 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public void Query_And_Mutation()
         {
             // force assembly to load!
-            Assert.NotNull(typeof(QueryBase<>));
+            Assert.NotNull(typeof(UseQuery<>));
 
             AssertResult(
                 settings: new() { RazorComponents = true },

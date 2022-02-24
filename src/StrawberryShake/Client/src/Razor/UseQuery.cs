@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace StrawberryShake.Razor;
 
-public abstract class QueryBase<TResult> : ComponentBase, IDisposable where TResult : class
+public abstract class UseQuery<TResult> : ComponentBase, IDisposable where TResult : class
 {
     private IDisposable? _subscription;
     private bool _isLoading = true;
@@ -15,17 +15,13 @@ public abstract class QueryBase<TResult> : ComponentBase, IDisposable where TRes
     private IReadOnlyList<IClientError>? _errors;
     private bool _disposed;
 
-    [Parameter]
-    public RenderFragment<TResult> Content { get; set; } = default!;
+    [Parameter] public ExecutionStrategy? Strategy { get; set; }
 
-    [Parameter]
-    public RenderFragment<IReadOnlyList<IClientError>>? Error { get; set; }
+    [Parameter] public RenderFragment<TResult>? ChildContent { get; set; }
 
-    [Parameter]
-    public RenderFragment? Loading { get; set; }
+    [Parameter] public RenderFragment<IReadOnlyList<IClientError>>? ErrorContent { get; set; }
 
-    [Parameter]
-    public ExecutionStrategy? Strategy { get; set; }
+    [Parameter] public RenderFragment? LoadingContent { get; set; }
 
     protected void Subscribe(IObservable<IOperationResult<TResult>> observable)
     {
@@ -44,19 +40,19 @@ public abstract class QueryBase<TResult> : ComponentBase, IDisposable where TRes
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        if (_isLoading && Loading is not null)
+        if (_isLoading && LoadingContent is not null)
         {
-            builder.AddContent(0, Loading);
+            builder.AddContent(0, LoadingContent);
         }
 
         if (_isErrorResult)
         {
-            builder.AddContent(0, Error, _errors!);
+            builder.AddContent(0, ErrorContent, _errors!);
         }
 
         if (_isSuccessResult)
         {
-            builder.AddContent(0, Content, _result!);
+            builder.AddContent(0, ChildContent, _result!);
         }
 
         base.BuildRenderTree(builder);

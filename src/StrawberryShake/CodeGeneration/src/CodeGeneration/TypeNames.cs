@@ -200,14 +200,17 @@ public static class TypeNames
     public const string ServiceCollection =
         GlobalDependencyInjectionNamespace + "ServiceCollection";
 
-    public const string GetRequiredService = GlobalDependencyInjectionNamespace +
-                                             "ServiceProviderServiceExtensions.GetRequiredService";
+    public const string GetRequiredService =
+        GlobalDependencyInjectionNamespace +
+        "ServiceProviderServiceExtensions.GetRequiredService";
 
-    public const string AddSingleton = GlobalDependencyInjectionNamespace +
-                                       "ServiceCollectionServiceExtensions.AddSingleton";
+    public const string AddSingleton =
+        GlobalDependencyInjectionNamespace +
+        "ServiceCollectionServiceExtensions.AddSingleton";
 
-    public const string BuildServiceProvider = GlobalDependencyInjectionNamespace +
-                                               "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
+    public const string BuildServiceProvider =
+        GlobalDependencyInjectionNamespace +
+        "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
 
     public const string InjectAttribute =
         "global::Microsoft.AspNetCore.Components.InjectAttribute";
@@ -228,10 +231,11 @@ public static class TypeNames
     public const string DependencyInjectionNamespace =
         "Microsoft.Extensions.DependencyInjection";
 
-    public const string DependencyInjectionExtensions = GlobalDependencyInjectionNamespace +
-                                                        "Extensions.ServiceCollectionDescriptorExtensions.";
+    public const string DependencyInjectionExtensions =
+        GlobalDependencyInjectionNamespace +
+        "Extensions.ServiceCollectionDescriptorExtensions.";
 
-    public const string QueryBase = StrawberryShakeNamespace + "Razor.QueryBase";
+    public const string UseQuery = StrawberryShakeNamespace + "Razor." + nameof(UseQuery);
 
     public const string StringSerializer =
         StrawberryShakeNamespace + "Serialization.StringSerializer";
