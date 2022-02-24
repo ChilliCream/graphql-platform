@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers;
 
-public class CSharpGeneratorClient
+internal sealed class CSharpGeneratorClient
 {
     private readonly string _codeGenServer;
 
@@ -13,29 +13,44 @@ public class CSharpGeneratorClient
 
     public GeneratorResponse Execute(GeneratorRequest request)
     {
-        var fileSink = RequestFormatter.Format(request);
+        try
+        {
+            var fileSink = RequestFormatter.Format(request);
 
-        var childProcess = Process.Start(
-            new ProcessStartInfo
+            var childProcess = Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = $"\"{_codeGenServer}\" \"{fileSink}\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+
+            if (childProcess is null)
             {
-                FileName = "dotnet",
-                Arguments = $"\"{_codeGenServer}\" \"{fileSink}\"",
-                CreateNoWindow = true,
-                UseShellExecute = false
-            });
+                return CreateErrorResponse("Unable to generate client!");
+            }
 
-        if (childProcess is null)
-        {
-            throw new Exception("Unable to generate client!");
+            childProcess.WaitForExit();
+
+            if (childProcess.ExitCode != 0)
+            {
+                return CreateErrorResponse("An error happened while generating the code.");
+            }
+
+            return ResponseFormatter.Take(fileSink);
         }
-
-        childProcess.WaitForExit();
-
-        if (childProcess.ExitCode != 0)
+        catch (Exception ex)
         {
-            throw new Exception("An error happened while generating the code.");
+            return CreateErrorResponse(ex);
         }
-
-        return ResponseFormatter.Take(fileSink);
     }
+
+    private static GeneratorResponse CreateErrorResponse(Exception exception)
+        => CreateErrorResponse(exception.Message + Environment.NewLine + exception.StackTrace);
+
+    private static GeneratorResponse CreateErrorResponse(string message)
+        => new GeneratorResponse(
+            Array.Empty<GeneratorDocument>(),
+            new[] { new GeneratorError("SSG0005", "Generator Error", message) });
 }

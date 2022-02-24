@@ -5,7 +5,7 @@ using static System.IO.Path;
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers;
 
 [Generator]
-public class StrawberryShakeSourceGenerator : ISourceGenerator
+public sealed class StrawberryShakeSourceGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {

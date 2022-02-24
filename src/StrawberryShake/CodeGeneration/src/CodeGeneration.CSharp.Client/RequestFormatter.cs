@@ -1,6 +1,5 @@
 using System.Runtime.Serialization;
 using System.Xml.Linq;
-using static System.Enum;
 using static StrawberryShake.CodeGeneration.CSharp.Names;
 using static StrawberryShake.CodeGeneration.CSharp.RequestOptions;
 
@@ -79,6 +78,8 @@ public static class RequestFormatter
             string.IsNullOrEmpty(rootDirectory) ? null : rootDirectory,
             string.IsNullOrEmpty(defaultNamespace) ? null : defaultNamespace,
             string.IsNullOrEmpty(persistedQueryDirectory) ? null : persistedQueryDirectory,
-            string.IsNullOrEmpty(optionString) ? Default : Parse<RequestOptions>(optionString));
+            string.IsNullOrEmpty(optionString)
+                ? Default
+                : (RequestOptions)Enum.Parse(typeof(RequestOptions), optionString));
     }
 }

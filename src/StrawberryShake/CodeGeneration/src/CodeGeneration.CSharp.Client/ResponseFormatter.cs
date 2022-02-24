@@ -89,7 +89,7 @@ public static class ResponseFormatter
         return new GeneratorDocument(
             nameAttribute.Value,
             sourceTextElement.Value,
-            Enum.Parse<GeneratorDocumentKind>(kindAttribute.Value),
+            (GeneratorDocumentKind)Enum.Parse(typeof(GeneratorDocumentKind), kindAttribute.Value),
             hashAttribute?.Value,
             pathAttribute?.Value);
     }
