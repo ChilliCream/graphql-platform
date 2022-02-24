@@ -13,13 +13,13 @@ public class CSharpGeneratorClient
 
     public GeneratorResponse Execute(GeneratorRequest request)
     {
-        var sink = RequestFormatter.Format(request);
+        var fileSink = RequestFormatter.Format(request);
 
         var childProcess = Process.Start(
             new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"\"{_codeGenServer}\" \"{sink}\"",
+                Arguments = $"\"{_codeGenServer}\" \"{fileSink}\"",
                 CreateNoWindow = true,
                 UseShellExecute = false
             });
@@ -36,6 +36,6 @@ public class CSharpGeneratorClient
             throw new Exception("An error happened while generating the code.");
         }
 
-        return ResponseParser.Parse(sink);
+        return ResponseFormatter.Take(fileSink);
     }
 }
