@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration.Descriptors;
@@ -6,7 +5,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors;
 /// <summary>
 /// Represents the entity for which the ID shall be generated or an id field of that entity.
 /// </summary>
-public class EntityIdDescriptor
+public sealed class EntityIdDescriptor
 {
     /// <summary>
     /// Creates a new instance of <see cref="EntityIdDescriptor"/>.

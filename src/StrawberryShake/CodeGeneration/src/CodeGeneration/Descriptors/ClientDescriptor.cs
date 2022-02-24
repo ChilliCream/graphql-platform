@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors;
 /// <summary>
 /// Describes a GraphQL client class, that bundles all operations defined in a single class.
 /// </summary>
-public class ClientDescriptor : ICodeDescriptor
+public sealed class ClientDescriptor : ICodeDescriptor
 {
     public ClientDescriptor(
         NameString name,

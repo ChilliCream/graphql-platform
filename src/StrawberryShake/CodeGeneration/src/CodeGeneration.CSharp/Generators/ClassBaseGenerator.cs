@@ -5,7 +5,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public abstract class ClassBaseGenerator<T> : CodeGenerator<T> where T : ICodeDescriptor
 {
-    protected (ClassBuilder, ConstructorBuilder) CreateClassBuilder(
+    protected static (ClassBuilder, ConstructorBuilder) CreateClassBuilder(
         bool addConstructorToClass = true)
     {
         var classBuilder = ClassBuilder.New();
@@ -18,7 +18,7 @@ public abstract class ClassBaseGenerator<T> : CodeGenerator<T> where T : ICodeDe
         return (classBuilder, constructorBuilder);
     }
 
-    private void AddConstructorAssignedField(
+    private static void AddConstructorAssignedField(
         TypeReferenceBuilder type,
         string fieldName,
         string paramName,
@@ -46,7 +46,7 @@ public abstract class ClassBaseGenerator<T> : CodeGenerator<T> where T : ICodeDe
             .AddParameter(paramName, b => b.SetType(type));
     }
 
-    protected void AddConstructorAssignedField(
+    protected static void AddConstructorAssignedField(
         string typename,
         string fieldName,
         string paramName,

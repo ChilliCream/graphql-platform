@@ -14,7 +14,7 @@ public sealed class OutputTypeModel : ITypeModel
     public OutputTypeModel(
         NameString name,
         string? description,
-        bool isInterface,
+        OutputModelKind kind,
         INamedType type,
         SelectionSetNode selectionSet,
         IReadOnlyList<OutputFieldModel> fields,
@@ -23,13 +23,10 @@ public sealed class OutputTypeModel : ITypeModel
     {
         Name = name.EnsureNotEmpty(nameof(name));
         Description = description;
-        IsInterface = isInterface;
-        Type = type ??
-               throw new ArgumentNullException(nameof(type));
-        SelectionSet = selectionSet ??
-                       throw new ArgumentNullException(nameof(selectionSet));
-        Fields = fields ??
-                 throw new ArgumentNullException(nameof(fields));
+        Kind = kind;
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+        SelectionSet = selectionSet ?? throw new ArgumentNullException(nameof(selectionSet));
+        Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         Implements = implements ?? Array.Empty<OutputTypeModel>();
         Deferred = deferred ?? _empty;
     }
@@ -38,7 +35,11 @@ public sealed class OutputTypeModel : ITypeModel
 
     public string? Description { get; }
 
-    public bool IsInterface { get; }
+    public OutputModelKind Kind { get; }
+
+    public bool IsInterface => (Kind & OutputModelKind.Interface) == OutputModelKind.Interface;
+
+    public bool IsFragment => (Kind & OutputModelKind.Fragment) == OutputModelKind.Fragment;
 
     public INamedType Type { get; }
 
@@ -51,4 +52,14 @@ public sealed class OutputTypeModel : ITypeModel
     public IReadOnlyList<OutputFieldModel> Fields { get; }
 
     public override string ToString() => Name;
+}
+
+[Flags]
+public enum OutputModelKind
+{
+    Object = 0,
+    Interface = 1,
+    Fragment = 2,
+    FragmentInterface = Fragment | Interface,
+    FragmentObject = Fragment | Object
 }

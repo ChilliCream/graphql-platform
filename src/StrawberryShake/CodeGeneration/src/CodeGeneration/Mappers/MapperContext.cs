@@ -16,6 +16,7 @@ public class MapperContext : IMapperContext
     private readonly List<INamedTypeDescriptor> _types = new();
     private readonly List<EntityTypeDescriptor> _entityTypes = new();
     private readonly List<DataTypeDescriptor> _dataTypes = new();
+    private readonly List<ResultFromEntityDescriptor> _mappers = new();
     private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
     private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
     private readonly Dictionary<(string, TypeKind), RuntimeTypeInfo> _runtimeTypes = new();
@@ -42,6 +43,7 @@ public class MapperContext : IMapperContext
     public string ClientName { get; }
 
     public string Namespace { get; }
+
     public string StateNamespace => Namespace + ".State";
 
     public RequestStrategy RequestStrategy { get; }
@@ -65,6 +67,8 @@ public class MapperContext : IMapperContext
 
     public EntityIdFactoryDescriptor EntityIdFactory =>
         _entityIdFactory ?? throw new InvalidOperationException();
+
+    public IReadOnlyList<ResultFromEntityDescriptor> ResultFromEntityMappers => _mappers;
 
     public DependencyInjectionDescriptor DependencyInjection =>
         _dependencyInjectionDescriptor ?? throw new InvalidOperationException();
@@ -97,6 +101,11 @@ public class MapperContext : IMapperContext
         foreach (DataTypeDescriptor dataType in DataTypes)
         {
             yield return dataType;
+        }
+
+        foreach (ResultFromEntityDescriptor descriptor in _mappers)
+        {
+            yield return descriptor;
         }
 
         yield return Client;
@@ -185,6 +194,11 @@ public class MapperContext : IMapperContext
     public void Register(StoreAccessorDescriptor storeAccessorDescriptor)
     {
         _storeAccessorDescriptor = storeAccessorDescriptor;
+    }
+
+    public void Register(ResultFromEntityDescriptor descriptor)
+    {
+        _mappers.Add(descriptor);
     }
 
     public bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType)

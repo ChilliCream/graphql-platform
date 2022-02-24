@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors;
 /// <summary>
 /// Contains the information that are needed to generate a resultBuilder
 /// </summary>
-public class ResultBuilderDescriptor : ICodeDescriptor
+public sealed class ResultBuilderDescriptor : ICodeDescriptor
 {
     public ResultBuilderDescriptor(
         RuntimeTypeInfo runtimeType,

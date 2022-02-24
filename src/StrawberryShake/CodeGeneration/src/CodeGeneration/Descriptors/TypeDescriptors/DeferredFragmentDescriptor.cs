@@ -5,7 +5,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 /// <summary>
 /// This descriptor refers to a deferred fragment.
 /// </summary>
-public class DeferredFragmentDescriptor
+public sealed class DeferredFragmentDescriptor
 {
     /// <summary>
     /// Initializes a new instance of <see cref="DeferredFragmentDescriptor"/>.

@@ -42,7 +42,7 @@ public partial class DocumentAnalyzer
                 "You must at least provide one document.");
         }
 
-        OperationDocuments operationDocuments = CreateOperationDocuments(_documents);
+        OperationDocuments operationDocuments = CreateOperationDocuments(_schema, _documents);
         List<OperationModel> operations = new();
         Dictionary<NameString, LeafTypeModel> leafTypes = new();
         Dictionary<NameString, InputObjectTypeModel> inputObjectType = new();
@@ -62,7 +62,7 @@ public partial class DocumentAnalyzer
                     leafTypes.Add(leafTypeModel.Name, leafTypeModel);
                 }
                 else if (typeModel is InputObjectTypeModel inputObjectTypeModel &&
-                         !inputObjectType.ContainsKey(inputObjectTypeModel.Name))
+                    !inputObjectType.ContainsKey(inputObjectTypeModel.Name))
                 {
                     inputObjectType.Add(inputObjectTypeModel.Name, inputObjectTypeModel);
                 }
@@ -70,8 +70,7 @@ public partial class DocumentAnalyzer
 
             foreach ((SelectionSetInfo key, SelectionSetNode? value) in context.SelectionSets)
             {
-                if (selectionSets.TryGetValue(key, out SelectionSetNode? to) &&
-                    to != value)
+                if (selectionSets.TryGetValue(key, out SelectionSetNode? to) && to != value)
                 {
                     throw ThrowHelper.DuplicateSelectionSet();
                 }

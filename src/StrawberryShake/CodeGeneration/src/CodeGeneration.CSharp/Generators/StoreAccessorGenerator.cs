@@ -11,13 +11,15 @@ public class StoreAccessorGenerator : CodeGenerator<StoreAccessorDescriptor>
     private const string _requestFactories = "requestFactories";
     private const string _resultDataFactories = "resultDataFactories";
 
-    protected override bool CanHandle(StoreAccessorDescriptor descriptor,
+    protected override bool CanHandle(
+        StoreAccessorDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
     {
         return !settings.NoStore;
     }
 
-    protected override void Generate(StoreAccessorDescriptor descriptor,
+    protected override void Generate(
+        StoreAccessorDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,
         CodeWriter writer,
         out string fileName,

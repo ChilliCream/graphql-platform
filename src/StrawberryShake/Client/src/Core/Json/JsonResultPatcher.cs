@@ -26,7 +26,7 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
 
     public Response<JsonDocument> PatchResponse(Response<JsonDocument> response)
     {
-        if (_response?.Body is null || response.Body!.RootElement.TryGetProperty(Data, out _))
+        if (_response?.Body is null || !response.Body!.RootElement.TryGetProperty(Data, out _))
         {
             throw new NotSupportedException(JsonResultPatcher_NoValidInitialResponse);
         }
@@ -85,13 +85,15 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
                 var patchData = JsonObject.Create(dataProp)!;
 
 #if NET5_0_OR_GREATER
-                foreach ((var key, JsonNode? value) in patchData)
+                foreach ((var key, JsonNode? value) in patchData.ToArray())
                 {
+                    patchData.Remove(key);
                     current[key] = value;
                 }
 #else
-                foreach (KeyValuePair<string, JsonNode?> prop in patchData)
+                foreach (KeyValuePair<string, JsonNode?> prop in patchData.ToArray())
                 {
+                    patchData.Remove(prop.Key);
                     current[prop.Key] = prop.Value;
                 }
 #endif
@@ -109,13 +111,15 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
                 else
                 {
 #if NET5_0_OR_GREATER
-                    foreach ((var key, JsonNode? value) in patchData)
+                    foreach ((var key, JsonNode? value) in patchData.ToArray())
                     {
+                        patchData.Remove(key);
                         element[key] = value;
                     }
 #else
-                    foreach (KeyValuePair<string, JsonNode?> prop in patchData)
+                    foreach (KeyValuePair<string, JsonNode?> prop in patchData.ToArray())
                     {
+                        patchData.Remove(prop.Key);
                         element[prop.Key] = prop.Value;
                     }
 #endif
@@ -135,6 +139,8 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
         using var writer = new Utf8JsonWriter(buffer);
 
         _json.WriteTo(writer);
+        writer.Flush();
+
         var json = JsonDocument.Parse(buffer.Body);
 
         return new(json, response.Exception, false, response.HasNext, _extensions, _contextData);

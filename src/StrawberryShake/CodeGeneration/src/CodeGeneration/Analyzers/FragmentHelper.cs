@@ -8,6 +8,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using static StrawberryShake.CodeGeneration.Analyzers.Models.OutputModelKind;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
@@ -119,7 +120,7 @@ public static class FragmentHelper
         typeModel = new OutputTypeModel(
             name,
             fragmentNode.Fragment.TypeCondition.Description,
-            isInterface: false,
+            kind: @interface.IsFragment ? FragmentObject : OutputModelKind.Object,
             fragmentNode.Fragment.TypeCondition,
             fragmentNode.Fragment.SelectionSet,
             fields,
@@ -152,7 +153,7 @@ public static class FragmentHelper
         typeModel = new OutputTypeModel(
             name,
             fragmentNode.Fragment.TypeCondition.Description,
-            isInterface: false,
+            kind: @interface.IsFragment ? FragmentObject : OutputModelKind.Object,
             fragmentNode.Fragment.TypeCondition,
             fragmentNode.Fragment.SelectionSet,
             fields,
@@ -167,12 +168,13 @@ public static class FragmentHelper
         IDocumentAnalyzerContext context,
         FragmentNode fragmentNode,
         Path path,
-        IEnumerable<OutputTypeModel>? implements = null)
+        IEnumerable<OutputTypeModel>? implements = null,
+        bool isFragment = false)
     {
         var levels = new Stack<ISet<string>>();
         List<OutputTypeModel> rootImplements = implements?.ToList() ?? new();
         levels.Push(new HashSet<string>());
-        return CreateInterface(context, fragmentNode, path, levels, rootImplements);
+        return CreateInterface(context, fragmentNode, path, levels, rootImplements, isFragment);
     }
 
     private static OutputTypeModel CreateInterface(
@@ -180,7 +182,8 @@ public static class FragmentHelper
         FragmentNode fragmentNode,
         Path path,
         Stack<ISet<string>> levels,
-        List<OutputTypeModel> rootImplements)
+        List<OutputTypeModel> rootImplements,
+        bool isFragment = false)
     {
         NameString name = context.ResolveTypeName(
             GetInterfaceName(fragmentNode.Fragment.Name),
@@ -257,7 +260,7 @@ public static class FragmentHelper
         typeModel = new OutputTypeModel(
             name,
             fragmentNode.Fragment.TypeCondition.Description,
-            isInterface: true,
+            kind: isFragment ? FragmentInterface : Interface,
             fragmentNode.Fragment.TypeCondition,
             fragmentNode.Fragment.SelectionSet,
             CreateFields(fragmentNode, implementedFields, path),
@@ -316,14 +319,14 @@ public static class FragmentHelper
         Path path)
     {
         foreach (FragmentNode inlineFragment in fragmentNode.Nodes.Where(
-                     t => t.Fragment.Kind == FragmentKind.Inline &&
-                          t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
+            t => t.Fragment.Kind == FragmentKind.Inline &&
+                t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
         {
             CollectFields(inlineFragment, outputType, fields, path);
         }
 
         foreach (FieldNode selection in
-                 fragmentNode.Fragment.SelectionSet.Selections.OfType<FieldNode>())
+            fragmentNode.Fragment.SelectionSet.Selections.OfType<FieldNode>())
         {
             FieldCollector.ResolveFieldSelection(selection, outputType, path, fields);
         }
@@ -487,11 +490,11 @@ public static class FragmentHelper
         Dictionary<string, DeferredFragmentModel>? deferred = null;
 
         foreach (FragmentNode child in parentFragmentNode.Nodes.Where(
-                     t => t.Fragment.Kind is FragmentKind.Named && t.Defer is not null))
+            t => t.Fragment.Kind is FragmentKind.Named && t.Defer is not null))
         {
             var label = GetDeferLabel(child.Defer!);
-            OutputTypeModel @interface = CreateInterface(context, child, selectionPath);
-            OutputTypeModel @class = CreateClassFromInterface(context, child, @interface);
+            var @interface = CreateInterface(context, child, selectionPath, isFragment: true);
+            var @class = CreateClassFromInterface(context, child, @interface);
             var model = new DeferredFragmentModel(label, @interface, @class);
 
             (deferred ??= new()).Add(label, model);

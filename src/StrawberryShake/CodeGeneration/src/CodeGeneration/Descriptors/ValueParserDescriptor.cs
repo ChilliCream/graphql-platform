@@ -2,7 +2,7 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Descriptors;
 
-public struct ValueParserDescriptor
+public readonly struct ValueParserDescriptor
 {
     public ValueParserDescriptor(
         NameString name,

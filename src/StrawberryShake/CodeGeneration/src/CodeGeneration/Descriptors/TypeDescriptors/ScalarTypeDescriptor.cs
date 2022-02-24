@@ -2,7 +2,7 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-public class ScalarTypeDescriptor : ILeafTypeDescriptor
+public sealed class ScalarTypeDescriptor : ILeafTypeDescriptor
 {
     public ScalarTypeDescriptor(
         NameString name,

@@ -5,7 +5,7 @@ using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Descriptors;
 
-public class DataTypeDescriptor : ICodeDescriptor
+public sealed class DataTypeDescriptor : ICodeDescriptor
 {
     /// <summary>
     /// Describes the DataType

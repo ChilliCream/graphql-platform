@@ -9,7 +9,7 @@ public partial class TypeMapperGenerator
 {
     private const string _dataParameterName = "data";
 
-    private void AddDataHandler(
+    private static void AddDataHandler(
         CSharpSyntaxGeneratorSettings settings,
         ClassBuilder classBuilder,
         ConstructorBuilder constructorBuilder,
@@ -56,7 +56,7 @@ public partial class TypeMapperGenerator
             processed);
     }
 
-    private IfBuilder GenerateDataInterfaceIfClause(
+    private static IfBuilder GenerateDataInterfaceIfClause(
         CSharpSyntaxGeneratorSettings settings,
         ObjectTypeDescriptor objectTypeDescriptor,
         bool isNonNullable,

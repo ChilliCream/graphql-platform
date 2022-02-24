@@ -4,7 +4,7 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-public class InputObjectTypeDescriptor : INamedTypeDescriptor
+public sealed class InputObjectTypeDescriptor : INamedTypeDescriptor
 {
     public InputObjectTypeDescriptor(
         NameString name,

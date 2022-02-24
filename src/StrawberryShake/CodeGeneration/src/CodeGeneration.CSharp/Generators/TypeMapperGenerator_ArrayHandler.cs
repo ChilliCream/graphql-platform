@@ -11,7 +11,7 @@ public partial class TypeMapperGenerator
     private const string _list = "list";
     private const string _child = "child";
 
-    private void AddArrayHandler(
+    private static void AddArrayHandler(
         CSharpSyntaxGeneratorSettings settings,
         ClassBuilder classBuilder,
         ConstructorBuilder constructorBuilder,

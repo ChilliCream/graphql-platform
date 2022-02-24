@@ -259,42 +259,34 @@ public sealed partial class OperationStore : IOperationStore
     private void OnUpdate(
         IStoredOperation operation,
         OperationUpdateKind kind)
-    {
-        OnUpdate(
+        => OnUpdate(
             new[]
             {
-                    new StoredOperationVersion(
-                        operation.Request,
-                        operation.LastResult,
-                        operation.Subscribers,
-                        operation.LastModified)
+                new StoredOperationVersion(
+                    operation.Request,
+                    operation.LastResult,
+                    operation.Subscribers,
+                    operation.LastModified)
             },
             kind);
-    }
 
     private void OnUpdate(
         IEnumerable<IStoredOperation> operations,
         OperationUpdateKind kind)
-    {
-        OnUpdate(operations
-            .Select(t => new StoredOperationVersion(
-                t.Request,
-                t.LastResult,
-                t.Subscribers,
-                t.LastModified))
-            .ToArray(),
+        => OnUpdate(
+            operations
+                .Select(t => new StoredOperationVersion(
+                    t.Request,
+                    t.LastResult,
+                    t.Subscribers,
+                    t.LastModified))
+                .ToArray(),
             kind);
-    }
 
     private void OnUpdate(
         IReadOnlyList<StoredOperationVersion> operations,
         OperationUpdateKind kind)
-    {
-        _updates.Writer.TryWrite(
-            new OperationUpdate(
-                kind,
-                operations));
-    }
+        => _updates.Writer.TryWrite(new OperationUpdate(kind, operations));
 
     public void Dispose()
     {

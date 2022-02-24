@@ -13,7 +13,7 @@ public partial class TypeMapperGenerator
     /// <summary>
     /// Adds all required deserializers of the given type descriptors properties
     /// </summary>
-    protected void AddRequiredMapMethods(
+    protected internal static void AddRequiredMapMethods(
         CSharpSyntaxGeneratorSettings settings,
         ComplexTypeDescriptor typeDescriptor,
         ClassBuilder classBuilder,
@@ -91,7 +91,7 @@ public partial class TypeMapperGenerator
         };
     }
 
-    private void AddMapMethod(
+    private static void AddMapMethod(
         CSharpSyntaxGeneratorSettings settings,
         ITypeDescriptor typeReference,
         ClassBuilder classBuilder,
@@ -138,7 +138,7 @@ public partial class TypeMapperGenerator
             .AddEmptyLine();
     }
 
-    protected ICode BuildMapMethodCall(
+    protected internal static ICode BuildMapMethodCall(
         CSharpSyntaxGeneratorSettings settings,
         string objectName,
         PropertyDescriptor property,
@@ -176,7 +176,7 @@ public partial class TypeMapperGenerator
         }
     }
 
-    private void AddMapMethodBody(
+    private static void AddMapMethodBody(
         CSharpSyntaxGeneratorSettings settings,
         ClassBuilder classBuilder,
         ConstructorBuilder constructorBuilder,
@@ -260,7 +260,7 @@ public partial class TypeMapperGenerator
         }
     }
 
-    protected void AddMapFragmentMethod(
+    protected internal static void AddMapFragmentMethod(
         ClassBuilder classBuilder,
         ConstructorBuilder constructorBuilder,
         ObjectTypeDescriptor fragmentTypeDescriptor,

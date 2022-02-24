@@ -38,5 +38,10 @@ public enum TypeKind
     /// <summary>
     /// A input class.
     /// </summary>
-    Input
+    Input,
+
+    /// <summary>
+    /// A preserved fragment.
+    /// </summary>
+    Fragment
 }

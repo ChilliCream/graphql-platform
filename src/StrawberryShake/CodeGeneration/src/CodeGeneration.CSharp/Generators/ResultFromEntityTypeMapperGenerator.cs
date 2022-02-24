@@ -1,42 +1,40 @@
-using System;
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
-using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.CSharp.Generators.TypeMapperGenerator;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
-public class ResultFromEntityTypeMapperGenerator : TypeMapperGenerator
+public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFromEntityDescriptor>
 {
     private const string _entity = "entity";
     private const string _entityStore = "entityStore";
     private const string _map = "Map";
     private const string _snapshot = "snapshot";
 
-    protected override bool CanHandle(
-        ITypeDescriptor descriptor,
-        CSharpSyntaxGeneratorSettings settings)
-        => descriptor.Kind == TypeKind.Entity &&
-           !descriptor.IsInterface() &&
-           !settings.NoStore;
+    // protected override bool CanHandle(
+       // ITypeDescriptor descriptor,
+        //CSharpSyntaxGeneratorSettings settings)
+        //=> descriptor.Kind is TypeKind.Entity or TypeKind.Fragment &&
+        //   !descriptor.IsInterface() &&
+         //  !settings.NoStore;
 
-    protected override void Generate(
-        ITypeDescriptor typeDescriptor,
+     protected override bool CanHandle(
+         ResultFromEntityDescriptor descriptor,
+         CSharpSyntaxGeneratorSettings settings)
+         => !settings.NoStore && base.CanHandle(descriptor, settings);
+
+     protected override void Generate(
+        ResultFromEntityDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,
         CodeWriter writer,
         out string fileName,
         out string? path,
         out string ns)
     {
-        // Setup class
-        ComplexTypeDescriptor descriptor =
-            typeDescriptor as ComplexTypeDescriptor ??
-            throw new InvalidOperationException(
-                "A result entity mapper can only be generated for complex types");
-
         fileName = descriptor.ExtractMapperName();
         path = State;
         ns = CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal);

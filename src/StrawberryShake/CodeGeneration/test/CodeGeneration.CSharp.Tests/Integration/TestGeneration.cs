@@ -12,40 +12,40 @@ public class TestGeneration
         AssertStarWarsResult(
             CreateIntegrationTest(),
             @"query GetHero {
-                    hero(episode: NEW_HOPE) {
-                        name
-                    }
-                }");
+                hero(episode: NEW_HOPE) {
+                    name
+                }
+            }");
 
     [Fact]
     public void StarWarsGetFriendsNoStore() =>
         AssertStarWarsResult(
             CreateIntegrationTest(noStore: true),
             @"query GetHero {
-                    hero(episode: NEW_HOPE) {
-                        name
-                        friends {
-                            nodes {
-                                name
-                            }
+                hero(episode: NEW_HOPE) {
+                    name
+                    friends {
+                        nodes {
+                            name
                         }
                     }
-                }");
+                }
+            }");
 
     [Fact]
     public void StarWarsGetFriends() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
             @"query GetHero {
-                    hero(episode: NEW_HOPE) {
-                        name
-                        friends {
-                            nodes {
-                                name
-                            }
+                hero(episode: NEW_HOPE) {
+                    name
+                    friends {
+                        nodes {
+                            name
                         }
                     }
-                }");
+                }
+            }");
 
     [Fact]
     public void MultiProfile() =>
@@ -56,29 +56,29 @@ public class TestGeneration
                 TransportProfile.Default
             }),
             @"query GetHero {
-                    hero(episode: NEW_HOPE) {
-                        name
-                        friends {
-                            nodes {
-                                name
-                            }
+                hero(episode: NEW_HOPE) {
+                    name
+                    friends {
+                        nodes {
+                            name
                         }
                     }
-                }",
+                }
+            }",
             @"subscription OnReviewSub {
-                    onReview(episode: NEW_HOPE) {
-                      __typename
-                      stars
-                      commentary
-                    }
-                  }
-                ",
+                onReview(episode: NEW_HOPE) {
+                  __typename
+                  stars
+                  commentary
+                }
+              }
+            ",
             @"mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
-                    createReview(episode: $episode, review: $review) {
-                        stars
-                        commentary
-                    }
-                }");
+                createReview(episode: $episode, review: $review) {
+                    stars
+                    commentary
+                }
+            }");
 
     [Fact]
     public void AnyScalarDefaultSerialization() =>
@@ -86,21 +86,21 @@ public class TestGeneration
             CreateIntegrationTest(),
             skipWarnings: true,
             @"query GetJson {
-                    json
-                }",
+                json
+            }",
             @"type Query {
-                    json: Any!
-                }");
+                json: Any!
+            }");
 
     [Fact]
     public void StarWarsTypeNameOnInterfaces() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
             @"query GetHero {
-                    hero(episode: NEW_HOPE) {
-                        __typename
-                    }
-                }");
+                hero(episode: NEW_HOPE) {
+                    __typename
+                }
+            }");
 
     [Fact]
     public void StarWarsTypeNameOnUnions() =>
@@ -117,20 +117,20 @@ public class TestGeneration
         AssertStarWarsResult(
             CreateIntegrationTest(),
             @"query SearchHero {
-                    search(text: ""l"") {
-                        ... on Human {
-                            name
-                            friends {
-                                nodes {
-                                    name
-                                }
+                search(text: ""l"") {
+                    ... on Human {
+                        name
+                        friends {
+                            nodes {
+                                name
                             }
                         }
-                        ... on Droid {
-                            name
-                        }
                     }
-                }");
+                    ... on Droid {
+                        name
+                    }
+                }
+            }");
 
     [Fact]
     public void EntityIdOrData() =>
@@ -207,4 +207,25 @@ public class TestGeneration
                     }
                 }
             }");
+
+    /*
+    [Fact]
+    public void StarWarsGetFriendsDeferredData() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query GetHero {
+                hero(episode: NEW_HOPE) {
+                    name
+                    friends {
+                        ... FriendsList @defer(label: ""FriendsListLabel"")
+                    }
+                }
+            }
+
+            fragment FriendsList on FriendsConnection {
+                nodes {
+                    name
+                }
+            }");
+            */
 }

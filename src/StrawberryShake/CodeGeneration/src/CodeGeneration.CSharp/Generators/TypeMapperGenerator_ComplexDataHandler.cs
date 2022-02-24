@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class TypeMapperGenerator
 {
-    private void AddComplexDataHandler(
+    private static void AddComplexDataHandler(
         CSharpSyntaxGeneratorSettings settings,
         ClassBuilder classBuilder,
         ConstructorBuilder constructorBuilder,
@@ -59,19 +59,19 @@ public partial class TypeMapperGenerator
             processed);
     }
 
-    private void GenerateIfForEachImplementedBy(
+    private static void GenerateIfForEachImplementedBy(
         MethodBuilder method,
         ComplexTypeDescriptor complexTypeDescriptor,
         Func<ObjectTypeDescriptor, IfBuilder> generator)
     {
-        if (!(complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor) ||
+        if (complexTypeDescriptor is not InterfaceTypeDescriptor interfaceTypeDescriptor ||
             !interfaceTypeDescriptor.ImplementedBy.Any())
         {
             return;
         }
 
-        IEnumerable<ObjectTypeDescriptor> dataTypes =
-            interfaceTypeDescriptor.ImplementedBy.Where(x => x.IsData());
+        ObjectTypeDescriptor[] dataTypes =
+            interfaceTypeDescriptor.ImplementedBy.Where(x => x.IsData()).ToArray();
 
         IfBuilder ifChain = generator(dataTypes.First());
 
@@ -85,7 +85,7 @@ public partial class TypeMapperGenerator
         method.AddCode(ifChain);
     }
 
-    private IfBuilder GenerateComplexDataInterfaceIfClause(
+    private static IfBuilder GenerateComplexDataInterfaceIfClause(
         CSharpSyntaxGeneratorSettings settings,
         ObjectTypeDescriptor objectTypeDescriptor,
         string variableName)

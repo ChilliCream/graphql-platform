@@ -3,7 +3,7 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-public class EnumTypeDescriptor : ILeafTypeDescriptor
+public sealed class EnumTypeDescriptor : ILeafTypeDescriptor
 {
     public EnumTypeDescriptor(
         NameString name,

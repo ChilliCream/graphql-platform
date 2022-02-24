@@ -22,8 +22,8 @@ internal sealed class FragmentRewriter : QuerySyntaxRewriter<FragmentRewriter.Co
                 0,
                 new FieldNode(
                     null,
+                    new("__typename"),
                     new NameNode($"_is{node.Name.Value}Fulfilled"),
-                    new($"__typename"),
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),

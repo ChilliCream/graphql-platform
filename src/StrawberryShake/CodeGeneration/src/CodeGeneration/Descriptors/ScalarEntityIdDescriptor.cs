@@ -3,7 +3,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors;
 /// <summary>
 /// Represents the entity for which the ID shall be generated or an id field of that entity.
 /// </summary>
-public class ScalarEntityIdDescriptor
+public sealed class ScalarEntityIdDescriptor
 {
     /// <summary>
     /// Creates a new instance of <see cref="ScalarEntityIdDescriptor"/>.

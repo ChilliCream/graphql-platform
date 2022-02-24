@@ -2,7 +2,7 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-public class ListTypeDescriptor: ITypeDescriptor
+public sealed class ListTypeDescriptor: ITypeDescriptor
 {
     public ListTypeDescriptor(ITypeDescriptor innerType)
     {

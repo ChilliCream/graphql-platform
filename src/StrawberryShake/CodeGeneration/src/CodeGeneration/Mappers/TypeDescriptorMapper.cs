@@ -61,8 +61,8 @@ public static partial class TypeDescriptorMapper
     {
         foreach (OperationModel operation in model.Operations)
         {
-            foreach (OutputTypeModel outputType in operation.GetImplementations(
-                         operation.ResultType))
+            foreach (OutputTypeModel outputType in
+                operation.GetImplementations(operation.ResultType))
             {
                 RegisterType(
                     model,
@@ -73,7 +73,7 @@ public static partial class TypeDescriptorMapper
             }
 
             foreach (OutputTypeModel outputType in
-                     operation.OutputTypes.Where(t => !t.IsInterface))
+                operation.OutputTypes.Where(t => !t.IsInterface))
             {
                 RegisterType(
                     model,
@@ -91,7 +91,7 @@ public static partial class TypeDescriptorMapper
                 operation);
 
             foreach (OutputTypeModel outputType in
-                     operation.OutputTypes.Where(t => t.IsInterface))
+                operation.OutputTypes.Where(t => t.IsInterface))
             {
                 if (!typeDescriptors.TryGetValue(
                         outputType.Name,
@@ -117,8 +117,8 @@ public static partial class TypeDescriptorMapper
         OperationModel? operationModel = null)
     {
         if (typeDescriptors.TryGetValue(
-                outputType.Name,
-                out TypeDescriptorModel descriptorModel))
+            outputType.Name,
+            out TypeDescriptorModel descriptorModel))
         {
             return;
         }
@@ -176,7 +176,7 @@ public static partial class TypeDescriptorMapper
                         parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                         break;
                     case InterfaceType when implementedBy is not null &&
-                                            implementedBy.Any(t => t.IsEntity()):
+                        implementedBy.Any(t => t.IsEntity()):
                         fallbackKind = TypeKind.EntityOrData;
                         parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                         break;
@@ -213,6 +213,11 @@ public static partial class TypeDescriptorMapper
                 new RuntimeTypeInfo(
                     CreateDataTypeName(parentRuntimeTypeName),
                     CreateStateNamespace(context.Namespace));
+        }
+
+        if (outputType.IsFragment)
+        {
+            fallbackKind = TypeKind.Fragment;
         }
     }
 

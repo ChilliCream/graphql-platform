@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class TypeMapperGenerator
 {
-    private void AddEntityOrUnionDataHandler(
+    private static void AddEntityOrUnionDataHandler(
         CSharpSyntaxGeneratorSettings settings,
         ClassBuilder classBuilder,
         ConstructorBuilder constructorBuilder,

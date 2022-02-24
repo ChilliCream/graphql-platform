@@ -42,6 +42,8 @@ public interface IMapperContext
 
     EntityIdFactoryDescriptor EntityIdFactory { get; }
 
+    IReadOnlyList<ResultFromEntityDescriptor> ResultFromEntityMappers { get; }
+
     void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 
     void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor);
@@ -61,6 +63,8 @@ public interface IMapperContext
     void Register(StoreAccessorDescriptor storeAccessorDescriptor);
 
     bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
+
+    void Register(ResultFromEntityDescriptor descriptor);
 
     RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind);
 

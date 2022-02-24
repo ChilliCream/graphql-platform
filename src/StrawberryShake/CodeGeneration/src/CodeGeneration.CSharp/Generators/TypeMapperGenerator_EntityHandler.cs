@@ -14,7 +14,7 @@ public partial class TypeMapperGenerator
     private const string _entityId = "entityId";
     private const string _snapshot = "snapshot";
 
-    private void AddEntityHandler(
+    private static void AddEntityHandler(
         ClassBuilder classBuilder,
         ConstructorBuilder constructorBuilder,
         MethodBuilder method,

@@ -6,7 +6,7 @@ using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.Descriptors;
 
-public class EntityTypeDescriptor : ICodeDescriptor
+public sealed class EntityTypeDescriptor : ICodeDescriptor
 {
     /// <summary>
     /// Create a new instance of <see cref="EntityTypeDescriptor" />

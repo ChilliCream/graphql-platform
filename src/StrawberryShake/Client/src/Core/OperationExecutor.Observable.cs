@@ -94,7 +94,6 @@ public partial class OperationExecutor<TData, TResult>
                     {
                         Response<TData> patched = resultPatcher.PatchResponse(response);
                         result = resultBuilder.Build(patched);
-                        _operationStore.Set(_request, result);
                     }
                     else
                     {

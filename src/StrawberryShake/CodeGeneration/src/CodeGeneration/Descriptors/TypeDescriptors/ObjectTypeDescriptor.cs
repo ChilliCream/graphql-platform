@@ -3,7 +3,7 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-public class ObjectTypeDescriptor : ComplexTypeDescriptor
+public sealed class ObjectTypeDescriptor : ComplexTypeDescriptor
 {
     public ObjectTypeDescriptor(
         NameString name,

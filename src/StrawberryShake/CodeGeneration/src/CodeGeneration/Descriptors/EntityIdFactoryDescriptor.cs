@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors;
 /// <summary>
 /// Represents the code descriptor of the entity id factor.
 /// </summary>
-public class EntityIdFactoryDescriptor : ICodeDescriptor
+public sealed class EntityIdFactoryDescriptor : ICodeDescriptor
 {
     /// <summary>
     /// Creates a new instance of <see cref="EntityIdFactoryDescriptor"/>.

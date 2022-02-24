@@ -12,6 +12,7 @@ internal class StoredOperation<T>
     private readonly object _sync = new();
     private ImmutableList<Subscription> _subscriptions = ImmutableList<Subscription>.Empty;
     private bool _disposed;
+    private IOperationResult<T>? _lastResult;
 
     public StoredOperation(OperationRequest request)
     {
@@ -20,7 +21,11 @@ internal class StoredOperation<T>
 
     public OperationRequest Request { get; }
 
-    public IOperationResult<T>? LastResult { get; private set; }
+    public IOperationResult<T>? LastResult
+    {
+        get => _lastResult;
+        private set => _lastResult = value;
+    }
 
     IOperationResult? IStoredOperation.LastResult => LastResult;
 

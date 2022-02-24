@@ -5,13 +5,13 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 /// <summary>
 /// Describes a type reference like the type of a member, parameter or the return type of a method
 /// </summary>
-public class PropertyDescriptor
+public sealed class PropertyDescriptor
 {
     public PropertyDescriptor(
         NameString name,
         NameString fieldName,
         ITypeDescriptor type,
-        string? description,
+        string? description = null,
         PropertyKind kind = PropertyKind.Field)
     {
         Name = name;

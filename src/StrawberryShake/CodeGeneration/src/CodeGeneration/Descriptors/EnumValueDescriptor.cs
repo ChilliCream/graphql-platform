@@ -2,7 +2,7 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Descriptors;
 
-public class EnumValueDescriptor : ICodeDescriptor
+public sealed class EnumValueDescriptor : ICodeDescriptor
 {
     public EnumValueDescriptor(
         string runtimeValue,

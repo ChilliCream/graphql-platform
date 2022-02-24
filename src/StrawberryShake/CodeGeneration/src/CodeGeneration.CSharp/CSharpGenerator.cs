@@ -142,10 +142,17 @@ public static class CSharpGenerator
             analyzer.AddDocument(executableDocument.Document);
         }
 
-        ClientModel clientModel = analyzer.Analyze();
+        try
+        {
+            ClientModel clientModel = analyzer.Analyze();
 
-        // With the client model we finally can create CSharp code.
-        return Generate(clientModel, settings);
+            // With the client model we finally can create CSharp code.
+            return Generate(clientModel, settings);
+        }
+        catch (GraphQLException ex)
+        {
+            return new CSharpGeneratorResult(ex.Errors);
+        }
     }
 
     public static CSharpGeneratorResult Generate(
@@ -197,12 +204,13 @@ public static class CSharpGenerator
         EntityTypeDescriptorMapper.Map(clientModel, context);
         ResultBuilderDescriptorMapper.Map(clientModel, context);
         DeferredFragmentMapper.Map(context);
+        ResultFromEntityMapper.Map(context);
 
         // We generate the client mapper next as we have all components of the client generated
         ClientDescriptorMapper.Map(clientModel, context);
 
         // Lastly we generate the DI code, as we now have collected everything
-        DependencyInjectionMapper.Map(clientModel, context);
+        DependencyInjectionMapper.Map(context);
 
         // Last we execute all our generators with the descriptors.
         IReadOnlyList<GeneratorResult> results = GenerateCSharpDocuments(context, settings);

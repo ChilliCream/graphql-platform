@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors;
 /// <summary>
 /// Describes the dependency injection requirements of a  GraphQL client
 /// </summary>
-public class DependencyInjectionDescriptor : ICodeDescriptor
+public sealed class DependencyInjectionDescriptor : ICodeDescriptor
 {
     public DependencyInjectionDescriptor(
         ClientDescriptor clientDescriptor,
@@ -18,7 +18,8 @@ public class DependencyInjectionDescriptor : ICodeDescriptor
         IReadOnlyList<ITypeDescriptor> typeDescriptors,
         IReadOnlyList<TransportProfile> transportProfiles,
         EntityIdFactoryDescriptor entityIdFactoryDescriptor,
-        StoreAccessorDescriptor storeAccessorDescriptor)
+        StoreAccessorDescriptor storeAccessorDescriptor,
+        IReadOnlyList<ResultFromEntityDescriptor> resultFromEntityMappers)
     {
         ClientDescriptor = clientDescriptor;
         Name = clientDescriptor.Name;
@@ -29,6 +30,7 @@ public class DependencyInjectionDescriptor : ICodeDescriptor
         EntityIdFactoryDescriptor = entityIdFactoryDescriptor;
         StoreAccessor = storeAccessorDescriptor;
         EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();
+        ResultFromEntityMappers = resultFromEntityMappers;
     }
 
     /// <summary>
@@ -54,4 +56,9 @@ public class DependencyInjectionDescriptor : ICodeDescriptor
     /// The operations that are contained in this client class
     /// </summary>
     public List<OperationDescriptor> Operations { get; }
+
+    /// <summary>
+    /// The result from entity mapper descriptors.
+    /// </summary>
+    public IReadOnlyList<ResultFromEntityDescriptor> ResultFromEntityMappers { get; }
 }

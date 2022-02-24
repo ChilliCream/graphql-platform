@@ -2,7 +2,7 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-public class NonNullTypeDescriptor : ITypeDescriptor
+public sealed class NonNullTypeDescriptor : ITypeDescriptor
 {
     public NonNullTypeDescriptor(ITypeDescriptor innerType)
     {

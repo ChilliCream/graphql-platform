@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
@@ -20,11 +21,27 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
         path = null;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
+        IReadOnlyList<PropertyDescriptor> equalityProperties = descriptor.Properties;
+
+        if (descriptor.Deferred.Count > 0)
+        {
+            var temp = descriptor.Properties.ToList();
+
+            foreach (DeferredFragmentDescriptor deferred in descriptor.Deferred)
+            {
+                var fieldName = GetFieldName(deferred.Label);
+                var propertyName = GetPropertyName(deferred.Label);
+                temp.Add(new(propertyName, fieldName, deferred.Interface));
+            }
+
+            equalityProperties = temp;
+        }
+
         ClassBuilder classBuilder = ClassBuilder
             .New()
             .SetComment(descriptor.Description)
             .SetName(fileName)
-            .AddEquality(fileName, descriptor.Properties);
+            .AddEquality(fileName, equalityProperties);
 
         ConstructorBuilder constructorBuilder = classBuilder
             .AddConstructor()
@@ -57,15 +74,24 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
         foreach (DeferredFragmentDescriptor deferred in descriptor.Deferred)
         {
             var fieldName = GetFieldName(deferred.Label);
+            var propertyName = GetPropertyName(deferred.Label);
             var paramName = GetParameterName(deferred.Label);
 
             // Add backing field
             classBuilder
                 .AddField(FieldBuilder
                     .New()
-                    .SetName(fieldName)
                     .SetReadOnly()
+                    .SetName(fieldName)
                     .SetType($"{deferred.InterfaceName}?"));
+
+            classBuilder
+                .AddProperty(PropertyBuilder
+                    .New()
+                    .SetPublic()
+                    .SetName(propertyName)
+                    .AsLambda(fieldName)
+                    .SetType($"{deferred.InterfaceName}"));
 
             // Add fragment data resolver
             classBuilder

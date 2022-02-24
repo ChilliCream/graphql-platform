@@ -418,25 +418,22 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
         body.AddEmptyLine();
 
-        foreach (INamedTypeDescriptor typeDescriptor in descriptor.TypeDescriptors
-                     .OfType<INamedTypeDescriptor>())
+        foreach (INamedTypeDescriptor typeDescriptor in
+            descriptor.ResultFromEntityMappers)
         {
-            if (typeDescriptor.Kind == TypeKind.Entity && !typeDescriptor.IsInterface())
-            {
-                var namedTypeDescriptor = (INamedTypeDescriptor)typeDescriptor.NamedType();
-                NameString className = namedTypeDescriptor.ExtractMapperName();
+            var namedTypeDescriptor = (INamedTypeDescriptor)typeDescriptor.NamedType();
+            NameString className = namedTypeDescriptor.ExtractMapperName();
 
-                var interfaceName =
-                    IEntityMapper.WithGeneric(
-                        namedTypeDescriptor.ExtractType().ToString(),
-                        $"{rootNamespace}.{typeDescriptor.RuntimeType.Name}");
+            var interfaceName =
+                IEntityMapper.WithGeneric(
+                    namedTypeDescriptor.ExtractType().ToString(),
+                    $"{rootNamespace}.{typeDescriptor.RuntimeType.Name}");
 
-                body.AddMethodCall()
-                    .SetMethodName(AddSingleton)
-                    .AddGeneric(interfaceName)
-                    .AddGeneric($"{CreateStateNamespace(rootNamespace)}.{className}")
-                    .AddArgument(_services);
-            }
+            body.AddMethodCall()
+                .SetMethodName(AddSingleton)
+                .AddGeneric(interfaceName)
+                .AddGeneric($"{CreateStateNamespace(rootNamespace)}.{className}")
+                .AddArgument(_services);
         }
 
         body.AddEmptyLine();

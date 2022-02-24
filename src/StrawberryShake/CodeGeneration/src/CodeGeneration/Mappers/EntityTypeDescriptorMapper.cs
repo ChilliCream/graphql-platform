@@ -7,7 +7,6 @@ using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
-using TypeKind = HotChocolate.Types.TypeKind;
 
 namespace StrawberryShake.CodeGeneration.Mappers;
 
@@ -32,7 +31,8 @@ public static class EntityTypeDescriptorMapper
 
         foreach (OperationModel operation in model.Operations)
         {
-            foreach (OutputTypeModel outputType in operation.OutputTypes.Where(t => !t.IsInterface))
+            foreach (OutputTypeModel outputType in
+                operation.OutputTypes.Where(t => !t.IsInterface && !t.IsFragment))
             {
                 INamedType namedType = outputType.Type.NamedType();
                 descriptions[namedType.Name] = outputType.Description;
