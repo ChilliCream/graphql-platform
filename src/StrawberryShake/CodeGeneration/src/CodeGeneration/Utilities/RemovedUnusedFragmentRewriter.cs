@@ -13,9 +13,9 @@ internal sealed class RemovedUnusedFragmentRewriter
         var definitions = node.Definitions.ToList();
 
         foreach (FragmentDefinitionNode fragmentDefinition in
-                 node.Definitions.OfType<FragmentDefinitionNode>())
+            node.Definitions.OfType<FragmentDefinitionNode>())
         {
-            if (context.Used.Contains(fragmentDefinition.Name.Value))
+            if (!context.Used.Contains(fragmentDefinition.Name.Value))
             {
                 definitions.Remove(fragmentDefinition);
             }

@@ -572,48 +572,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.Stat
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.DroidEntity, GetHero_Hero_Droid>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetHero_Hero_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetHero_Hero_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetHero_Hero_Droid(entity.Name);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.HumanEntity, GetHero_Hero_Human>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetHero_Hero_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetHero_Hero_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetHero_Hero_Human(entity.Name);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder : global::StrawberryShake.OperationResultBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroResult>
@@ -692,6 +650,48 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.Stat
             }
 
             return _stringParser.Parse(obj.Value.GetString()!);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.DroidEntity, GetHero_Hero_Droid>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetHero_Hero_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetHero_Hero_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetHero_Hero_Droid(entity.Name);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.HumanEntity, GetHero_Hero_Human>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetHero_Hero_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetHero_Hero_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetHero_Hero_Human(entity.Name);
         }
     }
 

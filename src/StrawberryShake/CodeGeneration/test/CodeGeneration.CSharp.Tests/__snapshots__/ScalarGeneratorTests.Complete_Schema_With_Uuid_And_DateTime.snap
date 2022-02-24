@@ -700,63 +700,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class AllExpenses_Expense_ExpenseFromExpenseEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ExpenseEntity, AllExpenses_Expense_Expense>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public AllExpenses_Expense_ExpenseFromExpenseEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public AllExpenses_Expense_Expense Map(global::Foo.Bar.State.ExpenseEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new AllExpenses_Expense_Expense(entity.Id, entity.Amount, entity.Date, entity.Description, entity.Category, entity.PaymentMethod, MapIAllExpenses_Expense_TagsArray(entity.Tags, snapshot));
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense_Tags?>? MapIAllExpenses_Expense_TagsArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var tags = new global::System.Collections.Generic.List<global::Foo.Bar.IAllExpenses_Expense_Tags?>();
-            foreach (global::Foo.Bar.State.TagData? child in list)
-            {
-                tags.Add(MapIAllExpenses_Expense_Tags(child, snapshot));
-            }
-
-            return tags;
-        }
-
-        private global::Foo.Bar.IAllExpenses_Expense_Tags? MapIAllExpenses_Expense_Tags(global::Foo.Bar.State.TagData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IAllExpenses_Expense_Tags returnValue = default !;
-            if (data?.__typename.Equals("Tag", global::System.StringComparison.Ordinal) ?? false)
-            {
-                returnValue = new AllExpenses_Expense_Tags_Tag(data.Name);
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IAllExpensesResult>
@@ -945,6 +888,63 @@ namespace Foo.Bar.State
         public global::System.String __typename { get; }
 
         public global::System.String? Name { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class AllExpenses_Expense_ExpenseFromExpenseEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ExpenseEntity, AllExpenses_Expense_Expense>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public AllExpenses_Expense_ExpenseFromExpenseEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public AllExpenses_Expense_Expense Map(global::Foo.Bar.State.ExpenseEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new AllExpenses_Expense_Expense(entity.Id, entity.Amount, entity.Date, entity.Description, entity.Category, entity.PaymentMethod, MapIAllExpenses_Expense_TagsArray(entity.Tags, snapshot));
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense_Tags?>? MapIAllExpenses_Expense_TagsArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var tags = new global::System.Collections.Generic.List<global::Foo.Bar.IAllExpenses_Expense_Tags?>();
+            foreach (global::Foo.Bar.State.TagData? child in list)
+            {
+                tags.Add(MapIAllExpenses_Expense_Tags(child, snapshot));
+            }
+
+            return tags;
+        }
+
+        private global::Foo.Bar.IAllExpenses_Expense_Tags? MapIAllExpenses_Expense_Tags(global::Foo.Bar.State.TagData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IAllExpenses_Expense_Tags returnValue = default !;
+            if (data?.__typename.Equals("Tag", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new AllExpenses_Expense_Tags_Tag(data.Name);
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

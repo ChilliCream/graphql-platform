@@ -781,154 +781,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFoo_Test_TestFromTestEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.TestEntity, GetFoo_Test_Test>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BazEntity, GetFoo_Test_Foo_Baz> _getFoo_Test_Foo_BazFromBazEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.Baz2Entity, GetFoo_Test_Foo_Baz2> _getFoo_Test_Foo_Baz2FromBaz2EntityMapper;
-        public GetFoo_Test_TestFromTestEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BazEntity, GetFoo_Test_Foo_Baz> getFoo_Test_Foo_BazFromBazEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.Baz2Entity, GetFoo_Test_Foo_Baz2> getFoo_Test_Foo_Baz2FromBaz2EntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getFoo_Test_Foo_BazFromBazEntityMapper = getFoo_Test_Foo_BazFromBazEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getFoo_Test_Foo_BazFromBazEntityMapper));
-            _getFoo_Test_Foo_Baz2FromBaz2EntityMapper = getFoo_Test_Foo_Baz2FromBaz2EntityMapper ?? throw new global::System.ArgumentNullException(nameof(getFoo_Test_Foo_Baz2FromBaz2EntityMapper));
-        }
-
-        public GetFoo_Test_Test Map(global::Foo.Bar.State.TestEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetFoo_Test_Test(MapIGetFoo_Test_FooArray(entity.Foo, snapshot));
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Test_Foo?>? MapIGetFoo_Test_FooArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityIdOrData?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var bars = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFoo_Test_Foo?>();
-            foreach (global::StrawberryShake.EntityIdOrData? child in list)
-            {
-                bars.Add(MapIGetFoo_Test_Foo(child, snapshot));
-            }
-
-            return bars;
-        }
-
-        private global::Foo.Bar.IGetFoo_Test_Foo? MapIGetFoo_Test_Foo(global::StrawberryShake.EntityIdOrData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            if (data.Value.EntityId is { } id)
-            {
-                return MapIGetFoo_Test_FooData(id, snapshot);
-            }
-            else if (data.Value.Data is global::Foo.Bar.State.IBarData d)
-            {
-                return MapIGetFoo_Test_FooEntity(d, snapshot);
-            }
-            else
-            {
-                throw new global::System.ArgumentOutOfRangeException();
-            }
-        }
-
-        private global::Foo.Bar.IGetFoo_Test_Foo? MapIGetFoo_Test_FooEntity(global::Foo.Bar.State.IBarData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IGetFoo_Test_Foo? returnValue;
-            if (data is global::Foo.Bar.State.QuoxData quox)
-            {
-                returnValue = new global::Foo.Bar.GetFoo_Test_Foo_Quox(quox.Foo);
-            }
-            else if (data is global::Foo.Bar.State.Quox2Data quox2)
-            {
-                returnValue = new global::Foo.Bar.GetFoo_Test_Foo_Quox2(quox2.Foo);
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        private global::Foo.Bar.IGetFoo_Test_Foo? MapIGetFoo_Test_FooData(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId is null)
-            {
-                return null;
-            }
-
-            if (entityId.Value.Name.Equals("Baz", global::System.StringComparison.Ordinal))
-            {
-                return _getFoo_Test_Foo_BazFromBazEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.BazEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            if (entityId.Value.Name.Equals("Baz2", global::System.StringComparison.Ordinal))
-            {
-                return _getFoo_Test_Foo_Baz2FromBaz2EntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.Baz2Entity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFoo_Test_Foo_BazFromBazEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BazEntity, GetFoo_Test_Foo_Baz>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetFoo_Test_Foo_BazFromBazEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetFoo_Test_Foo_Baz Map(global::Foo.Bar.State.BazEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetFoo_Test_Foo_Baz(entity.Id);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFoo_Test_Foo_Baz2FromBaz2EntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.Baz2Entity, GetFoo_Test_Foo_Baz2>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetFoo_Test_Foo_Baz2FromBaz2EntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetFoo_Test_Foo_Baz2 Map(global::Foo.Bar.State.Baz2Entity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetFoo_Test_Foo_Baz2(entity.Id);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFooBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IGetFooResult>
@@ -1104,6 +956,154 @@ namespace Foo.Bar.State
         public global::System.String __typename { get; }
 
         public global::System.String? Foo { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetFoo_Test_TestFromTestEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.TestEntity, GetFoo_Test_Test>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BazEntity, GetFoo_Test_Foo_Baz> _getFoo_Test_Foo_BazFromBazEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.Baz2Entity, GetFoo_Test_Foo_Baz2> _getFoo_Test_Foo_Baz2FromBaz2EntityMapper;
+        public GetFoo_Test_TestFromTestEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BazEntity, GetFoo_Test_Foo_Baz> getFoo_Test_Foo_BazFromBazEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.Baz2Entity, GetFoo_Test_Foo_Baz2> getFoo_Test_Foo_Baz2FromBaz2EntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getFoo_Test_Foo_BazFromBazEntityMapper = getFoo_Test_Foo_BazFromBazEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getFoo_Test_Foo_BazFromBazEntityMapper));
+            _getFoo_Test_Foo_Baz2FromBaz2EntityMapper = getFoo_Test_Foo_Baz2FromBaz2EntityMapper ?? throw new global::System.ArgumentNullException(nameof(getFoo_Test_Foo_Baz2FromBaz2EntityMapper));
+        }
+
+        public GetFoo_Test_Test Map(global::Foo.Bar.State.TestEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetFoo_Test_Test(MapIGetFoo_Test_FooArray(entity.Foo, snapshot));
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFoo_Test_Foo?>? MapIGetFoo_Test_FooArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityIdOrData?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var bars = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFoo_Test_Foo?>();
+            foreach (global::StrawberryShake.EntityIdOrData? child in list)
+            {
+                bars.Add(MapIGetFoo_Test_Foo(child, snapshot));
+            }
+
+            return bars;
+        }
+
+        private global::Foo.Bar.IGetFoo_Test_Foo? MapIGetFoo_Test_Foo(global::StrawberryShake.EntityIdOrData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            if (data.Value.EntityId is { } id)
+            {
+                return MapIGetFoo_Test_FooData(id, snapshot);
+            }
+            else if (data.Value.Data is global::Foo.Bar.State.IBarData d)
+            {
+                return MapIGetFoo_Test_FooEntity(d, snapshot);
+            }
+            else
+            {
+                throw new global::System.ArgumentOutOfRangeException();
+            }
+        }
+
+        private global::Foo.Bar.IGetFoo_Test_Foo? MapIGetFoo_Test_FooEntity(global::Foo.Bar.State.IBarData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IGetFoo_Test_Foo? returnValue;
+            if (data is global::Foo.Bar.State.QuoxData quox)
+            {
+                returnValue = new global::Foo.Bar.GetFoo_Test_Foo_Quox(quox.Foo);
+            }
+            else if (data is global::Foo.Bar.State.Quox2Data quox2)
+            {
+                returnValue = new global::Foo.Bar.GetFoo_Test_Foo_Quox2(quox2.Foo);
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::Foo.Bar.IGetFoo_Test_Foo? MapIGetFoo_Test_FooData(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("Baz", global::System.StringComparison.Ordinal))
+            {
+                return _getFoo_Test_Foo_BazFromBazEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.BazEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            if (entityId.Value.Name.Equals("Baz2", global::System.StringComparison.Ordinal))
+            {
+                return _getFoo_Test_Foo_Baz2FromBaz2EntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.Baz2Entity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetFoo_Test_Foo_BazFromBazEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BazEntity, GetFoo_Test_Foo_Baz>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetFoo_Test_Foo_BazFromBazEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetFoo_Test_Foo_Baz Map(global::Foo.Bar.State.BazEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetFoo_Test_Foo_Baz(entity.Id);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetFoo_Test_Foo_Baz2FromBaz2EntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.Baz2Entity, GetFoo_Test_Foo_Baz2>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetFoo_Test_Foo_Baz2FromBaz2EntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetFoo_Test_Foo_Baz2 Map(global::Foo.Bar.State.Baz2Entity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetFoo_Test_Foo_Baz2(entity.Id);
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

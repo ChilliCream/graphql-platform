@@ -1719,210 +1719,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Droid>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid> _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human> _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper;
-        public GetHero_Hero_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid> getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human> getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper = getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper));
-            _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper = getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper));
-        }
-
-        public GetHero_Hero_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetHero_Hero_Droid(entity.Name, MapIGetHero_Hero_Friends(entity.Friends, snapshot));
-        }
-
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.FriendsConnectionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IGetHero_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
-            {
-                returnValue = new GetHero_Hero_Friends_FriendsConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes, snapshot));
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>();
-            foreach (global::StrawberryShake.EntityId? child in list)
-            {
-                characters.Add(MapIGetHero_Hero_Friends_Nodes(child, snapshot));
-            }
-
-            return characters;
-        }
-
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId is null)
-            {
-                return null;
-            }
-
-            if (entityId.Value.Name.Equals("Droid", global::System.StringComparison.Ordinal))
-            {
-                return _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper.Map(snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            if (entityId.Value.Name.Equals("Human", global::System.StringComparison.Ordinal))
-            {
-                return _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper.Map(snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Human>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid> _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human> _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper;
-        public GetHero_Hero_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid> getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human> getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper = getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper));
-            _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper = getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper));
-        }
-
-        public GetHero_Hero_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetHero_Hero_Human(entity.Name, MapIGetHero_Hero_Friends(entity.Friends, snapshot));
-        }
-
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.FriendsConnectionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IGetHero_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
-            {
-                returnValue = new GetHero_Hero_Friends_FriendsConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes, snapshot));
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>();
-            foreach (global::StrawberryShake.EntityId? child in list)
-            {
-                characters.Add(MapIGetHero_Hero_Friends_Nodes(child, snapshot));
-            }
-
-            return characters;
-        }
-
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId is null)
-            {
-                return null;
-            }
-
-            if (entityId.Value.Name.Equals("Droid", global::System.StringComparison.Ordinal))
-            {
-                return _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper.Map(snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            if (entityId.Value.Name.Equals("Human", global::System.StringComparison.Ordinal))
-            {
-                return _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper.Map(snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetHero_Hero_Friends_Nodes_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetHero_Hero_Friends_Nodes_Droid(entity.Name);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetHero_Hero_Friends_Nodes_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetHero_Hero_Friends_Nodes_Human(entity.Name);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubResult>
@@ -2404,6 +2200,210 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         public global::System.Int32? Stars { get; }
 
         public global::System.String? Commentary { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Droid>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid> _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human> _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper;
+        public GetHero_Hero_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid> getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human> getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper = getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper));
+            _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper = getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper));
+        }
+
+        public GetHero_Hero_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetHero_Hero_Droid(entity.Name, MapIGetHero_Hero_Friends(entity.Friends, snapshot));
+        }
+
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.FriendsConnectionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IGetHero_Hero_Friends returnValue = default !;
+            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetHero_Hero_Friends_FriendsConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes, snapshot));
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>();
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                characters.Add(MapIGetHero_Hero_Friends_Nodes(child, snapshot));
+            }
+
+            return characters;
+        }
+
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("Droid", global::System.StringComparison.Ordinal))
+            {
+                return _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper.Map(snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            if (entityId.Value.Name.Equals("Human", global::System.StringComparison.Ordinal))
+            {
+                return _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper.Map(snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Human>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid> _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human> _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper;
+        public GetHero_Hero_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid> getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human> getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper = getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper));
+            _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper = getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper));
+        }
+
+        public GetHero_Hero_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetHero_Hero_Human(entity.Name, MapIGetHero_Hero_Friends(entity.Friends, snapshot));
+        }
+
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.FriendsConnectionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IGetHero_Hero_Friends returnValue = default !;
+            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetHero_Hero_Friends_FriendsConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes, snapshot));
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>();
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                characters.Add(MapIGetHero_Hero_Friends_Nodes(child, snapshot));
+            }
+
+            return characters;
+        }
+
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("Droid", global::System.StringComparison.Ordinal))
+            {
+                return _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper.Map(snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            if (entityId.Value.Name.Equals("Human", global::System.StringComparison.Ordinal))
+            {
+                return _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper.Map(snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetHero_Hero_Friends_Nodes_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetHero_Hero_Friends_Nodes_Droid(entity.Name);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetHero_Hero_Friends_Nodes_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetHero_Hero_Friends_Nodes_Human(entity.Name);
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

@@ -3842,27 +3842,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetPeople_People_Nodes_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetPeople_People_Nodes_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetPeople_People_Nodes_Person(entity.Name, entity.Email, entity.IsOnline, entity.ImageUri, entity.LastSeen);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessagesResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.GetMessagesResult>
@@ -3930,191 +3909,6 @@ namespace Foo.Bar.State
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetMessagesResultInfo(PersonByEmail, _entityIds, version);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetMessages_PersonByEmail_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-        public GetMessages_PersonByEmail_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper = getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper));
-            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
-            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
-        }
-
-        public GetMessages_PersonByEmail_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetMessages_PersonByEmail_Person(MapIGetMessages_PersonByEmail_Messages(entity.Messages, snapshot));
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages? MapIGetMessages_PersonByEmail_Messages(global::Foo.Bar.State.MessageConnectionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IGetMessages_PersonByEmail_Messages returnValue = default !;
-            if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
-            {
-                returnValue = new GetMessages_PersonByEmail_Messages_MessageConnection(MapIGetMessages_PersonByEmail_Messages_NodesArray(data.Nodes, snapshot));
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>? MapIGetMessages_PersonByEmail_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var messages = new global::System.Collections.Generic.List<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>();
-            foreach (global::StrawberryShake.EntityId? child in list)
-            {
-                messages.Add(MapIGetMessages_PersonByEmail_Messages_Nodes(child, snapshot));
-            }
-
-            return messages;
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes? MapIGetMessages_PersonByEmail_Messages_Nodes(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId is null)
-            {
-                return null;
-            }
-
-            if (entityId.Value.Name.Equals("Message", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.MessageEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-        public GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
-            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
-        }
-
-        public GetMessages_PersonByEmail_Messages_Nodes_Message Map(global::Foo.Bar.State.MessageEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetMessages_PersonByEmail_Messages_Nodes_Message(entity.Id, entity.Text, entity.Direction, MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient, snapshot), MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender, snapshot), entity.Sent);
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person(entity.Name, entity.Email, entity.IsOnline);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetMessages_PersonByEmail_Messages_Nodes_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetMessages_PersonByEmail_Messages_Nodes_Sender_Person(entity.Name, entity.Email, entity.IsOnline);
         }
     }
 
@@ -4227,93 +4021,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageInput_SendMessage_Message_Message>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-        public SendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
-            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
-        }
-
-        public SendMessageInput_SendMessage_Message_Message Map(global::Foo.Bar.State.MessageEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SendMessageInput_SendMessage_Message_Message(entity.Id, entity.Text, entity.Direction, MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient, snapshot), MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender, snapshot), entity.Sent);
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageInput_SendMessage_Message_Recipient_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public SendMessageInput_SendMessage_Message_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SendMessageInput_SendMessage_Message_Recipient_Person(entity.Name, entity.Email, entity.IsOnline);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageInput_SendMessage_Message_Sender_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public SendMessageInput_SendMessage_Message_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SendMessageInput_SendMessage_Message_Sender_Person(entity.Name, entity.Email, entity.IsOnline);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMutResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.SendMessageMutResult>
@@ -4423,93 +4130,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageMut_SendMessage_Message_Message>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-        public SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
-            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
-        }
-
-        public SendMessageMut_SendMessage_Message_Message Map(global::Foo.Bar.State.MessageEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SendMessageMut_SendMessage_Message_Message(entity.Id, entity.Text, entity.Direction, MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient, snapshot), MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender, snapshot), entity.Sent);
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageMut_SendMessage_Message_Recipient_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public SendMessageMut_SendMessage_Message_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SendMessageMut_SendMessage_Message_Recipient_Person(entity.Name, entity.Email, entity.IsOnline);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageMut_SendMessage_Message_Sender_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public SendMessageMut_SendMessage_Message_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SendMessageMut_SendMessage_Message_Sender_Person(entity.Name, entity.Email, entity.IsOnline);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessagesResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ReadMessagesResult>
@@ -4577,93 +4197,6 @@ namespace Foo.Bar.State
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new ReadMessagesResultInfo(Message, _entityIds, version);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class ReadMessages_Message_MessageFromMessageEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, ReadMessages_Message_Message>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-        public ReadMessages_Message_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
-            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
-        }
-
-        public ReadMessages_Message_Message Map(global::Foo.Bar.State.MessageEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new ReadMessages_Message_Message(entity.Id, entity.Text, entity.Direction, MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient, snapshot), MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender, snapshot), entity.Sent);
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class ReadMessages_Message_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, ReadMessages_Message_Recipient_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public ReadMessages_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public ReadMessages_Message_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new ReadMessages_Message_Recipient_Person(entity.Name, entity.Email, entity.IsOnline);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class ReadMessages_Message_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, ReadMessages_Message_Sender_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public ReadMessages_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public ReadMessages_Message_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new ReadMessages_Message_Sender_Person(entity.Name, entity.Email, entity.IsOnline);
         }
     }
 
@@ -5580,6 +5113,473 @@ namespace Foo.Bar.State
 
         ///<summary>Field message</summary>
         public global::StrawberryShake.EntityId? Message { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetPeople_People_Nodes_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetPeople_People_Nodes_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetPeople_People_Nodes_Person(entity.Name, entity.Email, entity.IsOnline, entity.ImageUri, entity.LastSeen);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        public GetMessages_PersonByEmail_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper = getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
+        }
+
+        public GetMessages_PersonByEmail_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetMessages_PersonByEmail_Person(MapIGetMessages_PersonByEmail_Messages(entity.Messages, snapshot));
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages? MapIGetMessages_PersonByEmail_Messages(global::Foo.Bar.State.MessageConnectionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IGetMessages_PersonByEmail_Messages returnValue = default !;
+            if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetMessages_PersonByEmail_Messages_MessageConnection(MapIGetMessages_PersonByEmail_Messages_NodesArray(data.Nodes, snapshot));
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>? MapIGetMessages_PersonByEmail_Messages_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var messages = new global::System.Collections.Generic.List<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>();
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                messages.Add(MapIGetMessages_PersonByEmail_Messages_Nodes(child, snapshot));
+            }
+
+            return messages;
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes? MapIGetMessages_PersonByEmail_Messages_Nodes(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("Message", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.MessageEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        public GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
+        }
+
+        public GetMessages_PersonByEmail_Messages_Nodes_Message Map(global::Foo.Bar.State.MessageEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetMessages_PersonByEmail_Messages_Nodes_Message(entity.Id, entity.Text, entity.Direction, MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient, snapshot), MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender, snapshot), entity.Sent);
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person(entity.Name, entity.Email, entity.IsOnline);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetMessages_PersonByEmail_Messages_Nodes_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetMessages_PersonByEmail_Messages_Nodes_Sender_Person(entity.Name, entity.Email, entity.IsOnline);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageInput_SendMessage_Message_Message>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        public SendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
+        }
+
+        public SendMessageInput_SendMessage_Message_Message Map(global::Foo.Bar.State.MessageEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SendMessageInput_SendMessage_Message_Message(entity.Id, entity.Text, entity.Direction, MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient, snapshot), MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender, snapshot), entity.Sent);
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageInput_SendMessage_Message_Recipient_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public SendMessageInput_SendMessage_Message_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SendMessageInput_SendMessage_Message_Recipient_Person(entity.Name, entity.Email, entity.IsOnline);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageInput_SendMessage_Message_Sender_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public SendMessageInput_SendMessage_Message_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SendMessageInput_SendMessage_Message_Sender_Person(entity.Name, entity.Email, entity.IsOnline);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageMut_SendMessage_Message_Message>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        public SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
+        }
+
+        public SendMessageMut_SendMessage_Message_Message Map(global::Foo.Bar.State.MessageEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SendMessageMut_SendMessage_Message_Message(entity.Id, entity.Text, entity.Direction, MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient, snapshot), MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender, snapshot), entity.Sent);
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageMut_SendMessage_Message_Recipient_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public SendMessageMut_SendMessage_Message_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SendMessageMut_SendMessage_Message_Recipient_Person(entity.Name, entity.Email, entity.IsOnline);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageMut_SendMessage_Message_Sender_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public SendMessageMut_SendMessage_Message_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SendMessageMut_SendMessage_Message_Sender_Person(entity.Name, entity.Email, entity.IsOnline);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessages_Message_MessageFromMessageEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, ReadMessages_Message_Message>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
+        public ReadMessages_Message_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper));
+            _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper = getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper));
+        }
+
+        public ReadMessages_Message_Message Map(global::Foo.Bar.State.MessageEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new ReadMessages_Message_Message(entity.Id, entity.Text, entity.Direction, MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(entity.Recipient, snapshot), MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(entity.Sender, snapshot), entity.Sent);
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Recipient(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender MapNonNullableIGetMessages_PersonByEmail_Messages_Nodes_Sender(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessages_Message_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, ReadMessages_Message_Recipient_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public ReadMessages_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public ReadMessages_Message_Recipient_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new ReadMessages_Message_Recipient_Person(entity.Name, entity.Email, entity.IsOnline);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ReadMessages_Message_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, ReadMessages_Message_Sender_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public ReadMessages_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public ReadMessages_Message_Sender_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new ReadMessages_Message_Sender_Person(entity.Name, entity.Email, entity.IsOnline);
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

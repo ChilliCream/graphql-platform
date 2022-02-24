@@ -1182,103 +1182,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class PeopleSearch_People_Items_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper;
-        public PeopleSearch_People_Items_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper = peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper));
-            _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper = peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper));
-        }
-
-        public PeopleSearch_People_Items_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new PeopleSearch_People_Items_Person(entity.Id, entity.Key, entity.DisplayName, entity.IsActive, MapIPeopleSearch_People_Items_Department(entity.Department, snapshot), entity.Image, entity.Title, MapIPeopleSearch_People_Items_Manager(entity.Manager, snapshot));
-        }
-
-        private global::Foo.Bar.IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId is null)
-            {
-                return null;
-            }
-
-            if (entityId.Value.Name.Equals("Department", global::System.StringComparison.Ordinal))
-            {
-                return _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.DepartmentEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::Foo.Bar.IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId is null)
-            {
-                return null;
-            }
-
-            if (entityId.Value.Name.Equals("Person", global::System.StringComparison.Ordinal))
-            {
-                return _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public PeopleSearch_People_Items_Department_Department Map(global::Foo.Bar.State.DepartmentEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new PeopleSearch_People_Items_Department_Department(entity.Id, entity.Name);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public PeopleSearch_People_Items_Manager_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new PeopleSearch_People_Items_Manager_Person(entity.Id, entity.Key, entity.DisplayName);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearchBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IPeopleSearchQueryResult>
@@ -1547,6 +1450,103 @@ namespace Foo.Bar.State
 
         ///<summary>Indicates whether more items exist prior the set defined by the clients arguments.</summary>
         public global::System.Boolean? HasPreviousPage { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_Items_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper;
+        public PeopleSearch_People_Items_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper = peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper));
+            _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper = peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper));
+        }
+
+        public PeopleSearch_People_Items_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new PeopleSearch_People_Items_Person(entity.Id, entity.Key, entity.DisplayName, entity.IsActive, MapIPeopleSearch_People_Items_Department(entity.Department, snapshot), entity.Image, entity.Title, MapIPeopleSearch_People_Items_Manager(entity.Manager, snapshot));
+        }
+
+        private global::Foo.Bar.IPeopleSearch_People_Items_Department? MapIPeopleSearch_People_Items_Department(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("Department", global::System.StringComparison.Ordinal))
+            {
+                return _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.DepartmentEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IPeopleSearch_People_Items_Manager? MapIPeopleSearch_People_Items_Manager(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("Person", global::System.StringComparison.Ordinal))
+            {
+                return _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.PersonEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public PeopleSearch_People_Items_Department_Department Map(global::Foo.Bar.State.DepartmentEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new PeopleSearch_People_Items_Department_Department(entity.Id, entity.Name);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public PeopleSearch_People_Items_Manager_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new PeopleSearch_People_Items_Manager_Person(entity.Id, entity.Key, entity.DisplayName);
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

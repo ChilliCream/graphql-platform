@@ -389,27 +389,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class CreatePerson_CreatePerson_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, CreatePerson_CreatePerson_Person>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public CreatePerson_CreatePerson_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public CreatePerson_CreatePerson_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new CreatePerson_CreatePerson_Person(entity.Name);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreatePersonBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.ICreatePersonResult>
@@ -474,6 +453,27 @@ namespace Foo.Bar.State
             }
 
             return _stringParser.Parse(obj.Value.GetString()!);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class CreatePerson_CreatePerson_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, CreatePerson_CreatePerson_Person>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public CreatePerson_CreatePerson_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public CreatePerson_CreatePerson_Person Map(global::Foo.Bar.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new CreatePerson_CreatePerson_Person(entity.Name);
         }
     }
 

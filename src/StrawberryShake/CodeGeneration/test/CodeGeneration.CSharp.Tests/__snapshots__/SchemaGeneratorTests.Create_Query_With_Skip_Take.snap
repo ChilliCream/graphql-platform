@@ -585,27 +585,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public SearchNewsItems_NewsItems_Items_NewsItem Map(global::Foo.Bar.State.NewsItemEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SearchNewsItems_NewsItems_Items_NewsItem(entity.Id, entity.Title, entity.Summary);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchNewsItemsBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.ISearchNewsItemsResult>
@@ -722,6 +701,27 @@ namespace Foo.Bar.State
         public global::System.String __typename { get; }
 
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Items { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public SearchNewsItems_NewsItems_Items_NewsItem Map(global::Foo.Bar.State.NewsItemEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SearchNewsItems_NewsItems_Items_NewsItem(entity.Id, entity.Title, entity.Summary);
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

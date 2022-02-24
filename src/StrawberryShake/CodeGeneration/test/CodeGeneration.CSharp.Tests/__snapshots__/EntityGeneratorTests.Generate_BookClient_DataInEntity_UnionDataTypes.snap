@@ -674,87 +674,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SearchableStoreEntity, GetStore2_SearchableStore_SearchableStore>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetStore2_SearchableStore_SearchableStore Map(global::Foo.Bar.State.SearchableStoreEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetStore2_SearchableStore_SearchableStore(entity.Id, MapIGetStore2_SearchableStore_BooksArray(entity.Books, snapshot), MapIGetStore2_SearchableStore_Search(entity.Search, snapshot));
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetStore2_SearchableStore_Books?>? MapIGetStore2_SearchableStore_BooksArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var books = new global::System.Collections.Generic.List<global::Foo.Bar.IGetStore2_SearchableStore_Books?>();
-            foreach (global::Foo.Bar.State.BookData? child in list)
-            {
-                books.Add(MapIGetStore2_SearchableStore_Books(child, snapshot));
-            }
-
-            return books;
-        }
-
-        private global::Foo.Bar.IGetStore2_SearchableStore_Books? MapIGetStore2_SearchableStore_Books(global::Foo.Bar.State.BookData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IGetStore2_SearchableStore_Books returnValue = default !;
-            if (data?.__typename.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
-            {
-                returnValue = new GetStore2_SearchableStore_Books_Book(data.Isbn ?? throw new global::System.ArgumentNullException(), data.Title ?? throw new global::System.ArgumentNullException());
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        private global::Foo.Bar.IGetStore2_SearchableStore_Search? MapIGetStore2_SearchableStore_Search(global::Foo.Bar.State.ISearchResultData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IGetStore2_SearchableStore_Search? returnValue;
-            if (data is global::Foo.Bar.State.AuthorData author)
-            {
-                returnValue = new global::Foo.Bar.GetStore2_SearchableStore_Search_Author();
-            }
-            else if (data is global::Foo.Bar.State.BookData book)
-            {
-                returnValue = new global::Foo.Bar.GetStore2_SearchableStore_Search_Book(book.Title ?? throw new global::System.ArgumentNullException(), book.Isbn ?? throw new global::System.ArgumentNullException());
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetStore2Builder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IGetStore2Result>
@@ -917,6 +836,87 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SearchableStoreEntity, GetStore2_SearchableStore_SearchableStore>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetStore2_SearchableStore_SearchableStore Map(global::Foo.Bar.State.SearchableStoreEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetStore2_SearchableStore_SearchableStore(entity.Id, MapIGetStore2_SearchableStore_BooksArray(entity.Books, snapshot), MapIGetStore2_SearchableStore_Search(entity.Search, snapshot));
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetStore2_SearchableStore_Books?>? MapIGetStore2_SearchableStore_BooksArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var books = new global::System.Collections.Generic.List<global::Foo.Bar.IGetStore2_SearchableStore_Books?>();
+            foreach (global::Foo.Bar.State.BookData? child in list)
+            {
+                books.Add(MapIGetStore2_SearchableStore_Books(child, snapshot));
+            }
+
+            return books;
+        }
+
+        private global::Foo.Bar.IGetStore2_SearchableStore_Books? MapIGetStore2_SearchableStore_Books(global::Foo.Bar.State.BookData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IGetStore2_SearchableStore_Books returnValue = default !;
+            if (data?.__typename.Equals("Book", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetStore2_SearchableStore_Books_Book(data.Isbn ?? throw new global::System.ArgumentNullException(), data.Title ?? throw new global::System.ArgumentNullException());
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::Foo.Bar.IGetStore2_SearchableStore_Search? MapIGetStore2_SearchableStore_Search(global::Foo.Bar.State.ISearchResultData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IGetStore2_SearchableStore_Search? returnValue;
+            if (data is global::Foo.Bar.State.AuthorData author)
+            {
+                returnValue = new global::Foo.Bar.GetStore2_SearchableStore_Search_Author();
+            }
+            else if (data is global::Foo.Bar.State.BookData book)
+            {
+                returnValue = new global::Foo.Bar.GetStore2_SearchableStore_Search_Book(book.Title ?? throw new global::System.ArgumentNullException(), book.Isbn ?? throw new global::System.ArgumentNullException());
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

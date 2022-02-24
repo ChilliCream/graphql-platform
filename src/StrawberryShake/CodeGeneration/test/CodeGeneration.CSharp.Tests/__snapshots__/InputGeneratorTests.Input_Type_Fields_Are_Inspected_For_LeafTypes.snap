@@ -654,27 +654,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, ChangeHomePlanet_ChangeHomePlanet_Human_Human>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public ChangeHomePlanet_ChangeHomePlanet_Human_Human Map(global::Foo.Bar.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new ChangeHomePlanet_ChangeHomePlanet_Human_Human(entity.HomePlanet);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IChangeHomePlanetInputInfo
@@ -782,6 +761,27 @@ namespace Foo.Bar.State
         public global::System.String __typename { get; }
 
         public global::StrawberryShake.EntityId? Human { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, ChangeHomePlanet_ChangeHomePlanet_Human_Human>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public ChangeHomePlanet_ChangeHomePlanet_Human_Human Map(global::Foo.Bar.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new ChangeHomePlanet_ChangeHomePlanet_Human_Human(entity.HomePlanet);
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

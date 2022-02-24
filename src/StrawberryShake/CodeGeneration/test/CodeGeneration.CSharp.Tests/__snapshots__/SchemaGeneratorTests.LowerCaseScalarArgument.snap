@@ -446,27 +446,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetPeopleByPk_People_by_pk_peopleFrompeopleEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.peopleEntity, GetPeopleByPk_People_by_pk_people>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetPeopleByPk_People_by_pk_peopleFrompeopleEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetPeopleByPk_People_by_pk_people Map(global::Foo.Bar.State.peopleEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetPeopleByPk_People_by_pk_people(entity.Id, entity.FirstName, entity.LastName);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleByPkBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IGetPeopleByPkResult>
@@ -533,6 +512,27 @@ namespace Foo.Bar.State
             }
 
             return _uuidParser.Parse(obj.Value.GetString()!);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetPeopleByPk_People_by_pk_peopleFrompeopleEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.peopleEntity, GetPeopleByPk_People_by_pk_people>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetPeopleByPk_People_by_pk_peopleFrompeopleEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetPeopleByPk_People_by_pk_people Map(global::Foo.Bar.State.peopleEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetPeopleByPk_People_by_pk_people(entity.Id, entity.FirstName, entity.LastName);
         }
     }
 

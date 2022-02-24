@@ -700,69 +700,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchHero_Search_StarshipFromStarshipEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.StarshipEntity, SearchHero_Search_Starship>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public SearchHero_Search_StarshipFromStarshipEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public SearchHero_Search_Starship Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.StarshipEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SearchHero_Search_Starship(entity.__typename);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchHero_Search_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.HumanEntity, SearchHero_Search_Human>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public SearchHero_Search_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public SearchHero_Search_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SearchHero_Search_Human(entity.__typename);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchHero_Search_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.DroidEntity, SearchHero_Search_Droid>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public SearchHero_Search_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public SearchHero_Search_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SearchHero_Search_Droid(entity.__typename);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchHeroBuilder : global::StrawberryShake.OperationResultBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.ISearchHeroResult>
@@ -871,6 +808,69 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
             }
 
             return _stringParser.Parse(obj.Value.GetString()!);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SearchHero_Search_StarshipFromStarshipEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.StarshipEntity, SearchHero_Search_Starship>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public SearchHero_Search_StarshipFromStarshipEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public SearchHero_Search_Starship Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.StarshipEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SearchHero_Search_Starship(entity.__typename);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SearchHero_Search_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.HumanEntity, SearchHero_Search_Human>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public SearchHero_Search_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public SearchHero_Search_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SearchHero_Search_Human(entity.__typename);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SearchHero_Search_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.DroidEntity, SearchHero_Search_Droid>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public SearchHero_Search_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public SearchHero_Search_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SearchHero_Search_Droid(entity.__typename);
         }
     }
 

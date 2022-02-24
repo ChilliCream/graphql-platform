@@ -758,27 +758,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetBars_Bars_BarFromBarEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, GetBars_Bars_Bar>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetBars_Bars_BarFromBarEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetBars_Bars_Bar Map(global::Foo.Bar.State.BarEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetBars_Bars_Bar(entity.Id, entity.Name);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SaveBarsResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.SaveBarsResult>
@@ -848,27 +827,6 @@ namespace Foo.Bar.State
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new SaveBarsResultInfo(SaveBar, _entityIds, version);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SaveBars_SaveBar_BarFromBarEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, SaveBars_SaveBar_Bar>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public SaveBars_SaveBar_BarFromBarEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public SaveBars_SaveBar_Bar Map(global::Foo.Bar.State.BarEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SaveBars_SaveBar_Bar(entity.Id, entity.Name);
         }
     }
 
@@ -1039,6 +997,48 @@ namespace Foo.Bar.State
             }
 
             return _stringParser.Parse(obj.Value.GetString()!);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetBars_Bars_BarFromBarEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, GetBars_Bars_Bar>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetBars_Bars_BarFromBarEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetBars_Bars_Bar Map(global::Foo.Bar.State.BarEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetBars_Bars_Bar(entity.Id, entity.Name);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SaveBars_SaveBar_BarFromBarEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, SaveBars_SaveBar_Bar>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public SaveBars_SaveBar_BarFromBarEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public SaveBars_SaveBar_Bar Map(global::Foo.Bar.State.BarEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SaveBars_SaveBar_Bar(entity.Id, entity.Name);
         }
     }
 

@@ -701,60 +701,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatsPage_Feats_Items_FeatFromFeatEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatsPage_Feats_Items_Feat>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper;
-        public GetFeatsPage_Feats_Items_FeatFromFeatEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper = getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper));
-        }
-
-        public GetFeatsPage_Feats_Items_Feat Map(global::Foo.Bar.State.FeatEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetFeatsPage_Feats_Items_Feat(entity.Name, entity.Level, entity.CanBeLearnedMoreThanOnce, MapNonNullableIGetFeatsPage_Feats_Items_ActionType(entity.ActionType, snapshot));
-        }
-
-        private global::Foo.Bar.IGetFeatsPage_Feats_Items_ActionType MapNonNullableIGetFeatsPage_Feats_Items_ActionType(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId.Name.Equals("ActionType", global::System.StringComparison.Ordinal))
-            {
-                return _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.ActionTypeEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetFeatsPage_Feats_Items_ActionType_ActionType Map(global::Foo.Bar.State.ActionTypeEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetFeatsPage_Feats_Items_ActionType_ActionType(entity.Name);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFeatsPageBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IGetFeatsPageResult>
@@ -917,6 +863,60 @@ namespace Foo.Bar.State
         public global::System.String __typename { get; }
 
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Items { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetFeatsPage_Feats_Items_FeatFromFeatEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatsPage_Feats_Items_Feat>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper;
+        public GetFeatsPage_Feats_Items_FeatFromFeatEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType> getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper = getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper));
+        }
+
+        public GetFeatsPage_Feats_Items_Feat Map(global::Foo.Bar.State.FeatEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetFeatsPage_Feats_Items_Feat(entity.Name, entity.Level, entity.CanBeLearnedMoreThanOnce, MapNonNullableIGetFeatsPage_Feats_Items_ActionType(entity.ActionType, snapshot));
+        }
+
+        private global::Foo.Bar.IGetFeatsPage_Feats_Items_ActionType MapNonNullableIGetFeatsPage_Feats_Items_ActionType(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("ActionType", global::System.StringComparison.Ordinal))
+            {
+                return _getFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.ActionTypeEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetFeatsPage_Feats_Items_ActionType_ActionType Map(global::Foo.Bar.State.ActionTypeEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetFeatsPage_Feats_Items_ActionType_ActionType(entity.Name);
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

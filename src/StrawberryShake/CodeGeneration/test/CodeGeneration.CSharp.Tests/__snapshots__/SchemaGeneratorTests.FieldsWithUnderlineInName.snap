@@ -3545,154 +3545,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeriesFrombwr_TimeSeriesEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_TimeSeriesEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ValidationCriteriaEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria> _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ImportSpecificationEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification> _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper;
-        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeriesFrombwr_TimeSeriesEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ValidationCriteriaEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria> getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ImportSpecificationEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification> getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper = getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper));
-            _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper = getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper));
-        }
-
-        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries Map(global::Foo.Bar.State.bwr_TimeSeriesEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries(entity.InventoryId, entity.Area, entity.Source, entity.Type, entity.Name, entity.Category, entity.Specification, entity.Commodity, MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution(entity.Resolution, snapshot), entity.Unit, MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria(entity.ValidationCriteria, snapshot), MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification(entity.ImportSpecification, snapshot), MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPointsNonNullableArray(entity._dataPoints, snapshot));
-        }
-
-        private global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution? MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution(global::Foo.Bar.State.ResolutionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution returnValue = default !;
-            if (data?.__typename.Equals("Resolution", global::System.StringComparison.Ordinal) ?? false)
-            {
-                returnValue = new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution_Resolution(data.TimeUnit ?? throw new global::System.ArgumentNullException(), data.Factor ?? throw new global::System.ArgumentNullException());
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-
-        private global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria? MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId is null)
-            {
-                return null;
-            }
-
-            if (entityId.Value.Name.Equals("bwr_ValidationCriteria", global::System.StringComparison.Ordinal))
-            {
-                return _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.bwr_ValidationCriteriaEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification? MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId is null)
-            {
-                return null;
-            }
-
-            if (entityId.Value.Name.Equals("bwr_ImportSpecification", global::System.StringComparison.Ordinal))
-            {
-                return _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.bwr_ImportSpecificationEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints>? MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPointsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.DataPointData>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var dataPoints = new global::System.Collections.Generic.List<global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints>();
-            foreach (global::Foo.Bar.State.DataPointData child in list)
-            {
-                dataPoints.Add(MapNonNullableIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints(child, snapshot));
-            }
-
-            return dataPoints;
-        }
-
-        private global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints MapNonNullableIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints(global::Foo.Bar.State.DataPointData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints returnValue = default !;
-            if (data.__typename.Equals("DataPoint", global::System.StringComparison.Ordinal))
-            {
-                returnValue = new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints_DataPoint(data.Timestamp ?? throw new global::System.ArgumentNullException(), data.Value ?? throw new global::System.ArgumentNullException(), data.Flag ?? throw new global::System.ArgumentNullException());
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-
-            return returnValue;
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ValidationCriteriaEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria Map(global::Foo.Bar.State.bwr_ValidationCriteriaEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria(entity._inventoryItemId, entity.Name, entity.Completeness, entity.LowerBound, entity.UpperBound);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ImportSpecificationEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification Map(global::Foo.Bar.State.bwr_ImportSpecificationEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification(entity.FromPeriod, entity.ToPeriod);
-        }
-    }
-
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IBwr_TimeSeriesFilterInputInfo
@@ -4144,6 +3996,154 @@ namespace Foo.Bar.State
         public global::System.Double? Value { get; }
 
         public global::Foo.Bar.DataFlag? Flag { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeriesFrombwr_TimeSeriesEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_TimeSeriesEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ValidationCriteriaEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria> _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ImportSpecificationEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification> _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper;
+        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeriesFrombwr_TimeSeriesEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ValidationCriteriaEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria> getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ImportSpecificationEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification> getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper = getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper));
+            _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper = getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper));
+        }
+
+        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries Map(global::Foo.Bar.State.bwr_TimeSeriesEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries(entity.InventoryId, entity.Area, entity.Source, entity.Type, entity.Name, entity.Category, entity.Specification, entity.Commodity, MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution(entity.Resolution, snapshot), entity.Unit, MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria(entity.ValidationCriteria, snapshot), MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification(entity.ImportSpecification, snapshot), MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPointsNonNullableArray(entity._dataPoints, snapshot));
+        }
+
+        private global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution? MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution(global::Foo.Bar.State.ResolutionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution returnValue = default !;
+            if (data?.__typename.Equals("Resolution", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution_Resolution(data.TimeUnit ?? throw new global::System.ArgumentNullException(), data.Factor ?? throw new global::System.ArgumentNullException());
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria? MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("bwr_ValidationCriteria", global::System.StringComparison.Ordinal))
+            {
+                return _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_Bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.bwr_ValidationCriteriaEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification? MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("bwr_ImportSpecification", global::System.StringComparison.Ordinal))
+            {
+                return _getBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_Bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.bwr_ImportSpecificationEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints>? MapIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPointsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.DataPointData>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var dataPoints = new global::System.Collections.Generic.List<global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints>();
+            foreach (global::Foo.Bar.State.DataPointData child in list)
+            {
+                dataPoints.Add(MapNonNullableIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints(child, snapshot));
+            }
+
+            return dataPoints;
+        }
+
+        private global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints MapNonNullableIGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints(global::Foo.Bar.State.DataPointData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints returnValue = default !;
+            if (data.__typename.Equals("DataPoint", global::System.StringComparison.Ordinal))
+            {
+                returnValue = new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints_DataPoint(data.Timestamp ?? throw new global::System.ArgumentNullException(), data.Value ?? throw new global::System.ArgumentNullException(), data.Flag ?? throw new global::System.ArgumentNullException());
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ValidationCriteriaEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria Map(global::Foo.Bar.State.bwr_ValidationCriteriaEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria(entity._inventoryItemId, entity.Name, entity.Completeness, entity.LowerBound, entity.UpperBound);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ImportSpecificationEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification Map(global::Foo.Bar.State.bwr_ImportSpecificationEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification(entity.FromPeriod, entity.ToPeriod);
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
