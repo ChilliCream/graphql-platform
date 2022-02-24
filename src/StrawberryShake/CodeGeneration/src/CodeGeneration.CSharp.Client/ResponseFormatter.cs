@@ -1,8 +1,6 @@
 using System.Runtime.Serialization;
-using System.Text.Json;
 using System.Xml.Linq;
 using static StrawberryShake.CodeGeneration.CSharp.Names;
-using Path = System.IO.Path;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
