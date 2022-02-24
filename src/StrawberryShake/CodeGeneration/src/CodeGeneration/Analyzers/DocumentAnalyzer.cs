@@ -42,7 +42,7 @@ public partial class DocumentAnalyzer
                 "You must at least provide one document.");
         }
 
-        OperationDocuments operationDocuments = CreateOperationDocuments(_schema, _documents);
+        OperationDocuments operationDocuments = CreateOperationDocuments(_documents, _schema);
         List<OperationModel> operations = new();
         Dictionary<NameString, LeafTypeModel> leafTypes = new();
         Dictionary<NameString, InputObjectTypeModel> inputObjectType = new();

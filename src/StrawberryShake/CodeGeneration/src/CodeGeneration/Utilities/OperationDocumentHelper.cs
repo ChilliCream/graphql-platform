@@ -17,17 +17,17 @@ internal static class OperationDocumentHelper
     /// Merges the documents and creates operation documents that
     /// can be used for the actual requests.
     /// </summary>
-    /// <param name="schema">
-    /// The schema to validate queries against.
-    /// </param>
     /// <param name="documents">
     /// The GraphQL documents.
+    /// </param>
+    /// <param name="schema">
+    /// The schema to validate queries against.
     /// </param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
     public static OperationDocuments CreateOperationDocuments(
-        ISchema schema,
-        IEnumerable<DocumentNode> documents)
+        IEnumerable<DocumentNode> documents,
+        ISchema? schema = null)
     {
         if (documents is null)
         {
@@ -37,19 +37,22 @@ internal static class OperationDocumentHelper
         DocumentNode mergedDocument = MergeDocuments(documents);
         mergedDocument = RemovedUnusedFragmentRewriter.Rewrite(mergedDocument);
 
-        IDocumentValidator validator =
-            new ServiceCollection()
-                .AddValidation()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IDocumentValidatorFactory>()
-                .CreateValidator();
-
-        DocumentValidatorResult result = validator.Validate(schema, mergedDocument);
-
-        if (result.HasErrors)
+        if (schema is not null)
         {
-            throw new GraphQLException(result.Errors);
+            IDocumentValidator validator =
+                new ServiceCollection()
+                    .AddValidation()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequiredService<IDocumentValidatorFactory>()
+                    .CreateValidator();
+
+            DocumentValidatorResult result = validator.Validate(schema, mergedDocument);
+
+            if (result.HasErrors)
+            {
+                throw new GraphQLException(result.Errors);
+            }
         }
 
         Dictionary<string, DocumentNode> operationDocs = ExportOperations(mergedDocument);
