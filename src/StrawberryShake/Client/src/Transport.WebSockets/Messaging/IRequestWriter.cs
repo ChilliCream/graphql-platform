@@ -1,24 +1,23 @@
 using System;
 using System.Buffers;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets;
+
+/// <summary>
+/// Represents a output sink into which bytes can be written.
+/// Exposes the written buffer with the Body property
+/// </summary>
+public interface IRequestWriter
+    : IBufferWriter<byte>
+        , IDisposable
 {
     /// <summary>
-    /// Represents a output sink into which bytes can be written.
-    /// Exposes the written buffer with the Body property
+    /// The body of the buffered data
     /// </summary>
-    public interface IRequestWriter
-        : IBufferWriter<byte>
-        , IDisposable
-    {
-        /// <summary>
-        /// The body of the buffered data
-        /// </summary>
-        ReadOnlyMemory<byte> Body { get; }
+    ReadOnlyMemory<byte> Body { get; }
 
-        /// <summary>
-        /// Resets the buffer so it can be reused
-        /// </summary>
-        void Reset();
-    }
+    /// <summary>
+    /// Resets the buffer so it can be reused
+    /// </summary>
+    void Reset();
 }

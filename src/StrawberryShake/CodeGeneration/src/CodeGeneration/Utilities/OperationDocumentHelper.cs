@@ -4,123 +4,123 @@ using HotChocolate;
 using HotChocolate.Language;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.Utilities
+namespace StrawberryShake.CodeGeneration.Utilities;
+
+/// <summary>
+/// Merges all documents and create one query document per operation.
+/// </summary>
+internal static class OperationDocumentHelper
 {
     /// <summary>
-    /// Merges all documents and create one query document per operation.
+    /// Merges the documents and creates operation documents that
+    /// can be used for the actual requests.
     /// </summary>
-    internal static class OperationDocumentHelper
+    /// <param name="documents">
+    /// The GraphQL documents.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static OperationDocuments CreateOperationDocuments(
+        IEnumerable<DocumentNode> documents)
     {
-        /// <summary>
-        /// Merges the documents and creates operation documents that
-        /// can be used for the actual requests.
-        /// </summary>
-        /// <param name="documents">
-        /// The GraphQL documents.
-        /// </param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        public static OperationDocuments CreateOperationDocuments(
-            IEnumerable<DocumentNode> documents)
+        if (documents is null)
         {
-            if (documents is null)
-            {
-                throw new ArgumentNullException(nameof(documents));
-            }
-
-            DocumentNode mergedDocument = MergeDocuments(documents);
-            Dictionary<string, DocumentNode> operationDocs = ExportOperations(mergedDocument);
-            return new OperationDocuments(mergedDocument, operationDocs);
+            throw new ArgumentNullException(nameof(documents));
         }
 
-        private static DocumentNode MergeDocuments(IEnumerable<DocumentNode> documents)
+        DocumentNode mergedDocument = MergeDocuments(documents);
+        Dictionary<string, DocumentNode> operationDocs = ExportOperations(mergedDocument);
+        return new OperationDocuments(mergedDocument, operationDocs);
+    }
+
+    private static DocumentNode MergeDocuments(IEnumerable<DocumentNode> documents)
+    {
+        var definitions = new List<IDefinitionNode>();
+
+        foreach (DocumentNode document in documents)
         {
-            var definitions = new List<IDefinitionNode>();
-
-            foreach (DocumentNode document in documents)
+            foreach (IDefinitionNode definition in document.Definitions)
             {
-                foreach (IDefinitionNode definition in document.Definitions)
+                if (definition is OperationDefinitionNode { Name: { } name } op)
                 {
-                    if (definition is OperationDefinitionNode { Name: { } name } op)
-                    {
-                        name = name.WithValue(GetClassName(name.Value));
-                        op = op.WithName(name);
-                        definitions.Add(op);
-                    }
-                    else
-                    {
-                        definitions.Add(definition);
-                    }
+                    name = name.WithValue(GetClassName(name.Value));
+                    op = op.WithName(name);
+                    definitions.Add(op);
                 }
-            }
-
-            ValidateDocument(definitions);
-
-            return new DocumentNode(definitions);
-        }
-
-        private static void ValidateDocument(IEnumerable<IDefinitionNode> definitions)
-        {
-            var operationNames = new HashSet<string>();
-            var fragmentNames = new HashSet<string>();
-
-            foreach (var definition in definitions)
-            {
-                if (definition is OperationDefinitionNode op)
+                else
                 {
-                    if (op.Name is null)
-                    {
-                        throw new CodeGeneratorException(
-                            ErrorBuilder.New()
-                                .SetMessage("All operations must be named.")
-                                .AddLocation(op)
-                                .Build());
-                    }
-
-                    if (!operationNames.Add(op.Name.Value))
-                    {
-                        throw new CodeGeneratorException(
-                            ErrorBuilder.New()
-                                .SetMessage(
-                                    "The operation name `{0}` is not unique.",
-                                    op.Name.Value)
-                                .AddLocation(op)
-                                .Build());
-                    }
-                }
-
-                if (definition is FragmentDefinitionNode fd)
-                {
-                    if (!fragmentNames.Add(fd.Name.Value))
-                    {
-                        throw new CodeGeneratorException(
-                            ErrorBuilder.New()
-                                .SetMessage(
-                                    "The fragment name `{0}` is not unique.",
-                                    fd.Name.Value)
-                                .AddLocation(fd)
-                                .Build());
-                    }
+                    definitions.Add(definition);
                 }
             }
         }
 
-        private static Dictionary<string, DocumentNode> ExportOperations(DocumentNode document)
+        ValidateDocument(definitions);
+
+        return new DocumentNode(definitions);
+    }
+
+    private static void ValidateDocument(IEnumerable<IDefinitionNode> definitions)
+    {
+        var operationNames = new HashSet<string>();
+        var fragmentNames = new HashSet<string>();
+
+        foreach (var definition in definitions)
         {
-            var visitor = new ExtractOperationVisitor();
-            var context = new ExtractOperationContext(document);
-            var operationDocs = new Dictionary<string, DocumentNode>();
-
-            do
+            if (definition is OperationDefinitionNode op)
             {
-                visitor.Visit(context.Operation, context);
+                if (op.Name is null)
+                {
+                    throw new CodeGeneratorException(
+                        ErrorBuilder.New()
+                            .SetMessage("All operations must be named.")
+                            .AddLocation(op)
+                            .Build());
+                }
 
-                var definitions = new List<IDefinitionNode> { context.Operation };
-                definitions.AddRange(context.ExportedFragments);
-                operationDocs.Add(context.Operation.Name!.Value, new DocumentNode(definitions));
-            } while (context.Next());
+                if (!operationNames.Add(op.Name.Value))
+                {
+                    throw new CodeGeneratorException(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                "The operation name `{0}` is not unique.",
+                                op.Name.Value)
+                            .AddLocation(op)
+                            .Build());
+                }
+            }
 
-            return operationDocs;
+            if (definition is FragmentDefinitionNode fd)
+            {
+                if (!fragmentNames.Add(fd.Name.Value))
+                {
+                    throw new CodeGeneratorException(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                "The fragment name `{0}` is not unique.",
+                                fd.Name.Value)
+                            .AddLocation(fd)
+                            .Build());
+                }
+            }
         }
+    }
+
+    private static Dictionary<string, DocumentNode> ExportOperations(DocumentNode document)
+    {
+        var visitor = new ExtractOperationVisitor();
+        var context = new ExtractOperationContext(document);
+        var operationDocs = new Dictionary<string, DocumentNode>();
+
+        do
+        {
+            visitor.Visit(context.Operation, context);
+
+            var definitions = new List<IDefinitionNode> { context.Operation };
+            definitions.AddRange(context.ExportedFragments);
+            var operationDoc = new DocumentNode(definitions);
+            operationDocs.Add(context.Operation.Name!.Value, operationDoc);
+        } while (context.Next());
+
+        return operationDocs;
     }
 }

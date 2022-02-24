@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets.Protocols;
 using Xunit;
@@ -25,7 +24,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddProtocol_SerivcesNull_ThrowException()
+    public void AddProtocol_ServicesNull_ThrowException()
     {
         // arrange
         ServiceCollection services = null!;
@@ -42,7 +41,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
     public void AddWebSocketClient_NonNullArgs_RegisterProtocol()
     {
         // arrange
-        var clientName = "Foo";
+        const string clientName = "Foo";
         var services = new ServiceCollection();
 
         // act
@@ -50,7 +49,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
 
         // assert
         ISocketClient client = services.BuildServiceProvider()
-            .GetService<ISocketClientFactory>()
+            .GetRequiredService<ISocketClientFactory>()
             .CreateClient(clientName);
         Assert.Equal(clientName, builder.Name);
         Assert.Equal(clientName, client.Name);
@@ -88,7 +87,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
     public void AddWebSocketClientWithConfigure_NonNullArgs_RegisterProtocol()
     {
         // arrange
-        var clientName = "Foo";
+        const string clientName = "Foo";
         var services = new ServiceCollection();
         var uri = new Uri("wss://localhost:1234");
         Action<ISocketClient> configure = x => x.Uri = uri;
@@ -99,7 +98,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
 
         // assert
         ISocketClient client = services.BuildServiceProvider()
-            .GetService<ISocketClientFactory>()
+            .GetRequiredService<ISocketClientFactory>()
             .CreateClient(clientName);
         Assert.Equal(clientName, builder.Name);
         Assert.Equal(clientName, client.Name);
@@ -112,7 +111,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         // arrange
         ServiceCollection services = null!;
         var uri = new Uri("wss://localhost:1234");
-        Action<ISocketClient> configure = x => x.Uri = uri;
+        void configure(ISocketClient x) => x.Uri = uri;
 
         // act
         Exception? ex =
@@ -128,11 +127,10 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         // arrange
         var services = new ServiceCollection();
         var uri = new Uri("wss://localhost:1234");
-        Action<ISocketClient> configure = x => x.Uri = uri;
+        void configure(ISocketClient x) => x.Uri = uri;
 
         // act
-        Exception? ex =
-            Record.Exception(() => services.AddWebSocketClient(null!, configure));
+        Exception? ex = Record.Exception(() => services.AddWebSocketClient(null!, configure));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -157,10 +155,10 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
     public void AddWebSocketClientWithConfigureAndSp_NonNullArgs_RegisterProtocol()
     {
         // arrange
-        var clientName = "Foo";
+        const string clientName = "Foo";
         var services = new ServiceCollection();
         var uri = new Uri("wss://localhost:1234");
-        Action<IServiceProvider, ISocketClient> configure = (_, x) => x.Uri = uri;
+        void configure(IServiceProvider _, ISocketClient x) => x.Uri = uri;
 
         // act
         IWebSocketClientBuilder builder =
@@ -168,7 +166,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
 
         // assert
         ISocketClient client = services.BuildServiceProvider()
-            .GetService<ISocketClientFactory>()
+            .GetRequiredService<ISocketClientFactory>()
             .CreateClient(clientName);
         Assert.Equal(clientName, builder.Name);
         Assert.Equal(clientName, client.Name);

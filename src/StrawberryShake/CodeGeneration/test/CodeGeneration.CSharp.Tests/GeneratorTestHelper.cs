@@ -202,10 +202,10 @@ public static class GeneratorTestHelper
         [CallerMemberName] string? testName = null)
     {
         SnapshotFullName snapshotFullName = Snapshot.FullName();
-        string testFile = System.IO.Path.Combine(
+        var testFile = System.IO.Path.Combine(
             snapshotFullName.FolderPath,
             testName + "Test.cs");
-        string ns = "StrawberryShake.CodeGeneration.CSharp.Integration." + testName;
+        var ns = "StrawberryShake.CodeGeneration.CSharp.Integration." + testName;
 
         if (!File.Exists(testFile))
         {

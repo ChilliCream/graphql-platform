@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.WebSockets;
 
-public class SocketClientStub : ISocketClient
+public sealed class SocketClientStub : ISocketClient
 {
     private readonly ConcurrentDictionary<MemberInfo, int> _callCount = new();
     private readonly TaskCompletionSource<bool> _completionSource =
@@ -24,7 +24,7 @@ public class SocketClientStub : ISocketClient
     public ISocketConnectionInterceptor ConnectionInterceptor { get; set; } =
         DefaultSocketConnectionInterceptor.Instance;
 
-    public string? Name { get; set; }
+    public string Name { get; set; } = default!;
 
     public Queue<string> MessagesReceive { get; } = new();
 
@@ -85,7 +85,7 @@ public class SocketClientStub : ISocketClient
         Increment(x => x.OpenAsync(default!));
 
         IsClosed = false;
-        return Task.FromResult(Protocol);
+        return Task.FromResult(Protocol!);
     }
 
     public Task CloseAsync(

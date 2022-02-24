@@ -7,243 +7,242 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Properties;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets;
+
+/// <summary>
+/// Represents a client for sending and receiving messages responses over a websocket
+/// identified by a URI and name.
+/// </summary>
+public sealed class WebSocketClient : IWebSocketClient
 {
+    private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
+    private readonly ClientWebSocket _socket;
+
+    private const int _maxMessageSize = 1024 * 4;
+
+    private ISocketProtocol? _activeProtocol;
+    private bool _disposed;
+
     /// <summary>
-    /// Represents a client for sending and receiving messages responses over a websocket
-    /// identified by a URI and name.
+    /// Creates a new instance of <see cref="WebSocketClient"/>
     /// </summary>
-    public sealed class WebSocketClient : IWebSocketClient
+    /// <param name="name">The name of the socket</param>
+    /// <param name="protocolFactories">The protocol factories this socket supports</param>
+    public WebSocketClient(
+        string name,
+        IReadOnlyList<ISocketProtocolFactory> protocolFactories)
     {
-        private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
-        private readonly ClientWebSocket _socket;
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+        _protocolFactories = protocolFactories ??
+                             throw new ArgumentNullException(nameof(protocolFactories));
+        _socket = new ClientWebSocket();
 
-        private const int _maxMessageSize = 1024 * 4;
-
-        private ISocketProtocol? _activeProtocol;
-        private bool _disposed;
-
-        /// <summary>
-        /// Creates a new instance of <see cref="WebSocketClient"/>
-        /// </summary>
-        /// <param name="name">The name of the socket</param>
-        /// <param name="protocolFactories">The protocol factories this socket supports</param>
-        public WebSocketClient(
-            string name,
-            IReadOnlyList<ISocketProtocolFactory> protocolFactories)
+        for (var i = 0; i < _protocolFactories.Count; i++)
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            _protocolFactories = protocolFactories ??
-                throw new ArgumentNullException(nameof(protocolFactories));
-            _socket = new ClientWebSocket();
+            _socket.Options.AddSubProtocol(_protocolFactories[i].ProtocolName);
+        }
+    }
 
-            for (var i = 0; i < _protocolFactories.Count; i++)
+    /// <inheritdoc />
+    public Uri? Uri { get; set; }
+
+    /// <inheritdoc />
+    public ISocketConnectionInterceptor ConnectionInterceptor { get; set; } =
+        DefaultSocketConnectionInterceptor.Instance;
+
+    /// <inheritdoc />
+    public string Name { get; }
+
+    /// <inheritdoc />
+    public bool IsClosed =>
+        _disposed
+        || _socket.CloseStatus.HasValue
+        || _socket.State == WebSocketState.Aborted;
+
+    /// <inheritdoc />
+    public WebSocket Socket => _socket;
+
+    /// <inheritdoc />
+    public async Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(WebSocketClient));
+        }
+
+        if (Uri is null)
+        {
+            throw ThrowHelper.SocketClient_URIWasNotSpecified(Name);
+        }
+
+        await _socket.ConnectAsync(Uri, cancellationToken).ConfigureAwait(false);
+
+        for (var i = 0; i < _protocolFactories.Count; i++)
+        {
+            if (_protocolFactories[i].ProtocolName == _socket.SubProtocol)
             {
-                _socket.Options.AddSubProtocol(_protocolFactories[i].ProtocolName);
+                _activeProtocol = _protocolFactories[i].Create(this);
+                break;
             }
         }
 
-        /// <inheritdoc />
-        public Uri? Uri { get; set; }
-
-        /// <inheritdoc />
-        public ISocketConnectionInterceptor ConnectionInterceptor { get; set; } =
-            DefaultSocketConnectionInterceptor.Instance;
-
-        /// <inheritdoc />
-        public string Name { get; }
-
-        /// <inheritdoc />
-        public bool IsClosed =>
-            _disposed
-            || _socket.CloseStatus.HasValue
-            || _socket.State == WebSocketState.Aborted;
-
-        /// <inheritdoc />
-        public WebSocket Socket => _socket;
-
-        /// <inheritdoc />
-        public async Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)
+        if (_activeProtocol is null)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(WebSocketClient));
-            }
-
-            if (Uri is null)
-            {
-                throw ThrowHelper.SocketClient_URIWasNotSpecified(Name);
-            }
-
-            await _socket.ConnectAsync(Uri, cancellationToken).ConfigureAwait(false);
-
-            for (var i = 0; i < _protocolFactories.Count; i++)
-            {
-                if (_protocolFactories[i].ProtocolName == _socket.SubProtocol)
-                {
-                    _activeProtocol = _protocolFactories[i].Create(this);
-                    break;
-                }
-            }
-
-            if (_activeProtocol is null)
-            {
-                await CloseAsync(
+            await CloseAsync(
                     Resources.SocketClient_FailedToInitializeProtocol,
                     SocketCloseStatus.ProtocolError,
                     cancellationToken)
-                    .ConfigureAwait(false);
+                .ConfigureAwait(false);
 
-                throw ThrowHelper.SocketClient_ProtocolNotFound(_socket.SubProtocol ?? "null");
-            }
-
-            await _activeProtocol.InitializeAsync(cancellationToken).ConfigureAwait(false);
-
-            return _activeProtocol;
+            throw ThrowHelper.SocketClient_ProtocolNotFound(_socket.SubProtocol ?? "null");
         }
 
-        /// <inheritdoc />
-        public async Task CloseAsync(
-            string message,
-            SocketCloseStatus closeStatus,
-            CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                if (IsClosed)
-                {
-                    return;
-                }
+        await _activeProtocol.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
-                if (_activeProtocol is not null)
-                {
-                    try
-                    {
-                        await _activeProtocol.TerminateAsync(cancellationToken)
-                            .ConfigureAwait(false);
-                    }
-                    catch
-                    {
-                        // In case termination of the protocol failed we still want to close the
-                        // socket
-                    }
-                }
+        return _activeProtocol;
+    }
 
-                await _socket.CloseOutputAsync(
-                        MapCloseStatus(closeStatus),
-                        message,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-
-                await DisposeAsync();
-            }
-            catch
-            {
-                // we do not throw here ...
-            }
-        }
-
-        /// <inheritdoc />
-        public async ValueTask SendAsync(
-            ReadOnlyMemory<byte> message,
-            CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public async Task CloseAsync(
+        string message,
+        SocketCloseStatus closeStatus,
+        CancellationToken cancellationToken = default)
+    {
+        try
         {
             if (IsClosed)
             {
                 return;
             }
 
-            if (MemoryMarshal.TryGetArray(message, out ArraySegment<byte> buffer))
+            if (_activeProtocol is not null)
             {
-                await _socket.SendAsync(
-                    buffer,
-                    WebSocketMessageType.Text,
-                    true,
-                    cancellationToken);
-            }
-        }
-
-        /// <inheritdoc />
-        public async ValueTask ReceiveAsync(
-            PipeWriter writer,
-            CancellationToken cancellationToken = default)
-        {
-            if (IsClosed)
-            {
-                return;
-            }
-
-            try
-            {
-                WebSocketReceiveResult? socketResult = null;
-                do
+                try
                 {
-                    Memory<byte> memory = writer.GetMemory(_maxMessageSize);
-                    try
-                    {
-                        if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
-                        {
-                            socketResult = await _socket
-                                .ReceiveAsync(buffer, cancellationToken)
-                                .ConfigureAwait(false);
-
-                            if (socketResult.Count == 0)
-                            {
-                                break;
-                            }
-
-                            writer.Advance(socketResult.Count);
-                        }
-                    }
-                    catch
-                    {
-                        break;
-                    }
-
-                    FlushResult result = await writer
-                        .FlushAsync(cancellationToken)
+                    await _activeProtocol.TerminateAsync(cancellationToken)
                         .ConfigureAwait(false);
+                }
+                catch
+                {
+                    // In case termination of the protocol failed we still want to close the
+                    // socket
+                }
+            }
 
-                    if (result.IsCompleted)
-                    {
-                        break;
-                    }
-                } while (socketResult == null || !socketResult.EndOfMessage);
-            }
-            catch (ObjectDisposedException)
-            {
-                // we will just stop receiving
-            }
+            await _socket.CloseOutputAsync(
+                    MapCloseStatus(closeStatus),
+                    message,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            await DisposeAsync();
+        }
+        catch
+        {
+            // we do not throw here ...
+        }
+    }
+
+    /// <inheritdoc />
+    public async ValueTask SendAsync(
+        ReadOnlyMemory<byte> message,
+        CancellationToken cancellationToken = default)
+    {
+        if (IsClosed)
+        {
+            return;
         }
 
-        private static WebSocketCloseStatus MapCloseStatus(SocketCloseStatus closeStatus)
-            => closeStatus switch
-            {
-                SocketCloseStatus.EndpointUnavailable => WebSocketCloseStatus.EndpointUnavailable,
-                SocketCloseStatus.InternalServerError => WebSocketCloseStatus.InternalServerError,
-                SocketCloseStatus.InvalidMessageType => WebSocketCloseStatus.InvalidMessageType,
-                SocketCloseStatus.InvalidPayloadData => WebSocketCloseStatus.InvalidPayloadData,
-                SocketCloseStatus.MandatoryExtension => WebSocketCloseStatus.MandatoryExtension,
-                SocketCloseStatus.MessageTooBig => WebSocketCloseStatus.MessageTooBig,
-                SocketCloseStatus.NormalClosure => WebSocketCloseStatus.NormalClosure,
-                SocketCloseStatus.PolicyViolation => WebSocketCloseStatus.PolicyViolation,
-                SocketCloseStatus.ProtocolError => WebSocketCloseStatus.ProtocolError,
-                _ => WebSocketCloseStatus.Empty
-            };
-
-        /// <inheritdoc />
-        public async ValueTask DisposeAsync()
+        if (MemoryMarshal.TryGetArray(message, out ArraySegment<byte> buffer))
         {
-            if (!_disposed)
+            await _socket.SendAsync(
+                buffer,
+                WebSocketMessageType.Text,
+                true,
+                cancellationToken);
+        }
+    }
+
+    /// <inheritdoc />
+    public async ValueTask ReceiveAsync(
+        PipeWriter writer,
+        CancellationToken cancellationToken = default)
+    {
+        if (IsClosed)
+        {
+            return;
+        }
+
+        try
+        {
+            WebSocketReceiveResult? socketResult = null;
+            do
             {
-                if (_activeProtocol is { })
+                Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                try
                 {
-                    await _activeProtocol.DisposeAsync().ConfigureAwait(false);
+                    if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
+                    {
+                        socketResult = await _socket
+                            .ReceiveAsync(buffer, cancellationToken)
+                            .ConfigureAwait(false);
+
+                        if (socketResult.Count == 0)
+                        {
+                            break;
+                        }
+
+                        writer.Advance(socketResult.Count);
+                    }
+                }
+                catch
+                {
+                    break;
                 }
 
-                _socket.Dispose();
-                _disposed = true;
+                FlushResult result = await writer
+                    .FlushAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            } while (socketResult == null || !socketResult.EndOfMessage);
+        }
+        catch (ObjectDisposedException)
+        {
+            // we will just stop receiving
+        }
+    }
+
+    private static WebSocketCloseStatus MapCloseStatus(SocketCloseStatus closeStatus)
+        => closeStatus switch
+        {
+            SocketCloseStatus.EndpointUnavailable => WebSocketCloseStatus.EndpointUnavailable,
+            SocketCloseStatus.InternalServerError => WebSocketCloseStatus.InternalServerError,
+            SocketCloseStatus.InvalidMessageType => WebSocketCloseStatus.InvalidMessageType,
+            SocketCloseStatus.InvalidPayloadData => WebSocketCloseStatus.InvalidPayloadData,
+            SocketCloseStatus.MandatoryExtension => WebSocketCloseStatus.MandatoryExtension,
+            SocketCloseStatus.MessageTooBig => WebSocketCloseStatus.MessageTooBig,
+            SocketCloseStatus.NormalClosure => WebSocketCloseStatus.NormalClosure,
+            SocketCloseStatus.PolicyViolation => WebSocketCloseStatus.PolicyViolation,
+            SocketCloseStatus.ProtocolError => WebSocketCloseStatus.ProtocolError,
+            _ => WebSocketCloseStatus.Empty
+        };
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (!_disposed)
+        {
+            if (_activeProtocol is { })
+            {
+                await _activeProtocol.DisposeAsync().ConfigureAwait(false);
             }
+
+            _socket.Dispose();
+            _disposed = true;
         }
     }
 }
