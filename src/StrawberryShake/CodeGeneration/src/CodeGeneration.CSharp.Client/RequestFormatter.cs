@@ -13,7 +13,14 @@ public static class RequestFormatter
 
     public static string Format(GeneratorRequest request)
     {
-        var fileName = Path.GetTempFileName();
+        var temp = Path.Combine(Path.GetTempPath(), "__berry");
+
+        if (!Directory.Exists(temp))
+        {
+            Directory.CreateDirectory(temp);
+        }
+
+        var fileName = Path.Combine(temp, Path.GetRandomFileName());
         var buffer = JsonSerializer.SerializeToUtf8Bytes(request, _options);
         File.WriteAllBytes(fileName, buffer);
         return fileName;

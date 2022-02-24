@@ -32,7 +32,7 @@ public class StrawberryShakeSourceGenerator : ISourceGenerator
                     new DiagnosticDescriptor(
                         "SSG0003",
                         "Generator Error",
-                        ex.Message,
+                        ex.Message + "\r\n" + ex.StackTrace,
                         "Generator",
                         DiagnosticSeverity.Error,
                         true),
