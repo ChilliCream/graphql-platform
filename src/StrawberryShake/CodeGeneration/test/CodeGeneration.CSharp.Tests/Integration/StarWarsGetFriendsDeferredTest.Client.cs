@@ -252,7 +252,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
 
         public global::System.String Name { get; }
 
-        public IFriendsList FriendsListLabel => _friendsListLabel;
+        public IFriendsList? FriendsListLabel => _friendsListLabel;
         public virtual global::System.Boolean Equals(GetHero_Hero_Droid? other)
         {
             if (ReferenceEquals(null, other))
@@ -328,7 +328,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
 
         public global::System.String Name { get; }
 
-        public IFriendsList FriendsListLabel => _friendsListLabel;
+        public IFriendsList? FriendsListLabel => _friendsListLabel;
         public virtual global::System.Boolean Equals(GetHero_Hero_Human? other)
         {
             if (ReferenceEquals(null, other))
@@ -609,21 +609,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero : global::StrawberryShake.IFragment<IFriendsList>
+    public partial interface IGetHero_Hero
     {
         public global::System.String Name { get; }
+
+        public IFriendsList? FriendsListLabel { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero_Droid : IGetHero_Hero, global::StrawberryShake.IFragment<IFriendsList>
+    public partial interface IGetHero_Hero_Droid : IGetHero_Hero
     {
+        public IFriendsList? FriendsListLabel { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero_Human : IGetHero_Hero, global::StrawberryShake.IFragment<IFriendsList>
+    public partial interface IGetHero_Hero_Human : IGetHero_Hero
     {
+        public IFriendsList? FriendsListLabel { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator

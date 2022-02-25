@@ -137,7 +137,6 @@ public static class TypeNames
     public const string JsonValueKind = "global::System.Text.Json.JsonValueKind";
     public const string JsonWriterOptions = "global::System.Text.Json.JsonWriterOptions";
     public const string Utf8JsonWriter = "global::System.Text.Json.Utf8JsonWriter";
-    public const string Fragment = StrawberryShakeNamespace + "IFragment";
 
     public const string ParseError =
         StrawberryShakeNamespace + "Json.JsonErrorParser.ParseErrors";

@@ -85,13 +85,14 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
                     .SetName(fieldName)
                     .SetType($"{deferred.InterfaceName}?"));
 
+            // Add fragment data property
             classBuilder
                 .AddProperty(PropertyBuilder
                     .New()
                     .SetPublic()
                     .SetName(propertyName)
                     .AsLambda(fieldName)
-                    .SetType($"{deferred.InterfaceName}"));
+                    .SetType($"{deferred.InterfaceName}?"));
 
             // Add fragment data resolver
             classBuilder

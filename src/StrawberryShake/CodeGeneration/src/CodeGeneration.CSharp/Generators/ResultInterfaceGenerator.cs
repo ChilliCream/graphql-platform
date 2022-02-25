@@ -2,6 +2,7 @@ using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
@@ -36,9 +37,13 @@ public class ResultInterfaceGenerator : CodeGenerator<InterfaceTypeDescriptor>
 
         foreach (DeferredFragmentDescriptor deferred in descriptor.Deferred)
         {
-            // Add fragment interface
+            var propertyName = GetPropertyName(deferred.Label);
+
+            // Add fragment property
             interfaceBuilder
-                .AddImplements(TypeNames.Fragment.WithGeneric(deferred.InterfaceName));
+                .AddProperty(propertyName)
+                .SetType($"{deferred.InterfaceName}?")
+                .SetPublic();
         }
 
         interfaceBuilder.Build(writer);

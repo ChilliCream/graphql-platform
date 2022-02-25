@@ -37,9 +37,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             IOperationResult<IGetHeroResult> result = await client.GetHero.ExecuteAsync(ct);
 
             // assert
-            Assert.True(result.Data!.Hero!.TryGetData(out IFriendsList? list));
-            Assert.NotNull(list);
-            Assert.Equal(3, list!.Friends!.Nodes!.Count);
+            Assert.NotNull(result.Data?.Hero?.FriendsListLabel);
+            Assert.NotNull(result.Data?.Hero?.FriendsListLabel?.Friends?.Nodes);
+            Assert.Equal(3, result.Data?.Hero?.FriendsListLabel?.Friends?.Nodes?.Count);
         }
 
         [Fact]
@@ -63,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             // act
             using IDisposable session = client.GetHero.Watch().Subscribe(result =>
             {
-                updates.Add(result.Data!.Hero!.TryGetData(out IFriendsList? _));
+                updates.Add(result.Data?.Hero?.FriendsListLabel is not null);
                 if (updates.Count is 2)
                 {
                     waitHandle.Set();
