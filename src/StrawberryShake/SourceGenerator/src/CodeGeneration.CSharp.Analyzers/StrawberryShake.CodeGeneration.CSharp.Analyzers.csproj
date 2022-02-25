@@ -22,9 +22,6 @@
 
   <ItemGroup>
     <Compile Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Client\*.cs" />
-    <ProjectReference Include="..\..\..\Tooling\src\Configuration\StrawberryShake.Tools.Configuration.csproj">
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
