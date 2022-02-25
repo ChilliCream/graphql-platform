@@ -62,14 +62,9 @@ public class ErrorGeneratorTests
     [Fact]
     public void ClosePaymentsMutationErrors()
     {
-        Assert.Collection(
-            AssertError(
-                Path.Combine("__resources__", "PaymentSchema.graphql"),
-                Path.Combine("__resources__", "Schema.extensions.graphql"),
-                Path.Combine("__resources__", "PaymentQuery.graphql")),
-            error => Assert.Equal(
-                "A union type cannot declare a field directly. " +
-                "Use inline fragments or fragments instead.",
-                error.Message));
+        AssertResult(
+            FileResource.Open("PaymentSchema.graphql"),
+            FileResource.Open("Schema.extensions.graphql"),
+            FileResource.Open("PaymentQuery.graphql"));
     }
 }

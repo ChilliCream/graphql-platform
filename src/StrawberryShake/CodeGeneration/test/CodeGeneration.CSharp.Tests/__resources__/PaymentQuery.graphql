@@ -1,7 +1,15 @@
 mutation ClosePayment($commitPaymentInput: [CommitPaymentInput!]!) {
   commitPayments(payments: $commitPaymentInput) {
-    results {
-      id
-    }
+    ...ClosePaymentResultList
+  }
+}
+
+fragment ClosePaymentStatus on Payment {
+  id
+}
+
+fragment ClosePaymentResultList on PaymentActionsResultList {
+  results {
+    ...ClosePaymentStatus
   }
 }
