@@ -152,28 +152,30 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         }
         else if (namedTypeDescriptor is ObjectTypeDescriptor objectType)
         {
-            var propertyProcessed = new HashSet<NameString>();
-            var properties = new List<PropertyDescriptor>(objectType.Properties);
+            var propertyProcessed = new HashSet<NameString>(
+                objectType.Properties.Select(t => t.Name));
+            var properties = new List<PropertyDescriptor>(
+                objectType.Properties);
 
             // include properties from fragments
             foreach (DeferredFragmentDescriptor fragment in objectType.Deferred)
             {
                 foreach (PropertyDescriptor property in fragment.Class.Properties)
                 {
-                    properties.Add(property);
+                    if (propertyProcessed.Add(property.Name))
+                    {
+                        properties.Add(EnsureDeferredFieldIsNullable(property));
+                    }
                 }
             }
 
             foreach (PropertyDescriptor property in properties)
             {
-                if (propertyProcessed.Add(property.Name))
-                {
-                    AddDeserializeMethod(property.Type, classBuilder, processed);
+                AddDeserializeMethod(property.Type, classBuilder, processed);
 
-                    if (property.Type.NamedType() is INamedTypeDescriptor nt && !nt.IsLeaf())
-                    {
-                        AddRequiredDeserializeMethods(nt, classBuilder, processed);
-                    }
+                if (property.Type.NamedType() is INamedTypeDescriptor nt && !nt.IsLeaf())
+                {
+                    AddRequiredDeserializeMethods(nt, classBuilder, processed);
                 }
             }
         }
@@ -193,7 +195,6 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 .SetPrivate()
                 .SetReturnType(typeReference.ToStateTypeReference())
                 .SetName(methodName);
-
 
             if (typeReference.IsOrContainsEntity())
             {
@@ -215,7 +216,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 .New()
                 .SetCondition($"!{_obj}.HasValue")
                 .AddCode(
-                    typeReference.IsNonNullable()
+                    typeReference.IsNonNull()
                         ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
                         : CodeLineBuilder.From("return null;"));
 
@@ -272,7 +273,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         }
     }
 
-    private MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property)
+    private static MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property)
     {
         MethodCallBuilder propertyAccessor = MethodCallBuilder
             .Inline()
@@ -280,23 +281,28 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
             .AddArgument(_obj)
             .AddArgument(property.FieldName.Value.AsStringToken());
 
-        return BuildUpdateMethodCall(property.Type, propertyAccessor).SetWrapArguments();
+        var setNullForgiving = property.Kind is PropertyKind.DeferredField;
+
+        return BuildUpdateMethodCall(
+            property.Type,
+            propertyAccessor,
+            setNullForgiving)
+            .SetWrapArguments();
     }
 
-    private MethodCallBuilder BuildFragmentMethodCall(DeferredFragmentDescriptor fragment)
+    private static MethodCallBuilder BuildFragmentMethodCall(DeferredFragmentDescriptor fragment)
     {
-        MethodCallBuilder propertyAccessor = MethodCallBuilder
+        return MethodCallBuilder
             .Inline()
             .SetMethodName(TypeNames.ContainsFragment)
             .AddArgument(_obj)
             .AddArgument(fragment.FragmentIndicatorField.Value.AsStringToken());
-
-        return propertyAccessor;
     }
 
-    private MethodCallBuilder BuildUpdateMethodCall(
+    private static MethodCallBuilder BuildUpdateMethodCall(
         ITypeDescriptor property,
-        ICode argument)
+        ICode argument,
+        bool setNullForgiving)
     {
         MethodCallBuilder deserializeMethodCaller = MethodCallBuilder
             .Inline()
@@ -312,6 +318,11 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         else
         {
             deserializeMethodCaller.AddArgument(argument);
+        }
+
+        if (setNullForgiving)
+        {
+            deserializeMethodCaller.SetNullForgiving();
         }
 
         return deserializeMethodCaller;

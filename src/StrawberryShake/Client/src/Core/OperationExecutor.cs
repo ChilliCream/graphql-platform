@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Properties;
 using static StrawberryShake.Properties.Resources;
 
 namespace StrawberryShake;

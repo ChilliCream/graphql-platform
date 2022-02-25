@@ -11,8 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\SourceGenerator\src\CodeGeneration.CSharp.Analyzers\StrawberryShake.CodeGeneration.CSharp.Analyzers.csproj" />
     <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
-    <ProjectReference Include="..\..\..\SourceGenerator\src\StrawberryShake.CodeGeneration.CSharp.Analyzers.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

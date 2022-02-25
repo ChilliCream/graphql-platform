@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -52,23 +51,37 @@ public sealed class SocketOperation : ISocketOperation
     }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<OperationMessage> ReadAsync(
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+    public IAsyncEnumerable<OperationMessage> ReadAsync()
+        => new MessageStream(this, _channel);
+
+    private sealed class MessageStream : IAsyncEnumerable<OperationMessage>
     {
-        if (_disposed)
+        private readonly SocketOperation _operation;
+        private readonly Channel<OperationMessage> _channel;
+
+        public MessageStream(SocketOperation operation, Channel<OperationMessage> channel)
         {
-            yield break;
+            _operation = operation;
+            _channel = channel;
         }
 
-        ChannelReader<OperationMessage> reader = _channel.Reader;
-
-        while (!_disposed && !reader.Completion.IsCompleted)
+        public async IAsyncEnumerator<OperationMessage> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
         {
-            if (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            if (_operation._disposed)
             {
-                yield return await reader
-                    .ReadAsync(cancellationToken)
-                    .ConfigureAwait(false);
+                yield break;
+            }
+
+            ChannelReader<OperationMessage> reader = _channel.Reader;
+
+            while (!_operation._disposed && !reader.Completion.IsCompleted)
+            {
+                if (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false) &&
+                    reader.TryRead(out OperationMessage? message))
+                {
+                    yield return message;
+                }
             }
         }
     }
@@ -83,7 +96,10 @@ public sealed class SocketOperation : ISocketOperation
             {
                 await _channel.Writer.WriteAsync(message, cancellationToken).ConfigureAwait(false);
             }
-            catch (ChannelClosedException) { }
+            catch (ChannelClosedException)
+            {
+                // if the channel is closed we will move on.
+            }
         }
     }
 
@@ -93,9 +109,7 @@ public sealed class SocketOperation : ISocketOperation
         if (!_disposed)
         {
             _channel.Writer.TryComplete();
-
             await _manager.StopOperationAsync(Id, CancellationToken.None).ConfigureAwait(false);
-
             _disposed = true;
         }
     }

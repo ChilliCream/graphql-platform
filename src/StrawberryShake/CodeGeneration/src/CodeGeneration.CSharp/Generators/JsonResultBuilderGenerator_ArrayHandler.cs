@@ -48,7 +48,8 @@ public partial class JsonResultBuilderGenerator
                             .AddArgument(
                                 BuildUpdateMethodCall(
                                     listTypeDescriptor.InnerType,
-                                    CodeInlineBuilder.From(_child)))))
+                                    CodeInlineBuilder.From(_child),
+                                    setNullForgiving: false))))
             .AddEmptyLine()
             .AddCode($"return {listVarName};");
 

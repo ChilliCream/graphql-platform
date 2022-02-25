@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
@@ -91,12 +92,12 @@ public partial class JsonResultBuilderGenerator
             .AddEmptyLine();
     }
 
-    private ICode CreateEntityConstructorCall(
-        ObjectTypeDescriptor objectTypeDescriptor,
+    private static ICode CreateEntityConstructorCall(
+        ObjectTypeDescriptor objectType,
         bool assignDefault)
     {
-        var propertyLookup = objectTypeDescriptor.Properties.ToDictionary(x => x.Name);
-        var fragments = objectTypeDescriptor.Deferred.ToDictionary(t => t.FragmentIndicator);
+        var propertyLookup = objectType.Properties.ToDictionary(x => x.Name);
+        var fragments = objectType.Deferred.ToDictionary(t => t.FragmentIndicator);
 
         // include properties from fragments
         foreach (DeferredFragmentDescriptor fragment in fragments.Values)
@@ -105,7 +106,7 @@ public partial class JsonResultBuilderGenerator
             {
                 if (!propertyLookup.ContainsKey(property.Name))
                 {
-                    propertyLookup.Add(property.Name, property);
+                    propertyLookup.Add(property.Name, EnsureDeferredFieldIsNullable(property));
                 }
             }
         }
@@ -113,10 +114,10 @@ public partial class JsonResultBuilderGenerator
         MethodCallBuilder newEntity = MethodCallBuilder
             .Inline()
             .SetNew()
-            .SetMethodName(objectTypeDescriptor.EntityTypeDescriptor.RuntimeType.ToString());
+            .SetMethodName(objectType.EntityTypeDescriptor.RuntimeType.ToString());
 
         foreach (PropertyDescriptor property in
-                 objectTypeDescriptor.EntityTypeDescriptor.Properties.Values)
+            objectType.EntityTypeDescriptor.Properties.Values)
         {
             if (propertyLookup.TryGetValue(property.Name, out PropertyDescriptor? prop))
             {
@@ -143,7 +144,7 @@ public partial class JsonResultBuilderGenerator
             .AddArgument(newEntity);
     }
 
-    private IfBuilder BuildTryGetEntityIf(RuntimeTypeInfo entityType)
+    private static IfBuilder BuildTryGetEntityIf(RuntimeTypeInfo entityType)
     {
         return IfBuilder
             .New()
@@ -152,5 +153,20 @@ public partial class JsonResultBuilderGenerator
                 .SetMethodName(_session, "CurrentSnapshot", "TryGetEntity")
                 .AddArgument(_entityId)
                 .AddOutArgument(_entity, entityType.ToString()));
+    }
+
+    private static PropertyDescriptor EnsureDeferredFieldIsNullable(PropertyDescriptor property)
+    {
+        if (property.Type.IsNonNull())
+        {
+            property = new PropertyDescriptor(
+                property.Name,
+                property.FieldName,
+                property.Type.InnerType(),
+                property.Description,
+                PropertyKind.DeferredField);
+        }
+
+        return property;
     }
 }

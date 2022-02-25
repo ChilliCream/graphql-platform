@@ -95,13 +95,13 @@ public class SocketOperationTests
     {
         // arrange
         ISession manager = new Mock<ISession>().Object;
-        string id = "123";
+        const string id = "123";
         var operation = new SocketOperation(manager, id);
         await operation.DisposeAsync();
         List<OperationMessage> messages = new();
 
         // act
-        await foreach (var elm in operation.ReadAsync(CancellationToken.None))
+        await foreach (var elm in operation.ReadAsync())
         {
             messages.Push(elm);
         }
@@ -115,7 +115,7 @@ public class SocketOperationTests
     {
         // arrange
         ISession manager = new Mock<ISession>().Object;
-        string id = "123";
+        const string id = "123";
         var operation = new SocketOperation(manager, id);
         List<OperationMessage> messages = new();
 
@@ -124,7 +124,7 @@ public class SocketOperationTests
             ErrorOperationMessage.ConnectionInitializationError,
             CancellationToken.None);
 
-        await foreach (var elm in operation.ReadAsync(CancellationToken.None))
+        await foreach (var elm in operation.ReadAsync())
         {
             messages.Push(elm);
             await operation.DisposeAsync();

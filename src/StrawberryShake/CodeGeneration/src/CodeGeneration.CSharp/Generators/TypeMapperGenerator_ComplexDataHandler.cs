@@ -112,7 +112,7 @@ public partial class TypeMapperGenerator
                 constructorCall.AddArgument(
                     BuildMapMethodCall(settings, matchedTypeName, prop));
             }
-            else if (prop.Type.IsNonNullable())
+            else if (prop.Type.IsNonNull())
             {
                 if (prop.Type.InnerType() is ILeafTypeDescriptor
                         { RuntimeType: { IsValueType: true } })

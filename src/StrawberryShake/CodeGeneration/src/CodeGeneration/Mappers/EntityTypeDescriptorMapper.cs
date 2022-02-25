@@ -74,7 +74,7 @@ public static class EntityTypeDescriptorMapper
                 properties,
                 description);
 
-            foreach ((NameString typeName, var isFragment) in value)
+            foreach ((NameString typeName, var isFragment) in value.OrderBy(t => t.Value))
             {
                 ComplexTypeDescriptor type = context.GetType<ComplexTypeDescriptor>(typeName);
 

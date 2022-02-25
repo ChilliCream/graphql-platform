@@ -61,7 +61,7 @@ public static class TypeDescriptorExtensions
     public static bool IsNullable(this ITypeDescriptor typeDescriptor) =>
         typeDescriptor is not NonNullTypeDescriptor;
 
-    public static bool IsNonNullable(this ITypeDescriptor typeDescriptor) =>
+    public static bool IsNonNull(this ITypeDescriptor typeDescriptor) =>
         typeDescriptor is NonNullTypeDescriptor;
 
     public static bool IsList(this ITypeDescriptor typeDescriptor) =>

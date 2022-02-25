@@ -4,6 +4,7 @@ using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using static StrawberryShake.CodeGeneration.CSharp.Generators.TypeMapperGenerator;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
+using static StrawberryShake.CodeGeneration.TypeNames;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators;
@@ -15,19 +16,12 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
     private const string _map = "Map";
     private const string _snapshot = "snapshot";
 
-    // protected override bool CanHandle(
-       // ITypeDescriptor descriptor,
-        //CSharpSyntaxGeneratorSettings settings)
-        //=> descriptor.Kind is TypeKind.Entity or TypeKind.Fragment &&
-        //   !descriptor.IsInterface() &&
-         //  !settings.NoStore;
+    protected override bool CanHandle(
+        ResultFromEntityDescriptor descriptor,
+        CSharpSyntaxGeneratorSettings settings)
+        => !settings.NoStore && base.CanHandle(descriptor, settings);
 
-     protected override bool CanHandle(
-         ResultFromEntityDescriptor descriptor,
-         CSharpSyntaxGeneratorSettings settings)
-         => !settings.NoStore && base.CanHandle(descriptor, settings);
-
-     protected override void Generate(
+    protected override void Generate(
         ResultFromEntityDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,
         CodeWriter writer,
@@ -45,7 +39,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
         ClassBuilder classBuilder = ClassBuilder
             .New()
             .AddImplements(
-                TypeNames.IEntityMapper.WithGeneric(
+                IEntityMapper.WithGeneric(
                     descriptor.ExtractType().ToString(),
                     descriptor.RuntimeType.Name))
             .SetName(fileName);
@@ -55,7 +49,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
             .SetTypeName(descriptor.Name);
 
         AddConstructorAssignedField(
-            TypeNames.IEntityStore,
+            IEntityStore,
             GetFieldName(_entityStore),
             _entityStore,
             classBuilder,
@@ -78,7 +72,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
             .AddParameter(
                 _snapshot,
                 b => b.SetDefault("null")
-                    .SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()));
+                    .SetType(IEntityStoreSnapshot.MakeNullable()));
 
         mapMethod
             .AddCode(IfBuilder

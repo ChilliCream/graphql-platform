@@ -159,7 +159,7 @@ public partial class TypeMapperGenerator
                         .SetMethodName(MapMethodNameFromTypeName(property.Type));
 
                 ICode argString = CodeInlineBuilder.From($"{objectName}.{property.Name}");
-                if (addNullCheck && property.Type.IsNonNullable())
+                if (addNullCheck && property.Type.IsNonNull())
                 {
                     argString = NullCheckBuilder
                         .Inline()

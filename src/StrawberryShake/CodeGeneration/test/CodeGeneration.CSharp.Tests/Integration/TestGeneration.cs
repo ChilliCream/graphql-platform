@@ -208,6 +208,24 @@ public class TestGeneration
                 }
             }");
 
+    [Fact]
+    public void StarWarsGetFriendsDeferInList() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query GetHero {
+                hero(episode: NEW_HOPE) {
+                    friends {
+                        nodes {
+                            ... CharacterName @defer(label: ""CharacterName"")
+                        }
+                    }
+                }
+            }
+
+            fragment CharacterName on Character {
+                name
+            }");
+
     /*
     [Fact]
     public void StarWarsGetFriendsDeferredData() =>

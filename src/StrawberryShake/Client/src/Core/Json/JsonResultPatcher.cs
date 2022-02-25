@@ -65,19 +65,24 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
 
             if (path.Length > 1)
             {
-                foreach (JsonElement segment in path)
+                var max = path.Length - 1;
+                for (var i = 0; i < max; i++)
                 {
-                    current = segment.ValueKind switch
+                    current = path[i].ValueKind switch
                     {
-                        JsonValueKind.String => current[segment.GetString()!]!,
-                        JsonValueKind.Number => current[segment.GetInt32()]!,
+                        JsonValueKind.String => current[path[i].GetString()!]!,
+                        JsonValueKind.Number => current[path[i].GetInt32()]!,
                         _ => throw new NotSupportedException(
                             JsonResultPatcher_PathSegmentMustBeStringOrInt)
                     };
                 }
             }
 
-            JsonElement last = path.Last();
+#if NET5_0_OR_GREATER
+            JsonElement last = path[^1];
+#else 
+            JsonElement last = path[path.Length - 1];
+#endif
 
             if (last.ValueKind is JsonValueKind.String)
             {

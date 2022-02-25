@@ -78,7 +78,7 @@ public class RazorQueryGenerator : CSharpSyntaxGenerator<OperationDescriptor>
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .WithGetterAndSetter();
 
-        if (property.Type.IsNonNullable())
+        if (property.Type.IsNonNull())
         {
             propertySyntax = propertySyntax.WithSuppressNullableWarningExpression();
         }

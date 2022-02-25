@@ -1,6 +1,6 @@
 using System;
-using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Execution.Configuration;
 using Moq;
 using StackExchange.Redis;
 using Xunit;
@@ -12,8 +12,8 @@ public class RedisSubscriptionsServiceCollectionExtensionsTests
     [Fact]
     public void AddRedisSubscriptions_1_Services_Is_Null()
     {
-        void Fail() =>
-            default(IServiceCollection).AddRedisSubscriptions(
+        static void Fail()
+            => default(IServiceCollection).AddRedisSubscriptions(
                 sp => sp.GetRequiredService<IConnectionMultiplexer>());
 
         Assert.Throws<ArgumentNullException>(Fail);
@@ -29,9 +29,9 @@ public class RedisSubscriptionsServiceCollectionExtensionsTests
     [Fact]
     public void AddRedisSubscriptions_2_Services_Is_Null()
     {
-        void Fail() =>
-            default(IRequestExecutorBuilder)
-                .AddRedisSubscriptions(sp => sp.GetRequiredService<IConnectionMultiplexer>());
+        static void Fail() =>
+            default(IRequestExecutorBuilder).AddRedisSubscriptions(
+                sp => sp.GetRequiredService<IConnectionMultiplexer>());
 
         Assert.Throws<ArgumentNullException>(Fail);
     }

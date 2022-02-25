@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake.Json;
+using static StrawberryShake.ResultFields;
 
 namespace StrawberryShake;
 
@@ -16,9 +17,6 @@ public abstract class OperationResultBuilder<TResultData>
     : IOperationResultBuilder<JsonDocument, TResultData>
     where TResultData : class
 {
-    private const string _data = "data";
-    private const string _errors = "errors";
-
     protected abstract IOperationResultDataFactory<TResultData> ResultDataFactory { get; }
 
     public IOperationResult<TResultData> Build(
@@ -27,20 +25,19 @@ public abstract class OperationResultBuilder<TResultData>
         TResultData? data = null;
         IOperationResultDataInfo? dataInfo = null;
         IReadOnlyList<IClientError>? errors = null;
-        Exception? exception = null;
 
         try
         {
             if (response.Body is { } body)
             {
-                if (body.RootElement.TryGetProperty(_data, out JsonElement dataProp) &&
+                if (body.RootElement.TryGetProperty(Data, out JsonElement dataProp) &&
                     dataProp.ValueKind is JsonValueKind.Object)
                 {
                     dataInfo = BuildData(dataProp);
                     data = ResultDataFactory.Create(dataInfo);
                 }
 
-                if (body.RootElement.TryGetProperty(_errors, out JsonElement errorsProp) &&
+                if (body.RootElement.TryGetProperty(Errors, out JsonElement errorsProp) &&
                     errorsProp.ValueKind is JsonValueKind.Array)
                 {
                     errors = JsonErrorParser.ParseErrors(errorsProp);
@@ -49,7 +46,24 @@ public abstract class OperationResultBuilder<TResultData>
         }
         catch (Exception ex)
         {
-            exception = ex;
+            var list = new List<IClientError>
+            {
+                new ClientError(
+                ex.Message,
+                ErrorCodes.InvalidResultDataStructure,
+                exception: ex,
+                extensions: new Dictionary<string, object?>
+                {
+                    { nameof(ex.StackTrace), ex.StackTrace }
+                })
+            };
+
+            if (errors is not null)
+            {
+                list.AddRange(errors);
+            }
+
+            errors = list;
         }
 
         return new OperationResult<TResultData>(

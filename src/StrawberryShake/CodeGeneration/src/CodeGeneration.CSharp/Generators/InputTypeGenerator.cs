@@ -91,7 +91,7 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
                 VariableDeclarator(
                     Identifier(CreateInputValueField(prop.Name)));
 
-            if (prop.Type.IsNonNullable() && !prop.Type.GetRuntimeType().IsValueType)
+            if (prop.Type.IsNonNull() && !prop.Type.GetRuntimeType().IsValueType)
             {
                 variable = variable.WithSuppressNullableWarningExpression();
             }

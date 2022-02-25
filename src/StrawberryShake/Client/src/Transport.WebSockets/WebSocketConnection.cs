@@ -58,7 +58,8 @@ public class WebSocketConnection : IWebSocketConnection
             await using ISocketOperation operation =
                 await session.StartOperationAsync(_request, cancellationToken);
 
-            await foreach (OperationMessage message in operation.ReadAsync(cancellationToken))
+            await foreach (OperationMessage message in 
+                operation.ReadAsync().WithCancellation(cancellationToken))
             {
                 switch (message.Type)
                 {

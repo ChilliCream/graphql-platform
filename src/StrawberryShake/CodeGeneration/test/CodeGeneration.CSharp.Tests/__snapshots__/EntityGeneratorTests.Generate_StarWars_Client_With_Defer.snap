@@ -170,7 +170,7 @@ namespace Foo.Bar
 
         public global::Foo.Bar.IGetHero_Hero_Friends? Friends { get; }
 
-        public IHeroAppearsIn HeroAppearsInAbc => _heroAppearsInAbc;
+        public IHeroAppearsIn? HeroAppearsInAbc => _heroAppearsInAbc;
         public virtual global::System.Boolean Equals(GetHero_Hero_Droid? other)
         {
             if (ReferenceEquals(null, other))
@@ -254,7 +254,7 @@ namespace Foo.Bar
 
         public global::Foo.Bar.IGetHero_Hero_Friends? Friends { get; }
 
-        public IHeroAppearsIn HeroAppearsInAbc => _heroAppearsInAbc;
+        public IHeroAppearsIn? HeroAppearsInAbc => _heroAppearsInAbc;
         public virtual global::System.Boolean Equals(GetHero_Hero_Human? other)
         {
             if (ReferenceEquals(null, other))
@@ -485,7 +485,7 @@ namespace Foo.Bar
 
         public global::System.String Name { get; }
 
-        public IHeroAppearsIn2 HeroAppearsIn2 => _heroAppearsIn2;
+        public IHeroAppearsIn2? HeroAppearsIn2 => _heroAppearsIn2;
         public virtual global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Droid? other)
         {
             if (ReferenceEquals(null, other))
@@ -561,7 +561,7 @@ namespace Foo.Bar
 
         public global::System.String Name { get; }
 
-        public IHeroAppearsIn2 HeroAppearsIn2 => _heroAppearsIn2;
+        public IHeroAppearsIn2? HeroAppearsIn2 => _heroAppearsIn2;
         public virtual global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Human? other)
         {
             if (ReferenceEquals(null, other))
@@ -649,20 +649,23 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero : IHeroName, global::StrawberryShake.IFragment<IHeroAppearsIn>
+    public partial interface IGetHero_Hero : IHeroName
     {
+        public IHeroAppearsIn? HeroAppearsInAbc { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero_Droid : IGetHero_Hero, global::StrawberryShake.IFragment<IHeroAppearsIn>
+    public partial interface IGetHero_Hero_Droid : IGetHero_Hero
     {
+        public IHeroAppearsIn? HeroAppearsInAbc { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero_Human : IGetHero_Hero, global::StrawberryShake.IFragment<IHeroAppearsIn>
+    public partial interface IGetHero_Hero_Human : IGetHero_Hero
     {
+        public IHeroAppearsIn? HeroAppearsInAbc { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -696,21 +699,25 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero_Friends_Nodes : global::StrawberryShake.IFragment<IHeroAppearsIn2>
+    public partial interface IGetHero_Hero_Friends_Nodes
     {
         public global::System.String Name { get; }
+
+        public IHeroAppearsIn2? HeroAppearsIn2 { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero_Friends_Nodes_Droid : IGetHero_Hero_Friends_Nodes, global::StrawberryShake.IFragment<IHeroAppearsIn2>
+    public partial interface IGetHero_Hero_Friends_Nodes_Droid : IGetHero_Hero_Friends_Nodes
     {
+        public IHeroAppearsIn2? HeroAppearsIn2 { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero_Friends_Nodes_Human : IGetHero_Hero_Friends_Nodes, global::StrawberryShake.IFragment<IHeroAppearsIn2>
+    public partial interface IGetHero_Hero_Friends_Nodes_Human : IGetHero_Hero_Friends_Nodes
     {
+        public IHeroAppearsIn2? HeroAppearsIn2 { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator

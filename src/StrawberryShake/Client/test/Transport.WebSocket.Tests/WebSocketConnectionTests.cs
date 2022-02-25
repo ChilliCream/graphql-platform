@@ -57,7 +57,7 @@ public class WebSocketConnectionTests
         managerMock
             .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
             .ReturnsAsync(operationMock.Object);
-        operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+        operationMock.Setup(x => x.ReadAsync()).Returns(Producer());
         ValueTask<ISession> SessionFactory(CancellationToken ct) => new(managerMock.Object);
         var connection = new WebSocketConnection(SessionFactory);
         var results = new List<Response<JsonDocument>>();
@@ -92,7 +92,7 @@ public class WebSocketConnectionTests
         managerMock
             .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
             .ReturnsAsync(operationMock.Object);
-        operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+        operationMock.Setup(x => x.ReadAsync()).Returns(Producer());
         ValueTask<ISession> SessionFactory(CancellationToken cancellationToken)
             => new(managerMock.Object);
         var connection = new WebSocketConnection(SessionFactory);
@@ -125,7 +125,7 @@ public class WebSocketConnectionTests
         managerMock
             .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
             .ReturnsAsync(operationMock.Object);
-        operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+        operationMock.Setup(x => x.ReadAsync()).Returns(Producer());
         ValueTask<ISession> SessionFactory(CancellationToken cancellationToken)
             => new(managerMock.Object);
         var connection = new WebSocketConnection(SessionFactory);
@@ -159,7 +159,7 @@ public class WebSocketConnectionTests
         managerMock
             .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
             .ReturnsAsync(operationMock.Object);
-        operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+        operationMock.Setup(x => x.ReadAsync()).Returns(Producer());
         ValueTask<ISession> SessionFactory(CancellationToken cancellationToken)
             => new(managerMock.Object);
         var connection = new WebSocketConnection(SessionFactory);
@@ -193,7 +193,7 @@ public class WebSocketConnectionTests
         managerMock
             .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
             .ReturnsAsync(operationMock.Object);
-        operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
+        operationMock.Setup(x => x.ReadAsync()).Returns(Producer());
         ValueTask<ISession> SessionFactory(CancellationToken cancellationToken)
             => new(managerMock.Object);
         var connection = new WebSocketConnection(SessionFactory);
