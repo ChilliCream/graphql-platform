@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
+using static System.Net.Http.HttpCompletionOption;
 using static System.StringComparison;
 
 namespace StrawberryShake.Transport.Http;
@@ -43,14 +44,15 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
 
         if (_context is null || _reader is null)
         {
-            var client = _createClient();
-            var request = _createRequest();
-            var response = await client.SendAsync(request, _abort).ConfigureAwait(false);
+            HttpClient client = _createClient();
+            HttpRequestMessage request = _createRequest();
+            HttpResponseMessage response =
+                await client.SendAsync(request, ResponseHeadersRead, _abort).ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
-            var stream = await response.Content.ReadAsStreamAsync(_abort).ConfigureAwait(false);
+            Stream stream = await response.Content.ReadAsStreamAsync(_abort).ConfigureAwait(false);
 #else
-            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
 
             _context = new ConnectionContext(client, request, response, stream);
@@ -60,10 +62,7 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
             {
                 NameValueHeaderValue boundary =
                     contentType.Parameters.First(t => string.Equals(t.Name, "boundary", Ordinal));
-
-                _reader = new MultipartReader(
-                    boundary.Value!.Trim('"'),
-                    stream);
+                _reader = new MultipartReader(boundary.Value!.Trim('"'), stream);
             }
             else
             {

@@ -18,7 +18,7 @@ public class InputTypeStateInterfaceGenerator : CSharpSyntaxGenerator<InputObjec
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.InternalKeyword))
                 .AddGeneratedAttribute();
 
-        foreach (var prop in descriptor.Properties)
+        foreach (PropertyDescriptor prop in descriptor.Properties)
         {
             interfaceDeclaration = interfaceDeclaration.AddMembers(
                 SyntaxFactory.PropertyDeclaration(

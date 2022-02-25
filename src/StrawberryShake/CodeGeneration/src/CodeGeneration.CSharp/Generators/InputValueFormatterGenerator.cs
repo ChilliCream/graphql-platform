@@ -36,8 +36,8 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
         path = Serialization;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        string stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
-        string infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
+        var stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
+        var infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
 
         ClassBuilder classBuilder = ClassBuilder
             .New()

@@ -44,3 +44,4 @@ public sealed class HttpConnection : IHttpConnection
         return buffer;
     }
 }
+

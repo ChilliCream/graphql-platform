@@ -53,13 +53,3 @@ public sealed class OutputTypeModel : ITypeModel
 
     public override string ToString() => Name;
 }
-
-[Flags]
-public enum OutputModelKind
-{
-    Object = 0,
-    Interface = 1,
-    Fragment = 2,
-    FragmentInterface = Fragment | Interface,
-    FragmentObject = Fragment | Object
-}

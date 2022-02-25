@@ -207,7 +207,7 @@ public static class CSharpGenerator
         ResultFromEntityMapper.Map(context);
 
         // We generate the client mapper next as we have all components of the client generated
-        ClientDescriptorMapper.Map(clientModel, context);
+        ClientDescriptorMapper.Map(context);
 
         // Lastly we generate the DI code, as we now have collected everything
         DependencyInjectionMapper.Map(context);

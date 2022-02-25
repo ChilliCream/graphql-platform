@@ -346,7 +346,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
             InterfaceTypeDescriptor
             {
-                ImplementedBy: { Count: > 1 },
+                ImplementedBy.Count: > 1,
                 ParentRuntimeType: { } parentRuntimeType
             } => parentRuntimeType.Name,
 

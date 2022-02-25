@@ -48,7 +48,7 @@ public class ClientDescriptorMapperTests
             });
         TypeDescriptorMapper.Map(clientModel, context);
         OperationDescriptorMapper.Map(clientModel, context);
-        ClientDescriptorMapper.Map(clientModel, context);
+        ClientDescriptorMapper.Map(context);
 
         // assert
         Assert.Equal(clientName, context.Client.Name);

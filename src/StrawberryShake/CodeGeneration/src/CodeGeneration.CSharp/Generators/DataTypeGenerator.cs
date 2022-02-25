@@ -16,12 +16,9 @@ public class DataTypeGenerator : CSharpSyntaxGenerator<DataTypeDescriptor>
         DataTypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
     {
-        if (descriptor.IsInterface)
-        {
-            return GenerateDataInterface(descriptor);
-        }
-
-        return GenerateDataClass(descriptor, settings);
+        return descriptor.IsInterface
+            ? GenerateDataInterface(descriptor)
+            : GenerateDataClass(descriptor, settings);
     }
 
     private CSharpSyntaxGeneratorResult GenerateDataInterface(
