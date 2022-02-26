@@ -84,7 +84,7 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
         foreach (FragmentDefinitionNode fragment in
             document.Definitions.OfType<FragmentDefinitionNode>())
         {
-            if (!string.IsNullOrEmpty(fragment.Name?.Value))
+            if (!string.IsNullOrEmpty(fragment.Name.Value))
             {
                 fragments[fragment.Name.Value] = fragment;
             }
@@ -95,9 +95,8 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
 
     protected override void VisitField(FieldNode node, Context context)
     {
-        if (context.TypeContext is IComplexOutputType type
-            && type.Fields.TryGetField(node.Name.Value,
-                out IOutputField? field))
+        if (context.TypeContext is IComplexOutputType type &&
+            type.Fields.TryGetField(node.Name.Value, out IOutputField? field))
         {
             CollectDelegationDependencies(context, type, field);
             CollectComputeDependencies(context, type, field);
@@ -109,8 +108,7 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
         Types.IHasName type,
         IOutputField field)
     {
-        IDirective? directive = field.Directives[DirectiveNames.Delegate]
-            .FirstOrDefault();
+        IDirective? directive = field.Directives[DirectiveNames.Delegate].FirstOrDefault();
 
         if (directive is not null)
         {
@@ -126,12 +124,10 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
         IComplexOutputType type,
         IOutputField field)
     {
-        IDirective? directive = field.Directives[DirectiveNames.Computed]
-            .FirstOrDefault();
-
+        IDirective? directive = field.Directives[DirectiveNames.Computed].FirstOrDefault();
         NameString[]? dependantOn = directive?.ToObject<ComputedDirective>().DependantOn;
 
-        if (dependantOn != null)
+        if (dependantOn is { })
         {
             foreach (string fieldName in dependantOn)
             {
@@ -250,28 +246,21 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
 
         public ISet<FieldDependency> Dependencies { get; }
 
-        public INamedOutputType TypeContext { get; protected set; }
+        public INamedOutputType TypeContext { get; }
 
         public ImmutableHashSet<string> FragmentPath { get; }
 
-        public IDictionary<string, FragmentDefinitionNode> Fragments
-        { get; }
+        public IDictionary<string, FragmentDefinitionNode> Fragments { get; }
 
         public Context SetTypeContext(INamedOutputType type)
-        {
-            return new Context(this, type);
-        }
+            => new(this, type);
 
         public Context AddFragment(string fragmentName)
-        {
-            return new Context(this, FragmentPath.Add(fragmentName));
-        }
+            => new(this, FragmentPath.Add(fragmentName));
 
         public static Context New(
             INamedOutputType typeContext,
             IDictionary<string, FragmentDefinitionNode> fragments)
-        {
-            return new Context(typeContext, fragments);
-        }
+            => new(typeContext, fragments);
     }
 }

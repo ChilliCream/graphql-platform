@@ -5,7 +5,7 @@ using static System.IO.Path;
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers;
 
 [Generator]
-public class StrawberryShakeSourceGenerator : ISourceGenerator
+public sealed class StrawberryShakeSourceGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
@@ -32,7 +32,7 @@ public class StrawberryShakeSourceGenerator : ISourceGenerator
                     new DiagnosticDescriptor(
                         "SSG0003",
                         "Generator Error",
-                        ex.Message,
+                        ex.Message + "\r\n" + ex.StackTrace,
                         "Generator",
                         DiagnosticSeverity.Error,
                         true),

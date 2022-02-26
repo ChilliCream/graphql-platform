@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
@@ -33,7 +34,7 @@ public class CSharpGeneratorServerTests : IDisposable
 
         // assert
         Assert.Equal(0, status);
-        ResponseParser.Parse(requestSink).MatchSnapshot();
+        ResponseFormatter.Take(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
     }
 
@@ -51,7 +52,7 @@ public class CSharpGeneratorServerTests : IDisposable
 
         // assert
         Assert.Equal(0, status);
-        ResponseParser.Parse(requestSink).MatchSnapshot();
+        ResponseFormatter.Take(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
         Assert.True(File.Exists(Path.Combine(
             request.RootDirectory,
@@ -84,7 +85,7 @@ public class CSharpGeneratorServerTests : IDisposable
 
         // assert
         Assert.Equal(0, status);
-        ResponseParser.Parse(requestSink).MatchSnapshot();
+        ResponseFormatter.Take(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
         Assert.True(Directory.Exists(Path.Combine(request.RootDirectory, "Generated")));
         Assert.True(File.Exists(Path.Combine(
@@ -118,7 +119,7 @@ public class CSharpGeneratorServerTests : IDisposable
 
         // assert
         Assert.Equal(0, status);
-        ResponseParser.Parse(requestSink).MatchSnapshot();
+        ResponseFormatter.Take(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
         Assert.False(Directory.Exists(Path.Combine(request.RootDirectory, "Generated")));
         Assert.True(File.Exists(Path.Combine(
@@ -148,7 +149,7 @@ public class CSharpGeneratorServerTests : IDisposable
         var status = await CSharpGeneratorServer.RunAsync(requestSink);
 
         Assert.Equal(0, status);
-        ResponseParser.Parse(requestSink).MatchSnapshot();
+        ResponseFormatter.Take(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
         Assert.True(Directory.Exists(Path.Combine(request.RootDirectory, "Generated")));
         Assert.True(File.Exists(Path.Combine(
@@ -175,7 +176,7 @@ public class CSharpGeneratorServerTests : IDisposable
 
         // assert
         Assert.Equal(0, status);
-        ResponseParser.Parse(requestSink).MatchSnapshot();
+        ResponseFormatter.Take(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
         Assert.True(Directory.Exists(Path.Combine(request.RootDirectory, "Generated")));
         Assert.True(File.Exists(Path.Combine(
@@ -209,7 +210,7 @@ public class CSharpGeneratorServerTests : IDisposable
 
         // assert
         Assert.Equal(0, status);
-        ResponseParser.Parse(requestSink).MatchSnapshot();
+        ResponseFormatter.Take(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
         Assert.False(Directory.Exists(Path.Combine(request.RootDirectory, "Generated")));
         Assert.True(File.Exists(Path.Combine(
@@ -243,7 +244,7 @@ public class CSharpGeneratorServerTests : IDisposable
 
         // assert
         Assert.Equal(0, status);
-        ResponseParser.Parse(requestSink).MatchSnapshot();
+        ResponseFormatter.Take(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
         Assert.False(Directory.Exists(request.PersistedQueryDirectory!));
         Assert.False(File.Exists(Path.Combine(
@@ -276,7 +277,7 @@ public class CSharpGeneratorServerTests : IDisposable
         var requestSink = RequestFormatter.Format(request);
         var status = await CSharpGeneratorServer.RunAsync(requestSink);
         Assert.Equal(0, status);
-        Assert.Empty(ResponseParser.Parse(requestSink).Errors);
+        Assert.Empty(ResponseFormatter.Take(requestSink).Errors);
         Assert.True(File.Exists(Path.Combine(
             request.RootDirectory,
             "Generated",
@@ -305,7 +306,7 @@ public class CSharpGeneratorServerTests : IDisposable
 
         // assert
         Assert.Equal(0, status);
-        ResponseParser.Parse(requestSink).MatchSnapshot();
+        ResponseFormatter.Take(requestSink).MatchSnapshot();
         Assert.False(File.Exists(requestSink));
         Assert.False(Directory.Exists(request.PersistedQueryDirectory!));
         Assert.True(File.Exists(Path.Combine(
