@@ -11,21 +11,33 @@ namespace HotChocolate.Types.NodaTime;
 /// </summary>
 public class PeriodType : StringToClassBaseType<Period>
 {
+    private readonly IPattern<Period>[] _allowedPatterns;
+    private readonly IPattern<Period> _serializationPattern;
+
     /// <summary>
     /// Initializes a new instance of <see cref="PeriodType"/>.
     /// </summary>
-    public PeriodType() : base("Period")
+    public PeriodType() : this(PeriodPattern.Roundtrip)
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="PeriodType"/>.
+    /// </summary>
+    public PeriodType(params IPattern<Period>[] allowedPatterns) : base("Period")
+    {
+        _allowedPatterns = allowedPatterns;
+        _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.PeriodType_Description;
     }
 
     /// <inheritdoc />
     protected override string Serialize(Period runtimeValue)
-        => PeriodPattern.Roundtrip.Format(runtimeValue);
+        => _serializationPattern.Format(runtimeValue);
 
     /// <inheritdoc />
     protected override bool TryDeserialize(
         string resultValue,
         [NotNullWhen(true)] out Period? runtimeValue)
-        => PeriodPattern.Roundtrip.TryParse(resultValue, out runtimeValue);
+        => _allowedPatterns.TryParse(resultValue, out runtimeValue);
 }

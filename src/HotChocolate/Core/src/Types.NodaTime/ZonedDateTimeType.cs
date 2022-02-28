@@ -13,27 +13,37 @@ namespace HotChocolate.Types.NodaTime;
 public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
 {
     private static readonly string formatString = "uuuu'-'MM'-'dd'T'HH':'mm':'ss' 'z' 'o<g>";
+    private readonly IPattern<ZonedDateTime>[] _allowedPatterns;
+    private readonly IPattern<ZonedDateTime> _serializationPattern;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ZonedDateTimeType"/>.
     /// </summary>
     public ZonedDateTimeType()
+        : this(ZonedDateTimePattern
+            .CreateWithInvariantCulture(formatString, DateTimeZoneProviders.Tzdb))
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ZonedDateTimeType"/>.
+    /// </summary>
+    public ZonedDateTimeType(params IPattern<ZonedDateTime>[] allowedPatterns)
         : base("ZonedDateTime")
     {
+        _allowedPatterns = allowedPatterns;
+        _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.ZonedDateTimeType_Description;
     }
 
     /// <inheritdoc />
     protected override string Serialize(ZonedDateTime runtimeValue)
-        => ZonedDateTimePattern
-            .CreateWithInvariantCulture(formatString, DateTimeZoneProviders.Tzdb)
+        => _serializationPattern
             .Format(runtimeValue);
 
     /// <inheritdoc />
     protected override bool TryDeserialize(
         string resultValue,
         [NotNullWhen(true)] out ZonedDateTime? runtimeValue)
-        => ZonedDateTimePattern
-            .CreateWithInvariantCulture(formatString, DateTimeZoneProviders.Tzdb)
-            .TryParse(resultValue, out runtimeValue);
+        => _allowedPatterns.TryParse(resultValue, out runtimeValue);
 }

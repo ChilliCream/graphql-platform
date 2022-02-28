@@ -13,25 +13,34 @@ namespace HotChocolate.Types.NodaTime;
 /// </summary>
 public class OffsetType : StringToStructBaseType<Offset>
 {
+    private readonly IPattern<Offset>[] _allowedPatterns;
+    private readonly IPattern<Offset> _serializationPattern;
+
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetType"/>.
     /// </summary>
-    public OffsetType() : base("Offset")
+    public OffsetType() : this(OffsetPattern.GeneralInvariantWithZ)
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="OffsetType"/>.
+    /// </summary>
+    public OffsetType(params IPattern<Offset>[] allowedPatterns) : base("Offset")
+    {
+        _allowedPatterns = allowedPatterns;
+        _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.OffsetType_Description;
     }
 
     /// <inheritdoc />
     protected override string Serialize(Offset runtimeValue)
-        => OffsetPattern.GeneralInvariantWithZ
-            .WithCulture(CultureInfo.InvariantCulture)
+        => _serializationPattern
             .Format(runtimeValue);
 
     /// <inheritdoc />
     protected override bool TryDeserialize(
         string resultValue,
         [NotNullWhen(true)] out Offset? runtimeValue)
-        => OffsetPattern.GeneralInvariantWithZ
-            .WithCulture(CultureInfo.InvariantCulture)
-            .TryParse(resultValue, out runtimeValue);
+        => _allowedPatterns.TryParse(resultValue, out runtimeValue);
 }

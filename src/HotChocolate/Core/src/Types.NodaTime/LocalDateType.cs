@@ -12,25 +12,34 @@ namespace HotChocolate.Types.NodaTime;
 /// </summary>
 public class LocalDateType : StringToStructBaseType<LocalDate>
 {
+    private readonly IPattern<LocalDate>[] _allowedPatterns;
+    private readonly IPattern<LocalDate> _serializationPattern;
+
     /// <summary>
     /// Initializes a new instance of <see cref="LocalDateType"/>.
     /// </summary>
-    public LocalDateType() : base("LocalDate")
+    public LocalDateType() : this(LocalDatePattern.Iso)
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="LocalDateType"/>.
+    /// </summary>
+    public LocalDateType(params IPattern<LocalDate>[] allowedPatterns) : base("LocalDate")
+    {
+        _allowedPatterns = allowedPatterns;
+        _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.LocalDateType_Description;
     }
 
     /// <inheritdoc />
     protected override string Serialize(LocalDate runtimeValue)
-        => LocalDatePattern.Iso
-            .WithCulture(CultureInfo.InvariantCulture)
+        => _serializationPattern
             .Format(runtimeValue);
 
     /// <inheritdoc />
     protected override bool TryDeserialize(
         string resultValue,
         [NotNullWhen(true)] out LocalDate? runtimeValue)
-        => LocalDatePattern.Iso
-            .WithCulture(CultureInfo.InvariantCulture)
-            .TryParse(resultValue, out runtimeValue);
+        => _allowedPatterns.TryParse(resultValue, out runtimeValue);
 }
