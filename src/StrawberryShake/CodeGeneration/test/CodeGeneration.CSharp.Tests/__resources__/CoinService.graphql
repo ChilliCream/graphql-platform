@@ -1,0 +1,518 @@
+"""
+The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.
+"""
+directive @defer(
+  """
+  If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to.
+  """
+  label: String
+
+  """
+  Deferred when true.
+  """
+  if: Boolean
+) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"""
+The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`.
+"""
+directive @stream(
+  """
+  If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to.
+  """
+  label: String
+
+  """
+  The initial elements that shall be send down to the consumer.
+  """
+  initialCount: Int! = 0
+
+  """
+  Streamed when true.
+  """
+  if: Boolean
+) on FIELD
+
+type Query {
+  """
+  Fetches an object given its ID.
+  """
+  node(
+    """
+    ID of the object.
+    """
+    id: ID!
+  ): Node
+
+  """
+  Lookup nodes by a list of IDs.
+  """
+  nodes(
+    """
+    The list of node IDs.
+    """
+    ids: [ID!]!
+  ): [Node]!
+  assets(
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    where: AssetFilterInput
+    order: [AssetSortInput!]
+  ): AssetsConnection
+  assetBySlug(slug: String!): Asset
+  assetsBySlug(slugs: [String!]!): [Asset]!
+  assetBySymbol(symbol: String!): Asset
+  assetsBySymbol(symbols: [String!]!): [Asset]!
+  assetById(id: ID!): Asset
+  assetsById(ids: [ID!]!): [Asset]!
+  me: User
+}
+
+type Mutation {
+  createAsset(input: CreateAssetInput!): CreateAssetPayload!
+  importAsset(input: ImportAssetInput!): ImportAssetPayload!
+  importAssets(input: ImportAssetsInput!): ImportAssetsPayload!
+  uploadAssetIcon(input: UploadAssetIconInput!): UploadAssetIconPayload!
+  addAssetToWatchlist(
+    input: AddAssetToWatchlistInput!
+  ): AddAssetToWatchlistPayload!
+  addAssetsToWatchlist(
+    input: AddAssetsToWatchlistInput!
+  ): AddAssetsToWatchlistPayload!
+  removeAssetFromWatchlist(
+    input: RemoveAssetFromWatchlistInput!
+  ): RemoveAssetFromWatchlistPayload!
+  removeAssetsFromWatchlist(
+    input: RemoveAssetsFromWatchlistInput!
+  ): RemoveAssetsFromWatchlistPayload!
+  changeAssetPositionInWatchlist(
+    input: ChangeAssetPositionInWatchlistInput!
+  ): ChangeAssetPositionInWatchlistPayload!
+}
+
+type Subscription {
+  onPriceChange(symbols: [String!]!): [AssetPrice!]
+}
+
+input AssetFilterInput {
+  and: [AssetFilterInput!]
+  or: [AssetFilterInput!]
+  symbol: StringOperationFilterInput
+  slug: StringOperationFilterInput
+  name: StringOperationFilterInput
+  description: StringOperationFilterInput
+  website: StringOperationFilterInput
+  tradableMarketCapRank: ComparableInt32OperationFilterInput
+  change24Hour: ComparableDoubleOperationFilterInput
+}
+
+type AssetPriceChange implements Node {
+  id: ID!
+  percentageChange: Float!
+  history(
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+  ): HistoryConnection
+}
+
+type AssetPriceHistory {
+  epoch: Int!
+  price: Float!
+}
+
+type AssetPrice implements Node {
+  id: ID!
+  currency: String!
+  lastPrice: Float!
+  marketCap: Float!
+  tradableMarketCapRank: Int!
+  volume24Hour: Float!
+  volumePercentChange24Hour: Float!
+  circulatingSupply: Float!
+  maxSupply: Float!
+  high24Hour: Float!
+  low24Hour: Float!
+  open24Hour: Float!
+  tradingActivity: Float!
+  change(span: ChangeSpan!): AssetPriceChange
+  asset: Asset!
+}
+
+input AssetSortInput {
+  symbol: SortEnumType
+  slug: SortEnumType
+  name: SortEnumType
+  tradableMarketCapRank: SortEnumType
+  change24Hour: SortEnumType
+}
+
+"""
+The `Upload` scalar type represents a file upload.
+"""
+scalar Upload
+
+"""
+The node interface is implemented by entities that have a global unique identifier.
+"""
+interface Node {
+  id: ID!
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+input ComparableInt32OperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input ComparableDoubleOperationFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float!]
+  nin: [Float!]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+"""
+A connection to a list of items.
+"""
+type HistoryConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [HistoryEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [AssetPriceHistory]
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+"""
+Information about pagination in a connection.
+"""
+type PageInfo {
+  """
+  Indicates whether more edges exist following the set defined by the clients arguments.
+  """
+  hasNextPage: Boolean!
+
+  """
+  Indicates whether more edges exist prior the set defined by the clients arguments.
+  """
+  hasPreviousPage: Boolean!
+
+  """
+  When paginating backwards, the cursor to continue.
+  """
+  startCursor: String
+
+  """
+  When paginating forwards, the cursor to continue.
+  """
+  endCursor: String
+}
+
+"""
+An edge in a connection.
+"""
+type HistoryEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: AssetPriceHistory
+}
+
+enum ChangeSpan {
+  ALL
+  HOUR
+  DAY
+  WEEK
+  MONTH
+  YEAR
+}
+
+type Asset implements Node {
+  id: ID!
+  symbol: String!
+  name: String!
+  slug: String!
+  description: String
+  color: String!
+  website: String
+  whitePaper: String
+  price: AssetPrice
+  imageUrl: String
+  isInWatchlist: Boolean
+}
+
+type EntityNotFoundError implements Error {
+  message: String!
+  id: Int!
+}
+
+"""
+A connection to a list of items.
+"""
+type AssetsConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [AssetsEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [Asset!]
+}
+
+type UnknownAssetError implements Error {
+  message: String!
+  symbols: [String!]!
+}
+
+type NotAuthenticatedError implements Error {
+  message: String!
+}
+
+type UnknownWatchlistError implements Error {
+  message: String!
+  username: String!
+}
+
+type IndexOutOfRangeError implements Error {
+  message: String!
+}
+
+interface Error {
+  message: String!
+}
+
+"""
+An edge in a connection.
+"""
+type AssetsEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: Asset!
+}
+
+type Watchlist implements Node {
+  id: ID!
+  user: User!
+  assets(
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+  ): AssetsConnection
+}
+
+type User {
+  watchlist: Watchlist
+  name: String!
+}
+
+input CreateAssetInput {
+  symbol: String!
+  name: String!
+  description: String
+  image: Upload
+}
+
+type CreateAssetPayload {
+  asset: Asset
+}
+
+input ImportAssetInput {
+  symbol: String!
+}
+
+type ImportAssetPayload {
+  asset: Asset
+}
+
+input ImportAssetsInput {
+  symbols: [String!]!
+}
+
+type ImportAssetsPayload {
+  assets: [Asset!]
+}
+
+input UploadAssetIconInput {
+  id: ID!
+  image: Upload!
+}
+
+union UploadAssetIconError = EntityNotFoundError
+
+type UploadAssetIconPayload {
+  asset: Asset
+  errors: [UploadAssetIconError!]
+}
+
+input AddAssetToWatchlistInput {
+  symbol: String!
+}
+
+union AddAssetToWatchlistError = UnknownAssetError | NotAuthenticatedError
+
+type AddAssetToWatchlistPayload {
+  watchlist: Watchlist
+  errors: [AddAssetToWatchlistError!]
+}
+
+input AddAssetsToWatchlistInput {
+  symbols: [String!]!
+}
+
+union AddAssetsToWatchlistError = UnknownAssetError | NotAuthenticatedError
+
+type AddAssetsToWatchlistPayload {
+  watchlist: Watchlist
+  errors: [AddAssetsToWatchlistError!]
+}
+
+input RemoveAssetFromWatchlistInput {
+  symbol: String!
+}
+
+union RemoveAssetFromWatchlistError = UnknownAssetError | NotAuthenticatedError
+
+type RemoveAssetFromWatchlistPayload {
+  removedAsset: Asset
+  errors: [RemoveAssetFromWatchlistError!]
+}
+
+input RemoveAssetsFromWatchlistInput {
+  symbols: [String!]!
+}
+
+union RemoveAssetsFromWatchlistError = UnknownAssetError | NotAuthenticatedError
+
+type RemoveAssetsFromWatchlistPayload {
+  removedAssets: [Asset!]
+  errors: [RemoveAssetsFromWatchlistError!]
+}
+
+input ChangeAssetPositionInWatchlistInput {
+  symbol: String!
+  index: Int!
+}
+
+union ChangeAssetPositionInWatchlistError =
+  UnknownAssetError
+  | NotAuthenticatedError
+  | UnknownWatchlistError
+  | IndexOutOfRangeError
+
+type ChangeAssetPositionInWatchlistPayload {
+  watchlist: Watchlist
+  errors: [ChangeAssetPositionInWatchlistError!]
+}

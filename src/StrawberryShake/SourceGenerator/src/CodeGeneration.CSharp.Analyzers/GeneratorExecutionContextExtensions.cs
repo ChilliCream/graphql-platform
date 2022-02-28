@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers;
 
-public static class GeneratorExecutionContextExtensions
+internal static class GeneratorExecutionContextExtensions
 {
     public static void ReportDiagnostic(
         this GeneratorExecutionContext context,

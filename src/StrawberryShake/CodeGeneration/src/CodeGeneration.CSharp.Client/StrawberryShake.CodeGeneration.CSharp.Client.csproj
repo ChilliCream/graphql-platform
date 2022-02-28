@@ -5,17 +5,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <PublishSingleFile>true</PublishSingleFile>
     <IsPackable>false</IsPackable>
-    
+
     <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Client</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="4.6.0" />
-  </ItemGroup>
 
 </Project>

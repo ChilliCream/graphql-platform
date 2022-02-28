@@ -1,6 +1,6 @@
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers;
 
-public static class SourceDocumentExtensions
+internal static class SourceDocumentExtensions
 {
     public static IEnumerable<GeneratorDocument> SelectCSharp(
         this IEnumerable<GeneratorDocument> documents) =>

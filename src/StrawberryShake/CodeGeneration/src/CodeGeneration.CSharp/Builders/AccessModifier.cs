@@ -1,10 +1,9 @@
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public enum AccessModifier
 {
-    public enum AccessModifier
-    {
-        Public = 0,
-        Internal = 1,
-        Protected = 2,
-        Private = 3
-    }
+    Public = 0,
+    Internal = 1,
+    Protected = 2,
+    Private = 3
 }
