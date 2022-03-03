@@ -62,7 +62,7 @@ namespace HotChocolate.Data.Neo4J
             builder.ConfigureSchema(s => s.AddNeo4JProjections(name));
 
         /// <summary>
-        /// Adds the MongoDB cursor and offset paging providers.
+        /// Adds the Neo4j offset paging provider.
         /// </summary>
         /// <param name="builder">
         /// The GraphQL configuration builder.
