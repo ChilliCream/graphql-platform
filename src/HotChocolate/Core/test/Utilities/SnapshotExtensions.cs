@@ -1,5 +1,11 @@
+using System;
+using System.IO;
+using System.Reflection.Metadata.Ecma335;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Serialization;
 using Snapshooter;
 using Snapshooter.Xunit;
 
@@ -7,11 +13,34 @@ namespace HotChocolate.Tests
 {
     public static class SnapshotExtensions
     {
+        private static readonly JsonArrayResponseStreamSerializer _serializer = new(true);
+
         public static IExecutionResult MatchSnapshot(
             this IExecutionResult result)
         {
             result.ToJson().MatchSnapshot();
             return result;
+        }
+
+        public static async Task<IExecutionResult> MatchSnapshotAsync(
+            this IExecutionResult result,
+            CancellationToken cancellationToken = default)
+        {
+            if (result is IQueryResult q)
+            {
+                q.ToJson().MatchSnapshot();
+                return result;
+            }
+
+            if (result is IResponseStream responseStream)
+            {
+                await using var memoryStream = new MemoryStream();
+                await _serializer.SerializeAsync(responseStream, memoryStream, cancellationToken);
+                Encoding.UTF8.GetString(memoryStream.ToArray()).MatchSnapshot();
+                return result;
+            }
+
+            throw new NotSupportedException($"{result.GetType().FullName} is not supported.");
         }
 
         public static async Task<IExecutionResult> MatchSnapshotAsync(
@@ -112,7 +141,7 @@ namespace HotChocolate.Tests
         public static async Task<string> ToJsonAsync(this Task<IExecutionResult> task)
         {
             IExecutionResult result = await task;
-            return await result.ToJsonAsync();
+            return result.ToJson();
         }
 
         public static void MatchSnapshot(this GraphQLException ex)

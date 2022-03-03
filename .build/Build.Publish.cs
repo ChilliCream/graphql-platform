@@ -16,12 +16,28 @@ partial class Build
     // IEnumerable<string> ChangelogSectionNotes => ExtractChangelogSectionNotes(ChangelogFile);
     [Parameter("NuGet Source for Packages")] readonly string NuGetSource = "https://api.nuget.org/v3/index.json";
     [Parameter("NuGet Api Key")] readonly string NuGetApiKey;
+    [Parameter("NuGet Source for Packages")] readonly string MyGetSource = "https://www.myget.org/F/hotchocolate/api/v3/index.json";
+    [Parameter("MyGet Api Key")] readonly string MyGetApiKey;
 
     Target Pack => _ => _
         .DependsOn(PackLocal)
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
-        .Requires(() => Configuration.Equals(Release));
+        .Requires(() => Configuration.Equals(Release))
+        .Executes(() =>
+        {
+            IReadOnlyCollection<AbsolutePath> packages = PackageDirectory.GlobFiles("*.nupkg");
+
+            DotNetNuGetPush(
+                _ => _
+                    .SetSource(MyGetSource)
+                    .SetApiKey(MyGetApiKey)
+                    .CombineWith(
+                        packages,
+                        (_, v) => _.SetTargetPath(v)),
+                degreeOfParallelism: 2,
+                completeOnFailure: true);
+        });
 
 
     Target PackLocal => _ => _
@@ -40,7 +56,7 @@ partial class Build
 
             projFile = File.ReadAllText(EmptyAzf12Proj);
             File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
-  
+
             DotNetBuildSonarSolution(
                 PackSolutionFile,
                 include: file =>

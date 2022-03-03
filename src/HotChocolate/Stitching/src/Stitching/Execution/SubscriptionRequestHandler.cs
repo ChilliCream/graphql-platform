@@ -80,7 +80,7 @@ internal sealed class SubscriptionRequestHandler : IRemoteRequestHandler
                     .ConfigureAwait(false);
 
             await foreach (OperationMessage message in
-                operation.ReadAsync(cancellationToken).ConfigureAwait(false))
+                operation.ReadAsync().WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 switch (message.Type)
                 {

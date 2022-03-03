@@ -254,5 +254,23 @@ namespace StrawberryShake.Properties {
                 return ResourceManager.GetString("StoreAccessor_GetOperationRequestFactory_InvalidResultType", resourceCulture);
             }
         }
+        
+        internal static string JsonResultPatcher_PatchResponse_NoValidInitialResponse {
+            get {
+                return ResourceManager.GetString("JsonResultPatcher_PatchResponse_NoValidInitialResponse", resourceCulture);
+            }
+        }
+        
+        internal static string JsonResultPatcher_NoValidInitialResponse {
+            get {
+                return ResourceManager.GetString("JsonResultPatcher_NoValidInitialResponse", resourceCulture);
+            }
+        }
+        
+        internal static string JsonResultPatcher_PathSegmentMustBeStringOrInt {
+            get {
+                return ResourceManager.GetString("JsonResultPatcher_PathSegmentMustBeStringOrInt", resourceCulture);
+            }
+        }
     }
 }
