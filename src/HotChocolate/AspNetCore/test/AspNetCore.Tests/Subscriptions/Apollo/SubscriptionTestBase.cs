@@ -25,31 +25,27 @@ public class SubscriptionTestBase : ServerTestBase
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
-        var timer = Stopwatch.StartNew();
+        using var timeoutCts = new CancellationTokenSource(timeout);
+        using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            timeoutCts.Token);
 
-        try
+        while (!combinedCts.Token.IsCancellationRequested)
         {
-            while (timer.Elapsed <= timeout)
+            await Task.Delay(50, combinedCts.Token);
+
+            var message = await webSocket.ReceiveServerMessageAsync(combinedCts.Token);
+
+            if (message != null && type.Equals(message["type"]))
             {
-                await Task.Delay(50, cancellationToken);
-
-                var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
-
-                if (message != null && type.Equals(message["type"]))
-                {
-                    return message;
-                }
-
-                if (message != null && !message["type"].Equals("ka"))
-                {
-                    throw new InvalidOperationException(
-                        $"Unexpected message type: {message["type"]}");
-                }
+                return message;
             }
-        }
-        finally
-        {
-            timer.Stop();
+
+            if (message?["type"].Equals("ka") == false)
+            {
+                throw new InvalidOperationException(
+                    $"Unexpected message type: {message["type"]}");
+            }
         }
 
         return null;
@@ -99,7 +95,7 @@ public class SubscriptionTestBase : ServerTestBase
     protected static async Task TryTest(Func<CancellationToken, Task> action)
     {
         // we will try four times ....
-        using var cts = new CancellationTokenSource(Debugger.IsAttached ?  600_000_000 : 60_000);
+        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 60_000);
         CancellationToken ct = cts.Token;
         var count = 0;
         var wait = 50;

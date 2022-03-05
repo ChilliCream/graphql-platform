@@ -22,11 +22,12 @@ internal sealed class PingPongJob
 
     public void Begin(CancellationToken cancellationToken)
     {
+        /*
         Task.Factory.StartNew(
             () => KeepConnectionAliveAsync(cancellationToken),
             cancellationToken,
             TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+            TaskScheduler.Default);*/
     }
 
     private async Task KeepConnectionAliveAsync(

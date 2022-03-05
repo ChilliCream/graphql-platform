@@ -7,7 +7,7 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 /// A subscription session is created within a <see cref="ISocketSession"/>.
 /// Each socket session can have multiple subscription sessions open.
 /// </summary>
-public interface IOperationSession
+public interface IOperationSession : IDisposable
 {
     /// <summary>
     /// An event that indicates that the underlying subscription has completed.

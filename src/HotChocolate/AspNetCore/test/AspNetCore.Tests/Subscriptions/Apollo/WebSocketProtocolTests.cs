@@ -1,8 +1,13 @@
+using System;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
@@ -108,10 +113,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             using TestServer testServer = CreateStarWarsServer();
             WebSocketClient client = testServer.CreateWebSocketClient();
 
-            client.ConfigureRequest = r =>
-            {
-                r.Headers.Add("Sec-WebSocket-Protocol", "foo");
-            };
+            client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "foo");
 
             // act
             WebSocket socket = await client.ConnectAsync(SubscriptionUri, ct);
@@ -124,48 +126,47 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
     }
 
-    /*
-    [Fact(Skip = "TODO: This test is flaky")]
+    [Fact]
     public Task Send_Start_ReceiveDataOnMutation()
     {
         SnapshotFullName snapshotName = Snapshot.FullName();
 
-        return TryTest(async () =>
+        return TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateStarWarsServer();
             WebSocketClient client = CreateWebSocketClient(testServer);
-            WebSocket webSocket = await ConnectToServerAsync(client);
+            WebSocket webSocket = await ConnectToServerAsync(client, ct);
 
             DocumentNode document = Utf8GraphQLParser.Parse(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
-
             var request = new GraphQLRequest(document);
-
             const string subscriptionId = "abc";
 
             // act
             await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
 
             // assert
-            await testServer.SendPostRequestAsync(new ClientQueryRequest
-            {
-                Query = @"
-                            mutation {
-                                createReview(episode: NEW_HOPE review: {
-                                    commentary: ""foo""
-                                    stars: 5
-                                }) {
-                                    stars
-                                }
-                            }"
-            });
+            await testServer.SendPostRequestAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                        mutation {
+                            createReview(episode: NEW_HOPE review: {
+                                commentary: ""foo""
+                                stars: 5
+                            }) {
+                                stars
+                            }
+                        }"
+                });
 
             IReadOnlyDictionary<string, object> message =
                 await WaitForMessage(
                     webSocket,
-                    Protocols.Apollo.Messages.Subscription.Data,
-                    TimeSpan.FromSeconds(15));
+                    "data",
+                    TimeSpan.FromSeconds(15),
+                    ct);
 
             Assert.NotNull(message);
             Snapshot.Match(message, snapshotName);
@@ -175,12 +176,12 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Start_Stop()
     {
-        return TryTest(async () =>
+        return TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateStarWarsServer();
             WebSocketClient client = CreateWebSocketClient(testServer);
-            WebSocket webSocket = await ConnectToServerAsync(client);
+            WebSocket webSocket = await ConnectToServerAsync(client, ct);
 
             DocumentNode document = Utf8GraphQLParser.Parse(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -194,45 +195,37 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             await testServer.SendPostRequestAsync(new ClientQueryRequest
             {
                 Query = @"
-                            mutation {
-                                createReview(episode:NEW_HOPE review: {
-                                    commentary: ""foo""
-                                    stars: 5
-                                }) {
-                                    stars
-                                }
-                            }"
+                    mutation {
+                        createReview(episode:NEW_HOPE review: {
+                            commentary: ""foo""
+                            stars: 5
+                        }) {
+                            stars
+                        }
+                    }"
             });
 
-            await WaitForMessage(
-                webSocket,
-                Protocols.Apollo.Messages.Subscription.Data,
-                TimeSpan.FromSeconds(15));
+            await WaitForMessage(webSocket, "data", TimeSpan.FromSeconds(15), ct);
 
             // act
-            await webSocket.SendSubscriptionStopAsync(subscriptionId);
+            await webSocket.SendSubscriptionStopAsync(subscriptionId, ct);
 
             await testServer.SendPostRequestAsync(new ClientQueryRequest
             {
                 Query = @"
-                            mutation {
-                                createReview(episode:NEW_HOPE review: {
-                                    commentary: ""foo""
-                                    stars: 5
-                                }) {
-                                    stars
-                                }
-                            }"
+                    mutation {
+                        createReview(episode:NEW_HOPE review: {
+                            commentary: ""foo""
+                            stars: 5
+                        }) {
+                            stars
+                        }
+                    }"
             });
 
-            IReadOnlyDictionary<string, object> message = await WaitForMessage(
-                webSocket,
-                Protocols.Apollo.Messages.Subscription.Data,
-                TimeSpan.FromSeconds(5));
-
             // assert
+            var message = await WaitForMessage(webSocket, "data", TimeSpan.FromSeconds(5), ct);
             Assert.Null(message);
         });
     }
-    */
 }

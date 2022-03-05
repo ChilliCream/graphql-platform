@@ -4,10 +4,13 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal sealed class OperationSession : IOperationSession
 {
+    private readonly CancellationTokenSource _cts = new();
+    private readonly CancellationToken _ct;
     private readonly ISocketSession _session;
     private readonly ISocketSessionInterceptor _interceptor;
     private readonly IErrorHandler _errorHandler;
     private readonly IRequestExecutor _executor;
+    private bool _disposed;
 
     public event EventHandler? Completed;
 
@@ -18,6 +21,7 @@ internal sealed class OperationSession : IOperationSession
         IRequestExecutor executor,
         string id)
     {
+        _ct = _cts.Token;
         _session = session;
         _interceptor = interceptor;
         _errorHandler = errorHandler;
@@ -36,8 +40,11 @@ internal sealed class OperationSession : IOperationSession
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
 
-    private async Task SendResultsAsync(GraphQLRequest request, CancellationToken ct)
+    private async Task SendResultsAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _ct);
+        CancellationToken ct = cts.Token;
+
         try
         {
             IQueryRequestBuilder requestBuilder = CreateRequestBuilder(request);
@@ -74,7 +81,7 @@ internal sealed class OperationSession : IOperationSession
         {
             // the operation was cancelled so we do nothings
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             await TrySendErrorMessageAsync(ex, ct);
         }
@@ -85,7 +92,7 @@ internal sealed class OperationSession : IOperationSession
         }
     }
 
-    private IQueryRequestBuilder CreateRequestBuilder(GraphQLRequest request)
+    private static IQueryRequestBuilder CreateRequestBuilder(GraphQLRequest request)
     {
         var requestBuilder = new QueryRequestBuilder();
 
@@ -179,6 +186,16 @@ internal sealed class OperationSession : IOperationSession
         catch
         {
             // we ignore any error that might happen on invoking complete.
+        }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _cts.Cancel();
+            _cts.Dispose();
+            _disposed = true;
         }
     }
 }

@@ -85,7 +85,13 @@ public sealed class OperationManager : IOperationManager
             throw new ObjectDisposedException(nameof(OperationManager));
         }
 
-        return _subs.TryRemove(sessionId, out _);
+        if (_subs.TryRemove(sessionId, out var session))
+        {
+            session.Dispose();
+            return true;
+        }
+
+        return false;
     }
 
     public void Dispose()

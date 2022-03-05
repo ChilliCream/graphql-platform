@@ -163,6 +163,11 @@ internal static class WebSocketExtensions
         }
         while (!result.EndOfMessage || skipped);
 
+        if (stream.Length == 0)
+        {
+            return null;
+        }
+
         return (IReadOnlyDictionary<string, object>)ParseJson(stream.ToArray());
     }
 

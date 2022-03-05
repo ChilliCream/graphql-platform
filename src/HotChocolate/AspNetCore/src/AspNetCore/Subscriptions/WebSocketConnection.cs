@@ -110,21 +110,20 @@ internal sealed class WebSocketConnection : ISocketConnection
 
                 Memory<byte> memory = writer.GetMemory(_maxMessageSize);
                 socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
+                writer.Advance(socketResult.Count);
 
-                if (socketResult.Count == 0)
+                if (socketResult.EndOfMessage)
                 {
                     memory = writer.GetMemory(1);
                     memory.Span[0] = Delimiter;
                     writer.Advance(1);
                     break;
                 }
-
-                writer.Advance(socketResult.Count);
             } while (!socketResult.EndOfMessage);
         }
         catch
         {
-            // swallow exception, there's nothing we can reasonably do
+            // swallow exception, there's nothing we can reasonably do.
         }
     }
 

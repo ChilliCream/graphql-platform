@@ -67,7 +67,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             if (connected)
             {
                 await connection.CloseAsync(
-                    "Too many initialisation requests.",
+                    "Too many initialization requests.",
                     ConnectionCloseReason.ProtocolError,
                     cancellationToken);
                 return;
@@ -110,7 +110,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
         if (connected && type.ValueEquals(Utf8Messages.Start))
         {
-            if (!ParseSubscribeMessage(root, out DataStartMessage? subscribeMessage))
+            if (!ParseSubscribeMessage(root, out DataStartMessage? dataStartMessage))
             {
                 await connection.CloseAsync(
                     "Invalid subscribe message structure.",
@@ -119,7 +119,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                 return;
             }
 
-            if (!session.Operations.Register(subscribeMessage.Id, subscribeMessage.Payload))
+            if (!session.Operations.Register(dataStartMessage.Id, dataStartMessage.Payload))
             {
                 await connection.CloseAsync(
                     "The subscription id is not unique.",
@@ -253,7 +253,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         }
 
         if (!messageElement.TryGetProperty("payload", out JsonElement payloadProp) ||
-            idProp.ValueKind is not JsonValueKind.Object)
+            payloadProp.ValueKind is not JsonValueKind.Object)
         {
             message = null;
             return false;
