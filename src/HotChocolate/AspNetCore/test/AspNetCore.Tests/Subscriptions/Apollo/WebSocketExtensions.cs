@@ -66,11 +66,6 @@ internal static class WebSocketExtensions
         await SendMessageAsync(webSocket, writer.Body, cancellationToken);
     }
 
-    public static async Task SendEmptyMessageAsync(
-        this WebSocket webSocket,
-        CancellationToken cancellationToken)
-        => await SendMessageAsync(webSocket, new byte[1], cancellationToken);
-
     public static async Task SendMessageAsync(
         this WebSocket webSocket,
         ReadOnlyMemory<byte> message,

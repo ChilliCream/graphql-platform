@@ -1,4 +1,16 @@
 using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.StarWars;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -6,132 +18,179 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 public class SubscriptionManagerTests
 {
     [Fact]
-    public void Register_Subscription()
+    public void Register_SessionId_Is_Null()
     {
         // arrange
-        var subscriptions = new OperationManager();
-        var subscription = new SubscriptionSessionMock();
+        var session = new Mock<ISocketSession>();
+        var interceptor = new Mock<ISocketSessionInterceptor>();
+        var executor = new Mock<IRequestExecutor>();
+        var subscriptions = new OperationManager(
+            session.Object,
+            interceptor.Object,
+            executor.Object);
 
         // act
-        subscriptions.Register(subscription);
+        void Action() => subscriptions.Register(null!, new GraphQLRequest(null, queryId: "123"));
 
         // assert
-        Assert.Collection(subscriptions,
-            t => Assert.Equal(subscription, t));
+        Assert.Equal(
+            "sessionId",
+            Assert.Throws<ArgumentException>(Action).ParamName);
     }
 
     [Fact]
-    public void Register_Subscription_SubscriptionIsNull()
+    public void Register_SessionId_Is_Empty()
     {
         // arrange
-        var subscriptions = new OperationManager();
+        var session = new Mock<ISocketSession>();
+        var interceptor = new Mock<ISocketSessionInterceptor>();
+        var executor = new Mock<IRequestExecutor>();
+        var subscriptions = new OperationManager(
+            session.Object,
+            interceptor.Object,
+            executor.Object);
 
         // act
-        void Action() => subscriptions.Register(null!);
+        void Action() => subscriptions.Register("", new GraphQLRequest(null, queryId: "123"));
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Equal(
+            "sessionId",
+            Assert.Throws<ArgumentException>(Action).ParamName);
     }
 
     [Fact]
-    public void Register_Subscription_ManagerAlreadyDisposed()
+    public void Register_Request_Is_Null()
     {
         // arrange
-        var subscriptions = new OperationManager();
-        var subscription = new SubscriptionSessionMock { Id = "abc" };
-
-        subscriptions.Register(subscription);
-        subscriptions.Dispose();
+        var session = new Mock<ISocketSession>();
+        var interceptor = new Mock<ISocketSessionInterceptor>();
+        var executor = new Mock<IRequestExecutor>();
+        var subscriptions = new OperationManager(
+            session.Object,
+            interceptor.Object,
+            executor.Object);
 
         // act
-        void Action() => subscriptions.Register(new SubscriptionSessionMock { Id = "def" });
+        void Action() => subscriptions.Register("abc", null!);
 
         // assert
-        Assert.Throws<ObjectDisposedException>(Action);
+        Assert.Equal(
+            "request",
+            Assert.Throws<ArgumentNullException>(Action).ParamName);
     }
 
     [Fact]
-    public void Unregister_Subscription()
+    public async Task Register_Request()
     {
         // arrange
-        var subscriptions = new OperationManager();
-        var subscription = new SubscriptionSessionMock();
-        subscriptions.Register(subscription);
-        Assert.Collection(subscriptions, t => Assert.Equal(subscription, t));
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
+        var socketSession = new TestSocketSession();
+
+        using var subscriptions = new OperationManager(
+            socketSession,
+            new DefaultSocketSessionInterceptor(),
+            executor);
+
+        var query = Utf8GraphQLParser.Parse("{ hero(id: 1) { name } }");
+        var request = new GraphQLRequest(query);
 
         // act
-        subscriptions.Unregister(subscription.Id);
+        var success = subscriptions.Register("abc", request);
+        var registered = subscriptions.ToArray();
 
         // assert
-        Assert.Empty(subscriptions);
+        Assert.True(success);
+        Assert.Collection(registered, t => Assert.Equal("abc", t.Id));
     }
 
     [Fact]
-    public void Unregister_Subscription_SubscriptionIdIsNull()
+    public async Task Unregister_Request()
     {
         // arrange
-        var subscriptions = new OperationManager();
-        var subscription = new SubscriptionSessionMock();
-        subscriptions.Register(subscription);
-        Assert.Collection(subscriptions, t => Assert.Equal(subscription, t));
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
+        var socketSession = new TestSocketSession();
+
+        using var subscriptions = new OperationManager(
+            socketSession,
+            new DefaultSocketSessionInterceptor(),
+            executor);
+
+        var query = Utf8GraphQLParser.Parse("{ hero(id: 1) { name } }");
+        var request = new GraphQLRequest(query);
+        var success1 = subscriptions.Register("abc", request);
+        var registered1 = subscriptions.ToArray();
 
         // act
-        void Action() => subscriptions.Unregister(null!);
+        var success2 = subscriptions.Unregister("abc");
+        var registered2 = subscriptions.ToArray();
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.True(success1);
+        Assert.Collection(registered1, t => Assert.Equal("abc", t.Id));
+        Assert.True(success2);
+        Assert.Empty(registered2);
     }
 
-    [Fact]
-    public void Unregister_Subscription_ManagerAlreadyDisposed()
+    private class TestSocketSession : ISocketSession
     {
-        // arrange
-        var subscriptions = new OperationManager();
-        var subscription = new SubscriptionSessionMock { Id = "abc" };
+        public ISocketConnection Connection => throw new NotImplementedException();
 
-        subscriptions.Register(subscription);
-        subscriptions.Dispose();
+        public IProtocolHandler Protocol { get; } = new TestProtocolHandler();
 
-        // act
-        void Action() => subscriptions.Unregister("abc");
+        public IOperationManager Operations => throw new NotImplementedException();
 
-        // assert
-        Assert.Throws<ObjectDisposedException>(Action);
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
     }
 
-    [Fact]
-    public void Dispose_Subscriptions()
+    private class TestProtocolHandler : IProtocolHandler
     {
-        // arrange
-        var subscriptions = new OperationManager();
-        var subscriptionA = new SubscriptionSessionMock();
-        var subscriptionB = new SubscriptionSessionMock();
+        public string Name => "Test";
 
-        subscriptions.Register(subscriptionA);
-        subscriptions.Register(subscriptionB);
+        public Task OnReceiveAsync(
+            ISocketSession session,
+            ReadOnlySequence<byte> message,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
 
-        // act
-        subscriptions.Dispose();
+        public Task SendCompleteMessageAsync(
+            ISocketSession session,
+            string operationSessionId,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
 
-        // assert
-        Assert.Empty(subscriptions);
-        Assert.True(subscriptionA.IsDisposed);
-        Assert.True(subscriptionA.IsDisposed);
-    }
+        public Task SendErrorMessageAsync(
+            ISocketSession session,
+            string operationSessionId,
+            IReadOnlyList<IError> errors,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
 
-    [Fact]
-    public void Complete_Subscription()
-    {
-        // arrange
-        var subscriptions = new OperationManager();
-        var subscription = new SubscriptionSessionMock();
-        subscriptions.Register(subscription);
-        Assert.Collection(subscriptions, t => Assert.Equal(subscription, t));
+        public Task SendKeepAliveMessageAsync(
+            ISocketSession session,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
 
-        // act
-        subscription.Complete();
-
-        // assert
-        Assert.Empty(subscriptions);
+        public Task SendResultMessageAsync(
+            ISocketSession session,
+            string operationSessionId,
+            IQueryResult result,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
     }
 }

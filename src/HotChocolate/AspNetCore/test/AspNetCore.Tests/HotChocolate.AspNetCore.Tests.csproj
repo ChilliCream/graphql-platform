@@ -30,8 +30,6 @@
     <Compile Remove="Subscriptions\LargeMessageTests.cs" />
     <Compile Remove="Subscriptions\SocketConnectionMock.cs" />
     <Compile Remove="Subscriptions\SocketSessionInterceptorMock.cs" />
-    <Compile Remove="Subscriptions\SubscriptionManagerTests.cs" />
-    <Compile Remove="Subscriptions\SubscriptionSessionMock.cs" />
     <Compile Remove="Subscriptions\Messages\**" />
     <Compile Remove="Subscriptions\WebSocketInterceptorTests.cs" />
   </ItemGroup>

@@ -228,4 +228,37 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             Assert.Null(message);
         });
     }
+
+    [Fact]
+    public Task Send_Start_ValidationError()
+    {
+        SnapshotFullName snapshotName = Snapshot.FullName();
+
+        return TryTest(async ct =>
+        {
+            // arrange
+            using TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            WebSocket webSocket = await ConnectToServerAsync(client, ct);
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                "subscription { onReview(episode: NEW_HOPE) { _stars } }");
+            var request = new GraphQLRequest(document);
+            const string subscriptionId = "abc";
+
+            // act
+            await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+
+            // assert
+            IReadOnlyDictionary<string, object> message =
+                await WaitForMessage(
+                    webSocket,
+                    "error",
+                    TimeSpan.FromSeconds(15),
+                    ct);
+
+            Assert.NotNull(message);
+            Snapshot.Match(message, snapshotName);
+        });
+    }
 }
