@@ -21,7 +21,7 @@ Fortunately there are a couple of solutions that can be used to avoid the descri
 
 The recommended approach to solving the `DbContext` concurreny issues is creating a `DbContext` instance on a per-operation basis using an `IDbContextFactory`.
 
-We can register a [pooled](https://docs.microsoft.com/en-us/ef/core/performance/advanced-performance-topics?tabs=with-constant#dbcontext-pooling) `IDbContextFactory` like the following.
+We can register a [pooled](https://docs.microsoft.com/ef/core/performance/advanced-performance-topics?tabs=with-constant#dbcontext-pooling) `IDbContextFactory` like the following.
 
 ```csharp
 public class Startup
