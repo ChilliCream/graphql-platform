@@ -1,16 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
+using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.TestHost;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.AspNetCore.Subscriptions;
+namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
 public class LargeMessageTests : SubscriptionTestBase
 {
@@ -19,17 +16,17 @@ public class LargeMessageTests : SubscriptionTestBase
     {
     }
 
-    [Fact(Skip = "TODO: This test is flaky")]
+    [Fact]
     public Task Send_Start_ReceiveDataOnMutation_Large_Message()
     {
         Snapshot.FullName();
 
-        return TryTest(async () =>
+        return TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateStarWarsServer();
             WebSocketClient client = CreateWebSocketClient(testServer);
-            WebSocket webSocket = await ConnectToServerAsync(client);
+            WebSocket webSocket = await ConnectToServerAsync(client, ct);
 
             DocumentNode document = Utf8GraphQLParser.Parse(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -39,12 +36,10 @@ public class LargeMessageTests : SubscriptionTestBase
             const string subscriptionId = "abc";
 
             // act
-            await webSocket.SendSubscriptionStartAsync(
-            subscriptionId, request, true);
+            await webSocket.SendSubscriptionStartAsync(subscriptionId, request, true);
 
             // assert
-            await webSocket.SendEmptyMessageAsync();
-
+            await webSocket.SendEmptyMessageAsync(ct);
             await testServer.SendPostRequestAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -59,12 +54,7 @@ public class LargeMessageTests : SubscriptionTestBase
                 "
             });
 
-            IReadOnlyDictionary<string, object> message =
-                await WaitForMessage(
-                    webSocket,
-                    Protocols.Apollo.Messages.Data,
-                    TimeSpan.FromSeconds(15));
-
+            var message = await WaitForMessage(webSocket, "data", TimeSpan.FromSeconds(15), ct);
             Assert.NotNull(message);
             message.MatchSnapshot();
         });

@@ -30,22 +30,29 @@ public class SubscriptionTestBase : ServerTestBase
             cancellationToken,
             timeoutCts.Token);
 
-        while (!combinedCts.Token.IsCancellationRequested)
+        try
         {
-            await Task.Delay(50, combinedCts.Token);
-
-            var message = await webSocket.ReceiveServerMessageAsync(combinedCts.Token);
-
-            if (message != null && type.Equals(message["type"]))
+            while (!combinedCts.Token.IsCancellationRequested)
             {
-                return message;
-            }
+                await Task.Delay(50, combinedCts.Token);
 
-            if (message?["type"].Equals("ka") == false)
-            {
-                throw new InvalidOperationException(
-                    $"Unexpected message type: {message["type"]}");
+                var message = await webSocket.ReceiveServerMessageAsync(combinedCts.Token);
+
+                if (message != null && type.Equals(message["type"]))
+                {
+                    return message;
+                }
+
+                if (message?["type"].Equals("ka") == false)
+                {
+                    throw new InvalidOperationException(
+                        $"Unexpected message type: {message["type"]}");
+                }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // no massage was received in the specified time.
         }
 
         return null;
