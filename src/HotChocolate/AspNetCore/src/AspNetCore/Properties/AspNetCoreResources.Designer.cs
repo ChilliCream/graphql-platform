@@ -194,5 +194,11 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("TerminateConnectionMessageHandler_Message", resourceCulture);
             }
         }
+        
+        internal static string OperationManager_Register_SessionIdNullOrEmpty {
+            get {
+                return ResourceManager.GetString("OperationManager_Register_SessionIdNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }

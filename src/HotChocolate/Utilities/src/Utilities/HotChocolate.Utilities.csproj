@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
   </ItemGroup>
 
   <ItemGroup>

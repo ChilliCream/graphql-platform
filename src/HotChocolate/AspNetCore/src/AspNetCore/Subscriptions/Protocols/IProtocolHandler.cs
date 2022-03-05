@@ -24,8 +24,29 @@ public interface IProtocolHandler
     /// <param name="cancellationToken">
     /// The request cancellation token.
     /// </param>
-    Task ExecuteAsync(
-        ISocketConnection connection,
+    Task OnReceiveAsync(
+        ISocketSession session,
         ReadOnlySequence<byte> message,
+        CancellationToken cancellationToken);
+
+    Task SendKeepAliveMessageAsync(
+        ISocketSession session,
+        CancellationToken cancellationToken);
+
+    Task SendResultMessageAsync(
+        ISocketSession session,
+        string operationSessionId,
+        IQueryResult result,
+        CancellationToken cancellationToken);
+
+    Task SendErrorMessageAsync(
+        ISocketSession session,
+        string operationSessionId,
+        IReadOnlyList<IError> errors,
+        CancellationToken cancellationToken);
+
+    Task SendCompleteMessageAsync(
+        ISocketSession session,
+        string operationSessionId,
         CancellationToken cancellationToken);
 }

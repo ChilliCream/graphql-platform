@@ -19,11 +19,24 @@
     <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Remove="Subscriptions\Messages\**" />
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Subscriptions\LargeMessageTests.cs" />
+    <Compile Remove="Subscriptions\SocketConnectionMock.cs" />
+    <Compile Remove="Subscriptions\SocketSessionInterceptorMock.cs" />
+    <Compile Remove="Subscriptions\SubscriptionManagerTests.cs" />
+    <Compile Remove="Subscriptions\SubscriptionSessionMock.cs" />
+    <Compile Remove="Subscriptions\Messages\**" />
+    <Compile Remove="Subscriptions\WebSocketInterceptorTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="Subscriptions\Messages\**" />
   </ItemGroup>
 
 </Project>

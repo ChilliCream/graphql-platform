@@ -17,7 +17,7 @@ public class DataStopMessageHandlerTests
     public void CanHandle_DataStartMessage_True()
     {
         // arrange
-        var handler = new DataStopMessageHandler();
+        var handler = new DataStopOperationMessageHandler();
         var message = new DataStopMessage("123");
 
         // act
@@ -31,7 +31,7 @@ public class DataStopMessageHandlerTests
     public void CanHandle_KeepAliveMessage_False()
     {
         // arrange
-        var handler = new DataStopMessageHandler();
+        var handler = new DataStopOperationMessageHandler();
         KeepConnectionAliveMessage message = KeepConnectionAliveMessage.Default;
 
         // act
@@ -72,9 +72,9 @@ public class DataStopMessageHandlerTests
             subscription.Object,
             new NoopExecutionDiagnosticEvents(),
             "123");
-        connection.Subscriptions.Register(subscriptionSession);
+        connection.Operations.Register(subscriptionSession);
 
-        var handler = new DataStopMessageHandler();
+        var handler = new DataStopOperationMessageHandler();
         var message = new DataStopMessage("123");
 
         // act
@@ -84,6 +84,6 @@ public class DataStopMessageHandlerTests
             CancellationToken.None);
 
         // assert
-        Assert.Empty(connection.Subscriptions);
+        Assert.Empty(connection.Operations);
     }
 }

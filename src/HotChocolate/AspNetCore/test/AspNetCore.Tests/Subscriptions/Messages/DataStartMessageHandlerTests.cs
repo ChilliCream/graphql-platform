@@ -27,7 +27,7 @@ public class DataStartMessageHandlerTests
             .Create()
             .MakeExecutable();
         DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
-        var handler = new DataStartMessageHandler(
+        var handler = new DataStartOperationMessageHandler(
             executor,
             interceptor,
             errorHandler.Object,
@@ -54,7 +54,7 @@ public class DataStartMessageHandlerTests
             .AddStarWarsTypes()
             .Create()
             .MakeExecutable();
-        var handler = new DataStartMessageHandler(
+        var handler = new DataStartOperationMessageHandler(
             executor,
             interceptor,
             errorHandler.Object,
@@ -89,7 +89,7 @@ public class DataStartMessageHandlerTests
         var interceptor = new SocketSessionInterceptorMock();
         var connection = new SocketConnectionMock { RequestServices = services };
         DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
-        var handler = new DataStartMessageHandler(
+        var handler = new DataStartOperationMessageHandler(
             executor,
             interceptor,
             errorHandler.Object,
@@ -142,7 +142,7 @@ public class DataStartMessageHandlerTests
         var interceptor = new SocketSessionInterceptorMock();
         var connection = new SocketConnectionMock { RequestServices = services };
         DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
-        var handler = new DataStartMessageHandler(
+        var handler = new DataStartOperationMessageHandler(
             executor,
             interceptor,
             errorHandler.Object,
@@ -197,7 +197,7 @@ public class DataStartMessageHandlerTests
         var connection = new SocketConnectionMock { RequestServices = services };
         DocumentNode query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
-        var handler = new DataStartMessageHandler(
+        var handler = new DataStartOperationMessageHandler(
             executor,
             interceptor,
             errorHandler.Object,
@@ -212,7 +212,7 @@ public class DataStartMessageHandlerTests
 
         // assert
         Assert.Empty(connection.SentMessages);
-        Assert.NotEmpty(connection.Subscriptions);
+        Assert.NotEmpty(connection.Operations);
 
         var stream =
             (IResponseStream)await executor.ExecuteAsync(

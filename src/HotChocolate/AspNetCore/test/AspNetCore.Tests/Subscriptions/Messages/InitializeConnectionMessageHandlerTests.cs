@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using Xunit;
 
@@ -13,7 +14,7 @@ public class InitializeConnectionMessageHandlerTests
     public void CanHandle_InitializeMessage_True()
     {
         // arrange
-        var handler = new InitializeConnectionMessageHandler(
+        var handler = new InitializeConnectionOperationMessageHandler(
             new SocketSessionInterceptorMock());
         var message = new InitializeConnectionMessage();
 
@@ -28,7 +29,7 @@ public class InitializeConnectionMessageHandlerTests
     public void CanHandle_AcceptMessage_False()
     {
         // arrange
-        var handler = new InitializeConnectionMessageHandler(
+        var handler = new InitializeConnectionOperationMessageHandler(
             new SocketSessionInterceptorMock());
         KeepConnectionAliveMessage message = KeepConnectionAliveMessage.Default;
 
@@ -44,7 +45,7 @@ public class InitializeConnectionMessageHandlerTests
     {
         // arrange
         var connection = new SocketConnectionMock();
-        var handler = new InitializeConnectionMessageHandler(
+        var handler = new InitializeConnectionOperationMessageHandler(
             new SocketSessionInterceptorMock());
         var message = new InitializeConnectionMessage();
 
@@ -74,7 +75,7 @@ public class InitializeConnectionMessageHandlerTests
         // arrange
         var interceptor = new SocketSessionInterceptorMock(ConnectionStatus.Reject());
         var connection = new SocketConnectionMock();
-        var handler = new InitializeConnectionMessageHandler(interceptor);
+        var handler = new InitializeConnectionOperationMessageHandler(interceptor);
         var message = new InitializeConnectionMessage();
 
         // act
@@ -104,7 +105,7 @@ public class InitializeConnectionMessageHandlerTests
 
         var interceptor = new SocketSessionInterceptorMock(connectionStatus);
         var connection = new SocketConnectionMock();
-        var handler = new InitializeConnectionMessageHandler(interceptor);
+        var handler = new InitializeConnectionOperationMessageHandler(interceptor);
         var message = new InitializeConnectionMessage();
 
         // act

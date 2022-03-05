@@ -12,7 +12,7 @@ public class ConnectionTerminateHandlerTests
     {
         // arrange
         var interceptor = new SocketSessionInterceptorMock();
-        var handler = new TerminateConnectionMessageHandler(interceptor);
+        var handler = new TerminateConnectionOperationMessageHandler(interceptor);
         var message = new TerminateConnectionMessage();
 
         // act
@@ -27,7 +27,7 @@ public class ConnectionTerminateHandlerTests
     {
         // arrange
         var interceptor = new SocketSessionInterceptorMock();
-        var handler = new TerminateConnectionMessageHandler(interceptor);
+        var handler = new TerminateConnectionOperationMessageHandler(interceptor);
         KeepConnectionAliveMessage message = KeepConnectionAliveMessage.Default;
 
         // act
@@ -43,7 +43,7 @@ public class ConnectionTerminateHandlerTests
         // arrange
         var connection = new SocketConnectionMock { IsClosed = false };
         var interceptor = new SocketSessionInterceptorMock();
-        var handler = new TerminateConnectionMessageHandler(interceptor);
+        var handler = new TerminateConnectionOperationMessageHandler(interceptor);
         var message = new TerminateConnectionMessage();
 
         // act

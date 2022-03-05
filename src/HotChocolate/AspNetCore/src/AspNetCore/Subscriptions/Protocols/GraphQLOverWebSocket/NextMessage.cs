@@ -1,6 +1,6 @@
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
-internal sealed  class NextMessage : OperationMessage<IExecutionResult>
+internal sealed class NextMessage : OperationMessage<IExecutionResult>
 {
     public NextMessage(IExecutionResult payload, string id)
         : base(Messages.Next, payload)

@@ -1,138 +1,274 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.WebSockets;
+using System.Text.Json;
 using HotChocolate.Language;
-using static HotChocolate.Language.Utf8GraphQLRequestParser;
+using HotChocolate.Execution.Serialization;
+using HotChocolate.Utilities;
+using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
-using static HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo.KeepConnectionAliveMessage;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
+using static HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo.ConnectionContextKeys;
+using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 {
-    private readonly IMessageHandler[] _messageHandlers;
+    private readonly JsonQueryResultSerializer _serializer = new();
+    private readonly ISocketSessionInterceptor _interceptor;
 
-    public ApolloSubscriptionProtocolHandler(IEnumerable<IMessageHandler> messageHandlers)
+    public ApolloSubscriptionProtocolHandler(ISocketSessionInterceptor interceptor)
     {
-        if (messageHandlers is null)
-        {
-            throw new ArgumentNullException(nameof(messageHandlers));
-        }
-
-        _messageHandlers = messageHandlers.ToArray();
+        _interceptor = interceptor;
     }
 
     public string Name => GraphQL_WS;
 
-    public async Task ExecuteAsync(
-        ISocketConnection connection,
+    public async Task OnReceiveAsync(
+        ISocketSession session,
         ReadOnlySequence<byte> message,
         CancellationToken cancellationToken)
     {
-        try
+        ISocketConnection connection = session.Connection;
+
+        var connected = connection.ContextData.ContainsKey(Connected);
+
+        if (connected && message.IsSingleSegment &&
+            message.First.Equals(Utf8MessageBodies.KeepAlive))
         {
-            if (TryParseMessage(message, out OperationMessage? operationMessage))
+            // received a simple ping, we do not need to answer to this message.
+            return;
+        }
+
+        using var document = JsonDocument.Parse(message);
+        JsonElement root = document.RootElement;
+
+        if (root.ValueKind is not JsonValueKind.Object)
+        {
+            await connection.CloseAsync(
+                "The message must be a json object.",
+                CloseReasons.InvalidMessage,
+                cancellationToken);
+            return;
+        }
+
+        if (!root.TryGetProperty(Utf8MessageProperties.Type, out JsonElement type) ||
+            type.ValueKind is not JsonValueKind.String)
+        {
+            await connection.CloseAsync(
+                "The type property on the message is obligatory.",
+                CloseReasons.InvalidMessage,
+                cancellationToken);
+            return;
+        }
+
+        if (type.ValueEquals(Utf8Messages.ConnectionInitialize))
+        {
+            if (connected)
             {
-                await HandleMessageAsync(connection, operationMessage, cancellationToken);
+                await connection.CloseAsync(
+                    "Too many initialisation requests.",
+                    ConnectionCloseReason.ProtocolError,
+                    cancellationToken);
+                return;
+            }
+
+            InitializeConnectionMessage operationMessageObj =
+                TryGetPayload(root, out JsonElement payload)
+                    ? new InitializeConnectionMessage(payload)
+                    : InitializeConnectionMessage.Default;
+
+            ConnectionStatus connectionStatus =
+                await _interceptor.OnConnectAsync(
+                    session,
+                    operationMessageObj,
+                    cancellationToken);
+
+            if (connectionStatus.Accepted)
+            {
+                connection.ContextData.Add(Connected, true);
+                await SendConnectionAcceptMessage(
+                    session,
+                    connectionStatus.Extensions,
+                    cancellationToken);
             }
             else
             {
-                await connection.SendAsync(Default, CancellationToken.None);
+                await SendConnectionRejectMessage(
+                    session,
+                    connectionStatus.Message,
+                    connectionStatus.Extensions,
+                    cancellationToken);
+
+                await connection.CloseAsync(
+                    connectionStatus.Message,
+                    ConnectionCloseReason.NormalClosure,
+                    cancellationToken);
             }
+            return;
         }
-        catch (WebSocketException)
+
+        if (connected && type.ValueEquals(Utf8Messages.Start))
         {
-            // we will just stop receiving
+            if (!ParseSubscribeMessage(root, out DataStartMessage? subscribeMessage))
+            {
+                await connection.CloseAsync(
+                    "Invalid subscribe message structure.",
+                    CloseReasons.InvalidMessage,
+                    cancellationToken);
+                return;
+            }
+
+            if (!session.Operations.Register(subscribeMessage.Id, subscribeMessage.Payload))
+            {
+                await connection.CloseAsync(
+                    "The subscription id is not unique.",
+                    CloseReasons.InvalidMessage,
+                    cancellationToken);
+                return;
+            }
+
+            // the operation is registered and we are done.
+            return;
         }
-    }
 
-    private static bool TryParseMessage(
-        ReadOnlySequence<byte> body,
-        [NotNullWhen(true)] out OperationMessage? message)
-    {
-        message = null;
-        return MessageUtilities.TryParseMessage(body, out GraphQLSocketMessage parsed) &&
-            TryDeserializeMessage(parsed, out message);
-    }
-
-    private static bool TryDeserializeMessage(
-        GraphQLSocketMessage parsedMessage,
-        [NotNullWhen(true)] out OperationMessage? message)
-    {
-        switch (parsedMessage.Type)
+        if (connected && type.ValueEquals(Utf8Messages.Stop))
         {
-            case Messages.ConnectionInitialize:
-                message = DeserializeInitConnMessage(parsedMessage);
-                return true;
-
-            case Messages.ConnectionTerminate:
-                message = TerminateConnectionMessage.Default;
-                return true;
-
-            case Messages.Start:
-                return TryDeserializeDataStartMessage(parsedMessage, out message);
-
-            case Messages.Stop:
-                message = DeserializeDataStopMessage(parsedMessage);
-                return true;
-
-            default:
-                message = null;
-                return false;
+            if (root.TryGetProperty(Utf8MessageProperties.Id, out JsonElement idProp) &&
+                idProp.ValueKind is JsonValueKind.String)
+            {
+                session.Operations.Unregister(idProp.GetString()!);
+            }
+            return;
         }
+
+        if (connected && type.ValueEquals(Utf8Messages.ConnectionTerminate))
+        {
+            await _interceptor.OnCloseAsync(session, cancellationToken);
+
+            await connection.CloseAsync(
+                TerminateConnectionMessageHandler_Message,
+                ConnectionCloseReason.NormalClosure,
+                cancellationToken);
+            return;
+        }
+
+        await connection.CloseAsync(
+            "Invalid message type.",
+            CloseReasons.InvalidMessage,
+            cancellationToken);
     }
 
-    private static InitializeConnectionMessage DeserializeInitConnMessage(
-        GraphQLSocketMessage parsedMessage) =>
-        parsedMessage.Payload.Length > 0 &&
-            ParseJson(parsedMessage.Payload) is IReadOnlyDictionary<string, object?> payload
-                ? new InitializeConnectionMessage(payload)
-                : new InitializeConnectionMessage();
+    public async Task SendKeepAliveMessageAsync(
+        ISocketSession session,
+        CancellationToken cancellationToken)
+        => await session.Connection.SendAsync(Utf8MessageBodies.KeepAlive, cancellationToken);
 
-    private static bool TryDeserializeDataStartMessage(
-        GraphQLSocketMessage parsedMessage,
-        [NotNullWhen(true)] out OperationMessage? message)
+    public async Task SendResultMessageAsync(
+        ISocketSession session,
+        string operationSessionId,
+        IQueryResult result,
+        CancellationToken cancellationToken)
     {
-        if (parsedMessage.Payload.Length == 0 || parsedMessage.Id is null)
+        using var arrayWriter = new ArrayWriter();
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString("id", operationSessionId);
+        jsonWriter.WriteString("type", Utf8Messages.Data);
+        jsonWriter.WritePropertyName("payload");
+        _serializer.Serialize(result, jsonWriter);
+        jsonWriter.WriteEndObject();
+        await jsonWriter.FlushAsync(cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+    }
+
+    public async Task SendErrorMessageAsync(
+        ISocketSession session,
+        string operationSessionId,
+        IReadOnlyList<IError> errors,
+        CancellationToken cancellationToken)
+    {
+        using var arrayWriter = new ArrayWriter();
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString("id", operationSessionId);
+        jsonWriter.WriteString("type", Utf8Messages.Error);
+        jsonWriter.WritePropertyName("payload");
+        _serializer.Serialize(errors[0], jsonWriter);
+        jsonWriter.WriteEndObject();
+        await jsonWriter.FlushAsync(cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+    }
+
+    public async Task SendCompleteMessageAsync(
+        ISocketSession session,
+        string operationSessionId,
+        CancellationToken cancellationToken)
+    {
+        using var writer = new ArrayWriter();
+        SerializeMessage(writer, Utf8Messages.Complete, id: operationSessionId);
+        await session.Connection.SendAsync(writer.Body, cancellationToken);
+    }
+
+    private static async Task SendConnectionAcceptMessage(
+        ISocketSession session,
+        IReadOnlyDictionary<string, object?>? payload,
+        CancellationToken cancellationToken)
+    {
+        using var writer = new ArrayWriter();
+        SerializeMessage(writer, Utf8Messages.ConnectionAccept, payload);
+        await session.Connection.SendAsync(writer.Body, cancellationToken);
+    }
+
+    private static async Task SendConnectionRejectMessage(
+        ISocketSession session,
+        string message,
+        IReadOnlyDictionary<string, object?>? extensions,
+        CancellationToken cancellationToken)
+    {
+        using var arrayWriter = new ArrayWriter();
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString("type", Utf8Messages.ConnectionError);
+        jsonWriter.WritePropertyName("payload");
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString("message", message);
+        jsonWriter.WritePropertyName("extensions");
+        JsonSerializer.Serialize(jsonWriter, extensions);
+        jsonWriter.WriteEndObject();
+        jsonWriter.WriteEndObject();
+        await jsonWriter.FlushAsync(cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+    }
+
+    private static bool ParseSubscribeMessage(
+        JsonElement messageElement,
+        [NotNullWhen(true)] out DataStartMessage? message)
+    {
+        if (!messageElement.TryGetProperty("id", out JsonElement idProp) ||
+            idProp.ValueKind is not JsonValueKind.String)
         {
             message = null;
             return false;
         }
 
-        IReadOnlyList<GraphQLRequest> batch = Parse(parsedMessage.Payload);
-        message = new DataStartMessage(parsedMessage.Id, batch[0]);
+        if (!messageElement.TryGetProperty("payload", out JsonElement payloadProp) ||
+            idProp.ValueKind is not JsonValueKind.Object)
+        {
+            message = null;
+            return false;
+        }
+
+        var id = idProp.GetString()!;
+        IReadOnlyList<GraphQLRequest> request = Parse(payloadProp.GetRawText());
+
+        if (request.Count == 0)
+        {
+            message = null;
+            return false;
+        }
+
+        message = new DataStartMessage(id, request[0]);
         return true;
-    }
-
-    private static DataStopMessage DeserializeDataStopMessage(
-        GraphQLSocketMessage parsedMessage)
-    {
-        if (parsedMessage.Payload.Length > 0 || parsedMessage.Id is null)
-        {
-            throw new InvalidOperationException("Invalid message structure.");
-        }
-
-        return new DataStopMessage(parsedMessage.Id);
-    }
-
-    private async Task HandleMessageAsync(
-        ISocketConnection connection,
-        OperationMessage message,
-        CancellationToken cancellationToken)
-    {
-        for (var i = 0; i < _messageHandlers.Length; i++)
-        {
-            IMessageHandler handler = _messageHandlers[i];
-            if (handler.CanHandle(message))
-            {
-                await handler.HandleAsync(connection, message, cancellationToken);
-
-                // the message is handled and we are done.
-                return;
-            }
-        }
-
-        throw new NotSupportedException("The specified message type is not supported.");
     }
 }

@@ -1,22 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.WebSockets;
-using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
-using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.AspNetCore.Subscriptions;
+namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
 public class WebSocketProtocolTests : SubscriptionTestBase
 {
@@ -28,123 +17,92 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Connect_AcceptAndKeepAlive()
     {
-        return TryTest(async () =>
+        return TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateStarWarsServer();
             WebSocketClient client = CreateWebSocketClient(testServer);
-            WebSocket webSocket =
-                await client.ConnectAsync(SubscriptionUri, CancellationToken.None);
+            WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
-            await webSocket.SendConnectionInitializeAsync();
+            await webSocket.SendConnectionInitializeAsync(ct);
 
             // assert
-            IReadOnlyDictionary<string, object> message =
-            await webSocket.ReceiveServerMessageAsync();
+            var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal(
-                Protocols.Apollo.Messages.Connection.Accept,
-                message["type"]);
-
-            message = await webSocket.ReceiveServerMessageAsync();
-            Assert.NotNull(message);
-            Assert.Equal(
-                Protocols.Apollo.Messages.Connection.KeepAlive,
-                message["type"]);
+            Assert.Equal("connection_ack", message["type"]);
         });
     }
 
     [Fact]
     public Task Send_Connect_AcceptAndKeepAlive_Explicit_Route()
     {
-        return TryTest(async () =>
+        return TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateServer(b => b.MapGraphQLWebSocket());
             WebSocketClient client = CreateWebSocketClient(testServer);
             WebSocket webSocket = await client.ConnectAsync(
                 new("ws://localhost:5000/graphql/ws"),
-                CancellationToken.None);
+                ct);
 
             // act
-            await webSocket.SendConnectionInitializeAsync();
+            await webSocket.SendConnectionInitializeAsync(ct);
 
             // assert
-            IReadOnlyDictionary<string, object> message =
-            await webSocket.ReceiveServerMessageAsync();
+            var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal(
-                Protocols.Apollo.Messages.Connection.Accept,
-                message["type"]);
-
-            message = await webSocket.ReceiveServerMessageAsync();
-            Assert.NotNull(message);
-            Assert.Equal(
-                Protocols.Apollo.Messages.Connection.KeepAlive,
-                message["type"]);
+            Assert.Equal("connection_ack", message["type"]);
         });
     }
 
     [Fact]
     public Task Send_Connect_AcceptAndKeepAlive_Explicit_Route_Explicit_Path()
     {
-        return TryTest(async () =>
+        return TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateServer(b => b.MapGraphQLWebSocket("/foo/bar"));
             WebSocketClient client = CreateWebSocketClient(testServer);
             WebSocket webSocket = await client.ConnectAsync(
                 new("ws://localhost:5000/foo/bar"),
-                CancellationToken.None);
+                ct);
 
             // act
-            await webSocket.SendConnectionInitializeAsync();
+            await webSocket.SendConnectionInitializeAsync(ct);
 
             // assert
-            IReadOnlyDictionary<string, object> message =
-            await webSocket.ReceiveServerMessageAsync();
+            var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal(
-                Protocols.Apollo.Messages.Connection.Accept,
-                message["type"]);
-
-            message = await webSocket.ReceiveServerMessageAsync();
-            Assert.NotNull(message);
-            Assert.Equal(
-                Protocols.Apollo.Messages.Connection.KeepAlive,
-                message["type"]);
+            Assert.Equal("connection_ack", message["type"]);
         });
     }
 
     [Fact]
     public Task Send_Terminate()
     {
-        return TryTest(async () =>
+        return TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateStarWarsServer();
             WebSocketClient client = CreateWebSocketClient(testServer);
-            WebSocket webSocket = await ConnectToServerAsync(client);
+            WebSocket webSocket = await ConnectToServerAsync(client, ct);
 
             // act
-            await webSocket.SendTerminateConnectionAsync();
+            await webSocket.SendTerminateConnectionAsync(ct);
 
             // assert
             var buffer = new byte[1024];
-            await webSocket.ReceiveAsync(buffer, CancellationToken.None);
-
+            await webSocket.ReceiveAsync(buffer, ct);
             Assert.True(webSocket.CloseStatus.HasValue);
-            Assert.Equal(
-                WebSocketCloseStatus.NormalClosure,
-                webSocket.CloseStatus.Value);
+            Assert.Equal(WebSocketCloseStatus.NormalClosure, webSocket.CloseStatus.Value);
         });
     }
 
     [Fact]
     public Task Connect_With_Invalid_Protocol()
     {
-        return TryTest(async () =>
+        return TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateStarWarsServer();
@@ -156,21 +114,17 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             };
 
             // act
-            WebSocket socket = await client.ConnectAsync(
-            SubscriptionUri,
-            CancellationToken.None);
-
+            WebSocket socket = await client.ConnectAsync(SubscriptionUri, ct);
             var buffer = new byte[1024];
-            await socket.ReceiveAsync(buffer, CancellationToken.None);
+            await socket.ReceiveAsync(buffer, ct);
 
             // assert
             Assert.True(socket.CloseStatus.HasValue);
-            Assert.Equal(
-                WebSocketCloseStatus.ProtocolError,
-                socket.CloseStatus.Value);
+            Assert.Equal(WebSocketCloseStatus.ProtocolError, socket.CloseStatus.Value);
         });
     }
 
+    /*
     [Fact(Skip = "TODO: This test is flaky")]
     public Task Send_Start_ReceiveDataOnMutation()
     {
@@ -280,4 +234,5 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             Assert.Null(message);
         });
     }
+    */
 }

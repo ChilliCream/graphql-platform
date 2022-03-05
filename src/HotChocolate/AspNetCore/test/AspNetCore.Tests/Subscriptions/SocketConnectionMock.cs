@@ -13,14 +13,14 @@ public class SocketConnectionMock : ISocketConnection
 {
     public SocketConnectionMock()
     {
-        Subscriptions = new SubscriptionManager();
+        Operations = new OperationManager();
     }
 
     public HttpContext HttpContext => default!;
 
     public bool IsClosed { get; set; }
 
-    public ISubscriptionManager Subscriptions { get; }
+    public IOperationManager Operations { get; }
 
     public IServiceProvider RequestServices { get; set; } = default!;
 

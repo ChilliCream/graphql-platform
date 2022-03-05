@@ -5,15 +5,16 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
-namespace HotChocolate.AspNetCore.Subscriptions;
+namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
 internal static class WebSocketExtensions
 {
@@ -27,19 +28,20 @@ internal static class WebSocketExtensions
         };
 
     public static Task SendConnectionInitializeAsync(
-        this WebSocket webSocket)
-    {
-        return SendMessageAsync(
+        this WebSocket webSocket,
+        CancellationToken cancellationToken)
+        => SendMessageAsync(
             webSocket,
-            new InitializeConnectionMessage());
-    }
+            new InitializeConnectionMessage(),
+            cancellationToken: cancellationToken);
 
-    public static Task SendTerminateConnectionAsync(
-        this WebSocket webSocket)
+    public static async Task SendTerminateConnectionAsync(
+        this WebSocket webSocket,
+        CancellationToken cancellationToken)
     {
-        return SendMessageAsync(
-            webSocket,
-            TerminateConnectionMessage.Default);
+        using var writer = new ArrayWriter();
+        MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionTerminate);
+        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
     }
 
     public static async Task SendSubscriptionStartAsync(
@@ -56,29 +58,30 @@ internal static class WebSocketExtensions
 
     public static async Task SendSubscriptionStopAsync(
         this WebSocket webSocket,
-        string subscriptionId)
+        string subscriptionId,
+        CancellationToken cancellationToken)
     {
-        await SendMessageAsync(
-           webSocket,
-           new DataStopMessage(subscriptionId));
+        using var writer = new ArrayWriter();
+        MessageUtilities.SerializeMessage(writer, Utf8Messages.Stop, id: subscriptionId);
+        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
     }
 
     public static async Task SendEmptyMessageAsync(
-        this WebSocket webSocket)
-    {
-        var buffer = new byte[1];
+        this WebSocket webSocket,
+        CancellationToken cancellationToken)
+        => await SendMessageAsync(webSocket, new byte[1], cancellationToken);
 
-        var segment = new ArraySegment<byte>(buffer, 0, 0);
-
-        await webSocket.SendAsync(
-            segment, WebSocketMessageType.Text,
-            true, CancellationToken.None);
-    }
+    public static async Task SendMessageAsync(
+        this WebSocket webSocket,
+        ReadOnlyMemory<byte> message,
+        CancellationToken cancellationToken)
+        => await webSocket.SendAsync(message, WebSocketMessageType.Text, true, cancellationToken);
 
     public static async Task SendMessageAsync(
         this WebSocket webSocket,
         OperationMessage message,
-        bool largeMessage = false)
+        bool largeMessage = false,
+        CancellationToken cancellationToken = default)
     {
         var buffer = new byte[_maxMessageSize];
 
@@ -87,28 +90,25 @@ internal static class WebSocketExtensions
 
         do
         {
-            read = await stream.ReadAsync(buffer);
+            read = await stream.ReadAsync(buffer, cancellationToken);
             var segment = new ArraySegment<byte>(buffer, 0, read);
             var isEndOfMessage = stream.Position == stream.Length;
 
             await webSocket.SendAsync(
-                segment, WebSocketMessageType.Text,
-                isEndOfMessage, CancellationToken.None);
+                segment,
+                WebSocketMessageType.Text,
+                isEndOfMessage,
+                cancellationToken);
         } while (read == _maxMessageSize);
     }
 
-    private static Stream CreateMessageStream(
-        this OperationMessage message,
-        bool largeMessage)
+    private static Stream CreateMessageStream(this OperationMessage message, bool largeMessage)
     {
         if (message is DataStartMessage dataStart)
         {
             var query = dataStart.Payload.Query!.Print();
 
-            var payload = new Dictionary<string, object>
-                {
-                    { "query", query },
-                };
+            var payload = new Dictionary<string, object> { { "query", query } };
 
             if (dataStart.Payload.QueryId != null)
             {
@@ -137,35 +137,46 @@ internal static class WebSocketExtensions
         return new MemoryStream(Encoding.UTF8.GetBytes(json));
     }
 
-    public static async Task<IReadOnlyDictionary<string, object>>
-        ReceiveServerMessageAsync(
-            this WebSocket webSocket)
+    public static async Task<IReadOnlyDictionary<string, object>> ReceiveServerMessageAsync(
+        this WebSocket webSocket,
+        CancellationToken cancellationToken)
     {
         await using var stream = new MemoryStream();
         WebSocketReceiveResult result;
         var buffer = new byte[_maxMessageSize];
+        var skipped = false;
 
         do
         {
-            result = await webSocket.ReceiveAsync(
-                new ArraySegment<byte>(buffer),
-                CancellationToken.None);
-            stream.Write(buffer, 0, result.Count);
-        }
-        while (!result.EndOfMessage);
+            var array = new ArraySegment<byte>(buffer);
+            result = await webSocket.ReceiveAsync(array, cancellationToken);
 
-        return (IReadOnlyDictionary<string, object>)
-            Utf8GraphQLRequestParser.ParseJson(stream.ToArray());
+            if (result.Count == 2 && result.EndOfMessage &&
+                buffer.AsSpan()[..2].SequenceEqual(Utf8MessageBodies.KeepAlive.Span))
+            {
+                skipped = true;
+                continue;
+            }
+
+            await stream.WriteAsync(buffer.AsMemory(0, result.Count), cancellationToken);
+            skipped = false;
+        }
+        while (!result.EndOfMessage || skipped);
+
+        return (IReadOnlyDictionary<string, object>)ParseJson(stream.ToArray());
     }
 
     private sealed class HelperOperationMessage : OperationMessage
     {
         public HelperOperationMessage(
             string type, string id, object payload)
-            : base(type, id)
+            : base(type)
         {
+            Id = id;
             Payload = payload;
         }
+
+        public string Id { get; }
 
         public object Payload { get; }
     }

@@ -4,6 +4,7 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Net.WebSockets.WebSocketMessageType;
+using static HotChocolate.AspNetCore.Subscriptions.Constants;
 using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -15,18 +16,16 @@ internal sealed class WebSocketConnection : ISocketConnection
     private WebSocket? _webSocket;
     private bool _disposed;
 
-    private WebSocketConnection(HttpContext httpContext)
+    public WebSocketConnection(HttpContext httpContext)
     {
         HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-        _protocolHandlers = httpContext.RequestServices.GetServices<IProtocolHandler>().ToArray();
-        Subscriptions = new SubscriptionManager();
+        var executor = (IRequestExecutor)httpContext.Items[WellKnownContextData.RequestExecutor]!;
+        _protocolHandlers = executor.Services.GetServices<IProtocolHandler>().ToArray();
     }
 
     public bool IsClosed => _webSocket is null || _webSocket.CloseStatus.HasValue;
 
     public HttpContext HttpContext { get; }
-
-    public ISubscriptionManager Subscriptions { get; }
 
     public IServiceProvider RequestServices => HttpContext.RequestServices;
 
@@ -76,6 +75,18 @@ internal sealed class WebSocketConnection : ISocketConnection
         return webSocket.SendAsync(message, Text, true, cancellationToken);
     }
 
+    public ValueTask SendAsync(ReadOnlyMemory<byte> message, CancellationToken cancellationToken)
+    {
+        WebSocket? webSocket = _webSocket;
+
+        if (_disposed || webSocket is not { State: WebSocketState.Open })
+        {
+            return default;
+        }
+
+        return webSocket.SendAsync(message, Text, true, cancellationToken);
+    }
+
     public async Task ReceiveAsync(
         IBufferWriter<byte> writer,
         CancellationToken cancellationToken)
@@ -103,7 +114,7 @@ internal sealed class WebSocketConnection : ISocketConnection
                 if (socketResult.Count == 0)
                 {
                     memory = writer.GetMemory(1);
-                    memory.Span[0] = SubscriptionSession.Delimiter;
+                    memory.Span[0] = Delimiter;
                     writer.Advance(1);
                     break;
                 }
@@ -144,6 +155,30 @@ internal sealed class WebSocketConnection : ISocketConnection
         }
     }
 
+    public async Task CloseAsync(string message, int reason, CancellationToken cancellationToken)
+    {
+        try
+        {
+            WebSocket? webSocket = _webSocket;
+
+            if (_disposed || IsClosed || webSocket is null || webSocket.State != WebSocketState.Open)
+            {
+                return;
+            }
+
+            await webSocket.CloseOutputAsync(
+                (WebSocketCloseStatus)reason,
+                message,
+                cancellationToken);
+
+            Dispose();
+        }
+        catch
+        {
+            // we do not throw here ...
+        }
+    }
+
     private static WebSocketCloseStatus MapCloseStatus(ConnectionCloseReason closeReason)
         => closeReason switch
         {
@@ -163,12 +198,9 @@ internal sealed class WebSocketConnection : ISocketConnection
     {
         if (!_disposed)
         {
-            Subscriptions.Dispose();
             _webSocket?.Dispose();
             _webSocket = null;
             _disposed = true;
         }
     }
-
-    public static WebSocketConnection New(HttpContext httpContext) => new(httpContext);
 }

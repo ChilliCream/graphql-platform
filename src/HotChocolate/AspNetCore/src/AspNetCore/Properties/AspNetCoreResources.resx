@@ -93,4 +93,7 @@
   <data name="TerminateConnectionMessageHandler_Message" xml:space="preserve">
     <value>Connection terminated by user.</value>
   </data>
+  <data name="OperationManager_Register_SessionIdNullOrEmpty" xml:space="preserve">
+    <value>The sessionId mustn't be null or empty.</value>
+  </data>
 </root>

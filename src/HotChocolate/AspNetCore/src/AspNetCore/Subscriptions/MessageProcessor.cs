@@ -1,35 +1,30 @@
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
-using HotChocolate.AspNetCore.Subscriptions.Protocols;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal sealed class MessageProcessor
 {
-    private readonly ISocketConnection _connection;
+    private readonly ISocketSession _session;
     private readonly PipeReader _reader;
 
-    public MessageProcessor(ISocketConnection connection, PipeReader reader)
+    public MessageProcessor(ISocketSession session, PipeReader reader)
     {
-        _connection = connection;
+        _session = session;
         _reader = reader;
     }
 
-    public void Begin(
-        IProtocolHandler protocolHandler,
-        CancellationToken cancellationToken)
+    public void Begin(CancellationToken cancellationToken)
     {
         Task.Factory.StartNew(
-            () => ProcessMessagesAsync(protocolHandler, cancellationToken),
-            cancellationToken,
+            () => ProcessMessagesAsync(cancellationToken),
+            CancellationToken.None,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
     }
 
-    private async Task ProcessMessagesAsync(
-        IProtocolHandler protocolHandler,
-        CancellationToken cancellationToken)
+    private async Task ProcessMessagesAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -41,12 +36,12 @@ internal sealed class MessageProcessor
 
                 do
                 {
-                    position = buffer.PositionOf(SubscriptionSession.Delimiter);
+                    position = buffer.PositionOf(Constants.Delimiter);
 
                     if (position is not null)
                     {
-                        await protocolHandler.ExecuteAsync(
-                            _connection,
+                        await _session.Protocol.OnReceiveAsync(
+                            _session,
                             buffer.Slice(0, position.Value),
                             cancellationToken);
 

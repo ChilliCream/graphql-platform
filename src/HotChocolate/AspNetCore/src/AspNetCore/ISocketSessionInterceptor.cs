@@ -1,42 +1,43 @@
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
-using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 namespace HotChocolate.AspNetCore;
 
 public interface ISocketSessionInterceptor
 {
     ValueTask<ConnectionStatus> OnConnectAsync(
-        ISocketConnection connection,
-        InitializeConnectionMessage message,
-        CancellationToken cancellationToken);
+        ISocketSession session,
+        IOperationMessagePayload operationMessagePayload,
+        CancellationToken cancellationToken = default);
 
     ValueTask OnRequestAsync(
-        ISocketConnection connection,
+        ISocketSession session,
+        string operationSessionId,
         IQueryRequestBuilder requestBuilder,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
+
+    ValueTask<IQueryResult> OnResultAsync(
+        ISocketSession session,
+        string operationSessionId,
+        IQueryResult result,
+        CancellationToken cancellationToken = default);
+
+    ValueTask OnCompleteAsync(
+        ISocketSession session,
+        string operationSessionId,
+        CancellationToken cancellationToken = default);
+
+    ValueTask<IReadOnlyDictionary<string, object?>?> OnPingAsync(
+        ISocketSession session,
+        IOperationMessagePayload operationMessagePayload,
+        CancellationToken cancellationToken = default);
+
+    ValueTask OnPongAsync(
+        ISocketSession session,
+        IOperationMessagePayload operationMessagePayload,
+        CancellationToken cancellationToken = default);
 
     ValueTask OnCloseAsync(
-        ISocketConnection connection,
-        CancellationToken cancellationToken);
-}
-
-public interface ISocketSessionInterceptor2
-{
-    ValueTask<ConnectionStatus> OnConnectAsync(
-        ISocketConnection connection,
-        IProtocolHandler protocolHandler,
-        IConnectMessage message,
-        CancellationToken cancellationToken);
-
-    ValueTask OnRequestAsync(
-        ISocketConnection connection,
-        IProtocolHandler protocolHandler,
-        IQueryRequestBuilder requestBuilder,
-        CancellationToken cancellationToken);
-
-    ValueTask OnCloseAsync(
-        ISocketConnection connection,
-        IProtocolHandler protocolHandler,
-        CancellationToken cancellationToken);
+        ISocketSession session,
+        CancellationToken cancellationToken = default);
 }

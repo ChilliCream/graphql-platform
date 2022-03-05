@@ -1,30 +1,26 @@
-using System;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
-using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal sealed class PingPongJob
 {
     private static readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(5);
-    private readonly ISocketConnection _connection;
+    private readonly ISocketSession _session;
     private readonly TimeSpan _timeout;
 
-    public PingPongJob(ISocketConnection connection)
-        : this(connection, _defaultTimeout)
+    public PingPongJob(ISocketSession session)
+        : this(session, _defaultTimeout)
     {
     }
 
-    public PingPongJob(ISocketConnection connection, TimeSpan timeout)
+    public PingPongJob(ISocketSession session, TimeSpan timeout)
     {
-        _connection = connection;
+        _session = session;
         _timeout = timeout;
     }
 
-    public void Begin(IProtocolHandler protocolHandler, CancellationToken cancellationToken)
+    public void Begin(CancellationToken cancellationToken)
     {
         Task.Factory.StartNew(
             () => KeepConnectionAliveAsync(cancellationToken),
@@ -36,17 +32,18 @@ internal sealed class PingPongJob
     private async Task KeepConnectionAliveAsync(
         CancellationToken cancellationToken)
     {
+        ISocketConnection connection = _session.Connection;
+        IProtocolHandler protocolHandler = _session.Protocol;
+
         try
         {
-            while (!_connection.IsClosed && !cancellationToken.IsCancellationRequested)
+            while (!connection.IsClosed && !cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(_timeout, cancellationToken);
 
-                if (!_connection.IsClosed)
+                if (!connection.IsClosed)
                 {
-                    await _connection.SendAsync(
-                        KeepConnectionAliveMessage.Default.Serialize(),
-                        cancellationToken);
+                    await protocolHandler.SendKeepAliveMessageAsync(_session, cancellationToken);
                 }
             }
         }

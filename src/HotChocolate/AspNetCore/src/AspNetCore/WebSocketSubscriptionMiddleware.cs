@@ -40,15 +40,10 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
         {
             try
             {
-                IRequestExecutor requestExecutor =
-                    await GetExecutorAsync(context.RequestAborted);
-                ISocketSessionInterceptor socketSessionInterceptor =
-                    requestExecutor.GetRequiredService<ISocketSessionInterceptor>();
-                context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
-
-                await WebSocketSession
-                    .New(context, socketSessionInterceptor)
-                    .HandleAsync(context.RequestAborted);
+                var executor = await GetExecutorAsync(context.RequestAborted);
+                var interceptor = executor.GetRequiredService<ISocketSessionInterceptor>();
+                context.Items[WellKnownContextData.RequestExecutor] = executor;
+                await WebSocketSession.AcceptAsync(context, executor, interceptor);
             }
             catch (Exception ex)
             {

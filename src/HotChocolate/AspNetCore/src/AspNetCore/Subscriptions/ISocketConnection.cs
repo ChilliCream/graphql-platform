@@ -21,11 +21,6 @@ public interface ISocketConnection : IHasContextData, IDisposable
     bool IsClosed { get; }
 
     /// <summary>
-    /// Gets access to the subscription manager of this connection.
-    /// </summary>
-    ISubscriptionManager Subscriptions { get; }
-
-    /// <summary>
     /// Gets access to the request scoped service provider.
     /// </summary>
     IServiceProvider RequestServices { get; }
@@ -50,6 +45,17 @@ public interface ISocketConnection : IHasContextData, IDisposable
     /// The cancellation token.
     /// </param>
     Task SendAsync(ArraySegment<byte> message, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Send a message to the client.
+    /// </summary>
+    /// <param name="message">
+    /// The message.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    ValueTask SendAsync(ReadOnlyMemory<byte> message, CancellationToken cancellationToken);
 
     /// <summary>
     /// Reads a message from the client.
@@ -78,7 +84,7 @@ public interface ISocketConnection : IHasContextData, IDisposable
         string message,
         ConnectionCloseReason reason,
         CancellationToken cancellationToken);
-    
+
     Task CloseAsync(
         string message,
         int reason,

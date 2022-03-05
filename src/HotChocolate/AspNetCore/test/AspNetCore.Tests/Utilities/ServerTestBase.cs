@@ -29,9 +29,9 @@ public class ServerTestBase : IClassFixture<TestServerFactory>
         return ServerFactory.Create(
             services =>
             {
-                TestSocketSessionInterceptor testInterceptor = new();
+                // TestSocketSessionInterceptor testInterceptor = new();
 
-                services.AddSingleton(testInterceptor);
+                // services.AddSingleton(testInterceptor);
 
                 services
                     .AddRouting()
@@ -41,7 +41,7 @@ public class ServerTestBase : IClassFixture<TestServerFactory>
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
                     .AddExportDirectiveType()
-                    .AddSocketSessionInterceptor(x => testInterceptor)
+                    // .AddSocketSessionInterceptor(x => testInterceptor)
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
                     .UseAutomaticPersistedQueryPipeline()
@@ -98,9 +98,9 @@ public class ServerTestBase : IClassFixture<TestServerFactory>
         return ServerFactory.Create(
             services =>
             {
-                TestSocketSessionInterceptor testInterceptor = new();
+                // TestSocketSessionInterceptor testInterceptor = new();
 
-                services.AddSingleton(testInterceptor);
+                // services.AddSingleton(testInterceptor);
 
                 services
                     .AddRouting()
@@ -110,7 +110,7 @@ public class ServerTestBase : IClassFixture<TestServerFactory>
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
                     .AddExportDirectiveType()
-                    .AddSocketSessionInterceptor(_ => testInterceptor)
+                    // .AddSocketSessionInterceptor(_ => testInterceptor)
                     .AddStarWarsRepositories();
             },
             app => app

@@ -9,7 +9,7 @@ public class SubscriptionManagerTests
     public void Register_Subscription()
     {
         // arrange
-        var subscriptions = new SubscriptionManager();
+        var subscriptions = new OperationManager();
         var subscription = new SubscriptionSessionMock();
 
         // act
@@ -24,7 +24,7 @@ public class SubscriptionManagerTests
     public void Register_Subscription_SubscriptionIsNull()
     {
         // arrange
-        var subscriptions = new SubscriptionManager();
+        var subscriptions = new OperationManager();
 
         // act
         void Action() => subscriptions.Register(null!);
@@ -37,7 +37,7 @@ public class SubscriptionManagerTests
     public void Register_Subscription_ManagerAlreadyDisposed()
     {
         // arrange
-        var subscriptions = new SubscriptionManager();
+        var subscriptions = new OperationManager();
         var subscription = new SubscriptionSessionMock { Id = "abc" };
 
         subscriptions.Register(subscription);
@@ -54,7 +54,7 @@ public class SubscriptionManagerTests
     public void Unregister_Subscription()
     {
         // arrange
-        var subscriptions = new SubscriptionManager();
+        var subscriptions = new OperationManager();
         var subscription = new SubscriptionSessionMock();
         subscriptions.Register(subscription);
         Assert.Collection(subscriptions, t => Assert.Equal(subscription, t));
@@ -70,7 +70,7 @@ public class SubscriptionManagerTests
     public void Unregister_Subscription_SubscriptionIdIsNull()
     {
         // arrange
-        var subscriptions = new SubscriptionManager();
+        var subscriptions = new OperationManager();
         var subscription = new SubscriptionSessionMock();
         subscriptions.Register(subscription);
         Assert.Collection(subscriptions, t => Assert.Equal(subscription, t));
@@ -86,7 +86,7 @@ public class SubscriptionManagerTests
     public void Unregister_Subscription_ManagerAlreadyDisposed()
     {
         // arrange
-        var subscriptions = new SubscriptionManager();
+        var subscriptions = new OperationManager();
         var subscription = new SubscriptionSessionMock { Id = "abc" };
 
         subscriptions.Register(subscription);
@@ -103,7 +103,7 @@ public class SubscriptionManagerTests
     public void Dispose_Subscriptions()
     {
         // arrange
-        var subscriptions = new SubscriptionManager();
+        var subscriptions = new OperationManager();
         var subscriptionA = new SubscriptionSessionMock();
         var subscriptionB = new SubscriptionSessionMock();
 
@@ -123,7 +123,7 @@ public class SubscriptionManagerTests
     public void Complete_Subscription()
     {
         // arrange
-        var subscriptions = new SubscriptionManager();
+        var subscriptions = new OperationManager();
         var subscription = new SubscriptionSessionMock();
         subscriptions.Register(subscription);
         Assert.Collection(subscriptions, t => Assert.Equal(subscription, t));

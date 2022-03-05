@@ -1,88 +1,49 @@
-using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Language;
-using static HotChocolate.AspNetCore.ServerDefaults;
-using static HotChocolate.AspNetCore.ThrowHelper;
-using static HotChocolate.Language.Utf8GraphQLRequestParser;
+using System.Text.Json;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 
 internal static class MessageUtilities
 {
-    public static bool TryParseMessage(
-        ReadOnlySequence<byte> body,
-        out GraphQLSocketMessage message,
-        [NotNullWhen(true)] out byte[]? rentedBuffer,
-        int maxAllowedMessageSize = MaxAllowedRequestSize)
+    public static JsonWriterOptions WriterOptions { get; } = new() { Indented = false };
+
+    public static void SerializeMessage(
+        ArrayWriter arrayWriter,
+        ReadOnlySpan<byte> type,
+        IReadOnlyDictionary<string, object?>? payload = null,
+        string? id = null)
     {
-        ReadOnlySpan<byte> messageData;
-        byte[]? buffer = null;
+        using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        jsonWriter.WriteStartObject();
 
-        if (body.IsSingleSegment)
+        if (id is not null)
         {
-            messageData = body.First.Span;
-        }
-        else
-        {
-            buffer = ArrayPool<byte>.Shared.Rent(InitialBufferSize);
-            var buffered = 0;
-
-            SequencePosition position = body.Start;
-            while (body.TryGet(ref position, out ReadOnlyMemory<byte> memory))
-            {
-                ReadOnlySpan<byte> span = memory.Span;
-                var bytesRemaining = buffer.Length - buffered;
-
-                if (buffered > maxAllowedMessageSize)
-                {
-                    throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
-                }
-
-                if (span.Length > bytesRemaining)
-                {
-                    var next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
-                    Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
-                    ArrayPool<byte>.Shared.Return(buffer);
-                    buffer = next;
-                }
-
-                for (var i = 0; i < span.Length; i++)
-                {
-                    buffer[buffered++] = span[i];
-                }
-            }
-
-            messageData = buffer;
-            messageData = messageData.Slice(0, buffered);
+            jsonWriter.WriteString("id", id);
         }
 
-        try
-        {
-            if (messageData.Length == 0 ||
-                (messageData.Length == 1 && messageData[0] == default))
-            {
-                message = default;
-                rentedBuffer = null;
-                return false;
-            }
+        jsonWriter.WriteString("type", type);
 
-            message = ParseMessage(messageData);
-            rentedBuffer = buffer!;
-            buffer = null;
+        if (payload is not null)
+        {
+            jsonWriter.WritePropertyName("payload");
+            JsonSerializer.Serialize(jsonWriter, payload);
+        }
+
+        jsonWriter.WriteEndObject();
+        jsonWriter.Flush();
+    }
+
+    public static bool TryGetPayload(JsonElement root, out JsonElement payload)
+    {
+        if (root.TryGetProperty(Utf8MessageProperties.Payload, out JsonElement payloadValue) &&
+            payloadValue.ValueKind is JsonValueKind.Object)
+        {
+            payload = payloadValue;
             return true;
         }
-        catch (SyntaxException)
-        {
-            message = default;
-            rentedBuffer = null;
-            return false;
-        }
-        finally
-        {
-            if (buffer is not null)
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-        }
+
+        payload = default;
+        return false;
     }
 }

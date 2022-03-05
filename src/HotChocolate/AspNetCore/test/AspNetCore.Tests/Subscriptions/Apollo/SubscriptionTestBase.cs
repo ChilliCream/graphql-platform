@@ -4,13 +4,11 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
 
-namespace HotChocolate.AspNetCore.Subscriptions;
+namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
 public class SubscriptionTestBase : ServerTestBase
 {
@@ -24,7 +22,8 @@ public class SubscriptionTestBase : ServerTestBase
     protected async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
         WebSocket webSocket,
         string type,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
     {
         var timer = Stopwatch.StartNew();
 
@@ -32,18 +31,16 @@ public class SubscriptionTestBase : ServerTestBase
         {
             while (timer.Elapsed <= timeout)
             {
-                await Task.Delay(50);
+                await Task.Delay(50, cancellationToken);
 
-                IReadOnlyDictionary<string, object> message =
-                    await webSocket.ReceiveServerMessageAsync();
+                var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
 
                 if (message != null && type.Equals(message["type"]))
                 {
                     return message;
                 }
 
-                if (message != null &&
-                    !Protocols.Apollo.Messages.KeepAlive.Equals(message["type"]))
+                if (message != null && !message["type"].Equals("ka"))
                 {
                     throw new InvalidOperationException(
                         $"Unexpected message type: {message["type"]}");
@@ -80,22 +77,15 @@ public class SubscriptionTestBase : ServerTestBase
         }
     }
 
-    protected async Task<WebSocket> ConnectToServerAsync(WebSocketClient client)
+    protected async Task<WebSocket> ConnectToServerAsync(
+        WebSocketClient client,
+        CancellationToken cancellationToken)
     {
-        WebSocket webSocket =
-            await client.ConnectAsync(SubscriptionUri, CancellationToken.None);
-
-        await webSocket.SendConnectionInitializeAsync();
-
-        IReadOnlyDictionary<string, object> message =
-            await webSocket.ReceiveServerMessageAsync();
+        var webSocket = await client.ConnectAsync(SubscriptionUri, cancellationToken);
+        await webSocket.SendConnectionInitializeAsync(cancellationToken);
+        var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
         Assert.NotNull(message);
-        Assert.Equal(Protocols.Apollo.Messages.ConnectionAccept, message["type"]);
-
-        message = await webSocket.ReceiveServerMessageAsync();
-        Assert.NotNull(message);
-        Assert.Equal(Protocols.Apollo.Messages.KeepAlive, message["type"]);
-
+        Assert.Equal("connection_ack", message["type"]);
         return webSocket;
     }
 
@@ -106,19 +96,23 @@ public class SubscriptionTestBase : ServerTestBase
         return client;
     }
 
-    protected static async Task TryTest(Func<Task> action)
+    protected static async Task TryTest(Func<CancellationToken, Task> action)
     {
         // we will try four times ....
+        using var cts = new CancellationTokenSource(Debugger.IsAttached ?  600_000_000 : 60_000);
+        CancellationToken ct = cts.Token;
         var count = 0;
         var wait = 50;
 
         while (true)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (count < 3)
             {
                 try
                 {
-                    await action().ConfigureAwait(false);
+                    await action(ct).ConfigureAwait(false);
                     break;
                 }
                 catch
@@ -128,12 +122,12 @@ public class SubscriptionTestBase : ServerTestBase
             }
             else
             {
-                await action().ConfigureAwait(false);
+                await action(ct).ConfigureAwait(false);
                 break;
             }
 
-            await Task.Delay(wait).ConfigureAwait(false);
-            wait = wait * 2;
+            await Task.Delay(wait, ct).ConfigureAwait(false);
+            wait *= 2;
             count++;
         }
     }

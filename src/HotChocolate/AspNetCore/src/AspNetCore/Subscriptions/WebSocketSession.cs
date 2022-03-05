@@ -1,42 +1,67 @@
 using System.IO.Pipelines;
-using HotChocolate.AspNetCore.Properties;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using static System.Threading.CancellationToken;
+using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
+using static HotChocolate.AspNetCore.Subscriptions.ConnectionCloseReason;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal sealed class WebSocketSession : ISocketSession
 {
-    private readonly Pipe _pipe = new();
-    private readonly ISocketConnection _connection;
-    private readonly bool _disposeConnection;
-    private readonly ISocketSessionInterceptor _sessionInterceptor;
     private bool _disposed;
 
     private WebSocketSession(
-        ISocketSessionInterceptor sessionInterceptor,
         ISocketConnection connection,
-        bool disposeConnection)
+        IProtocolHandler protocol,
+        ISocketSessionInterceptor interceptor,
+        IRequestExecutor requestExecutor)
     {
-        _connection = connection;
-        _disposeConnection = disposeConnection;
-        _sessionInterceptor = sessionInterceptor;
+        Connection = connection;
+        Protocol = protocol;
+        Operations = new OperationManager(this, interceptor, requestExecutor);
     }
 
-    public async Task HandleAsync(CancellationToken cancellationToken)
-    {
-        IProtocolHandler? protocolHandler = await _connection.TryAcceptConnection();
 
-        if (protocolHandler is not null)
+    public ISocketConnection Connection { get; }
+
+    public IProtocolHandler Protocol { get; }
+
+    public IOperationManager Operations { get; }
+
+    public void Dispose()
+    {
+        if (!_disposed)
         {
+            Operations.Dispose();
+            Connection.Dispose();
+            _disposed = true;
+        }
+    }
+
+    public static async Task AcceptAsync(
+        HttpContext context,
+        IRequestExecutor executor,
+        ISocketSessionInterceptor interceptor)
+    {
+        CancellationToken cancellationToken = context.RequestAborted;
+        var connection = new WebSocketConnection(context);
+        IProtocolHandler? protocol = await connection.TryAcceptConnection();
+
+        if (protocol is not null)
+        {
+            var session = new WebSocketSession(connection, protocol, interceptor, executor);
+
             try
             {
-                var pingPong = new PingPongJob(_connection);
-                var processor = new MessageProcessor(_connection, _pipe.Reader);
-                var receiver = new MessageReceiver(_connection, _pipe.Writer);
+                var pipe = new Pipe();
+                var pingPong = new PingPongJob(session);
+                var processor = new MessageProcessor(session, pipe.Reader);
+                var receiver = new MessageReceiver(connection, pipe.Writer);
 
-                pingPong.Begin(protocolHandler, cancellationToken);
-                processor.Begin(protocolHandler, cancellationToken);
+                pingPong.Begin(cancellationToken);
+                processor.Begin(cancellationToken);
                 await receiver.ReceiveAsync(cancellationToken);
             }
             catch (OperationCanceledException)
@@ -49,11 +74,11 @@ internal sealed class WebSocketSession : ISocketSession
             {
                 try
                 {
-                    await _connection.CloseAsync(
-                        AspNetCoreResources.WebSocketSession_SessionEnded,
-                        ConnectionCloseReason.NormalClosure,
+                    await interceptor.OnCloseAsync(session, cancellationToken);
+                    await connection.CloseAsync(
+                        WebSocketSession_SessionEnded,
+                        NormalClosure,
                         CancellationToken.None);
-                    await _sessionInterceptor.OnCloseAsync(_connection, cancellationToken);
                 }
                 catch
                 {
@@ -62,37 +87,5 @@ internal sealed class WebSocketSession : ISocketSession
                 }
             }
         }
-    }
-
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            if (_disposeConnection)
-            {
-                _connection.Dispose();
-            }
-
-            _disposed = true;
-        }
-    }
-
-    public static WebSocketSession New(
-        HttpContext httpContext,
-        ISocketSessionInterceptor socketSessionInterceptor)
-    {
-        if (httpContext is null)
-        {
-            throw new ArgumentNullException(nameof(httpContext));
-        }
-
-        if (socketSessionInterceptor is null)
-        {
-            throw new ArgumentNullException(nameof(socketSessionInterceptor));
-        }
-
-        var connection = WebSocketConnection.New(httpContext);
-
-        return new WebSocketSession(socketSessionInterceptor, connection, true);
     }
 }
