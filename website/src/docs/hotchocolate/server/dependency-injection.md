@@ -40,8 +40,8 @@ While you can also use this attribute to inject services into Hot Chocolate reso
 ```csharp
 public class Query
 {
-    public User GetUser(string userId, [Service] UserService userService)
-        => userService.GetUser(userId);
+    public Foo GetFoo(string bar, [Service] FooService fooService)
+        => // Omitted code for brevity
 }
 ```
 
@@ -58,12 +58,12 @@ If you are working with the `IResolverContext`, for example in the `Resolve()` c
 
 ```csharp
 descriptor
-    .Field("users")
+    .Field("foo")
     .Resolve(context =>
     {
-        var userService = context.Service<UserService>();
+        FooService service = context.Service<FooService>();
 
-        return userService.GetUsers();
+        // Omitted code for brevity
     });
 ```
 
@@ -91,17 +91,17 @@ If you want to omit the attribute, you can simply call `RegisterService<T>` on t
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddTransient<UserService>();
+builder.Services.AddTransient<FooService>();
 
 builder.Services
     .AddGraphQLServer()
-    .RegisterService<UserService>()
+    .RegisterService<FooService>()
     .AddQueryType<Query>();
 
 public class Query
 {
-    public List<User> GetUsers(UserService userService)
-        => userService.GetUsers();
+    public Foo GetFoo(FooService FooService)
+        => // Omitted code for brevity
 }
 ```
 
@@ -112,7 +112,7 @@ You can also specify a [ServiceKind](#servicekind) as argument to the `RegisterS
 ```csharp
 services
     .AddGraphQLServer()
-    .RegisterService<UserService>(ServiceKind.Synchronized);
+    .RegisterService<FooService>(ServiceKind.Synchronized);
 ```
 
 If you are registering an interface, you need to call `RegisterService` with the interface as the generic type parameter.
@@ -120,17 +120,17 @@ If you are registering an interface, you need to call `RegisterService` with the
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IFooService, FooService>();
 
 builder.Services
     .AddGraphQLServer()
-    .RegisterService<IUserService>()
+    .RegisterService<IFooService>()
     .AddQueryType<Query>();
 
 public class Query
 {
-    public List<User> GetUsers(IUserService userService)
-        => userService.GetUsers();
+    public Foo GetFoo(IFooService FooService)
+        => // Omitted code for brevity
 }
 ```
 
@@ -158,8 +158,8 @@ descriptor.Field("foo")
     .UseServiceScope()
     .Resolve(context =>
     {
-        var service1 = context.Service<Service1>();
-        var service2 = context.Service<Service2>();
+        Service1 service1 = context.Service<Service1>();
+        Service2 service2 = context.Service<Service2>();
 
         // Omitted code for brevity
     });
