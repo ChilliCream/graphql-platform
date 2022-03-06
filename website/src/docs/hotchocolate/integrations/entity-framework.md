@@ -4,19 +4,99 @@ title: Entity Framework Core
 
 import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
-Entity Framework Core is a powerful object-relational mapping framework that has become a staple when working with SQL-based Databases in ASP.NET Core applications.
+[Entity Framework Core](https://docs.microsoft.com/ef/core/) is a powerful object-relational mapping framework that has become a staple when working with SQL-based Databases in .NET Core applications.
 
-Besides its many benefits there is one shortcoming that makes Entity Framework hard to use with a standard Hot Chocolate GraphQL server:
+When working with Entity Framework Core's [DbContext](https://docs.microsoft.com/dotnet/api/system.data.entity.dbcontext), it is most commonly registered as a scoped service.
 
-[**Entity Framework Core doesn't support multiple parallel operations being run on the same context instance.**](https://docs.microsoft.com/ef/core/miscellaneous/async)
+```csharp
+var builder = WebApplication.CreateBuilder(args);
 
-When using `services.AddDbContext<T>` to register a `DbContext` as a scoped service, one instance of this `DbContext` is created and used for the entirety of a GraphQL request. This is an issue, since Hot Chocolate executes resolvers in parallel for performance reasons. If two resolvers are executed in parallel and both try to perform an operation using the `DbContext`, we might see one of the following exceptions being thrown:
+builder.Services.AddDbContext<ApplicationDbContext>(
+    options => options.UseSqlServer("YOUR_CONNECTION_STRING"));
+```
+
+If you have read our [guidance on dependency injection](/docs/hotchocolate/server/dependency-injection#resolver-injection) you might be inclined to simply inject your `DbContext` using the `HotChocolate.ServiceAttribute`.
+
+```csharp
+public Foo GetFoo([Service] ApplicationDbContext dbContext)
+    => // Omitted code for brevity
+```
+
+While this is usually the correct way to inject services and it may appear to work initially, it has a fatal flaw: Entity Framework Core doesn't support [multiple parallel operations being run on the same context instance](https://docs.microsoft.com/ef/core/miscellaneous/async).
+
+Lets take a look at an example to understand why this can lead to issues. Both the `foo` and `bar` field in the below query are backed by a resolver that injects a scoped `DbContext` instance and performs a database query using it.
+
+```graphql
+{
+  foo
+  bar
+}
+```
+
+Since Hot Chocolate parallelizes the execution of query fields, and both of the resolvers will receive the same scoped `DbContext` instance, two database queries are likely to be ran through this scoped `DbContext` instance in parallel. This will then lead to one of the following exceptions being thrown:
 
 - `A second operation started on this context before a previous operation completed.`
 - `Cannot access a disposed object.`
 
-Fortunately there are a couple of solutions that can be used to avoid the described issue. We will take a closer look at them in the below sections.
+# Resolver injection of a DbContext
 
+In order to ensure that resolvers do not access the same scoped `DbContext` instance in parallel, you can inject it using the `ServiceKind.Synchronized`.
+
+```csharp
+public Foo GetFoo(
+    [Service(ServiceKind.Synchronized)] ApplicationDbContext dbContext)
+    => // Omitted code for brevity
+```
+
+[Learn more about `ServiceKind.Synchronized`](/docs/hotchocolate/server/dependency-injection#servicekindsynchronized)
+
+Since this is a lot of code to write, just to inject a `DbContext`, you can use [`RegisterDbContext<T>`](#registerdbcontext) to simplify the injection.
+
+# RegisterDbContext
+
+If you want to omit the attribute, you can simply call `RegisterDbContext<T>` on the `IRequestExecutorBuilder`. The Hot Chocolate Resolver Compiler will then take care of correctly injecting your scoped `DbContext` instance and also ensuring that the resolvers using it are never run in parallel.
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<ApplicationDbContext>(
+    options => options.UseSqlServer("YOUR_CONNECTION_STRING"));
+
+builder.Services
+    .AddGraphQLServer()
+    .RegisterDbContext<ApplicationDbContext>()
+    .AddQueryType<Query>();
+
+public class Query
+{
+    public Foo GetFoo(ApplicationDbContext dbContext)
+        => // Omitted code for brevity
+}
+```
+
+> ⚠️ Note: You still have to register your `DbContext` in the actual dependency injection container, by calling `services.AddDbContext<T>`. `RegisterDbContext<T>` on its own is not enough.
+
+You can also specify a [DbContextKind](#dbcontextkind) as argument to the `RegisterDbContext<T>` method, to change how the `DbContext` should be injected.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .RegisterDbContext<ApplicationDbContext>(DbContextKind.Pooled)
+```
+
+# DbContextKind
+
+For the most part the `DbContextKind` is really similar to the [ServiceKind](/docs/hotchocolate/server/dependency-injection#servicekind), with the exception of the [DbContextKind.Pooled](#dbcontextkindpooled).
+
+## DbContextKind.Synchronized
+
+This injection mechanism ensures that resolvers injecting the specified `DbContext` are never run in parallel. It is the default for the [`RegisterDbContext<T>`](#registerdbcontext) method and behaves in the same fashion as [ServiceKind.Synchronized](/docs/hotchocolate/server/dependency-injection#servicekindsynchronized) does for regular services.
+
+## DbContextKind.Pooled
+
+## DbContextKind.Resolver
+
+<!--
 # DbContextFactory
 
 The recommended approach to solving the `DbContext` concurreny issues is creating a `DbContext` instance on a per-operation basis using an `IDbContextFactory`.
@@ -288,4 +368,4 @@ public class Startup
 }
 ```
 
-> ⚠️ Note: This incurs the biggest performance hit as it causes all non-pure resolvers to be executed serially.
+> ⚠️ Note: This incurs the biggest performance hit as it causes all non-pure resolvers to be executed serially. -->

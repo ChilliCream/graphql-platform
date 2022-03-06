@@ -12,7 +12,9 @@ If you are unfamiliar with the term "dependency injection", we recommend the fol
 Dependency injection with Hot Chocolate works almost the same as with a regular ASP.NET Core application. For instance, nothing changes about how you add services to the dependency injection container.
 
 ```csharp
-services
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
     .AddSingleton<MySingletonService>()
     .AddScoped<MyScopedService>()
     .AddTransient<MyTransientService>();
@@ -50,7 +52,7 @@ public Foo GetFoo([Service(ServiceKind.Synchronized)] Service service)
     => // Omitted code for brevity
 ```
 
-If you want to avoid cluttering your resolvers with too many attributes, you can also [register your services as well-known services](<(#registerservice)>), allowing you to omit the `ServiceAttribute`.
+If you want to avoid cluttering your resolvers with too many attributes, you can also [register your services as well-known services](#registerservice), allowing you to omit the `ServiceAttribute`.
 
 If you are working with the `IResolverContext`, for example in the `Resolve()` callback, you can use the `Service<T>` method to access your dependencies.
 
@@ -89,7 +91,7 @@ If you want to omit the attribute, you can simply call `RegisterService<T>` on t
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddTransient<UserService>();
+builder.Services.AddTransient<UserService>();
 
 builder.Services
     .AddGraphQLServer()
@@ -105,7 +107,7 @@ public class Query
 
 > ⚠️ Note: You still have to register the service with a lifetime in the actual dependency injection container, for example by calling `services.AddTransient<T>`. `RegisterService<T>` on its own is not enough.
 
-You can also specify a [`ServiceKind`](#servicekind) as argument to the `RegisterService<T>` method.
+You can also specify a [ServiceKind](#servicekind) as argument to the `RegisterService<T>` method.
 
 ```csharp
 services
@@ -118,7 +120,7 @@ If you are registering an interface, you need to call `RegisterService` with the
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IUserService, UserService>();
 
 builder.Services
     .AddGraphQLServer()
@@ -208,7 +210,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var pool = new ObjectPool<FooService>();
 
-builder.AddSingleton<ObjectPool<FooService>>(pool);
+builder.Services.AddSingleton<ObjectPool<FooService>>(pool);
 
 builder.Services
     .AddGraphQLServer()
