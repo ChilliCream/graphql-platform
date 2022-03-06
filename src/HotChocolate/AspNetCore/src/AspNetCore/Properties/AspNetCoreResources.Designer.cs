@@ -200,5 +200,41 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("OperationManager_Register_SessionIdNullOrEmpty", resourceCulture);
             }
         }
+        
+        internal static string Apollo_OnReceive_MessageMustBeJson {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_MessageMustBeJson", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_TypePropMissing {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_TypePropMissing", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_ToManyInitializations {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_ToManyInitializations", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_InvalidSubscribeMessage {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_InvalidSubscribeMessage", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_SubscriptionIdNotUnique {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_SubscriptionIdNotUnique", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_InvalidMessageType {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_InvalidMessageType", resourceCulture);
+            }
+        }
     }
 }
