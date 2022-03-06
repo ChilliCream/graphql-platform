@@ -58,7 +58,10 @@ public class SubscriptionTestBase : ServerTestBase
         return null;
     }
 
-    protected async Task WaitForConditions(Func<bool> condition, TimeSpan timeout)
+    protected async Task WaitForConditions(
+        Func<bool> condition,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
     {
         var timer = Stopwatch.StartNew();
 
@@ -66,7 +69,7 @@ public class SubscriptionTestBase : ServerTestBase
         {
             while (timer.Elapsed <= timeout)
             {
-                await Task.Delay(50);
+                await Task.Delay(50, cancellationToken);
 
                 if (condition())
                 {

@@ -2,7 +2,6 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
@@ -18,16 +17,18 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 public class SubscriptionManagerTests
 {
     [Fact]
-    public void Register_SessionId_Is_Null()
+    public async Task Register_SessionId_Is_Null()
     {
         // arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
         var session = new Mock<ISocketSession>();
         var interceptor = new Mock<ISocketSessionInterceptor>();
-        var executor = new Mock<IRequestExecutor>();
-        var subscriptions = new OperationManager(
-            session.Object,
-            interceptor.Object,
-            executor.Object);
+        var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
         void Action() => subscriptions.Register(null!, new GraphQLRequest(null, queryId: "123"));
@@ -39,16 +40,18 @@ public class SubscriptionManagerTests
     }
 
     [Fact]
-    public void Register_SessionId_Is_Empty()
+    public async Task Register_SessionId_Is_Empty()
     {
         // arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
         var session = new Mock<ISocketSession>();
         var interceptor = new Mock<ISocketSessionInterceptor>();
-        var executor = new Mock<IRequestExecutor>();
-        var subscriptions = new OperationManager(
-            session.Object,
-            interceptor.Object,
-            executor.Object);
+        var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
         void Action() => subscriptions.Register("", new GraphQLRequest(null, queryId: "123"));
@@ -60,16 +63,18 @@ public class SubscriptionManagerTests
     }
 
     [Fact]
-    public void Register_Request_Is_Null()
+    public async Task Register_Request_Is_Null()
     {
         // arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
         var session = new Mock<ISocketSession>();
         var interceptor = new Mock<ISocketSessionInterceptor>();
-        var executor = new Mock<IRequestExecutor>();
-        var subscriptions = new OperationManager(
-            session.Object,
-            interceptor.Object,
-            executor.Object);
+        var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
         void Action() => subscriptions.Register("abc", null!);
@@ -107,6 +112,39 @@ public class SubscriptionManagerTests
         // assert
         Assert.True(success);
         Assert.Collection(registered, t => Assert.Equal("abc", t.Id));
+    }
+
+    [Fact]
+    public async Task Unregister_Request_With_Non_Unique_Id()
+    {
+        // arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
+        var socketSession = new TestSocketSession();
+
+        using var subscriptions = new OperationManager(
+            socketSession,
+            new DefaultSocketSessionInterceptor(),
+            executor);
+
+        var query = Utf8GraphQLParser.Parse("{ hero(id: 1) { name } }");
+        var request = new GraphQLRequest(query);
+        var success1 = subscriptions.Register("abc", request);
+        var registered1 = subscriptions.ToArray();
+
+        // act
+        var success2 = subscriptions.Register("abc", request);
+        var registered2 = subscriptions.ToArray();
+
+        // assert
+        Assert.True(success1);
+        Assert.Collection(registered1, t => Assert.Equal("abc", t.Id));
+        Assert.False(success2);
+        Assert.Collection(registered2, t => Assert.Equal("abc", t.Id));
     }
 
     [Fact]

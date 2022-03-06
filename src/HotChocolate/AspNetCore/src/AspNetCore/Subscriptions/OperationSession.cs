@@ -44,6 +44,7 @@ internal sealed class OperationSession : IOperationSession
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _ct);
         CancellationToken ct = cts.Token;
+        bool completeTry = false;
 
         try
         {
@@ -76,6 +77,12 @@ internal sealed class OperationSession : IOperationSession
                     }
                     break;
             }
+
+            // the operation is completed and we will try to send a complete message.
+            // we mark completeTry true so that in case of an error we do not try to send this
+            // message again.
+            completeTry = true;
+            await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -83,11 +90,29 @@ internal sealed class OperationSession : IOperationSession
         }
         catch (Exception ex)
         {
-            await TrySendErrorMessageAsync(ex, ct);
+            // if the error happened while the operation was not yet complete we will try
+            // to send an error message and complete the subscription.
+            if (!completeTry)
+            {
+                await TrySendErrorMessageAsync(ex, ct);
+            }
         }
         finally
         {
-            await TrySendCompleteMessageAsync(ct);
+            try
+            {
+                // we use the original cancellation token which represents the request cancellation to
+                // invoke OnCompleteAsync this allows for an easy extension point to get rid of
+                // any resources that might be bound to the subscription.
+                await _interceptor.OnCompleteAsync(_session, Id, cancellationToken);
+            }
+            catch
+            {
+                // we will just ignore any user exceptions here so we can graciously close
+                // the subscription out.
+            }
+
+            // signal that the subscription is completed.
             Complete();
         }
     }
@@ -150,22 +175,6 @@ internal sealed class OperationSession : IOperationSession
                         : new[] { error };
 
                 await _session.Protocol.SendErrorMessageAsync(_session, Id, errors, ct);
-            }
-        }
-        catch
-        {
-            // if we cannot send the complete message we just go on. This mostly will happen
-            // if the client is already disconnected or the operation was cancelled.
-        }
-    }
-
-    private async Task TrySendCompleteMessageAsync(CancellationToken ct)
-    {
-        try
-        {
-            if (!ct.IsCancellationRequested)
-            {
-                await _interceptor.OnCompleteAsync(_session, Id, ct);
                 await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
             }
         }
