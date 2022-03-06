@@ -17,9 +17,9 @@ steps:
   #   workingDirectory: $(projectDirectory)
 
   # Can be removed as of Node 16.10
-  - script: "npm i -g corepack"
-    displayName: "Install CorePack"
-    workingDirectory: "website"
+  # - script: "npm i -g corepack"
+  #   displayName: "Install CorePack"
+  #   workingDirectory: "website"
 
   - script: "yarn --frozen-lockfile --network-timeout 100000"
     displayName: "Install Packages"
