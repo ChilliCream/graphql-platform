@@ -1,6 +1,13 @@
+#if NET6_0_OR_GREATER
 using System.Text.Json;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Utilities;
+#else
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
+using HotChocolate.Utilities;
+#endif
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 
@@ -9,8 +16,18 @@ internal static class MessageUtilities
     public static JsonWriterOptions WriterOptions { get; } =
         new() { Indented = false };
 
+#if NET6_0_OR_GREATER
     public static JsonSerializerOptions SerializerOptions { get; } =
         new(JsonSerializerDefaults.Web);
+#else
+    public static JsonSerializerOptions SerializerOptions { get; } =
+        new()
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
+        };
+#endif
 
     public static void SerializeMessage(
         ArrayWriter arrayWriter,
