@@ -29,7 +29,6 @@ public class OffsetTimeType : StringToStructBaseType<OffsetTime>
     {
         _allowedPatterns = allowedPatterns;
         _serializationPattern = _allowedPatterns[0];
-
         Description = NodaTimeResources.OffsetTimeType_Description;
     }
 

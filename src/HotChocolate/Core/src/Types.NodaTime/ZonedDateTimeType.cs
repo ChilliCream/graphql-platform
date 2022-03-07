@@ -13,15 +13,16 @@ namespace HotChocolate.Types.NodaTime;
 public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
 {
     private static readonly string formatString = "uuuu'-'MM'-'dd'T'HH':'mm':'ss' 'z' 'o<g>";
+    private static readonly ZonedDateTimePattern _default =
+        ZonedDateTimePattern.CreateWithInvariantCulture(formatString, DateTimeZoneProviders.Tzdb);
+
     private readonly IPattern<ZonedDateTime>[] _allowedPatterns;
     private readonly IPattern<ZonedDateTime> _serializationPattern;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ZonedDateTimeType"/>.
     /// </summary>
-    public ZonedDateTimeType()
-        : this(ZonedDateTimePattern
-            .CreateWithInvariantCulture(formatString, DateTimeZoneProviders.Tzdb))
+    public ZonedDateTimeType() : this(_default)
     {
     }
 

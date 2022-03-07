@@ -27,7 +27,8 @@ public class OffsetDateTimeType : StringToStructBaseType<OffsetDateTime>
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetDateTimeType"/>.
     /// </summary>
-    public OffsetDateTimeType(params IPattern<OffsetDateTime>[] allowedPatterns) : base("OffsetDateTime")
+    public OffsetDateTimeType(params IPattern<OffsetDateTime>[] allowedPatterns)
+        : base("OffsetDateTime")
     {
         _allowedPatterns = allowedPatterns;
         _serializationPattern = _allowedPatterns[0];

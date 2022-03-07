@@ -40,6 +40,7 @@ internal static class PatternExtensions
         output = null;
         return false;
     }
+
     public static bool TryParse<NodaTimeType>(
         this IPattern<NodaTimeType>[] patterns,
         string text,

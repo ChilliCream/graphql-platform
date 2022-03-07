@@ -1,42 +1,20 @@
-using System;
 using System.Linq;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
-using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
-    public class OffsetDateTypeIntegrationTests
+    public class OffsetDateTimeTypeRfc3339IntegrationTests
     {
-        public static class Schema
-        {
-            public class Query
-            {
-                public OffsetDate Hours =>
-                    new OffsetDate(
-                        LocalDate.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
-                        Offset.FromHours(2)).WithCalendar(CalendarSystem.Gregorian);
-
-                public OffsetDate HoursAndMinutes =>
-                    new OffsetDate(
-                        LocalDate.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
-                        Offset.FromHoursAndMinutes(2, 35)).WithCalendar(CalendarSystem.Gregorian);
-            }
-
-            public class Mutation
-            {
-                public OffsetDate Test(OffsetDate arg) => arg;
-            }
-        }
-
         private readonly IRequestExecutor testExecutor;
-        public OffsetDateTypeIntegrationTests()
+        public OffsetDateTimeTypeRfc3339IntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
-                .AddQueryType<Schema.Query>()
-                .AddMutationType<Schema.Mutation>()
-                .AddNodaTime()
+                .AddQueryType<OffsetDateTimeTypeIntegrationTests.Schema.Query>()
+                .AddMutationType<OffsetDateTimeTypeIntegrationTests.Schema.Mutation>()
+                .AddNodaTime(typeof(OffsetDateTimeType))
+                .AddType(new OffsetDateTimeType(OffsetDateTimePattern.Rfc3339))
                 .Create()
                 .MakeExecutable();
         }
@@ -46,7 +24,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor.Execute("query { test: hours }");
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-12-31+02", queryResult!.Data!["test"]);
+            Assert.Equal("2020-12-31T18:30:13.000001234+02:00", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -54,7 +32,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor.Execute("query { test: hoursAndMinutes }");
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-12-31+02:35", queryResult!.Data!["test"]);
+            Assert.Equal("2020-12-31T18:30:13.000001234+02:30", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -62,11 +40,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-12-31+02")
+                    .SetQuery("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
+                    .SetVariableValue("arg", "2020-12-31T18:30:13.000001234+02:00")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-12-31+02", queryResult!.Data!["test"]);
+            Assert.Equal("2020-12-31T18:40:13.000001234+02:00", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -74,11 +52,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-12-31+02:35")
+                    .SetQuery("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
+                    .SetVariableValue("arg", "2020-12-31T18:30:13+02:35")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-12-31+02:35", queryResult!.Data!["test"]);
+            Assert.Equal("2020-12-31T18:40:13+02:35", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -86,8 +64,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-12-31")
+                    .SetQuery("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
+                    .SetVariableValue("arg", "2020-12-31T18:30:13")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
@@ -99,10 +77,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31+02\") }")
+                    .SetQuery("mutation { test(arg: \"2020-12-31T18:30:13.000001234+02:00\") }")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-12-31+02", queryResult!.Data!["test"]);
+            Assert.Equal("2020-12-31T18:40:13.000001234+02:00", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -110,10 +88,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31+02:35\") }")
+                    .SetQuery("mutation { test(arg: \"2020-12-31T18:30:13+02:35\") }")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-12-31+02:35", queryResult!.Data!["test"]);
+            Assert.Equal("2020-12-31T18:40:13+02:35", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -121,14 +99,14 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31\") }")
+                    .SetQuery("mutation { test(arg: \"2020-12-31T18:30:13\") }")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
             Assert.Equal(1, queryResult!.Errors!.Count);
             Assert.Null(queryResult.Errors[0].Code);
             Assert.Equal(
-                "Unable to deserialize string to OffsetDate",
+                "Unable to deserialize string to OffsetDateTime",
                 queryResult.Errors[0].Message);
         }
     }
