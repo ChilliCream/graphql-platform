@@ -38,10 +38,7 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
                 using WebSocket webSocket = await ConnectToServerAsync(client, ct);
 
                 // assert
-                await WaitForConditions(
-                    () => interceptor.OnConnectInvoked,
-                    TimeSpan.FromMilliseconds(500),
-                    ct);
+                await WaitForConditions(() => interceptor.OnConnectInvoked, ct);
                 Assert.True(interceptor.OnConnectInvoked);
             });
 
@@ -69,10 +66,7 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
 
                 // assert
                 await webSocket.SendSubscriptionStopAsync(subscriptionId, ct);
-                await WaitForConditions(
-                    () => interceptor.OnRequestInvoked,
-                    TimeSpan.FromMilliseconds(500),
-                    ct);
+                await WaitForConditions(() => interceptor.OnRequestInvoked, ct);
                 Assert.True(interceptor.OnRequestInvoked);
             });
 
@@ -113,10 +107,7 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
 
                 // assert
                 await webSocket.SendSubscriptionStopAsync(subscriptionId, ct);
-                await WaitForConditions(
-                    () => interceptor.OnResultInvoked,
-                    TimeSpan.FromMilliseconds(500),
-                    ct);
+                await WaitForConditions(() => interceptor.OnResultInvoked, ct);
                 Assert.True(interceptor.OnResultInvoked);
                 Assert.Equal(1, interceptor.OnResultCount);
             });
@@ -172,10 +163,7 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
 
                 // assert
                 await webSocket.SendSubscriptionStopAsync(subscriptionId, ct);
-                await WaitForConditions(
-                    () => interceptor.OnResultInvoked,
-                    TimeSpan.FromMilliseconds(500),
-                    ct);
+                await WaitForConditions(() => interceptor.OnResultInvoked, ct);
                 Assert.True(interceptor.OnResultInvoked);
                 Assert.Equal(2, interceptor.OnResultCount);
             });
@@ -205,10 +193,7 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
                 await webSocket.SendSubscriptionStopAsync(subscriptionId, ct);
 
                 // assert
-                await WaitForConditions(
-                    () => interceptor.OnCompleteInvoked,
-                    TimeSpan.FromMilliseconds(500),
-                    ct);
+                await WaitForConditions(() => interceptor.OnCompleteInvoked, ct);
                 Assert.True(interceptor.OnCompleteInvoked);
             });
 
@@ -238,10 +223,7 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
                 await webSocket.SendTerminateConnectionAsync(ct);
 
                 // assert
-                await WaitForConditions(
-                    () => interceptor.OnCloseInvoked,
-                    TimeSpan.FromMilliseconds(500),
-                    ct);
+                await WaitForConditions(() => interceptor.OnCloseInvoked, ct);
                 Assert.True(interceptor.OnCloseInvoked);
             });
 
@@ -267,10 +249,7 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
                 await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
 
                 // assert
-                await WaitForConditions(
-                    () => interceptor.OnCompleteInvoked,
-                    TimeSpan.FromMilliseconds(500),
-                    ct);
+                await WaitForConditions(() => interceptor.OnCompleteInvoked, ct);
                 Assert.True(interceptor.OnCompleteInvoked, "Completed");
             });
 
@@ -309,10 +288,7 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
                 BeginClose();
 
                 // assert
-                await WaitForConditions(
-                    () => interceptor.OnCloseInvoked,
-                    TimeSpan.FromSeconds(2),
-                    ct);
+                await WaitForConditions(() => interceptor.OnCloseInvoked, ct);
                 cts.Cancel();
 
                 Assert.True(interceptor.OnCompleteInvoked, "OnCompleteInvoked");

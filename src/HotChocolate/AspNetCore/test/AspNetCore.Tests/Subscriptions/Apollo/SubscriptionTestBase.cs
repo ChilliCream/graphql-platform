@@ -65,6 +65,11 @@ public class SubscriptionTestBase : ServerTestBase
         return null;
     }
 
+    protected Task WaitForConditions(
+        Func<bool> condition,
+        CancellationToken cancellationToken)
+        => WaitForConditions(condition, TimeSpan.FromSeconds(2), cancellationToken);
+
     protected async Task WaitForConditions(
         Func<bool> condition,
         TimeSpan timeout,
