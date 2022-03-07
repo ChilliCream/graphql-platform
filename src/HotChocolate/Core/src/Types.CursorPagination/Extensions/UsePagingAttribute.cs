@@ -102,7 +102,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
     /// </summary>
     public bool RequirePagingBoundaries
     {
-        get => _requirePagingBoundaries ?? PagingDefaults.AllowBackwardPagination;
+        get => _requirePagingBoundaries ?? PagingDefaults.RequirePagingBoundaries;
         set => _requirePagingBoundaries = value;
     }
 
@@ -112,7 +112,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
     /// </summary>
     public bool InferConnectionNameFromField
     {
-        get => _inferConnectionNameFromField ?? PagingDefaults.AllowBackwardPagination;
+        get => _inferConnectionNameFromField ?? PagingDefaults.InferConnectionNameFromField;
         set => _inferConnectionNameFromField = value;
     }
 
