@@ -25,7 +25,9 @@ internal static class MessageUtilities
         {
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            #if NET6_0_OR_GREATER
             NumberHandling = JsonNumberHandling.AllowReadingFromString
+            #endif
         };
 #endif
 
