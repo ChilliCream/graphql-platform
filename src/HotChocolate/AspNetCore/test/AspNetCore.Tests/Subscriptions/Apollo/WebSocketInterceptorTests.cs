@@ -311,7 +311,7 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
                 // assert
                 await WaitForConditions(
                     () => interceptor.OnCloseInvoked,
-                    TimeSpan.FromMilliseconds(500),
+                    TimeSpan.FromSeconds(2),
                     ct);
                 cts.Cancel();
 

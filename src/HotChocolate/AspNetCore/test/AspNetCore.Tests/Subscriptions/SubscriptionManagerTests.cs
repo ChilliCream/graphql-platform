@@ -102,7 +102,8 @@ public class SubscriptionManagerTests
             new DefaultSocketSessionInterceptor(),
             executor);
 
-        var query = Utf8GraphQLParser.Parse("{ hero(id: 1) { name } }");
+        var query = Utf8GraphQLParser.Parse(
+            "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
 
         // act

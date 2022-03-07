@@ -260,6 +260,31 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
+    public Task Send_Start_Id_Not_Unique()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            WebSocket webSocket = await ConnectToServerAsync(client, ct);
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                "subscription { onReview(episode: NEW_HOPE) { stars } }");
+            var request = new GraphQLRequest(document);
+            const string subscriptionId = "abc";
+
+            await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+
+            // act
+            await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+
+            // assert
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue);
+            Assert.Equal(WebSocketCloseStatus.InternalServerError, webSocket.CloseStatus!.Value);
+        });
+
+    [Fact]
     public Task Send_Subscribe_No_Id()
         => TryTest(async ct =>
         {
