@@ -22,7 +22,7 @@ public class WebSocketConnection : IWebSocketConnection
     public WebSocketConnection(Func<CancellationToken, ValueTask<ISession>> sessionFactory)
     {
         _sessionFactory = sessionFactory ??
-                          throw new ArgumentNullException(nameof(sessionFactory));
+            throw new ArgumentNullException(nameof(sessionFactory));
     }
 
     /// <inheritdoc />
@@ -53,13 +53,14 @@ public class WebSocketConnection : IWebSocketConnection
             CancellationToken cancellationToken = default)
         {
             await using ISession session =
-                await _sessionFactory(cancellationToken);
+                await _sessionFactory(cancellationToken).ConfigureAwait(false);
 
             await using ISocketOperation operation =
-                await session.StartOperationAsync(_request, cancellationToken);
+                await session.StartOperationAsync(_request, cancellationToken)
+                    .ConfigureAwait(false);
 
-            await foreach (OperationMessage message in 
-                operation.ReadAsync().WithCancellation(cancellationToken))
+            await foreach (OperationMessage message in
+                operation.ReadAsync().WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 switch (message.Type)
                 {
