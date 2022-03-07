@@ -8,6 +8,7 @@ namespace HotChocolate.Types.NodaTime.Tests
     public class OffsetDateTypeFullRoundtripIntegrationTests
     {
         private readonly IRequestExecutor testExecutor;
+
         public OffsetDateTypeFullRoundtripIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()

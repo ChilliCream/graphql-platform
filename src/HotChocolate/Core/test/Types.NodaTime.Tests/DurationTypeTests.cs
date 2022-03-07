@@ -29,6 +29,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         private readonly IRequestExecutor testExecutor;
+
         public DurationTypeIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()

@@ -8,6 +8,7 @@ namespace HotChocolate.Types.NodaTime.Tests
     public class LocalDateTimeTypeGeneralIsoIntegrationTests
     {
         private readonly IRequestExecutor testExecutor;
+
         public LocalDateTimeTypeGeneralIsoIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()

@@ -8,6 +8,7 @@ namespace HotChocolate.Types.NodaTime.Tests
     public class PeriodTypeNormalizingIsoIntegrationTests
     {
         private readonly IRequestExecutor testExecutor;
+
         public PeriodTypeNormalizingIsoIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()

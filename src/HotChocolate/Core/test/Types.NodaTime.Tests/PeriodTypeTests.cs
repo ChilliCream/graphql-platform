@@ -24,6 +24,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         private readonly IRequestExecutor testExecutor;
+
         public PeriodTypeIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()

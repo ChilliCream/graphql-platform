@@ -8,6 +8,7 @@ namespace HotChocolate.Types.NodaTime.Tests
     public class LocalDateTypeFullRoundtripIntegrationTests
     {
         private readonly IRequestExecutor testExecutor;
+
         public LocalDateTypeFullRoundtripIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()

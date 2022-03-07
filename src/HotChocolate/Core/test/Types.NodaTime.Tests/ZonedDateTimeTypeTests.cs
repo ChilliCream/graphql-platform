@@ -36,6 +36,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         private readonly IRequestExecutor testExecutor;
+
         public ZonedDateTimeTypeIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()

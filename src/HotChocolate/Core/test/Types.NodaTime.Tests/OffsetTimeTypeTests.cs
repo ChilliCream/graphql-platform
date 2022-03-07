@@ -34,6 +34,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         private readonly IRequestExecutor testExecutor;
+
         public OffsetTimeTypeIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()

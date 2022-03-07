@@ -9,6 +9,7 @@ namespace HotChocolate.Types.NodaTime.Tests;
 public class ZonedDateTimeTypeCustomIntegrationTests
 {
     private readonly IRequestExecutor testExecutor;
+
     public ZonedDateTimeTypeCustomIntegrationTests()
     {
         var pattern = ZonedDateTimePattern.CreateWithInvariantCulture(

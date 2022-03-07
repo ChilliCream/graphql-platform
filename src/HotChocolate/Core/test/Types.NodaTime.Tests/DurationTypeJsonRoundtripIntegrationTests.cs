@@ -39,6 +39,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     }
 
     private readonly IRequestExecutor testExecutor;
+
     public DurationTypeJsonRoundtripIntegrationTests()
     {
         testExecutor = SchemaBuilder.New()

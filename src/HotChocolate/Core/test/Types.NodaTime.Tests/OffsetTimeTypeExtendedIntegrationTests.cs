@@ -8,6 +8,7 @@ namespace HotChocolate.Types.NodaTime.Tests
     public class OffsetTimeTypeExtendedIntegrationTests
     {
         private readonly IRequestExecutor testExecutor;
+
         public OffsetTimeTypeExtendedIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()

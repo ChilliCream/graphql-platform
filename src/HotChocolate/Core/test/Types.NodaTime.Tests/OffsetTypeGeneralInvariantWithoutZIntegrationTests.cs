@@ -8,6 +8,7 @@ namespace HotChocolate.Types.NodaTime.Tests
     public class OffsetTypeGeneralInvariantWithoutZIntegrationTests
     {
         private readonly IRequestExecutor testExecutor;
+
         public OffsetTypeGeneralInvariantWithoutZIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
