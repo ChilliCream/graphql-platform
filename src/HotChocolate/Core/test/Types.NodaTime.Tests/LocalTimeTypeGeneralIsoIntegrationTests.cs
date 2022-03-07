@@ -1,39 +1,20 @@
 using System.Linq;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
-using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
-    public class LocalTimeTypeIntegrationTests
+    public class LocalTimeTypeGeneralIsoIntegrationTests
     {
-        public static class Schema
-        {
-            public class Query
-            {
-                public LocalTime One => LocalTime
-                    .FromHourMinuteSecondMillisecondTick(12, 42, 13, 31, 100)
-                    .PlusNanoseconds(1234);
-            }
-
-            public class Mutation
-            {
-                public LocalTime Test(LocalTime arg)
-                {
-                    return arg + Period.FromMinutes(10);
-                }
-            }
-        }
-
         private readonly IRequestExecutor testExecutor;
-
-        public LocalTimeTypeIntegrationTests()
+        public LocalTimeTypeGeneralIsoIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
-                .AddQueryType<Schema.Query>()
-                .AddMutationType<Schema.Mutation>()
-                .AddNodaTime()
+                .AddQueryType<LocalTimeTypeIntegrationTests.Schema.Query>()
+                .AddMutationType<LocalTimeTypeIntegrationTests.Schema.Mutation>()
+                .AddNodaTime(typeof(LocalTimeType))
+                .AddType(new LocalTimeType(LocalTimePattern.GeneralIso))
                 .Create()
                 .MakeExecutable();
         }
@@ -43,23 +24,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor.Execute("query { test: one }");
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("12:42:13.031011234", queryResult!.Data!["test"]);
+            Assert.Equal("12:42:13", queryResult!.Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
-        {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "12:42:13.031011234")
-                    .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("12:52:13.031011234", queryResult!.Data!["test"]);
-        }
-
-        [Fact]
-        public void ParsesVariableWithoutTicks()
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
@@ -85,17 +54,6 @@ namespace HotChocolate.Types.NodaTime.Tests
 
         [Fact]
         public void ParsesLiteral()
-        {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"12:42:13.031011234\") }")
-                    .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("12:52:13.031011234", queryResult!.Data!["test"]);
-        }
-
-        [Fact]
-        public void ParsesLiteralWithoutTick()
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
