@@ -8,5 +8,6 @@ internal static class ThrowHelper
         new(SchemaErrorBuilder
             .New()
             .SetTypeSystemObject(type)
-            .SetMessage(NodaTimeResources.NodaTime_NoPatternProvided, type.Name).Build());
+            .SetMessage(NodaTimeResources.NodaTime_NoPatternProvided, type.Name)
+            .Build());
 }
