@@ -1,8 +1,6 @@
 using System.IO.Pipelines;
-using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using static System.Threading.CancellationToken;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using static HotChocolate.AspNetCore.Subscriptions.ConnectionCloseReason;
 
@@ -10,6 +8,7 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal sealed class WebSocketSession : ISocketSession
 {
+    private static readonly GraphQLSocketOptions _defaultOptions = new();
     private bool _disposed;
 
     private WebSocketSession(
@@ -22,7 +21,6 @@ internal sealed class WebSocketSession : ISocketSession
         Protocol = protocol;
         Operations = new OperationManager(this, interceptor, requestExecutor);
     }
-
 
     public ISocketConnection Connection { get; }
 
@@ -52,16 +50,18 @@ internal sealed class WebSocketSession : ISocketSession
         if (protocol is not null)
         {
             var session = new WebSocketSession(connection, protocol, interceptor, executor);
+            var options = context.GetGraphQLSocketOptions() ?? _defaultOptions;
 
             try
             {
                 var pipe = new Pipe();
-                var pingPong = new PingPongJob(session);
+                var pingPong = new PingPongJob(session, options);
                 var processor = new MessageProcessor(session, pipe.Reader);
                 var receiver = new MessageReceiver(connection, pipe.Writer);
 
                 pingPong.Begin(cancellationToken);
                 processor.Begin(cancellationToken);
+
                 await receiver.ReceiveAsync(cancellationToken);
             }
             catch (OperationCanceledException)

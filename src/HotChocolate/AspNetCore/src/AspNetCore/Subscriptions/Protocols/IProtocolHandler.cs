@@ -12,18 +12,6 @@ public interface IProtocolHandler
     /// </summary>
     string Name { get; }
 
-    /// <summary>
-    /// Executes a received request message.
-    /// </summary>
-    /// <param name="connection">
-    /// The socket client connection.
-    /// </param>
-    /// <param name="message">
-    /// The message.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The request cancellation token.
-    /// </param>
     Task OnReceiveAsync(
         ISocketSession session,
         ReadOnlySequence<byte> message,
@@ -48,5 +36,9 @@ public interface IProtocolHandler
     Task SendCompleteMessageAsync(
         ISocketSession session,
         string operationSessionId,
+        CancellationToken cancellationToken);
+
+    Task OnConnectionInitTimeoutAsync(
+        ISocketSession session,
         CancellationToken cancellationToken);
 }

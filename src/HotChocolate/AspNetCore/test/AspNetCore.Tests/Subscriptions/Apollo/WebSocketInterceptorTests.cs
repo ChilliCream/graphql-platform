@@ -335,11 +335,11 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
 
         public override ValueTask<ConnectionStatus> OnConnectAsync(
             ISocketSession session,
-            IOperationMessagePayload operationMessagePayload,
+            IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
             OnConnectInvoked = true;
-            return base.OnConnectAsync(session, operationMessagePayload, cancellationToken);
+            return base.OnConnectAsync(session, connectionInitMessage, cancellationToken);
         }
 
         public override ValueTask OnRequestAsync(

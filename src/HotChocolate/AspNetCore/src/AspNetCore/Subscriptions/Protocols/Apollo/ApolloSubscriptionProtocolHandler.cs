@@ -5,9 +5,9 @@ using HotChocolate.Language;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Utilities;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
+using static HotChocolate.AspNetCore.Subscriptions.ConnectionContextKeys;
 using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
-using static HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo.ConnectionContextKeys;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo.MessageProperties;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
@@ -30,8 +30,25 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         ReadOnlySequence<byte> message,
         CancellationToken cancellationToken)
     {
-        ISocketConnection connection = session.Connection;
+        try
+        {
+            await OnReceiveInternalAsync(session, message, cancellationToken);
+        }
+        catch
+        {
+            await session.Connection.CloseAsync(
+                "Unexpected Error",
+                ConnectionCloseReason.InternalServerError,
+                cancellationToken);
+        }
+    }
 
+    private async ValueTask OnReceiveInternalAsync(
+        ISocketSession session,
+        ReadOnlySequence<byte> message,
+        CancellationToken cancellationToken)
+    {
+        ISocketConnection connection = session.Connection;
         var connected = connection.ContextData.ContainsKey(Connected);
 
         if (connected && message.IsSingleSegment &&
@@ -43,6 +60,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
         using var document = JsonDocument.Parse(message);
         JsonElement root = document.RootElement;
+        JsonElement idProp;
 
         if (root.ValueKind is not JsonValueKind.Object)
         {
@@ -111,22 +129,51 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
         if (connected && type.ValueEquals(Utf8Messages.Start))
         {
-            if (!ParseSubscribeMessage(root, out DataStartMessage? dataStartMessage))
+            try
             {
-                await connection.CloseAsync(
-                    Apollo_OnReceive_InvalidSubscribeMessage,
-                    CloseReasons.InvalidMessage,
-                    cancellationToken);
-                return;
-            }
+                if (!TryParseSubscribeMessage(root, out DataStartMessage? dataStartMessage))
+                {
+                    await connection.CloseAsync(
+                        Apollo_OnReceive_InvalidSubscribeMessage,
+                        CloseReasons.InvalidMessage,
+                        cancellationToken);
+                    return;
+                }
 
-            if (!session.Operations.Register(dataStartMessage.Id, dataStartMessage.Payload))
+                if (!session.Operations.Register(dataStartMessage.Id, dataStartMessage.Payload))
+                {
+                    await connection.CloseAsync(
+                        Apollo_OnReceive_SubscriptionIdNotUnique,
+                        ConnectionCloseReason.InternalServerError,
+                        cancellationToken);
+                    return;
+                }
+            }
+            catch (SyntaxException ex)
             {
-                await connection.CloseAsync(
-                    Apollo_OnReceive_SubscriptionIdNotUnique,
-                    ConnectionCloseReason.InternalServerError,
+                if (!root.TryGetProperty(Id, out idProp) ||
+                    idProp.ValueKind is not JsonValueKind.String ||
+                    string.IsNullOrEmpty(idProp.GetString()))
+                {
+                    await connection.CloseAsync(
+                        Apollo_OnReceive_InvalidMessageType,
+                        CloseReasons.InvalidMessage,
+                        cancellationToken);
+                    return;
+                }
+
+                var syntaxError = new Error(
+                    ex.Message,
+                    locations: new[]
+                    {
+                        new Location(ex.Line, ex.Column)
+                    });
+
+                await SendErrorMessageAsync(
+                    session,
+                    idProp.GetString()!,
+                    new[] { syntaxError },
                     cancellationToken);
-                return;
             }
 
             // the operation is registered and we are done.
@@ -135,10 +182,11 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
         if (connected && type.ValueEquals(Utf8Messages.Stop))
         {
-            if (root.TryGetProperty(Utf8MessageProperties.Id, out JsonElement idProp) &&
-                idProp.ValueKind is JsonValueKind.String)
+            if (root.TryGetProperty(Utf8MessageProperties.Id, out idProp) &&
+                idProp.ValueKind is JsonValueKind.String &&
+                idProp.GetString() is { Length: > 0 } id)
             {
-                session.Operations.Unregister(idProp.GetString()!);
+                session.Operations.Unregister(id);
             }
             return;
         }
@@ -242,12 +290,21 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
-    private static bool ParseSubscribeMessage(
+    public Task OnConnectionInitTimeoutAsync(
+        ISocketSession session,
+        CancellationToken cancellationToken)
+        => session.Connection.CloseAsync(
+            "Connection initialization timeout.",
+            ConnectionCloseReason.ProtocolError,
+            cancellationToken);
+
+    private static bool TryParseSubscribeMessage(
         JsonElement messageElement,
         [NotNullWhen(true)] out DataStartMessage? message)
     {
         if (!messageElement.TryGetProperty(Id, out JsonElement idProp) ||
-            idProp.ValueKind is not JsonValueKind.String)
+            idProp.ValueKind is not JsonValueKind.String ||
+            string.IsNullOrEmpty(idProp.GetString()))
         {
             message = null;
             return false;

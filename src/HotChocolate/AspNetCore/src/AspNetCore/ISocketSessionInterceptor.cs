@@ -7,7 +7,7 @@ public interface ISocketSessionInterceptor
 {
     ValueTask<ConnectionStatus> OnConnectAsync(
         ISocketSession session,
-        IOperationMessagePayload operationMessagePayload,
+        IOperationMessagePayload connectionInitMessage,
         CancellationToken cancellationToken = default);
 
     ValueTask OnRequestAsync(
@@ -29,12 +29,12 @@ public interface ISocketSessionInterceptor
 
     ValueTask<IReadOnlyDictionary<string, object?>?> OnPingAsync(
         ISocketSession session,
-        IOperationMessagePayload operationMessagePayload,
+        IOperationMessagePayload pingMessage,
         CancellationToken cancellationToken = default);
 
     ValueTask OnPongAsync(
         ISocketSession session,
-        IOperationMessagePayload operationMessagePayload,
+        IOperationMessagePayload pongMessage,
         CancellationToken cancellationToken = default);
 
     ValueTask OnCloseAsync(

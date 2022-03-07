@@ -6,7 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
-using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket.ConnectionContextKeys;
+using static HotChocolate.AspNetCore.Subscriptions.ConnectionContextKeys;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
@@ -28,32 +28,42 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         ReadOnlySequence<byte> message,
         CancellationToken cancellationToken)
     {
+        try
+        {
+            await OnReceiveInternalAsync(session, message, cancellationToken);
+        }
+        catch
+        {
+            await session.Connection.CloseUnexpectedErrorAsync(cancellationToken);
+        }
+    }
+
+    private async ValueTask OnReceiveInternalAsync(
+        ISocketSession session,
+        ReadOnlySequence<byte> message,
+        CancellationToken cancellationToken)
+    {
         ISocketConnection connection = session.Connection;
 
         var connected = connection.ContextData.ContainsKey(Connected);
         using var document = JsonDocument.Parse(message);
         JsonElement root = document.RootElement;
+        JsonElement idProp;
 
         if (root.ValueKind is not JsonValueKind.Object)
         {
-            await connection.CloseAsync(
-                "The message must be a json object.",
-                ConnectionCloseReason.ProtocolError,
-                cancellationToken);
+            await connection.CloseMessageMustBeJsonObjectAsync(cancellationToken);
             return;
         }
 
         if (!root.TryGetProperty(Utf8MessageProperties.Type, out JsonElement type) ||
             type.ValueKind is not JsonValueKind.String)
         {
-            await connection.CloseAsync(
-                "The type property on the message is obligatory.",
-                ConnectionCloseReason.ProtocolError,
-                cancellationToken);
+            await connection.CloseMessageTypeIsMandatoryAsync(cancellationToken);
             return;
         }
 
-        if (connected && type.ValueEquals(Utf8Messages.Ping))
+        if (type.ValueEquals(Utf8Messages.Ping))
         {
             PingMessage operationMessageObj =
                 TryGetPayload(root, out JsonElement payload)
@@ -67,7 +77,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             return;
         }
 
-        if (connected && type.ValueEquals(Utf8Messages.Pong))
+        if (type.ValueEquals(Utf8Messages.Pong))
         {
             PongMessage operationMessageObj =
                 TryGetPayload(root, out JsonElement payload)
@@ -82,10 +92,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         {
             if (connected)
             {
-                await connection.CloseAsync(
-                    "Too many initialisation requests.",
-                    CloseReasons.TooManyInitAttempts,
-                    cancellationToken);
+                await connection.CloseToManyInitializationsAsync(cancellationToken);
                 return;
             }
 
@@ -110,39 +117,73 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             }
             else
             {
-                // how do we not accept a connection?
+                await connection.CloseConnectionRefusedAsync(cancellationToken);
             }
             return;
         }
 
-        if (connected && type.ValueEquals(Utf8Messages.Subscribe))
+        // if we have not received a connection init and connection was successfully accepted
+        // then we will close the connection with a unauthorized error.
+        if (!connected)
         {
-            if (!ParseSubscribeMessage(root, out SubscribeMessage? subscribeMessage))
-            {
-                await connection.CloseAsync(
-                    "Invalid subscribe message structure.",
-                    ConnectionCloseReason.ProtocolError,
-                    cancellationToken);
-                return;
-            }
+            await connection.CloseUnauthorizedAsync(cancellationToken);
+            return;
+        }
 
-            if (!session.Operations.Register(subscribeMessage.Id, subscribeMessage.Payload))
+        if (type.ValueEquals(Utf8Messages.Subscribe))
+        {
+            try
             {
-                await connection.CloseAsync(
-                    "The subscription id is not unique.",
-                    CloseReasons.SubscriberNotUnique,
+                if (!TryParseSubscribeMessage(root, out SubscribeMessage? subscribeMessage))
+                {
+                    await connection.CloseInvalidSubscribeMessageAsync(cancellationToken);
+                    return;
+                }
+
+                if (!session.Operations.Register(subscribeMessage.Id, subscribeMessage.Payload))
+                {
+                    await connection.CloseSubscriptionIdNotUniqueAsync(cancellationToken);
+                    return;
+                }
+            }
+            catch (SyntaxException ex)
+            {
+                if (!root.TryGetProperty(MessageProperties.Id, out idProp) ||
+                    idProp.ValueKind is not JsonValueKind.String ||
+                    string.IsNullOrEmpty(idProp.GetString()))
+                {
+                    await connection.CloseInvalidSubscribeMessageAsync(cancellationToken);
+                    return;
+                }
+
+                var syntaxError = new Error(
+                    ex.Message,
+                    locations: new[]
+                    {
+                        new Location(ex.Line, ex.Column)
+                    });
+
+                await SendErrorMessageAsync(
+                    session,
+                    idProp.GetString()!,
+                    new[] { syntaxError },
                     cancellationToken);
-                return;
             }
 
             // the operation was excepted and we are done.
             return;
         }
 
-        await connection.CloseAsync(
-            "Invalid message type.",
-            ConnectionCloseReason.ProtocolError,
-            cancellationToken);
+        if (type.ValueEquals(Utf8Messages.Complete) &&
+            root.TryGetProperty(MessageProperties.Id, out idProp) &&
+            idProp.ValueKind is not JsonValueKind.String &&
+            idProp.GetString() is { Length: > 0 } id)
+        {
+            session.Operations.Unregister(id);
+            return;
+        }
+
+        await connection.CloseInvalidMessageTypeAsync(cancellationToken);
     }
 
     public Task SendKeepAliveMessageAsync(
@@ -159,24 +200,31 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         using var arrayWriter = new ArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString("id", operationSessionId);
-        jsonWriter.WriteString("type", Utf8Messages.Next);
-        jsonWriter.WritePropertyName("payload");
+        jsonWriter.WriteString(MessageProperties.Id, operationSessionId);
+        jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Next);
+        jsonWriter.WritePropertyName(MessageProperties.Payload);
         JsonSerializer.Serialize(jsonWriter, _serializer);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
-
-        var array = new ArraySegment<byte>(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
-        await session.Connection.SendAsync(array, cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
-    public Task SendErrorMessageAsync(
+    public async Task SendErrorMessageAsync(
         ISocketSession session,
         string operationSessionId,
         IReadOnlyList<IError> errors,
         CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        using var arrayWriter = new ArrayWriter();
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString(MessageProperties.Id, operationSessionId);
+        jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
+        jsonWriter.WritePropertyName(MessageProperties.Payload);
+        JsonSerializer.Serialize(jsonWriter, _serializer);
+        jsonWriter.WriteEndObject();
+        await jsonWriter.FlushAsync(cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
     public async Task SendCompleteMessageAsync(
@@ -186,8 +234,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
     {
         using var writer = new ArrayWriter();
         SerializeMessage(writer, Utf8Messages.Complete);
-        var array = new ArraySegment<byte>(writer.GetInternalBuffer(), 0, writer.Length);
-        await session.Connection.SendAsync(array, cancellationToken);
+        await session.Connection.SendAsync(writer.Body, cancellationToken);
     }
 
     private static async Task SendPingMessageAsync(
@@ -195,20 +242,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         IReadOnlyDictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
-
         if (payload is null)
         {
-            ReadOnlyMemory<byte> message = Utf8MessageBodies.DefaultPing;
-            message.CopyTo(writer.GetMemory(message.Length));
+            await session.Connection.SendAsync(Utf8MessageBodies.DefaultPing, cancellationToken);
         }
         else
         {
-            SerializeMessage(writer, Utf8Messages.Pong, payload);
+            using var writer = new ArrayWriter();
+            SerializeMessage(writer, Utf8Messages.Ping, payload);
+            await session.Connection.SendAsync(writer.Body, cancellationToken);
         }
-
-        var array = new ArraySegment<byte>(writer.GetInternalBuffer(), 0, writer.Length);
-        await session.Connection.SendAsync(array, cancellationToken);
     }
 
     private static async Task SendPongMessageAsync(
@@ -216,20 +259,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         IReadOnlyDictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
-
         if (payload is null)
         {
-            ReadOnlyMemory<byte> message = Utf8MessageBodies.DefaultPong;
-            message.CopyTo(writer.GetMemory(message.Length));
+            await session.Connection.SendAsync(Utf8MessageBodies.DefaultPong, cancellationToken);
         }
         else
         {
+            using var writer = new ArrayWriter();
             SerializeMessage(writer, Utf8Messages.Pong, payload);
+            await session.Connection.SendAsync(writer.Body, cancellationToken);
         }
-
-        var array = new ArraySegment<byte>(writer.GetInternalBuffer(), 0, writer.Length);
-        await session.Connection.SendAsync(array, cancellationToken);
     }
 
     private static async Task SendConnectionAcceptMessage(
@@ -239,23 +278,28 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
     {
         using var writer = new ArrayWriter();
         SerializeMessage(writer, Utf8Messages.ConnectionAccept, payload);
-        var array = new ArraySegment<byte>(writer.GetInternalBuffer(), 0, writer.Length);
-        await session.Connection.SendAsync(array, cancellationToken);
+        await session.Connection.SendAsync(writer.Body, cancellationToken);
     }
 
-    private static bool ParseSubscribeMessage(
+    public Task OnConnectionInitTimeoutAsync(
+        ISocketSession session,
+        CancellationToken cancellationToken)
+        => session.Connection.CloseConnectionInitTimeoutAsync(cancellationToken);
+
+    private static bool TryParseSubscribeMessage(
         JsonElement messageElement,
         [NotNullWhen(true)] out SubscribeMessage? message)
     {
-        if (!messageElement.TryGetProperty("id", out JsonElement idProp) ||
-            idProp.ValueKind is not JsonValueKind.String)
+        if (!messageElement.TryGetProperty(MessageProperties.Id, out JsonElement idProp) ||
+            idProp.ValueKind is not JsonValueKind.String ||
+            string.IsNullOrEmpty(idProp.GetString()))
         {
             message = null;
             return false;
         }
 
-        if (!messageElement.TryGetProperty("payload", out JsonElement payloadProp) ||
-            idProp.ValueKind is not JsonValueKind.Object)
+        if (!messageElement.TryGetProperty(MessageProperties.Payload, out JsonElement payloadProp) ||
+            payloadProp.ValueKind is not JsonValueKind.Object)
         {
             message = null;
             return false;

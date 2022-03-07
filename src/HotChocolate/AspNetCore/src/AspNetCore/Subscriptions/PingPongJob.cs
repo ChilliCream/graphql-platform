@@ -5,19 +5,13 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal sealed class PingPongJob
 {
-    private static readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(5);
     private readonly ISocketSession _session;
-    private readonly TimeSpan _timeout;
+    private readonly GraphQLSocketOptions _options;
 
-    public PingPongJob(ISocketSession session)
-        : this(session, _defaultTimeout)
-    {
-    }
-
-    public PingPongJob(ISocketSession session, TimeSpan timeout)
+    public PingPongJob(ISocketSession session, GraphQLSocketOptions options)
     {
         _session = session;
-        _timeout = timeout;
+        _options = options;
     }
 
     public void Begin(CancellationToken cancellationToken)
@@ -27,25 +21,42 @@ internal sealed class PingPongJob
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
 
-    private async Task KeepConnectionAliveAsync(
-        CancellationToken cancellationToken)
+    private async Task KeepConnectionAliveAsync(CancellationToken ct)
     {
         ISocketConnection connection = _session.Connection;
         IProtocolHandler protocolHandler = _session.Protocol;
 
         try
         {
-            while (!connection.IsClosed && !cancellationToken.IsCancellationRequested)
-            {
-                await Task.Delay(_timeout, cancellationToken);
+            // first we will wait for a connection to be established
+            await Task.Delay(_options.ConnectionInitializationTimeout, ct);
 
-                if (!connection.IsClosed)
+            // if after the timeout no connection initialization was send by the client we will
+            // close the connection.
+            if (!connection.ContextData.ContainsKey(ConnectionContextKeys.Connected))
+            {
+                await _session.Protocol.OnConnectionInitTimeoutAsync(_session, ct);
+                return;
+            }
+
+            // if a keep alive interval is configured we will start sending connection
+            // keep alive messages to the client.
+            if (_options.KeepAliveInterval is not null)
+            {
+                TimeSpan interval = _options.KeepAliveInterval.Value;
+
+                while (!connection.IsClosed && !ct.IsCancellationRequested)
                 {
-                    await protocolHandler.SendKeepAliveMessageAsync(_session, cancellationToken);
+                    await Task.Delay(interval, ct);
+
+                    if (!connection.IsClosed)
+                    {
+                        await protocolHandler.SendKeepAliveMessageAsync(_session, ct);
+                    }
                 }
             }
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             // the message processing was canceled.
         }

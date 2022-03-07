@@ -230,5 +230,10 @@ public class SubscriptionManagerTests
             IQueryResult result,
             CancellationToken cancellationToken)
             => Task.CompletedTask;
+
+        public Task OnConnectionInitTimeoutAsync(
+            ISocketSession session,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
     }
 }

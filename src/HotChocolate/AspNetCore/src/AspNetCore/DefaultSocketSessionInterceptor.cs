@@ -9,7 +9,7 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
 {
     public virtual ValueTask<ConnectionStatus> OnConnectAsync(
         ISocketSession session,
-        IOperationMessagePayload operationMessagePayload,
+        IOperationMessagePayload connectionInitMessage,
         CancellationToken cancellationToken = default)
         => new(ConnectionStatus.Accept());
 
@@ -54,14 +54,14 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
 
     public virtual ValueTask<IReadOnlyDictionary<string, object?>?> OnPingAsync(
         ISocketSession session,
-        IOperationMessagePayload operationMessagePayload,
+        IOperationMessagePayload pingMessage,
         CancellationToken cancellationToken = default)
         => new(default(IReadOnlyDictionary<string, object?>?));
 
 
     public virtual ValueTask OnPongAsync(
         ISocketSession session,
-        IOperationMessagePayload operationMessagePayload,
+        IOperationMessagePayload pongMessage,
         CancellationToken cancellationToken = default)
         => default;
 

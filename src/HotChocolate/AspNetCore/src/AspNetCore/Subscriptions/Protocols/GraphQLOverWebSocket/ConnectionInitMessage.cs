@@ -3,9 +3,7 @@ using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocke
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
-internal sealed class ConnectionInitMessage
-    : OperationMessage<JsonElement?>
-    , IOperationMessagePayload
+internal sealed class ConnectionInitMessage : JsonOperationMessage
 {
     public ConnectionInitMessage(JsonElement? payload = null)
         : base(ConnectionInitialize, payload)
@@ -13,14 +11,4 @@ internal sealed class ConnectionInitMessage
     }
 
     public static ConnectionInitMessage Default { get; } = new();
-
-    public T? As<T>() where T : class
-    {
-        if (Payload is null)
-        {
-            return default;
-        }
-
-        return Payload.Value.Deserialize<T>();
-    }
 }

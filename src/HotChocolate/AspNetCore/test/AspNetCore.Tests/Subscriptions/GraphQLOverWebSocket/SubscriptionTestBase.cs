@@ -4,12 +4,11 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
-using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
+using Microsoft.AspNetCore.TestHost;
 using Xunit;
 
-namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
+namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
 public class SubscriptionTestBase : ServerTestBase
 {
@@ -19,6 +18,12 @@ public class SubscriptionTestBase : ServerTestBase
     }
 
     protected Uri SubscriptionUri { get; } = new("ws://localhost:5000/graphql");
+
+    protected Task<IReadOnlyDictionary<string, object>> WaitForMessage(
+        WebSocket webSocket,
+        string type,
+        CancellationToken cancellationToken)
+        => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(5), cancellationToken);
 
     protected async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
         WebSocket webSocket,
@@ -39,15 +44,15 @@ public class SubscriptionTestBase : ServerTestBase
 
                 var message = await webSocket.ReceiveServerMessageAsync(combinedCts.Token);
 
-                if (message != null && type.Equals(message[MessageProperties.Type]))
+                if (message != null && type.Equals(message["type"]))
                 {
                     return message;
                 }
 
-                if (message?[MessageProperties.Type].Equals("ka") == false)
+                if (message?["type"].Equals("ka") == false)
                 {
                     throw new InvalidOperationException(
-                        $"Unexpected message type: {message[MessageProperties.Type]}");
+                        $"Unexpected message type: {message["type"]}");
                 }
             }
         }
@@ -58,6 +63,11 @@ public class SubscriptionTestBase : ServerTestBase
 
         return null;
     }
+
+    protected Task WaitForConditions(
+        Func<bool> condition,
+        CancellationToken cancellationToken)
+        => WaitForConditions(condition, TimeSpan.FromMilliseconds(500), cancellationToken);
 
     protected async Task WaitForConditions(
         Func<bool> condition,
@@ -89,17 +99,19 @@ public class SubscriptionTestBase : ServerTestBase
         CancellationToken cancellationToken)
     {
         var webSocket = await client.ConnectAsync(SubscriptionUri, cancellationToken);
-        await webSocket.SendConnectionInitializeAsync(cancellationToken);
+        await webSocket.SendConnectionInitAsync(cancellationToken);
         var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
         Assert.NotNull(message);
-        Assert.Equal("connection_ack", message[MessageProperties.Type]);
+        Assert.Equal("connection_ack", message["type"]);
         return webSocket;
     }
 
     protected static WebSocketClient CreateWebSocketClient(TestServer testServer)
     {
         WebSocketClient client = testServer.CreateWebSocketClient();
-        client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");
+        client.ConfigureRequest = r => r.Headers.Add(
+            "Sec-WebSocket-Protocol",
+            ProtocolNames.GraphQL_Transport_WS);
         return client;
     }
 

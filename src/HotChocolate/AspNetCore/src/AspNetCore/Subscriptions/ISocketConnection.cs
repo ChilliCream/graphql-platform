@@ -44,18 +44,9 @@ public interface ISocketConnection : IHasContextData, IDisposable
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    Task SendAsync(ArraySegment<byte> message, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Send a message to the client.
-    /// </summary>
-    /// <param name="message">
-    /// The message.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    ValueTask SendAsync(ReadOnlyMemory<byte> message, CancellationToken cancellationToken);
+    ValueTask SendAsync(
+        ReadOnlyMemory<byte> message,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reads a message from the client.
@@ -66,7 +57,9 @@ public interface ISocketConnection : IHasContextData, IDisposable
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    Task ReceiveAsync(IBufferWriter<byte> writer, CancellationToken cancellationToken);
+    Task ReceiveAsync(
+        IBufferWriter<byte> writer,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Closes the connection with the client.
@@ -83,10 +76,22 @@ public interface ISocketConnection : IHasContextData, IDisposable
     Task CloseAsync(
         string message,
         ConnectionCloseReason reason,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Closes the connection with the client.
+    /// </summary>
+    /// <param name="message">
+    /// A human readable message explaining the close reason.
+    /// </param>
+    /// <param name="reason">
+    /// The message close reason.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     Task CloseAsync(
         string message,
         int reason,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 }

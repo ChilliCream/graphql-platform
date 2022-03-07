@@ -65,6 +65,16 @@ internal static class Utf8Messages
             (byte)'t'
         };
 
+    public static ReadOnlySpan<byte> Error =>
+        new[]
+        {
+            (byte)'e',
+            (byte)'r',
+            (byte)'r',
+            (byte)'o',
+            (byte)'r'
+        };
+
     public static ReadOnlySpan<byte> Complete =>
         new[]
         {

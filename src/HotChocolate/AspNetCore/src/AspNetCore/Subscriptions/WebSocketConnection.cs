@@ -63,19 +63,9 @@ internal sealed class WebSocketConnection : ISocketConnection
         return null;
     }
 
-    public Task SendAsync(ArraySegment<byte> message, CancellationToken cancellationToken)
-    {
-        WebSocket? webSocket = _webSocket;
-
-        if (_disposed || webSocket is not { State: WebSocketState.Open })
-        {
-            return Task.CompletedTask;
-        }
-
-        return webSocket.SendAsync(message, Text, true, cancellationToken);
-    }
-
-    public ValueTask SendAsync(ReadOnlyMemory<byte> message, CancellationToken cancellationToken)
+    public ValueTask SendAsync(
+        ReadOnlyMemory<byte> message,
+        CancellationToken cancellationToken = default)
     {
         WebSocket? webSocket = _webSocket;
 
@@ -89,7 +79,7 @@ internal sealed class WebSocketConnection : ISocketConnection
 
     public async Task ReceiveAsync(
         IBufferWriter<byte> writer,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         WebSocket? webSocket = _webSocket;
 
@@ -130,7 +120,7 @@ internal sealed class WebSocketConnection : ISocketConnection
     public async Task CloseAsync(
        string message,
        ConnectionCloseReason reason,
-       CancellationToken cancellationToken)
+       CancellationToken cancellationToken = default)
     {
         try
         {
@@ -154,13 +144,16 @@ internal sealed class WebSocketConnection : ISocketConnection
         }
     }
 
-    public async Task CloseAsync(string message, int reason, CancellationToken cancellationToken)
+    public async Task CloseAsync(
+        string message,
+        int reason,
+        CancellationToken cancellationToken = default)
     {
         try
         {
             WebSocket? webSocket = _webSocket;
 
-            if (_disposed || IsClosed || webSocket is null || webSocket.State != WebSocketState.Open)
+            if (_disposed || IsClosed || webSocket?.State is not WebSocketState.Open)
             {
                 return;
             }

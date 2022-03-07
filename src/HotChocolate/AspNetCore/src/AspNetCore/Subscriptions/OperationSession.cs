@@ -175,7 +175,6 @@ internal sealed class OperationSession : IOperationSession
                         : new[] { error };
 
                 await _session.Protocol.SendErrorMessageAsync(_session, Id, errors, ct);
-                await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
             }
         }
         catch

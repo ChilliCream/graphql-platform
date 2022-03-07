@@ -1,4 +1,5 @@
 using System.Text.Json;
+using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 
@@ -12,5 +13,5 @@ public abstract class JsonOperationMessage
     }
 
     public T? As<T>() where T : class
-        => Payload?.Deserialize<T>();
+        => Payload?.Deserialize<T>(SerializerOptions);
 }
