@@ -13,7 +13,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             public class Query
             {
-                public LocalTime One => LocalTime.FromHourMinuteSecondMillisecondTick(12, 42, 13, 31, 100).PlusNanoseconds(1234);
+                public LocalTime One => LocalTime
+                    .FromHourMinuteSecondMillisecondTick(12, 42, 13, 31, 100)
+                    .PlusNanoseconds(1234);
             }
 
             public class Mutation
