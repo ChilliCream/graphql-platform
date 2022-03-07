@@ -92,6 +92,42 @@ internal static class WebSocketExtensions
         await SendMessageAsync(webSocket, writer.Body, cancellationToken);
     }
 
+    public static Task SendPingAsync(
+        this WebSocket webSocket,
+        CancellationToken cancellationToken)
+        => SendPingAsync(webSocket, null, cancellationToken);
+
+    public static async Task SendPingAsync(
+        this WebSocket webSocket,
+        Dictionary<string, object?>? payload,
+        CancellationToken cancellationToken)
+    {
+        using var writer = new ArrayWriter();
+        MessageUtilities.SerializeMessage(writer, Utf8Messages.Ping, payload);
+        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+    }
+
+    public static Task SendPongAsync(
+        this WebSocket webSocket,
+        CancellationToken cancellationToken)
+        => SendPongAsync(webSocket, null, cancellationToken);
+
+    public static async Task SendPongAsync(
+        this WebSocket webSocket,
+        Dictionary<string, object?>? payload,
+        CancellationToken cancellationToken)
+    {
+        using var writer = new ArrayWriter();
+        MessageUtilities.SerializeMessage(writer, Utf8Messages.Pong, payload);
+        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+    }
+
+    public static Task SendMessageAsync(
+        this WebSocket webSocket,
+        string message,
+        CancellationToken cancellationToken)
+        => SendMessageAsync(webSocket, Encoding.UTF8.GetBytes(message), cancellationToken);
+
     private static async Task SendMessageAsync(
         this WebSocket webSocket,
         ReadOnlyMemory<byte> message,

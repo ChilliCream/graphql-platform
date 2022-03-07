@@ -66,6 +66,16 @@ internal static class WebSocketExtensions
         await SendMessageAsync(webSocket, writer.Body, cancellationToken);
     }
 
+    public static Task SendMessageAsync(
+        this WebSocket webSocket,
+        string message,
+        CancellationToken cancellationToken)
+        => webSocket.SendAsync(
+            Encoding.UTF8.GetBytes(message),
+            WebSocketMessageType.Text,
+            true,
+            cancellationToken);
+
     public static async Task SendMessageAsync(
         this WebSocket webSocket,
         ReadOnlyMemory<byte> message,

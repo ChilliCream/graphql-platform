@@ -1,14 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
+using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
+
+#nullable enable
 
 namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
@@ -21,8 +28,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
     [Fact]
     public Task Send_Connect_AcceptAndKeepAlive()
-    {
-        return TryTest(async ct =>
+        => TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateStarWarsServer();
@@ -37,12 +43,99 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             Assert.NotNull(message);
             Assert.Equal("connection_ack", message["type"]);
         });
-    }
+
+    [Fact]
+    public Task Send_Connect_To_Many_Init_Messages()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+
+            await webSocket.SendConnectionInitializeAsync(ct);
+            await WaitForMessage(webSocket, "connection_ack", ct);
+
+            // act
+            await webSocket.SendConnectionInitializeAsync(ct);
+
+            // assert
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue);
+            Assert.Equal(WebSocketCloseStatus.ProtocolError, webSocket.CloseStatus!.Value);
+        });
+
+    [Fact]
+    public Task No_ConnectionInit_Timeout()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using TestServer testServer = CreateStarWarsServer(
+                configureConventions: mapping => mapping.WithOptions(
+                    new GraphQLServerOptions { Sockets =
+                    {
+                        ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
+                        KeepAliveInterval = TimeSpan.FromMilliseconds(150)
+                    }}));
+            WebSocketClient client = CreateWebSocketClient(testServer);
+
+            // act
+            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+
+            // assert
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
+            Assert.Equal(WebSocketCloseStatus.ProtocolError, webSocket.CloseStatus!.Value);
+        });
+
+    [Fact]
+    public Task Send_Connect_With_Auth_Accept()
+        => TryTest(async ct =>
+        {
+            // arrange
+            var interceptor = new AuthInterceptor();
+            using TestServer testServer = CreateStarWarsServer(
+                configureServices: s => s
+                    .AddGraphQLServer()
+                    .AddSocketSessionInterceptor(_ => interceptor));
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+
+            // act
+            await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc " }, ct);
+
+            // assert
+            var message = await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.NotNull(message);
+            Assert.Equal("connection_ack", message![MessageProperties.Type]);
+        });
+
+    [Fact]
+    public Task Send_Connect_With_Auth_Reject()
+        => TryTest(async ct =>
+        {
+            // arrange
+            var interceptor = new AuthInterceptor();
+            using TestServer testServer = CreateStarWarsServer(
+                configureServices: s => s
+                    .AddGraphQLServer()
+                    .AddSocketSessionInterceptor(_ => interceptor));
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+
+            // act
+            await webSocket.SendConnectionInitAsync(ct);
+
+            // assert
+            await WaitForMessage(webSocket, "connection_error", ct);
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
+            Assert.Equal(WebSocketCloseStatus.NormalClosure, webSocket.CloseStatus!.Value);
+        });
 
     [Fact]
     public Task Send_Connect_AcceptAndKeepAlive_Explicit_Route()
-    {
-        return TryTest(async ct =>
+        => TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateServer(b => b.MapGraphQLWebSocket());
@@ -59,12 +152,10 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             Assert.NotNull(message);
             Assert.Equal("connection_ack", message["type"]);
         });
-    }
 
     [Fact]
     public Task Send_Connect_AcceptAndKeepAlive_Explicit_Route_Explicit_Path()
-    {
-        return TryTest(async ct =>
+        => TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateServer(b => b.MapGraphQLWebSocket("/foo/bar"));
@@ -81,12 +172,10 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             Assert.NotNull(message);
             Assert.Equal("connection_ack", message["type"]);
         });
-    }
 
     [Fact]
     public Task Send_Terminate()
-    {
-        return TryTest(async ct =>
+        => TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateStarWarsServer();
@@ -100,14 +189,12 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             var buffer = new byte[1024];
             await webSocket.ReceiveAsync(buffer, ct);
             Assert.True(webSocket.CloseStatus.HasValue);
-            Assert.Equal(WebSocketCloseStatus.NormalClosure, webSocket.CloseStatus.Value);
+            Assert.Equal(WebSocketCloseStatus.NormalClosure, webSocket.CloseStatus!.Value);
         });
-    }
 
     [Fact]
     public Task Connect_With_Invalid_Protocol()
-    {
-        return TryTest(async ct =>
+        => TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateStarWarsServer();
@@ -122,9 +209,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
             // assert
             Assert.True(socket.CloseStatus.HasValue);
-            Assert.Equal(WebSocketCloseStatus.ProtocolError, socket.CloseStatus.Value);
+            Assert.Equal(WebSocketCloseStatus.ProtocolError, socket.CloseStatus!.Value);
         });
-    }
 
     [Fact]
     public Task Send_Start_ReceiveDataOnMutation()
@@ -174,9 +260,105 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Start_Stop()
+    public Task Send_Subscribe_No_Id()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+
+            // act
+
+            await webSocket.SendMessageAsync("{ \"type\": \"subscribe\" }", ct);
+
+            // assert
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue);
+            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+        });
+
+    [Fact]
+    public Task Send_Subscribe_Empty_Id()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+
+            // act
+
+            await webSocket.SendMessageAsync("{ \"type\": \"subscribe\", \"id\": \"\" }", ct);
+
+            // assert
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue);
+            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+        });
+
+    [Fact]
+    public Task Send_Subscribe_SyntaxError()
     {
-        return TryTest(async ct =>
+        SnapshotFullName snapshotName = Snapshot.FullName();
+
+        return TryTest(
+            async ct =>
+            {
+                // arrange
+                using TestServer testServer = CreateStarWarsServer();
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+
+                // act
+
+                await webSocket.SendMessageAsync(
+                    @"{
+                    ""type"": ""start"",
+                    ""id"": ""abc"",
+                    ""payload"": {
+                        ""query"": ""}""
+                    }
+                }",
+                    ct);
+
+                // assert
+                var message = await WaitForMessage(webSocket, "error", ct);
+                message.MatchSnapshot(snapshotName);
+            });
+    }
+
+    [Fact]
+    public Task Send_Subscribe_SyntaxError_No_Id()
+        => TryTest(
+            async ct =>
+            {
+                // arrange
+                using TestServer testServer = CreateStarWarsServer();
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+
+                // act
+
+                await webSocket.SendMessageAsync(
+                    @"{
+                    ""type"": ""start"",
+                    ""id"": """",
+                    ""payload"": {
+                        ""query"": ""}""
+                    }
+                }",
+                    ct);
+
+                // assert
+                await webSocket.ReceiveServerMessageAsync(ct);
+                Assert.True(webSocket.CloseStatus.HasValue);
+                Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+            });
+
+    [Fact]
+    public Task Send_Start_Stop()
+        => TryTest(async ct =>
         {
             // arrange
             using TestServer testServer = CreateStarWarsServer();
@@ -227,7 +409,6 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             var message = await WaitForMessage(webSocket, "data", TimeSpan.FromSeconds(5), ct);
             Assert.Null(message);
         });
-    }
 
     [Fact]
     public Task Send_Start_ValidationError()
@@ -260,5 +441,100 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             Assert.NotNull(message);
             Snapshot.Match(message, snapshotName);
         });
+    }
+
+    [Fact]
+    public Task Send_Invalid_Message_String()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+
+            // act
+            await webSocket.SendMessageAsync("hello", ct);
+
+            // assert
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
+            Assert.Equal(WebSocketCloseStatus.InternalServerError, webSocket.CloseStatus!.Value);
+        });
+
+    [Fact]
+    public Task Send_Invalid_Message_No_Type()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+
+            // act
+            await webSocket.SendMessageAsync("{ }", ct);
+
+            // assert
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
+            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+        });
+
+    [Fact]
+    public Task Send_Invalid_Message_Invalid_Type()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+
+            // act
+            await webSocket.SendMessageAsync("{ \"type\": \"abc\" }", ct);
+
+            // assert
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
+            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+        });
+
+    [Fact]
+    public Task Send_Invalid_Message_Not_An_Object()
+        => TryTest(async ct =>
+        {
+            // arrange
+            using TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+
+            // act
+            await webSocket.SendMessageAsync("[]", ct);
+
+            // assert
+            await webSocket.ReceiveServerMessageAsync(ct);
+            Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
+            Assert.Equal(CloseReasons.InvalidMessage, (int)webSocket.CloseStatus!.Value);
+        });
+
+    private class AuthInterceptor : DefaultSocketSessionInterceptor
+    {
+        public override ValueTask<ConnectionStatus> OnConnectAsync(
+            ISocketSession session,
+            IOperationMessagePayload connectionInitMessage,
+            CancellationToken cancellationToken = default)
+        {
+            Auth? payload = connectionInitMessage.As<Auth>();
+
+            if (payload?.Token is not null)
+            {
+                return base.OnConnectAsync(session, connectionInitMessage, cancellationToken);
+            }
+
+            return new(ConnectionStatus.Reject());
+        }
+
+        private sealed class Auth
+        {
+            public string? Token { get; set; }
+        }
     }
 }

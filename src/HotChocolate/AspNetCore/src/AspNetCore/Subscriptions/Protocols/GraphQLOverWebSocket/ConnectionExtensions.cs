@@ -2,7 +2,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
 public static class ConnectionExtensions
 {
-    public static Task CloseInvalidSubscribeMessageAsync(
+    public static ValueTask CloseInvalidSubscribeMessageAsync(
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
@@ -10,7 +10,7 @@ public static class ConnectionExtensions
             CloseReasons.ProtocolError,
             cancellationToken);
 
-    public static Task CloseSubscriptionIdNotUniqueAsync(
+    public static ValueTask CloseSubscriptionIdNotUniqueAsync(
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
@@ -18,7 +18,7 @@ public static class ConnectionExtensions
             CloseReasons.SubscriberNotUnique,
             cancellationToken);
 
-    public static Task CloseConnectionInitTimeoutAsync(
+    public static ValueTask CloseConnectionInitTimeoutAsync(
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
@@ -26,7 +26,7 @@ public static class ConnectionExtensions
             CloseReasons.ConnectionInitWaitTimeout,
             cancellationToken);
 
-    public static Task CloseInvalidMessageTypeAsync(
+    public static ValueTask CloseInvalidMessageTypeAsync(
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
@@ -34,7 +34,7 @@ public static class ConnectionExtensions
             CloseReasons.ProtocolError,
             cancellationToken);
 
-    public static Task CloseMessageMustBeJsonObjectAsync(
+    public static ValueTask CloseMessageMustBeJsonObjectAsync(
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
@@ -42,7 +42,7 @@ public static class ConnectionExtensions
             CloseReasons.ProtocolError,
             cancellationToken);
 
-    public static Task CloseMessageTypeIsMandatoryAsync(
+    public static ValueTask CloseMessageTypeIsMandatoryAsync(
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
@@ -50,7 +50,7 @@ public static class ConnectionExtensions
             CloseReasons.ProtocolError,
             cancellationToken);
 
-    public static Task CloseUnauthorizedAsync(
+    public static ValueTask CloseUnauthorizedAsync(
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
@@ -58,7 +58,7 @@ public static class ConnectionExtensions
             CloseReasons.Unauthorized,
             cancellationToken);
 
-    public static Task CloseConnectionRefusedAsync(
+    public static ValueTask CloseConnectionRefusedAsync(
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
@@ -66,7 +66,7 @@ public static class ConnectionExtensions
             CloseReasons.Unauthorized,
             cancellationToken);
 
-    public static Task CloseToManyInitializationsAsync(
+    public static ValueTask CloseToManyInitializationsAsync(
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
@@ -74,7 +74,7 @@ public static class ConnectionExtensions
             CloseReasons.TooManyInitAttempts,
             cancellationToken);
 
-    public static Task CloseUnexpectedErrorAsync(
+    public static ValueTask CloseUnexpectedErrorAsync(
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(

@@ -23,7 +23,7 @@ public class SubscriptionTestBase : ServerTestBase
         WebSocket webSocket,
         string type,
         CancellationToken cancellationToken)
-        => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(5), cancellationToken);
+        => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(1), cancellationToken);
 
     protected async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
         WebSocket webSocket,
@@ -40,20 +40,20 @@ public class SubscriptionTestBase : ServerTestBase
         {
             while (!combinedCts.Token.IsCancellationRequested)
             {
-                await Task.Delay(50, combinedCts.Token);
-
                 var message = await webSocket.ReceiveServerMessageAsync(combinedCts.Token);
 
-                if (message != null && type.Equals(message["type"]))
+                if(message is null)
+                {
+                    await Task.Delay(5, combinedCts.Token);
+                    continue;
+                }
+
+                if (type.Equals(message["type"]))
                 {
                     return message;
                 }
 
-                if (message?["type"].Equals("ka") == false)
-                {
-                    throw new InvalidOperationException(
-                        $"Unexpected message type: {message["type"]}");
-                }
+                throw new InvalidOperationException($"Unexpected message type: {message["type"]}");
             }
         }
         catch (OperationCanceledException)

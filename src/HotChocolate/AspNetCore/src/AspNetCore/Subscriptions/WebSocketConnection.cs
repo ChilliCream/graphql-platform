@@ -77,7 +77,7 @@ internal sealed class WebSocketConnection : ISocketConnection
         return webSocket.SendAsync(message, Text, true, cancellationToken);
     }
 
-    public async Task ReceiveAsync(
+    public async ValueTask ReceiveAsync(
         IBufferWriter<byte> writer,
         CancellationToken cancellationToken = default)
     {
@@ -117,7 +117,7 @@ internal sealed class WebSocketConnection : ISocketConnection
         }
     }
 
-    public async Task CloseAsync(
+    public async ValueTask CloseAsync(
        string message,
        ConnectionCloseReason reason,
        CancellationToken cancellationToken = default)
@@ -144,7 +144,7 @@ internal sealed class WebSocketConnection : ISocketConnection
         }
     }
 
-    public async Task CloseAsync(
+    public async ValueTask CloseAsync(
         string message,
         int reason,
         CancellationToken cancellationToken = default)

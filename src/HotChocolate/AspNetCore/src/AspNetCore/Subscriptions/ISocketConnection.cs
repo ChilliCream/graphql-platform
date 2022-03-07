@@ -57,7 +57,7 @@ public interface ISocketConnection : IHasContextData, IDisposable
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    Task ReceiveAsync(
+    ValueTask ReceiveAsync(
         IBufferWriter<byte> writer,
         CancellationToken cancellationToken = default);
 
@@ -73,7 +73,7 @@ public interface ISocketConnection : IHasContextData, IDisposable
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    Task CloseAsync(
+    ValueTask CloseAsync(
         string message,
         ConnectionCloseReason reason,
         CancellationToken cancellationToken = default);
@@ -90,7 +90,7 @@ public interface ISocketConnection : IHasContextData, IDisposable
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    Task CloseAsync(
+    ValueTask CloseAsync(
         string message,
         int reason,
         CancellationToken cancellationToken = default);

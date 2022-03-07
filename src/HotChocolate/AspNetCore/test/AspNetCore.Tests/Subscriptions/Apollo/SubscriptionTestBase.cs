@@ -20,6 +20,12 @@ public class SubscriptionTestBase : ServerTestBase
 
     protected Uri SubscriptionUri { get; } = new("ws://localhost:5000/graphql");
 
+    protected Task<IReadOnlyDictionary<string, object>> WaitForMessage(
+        WebSocket webSocket,
+        string type,
+        CancellationToken cancellationToken)
+        => WaitForMessage(webSocket, type, TimeSpan.FromMilliseconds(500), cancellationToken);
+
     protected async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
         WebSocket webSocket,
         string type,

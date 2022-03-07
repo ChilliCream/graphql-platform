@@ -131,7 +131,8 @@ public class SubscriptionManagerTests
             new DefaultSocketSessionInterceptor(),
             executor);
 
-        var query = Utf8GraphQLParser.Parse("{ hero(id: 1) { name } }");
+        var query = Utf8GraphQLParser.Parse(
+            "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
         var success1 = subscriptions.Register("abc", request);
         var registered1 = subscriptions.ToArray();
@@ -164,7 +165,8 @@ public class SubscriptionManagerTests
             new DefaultSocketSessionInterceptor(),
             executor);
 
-        var query = Utf8GraphQLParser.Parse("{ hero(id: 1) { name } }");
+        var query = Utf8GraphQLParser.Parse(
+            "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
         var success1 = subscriptions.Register("abc", request);
         var registered1 = subscriptions.ToArray();
@@ -198,7 +200,7 @@ public class SubscriptionManagerTests
     {
         public string Name => "Test";
 
-        public Task OnReceiveAsync(
+        public ValueTask OnReceiveAsync(
             ISocketSession session,
             ReadOnlySequence<byte> message,
             CancellationToken cancellationToken)
@@ -206,34 +208,34 @@ public class SubscriptionManagerTests
             throw new NotImplementedException();
         }
 
-        public Task SendCompleteMessageAsync(
+        public ValueTask SendCompleteMessageAsync(
             ISocketSession session,
             string operationSessionId,
             CancellationToken cancellationToken)
-            => Task.CompletedTask;
+            => default;
 
-        public Task SendErrorMessageAsync(
+        public ValueTask SendErrorMessageAsync(
             ISocketSession session,
             string operationSessionId,
             IReadOnlyList<IError> errors,
             CancellationToken cancellationToken)
-            => Task.CompletedTask;
+            => default;
 
-        public Task SendKeepAliveMessageAsync(
+        public ValueTask SendKeepAliveMessageAsync(
             ISocketSession session,
             CancellationToken cancellationToken)
-            => Task.CompletedTask;
+            => default;
 
-        public Task SendResultMessageAsync(
+        public ValueTask SendResultMessageAsync(
             ISocketSession session,
             string operationSessionId,
             IQueryResult result,
             CancellationToken cancellationToken)
-            => Task.CompletedTask;
+            => default;
 
-        public Task OnConnectionInitTimeoutAsync(
+        public ValueTask OnConnectionInitTimeoutAsync(
             ISocketSession session,
             CancellationToken cancellationToken)
-            => Task.CompletedTask;
+            => default;
     }
 }

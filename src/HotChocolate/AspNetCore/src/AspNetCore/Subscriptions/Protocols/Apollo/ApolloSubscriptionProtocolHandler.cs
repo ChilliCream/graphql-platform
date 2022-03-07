@@ -25,7 +25,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
     public string Name => GraphQL_WS;
 
-    public async Task OnReceiveAsync(
+    public async ValueTask OnReceiveAsync(
         ISocketSession session,
         ReadOnlySequence<byte> message,
         CancellationToken cancellationToken)
@@ -208,75 +208,75 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             cancellationToken);
     }
 
-    public async Task SendKeepAliveMessageAsync(
+    public ValueTask SendKeepAliveMessageAsync(
         ISocketSession session,
         CancellationToken cancellationToken)
-        => await session.Connection.SendAsync(Utf8MessageBodies.KeepAlive, cancellationToken);
+        => session.Connection.SendAsync(Utf8MessageBodies.KeepAlive, cancellationToken);
 
-    public async Task SendResultMessageAsync(
+    public ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
         IQueryResult result,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Data);
         jsonWriter.WritePropertyName(Payload);
         _serializer.Serialize(result, jsonWriter);
         jsonWriter.WriteEndObject();
-        await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        jsonWriter.Flush();
+        return session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
-    public async Task SendErrorMessageAsync(
+    public ValueTask SendErrorMessageAsync(
         ISocketSession session,
         string operationSessionId,
         IReadOnlyList<IError> errors,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
         _serializer.Serialize(errors[0], jsonWriter);
         jsonWriter.WriteEndObject();
-        await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        jsonWriter.Flush();
+        return session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
-    public async Task SendCompleteMessageAsync(
+    public ValueTask SendCompleteMessageAsync(
         ISocketSession session,
         string operationSessionId,
         CancellationToken cancellationToken)
     {
         using var writer = new ArrayWriter();
         SerializeMessage(writer, Utf8Messages.Complete, id: operationSessionId);
-        await session.Connection.SendAsync(writer.Body, cancellationToken);
+        return session.Connection.SendAsync(writer.Body, cancellationToken);
     }
 
-    private static async Task SendConnectionAcceptMessage(
+    private static ValueTask SendConnectionAcceptMessage(
         ISocketSession session,
         IReadOnlyDictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
         using var writer = new ArrayWriter();
         SerializeMessage(writer, Utf8Messages.ConnectionAccept, payload);
-        await session.Connection.SendAsync(writer.Body, cancellationToken);
+        return session.Connection.SendAsync(writer.Body, cancellationToken);
     }
 
-    private static async Task SendConnectionRejectMessage(
+    private static ValueTask SendConnectionRejectMessage(
         ISocketSession session,
         string message,
         IReadOnlyDictionary<string, object?>? extensions,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.ConnectionError);
         jsonWriter.WritePropertyName(Payload);
@@ -286,11 +286,11 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         JsonSerializer.Serialize(jsonWriter, extensions);
         jsonWriter.WriteEndObject();
         jsonWriter.WriteEndObject();
-        await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        jsonWriter.Flush();
+        return session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
-    public Task OnConnectionInitTimeoutAsync(
+    public ValueTask OnConnectionInitTimeoutAsync(
         ISocketSession session,
         CancellationToken cancellationToken)
         => session.Connection.CloseAsync(

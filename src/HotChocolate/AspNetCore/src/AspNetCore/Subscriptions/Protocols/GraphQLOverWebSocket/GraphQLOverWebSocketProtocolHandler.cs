@@ -7,11 +7,12 @@ using HotChocolate.Utilities;
 using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
 using static HotChocolate.AspNetCore.Subscriptions.ConnectionContextKeys;
+using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket.MessageProperties;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
-internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
+internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocketProtocolHandler
 {
     private readonly JsonQueryResultSerializer _serializer = new();
     private readonly ISocketSessionInterceptor _interceptor;
@@ -23,7 +24,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
     public string Name => GraphQL_Transport_WS;
 
-    public async Task OnReceiveAsync(
+    public async ValueTask OnReceiveAsync(
         ISocketSession session,
         ReadOnlySequence<byte> message,
         CancellationToken cancellationToken)
@@ -148,7 +149,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             }
             catch (SyntaxException ex)
             {
-                if (!root.TryGetProperty(MessageProperties.Id, out idProp) ||
+                if (!root.TryGetProperty(Id, out idProp) ||
                     idProp.ValueKind is not JsonValueKind.String ||
                     string.IsNullOrEmpty(idProp.GetString()))
                 {
@@ -175,8 +176,8 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         }
 
         if (type.ValueEquals(Utf8Messages.Complete) &&
-            root.TryGetProperty(MessageProperties.Id, out idProp) &&
-            idProp.ValueKind is not JsonValueKind.String &&
+            root.TryGetProperty(Id, out idProp) &&
+            idProp.ValueKind is JsonValueKind.String &&
             idProp.GetString() is { Length: > 0 } id)
         {
             session.Operations.Unregister(id);
@@ -186,12 +187,12 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         await connection.CloseInvalidMessageTypeAsync(cancellationToken);
     }
 
-    public Task SendKeepAliveMessageAsync(
+    public ValueTask SendKeepAliveMessageAsync(
         ISocketSession session,
         CancellationToken cancellationToken)
         => SendPongMessageAsync(session, null, cancellationToken);
 
-    public async Task SendResultMessageAsync(
+    public async ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
         IQueryResult result,
@@ -200,16 +201,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         using var arrayWriter = new ArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString(MessageProperties.Id, operationSessionId);
+        jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Next);
-        jsonWriter.WritePropertyName(MessageProperties.Payload);
-        JsonSerializer.Serialize(jsonWriter, _serializer);
+        jsonWriter.WritePropertyName(Payload);
+        _serializer.Serialize(result, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
-    public async Task SendErrorMessageAsync(
+    public async ValueTask SendErrorMessageAsync(
         ISocketSession session,
         string operationSessionId,
         IReadOnlyList<IError> errors,
@@ -218,16 +219,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         using var arrayWriter = new ArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString(MessageProperties.Id, operationSessionId);
+        jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
-        jsonWriter.WritePropertyName(MessageProperties.Payload);
-        JsonSerializer.Serialize(jsonWriter, _serializer);
+        jsonWriter.WritePropertyName(Payload);
+        _serializer.Serialize(errors, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
-    public async Task SendCompleteMessageAsync(
+    public async ValueTask SendCompleteMessageAsync(
         ISocketSession session,
         string operationSessionId,
         CancellationToken cancellationToken)
@@ -237,7 +238,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         await session.Connection.SendAsync(writer.Body, cancellationToken);
     }
 
-    private static async Task SendPingMessageAsync(
+    public async ValueTask SendPingMessageAsync(
         ISocketSession session,
         IReadOnlyDictionary<string, object?>? payload,
         CancellationToken cancellationToken)
@@ -254,7 +255,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         }
     }
 
-    private static async Task SendPongMessageAsync(
+    private static async ValueTask SendPongMessageAsync(
         ISocketSession session,
         IReadOnlyDictionary<string, object?>? payload,
         CancellationToken cancellationToken)
@@ -271,7 +272,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         }
     }
 
-    private static async Task SendConnectionAcceptMessage(
+    private static async ValueTask SendConnectionAcceptMessage(
         ISocketSession session,
         IReadOnlyDictionary<string, object?>? payload,
         CancellationToken cancellationToken)
@@ -281,7 +282,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         await session.Connection.SendAsync(writer.Body, cancellationToken);
     }
 
-    public Task OnConnectionInitTimeoutAsync(
+    public ValueTask OnConnectionInitTimeoutAsync(
         ISocketSession session,
         CancellationToken cancellationToken)
         => session.Connection.CloseConnectionInitTimeoutAsync(cancellationToken);
@@ -290,7 +291,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         JsonElement messageElement,
         [NotNullWhen(true)] out SubscribeMessage? message)
     {
-        if (!messageElement.TryGetProperty(MessageProperties.Id, out JsonElement idProp) ||
+        if (!messageElement.TryGetProperty(Id, out JsonElement idProp) ||
             idProp.ValueKind is not JsonValueKind.String ||
             string.IsNullOrEmpty(idProp.GetString()))
         {
@@ -298,7 +299,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             return false;
         }
 
-        if (!messageElement.TryGetProperty(MessageProperties.Payload, out JsonElement payloadProp) ||
+        if (!messageElement.TryGetProperty(Payload, out JsonElement payloadProp) ||
             payloadProp.ValueKind is not JsonValueKind.Object)
         {
             message = null;

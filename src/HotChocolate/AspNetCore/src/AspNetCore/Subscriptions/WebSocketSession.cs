@@ -44,12 +44,12 @@ internal sealed class WebSocketSession : ISocketSession
         ISocketSessionInterceptor interceptor)
     {
         CancellationToken cancellationToken = context.RequestAborted;
-        var connection = new WebSocketConnection(context);
+        using var connection = new WebSocketConnection(context);
         IProtocolHandler? protocol = await connection.TryAcceptConnection();
 
         if (protocol is not null)
         {
-            var session = new WebSocketSession(connection, protocol, interceptor, executor);
+            using var session = new WebSocketSession(connection, protocol, interceptor, executor);
             var options = context.GetGraphQLSocketOptions() ?? _defaultOptions;
 
             try

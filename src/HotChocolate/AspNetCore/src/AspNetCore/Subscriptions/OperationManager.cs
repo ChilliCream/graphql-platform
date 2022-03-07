@@ -8,7 +8,8 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 
 public sealed class OperationManager : IOperationManager
 {
-    private readonly ConcurrentDictionary<string, IOperationSession> _subs = new();
+    private readonly ReaderWriterLockSlim _lock = new();
+    private readonly Dictionary<string, IOperationSession> _subs = new();
     private readonly CancellationTokenSource _cts;
     private readonly CancellationToken _cancellationToken;
     private readonly ISocketSession _socketSession;
@@ -49,10 +50,28 @@ public sealed class OperationManager : IOperationManager
             throw new ObjectDisposedException(nameof(OperationManager));
         }
 
-        var registered = false;
-        IOperationSession session = _subs.GetOrAdd(sessionId, CreateSession);
+        IOperationSession? session = null;
+        _lock.EnterWriteLock();
 
-        if (registered)
+        try
+        {
+            if(!_subs.ContainsKey(sessionId))
+            {
+                session = new OperationSession(
+                    _socketSession,
+                    _interceptor,
+                    _errorHandler,
+                    _executor,
+                    sessionId);
+                _subs.Add(sessionId, session);
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+
+        if (session is not null)
         {
             session.Completed += (_, _) => Unregister(sessionId);
             session.BeginExecute(request, _cancellationToken);
@@ -60,24 +79,15 @@ public sealed class OperationManager : IOperationManager
         }
 
         return false;
-
-        IOperationSession CreateSession(string key)
-        {
-            registered = true;
-            return new OperationSession(
-                _socketSession,
-                _interceptor,
-                _errorHandler,
-                _executor,
-                key);
-        }
     }
 
     public bool Unregister(string sessionId)
     {
-        if (sessionId == null)
+        if (string.IsNullOrEmpty(sessionId))
         {
-            throw new ArgumentNullException(nameof(sessionId));
+            throw new ArgumentException(
+                OperationManager_Register_SessionIdNullOrEmpty,
+                nameof(sessionId));
         }
 
         if (_disposed)
@@ -85,10 +95,20 @@ public sealed class OperationManager : IOperationManager
             throw new ObjectDisposedException(nameof(OperationManager));
         }
 
-        if (_subs.TryRemove(sessionId, out IOperationSession? session))
+        _lock.EnterWriteLock();
+
+        try
         {
-            session.Dispose();
-            return true;
+            if (_subs.TryGetValue(sessionId, out IOperationSession? session))
+            {
+                _subs.Remove(sessionId);
+                session.Dispose();
+                return true;
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
         }
 
         return false;
@@ -106,7 +126,24 @@ public sealed class OperationManager : IOperationManager
     }
 
     public IEnumerator<IOperationSession> GetEnumerator()
-        => _subs.Values.GetEnumerator();
+    {
+        _lock.EnterReadLock();
+        IOperationSession[] items;
+
+        try
+        {
+            items = _subs.Values.ToArray();
+        }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
+
+        foreach (IOperationSession session in items)
+        {
+            yield return session;
+        }
+    }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

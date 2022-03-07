@@ -12,33 +12,33 @@ public interface IProtocolHandler
     /// </summary>
     string Name { get; }
 
-    Task OnReceiveAsync(
+    ValueTask OnReceiveAsync(
         ISocketSession session,
         ReadOnlySequence<byte> message,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 
-    Task SendKeepAliveMessageAsync(
+    ValueTask OnConnectionInitTimeoutAsync(
         ISocketSession session,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 
-    Task SendResultMessageAsync(
+    ValueTask SendKeepAliveMessageAsync(
+        ISocketSession session,
+        CancellationToken cancellationToken = default);
+
+    ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
         IQueryResult result,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 
-    Task SendErrorMessageAsync(
+    ValueTask SendErrorMessageAsync(
         ISocketSession session,
         string operationSessionId,
         IReadOnlyList<IError> errors,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 
-    Task SendCompleteMessageAsync(
+    ValueTask SendCompleteMessageAsync(
         ISocketSession session,
         string operationSessionId,
-        CancellationToken cancellationToken);
-
-    Task OnConnectionInitTimeoutAsync(
-        ISocketSession session,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 }
