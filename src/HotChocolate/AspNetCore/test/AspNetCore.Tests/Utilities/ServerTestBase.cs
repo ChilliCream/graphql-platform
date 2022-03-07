@@ -12,9 +12,9 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Utilities;
 
-public class ServerTestBase : IClassFixture<TestServerFactory>
+public abstract class ServerTestBase : IClassFixture<TestServerFactory>
 {
-    public ServerTestBase(TestServerFactory serverFactory)
+    protected ServerTestBase(TestServerFactory serverFactory)
     {
         ServerFactory = serverFactory;
     }
@@ -29,10 +29,6 @@ public class ServerTestBase : IClassFixture<TestServerFactory>
         return ServerFactory.Create(
             services =>
             {
-                TestSocketSessionInterceptor testInterceptor = new();
-
-                services.AddSingleton(testInterceptor);
-
                 services
                     .AddRouting()
                     .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
@@ -41,17 +37,15 @@ public class ServerTestBase : IClassFixture<TestServerFactory>
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
                     .AddExportDirectiveType()
-                    .AddSocketSessionInterceptor(x => testInterceptor)
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
                     .UseAutomaticPersistedQueryPipeline()
-                    .ConfigureSchemaServices(services =>
-                        services
-                            .AddSingleton<PersistedQueryCache>()
-                            .AddSingleton<IReadStoredQueries>(
-                                c => c.GetService<PersistedQueryCache>())
-                            .AddSingleton<IWriteStoredQueries>(
-                                c => c.GetService<PersistedQueryCache>()))
+                    .ConfigureSchemaServices(s => s
+                        .AddSingleton<PersistedQueryCache>()
+                        .AddSingleton<IReadStoredQueries>(
+                            c => c.GetService<PersistedQueryCache>())
+                        .AddSingleton<IWriteStoredQueries>(
+                            c => c.GetService<PersistedQueryCache>()))
                     .AddGraphQLServer("evict")
                     .AddQueryType(d => d.Name("Query"))
                     .AddTypeExtension<QueryExtension>()
@@ -96,23 +90,15 @@ public class ServerTestBase : IClassFixture<TestServerFactory>
         Action<IEndpointRouteBuilder> configureConventions = default)
     {
         return ServerFactory.Create(
-            services =>
-            {
-                TestSocketSessionInterceptor testInterceptor = new();
-
-                services.AddSingleton(testInterceptor);
-
-                services
-                    .AddRouting()
-                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
-                    .AddGraphQLServer()
-                    .AddStarWarsTypes()
-                    .AddTypeExtension<QueryExtension>()
-                    .AddTypeExtension<SubscriptionsExtensions>()
-                    .AddExportDirectiveType()
-                    .AddSocketSessionInterceptor(_ => testInterceptor)
-                    .AddStarWarsRepositories();
-            },
+            services => services
+                .AddRouting()
+                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                .AddGraphQLServer()
+                .AddStarWarsTypes()
+                .AddTypeExtension<QueryExtension>()
+                .AddTypeExtension<SubscriptionsExtensions>()
+                .AddExportDirectiveType()
+                .AddStarWarsRepositories(),
             app => app
                 .UseWebSockets()
                 .UseRouting()

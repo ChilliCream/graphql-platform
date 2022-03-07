@@ -14,7 +14,7 @@ public ref partial struct Utf8GraphQLParser
     internal NameNode ParseName()
     {
         TokenInfo start = Start();
-        string name = ExpectName();
+        var name = ExpectName();
         Location? location = CreateLocation(in start);
 
         return new NameNode
@@ -52,7 +52,7 @@ public ref partial struct Utf8GraphQLParser
     {
         if (_reader.Kind == TokenKind.Name)
         {
-            string name = _reader.GetName();
+            var name = _reader.GetName();
             MoveNext();
             return name;
         }
@@ -73,7 +73,7 @@ public ref partial struct Utf8GraphQLParser
     {
         if (TokenHelper.IsString(in _reader))
         {
-            string value = _reader.GetString();
+            var value = _reader.GetString();
             MoveNext();
             return value;
         }
@@ -120,7 +120,7 @@ public ref partial struct Utf8GraphQLParser
     {
         if (!SkipKeyword(keyword))
         {
-            string found = _reader.Kind == TokenKind.Name
+            var found = _reader.Kind == TokenKind.Name
                 ? _reader.GetName()
                 : _reader.Kind.ToString();
 

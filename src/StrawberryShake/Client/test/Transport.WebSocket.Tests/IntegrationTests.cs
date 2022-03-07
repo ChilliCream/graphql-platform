@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Hosting;
@@ -208,7 +208,8 @@ public class IntegrationTests : ServerTestBase
             // assert
             Dictionary<string, object> message =
             Assert.IsType<Dictionary<string, object>>(
-                sessionInterceptor.InitializeConnectionMessage?.Payload);
+                sessionInterceptor.InitializeConnectionMessage?
+                    .As<Dictionary<string, object>>());
             Assert.Equal(payload["Key"], message["Key"]);
             results.MatchSnapshot();
         });
@@ -336,15 +337,15 @@ public class IntegrationTests : ServerTestBase
     private sealed class StubSessionInterceptor : DefaultSocketSessionInterceptor
     {
         public override ValueTask<ConnectionStatus> OnConnectAsync(
-            ISocketConnection connection,
-            InitializeConnectionMessage message,
-            CancellationToken cancellationToken)
+            ISocketSession session,
+            IOperationMessagePayload connectionInitMessage,
+            CancellationToken cancellationToken = default)
         {
-            InitializeConnectionMessage = message;
-            return new ValueTask<ConnectionStatus>(ConnectionStatus.Accept());
+            InitializeConnectionMessage = connectionInitMessage;
+            return base.OnConnectAsync(session, connectionInitMessage, cancellationToken);
         }
 
-        public InitializeConnectionMessage? InitializeConnectionMessage { get; private set; }
+        public IOperationMessagePayload? InitializeConnectionMessage { get; private set; }
     }
 
     private sealed class StubConnectionInterceptor : ISocketConnectionInterceptor

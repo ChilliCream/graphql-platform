@@ -37,6 +37,11 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
 
     public unsafe string Serialize(IQueryResult result)
     {
+        if (result is null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
         using var buffer = new ArrayWriter();
 
         Serialize(result, buffer);
@@ -47,9 +52,71 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
         }
     }
 
+    public void Serialize(IQueryResult result, Utf8JsonWriter writer)
+    {
+        if (result is null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
+        if (writer is null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+
+        WriteResult(writer, result);
+    }
+
+    public void Serialize(IError error, Utf8JsonWriter writer)
+    {
+        if (error is null)
+        {
+            throw new ArgumentNullException(nameof(error));
+        }
+
+        if (writer is null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+
+        WriteError(writer, error);
+    }
+
+    public void Serialize(IReadOnlyList<IError> errors, Utf8JsonWriter writer)
+    {
+        if (errors is null)
+        {
+            throw new ArgumentNullException(nameof(errors));
+        }
+
+        if (writer is null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+        
+        writer.WriteStartArray();
+
+        for (var i = 0; i < errors.Count; i++)
+        {
+            WriteError(writer, errors[i]);
+        }
+
+        writer.WriteEndArray();
+    }
+
     /// <inheritdoc />
     public void Serialize(IQueryResult result, IBufferWriter<byte> writer)
     {
+        if (result is null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
+        if (writer is null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+
         using var jsonWriter = new Utf8JsonWriter(writer, _options);
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();

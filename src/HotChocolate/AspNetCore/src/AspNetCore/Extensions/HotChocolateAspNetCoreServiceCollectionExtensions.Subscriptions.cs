@@ -1,7 +1,8 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Utilities;
 
@@ -50,21 +51,27 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         where T : class, ISocketSessionInterceptor =>
         builder.ConfigureSchemaServices(s => s
             .RemoveAll<ISocketSessionInterceptor>()
-            .AddSingleton<ISocketSessionInterceptor, T>(
-                sp => factory(sp.GetCombinedServices())));
+            .AddSingleton<ISocketSessionInterceptor, T>(sp => factory(sp.GetCombinedServices())));
 
     private static IRequestExecutorBuilder AddSubscriptionServices(
         this IRequestExecutorBuilder builder)
-    {
-        return builder.ConfigureSchemaServices(s =>
-        {
-            s.TryAddSingleton<IMessagePipeline, DefaultMessagePipeline>();
-            s.TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>();
+        => builder
+            .ConfigureSchemaServices(s => s
+                .TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>())
+            .AddApolloProtocol()
+            .AddGraphQLOverWebSocketProtocol();
 
-            s.AddSingleton<IMessageHandler, DataStartMessageHandler>();
-            s.AddSingleton<IMessageHandler, DataStopMessageHandler>();
-            s.AddSingleton<IMessageHandler, InitializeConnectionMessageHandler>();
-            s.AddSingleton<IMessageHandler, TerminateConnectionMessageHandler>();
-        });
-    }
+    private static IRequestExecutorBuilder AddApolloProtocol(
+        this IRequestExecutorBuilder builder)
+        => builder.ConfigureSchemaServices(
+            s => s.AddSingleton<IProtocolHandler>(
+                sp => new ApolloSubscriptionProtocolHandler(
+                    sp.GetRequiredService<ISocketSessionInterceptor>())));
+
+    private static IRequestExecutorBuilder AddGraphQLOverWebSocketProtocol(
+        this IRequestExecutorBuilder builder)
+        => builder.ConfigureSchemaServices(
+            s => s.AddSingleton<IProtocolHandler>(
+                sp => new GraphQLOverWebSocketProtocolHandler(
+                    sp.GetRequiredService<ISocketSessionInterceptor>())));
 }
