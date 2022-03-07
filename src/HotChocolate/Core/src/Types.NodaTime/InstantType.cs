@@ -26,6 +26,11 @@ public class InstantType : StringToStructBaseType<Instant>
     /// </summary>
     public InstantType(params IPattern<Instant>[] allowedPatterns) : base("Instant")
     {
+        if (allowedPatterns.Length == 0)
+        {
+            throw ThrowHelper.PatternCannotBeEmpty(this);
+        }
+
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.InstantType_Description;

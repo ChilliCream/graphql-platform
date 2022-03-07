@@ -27,6 +27,11 @@ public class DurationType : StringToStructBaseType<Duration>
     /// </summary>
     public DurationType(params IPattern<Duration>[] allowedPatterns) : base("Duration")
     {
+        if (allowedPatterns.Length == 0)
+        {
+            throw ThrowHelper.PatternCannotBeEmpty(this);
+        }
+
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.DurationType_Description;

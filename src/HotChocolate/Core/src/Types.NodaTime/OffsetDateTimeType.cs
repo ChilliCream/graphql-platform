@@ -30,6 +30,11 @@ public class OffsetDateTimeType : StringToStructBaseType<OffsetDateTime>
     public OffsetDateTimeType(params IPattern<OffsetDateTime>[] allowedPatterns)
         : base("OffsetDateTime")
     {
+        if (allowedPatterns.Length == 0)
+        {
+            throw ThrowHelper.PatternCannotBeEmpty(this);
+        }
+
         _allowedPatterns = allowedPatterns;
         _serializationPattern = _allowedPatterns[0];
         Description = NodaTimeResources.OffsetDateTimeType_Description;

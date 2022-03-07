@@ -32,6 +32,11 @@ public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
     public ZonedDateTimeType(params IPattern<ZonedDateTime>[] allowedPatterns)
         : base("ZonedDateTime")
     {
+        if (allowedPatterns.Length == 0)
+        {
+            throw ThrowHelper.PatternCannotBeEmpty(this);
+        }
+
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.ZonedDateTimeType_Description;

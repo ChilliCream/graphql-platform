@@ -1,7 +1,8 @@
+using System;
 using System.Linq;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
@@ -95,6 +96,13 @@ namespace HotChocolate.Types.NodaTime.Tests
             Assert.Equal(
                 "Unable to deserialize string to Instant",
                 queryResult.Errors.First().Message);
+        }
+
+        [Fact]
+        public void PatternEmpty_ThrowSchemaException()
+        {
+            static object Call() => new InstantType(Array.Empty<IPattern<Instant>>());
+            Assert.Throws<SchemaException>(Call);
         }
     }
 }

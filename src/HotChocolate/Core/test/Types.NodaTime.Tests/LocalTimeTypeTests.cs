@@ -1,7 +1,9 @@
+using System;
 using System.Linq;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
@@ -119,6 +121,13 @@ namespace HotChocolate.Types.NodaTime.Tests
             Assert.Equal(
                 "Unable to deserialize string to LocalTime",
                 queryResult.Errors[0].Message);
+        }
+
+        [Fact]
+        public void PatternEmpty_ThrowSchemaException()
+        {
+            static object Call() => new LocalTimeType(Array.Empty<IPattern<LocalTime>>());
+            Assert.Throws<SchemaException>(Call);
         }
     }
 }

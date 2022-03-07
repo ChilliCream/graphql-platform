@@ -28,6 +28,11 @@ public class OffsetType : StringToStructBaseType<Offset>
     /// </summary>
     public OffsetType(params IPattern<Offset>[] allowedPatterns) : base("Offset")
     {
+        if (allowedPatterns.Length == 0)
+        {
+            throw ThrowHelper.PatternCannotBeEmpty(this);
+        }
+
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.OffsetType_Description;

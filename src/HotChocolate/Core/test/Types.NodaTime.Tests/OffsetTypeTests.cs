@@ -1,6 +1,8 @@
+using System;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
@@ -141,6 +143,13 @@ namespace HotChocolate.Types.NodaTime.Tests
             Assert.Equal(1, queryResult!.Errors!.Count);
             Assert.Null(queryResult.Errors[0].Code);
             Assert.Equal("Unable to deserialize string to Offset", queryResult.Errors[0].Message);
+        }
+
+        [Fact]
+        public void PatternEmpty_ThrowSchemaException()
+        {
+            static object Call() => new OffsetType(Array.Empty<IPattern<Offset>>());
+            Assert.Throws<SchemaException>(Call);
         }
     }
 }

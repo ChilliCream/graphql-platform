@@ -26,6 +26,11 @@ public class LocalDateTimeType : StringToStructBaseType<LocalDateTime>
     /// </summary>
     public LocalDateTimeType(params IPattern<LocalDateTime>[] allowedPatterns) : base("LocalDateTime")
     {
+        if (allowedPatterns.Length == 0)
+        {
+            throw ThrowHelper.PatternCannotBeEmpty(this);
+        }
+
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.LocalDateTimeType_Description;

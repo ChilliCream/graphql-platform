@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
@@ -134,6 +135,13 @@ namespace HotChocolate.Types.NodaTime.Tests
             Assert.Equal(1, queryResult!.Errors!.Count);
             Assert.Null(queryResult.Errors.First().Code);
             Assert.Equal("Unable to deserialize string to ZonedDateTime", queryResult.Errors.First().Message);
+        }
+
+        [Fact]
+        public void PatternEmpty_ThrowSchemaException()
+        {
+            static object Call() => new ZonedDateTimeType(Array.Empty<IPattern<ZonedDateTime>>());
+            Assert.Throws<SchemaException>(Call);
         }
     }
 }

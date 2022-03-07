@@ -26,6 +26,11 @@ public class PeriodType : StringToClassBaseType<Period>
     /// </summary>
     public PeriodType(params IPattern<Period>[] allowedPatterns) : base("Period")
     {
+        if (allowedPatterns.Length == 0)
+        {
+            throw ThrowHelper.PatternCannotBeEmpty(this);
+        }
+
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.PeriodType_Description;
