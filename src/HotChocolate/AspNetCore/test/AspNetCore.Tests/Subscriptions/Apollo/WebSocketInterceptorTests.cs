@@ -272,6 +272,22 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
                 await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
                 using var cts = new CancellationTokenSource();
 
+                await testServer.SendPostRequestAsync(
+                    new ClientQueryRequest
+                    {
+                        Query = @"
+                            mutation {
+                                createReview(episode: NEW_HOPE review: {
+                                    commentary: ""foo""
+                                    stars: 5
+                                }) {
+                                    stars
+                                }
+                            }"
+                    });
+
+                await WaitForMessage(webSocket, "data", ct);
+
                 void BeginClose()
                     => Task.Factory.StartNew(
                         () => webSocket.CloseAsync(
@@ -286,6 +302,7 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
                 BeginClose();
 
                 // assert
+                await WaitForConditions(() => interceptor.OnCompleteInvoked, ct);
                 await WaitForConditions(() => interceptor.OnCloseInvoked, ct);
                 cts.Cancel();
 
