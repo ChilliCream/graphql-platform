@@ -141,7 +141,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                     return;
                 }
 
-                if (!session.Operations.Register(subscribeMessage.Id, subscribeMessage.Payload))
+                if (!session.Operations.Enqueue(subscribeMessage.Id, subscribeMessage.Payload))
                 {
                     await connection.CloseSubscriptionIdNotUniqueAsync(cancellationToken);
                     return;
@@ -180,7 +180,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
             idProp.ValueKind is JsonValueKind.String &&
             idProp.GetString() is { Length: > 0 } id)
         {
-            session.Operations.Unregister(id);
+            session.Operations.Complete(id);
             return;
         }
 

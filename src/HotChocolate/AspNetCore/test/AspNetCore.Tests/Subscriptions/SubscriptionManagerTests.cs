@@ -32,7 +32,7 @@ public class SubscriptionManagerTests
         var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
-        void Action() => subscriptions.Register(null!, new GraphQLRequest(null, queryId: "123"));
+        void Action() => subscriptions.Enqueue(null!, new GraphQLRequest(null, queryId: "123"));
 
         // assert
         Assert.Equal(
@@ -55,7 +55,7 @@ public class SubscriptionManagerTests
         var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
-        void Action() => subscriptions.Register("", new GraphQLRequest(null, queryId: "123"));
+        void Action() => subscriptions.Enqueue("", new GraphQLRequest(null, queryId: "123"));
 
         // assert
         Assert.Equal(
@@ -78,7 +78,7 @@ public class SubscriptionManagerTests
         var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
 
         // act
-        void Action() => subscriptions.Register("abc", null!);
+        void Action() => subscriptions.Enqueue("abc", null!);
 
         // assert
         Assert.Equal(
@@ -110,7 +110,7 @@ public class SubscriptionManagerTests
         var request = new GraphQLRequest(query);
 
         // act
-        var success = subscriptions.Register("abc", request);
+        var success = subscriptions.Enqueue("abc", request);
         var registered = subscriptions.ToArray();
 
         // assert
@@ -140,11 +140,11 @@ public class SubscriptionManagerTests
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
-        var success1 = subscriptions.Register("abc", request);
+        var success1 = subscriptions.Enqueue("abc", request);
         var registered1 = subscriptions.ToArray();
 
         // act
-        var success2 = subscriptions.Register("abc", request);
+        var success2 = subscriptions.Enqueue("abc", request);
         var registered2 = subscriptions.ToArray();
 
         // assert
@@ -176,11 +176,11 @@ public class SubscriptionManagerTests
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
-        var success1 = subscriptions.Register("abc", request);
+        var success1 = subscriptions.Enqueue("abc", request);
         var registered1 = subscriptions.ToArray();
 
         // act
-        var success2 = subscriptions.Unregister("abc");
+        var success2 = subscriptions.Complete("abc");
         var registered2 = subscriptions.ToArray();
 
         // assert

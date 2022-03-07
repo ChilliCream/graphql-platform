@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Connections;
-
 namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal static class ProtocolNames

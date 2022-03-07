@@ -140,7 +140,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                     return;
                 }
 
-                if (!session.Operations.Register(dataStartMessage.Id, dataStartMessage.Payload))
+                if (!session.Operations.Enqueue(dataStartMessage.Id, dataStartMessage.Payload))
                 {
                     await connection.CloseAsync(
                         Apollo_OnReceive_SubscriptionIdNotUnique,
@@ -186,7 +186,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                 idProp.ValueKind is JsonValueKind.String &&
                 idProp.GetString() is { Length: > 0 } id)
             {
-                session.Operations.Unregister(id);
+                session.Operations.Complete(id);
             }
             return;
         }

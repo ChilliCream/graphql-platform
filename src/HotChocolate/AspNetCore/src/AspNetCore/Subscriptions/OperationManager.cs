@@ -6,6 +6,11 @@ using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
+/// <summary>
+/// The operation manager provides access to registered running operation within a socket session.
+/// The operation manager ensures that operation are correctly tracked and cleaned up after they
+/// have been completed.
+/// </summary>
 public sealed class OperationManager : IOperationManager
 {
     private readonly ReaderWriterLockSlim _lock = new();
@@ -33,7 +38,7 @@ public sealed class OperationManager : IOperationManager
         _cancellationToken = _cts.Token;
     }
 
-    public OperationManager(
+    internal OperationManager(
         ISocketSession socketSession,
         ISocketSessionInterceptor interceptor,
         IRequestExecutor executor,
@@ -48,7 +53,8 @@ public sealed class OperationManager : IOperationManager
         _cancellationToken = _cts.Token;
     }
 
-    public bool Register(string sessionId, GraphQLRequest request)
+    /// <inheritdoc />
+    public bool Enqueue(string sessionId, GraphQLRequest request)
     {
         if (string.IsNullOrEmpty(sessionId))
         {
@@ -85,7 +91,7 @@ public sealed class OperationManager : IOperationManager
 
         if (session is not null)
         {
-            session.Completed += (_, _) => Unregister(sessionId);
+            session.Completed += (_, _) => Complete(sessionId);
             session.BeginExecute(request, _cancellationToken);
             return true;
         }
@@ -93,7 +99,8 @@ public sealed class OperationManager : IOperationManager
         return false;
     }
 
-    public bool Unregister(string sessionId)
+    /// <inheritdoc />
+    public bool Complete(string sessionId)
     {
         if (string.IsNullOrEmpty(sessionId))
         {
@@ -129,6 +136,7 @@ public sealed class OperationManager : IOperationManager
     private OperationSession CreateSession(string sessionId)
         => new(_socketSession, _interceptor, _errorHandler, _executor, sessionId);
 
+    /// <inheritdoc />
     public void Dispose()
     {
         if (!_disposed)
@@ -140,6 +148,7 @@ public sealed class OperationManager : IOperationManager
         }
     }
 
+    /// <inheritdoc />
     public IEnumerator<IOperationSession> GetEnumerator()
     {
         _lock.EnterReadLock();
