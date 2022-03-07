@@ -44,7 +44,7 @@ internal sealed class OperationSession : IOperationSession
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _ct);
         CancellationToken ct = cts.Token;
-        bool completeTry = false;
+        var completeTry = false;
 
         try
         {

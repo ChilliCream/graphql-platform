@@ -97,10 +97,12 @@ public class SubscriptionManagerTests
 
         var socketSession = new TestSocketSession();
 
+        var mockSession = new Mock<IOperationSession>();
         using var subscriptions = new OperationManager(
             socketSession,
             new DefaultSocketSessionInterceptor(),
-            executor);
+            executor,
+            _ => mockSession.Object);
 
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -127,10 +129,12 @@ public class SubscriptionManagerTests
 
         var socketSession = new TestSocketSession();
 
+        var mockSession = new Mock<IOperationSession>();
         using var subscriptions = new OperationManager(
             socketSession,
             new DefaultSocketSessionInterceptor(),
-            executor);
+            executor,
+            _ => mockSession.Object);
 
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -161,10 +165,12 @@ public class SubscriptionManagerTests
 
         var socketSession = new TestSocketSession();
 
+        var mockSession = new Mock<IOperationSession>();
         using var subscriptions = new OperationManager(
             socketSession,
             new DefaultSocketSessionInterceptor(),
-            executor);
+            executor,
+            _ => mockSession.Object);
 
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");

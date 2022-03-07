@@ -106,7 +106,6 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
                     });
 
                 // assert
-                await webSocket.SendSubscriptionStopAsync(subscriptionId, ct);
                 await WaitForConditions(() => interceptor.OnResultInvoked, ct);
                 Assert.True(interceptor.OnResultInvoked);
                 Assert.Equal(1, interceptor.OnResultCount);
@@ -162,7 +161,6 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
                     });
 
                 // assert
-                await webSocket.SendSubscriptionStopAsync(subscriptionId, ct);
                 await WaitForConditions(() => interceptor.OnResultInvoked, ct);
                 Assert.True(interceptor.OnResultInvoked);
                 Assert.Equal(2, interceptor.OnResultCount);

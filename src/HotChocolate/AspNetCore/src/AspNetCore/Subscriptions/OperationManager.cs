@@ -16,6 +16,7 @@ public sealed class OperationManager : IOperationManager
     private readonly ISocketSessionInterceptor _interceptor;
     private readonly IErrorHandler _errorHandler;
     private readonly IRequestExecutor _executor;
+    private readonly Func<string, IOperationSession> _createSession;
     private bool _disposed;
 
     public OperationManager(
@@ -23,9 +24,25 @@ public sealed class OperationManager : IOperationManager
         ISocketSessionInterceptor interceptor,
         IRequestExecutor executor)
     {
-        _socketSession = socketSession;
-        _interceptor = interceptor;
-        _executor = executor;
+        _socketSession = socketSession ?? throw new ArgumentNullException(nameof(socketSession));
+        _interceptor = interceptor ?? throw new ArgumentNullException(nameof(interceptor));
+        _executor = executor ?? throw new ArgumentNullException(nameof(executor));
+        _createSession = CreateSession;
+        _errorHandler = executor.Services.GetRequiredService<IErrorHandler>();
+        _cts = new CancellationTokenSource();
+        _cancellationToken = _cts.Token;
+    }
+
+    public OperationManager(
+        ISocketSession socketSession,
+        ISocketSessionInterceptor interceptor,
+        IRequestExecutor executor,
+        Func<string, IOperationSession> createSession)
+    {
+        _socketSession = socketSession ?? throw new ArgumentNullException(nameof(socketSession));
+        _interceptor = interceptor ?? throw new ArgumentNullException(nameof(interceptor));
+        _executor = executor ?? throw new ArgumentNullException(nameof(executor));
+        _createSession = createSession ?? throw new ArgumentNullException(nameof(createSession));
         _errorHandler = executor.Services.GetRequiredService<IErrorHandler>();
         _cts = new CancellationTokenSource();
         _cancellationToken = _cts.Token;
@@ -57,12 +74,7 @@ public sealed class OperationManager : IOperationManager
         {
             if(!_subs.ContainsKey(sessionId))
             {
-                session = new OperationSession(
-                    _socketSession,
-                    _interceptor,
-                    _errorHandler,
-                    _executor,
-                    sessionId);
+                session = CreateSession(sessionId);
                 _subs.Add(sessionId, session);
             }
         }
@@ -113,6 +125,9 @@ public sealed class OperationManager : IOperationManager
 
         return false;
     }
+
+    private OperationSession CreateSession(string sessionId)
+        => new(_socketSession, _interceptor, _errorHandler, _executor, sessionId);
 
     public void Dispose()
     {

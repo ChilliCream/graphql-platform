@@ -247,13 +247,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }"
                 });
 
-            IReadOnlyDictionary<string, object> message =
-                await WaitForMessage(
-                    webSocket,
-                    "data",
-                    TimeSpan.FromSeconds(15),
-                    ct);
-
+            var message = await WaitForMessage(webSocket, "data", ct);
             Assert.NotNull(message);
             Snapshot.Match(message, snapshotName);
         });
@@ -412,7 +406,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     }"
             });
 
-            await WaitForMessage(webSocket, "data", TimeSpan.FromSeconds(15), ct);
+            await WaitForMessage(webSocket, "data", ct);
 
             // act
             await webSocket.SendSubscriptionStopAsync(subscriptionId, ct);
@@ -456,13 +450,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
 
             // assert
-            IReadOnlyDictionary<string, object> message =
-                await WaitForMessage(
-                    webSocket,
-                    "error",
-                    TimeSpan.FromSeconds(15),
-                    ct);
-
+            var message = await WaitForMessage(webSocket, "error", ct);
             Assert.NotNull(message);
             Snapshot.Match(message, snapshotName);
         });
