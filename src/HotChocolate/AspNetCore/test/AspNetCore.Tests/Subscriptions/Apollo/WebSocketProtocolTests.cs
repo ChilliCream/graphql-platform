@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +18,7 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
+[Collection("Sockets")]
 public class WebSocketProtocolTests : SubscriptionTestBase
 {
     public WebSocketProtocolTests(TestServerFactory serverFactory)

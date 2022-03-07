@@ -14,6 +14,7 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
+[Collection("Sockets")]
 public class SubscriptionManagerTests
 {
     [Fact]
