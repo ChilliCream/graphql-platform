@@ -114,4 +114,10 @@
   <data name="Apollo_OnReceive_InvalidMessageType" xml:space="preserve">
     <value>Invalid message type.</value>
   </data>
+  <data name="ConnectionStatus_Reject_Message_cannot_be_null_or_empty_" xml:space="preserve">
+    <value>Message cannot be null or empty.</value>
+  </data>
+  <data name="ConnectionStatus_Reject_MessageCannotBeNullOrEmpty" xml:space="preserve">
+    <value>Message cannot be null or empty.</value>
+  </data>
 </root>

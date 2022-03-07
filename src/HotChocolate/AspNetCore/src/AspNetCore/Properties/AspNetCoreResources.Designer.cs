@@ -236,5 +236,17 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("Apollo_OnReceive_InvalidMessageType", resourceCulture);
             }
         }
+        
+        internal static string ConnectionStatus_Reject_Message_cannot_be_null_or_empty_ {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_Reject_Message_cannot_be_null_or_empty_", resourceCulture);
+            }
+        }
+        
+        internal static string ConnectionStatus_Reject_MessageCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_Reject_MessageCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }
