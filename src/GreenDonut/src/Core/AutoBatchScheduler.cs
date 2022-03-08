@@ -14,14 +14,14 @@ namespace GreenDonut
         /// <param name="dispatch">
         /// The job that is being scheduled.
         /// </param>
-        public void Schedule(Func<ValueTask> dispatch) 
+        public void Schedule(Func<ValueTask> dispatch)
             => BeginDispatch(dispatch);
 
         private void BeginDispatch(Func<ValueTask> dispatch)
             => Task.Factory.StartNew(
-                async () => await dispatch().ConfigureAwait(false), 
-                default, 
-                TaskCreationOptions.DenyChildAttach, 
+                async () => await dispatch().ConfigureAwait(false),
+                default,
+                TaskCreationOptions.DenyChildAttach,
                 TaskScheduler.Default);
 
         /// <summary>

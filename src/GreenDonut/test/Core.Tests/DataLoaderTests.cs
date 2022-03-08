@@ -382,7 +382,7 @@ namespace GreenDonut
 
             var batchScheduler = new ManualBatchScheduler();
             var loader = new DataLoader<string, string>(Fetch, batchScheduler);
-            var requestKeys = new [] { "Foo", "Bar", "Baz", "Qux" };
+            var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux" };
 
             // act
             Task Verify() => loader.LoadAsync(requestKeys);
@@ -494,8 +494,7 @@ namespace GreenDonut
                     await Task.Delay(delay);
 
                     return await loader.LoadAsync(keyArray[index]);
-                }, TaskCreationOptions.RunContinuationsAsynchronously)
-                    .Unwrap();
+                }, TaskCreationOptions.RunContinuationsAsynchronously).Unwrap();
             }
 
             while (requests.Any(task => !task.IsCompleted))
@@ -833,7 +832,7 @@ namespace GreenDonut
             FetchDataDelegate<string, string> fetch = CreateFetch<string, string>();
             var batchScheduler = new ManualBatchScheduler();
             var cache = new TaskCache(10);
-            var options  = new DataLoaderOptions { Cache = cache };
+            var options = new DataLoaderOptions { Cache = cache };
             IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
             object key = "Foo";
 
@@ -902,7 +901,7 @@ namespace GreenDonut
             FetchDataDelegate<string, string> fetch = CreateFetch<string, string>();
             var batchScheduler = new ManualBatchScheduler();
             var cache = new TaskCache(10);
-            var options  = new DataLoaderOptions { Cache = cache };
+            var options = new DataLoaderOptions { Cache = cache };
             IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
             object key = "Foo";
             var value = Task.FromResult<object>("Bar");
@@ -921,7 +920,7 @@ namespace GreenDonut
             FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var batchScheduler = new ManualBatchScheduler();
             var cache = new TaskCache(10);
-            var options  = new DataLoaderOptions { Cache = cache };
+            var options = new DataLoaderOptions { Cache = cache };
             IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler, options);
             const string key = "Foo";
             var first = Task.FromResult((object)"Bar");
