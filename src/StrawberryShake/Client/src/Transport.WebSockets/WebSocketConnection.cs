@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,7 +71,7 @@ public class WebSocketConnection : IWebSocketConnection
                         JsonElement payload = msg.Payload.RootElement;
 
                         var hasNext = false;
-                        var isPatch = payload.TryGetProperty(Path, out _);
+                        var isPatch = payload.TryGetProperty(ResultFields.Path, out _);
 
                         if (payload.TryGetProperty(HasNext, out JsonElement hasNextProp) &&
                             hasNextProp.GetBoolean())
@@ -82,7 +83,7 @@ public class WebSocketConnection : IWebSocketConnection
                         break;
 
                     case OperationMessageType.Error when message is ErrorOperationMessage msg:
-                        var operationEx = new SocketOperationException(msg.Message);
+                        var operationEx = new GraphQLClientException(msg.Payload);
                         yield return new(null, operationEx);
                         yield break;
 

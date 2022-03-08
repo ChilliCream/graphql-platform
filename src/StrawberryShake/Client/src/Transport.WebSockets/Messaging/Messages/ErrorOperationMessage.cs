@@ -7,27 +7,17 @@ namespace StrawberryShake.Transport.WebSockets.Messages;
 /// The <see cref="ErrorOperationMessage"/> is used to transport any connection error to the
 /// socket operation
 /// </summary>
-public class ErrorOperationMessage : OperationMessage
+public class ErrorOperationMessage : OperationMessage<IClientError>
 {
     public ErrorOperationMessage(string message)
-        : base(OperationMessageType.Error)
+        : base(OperationMessageType.Error, new ClientError(message))
     {
-        Message = message ?? throw new ArgumentNullException(nameof(message));
     }
 
-    /// <summary>
-    /// The error message
-    /// </summary>
-    public string Message { get; }
-
-    /// <summary>
-    /// Default unexpected server error
-    /// <remarks>
-    /// There was a unexpected error on the server
-    /// </remarks>
-    /// </summary>
-    public static readonly ErrorOperationMessage UnexpectedServerError =
-        new(Resources.ErrorOperationMessage_UnexpectedServerError);
+    public ErrorOperationMessage(IClientError error)
+        : base(OperationMessageType.Error, error)
+    {
+    }
 
     /// <summary>
     /// Default connection error
@@ -37,13 +27,4 @@ public class ErrorOperationMessage : OperationMessage
     /// </summary>
     public static readonly ErrorOperationMessage ConnectionInitializationError =
         new(Resources.ErrorOperationMessage_ConnectionInitializationError);
-
-    /// <summary>
-    /// Defaults response parsing error
-    /// <remarks>
-    /// Could not parse the response of the server
-    /// </remarks>
-    /// </summary>
-    public static readonly ErrorOperationMessage ResponseParsingError =
-        new(Resources.ErrorOperationMessage_ResponseParsingError);
 }

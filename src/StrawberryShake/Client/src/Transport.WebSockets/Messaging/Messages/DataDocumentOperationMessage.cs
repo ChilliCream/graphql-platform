@@ -4,7 +4,7 @@ namespace StrawberryShake.Transport.WebSockets.Messages;
 /// The <see cref="DataDocumentOperationMessage{T}"/> is used to transport a data payload to the
 /// socket operation
 /// </summary>
-public class DataDocumentOperationMessage<TData> : OperationMessage<TData>
+public sealed class DataDocumentOperationMessage<TData> : OperationMessage<TData>
 {
     /// <summary>
     /// Creates a new instance of a <see cref="OperationMessage"/>

@@ -143,7 +143,7 @@ public class IntegrationTests : ServerTestBase
                 ISessionPool sessionPool =
                     services.GetRequiredService<ISessionPool>();
 
-                List<JsonDocument> results = new();
+                List<string> results = new();
                 MockDocument document = new(@"subscription Test { onTest(id:""Foo"") }");
                 OperationRequest request = new("Test", document);
 
@@ -154,14 +154,14 @@ public class IntegrationTests : ServerTestBase
                 await foreach (Response<JsonDocument> response in
                     connection.ExecuteAsync(request).WithCancellation(ct))
                 {
-                    if (response.Body is not null)
+                    if (response.Exception is not null)
                     {
-                        results.Add(response.Body);
+                        results.Add(response.Exception.Message);
                     }
                 }
 
                 // assert
-                results.Select(x => x.RootElement.ToString()).ToList().MatchSnapshot();
+                results.MatchSnapshot();
             });
     }
 
@@ -177,7 +177,7 @@ public class IntegrationTests : ServerTestBase
                 var payload = new Dictionary<string, object> { ["Key"] = "Value" };
                 var sessionInterceptor = new StubSessionInterceptor();
                 using IWebHost host = TestServerHelper.CreateServer(
-                    x => x
+                    builder => builder
                         .AddTypeExtension<StringSubscriptionExtensions>()
                         .AddSocketSessionInterceptor<ISocketSessionInterceptor>(
                             _ => sessionInterceptor),
@@ -190,11 +190,9 @@ public class IntegrationTests : ServerTestBase
                         "Foo",
                         c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
                     .ConfigureConnectionInterceptor(new StubConnectionInterceptor(payload));
-                IServiceProvider services =
-                    serviceCollection.BuildServiceProvider();
 
-                ISessionPool sessionPool =
-                    services.GetRequiredService<ISessionPool>();
+                IServiceProvider services = serviceCollection.BuildServiceProvider();
+                ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
 
                 List<string> results = new();
                 MockDocument document = new("subscription Test { onTest(id:1) }");
@@ -209,15 +207,14 @@ public class IntegrationTests : ServerTestBase
                 {
                     if (response.Body is not null)
                     {
-                        results.Add(response.Body.ToString()!);
+                        results.Add(response.Body.RootElement.ToString()!);
                     }
                 }
 
                 // assert
-                Dictionary<string, object> message =
-                    Assert.IsType<Dictionary<string, object>>(
-                        sessionInterceptor.InitializeConnectionMessage?
-                            .As<Dictionary<string, object>>());
+                Dictionary<string, string> message =
+                    Assert.IsType<Dictionary<string, string>>(
+                        sessionInterceptor.InitializeConnectionMessage);
                 Assert.Equal(payload["Key"], message["Key"]);
                 results.MatchSnapshot();
             });
@@ -361,11 +358,11 @@ public class IntegrationTests : ServerTestBase
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
-            InitializeConnectionMessage = connectionInitMessage;
+            InitializeConnectionMessage = connectionInitMessage.As<Dictionary<string, string>>();
             return base.OnConnectAsync(session, connectionInitMessage, cancellationToken);
         }
 
-        public IOperationMessagePayload? InitializeConnectionMessage { get; private set; }
+        public Dictionary<string, string>? InitializeConnectionMessage { get; private set; }
     }
 
     private sealed class StubConnectionInterceptor : ISocketConnectionInterceptor

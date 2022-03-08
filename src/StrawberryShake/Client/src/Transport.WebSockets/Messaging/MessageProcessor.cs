@@ -31,7 +31,7 @@ internal static class MessageProcessor
     /// a message was fully received
     /// </summary>
     /// <param name="reader">The reader that provides the data</param>
-    /// <param name="processAsync">
+    /// <param name="process">
     /// The event handler that is invoked every time a message is fully parsed
     /// </param>
     /// <param name="cancellationToken">
@@ -42,31 +42,26 @@ internal static class MessageProcessor
     /// </returns>
     public static Task Start(
         PipeReader reader,
-        ProcessAsync processAsync,
+        ProcessAsync process,
         CancellationToken cancellationToken)
-    {
-        return Task.Factory.StartNew(
-            () => ProcessMessagesAsync(reader, processAsync, cancellationToken),
+        => Task.Factory.StartNew(
+            () => ProcessMessagesAsync(reader, process, cancellationToken),
             cancellationToken,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
-    }
 
     private static async Task ProcessMessagesAsync(
         PipeReader reader,
-        ProcessAsync processAsync,
-        CancellationToken cancellationToken)
+        ProcessAsync process,
+        CancellationToken ct)
     {
         try
         {
             while (true)
             {
-                ReadResult result = await reader
-                    .ReadAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
+                ReadResult result = await reader.ReadAsync(ct).ConfigureAwait(false);
                 ReadOnlySequence<byte> buffer = result.Buffer;
-                SequencePosition? position = null;
+                SequencePosition? position;
 
                 do
                 {
@@ -74,10 +69,7 @@ internal static class MessageProcessor
 
                     if (position != null)
                     {
-                        await processAsync(
-                                buffer.Slice(0, position.Value),
-                                cancellationToken)
-                            .ConfigureAwait(false);
+                        await process(buffer.Slice(0, position.Value), ct).ConfigureAwait(false);
 
                         // Skip the message which was read.
                         buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
@@ -92,7 +84,10 @@ internal static class MessageProcessor
                 }
             }
         }
-        catch (TaskCanceledException) { }
+        catch (OperationCanceledException)
+        {
+            // if this operation was cancelled we will move on.
+        }
         finally
         {
             await reader.CompleteAsync().ConfigureAwait(false);
