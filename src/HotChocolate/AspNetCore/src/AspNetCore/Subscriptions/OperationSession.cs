@@ -37,7 +37,7 @@ internal sealed class OperationSession : IOperationSession
         => Task.Factory.StartNew(
             () => SendResultsAsync(request, cancellationToken),
             default,
-            TaskCreationOptions.LongRunning,
+            TaskCreationOptions.None,
             TaskScheduler.Default);
 
     private async Task SendResultsAsync(GraphQLRequest request, CancellationToken cancellationToken)
