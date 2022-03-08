@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Utilities.Transport.Sockets</AssemblyName>
+    <RootNamespace>HotChocolate.Utilities.Transport.Sockets</RootNamespace>
+    <PackageId>HotChocolate.Utilities.Transport.Sockets</PackageId>
+    <Description>Contains a GraphQL over Websocket client.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="4.7.0" />
+    <PackageReference Include="System.IO.Pipelines" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\SocketClientResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SocketClientResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\SocketClientResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SocketClientResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Protocols\GraphQLOverWebSocket" />
+  </ItemGroup>
+
+</Project>

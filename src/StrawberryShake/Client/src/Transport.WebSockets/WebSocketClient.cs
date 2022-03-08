@@ -34,7 +34,7 @@ public sealed class WebSocketClient : IWebSocketClient
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _protocolFactories = protocolFactories ??
-                             throw new ArgumentNullException(nameof(protocolFactories));
+            throw new ArgumentNullException(nameof(protocolFactories));
         _socket = new ClientWebSocket();
 
         for (var i = 0; i < _protocolFactories.Count; i++)
@@ -89,9 +89,9 @@ public sealed class WebSocketClient : IWebSocketClient
         if (_activeProtocol is null)
         {
             await CloseAsync(
-                    Resources.SocketClient_FailedToInitializeProtocol,
-                    SocketCloseStatus.ProtocolError,
-                    cancellationToken)
+                Resources.SocketClient_FailedToInitializeProtocol,
+                SocketCloseStatus.ProtocolError,
+                cancellationToken)
                 .ConfigureAwait(false);
 
             throw ThrowHelper.SocketClient_ProtocolNotFound(_socket.SubProtocol ?? "null");
@@ -130,9 +130,9 @@ public sealed class WebSocketClient : IWebSocketClient
             }
 
             await _socket.CloseOutputAsync(
-                    MapCloseStatus(closeStatus),
-                    message,
-                    cancellationToken)
+                MapCloseStatus(closeStatus),
+                message,
+                cancellationToken)
                 .ConfigureAwait(false);
 
             await DisposeAsync();
@@ -208,7 +208,7 @@ public sealed class WebSocketClient : IWebSocketClient
                 {
                     break;
                 }
-            } while (socketResult == null || !socketResult.EndOfMessage);
+            } while (socketResult is not { EndOfMessage: true });
         }
         catch (ObjectDisposedException)
         {
