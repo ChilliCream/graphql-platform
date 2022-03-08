@@ -3,6 +3,7 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <TargetFrameworks>net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -11,8 +12,13 @@
     <PackageId>HotChocolate.Utilities.Transport.Sockets</PackageId>
     <Description>Contains a GraphQL over Websocket client.</Description>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Utilities.Transport.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="System.Text.Json" Version="4.7.0" />
     <PackageReference Include="System.IO.Pipelines" Version="4.7.0" />
   </ItemGroup>
@@ -30,10 +36,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>SocketClientResources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Protocols\GraphQLOverWebSocket" />
   </ItemGroup>
 
 </Project>

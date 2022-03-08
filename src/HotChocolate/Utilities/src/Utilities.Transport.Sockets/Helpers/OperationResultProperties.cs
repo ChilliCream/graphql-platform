@@ -1,4 +1,4 @@
-namespace HotChocolate.Utilities.Transport.Sockets;
+namespace HotChocolate.Utilities.Transport.Sockets.Helpers;
 
 internal static class OperationResultProperties
 {
