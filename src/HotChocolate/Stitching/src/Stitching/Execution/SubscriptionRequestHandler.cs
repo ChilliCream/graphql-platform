@@ -94,7 +94,7 @@ internal sealed class SubscriptionRequestHandler : IRemoteRequestHandler
                         break;
 
                     case OperationMessageType.Error when message is ErrorOperationMessage msg:
-                        var error = new Error(msg.Message);
+                        var error = new Error(msg.Payload.Message);
                         yield return QueryResultBuilder.CreateError(error);
                         yield break;
 

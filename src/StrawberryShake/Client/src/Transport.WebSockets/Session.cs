@@ -81,9 +81,9 @@ public sealed class Session : ISession
         string operationId,
         CancellationToken cancellationToken = default)
     {
-        EnsureSession(out var socketProtocol);
+        EnsureSession(out ISocketProtocol socketProtocol);
 
-        if (_operations.TryRemove(operationId, out var operation))
+        if (_operations.TryRemove(operationId, out SocketOperation? operation))
         {
             await socketProtocol
                 .StopOperationAsync(operationId, cancellationToken)
@@ -99,11 +99,12 @@ public sealed class Session : ISession
     /// <param name="cancellationToken">The cancellation token to cancel the operation</param>
     public async Task OpenSessionAsync(CancellationToken cancellationToken = default)
     {
-        ISocketProtocol socketProtocol = await _socketClient.OpenAsync(cancellationToken)
-            .ConfigureAwait(false);
+        ISocketProtocol socketProtocol =
+            await _socketClient.OpenAsync(cancellationToken)
+                .ConfigureAwait(false);
 
         _socketProtocol = socketProtocol ??
-                          throw ThrowHelper.SessionManager_SocketWasNotInitialized(_socketClient.Name);
+            throw ThrowHelper.SessionManager_SocketWasNotInitialized(_socketClient.Name);
 
         _socketProtocol.Subscribe(ReceiveMessage);
     }

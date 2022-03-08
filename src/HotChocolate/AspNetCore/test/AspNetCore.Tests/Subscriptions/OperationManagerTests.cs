@@ -15,10 +15,10 @@ using Xunit;
 namespace HotChocolate.AspNetCore.Subscriptions;
 
 [Collection("Sockets")]
-public class SubscriptionManagerTests
+public class OperationManagerTests
 {
     [Fact]
-    public async Task Register_SessionId_Is_Null()
+    public async Task Enqueue_SessionId_Is_Null()
     {
         // arrange
         IRequestExecutor executor =
@@ -41,7 +41,7 @@ public class SubscriptionManagerTests
     }
 
     [Fact]
-    public async Task Register_SessionId_Is_Empty()
+    public async Task Enqueue_SessionId_Is_Empty()
     {
         // arrange
         IRequestExecutor executor =
@@ -64,7 +64,7 @@ public class SubscriptionManagerTests
     }
 
     [Fact]
-    public async Task Register_Request_Is_Null()
+    public async Task Enqueue_Request_Is_Null()
     {
         // arrange
         IRequestExecutor executor =
@@ -87,7 +87,7 @@ public class SubscriptionManagerTests
     }
 
     [Fact]
-    public async Task Register_Request()
+    public async Task Enqueue_On_Disposed_Manager()
     {
         // arrange
         IRequestExecutor executor =
@@ -99,6 +99,41 @@ public class SubscriptionManagerTests
         var socketSession = new TestSocketSession();
 
         var mockSession = new Mock<IOperationSession>();
+        mockSession.SetupGet(t => t.Id).Returns("abc");
+
+        using var subscriptions = new OperationManager(
+            socketSession,
+            new DefaultSocketSessionInterceptor(),
+            executor,
+            _ => mockSession.Object);
+
+        var query = Utf8GraphQLParser.Parse(
+            "subscription { onReview(episode: NEW_HOPE) { stars } }");
+        var request = new GraphQLRequest(query);
+        subscriptions.Dispose();
+
+        // act
+        void Fail() => subscriptions.Enqueue("abc", request);
+
+        // assert
+        Assert.Throws<ObjectDisposedException>(Fail);
+    }
+
+    [Fact]
+    public async Task Enqueue_Request()
+    {
+        // arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
+        var socketSession = new TestSocketSession();
+
+        var mockSession = new Mock<IOperationSession>();
+        mockSession.SetupGet(t => t.Id).Returns("abc");
+
         using var subscriptions = new OperationManager(
             socketSession,
             new DefaultSocketSessionInterceptor(),
@@ -119,7 +154,7 @@ public class SubscriptionManagerTests
     }
 
     [Fact]
-    public async Task Unregister_Request_With_Non_Unique_Id()
+    public async Task Enqueue_Request_With_Non_Unique_Id()
     {
         // arrange
         IRequestExecutor executor =
@@ -131,6 +166,8 @@ public class SubscriptionManagerTests
         var socketSession = new TestSocketSession();
 
         var mockSession = new Mock<IOperationSession>();
+        mockSession.SetupGet(t => t.Id).Returns("abc");
+
         using var subscriptions = new OperationManager(
             socketSession,
             new DefaultSocketSessionInterceptor(),
@@ -155,7 +192,7 @@ public class SubscriptionManagerTests
     }
 
     [Fact]
-    public async Task Unregister_Request()
+    public async Task Complete_Request()
     {
         // arrange
         IRequestExecutor executor =
@@ -167,6 +204,8 @@ public class SubscriptionManagerTests
         var socketSession = new TestSocketSession();
 
         var mockSession = new Mock<IOperationSession>();
+        mockSession.SetupGet(t => t.Id).Returns("abc");
+
         using var subscriptions = new OperationManager(
             socketSession,
             new DefaultSocketSessionInterceptor(),
@@ -188,6 +227,117 @@ public class SubscriptionManagerTests
         Assert.Collection(registered1, t => Assert.Equal("abc", t.Id));
         Assert.True(success2);
         Assert.Empty(registered2);
+    }
+
+    [Fact]
+    public async Task Complete_SessionId_Is_Null()
+    {
+        // arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
+        var session = new Mock<ISocketSession>();
+        var interceptor = new Mock<ISocketSessionInterceptor>();
+        var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
+
+        // act
+        void Action() => subscriptions.Complete(null!);
+
+        // assert
+        Assert.Equal(
+            "sessionId",
+            Assert.Throws<ArgumentException>(Action).ParamName);
+    }
+
+    [Fact]
+    public async Task Complete_SessionId_Is_Empty()
+    {
+        // arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
+        var session = new Mock<ISocketSession>();
+        var interceptor = new Mock<ISocketSessionInterceptor>();
+        var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
+
+        // act
+        void Action() => subscriptions.Complete("");
+
+        // assert
+        Assert.Equal(
+            "sessionId",
+            Assert.Throws<ArgumentException>(Action).ParamName);
+    }
+
+    [Fact]
+    public async Task Complete_On_Disposed_Manager()
+    {
+        // arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
+        var socketSession = new TestSocketSession();
+
+        var mockSession = new Mock<IOperationSession>();
+        mockSession.SetupGet(t => t.Id).Returns("abc");
+
+        using var subscriptions = new OperationManager(
+            socketSession,
+            new DefaultSocketSessionInterceptor(),
+            executor,
+            _ => mockSession.Object);
+
+        subscriptions.Dispose();
+
+        // act
+        void Fail() => subscriptions.Complete("abc");
+
+        // assert
+        Assert.Throws<ObjectDisposedException>(Fail);
+    }
+
+    [Fact]
+    public async Task Dispose_OperationManager()
+    {
+        // arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .BuildRequestExecutorAsync();
+
+        var socketSession = new TestSocketSession();
+
+        var mockSession = new Mock<IOperationSession>();
+        mockSession.SetupGet(t => t.Id).Returns("abc");
+
+        using var subscriptions = new OperationManager(
+            socketSession,
+            new DefaultSocketSessionInterceptor(),
+            executor,
+            _ => mockSession.Object);
+
+        var query = Utf8GraphQLParser.Parse(
+            "subscription { onReview(episode: NEW_HOPE) { stars } }");
+        var request = new GraphQLRequest(query);
+        var success = subscriptions.Enqueue("abc", request);
+        Assert.True(success);
+
+        // act
+        subscriptions.Dispose();
+        var registered = subscriptions.ToArray();
+
+        // assert
+        Assert.Empty(registered);
     }
 
     private class TestSocketSession : ISocketSession

@@ -13,17 +13,15 @@ namespace StrawberryShake.Transport.WebSockets;
 internal sealed class MessagePipeline : IAsyncDisposable
 {
     private readonly ISocketClient _client;
-    private readonly ProcessAsync _processAsync;
+    private readonly ProcessAsync _process;
     private CancellationTokenSource _cts = new();
     private int _state = State.Stopped;
     private Task _innerTask = Task.CompletedTask;
 
-    public MessagePipeline(
-        ISocketClient client,
-        ProcessAsync processAsync)
+    public MessagePipeline(ISocketClient client, ProcessAsync process)
     {
         _client = client;
-        _processAsync = processAsync;
+        _process = process;
     }
 
     /// <summary>
@@ -40,9 +38,12 @@ internal sealed class MessagePipeline : IAsyncDisposable
                 _cts = new CancellationTokenSource();
                 _innerTask = Task.WhenAll(
                     MessageReceiver.Start(pipe.Writer, _client, _cts.Token),
-                    MessageProcessor.Start(pipe.Reader, _processAsync, _cts.Token));
+                    MessageProcessor.Start(pipe.Reader, _process, _cts.Token));
             }
-            catch (TaskCanceledException) { }
+            catch (OperationCanceledException)
+            {
+                // if this operation was cancelled we will move on.
+            }
             finally
             {
                 Interlocked.Exchange(ref _state, State.Running);
@@ -55,15 +56,17 @@ internal sealed class MessagePipeline : IAsyncDisposable
     /// </summary>
     public async Task Stop()
     {
-        if (Interlocked.CompareExchange(ref _state, State.Stopped, State.Running) ==
-            State.Running)
+        if (Interlocked.CompareExchange(ref _state, State.Stopped, State.Running) == State.Running)
         {
             try
             {
                 _cts.Cancel();
                 await _innerTask.ConfigureAwait(false);
             }
-            catch (TaskCanceledException) { }
+            catch (OperationCanceledException)
+            {
+                // if this operation was cancelled we will move on.
+            }
             finally
             {
                 Interlocked.Exchange(ref _state, State.Stopped);
@@ -75,7 +78,6 @@ internal sealed class MessagePipeline : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await Stop();
-
         _cts.Dispose();
     }
 

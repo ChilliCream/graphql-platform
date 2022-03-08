@@ -213,70 +213,70 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         CancellationToken cancellationToken)
         => session.Connection.SendAsync(Utf8MessageBodies.KeepAlive, cancellationToken);
 
-    public ValueTask SendResultMessageAsync(
+    public async ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
         IQueryResult result,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new ArrayWriter();
-        using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Data);
         jsonWriter.WritePropertyName(Payload);
         _serializer.Serialize(result, jsonWriter);
         jsonWriter.WriteEndObject();
-        jsonWriter.Flush();
-        return session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        await jsonWriter.FlushAsync(cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
-    public ValueTask SendErrorMessageAsync(
+    public async ValueTask SendErrorMessageAsync(
         ISocketSession session,
         string operationSessionId,
         IReadOnlyList<IError> errors,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new ArrayWriter();
-        using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
         _serializer.Serialize(errors[0], jsonWriter);
         jsonWriter.WriteEndObject();
-        jsonWriter.Flush();
-        return session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        await jsonWriter.FlushAsync(cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
-    public ValueTask SendCompleteMessageAsync(
+    public async ValueTask SendCompleteMessageAsync(
         ISocketSession session,
         string operationSessionId,
         CancellationToken cancellationToken)
     {
         using var writer = new ArrayWriter();
         SerializeMessage(writer, Utf8Messages.Complete, id: operationSessionId);
-        return session.Connection.SendAsync(writer.Body, cancellationToken);
+        await session.Connection.SendAsync(writer.Body, cancellationToken);
     }
 
-    private static ValueTask SendConnectionAcceptMessage(
+    private static async ValueTask SendConnectionAcceptMessage(
         ISocketSession session,
         IReadOnlyDictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
         using var writer = new ArrayWriter();
         SerializeMessage(writer, Utf8Messages.ConnectionAccept, payload);
-        return session.Connection.SendAsync(writer.Body, cancellationToken);
+        await session.Connection.SendAsync(writer.Body, cancellationToken);
     }
 
-    private static ValueTask SendConnectionRejectMessage(
+    private static async ValueTask SendConnectionRejectMessage(
         ISocketSession session,
         string message,
         IReadOnlyDictionary<string, object?>? extensions,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new ArrayWriter();
-        using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.ConnectionError);
         jsonWriter.WritePropertyName(Payload);
@@ -286,8 +286,8 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         JsonSerializer.Serialize(jsonWriter, extensions);
         jsonWriter.WriteEndObject();
         jsonWriter.WriteEndObject();
-        jsonWriter.Flush();
-        return session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
+        await jsonWriter.FlushAsync(cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
     }
 
     public ValueTask OnConnectionInitTimeoutAsync(
