@@ -80,7 +80,7 @@ public sealed class OperationManager : IOperationManager
         {
             if(!_subs.ContainsKey(sessionId))
             {
-                session = CreateSession(sessionId);
+                session = _createSession(sessionId);
                 _subs.Add(sessionId, session);
             }
         }

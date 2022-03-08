@@ -99,6 +99,8 @@ public class SubscriptionManagerTests
         var socketSession = new TestSocketSession();
 
         var mockSession = new Mock<IOperationSession>();
+        mockSession.SetupGet(t => t.Id).Returns("abc");
+        
         using var subscriptions = new OperationManager(
             socketSession,
             new DefaultSocketSessionInterceptor(),
@@ -131,6 +133,8 @@ public class SubscriptionManagerTests
         var socketSession = new TestSocketSession();
 
         var mockSession = new Mock<IOperationSession>();
+        mockSession.SetupGet(t => t.Id).Returns("abc");
+
         using var subscriptions = new OperationManager(
             socketSession,
             new DefaultSocketSessionInterceptor(),
@@ -167,6 +171,8 @@ public class SubscriptionManagerTests
         var socketSession = new TestSocketSession();
 
         var mockSession = new Mock<IOperationSession>();
+        mockSession.SetupGet(t => t.Id).Returns("abc");
+
         using var subscriptions = new OperationManager(
             socketSession,
             new DefaultSocketSessionInterceptor(),
