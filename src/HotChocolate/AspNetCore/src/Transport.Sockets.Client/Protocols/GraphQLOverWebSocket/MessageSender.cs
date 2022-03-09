@@ -1,5 +1,8 @@
 using System.Net.WebSockets;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.Transport.Sockets.Client;
 using HotChocolate.Transport.Sockets.Client.Helpers;
 using static System.Net.WebSockets.WebSocketMessageType;
 using static HotChocolate.Utilities.Transport.Sockets.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;

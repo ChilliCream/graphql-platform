@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Utilities.Transport.Sockets.Protocols.GraphQLOverWebSocket;
 
 internal static class Utf8MessageProperties
