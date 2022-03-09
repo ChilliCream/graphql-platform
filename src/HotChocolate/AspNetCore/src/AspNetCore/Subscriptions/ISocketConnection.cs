@@ -1,5 +1,6 @@
 using System.Buffers;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -8,17 +9,12 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 /// The socket connection represent an accepted connection with a socket
 /// where the protocol is already negotiated.
 /// </summary>
-public interface ISocketConnection : IHasContextData, IDisposable
+public interface ISocketConnection : ISocket, IHasContextData, IDisposable
 {
     /// <summary>
     /// Gets access to the HTTP Context.
     /// </summary>
     HttpContext HttpContext { get; }
-
-    /// <summary>
-    /// Specifies if the connection is closed.
-    /// </summary>
-    bool IsClosed { get; }
 
     /// <summary>
     /// Gets access to the request scoped service provider.
@@ -46,19 +42,6 @@ public interface ISocketConnection : IHasContextData, IDisposable
     /// </param>
     ValueTask SendAsync(
         ReadOnlyMemory<byte> message,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Reads a message from the client.
-    /// </summary>
-    /// <param name="writer">
-    /// The writer to which the message is written to.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    ValueTask ReceiveAsync(
-        IBufferWriter<byte> writer,
         CancellationToken cancellationToken = default);
 
     /// <summary>

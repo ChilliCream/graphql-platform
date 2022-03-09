@@ -4,7 +4,6 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Net.WebSockets.WebSocketMessageType;
-using static HotChocolate.AspNetCore.Subscriptions.Constants;
 using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -77,7 +76,7 @@ internal sealed class WebSocketConnection : ISocketConnection
         return webSocket.SendAsync(message, Text, true, cancellationToken);
     }
 
-    public async ValueTask ReceiveAsync(
+    public async Task<bool> ReadMessageAsync(
         IBufferWriter<byte> writer,
         CancellationToken cancellationToken = default)
     {
@@ -85,12 +84,14 @@ internal sealed class WebSocketConnection : ISocketConnection
 
         if (_disposed || webSocket is not { State: WebSocketState.Open })
         {
-            return;
+            return false;
         }
 
         try
         {
+            var size = 0;
             ValueWebSocketReceiveResult socketResult;
+
             do
             {
                 if (webSocket.State is not WebSocketState.Open)
@@ -101,19 +102,15 @@ internal sealed class WebSocketConnection : ISocketConnection
                 Memory<byte> memory = writer.GetMemory(_maxMessageSize);
                 socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
                 writer.Advance(socketResult.Count);
-
-                if (socketResult.EndOfMessage)
-                {
-                    memory = writer.GetMemory(1);
-                    memory.Span[0] = Delimiter;
-                    writer.Advance(1);
-                    break;
-                }
+                size += socketResult.Count;
             } while (!socketResult.EndOfMessage);
+
+            return size > 0;
         }
         catch
         {
             // swallow exception, there's nothing we can reasonably do.
+            return false;
         }
     }
 

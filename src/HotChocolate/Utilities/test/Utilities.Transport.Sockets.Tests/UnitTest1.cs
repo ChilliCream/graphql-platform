@@ -30,11 +30,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
             var socketSession = new ClientSocketSession(webSocket);
 
-            // act
+            // act & assert
             await socketSession.InitializeAsync(new InitPayload(), ct);
-
-            // assert
-
         });
 
     [Fact]
@@ -47,7 +44,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // arrange
             using TestServer testServer = CreateStarWarsServer();
             WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
             var socketSession = new ClientSocketSession(webSocket);
             var request = new OperationRequest(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -58,7 +55,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             Task.Factory.StartNew(
                 async () =>
                 {
-                    await Task.Delay(1000);
+                    await Task.Delay(6000);
 
                     await testServer.SendPostRequestAsync(
                         new ClientQueryRequest

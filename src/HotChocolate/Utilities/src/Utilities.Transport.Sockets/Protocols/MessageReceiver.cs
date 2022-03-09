@@ -44,7 +44,7 @@ internal sealed class MessageReceiver
                 socketResult = await _socket.ReceiveAsync(memory, ct).ConfigureAwait(false);;
                 _writer.Advance(socketResult.Count);
 
-                if (socketResult.EndOfMessage)
+                if (socketResult.Count > 0 && socketResult.EndOfMessage)
                 {
                     memory = _writer.GetMemory(1);
                     memory.Span[0] = Constants.Delimiter;

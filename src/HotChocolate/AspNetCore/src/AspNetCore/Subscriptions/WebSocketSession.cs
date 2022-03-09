@@ -1,6 +1,8 @@
+using System.Buffers;
 using System.IO.Pipelines;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.Transport.Sockets;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using static HotChocolate.AspNetCore.Subscriptions.ConnectionCloseReason;
 
@@ -43,7 +45,7 @@ internal sealed class WebSocketSession : ISocketSession
         IRequestExecutor executor,
         ISocketSessionInterceptor interceptor)
     {
-        CancellationToken cancellationToken = context.RequestAborted;
+        CancellationToken ct = context.RequestAborted;
         using var connection = new WebSocketConnection(context);
         IProtocolHandler? protocol = await connection.TryAcceptConnection();
 
@@ -54,15 +56,9 @@ internal sealed class WebSocketSession : ISocketSession
 
             try
             {
-                var pipe = new Pipe();
                 var pingPong = new PingPongJob(session, options);
-                var processor = new MessageProcessor(session, pipe.Reader);
-                var receiver = new MessageReceiver(connection, pipe.Writer);
-
-                pingPong.Begin(cancellationToken);
-                processor.Begin(cancellationToken);
-
-                await receiver.ReceiveAsync(cancellationToken);
+                var pipeline = new MessagePipeline(connection, new ProtocolMessageHandler(session));
+                await Task.WhenAll(pingPong.RunAsync(ct), pipeline.RunAsync(ct));
             }
             catch (OperationCanceledException)
             {
@@ -74,7 +70,7 @@ internal sealed class WebSocketSession : ISocketSession
             {
                 try
                 {
-                    await interceptor.OnCloseAsync(session, cancellationToken);
+                    await interceptor.OnCloseAsync(session, ct);
                     await connection.CloseAsync(
                         WebSocketSession_SessionEnded,
                         NormalClosure,
@@ -87,5 +83,22 @@ internal sealed class WebSocketSession : ISocketSession
                 }
             }
         }
+    }
+
+    private sealed class ProtocolMessageHandler : IMessageHandler
+    {
+        private readonly ISocketSession _session;
+        private readonly IProtocolHandler _protocol;
+
+        public ProtocolMessageHandler(ISocketSession session)
+        {
+            _session = session;
+            _protocol = session.Protocol;
+        }
+
+        public ValueTask OnReceiveAsync(
+            ReadOnlySequence<byte> message,
+            CancellationToken cancellationToken = default)
+            => _protocol.OnReceiveAsync(_session, message, cancellationToken);
     }
 }
