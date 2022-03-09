@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
 
@@ -111,7 +112,7 @@ public class SubscriptionTestBase : ServerTestBase
         WebSocketClient client = testServer.CreateWebSocketClient();
         client.ConfigureRequest = r => r.Headers.Add(
             "Sec-WebSocket-Protocol",
-            ProtocolNames.GraphQL_Transport_WS);
+            WellKnownProtocols.GraphQL_Transport_WS);
         return client;
     }
 

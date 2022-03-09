@@ -1,0 +1,35 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+
+internal sealed class ConnectionMessageObserver : IObserver<IOperationMessage>
+{
+    private readonly TaskCompletionSource<bool> _promise = new();
+
+    public ConnectionMessageObserver(CancellationToken cancellationToken)
+    {
+        cancellationToken.Register(() => _promise.TrySetCanceled());
+    }
+
+    public Task<bool> Accepted => _promise.Task;
+
+    public void OnNext(IOperationMessage value)
+    {
+        if (value is ConnectionAcceptMessage)
+        {
+            _promise.TrySetResult(true);
+        }
+    }
+
+    public void OnError(Exception error)
+    {
+        _promise.TrySetException(error);
+    }
+
+    public void OnCompleted()
+    {
+        _promise.TrySetCanceled();
+    }
+}

@@ -1,8 +1,10 @@
+using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Transport.Sockets.Client;
+namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
 internal interface IProtocolHandler
 {
@@ -13,10 +15,9 @@ internal interface IProtocolHandler
         T payload,
         CancellationToken cancellationToken = default);
 
-    ValueTask<ResultStream> ExecuteAsync(
+    IAsyncEnumerable<OperationResult> ExecuteAsync(
         SocketClientContext context,
-        OperationRequest request,
-        CancellationToken cancellationToken = default);
+        OperationRequest request);
 
     ValueTask OnReceiveAsync(
         SocketClientContext context,

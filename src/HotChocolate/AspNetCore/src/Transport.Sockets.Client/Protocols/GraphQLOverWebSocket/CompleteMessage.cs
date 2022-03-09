@@ -1,0 +1,22 @@
+using System.Text.Json;
+
+namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+
+internal sealed class CompleteMessage : IDataMessage
+{
+    public CompleteMessage(string id)
+    {
+        Id = id;
+    }
+
+    public string Id { get; }
+
+    public string Type => Messages.Complete;
+
+    public static CompleteMessage From(JsonDocument document)
+    {
+        JsonElement root = document.RootElement;
+        var id = root.GetProperty(Utf8MessageProperties.IdProp).GetString()!;
+        return new CompleteMessage(id);
+    }
+}

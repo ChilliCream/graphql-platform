@@ -4,7 +4,7 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Net.WebSockets.WebSocketMessageType;
-using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
+using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 

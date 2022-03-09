@@ -1,10 +1,12 @@
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Transport.Sockets.Client.Helpers;
+using HotChocolate.Transport.Sockets.Client.Protocols;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
 namespace HotChocolate.Transport.Sockets.Client;
@@ -64,10 +66,9 @@ public class SocketClient : ISocketClient, ISocket
 
     private void BeginRunPipeline() => _pipeline.RunAsync(_ct);
 
-    public ValueTask<ResultStream> ExecuteAsync(
-        OperationRequest request,
-        CancellationToken cancellationToken)
-        => _protocol.ExecuteAsync(_context, request, cancellationToken);
+    public IAsyncEnumerable<OperationResult> ExecuteAsync(OperationRequest request)
+        => _protocol.ExecuteAsync(_context, request);
+
 
 #if NET5_0_OR_GREATER
     async Task<bool> ISocket.ReadMessageAsync(

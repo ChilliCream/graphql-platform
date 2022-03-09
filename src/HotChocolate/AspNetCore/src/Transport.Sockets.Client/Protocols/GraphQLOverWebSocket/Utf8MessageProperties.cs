@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Utilities.Transport.Sockets.Protocols.GraphQLOverWebSocket;
+namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
 internal static class Utf8MessageProperties
 {

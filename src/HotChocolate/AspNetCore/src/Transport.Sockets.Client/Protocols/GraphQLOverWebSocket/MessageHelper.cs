@@ -2,23 +2,19 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Transport.Sockets.Client;
 using HotChocolate.Transport.Sockets.Client.Helpers;
+using HotChocolate.Utilities.Transport.Sockets;
 using static System.Net.WebSockets.WebSocketMessageType;
-using static HotChocolate.Utilities.Transport.Sockets.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;
+using static HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;
 
-namespace HotChocolate.Utilities.Transport.Sockets.Protocols.GraphQLOverWebSocket;
+namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
-internal sealed class MessageSender
+internal static class MessageHelper
 {
-    private readonly WebSocket _socket;
-
-    public MessageSender(WebSocket socket)
-    {
-        _socket = socket;
-    }
-
-    public async ValueTask SendConnectionInitMessage<T>(T payload, CancellationToken ct)
+    public static async ValueTask SendConnectionInitMessage<T>(
+        this WebSocket socket,
+        T payload,
+        CancellationToken ct)
     {
         using var arrayWriter = new ArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
@@ -30,13 +26,14 @@ internal sealed class MessageSender
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
-        await _socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
 #else
-        await _socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
 #endif
     }
 
-    public async ValueTask SendSubscribeMessageAsync(
+    public static async ValueTask SendSubscribeMessageAsync(
+        this WebSocket socket,
         string operationSessionId,
         OperationRequest request,
         CancellationToken ct)
@@ -52,13 +49,14 @@ internal sealed class MessageSender
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
-        await _socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
 #else
-        await _socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
 #endif
     }
 
-    public async ValueTask SendCompleteMessageAsync(
+    public static async ValueTask SendCompleteMessageAsync(
+        this WebSocket socket,
         string operationSessionId,
         CancellationToken ct)
     {
@@ -71,9 +69,27 @@ internal sealed class MessageSender
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
-        await _socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
 #else
-        await _socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
+#endif
+    }
+
+    public static async ValueTask SendPongMessageAsync(
+        this WebSocket socket,
+        CancellationToken ct)
+    {
+        using var arrayWriter = new ArrayWriter();
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString(TypeProp, Utf8Messages.Pong);
+        jsonWriter.WriteEndObject();
+        await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
+
+#if NET5_0_OR_GREATER
+        await socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
+#else
+        await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
 #endif
     }
 }

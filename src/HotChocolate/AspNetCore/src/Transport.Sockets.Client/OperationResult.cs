@@ -35,3 +35,4 @@ public sealed class OperationResult : IDisposable
         }
     }
 }
+

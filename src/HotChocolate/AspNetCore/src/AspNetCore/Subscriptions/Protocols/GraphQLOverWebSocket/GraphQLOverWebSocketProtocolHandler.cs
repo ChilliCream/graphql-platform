@@ -4,7 +4,7 @@ using System.Text.Json;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
+using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
 using static HotChocolate.AspNetCore.Subscriptions.ConnectionContextKeys;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket.MessageProperties;
