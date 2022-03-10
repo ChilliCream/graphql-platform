@@ -190,7 +190,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
     public ValueTask SendKeepAliveMessageAsync(
         ISocketSession session,
         CancellationToken cancellationToken)
-        => SendPongMessageAsync(session, null, cancellationToken);
+        => SendPingMessageAsync(session, null, cancellationToken);
 
     public async ValueTask SendResultMessageAsync(
         ISocketSession session,
