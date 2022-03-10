@@ -13,7 +13,6 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
-[Collection("Sockets")]
 public class WebSocketClientProtocolTests : SubscriptionTestBase
 {
     public WebSocketClientProtocolTests(TestServerFactory serverFactory)

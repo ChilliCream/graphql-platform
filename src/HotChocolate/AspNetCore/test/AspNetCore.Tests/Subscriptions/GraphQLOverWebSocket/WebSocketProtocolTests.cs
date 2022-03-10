@@ -19,7 +19,6 @@ using static System.Net.WebSockets.WebSocketCloseStatus;
 
 namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
-[Collection("Sockets")]
 public class WebSocketProtocolTests : SubscriptionTestBase
 {
     public WebSocketProtocolTests(TestServerFactory serverFactory)
