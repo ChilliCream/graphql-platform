@@ -432,6 +432,24 @@ public static class EndpointRouteBuilderExtensions
         GraphQLToolOptions toolOptions) =>
         builder.WithMetadata(new GraphQLServerOptions { Tool = toolOptions });
 
+    /// <summary>
+    /// Specifies the GraphQL over Websocket options.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="WebSocketEndpointConventionBuilder"/>.
+    /// </param>
+    /// <param name="socketOptions">
+    /// The GraphQL socket options.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="WebSocketEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    public static WebSocketEndpointConventionBuilder WithOptions(
+        this WebSocketEndpointConventionBuilder builder,
+        GraphQLSocketOptions socketOptions) =>
+        builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions });
+
     private static IFileProvider CreateFileProvider()
     {
         Type? type = typeof(EndpointRouteBuilderExtensions);

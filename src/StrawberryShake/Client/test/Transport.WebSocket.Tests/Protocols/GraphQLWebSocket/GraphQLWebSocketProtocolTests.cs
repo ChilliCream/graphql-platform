@@ -268,7 +268,7 @@ public class GraphQlWsProtocolTests
         var message = @"{""type"":""data"", ""payload"":""Foo"", ""id"":""123""}";
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
-        protocol.Subscribe((operationId, operationMessage, token) =>
+        protocol.Subscribe((operationId, operationMessage, _) =>
         {
             if (operationMessage is DataDocumentOperationMessage<JsonDocument> msg)
             {
@@ -299,9 +299,9 @@ public class GraphQlWsProtocolTests
         var message = @"{""type"":""complete"", ""id"":""123""}";
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
-        protocol.Subscribe((operationId, operationMessage, token) =>
+        protocol.Subscribe((_, operationMessage, _) =>
         {
-            if (operationMessage is CompleteOperationMessage msg)
+            if (operationMessage is CompleteOperationMessage)
             {
                 received = true;
             }
@@ -325,14 +325,20 @@ public class GraphQlWsProtocolTests
         // arrange
         SemaphoreSlim semaphoreSlim = new(0);
         string? error = null;
-        var message = @"{""type"":""error"", ""id"":""123""}";
+        var message = @"{
+            ""type"": ""error"",
+            ""id"": ""123"",
+            ""payload"": {
+                ""message"": ""test message""
+            }
+        }";
         var socketClient = new SocketClientStub { KeepOpen = true, IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         protocol.Subscribe((_, operationMessage, _) =>
         {
             if (operationMessage is ErrorOperationMessage msg)
             {
-                error = msg.Message;
+                error = msg.Payload.Message;
             }
 
             semaphoreSlim.Release();
@@ -361,7 +367,7 @@ public class GraphQlWsProtocolTests
         {
             if (operationMessage is ErrorOperationMessage msg)
             {
-                error = msg.Message;
+                error = msg.Payload.Message;
             }
 
             semaphoreSlim.Release();

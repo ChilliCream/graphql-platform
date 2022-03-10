@@ -4,7 +4,7 @@ namespace StrawberryShake.Transport.WebSockets.Messages;
 /// The <see cref="CompleteOperationMessage "/> is used to signal a socket operation that it
 /// is complete
 /// </summary>
-public class CompleteOperationMessage : OperationMessage
+public sealed class CompleteOperationMessage : OperationMessage
 {
     private CompleteOperationMessage() : base(OperationMessageType.Complete)
     {

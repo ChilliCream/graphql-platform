@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ public class WebSocketConnection : IWebSocketConnection
     public WebSocketConnection(Func<CancellationToken, ValueTask<ISession>> sessionFactory)
     {
         _sessionFactory = sessionFactory ??
-                          throw new ArgumentNullException(nameof(sessionFactory));
+            throw new ArgumentNullException(nameof(sessionFactory));
     }
 
     /// <inheritdoc />
@@ -53,13 +54,14 @@ public class WebSocketConnection : IWebSocketConnection
             CancellationToken cancellationToken = default)
         {
             await using ISession session =
-                await _sessionFactory(cancellationToken);
+                await _sessionFactory(cancellationToken).ConfigureAwait(false);
 
             await using ISocketOperation operation =
-                await session.StartOperationAsync(_request, cancellationToken);
+                await session.StartOperationAsync(_request, cancellationToken)
+                    .ConfigureAwait(false);
 
-            await foreach (OperationMessage message in 
-                operation.ReadAsync().WithCancellation(cancellationToken))
+            await foreach (OperationMessage message in
+                operation.ReadAsync().WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 switch (message.Type)
                 {
@@ -69,7 +71,7 @@ public class WebSocketConnection : IWebSocketConnection
                         JsonElement payload = msg.Payload.RootElement;
 
                         var hasNext = false;
-                        var isPatch = payload.TryGetProperty(Path, out _);
+                        var isPatch = payload.TryGetProperty(ResultFields.Path, out _);
 
                         if (payload.TryGetProperty(HasNext, out JsonElement hasNextProp) &&
                             hasNextProp.GetBoolean())
@@ -81,7 +83,7 @@ public class WebSocketConnection : IWebSocketConnection
                         break;
 
                     case OperationMessageType.Error when message is ErrorOperationMessage msg:
-                        var operationEx = new SocketOperationException(msg.Message);
+                        var operationEx = new GraphQLClientException(msg.Payload);
                         yield return new(null, operationEx);
                         yield break;
 
