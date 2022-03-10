@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.AspNetCore;
 
@@ -25,15 +26,16 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         requestBuilder.TryAddProperty(nameof(HttpContext), context);
         requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
         requestBuilder.TryAddProperty(nameof(ISocketSession), session);
+        requestBuilder.TryAddProperty(OperationSessionId, operationSessionId);
 
         if (context.IsTracingEnabled())
         {
-            requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
+            requestBuilder.TryAddProperty(EnableTracing, true);
         }
 
         if (context.IncludeQueryPlan())
         {
-            requestBuilder.TryAddProperty(WellKnownContextData.IncludeQueryPlan, true);
+            requestBuilder.TryAddProperty(IncludeQueryPlan, true);
         }
 
         return default;

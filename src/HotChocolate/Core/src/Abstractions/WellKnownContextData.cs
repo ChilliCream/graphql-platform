@@ -111,8 +111,14 @@ public static class WellKnownContextData
     public const string SchemaDirectives = "HotChocolate.Schema.Building.Directives";
 
     /// <summary>
-    /// The key to the optionall schema documents.
+    /// The key to the optional schema documents.
     /// </summary>
     public const string SchemaDocuments = "HotChocolate.Schema.Building.Documents";
+
+    /// <summary>
+    /// The key to get the user provided transport operation session id when executing
+    /// GraphQL over Websocket.
+    /// </summary>
+    public const string OperationSessionId ="HotChocolate.Execution.Transport.OperationSessionId";
 
 }

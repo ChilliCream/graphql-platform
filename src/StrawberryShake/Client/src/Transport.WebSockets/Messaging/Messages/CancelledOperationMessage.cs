@@ -4,7 +4,7 @@ namespace StrawberryShake.Transport.WebSockets.Messages;
 /// The <see cref="CancelledOperationMessage"/> is used to signal a socket operation that it
 /// is complete
 /// </summary>
-public class CancelledOperationMessage : OperationMessage
+public sealed class CancelledOperationMessage : OperationMessage
 {
     private CancelledOperationMessage()
         : base(OperationMessageType.Cancelled)

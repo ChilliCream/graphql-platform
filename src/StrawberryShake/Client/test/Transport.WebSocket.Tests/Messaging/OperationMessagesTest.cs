@@ -55,15 +55,6 @@ public class OperationMessagesTest
     }
 
     [Fact]
-    public void ErrorOperationMessage_UnexpectedServerError_IsMatch()
-    {
-        // arrange
-        // act
-        // assert
-        ErrorOperationMessage.UnexpectedServerError.MatchSnapshot();
-    }
-
-    [Fact]
     public void ErrorOperationMessage_ConnectionError_IsMatch()
     {
         // arrange
