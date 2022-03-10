@@ -4,7 +4,7 @@ namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
 internal sealed class CompleteMessage : IDataMessage
 {
-    public CompleteMessage(string id)
+    private CompleteMessage(string id)
     {
         Id = id;
     }
