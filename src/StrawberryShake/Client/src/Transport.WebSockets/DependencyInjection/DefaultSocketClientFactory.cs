@@ -21,9 +21,9 @@ public class DefaultSocketClientFactory : ISocketClientFactory
         IEnumerable<ISocketProtocolFactory> protocolFactories)
     {
         _optionsMonitor = optionsMonitor ??
-                          throw new ArgumentNullException(nameof(optionsMonitor));
+            throw new ArgumentNullException(nameof(optionsMonitor));
         _protocolFactories = protocolFactories?.ToArray() ??
-                             throw new ArgumentNullException(nameof(protocolFactories));
+            throw new ArgumentNullException(nameof(protocolFactories));
     }
 
     /// <inheritdoc />

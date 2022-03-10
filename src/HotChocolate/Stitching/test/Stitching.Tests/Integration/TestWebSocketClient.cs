@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Transport.Sockets;
 using StrawberryShake.Transport.WebSockets;
 
 #nullable enable
@@ -15,8 +16,6 @@ public delegate Task<WebSocket> ConnectDelegate(Uri uri, CancellationToken cance
 
 public sealed class TestWebSocketClient : IWebSocketClient
 {
-    private const int _maxMessageSize = 1024 * 4;
-
     private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
     private readonly ConnectDelegate _connect;
     private WebSocket? _socket;
@@ -54,11 +53,7 @@ public sealed class TestWebSocketClient : IWebSocketClient
     /// <inheritdoc />
     public bool IsClosed
     {
-        get =>
-            _disposed ||
-            _socket is null ||
-            _socket.CloseStatus.HasValue ||
-            _socket.State == WebSocketState.Aborted;
+        get => _disposed || _socket.IsClosed();
     }
 
     /// <inheritdoc />
@@ -180,7 +175,7 @@ public sealed class TestWebSocketClient : IWebSocketClient
             WebSocketReceiveResult? socketResult = null;
             do
             {
-                Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                Memory<byte> memory = writer.GetMemory(SocketDefaults.BufferSize);
                 try
                 {
                     if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))

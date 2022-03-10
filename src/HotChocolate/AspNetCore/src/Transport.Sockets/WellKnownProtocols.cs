@@ -1,6 +1,6 @@
-namespace HotChocolate.AspNetCore.Subscriptions;
+namespace HotChocolate.Transport.Sockets;
 
-internal static class ProtocolNames
+public static class WellKnownProtocols
 {
     // ReSharper disable InconsistentNaming
     public const string GraphQL_Transport_WS = "graphql-transport-ws";
