@@ -226,7 +226,7 @@ public class Mutation
 
 If you are using any of the big cloud providers for storing your BLOBs, chances are they already come with support for _presigned upload URLs_:
 
-- [Azure Storage shared access signatures](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview)
+- [Azure Storage shared access signatures](https://docs.microsoft.com/azure/storage/common/storage-sas-overview)
 - [AWS presigned URLS](https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html)
 - [GCP signed URLs](https://cloud.google.com/storage/docs/access-control/signed-urls)
 

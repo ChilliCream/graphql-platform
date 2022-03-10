@@ -2,23 +2,22 @@
 title: "Integrations"
 ---
 
-In this section we will look at different technologies and how we can integrate them into our GraphQL server.
+In this section we will look at different technologies and how you can integrate them into your GraphQL server.
 
 # Entity Framework Core
 
-The package `HotChocolate.Data.EntityFramework` helps you to manage the `DBContext` life cycle.
+Using Entity Framework Core requires some additional setup to play nicely with the concurrent nature of GraphQL resolvers. You will learn how to correctly use your `DbContext` in different scenarios and also how to tune Entity Framework Core for maximum throughput of your GraphQL server.
 
 [Learn more about our Entity Framework Core integration](/docs/hotchocolate/integrations/entity-framework)
 
 # MongoDB
 
-With the package `HotChocoalte.Data.MongoDb` you can integrate your MongoDB with ease.
-This package adds support for filtering, sorting, projection and pagination with native MongoDB queries.
+You will learn how to access MongoDB from within your resovlers and how to translate our pagination, projection, filtering and sorting capabilities to native MongoDB queries.
 
 [Learn more about our MongoDB integration](/docs/hotchocolate/integrations/mongodb)
 
 # Spatial Data
 
-This collection of packages help you to expose [NetTopologySuite types](https://github.com/NetTopologySuite/NetTopologySuite) in form of [GeoJSON](https://geojson.org/) and even integrate it with the data api.
+You will learn how you can expose [NetTopologySuite types](https://github.com/NetTopologySuite/NetTopologySuite) in form of [GeoJSON](https://geojson.org/) and how to integrate it with our data APIs.
 
 [Learn more about our Spatial Data integration](/docs/hotchocolate/integrations/spatial-data)
