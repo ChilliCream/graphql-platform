@@ -10,8 +10,15 @@ namespace HotChocolate;
 
 public static class ResolverContextExtensions
 {
+    [Obsolete("Use `GetGlobalStateOrDefault`")]
     [return: MaybeNull]
     public static T GetGlobalValue<T>(
+        this IResolverContext context,
+        string name)
+        => GetGlobalStateOrDefault<T>(context, name);
+
+    [return: MaybeNull]
+    public static T GetGlobalStateOrDefault<T>(
         this IResolverContext context,
         string name)
     {
@@ -30,11 +37,19 @@ public static class ResolverContextExtensions
         {
             return casted;
         }
+
         return default;
     }
 
+    [Obsolete("Use `GetScopedStateOrDefault`")]
     [return: MaybeNull]
     public static T GetScopedValue<T>(
+        this IResolverContext context,
+        string name)
+        => GetScopedStateOrDefault<T>(context, name);
+
+    [return: MaybeNull]
+    public static T GetScopedStateOrDefault<T>(
         this IResolverContext context,
         string name)
     {
@@ -53,11 +68,19 @@ public static class ResolverContextExtensions
         {
             return casted;
         }
+
         return default;
     }
 
+    [Obsolete("Use `GetLocalStateOrDefault`")]
     [return: MaybeNull]
     public static T GetLocalValue<T>(
+        this IResolverContext context,
+        string name)
+        => GetLocalStateOrDefault<T>(context, name);
+
+    [return: MaybeNull]
+    public static T GetLocalStateOrDefault<T>(
         this IResolverContext context,
         string name)
     {
@@ -80,7 +103,14 @@ public static class ResolverContextExtensions
         return default;
     }
 
+    [Obsolete("Use `SetGlobalState`")]
     public static void SetGlobalValue<T>(
+        this IResolverContext context,
+        string name,
+        [MaybeNull] T value)
+        => SetGlobalState(context, name, value);
+
+    public static void SetGlobalState<T>(
         this IResolverContext context,
         string name,
         [MaybeNull] T value)
@@ -98,7 +128,14 @@ public static class ResolverContextExtensions
         context.ContextData[name] = value;
     }
 
+    [Obsolete("Use `SetScopedState`")]
     public static void SetScopedValue<T>(
+        this IResolverContext context,
+        string name,
+        [MaybeNull] T value)
+        => SetScopedState(context, name, value);
+
+    public static void SetScopedState<T>(
         this IResolverContext context,
         string name,
         [MaybeNull] T value)
@@ -116,7 +153,14 @@ public static class ResolverContextExtensions
         context.ScopedContextData = context.ScopedContextData.SetItem(name, value);
     }
 
+    [Obsolete("Use `SetLocalState`")]
     public static void SetLocalValue<T>(
+        this IResolverContext context,
+        string name,
+        [MaybeNull] T value)
+        => SetLocalState(context, name, value);
+
+    public static void SetLocalState<T>(
         this IResolverContext context,
         string name,
         [MaybeNull] T value)
@@ -134,8 +178,16 @@ public static class ResolverContextExtensions
         context.LocalContextData = context.LocalContextData.SetItem(name, value);
     }
 
+    [Obsolete("Use `GetOrAddGlobalState`")]
     [return: MaybeNull]
     public static T GetOrAddGlobalValue<T>(
+        this IResolverContext context,
+        string name,
+        Func<string, T> createValue)
+        => GetOrAddGlobalState(context, name, createValue);
+
+    [return: MaybeNull]
+    public static T GetOrAddGlobalState<T>(
         this IResolverContext context,
         string name,
         Func<string, T> createValue)
@@ -163,13 +215,21 @@ public static class ResolverContextExtensions
         else
         {
             T newValue = createValue(name);
-            context.ContextData[name] = newValue;
+            SetGlobalState(context, name, newValue);
             return newValue;
         }
     }
 
+    [Obsolete("Use `GetOrAddScopedState`")]
     [return: MaybeNull]
     public static T GetOrAddScopedValue<T>(
+        this IResolverContext context,
+        string name,
+        Func<string, T> createValue)
+        => GetOrAddScopedState(context, name, createValue);
+
+    [return: MaybeNull]
+    public static T GetOrAddScopedState<T>(
         this IResolverContext context,
         string name,
         Func<string, T> createValue)
@@ -197,13 +257,21 @@ public static class ResolverContextExtensions
         else
         {
             T newValue = createValue(name);
-            SetScopedValue(context, name, newValue);
+            SetScopedState(context, name, newValue);
             return newValue;
         }
     }
 
+    [Obsolete("Use `GetOrAddLocalState`")]
     [return: MaybeNull]
     public static T GetOrAddLocalValue<T>(
+        this IResolverContext context,
+        string name,
+        Func<string, T> createValue)
+        => GetOrAddLocalState(context, name, createValue);
+
+    [return: MaybeNull]
+    public static T GetOrAddLocalState<T>(
         this IResolverContext context,
         string name,
         Func<string, T> createValue)
@@ -231,12 +299,18 @@ public static class ResolverContextExtensions
         else
         {
             T newValue = createValue(name);
-            SetLocalValue(context, name, newValue);
+            SetLocalState(context, name, newValue);
             return newValue;
         }
     }
 
+    [Obsolete("Use `RemoveGlobalState`")]
     public static void RemoveGlobalValue(
+        this IResolverContext context,
+        string name)
+        => RemoveGlobalState(context, name);
+
+    public static void RemoveGlobalState(
         this IResolverContext context,
         string name)
     {
@@ -253,7 +327,13 @@ public static class ResolverContextExtensions
         context.ContextData.Remove(name);
     }
 
+    [Obsolete("Use `RemoveScopedState`")]
     public static void RemoveScopedValue(
+        this IResolverContext context,
+        string name)
+        => RemoveScopedState(context, name);
+
+    public static void RemoveScopedState(
         this IResolverContext context,
         string name)
     {
@@ -270,7 +350,13 @@ public static class ResolverContextExtensions
         context.ScopedContextData = context.ScopedContextData.Remove(name);
     }
 
+    [Obsolete("Use `RemoveLocalState`")]
     public static void RemoveLocalValue(
+        this IResolverContext context,
+        string name)
+        => RemoveLocalState(context, name);
+
+    public static void RemoveLocalState(
         this IResolverContext context,
         string name)
     {
