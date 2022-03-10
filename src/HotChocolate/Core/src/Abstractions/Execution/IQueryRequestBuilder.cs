@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 #nullable enable
@@ -44,26 +45,54 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder SetInitialValue(
         object? initialValue);
 
+    [Obsolete("Use `InitializeGlobalState`")]
     IQueryRequestBuilder SetProperties(
         Dictionary<string, object?>? properties);
 
+    IQueryRequestBuilder InitializeGlobalState(
+        Dictionary<string, object?>? globalState);
+
+    [Obsolete("Use `InitializeGlobalState`")]
     IQueryRequestBuilder SetProperties(
         IDictionary<string, object?>? properties);
 
+    IQueryRequestBuilder InitializeGlobalState(
+        IDictionary<string, object?>? globalState);
+
+    [Obsolete("Use `InitializeGlobalState`")]
     IQueryRequestBuilder SetProperties(
         IReadOnlyDictionary<string, object?>? properties);
 
+    IQueryRequestBuilder InitializeGlobalState(
+        IReadOnlyDictionary<string, object?>? globalState);
+
+    [Obsolete("Use `AddGlobalState`")]
     IQueryRequestBuilder AddProperty(
         string name, object? value);
 
+    IQueryRequestBuilder AddGlobalState<T>(
+        string name, [MaybeNull] T value);
+
+    [Obsolete("Use `TryAddGlobalState`")]
     IQueryRequestBuilder TryAddProperty(
         string name, object? value);
 
+    IQueryRequestBuilder TryAddGlobalState<T>(
+        string name, [MaybeNull] T value);
+
+    [Obsolete("Use `SetGlobalState`")]
+    IQueryRequestBuilder SetProperty(
+        string name, object? value);
+
+    IQueryRequestBuilder SetGlobalState<T>(
+        string name, [MaybeNull] T value);
+
+    [Obsolete("Use `RemoveGlobalState`")]
     IQueryRequestBuilder TryRemoveProperty(
         string name);
 
-    IQueryRequestBuilder SetProperty(
-        string name, object? value);
+    IQueryRequestBuilder RemoveGlobalState(
+        string name);
 
     IQueryRequestBuilder SetExtensions(
         Dictionary<string, object?>? extensions);
