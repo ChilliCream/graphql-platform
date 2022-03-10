@@ -15,9 +15,10 @@ internal interface IProtocolHandler
         T payload,
         CancellationToken cancellationToken = default);
 
-    IAsyncEnumerable<OperationResult> ExecuteAsync(
+    ValueTask<SocketResult> ExecuteAsync(
         SocketClientContext context,
-        OperationRequest request);
+        OperationRequest request,
+        CancellationToken cancellationToken = default);
 
     ValueTask OnReceiveAsync(
         SocketClientContext context,

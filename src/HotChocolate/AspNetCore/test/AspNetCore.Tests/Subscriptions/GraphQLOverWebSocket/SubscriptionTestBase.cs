@@ -119,7 +119,7 @@ public class SubscriptionTestBase : ServerTestBase
     protected static async Task TryTest(Func<CancellationToken, Task> action)
     {
         // we will try four times ....
-        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 60_000);
+        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 15_000);
         CancellationToken ct = cts.Token;
         var count = 0;
         var wait = 50;

@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
 internal sealed class ConnectionMessageObserver<TConnectMessage> : IObserver<IOperationMessage>
 {
@@ -24,12 +24,8 @@ internal sealed class ConnectionMessageObserver<TConnectMessage> : IObserver<IOp
     }
 
     public void OnError(Exception error)
-    {
-        _promise.TrySetException(error);
-    }
+        => _promise.TrySetException(error);
 
     public void OnCompleted()
-    {
-        _promise.TrySetCanceled();
-    }
+        => _promise.TrySetCanceled();
 }

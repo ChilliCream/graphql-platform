@@ -45,7 +45,8 @@ internal sealed class WebSocketSession : ISocketSession
         IRequestExecutor executor,
         ISocketSessionInterceptor interceptor)
     {
-        CancellationToken ct = context.RequestAborted;
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
+        CancellationToken ct = cts.Token;
         using var connection = new WebSocketConnection(context);
         IProtocolHandler? protocol = await connection.TryAcceptConnection();
 
@@ -58,6 +59,7 @@ internal sealed class WebSocketSession : ISocketSession
             {
                 var pingPong = new PingPongJob(session, options);
                 var pipeline = new MessagePipeline(connection, new ProtocolMessageHandler(session));
+                pipeline.Completed += (_, _) => cts.Cancel();
                 await Task.WhenAll(pingPong.RunAsync(ct), pipeline.RunAsync(ct));
             }
             catch (OperationCanceledException)
@@ -70,11 +72,16 @@ internal sealed class WebSocketSession : ISocketSession
             {
                 try
                 {
-                    await interceptor.OnCloseAsync(session, ct);
-                    await connection.CloseAsync(
-                        WebSocketSession_SessionEnded,
-                        NormalClosure,
-                        CancellationToken.None);
+                    await interceptor.OnCloseAsync(session, connection.HttpContext.RequestAborted);
+
+                    if (!connection.IsClosed)
+                    {
+                        // ensure that the connection is closed at the end.
+                        await connection.CloseAsync(
+                            WebSocketSession_SessionEnded,
+                            NormalClosure,
+                            CancellationToken.None);
+                    }
                 }
                 catch
                 {

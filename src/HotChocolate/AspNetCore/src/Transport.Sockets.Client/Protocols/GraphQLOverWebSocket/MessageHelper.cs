@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Transport.Sockets.Client.Helpers;
-using HotChocolate.Utilities.Transport.Sockets;
 using static System.Net.WebSockets.WebSocketMessageType;
 using static HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;
 
@@ -20,8 +19,13 @@ internal static class MessageHelper
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(TypeProp, Utf8Messages.ConnectionInitialize);
-        jsonWriter.WritePropertyName(PayloadProp);
-        JsonSerializer.Serialize(jsonWriter, payload, JsonDefaults.SerializerOptions);
+
+        if (payload is not null)
+        {
+            jsonWriter.WritePropertyName(PayloadProp);
+            JsonSerializer.Serialize(jsonWriter, payload, JsonDefaults.SerializerOptions);
+        }
+        
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
@@ -42,7 +46,7 @@ internal static class MessageHelper
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(IdProp, operationSessionId);
-        jsonWriter.WriteString(TypeProp, Utf8Messages.ConnectionInitialize);
+        jsonWriter.WriteString(TypeProp, Utf8Messages.Subscribe);
         jsonWriter.WritePropertyName(PayloadProp);
         JsonSerializer.Serialize(jsonWriter, request, JsonDefaults.SerializerOptions);
         jsonWriter.WriteEndObject();

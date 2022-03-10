@@ -1,6 +1,6 @@
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
-internal interface IDataCompleteTask
+internal interface IDataCompletion
 {
     /// <summary>
     /// Marks the data stream as completed.

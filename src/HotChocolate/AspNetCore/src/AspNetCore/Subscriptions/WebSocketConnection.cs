@@ -1,9 +1,11 @@
 using System.Buffers;
 using System.Net.WebSockets;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Net.WebSockets.WebSocketMessageType;
+using static HotChocolate.Transport.Sockets.SocketDefaults;
 using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -11,7 +13,6 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 internal sealed class WebSocketConnection : ISocketConnection
 {
     private readonly IProtocolHandler[] _protocolHandlers;
-    private const int _maxMessageSize = 512;
     private WebSocket? _webSocket;
     private bool _disposed;
 
@@ -22,7 +23,7 @@ internal sealed class WebSocketConnection : ISocketConnection
         _protocolHandlers = executor.Services.GetServices<IProtocolHandler>().ToArray();
     }
 
-    public bool IsClosed => _webSocket is null || _webSocket.CloseStatus.HasValue;
+    public bool IsClosed => _webSocket.IsClosed();
 
     public HttpContext HttpContext { get; }
 
@@ -68,7 +69,7 @@ internal sealed class WebSocketConnection : ISocketConnection
     {
         WebSocket? webSocket = _webSocket;
 
-        if (_disposed || webSocket is not { State: WebSocketState.Open })
+        if (_disposed || webSocket.IsClosed())
         {
             return default;
         }
@@ -82,7 +83,7 @@ internal sealed class WebSocketConnection : ISocketConnection
     {
         WebSocket? webSocket = _webSocket;
 
-        if (_disposed || webSocket is not { State: WebSocketState.Open })
+        if (_disposed || webSocket.IsClosed())
         {
             return false;
         }
@@ -94,12 +95,12 @@ internal sealed class WebSocketConnection : ISocketConnection
 
             do
             {
-                if (webSocket.State is not WebSocketState.Open)
+                if (webSocket.IsClosed())
                 {
                     break;
                 }
 
-                Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                Memory<byte> memory = writer.GetMemory(BufferSize);
                 socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
                 writer.Advance(socketResult.Count);
                 size += socketResult.Count;
@@ -123,12 +124,12 @@ internal sealed class WebSocketConnection : ISocketConnection
         {
             WebSocket? webSocket = _webSocket;
 
-            if (_disposed || IsClosed || webSocket is null || webSocket.State != WebSocketState.Open)
+            if (_disposed || webSocket.IsClosed())
             {
                 return;
             }
 
-            await webSocket.CloseOutputAsync(
+            await webSocket.CloseAsync(
                 MapCloseStatus(reason),
                 message,
                 cancellationToken);
@@ -150,12 +151,12 @@ internal sealed class WebSocketConnection : ISocketConnection
         {
             WebSocket? webSocket = _webSocket;
 
-            if (_disposed || IsClosed || webSocket?.State is not WebSocketState.Open)
+            if (_disposed || webSocket.IsClosed())
             {
                 return;
             }
 
-            await webSocket.CloseOutputAsync(
+            await webSocket.CloseAsync(
                 (WebSocketCloseStatus)reason,
                 message,
                 cancellationToken);

@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace HotChocolate.Transport.Sockets;
 
 internal static class Delimiter

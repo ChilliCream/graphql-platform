@@ -4,13 +4,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Transport.Sockets.Client.Helpers;
 
-namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
 internal sealed class DataMessageObserver : IObserver<IOperationMessage>, IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(0);
     private readonly ConcurrentQueue<IDataMessage> _messages = new();
     private readonly string _id;
+    private Exception? _error;
+    private bool _disposed;
 
     public DataMessageObserver(string id)
     {
@@ -19,7 +21,18 @@ internal sealed class DataMessageObserver : IObserver<IOperationMessage>, IDispo
 
     public async ValueTask<IDataMessage?> TryReadNextAsync(CancellationToken ct)
     {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException($"{nameof(DataMessageObserver)} is disposed.");
+        }
+
         await _semaphore.WaitAsync(ct);
+
+        if (_error is not null)
+        {
+            throw _error;
+        }
+
         _messages.TryDequeue(out IDataMessage? message);
         return message;
     }
@@ -33,15 +46,21 @@ internal sealed class DataMessageObserver : IObserver<IOperationMessage>, IDispo
         }
     }
 
-    public void OnError(Exception error) { }
-
-    public void OnCompleted()
+    public void OnError(Exception error)
     {
+        _error = error;
         _semaphore.Release();
     }
 
+    public void OnCompleted()
+        => _semaphore.Release();
+
     public void Dispose()
     {
-        _semaphore.Dispose();
+        if (!_disposed)
+        {
+            _semaphore.Dispose();
+            _disposed = true;
+        }
     }
 }

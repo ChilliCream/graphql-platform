@@ -1,4 +1,4 @@
-namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 
 internal static class Messages
 {

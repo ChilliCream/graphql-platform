@@ -13,6 +13,8 @@ public sealed class MessagePipeline
     private readonly MessageReceiver _messageReceiver;
     private readonly MessageProcessor _messageProcessor;
 
+    public EventHandler? Completed;
+
     /// <summary>
     /// Initializes a new instance of <see cref="MessagePipeline"/>.
     /// </summary>
@@ -48,8 +50,11 @@ public sealed class MessagePipeline
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task RunAsync(CancellationToken cancellationToken)
-        => Task.WhenAll(
+    public async Task RunAsync(CancellationToken cancellationToken)
+    {
+        await Task.WhenAll(
             _messageReceiver.ReceiveMessagesAsync(cancellationToken),
             _messageProcessor.ProcessMessagesAsync(cancellationToken));
+        Completed?.Invoke(this, EventArgs.Empty);
+    }
 }

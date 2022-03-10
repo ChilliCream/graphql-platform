@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 
 internal sealed class ErrorMessage : IDataMessage
 {

@@ -1,13 +1,13 @@
 using System;
 using System.Buffers;
+using static HotChocolate.Transport.Sockets.SocketDefaults;
 
-namespace HotChocolate.Utilities.Transport.Sockets;
+namespace HotChocolate.Transport.Sockets.Client.Helpers;
 
 internal sealed class ArrayWriter
     : IBufferWriter<byte>
     , IDisposable
 {
-    private const int _initialBufferSize = 512;
     private byte[] _buffer;
     private int _capacity;
     private int _start;
@@ -15,7 +15,7 @@ internal sealed class ArrayWriter
 
     public ArrayWriter()
     {
-        _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
+        _buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
         _capacity = _buffer.Length;
         _start = 0;
     }
@@ -32,14 +32,14 @@ internal sealed class ArrayWriter
 
     public Memory<byte> GetMemory(int sizeHint = 0)
     {
-        var size = sizeHint < 1 ? _initialBufferSize : sizeHint;
+        var size = sizeHint < 1 ? BufferSize : sizeHint;
         EnsureBufferCapacity(size);
         return _buffer.AsMemory().Slice(_start, size);
     }
 
     public Span<byte> GetSpan(int sizeHint = 0)
     {
-        var size = sizeHint < 1 ? _initialBufferSize : sizeHint;
+        var size = sizeHint < 1 ? BufferSize : sizeHint;
         EnsureBufferCapacity(size);
         return _buffer.AsSpan().Slice(_start, size);
     }

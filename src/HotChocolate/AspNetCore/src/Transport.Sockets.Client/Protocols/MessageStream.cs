@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Immutable;
 
-namespace HotChocolate.Transport.Sockets.Client;
+namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
 internal sealed class MessageStream : IObservable<IOperationMessage>, IObserver<IOperationMessage>
 {

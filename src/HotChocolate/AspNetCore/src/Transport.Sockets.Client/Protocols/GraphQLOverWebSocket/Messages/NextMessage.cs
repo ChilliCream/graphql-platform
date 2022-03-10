@@ -2,7 +2,7 @@ using System;
 using System.Text.Json;
 using static HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;
 
-namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 
 internal sealed class NextMessage : IDataMessage
 {

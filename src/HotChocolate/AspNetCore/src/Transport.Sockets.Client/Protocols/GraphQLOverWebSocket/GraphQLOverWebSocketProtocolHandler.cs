@@ -1,10 +1,10 @@
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 using static HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
@@ -18,16 +18,39 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         T payload,
         CancellationToken cancellationToken = default)
     {
-        var observer = new ConnectionMessageObserver(cancellationToken);
+        var observer = new ConnectionMessageObserver<ConnectionAcceptMessage>(cancellationToken);
         using IDisposable subscription = context.Messages.Subscribe(observer);
         await context.Socket.SendConnectionInitMessage(payload, cancellationToken);
         await observer.Accepted;
     }
 
-    public IAsyncEnumerable<OperationResult> ExecuteAsync(
+    public async ValueTask<SocketResult> ExecuteAsync(
         SocketClientContext context,
-        OperationRequest request)
-        => new OperationExecutor(context, request);
+        OperationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var id = Guid.NewGuid().ToString("N");
+        var observer = new DataMessageObserver(id);
+        var completion = new DataCompletion(context.Socket, id);
+        IDisposable subscription = context.Messages.Subscribe(observer);
+
+        await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
+
+        // if the user cancels this stream we will send the server a complete request
+        // so that we no longer receive new result messages.
+        cancellationToken.Register(completion.TryComplete);
+
+        try
+        {
+            return new SocketResult(observer, subscription, completion);
+        }
+        catch
+        {
+            subscription.Dispose();
+            observer.Dispose();
+            throw;
+        }
+    }
 
     public ValueTask OnReceiveAsync(
         SocketClientContext context,
@@ -96,6 +119,49 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
                 WebSocketCloseStatus.ProtocolError,
                 "Invalid Message Structure",
                 cancellationToken);
+        }
+    }
+
+    private sealed class DataCompletion : IDataCompletion
+    {
+        private readonly WebSocket _socket;
+        private readonly string _id;
+        private bool _completed;
+
+        public DataCompletion(WebSocket socket, string id)
+        {
+            _socket = socket;
+            _id = id;
+        }
+
+        public void SetCompleted()
+            => _completed = true;
+
+        public void TryComplete()
+        {
+            if (!_completed)
+            {
+                Task.Factory.StartNew(
+                    async () =>
+                    {
+                        try
+                        {
+                            if (_socket.IsOpen())
+                            {
+                                await _socket.SendCompleteMessageAsync(_id, CancellationToken.None);
+                            }
+                        }
+                        catch
+                        {
+                            // we ignore any error here.
+                            // Most likely the connection is already closed.
+                        }
+                    },
+                    CancellationToken.None,
+                    TaskCreationOptions.None,
+                    TaskScheduler.Default);
+                _completed = true;
+            }
         }
     }
 }

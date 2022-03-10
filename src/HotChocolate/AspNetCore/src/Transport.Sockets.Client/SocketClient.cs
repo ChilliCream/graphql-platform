@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
@@ -8,12 +7,12 @@ using System.Threading.Tasks;
 using HotChocolate.Transport.Sockets.Client.Helpers;
 using HotChocolate.Transport.Sockets.Client.Protocols;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+using static HotChocolate.Transport.Sockets.SocketDefaults;
 
 namespace HotChocolate.Transport.Sockets.Client;
 
-public class SocketClient : ISocketClient, ISocket
+public class SocketClient : ISocket
 {
-    private const int _maxMessageSize = 512;
     private static readonly IProtocolHandler[] _protocolHandlers =
     {
         new GraphQLOverWebSocketProtocolHandler()
@@ -33,15 +32,29 @@ public class SocketClient : ISocketClient, ISocket
         _protocol = protocol;
         _context = new SocketClientContext(socket);
         _pipeline = new MessagePipeline(this, new MessageHandler(_context, protocol));
+        _pipeline.Completed += (_, _) =>
+        {
+            if (_context.Socket.CloseStatus is not null)
+            {
+                _context.Messages.OnError(new SocketClosedException(
+                    _context.Socket.CloseStatusDescription ?? "Socket was closed.",
+                    _context.Socket.CloseStatus.Value));
+            }
+            _context.Messages.OnCompleted();
+        };
         _ct = _cts.Token;
-
     }
 
-    public bool IsClosed => _socket.State is not WebSocketState.Open;
+    public bool IsClosed => _socket.IsClosed();
+
+    public static ValueTask<SocketClient> ConnectAsync(
+        WebSocket socket,
+        CancellationToken cancellationToken = default)
+        => ConnectAsync<object>(socket, null, cancellationToken);
 
     public static async ValueTask<SocketClient> ConnectAsync<T>(
         WebSocket socket,
-        T payload,
+        T? payload,
         CancellationToken cancellationToken = default)
     {
         IProtocolHandler? protocolHandler =
@@ -66,8 +79,10 @@ public class SocketClient : ISocketClient, ISocket
 
     private void BeginRunPipeline() => _pipeline.RunAsync(_ct);
 
-    public IAsyncEnumerable<OperationResult> ExecuteAsync(OperationRequest request)
-        => _protocol.ExecuteAsync(_context, request);
+    public ValueTask<SocketResult> ExecuteAsync(
+        OperationRequest request,
+        CancellationToken cancellationToken = default)
+        => _protocol.ExecuteAsync(_context, request, cancellationToken);
 
 
 #if NET5_0_OR_GREATER
@@ -75,7 +90,7 @@ public class SocketClient : ISocketClient, ISocket
         IBufferWriter<byte> writer,
         CancellationToken cancellationToken)
     {
-        if (_disposed || _socket is not { State: WebSocketState.Open })
+        if (_disposed || _socket.IsClosed())
         {
             return false;
         }
@@ -87,13 +102,13 @@ public class SocketClient : ISocketClient, ISocket
 
             do
             {
-                if (_socket.State is not WebSocketState.Open)
+                if (_socket.IsClosed())
                 {
                     break;
                 }
 
                 // get memory from writer
-                Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                Memory<byte> memory = writer.GetMemory(BufferSize);
 
                 // read message segment from socket.
                 socketResult = await _socket.ReceiveAsync(memory, cancellationToken);
@@ -116,12 +131,12 @@ public class SocketClient : ISocketClient, ISocket
         IBufferWriter<byte> writer,
         CancellationToken cancellationToken)
     {
-        if (_disposed || _socket is not { State: WebSocketState.Open })
+        if (_disposed || _socket.IsClosed())
         {
             return false;
         }
 
-        var buffer = ArrayPool<byte>.Shared.Rent(_maxMessageSize);
+        var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
         var arraySegment = new ArraySegment<byte>(buffer);
 
         try
@@ -131,7 +146,7 @@ public class SocketClient : ISocketClient, ISocket
 
             do
             {
-                if (_socket.State is not WebSocketState.Open)
+                if (_socket.IsClosed())
                 {
                     break;
                 }
@@ -183,9 +198,21 @@ public class SocketClient : ISocketClient, ISocket
             _protocolHandler = protocolHandler;
         }
 
-        public ValueTask OnReceiveAsync(
+        public async ValueTask OnReceiveAsync(
             ReadOnlySequence<byte> message,
             CancellationToken cancellationToken = default)
-            => _protocolHandler.OnReceiveAsync(_context, message, cancellationToken);
+        {
+            try
+            {
+                await _protocolHandler.OnReceiveAsync(_context, message, cancellationToken);
+            }
+            finally
+            {
+                if (_context.Socket.IsClosed())
+                {
+                    _context.Messages.OnCompleted();
+                }
+            }
+        }
     }
 }

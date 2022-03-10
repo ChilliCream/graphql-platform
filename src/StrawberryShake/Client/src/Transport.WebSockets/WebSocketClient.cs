@@ -15,11 +15,9 @@ namespace StrawberryShake.Transport.WebSockets;
 /// </summary>
 public sealed class WebSocketClient : IWebSocketClient
 {
+    private const int _maxMessageSize = 1024 * 4;
     private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
     private readonly ClientWebSocket _socket;
-
-    private const int _maxMessageSize = 1024 * 4;
-
     private ISocketProtocol? _activeProtocol;
     private bool _disposed;
 

@@ -1,4 +1,4 @@
-namespace HotChocolate.Transport.Sockets.Client;
+namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
 interface IDataMessage : IOperationMessage
 {

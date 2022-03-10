@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
+using static System.Net.WebSockets.WebSocketCloseStatus;
 
 #nullable enable
 
@@ -215,7 +217,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             await socket.ReceiveServerMessageAsync(ct);
             Assert.True(socket.CloseStatus.HasValue);
-            Assert.Equal(WebSocketCloseStatus.ProtocolError, socket.CloseStatus!.Value);
+            Assert.Equal(ProtocolError, socket.CloseStatus!.Value);
         });
 
     [Fact]
@@ -557,7 +559,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
-            Assert.Equal(WebSocketCloseStatus.InternalServerError, webSocket.CloseStatus!.Value);
+            Assert.Equal(InternalServerError, webSocket.CloseStatus!.Value);
         });
 
     [Fact]
@@ -612,6 +614,28 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             await webSocket.ReceiveServerMessageAsync(ct);
             Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
             Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
+        });
+
+    [Fact]
+    public Task Normal_Closure()
+        => TryTest(async ct =>
+        {
+            // arrange
+            var interceptor = new AuthInterceptor();
+            using TestServer testServer = CreateStarWarsServer(
+                configureServices: s => s
+                    .AddGraphQLServer()
+                    .AddSocketSessionInterceptor(_ => interceptor));
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            await webSocket.SendConnectionInitAsync(ct);
+
+            // act
+            async Task Close() => await webSocket.CloseAsync(NormalClosure, "I want to close.", ct);
+
+            // assert
+            IOException error = await Assert.ThrowsAsync<IOException>(Close);
+            Assert.Equal("The remote end closed the connection.", error.Message);
         });
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor

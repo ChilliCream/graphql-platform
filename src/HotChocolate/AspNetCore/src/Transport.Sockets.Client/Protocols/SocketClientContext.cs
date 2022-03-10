@@ -1,6 +1,6 @@
 using System.Net.WebSockets;
 
-namespace HotChocolate.Transport.Sockets.Client;
+namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
 internal sealed class SocketClientContext
 {
