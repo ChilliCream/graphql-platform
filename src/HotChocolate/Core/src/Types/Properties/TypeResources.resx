@@ -786,7 +786,7 @@ Type: `{0}`</value>
     <value>The type {0} is invalid because the runtime type is a {1}. It is not supported to have type system members as runtime types.</value>
   </data>
   <data name="FieldInitHelper_CompleteFields_MaxFieldCountToSmall" xml:space="preserve">
-    <value>The max expected field count cannot be smaller then 1.</value>
+    <value>The max expected field count cannot be smaller than 1.</value>
   </data>
   <data name="RegisteredType_Completion_NotYetReady" xml:space="preserve">
     <value>The object is not yet ready for this action.</value>
