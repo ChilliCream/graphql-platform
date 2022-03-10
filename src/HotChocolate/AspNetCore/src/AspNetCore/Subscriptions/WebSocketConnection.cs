@@ -1,86 +1,89 @@
-using System;
-using System.IO.Pipelines;
+using System.Buffers;
 using System.Net.WebSockets;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using static System.Net.WebSockets.WebSocketMessageType;
+using static HotChocolate.AspNetCore.Subscriptions.Constants;
+using static HotChocolate.AspNetCore.Subscriptions.ProtocolNames;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
-public class WebSocketConnection : ISocketConnection
+internal sealed class WebSocketConnection : ISocketConnection
 {
-    private const string _protocol = "graphql-ws";
+    private readonly IProtocolHandler[] _protocolHandlers;
     private const int _maxMessageSize = 512;
     private WebSocket? _webSocket;
     private bool _disposed;
 
-    private WebSocketConnection(HttpContext httpContext)
+    public WebSocketConnection(HttpContext httpContext)
     {
         HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-        Subscriptions = new SubscriptionManager(this);
+        var executor = (IRequestExecutor)httpContext.Items[WellKnownContextData.RequestExecutor]!;
+        _protocolHandlers = executor.Services.GetServices<IProtocolHandler>().ToArray();
     }
 
-    public bool Closed => _webSocket is null || _webSocket.CloseStatus.HasValue;
+    public bool IsClosed => _webSocket is null || _webSocket.CloseStatus.HasValue;
 
     public HttpContext HttpContext { get; }
-
-    public ISubscriptionManager Subscriptions { get; }
-
-    public WebSocketManager WebSockets => HttpContext.WebSockets;
 
     public IServiceProvider RequestServices => HttpContext.RequestServices;
 
     public CancellationToken RequestAborted => HttpContext.RequestAborted;
 
-    public async Task<bool> TryOpenAsync()
+    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+
+    public async Task<IProtocolHandler?> TryAcceptConnection()
     {
         if (_disposed)
         {
             throw new ObjectDisposedException(nameof(WebSocketConnection));
         }
 
-        _webSocket = await WebSockets.AcceptWebSocketAsync(_protocol);
+        WebSocketManager webSocketManager = HttpContext.WebSockets;
 
-        if (_webSocket.SubProtocol is not null &&
-            WebSockets.WebSocketRequestedProtocols.Contains(_webSocket.SubProtocol))
+        if (webSocketManager.WebSocketRequestedProtocols.Count > 0)
         {
-            return true;
+            foreach (IProtocolHandler protocolHandler in _protocolHandlers)
+            {
+                if (webSocketManager.WebSocketRequestedProtocols.Contains(protocolHandler.Name))
+                {
+                    _webSocket = await webSocketManager.AcceptWebSocketAsync(protocolHandler.Name);
+                    return protocolHandler;
+                }
+            }
         }
 
-        await _webSocket.CloseOutputAsync(
+        using WebSocket socket = await webSocketManager.AcceptWebSocketAsync();
+        await socket.CloseOutputAsync(
             WebSocketCloseStatus.ProtocolError,
-            "Expected graphql-ws protocol.",
+            $"Expected the {GraphQL_Transport_WS} or {GraphQL_WS} protocol.",
             CancellationToken.None);
-        _webSocket.Dispose();
         _webSocket = null;
-        return false;
+        return null;
     }
 
-    public Task SendAsync(
-        byte[] message,
-        CancellationToken cancellationToken)
+    public ValueTask SendAsync(
+        ReadOnlyMemory<byte> message,
+        CancellationToken cancellationToken = default)
     {
         WebSocket? webSocket = _webSocket;
 
-        if (_disposed || webSocket == null || webSocket.State != WebSocketState.Open)
+        if (_disposed || webSocket is not { State: WebSocketState.Open })
         {
-            return Task.CompletedTask;
+            return default;
         }
 
-        return webSocket.SendAsync(
-            new ArraySegment<byte>(message),
-            WebSocketMessageType.Text,
-            true, cancellationToken);
+        return webSocket.SendAsync(message, Text, true, cancellationToken);
     }
 
-    public async Task ReceiveAsync(
-        PipeWriter writer,
-        CancellationToken cancellationToken)
+    public async ValueTask ReceiveAsync(
+        IBufferWriter<byte> writer,
+        CancellationToken cancellationToken = default)
     {
         WebSocket? webSocket = _webSocket;
 
-        if (_disposed || webSocket == null)
+        if (_disposed || webSocket is not { State: WebSocketState.Open })
         {
             return;
         }
@@ -90,51 +93,46 @@ public class WebSocketConnection : ISocketConnection
             ValueWebSocketReceiveResult socketResult;
             do
             {
-                if (webSocket.State != WebSocketState.Open)
+                if (webSocket.State is not WebSocketState.Open)
                 {
                     break;
                 }
 
                 Memory<byte> memory = writer.GetMemory(_maxMessageSize);
                 socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
-
-                if (socketResult.Count == 0)
-                {
-                    break;
-                }
-
                 writer.Advance(socketResult.Count);
 
-                FlushResult result = await writer.FlushAsync(cancellationToken);
-
-                if (result.IsCompleted)
+                if (socketResult.EndOfMessage)
                 {
+                    memory = writer.GetMemory(1);
+                    memory.Span[0] = Delimiter;
+                    writer.Advance(1);
                     break;
                 }
             } while (!socketResult.EndOfMessage);
         }
         catch
         {
-            // swallow exception, there's nothing we can reasonably do
+            // swallow exception, there's nothing we can reasonably do.
         }
     }
 
-    public async Task CloseAsync(
+    public async ValueTask CloseAsync(
        string message,
-       SocketCloseStatus closeStatus,
-       CancellationToken cancellationToken)
+       ConnectionCloseReason reason,
+       CancellationToken cancellationToken = default)
     {
         try
         {
             WebSocket? webSocket = _webSocket;
 
-            if (_disposed || Closed || webSocket is null || webSocket.State != WebSocketState.Open)
+            if (_disposed || IsClosed || webSocket is null || webSocket.State != WebSocketState.Open)
             {
                 return;
             }
 
             await webSocket.CloseOutputAsync(
-                MapCloseStatus(closeStatus),
+                MapCloseStatus(reason),
                 message,
                 cancellationToken);
 
@@ -146,54 +144,55 @@ public class WebSocketConnection : ISocketConnection
         }
     }
 
-    private static WebSocketCloseStatus MapCloseStatus(
-        SocketCloseStatus closeStatus)
+    public async ValueTask CloseAsync(
+        string message,
+        int reason,
+        CancellationToken cancellationToken = default)
     {
-        switch (closeStatus)
+        try
         {
-            case SocketCloseStatus.EndpointUnavailable:
-                return WebSocketCloseStatus.EndpointUnavailable;
-            case SocketCloseStatus.InternalServerError:
-                return WebSocketCloseStatus.InternalServerError;
-            case SocketCloseStatus.InvalidMessageType:
-                return WebSocketCloseStatus.InvalidMessageType;
-            case SocketCloseStatus.InvalidPayloadData:
-                return WebSocketCloseStatus.InvalidPayloadData;
-            case SocketCloseStatus.MandatoryExtension:
-                return WebSocketCloseStatus.MandatoryExtension;
-            case SocketCloseStatus.MessageTooBig:
-                return WebSocketCloseStatus.MessageTooBig;
-            case SocketCloseStatus.NormalClosure:
-                return WebSocketCloseStatus.NormalClosure;
-            case SocketCloseStatus.PolicyViolation:
-                return WebSocketCloseStatus.PolicyViolation;
-            case SocketCloseStatus.ProtocolError:
-                return WebSocketCloseStatus.ProtocolError;
-            default:
-                return WebSocketCloseStatus.Empty;
+            WebSocket? webSocket = _webSocket;
+
+            if (_disposed || IsClosed || webSocket?.State is not WebSocketState.Open)
+            {
+                return;
+            }
+
+            await webSocket.CloseOutputAsync(
+                (WebSocketCloseStatus)reason,
+                message,
+                cancellationToken);
+
+            Dispose();
+        }
+        catch
+        {
+            // we do not throw here ...
         }
     }
+
+    private static WebSocketCloseStatus MapCloseStatus(ConnectionCloseReason closeReason)
+        => closeReason switch
+        {
+            ConnectionCloseReason.EndpointUnavailable => WebSocketCloseStatus.EndpointUnavailable,
+            ConnectionCloseReason.InternalServerError => WebSocketCloseStatus.InternalServerError,
+            ConnectionCloseReason.InvalidMessageType => WebSocketCloseStatus.InvalidMessageType,
+            ConnectionCloseReason.InvalidPayloadData => WebSocketCloseStatus.InvalidPayloadData,
+            ConnectionCloseReason.MandatoryExtension => WebSocketCloseStatus.MandatoryExtension,
+            ConnectionCloseReason.MessageTooBig => WebSocketCloseStatus.MessageTooBig,
+            ConnectionCloseReason.NormalClosure => WebSocketCloseStatus.NormalClosure,
+            ConnectionCloseReason.PolicyViolation => WebSocketCloseStatus.PolicyViolation,
+            ConnectionCloseReason.ProtocolError => WebSocketCloseStatus.ProtocolError,
+            _ => WebSocketCloseStatus.Empty
+        };
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
         if (!_disposed)
         {
-            if (disposing)
-            {
-                Subscriptions.Dispose();
-                _webSocket?.Dispose();
-                _webSocket = null;
-            }
+            _webSocket?.Dispose();
+            _webSocket = null;
             _disposed = true;
         }
     }
-
-    public static WebSocketConnection New(HttpContext httpContext) =>
-        new WebSocketConnection(httpContext);
 }

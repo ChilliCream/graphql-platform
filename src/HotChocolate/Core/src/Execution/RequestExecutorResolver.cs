@@ -133,7 +133,7 @@ internal sealed class RequestExecutorResolver
         }
     }
 
-    private void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
+    private static void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
     {
         Task.Factory.StartNew(
             async () =>

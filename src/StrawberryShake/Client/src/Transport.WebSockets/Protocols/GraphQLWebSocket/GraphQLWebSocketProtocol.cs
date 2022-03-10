@@ -1,8 +1,10 @@
 using System;
 using System.Buffers;
+using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Properties;
 using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
@@ -26,8 +28,7 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
     public GraphQLWebSocketProtocol(ISocketClient socketClient)
     {
         _socketClient = socketClient ??
-                        throw new ArgumentNullException(nameof(socketClient));
-
+            throw new ArgumentNullException(nameof(socketClient));
         _receiver = new MessagePipeline(socketClient, ProcessAsync);
         _sender = new SynchronizedMessageWriter(socketClient);
     }
@@ -128,7 +129,7 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
                     GraphQLWebSocketMessageType.Error =>
                         Notify(
                             id,
-                            ErrorOperationMessage.UnexpectedServerError,
+                            new ErrorOperationMessage(CreateError(message.Payload)),
                             cancellationToken),
 
                     GraphQLWebSocketMessageType.ConnectionError =>
@@ -151,6 +152,17 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
         }
 
         return default;
+    }
+
+    private static IClientError CreateError(JsonDocument error)
+    {
+        if (error.RootElement.TryGetProperty("message", out JsonElement messageProp) &&
+            messageProp.GetString() is {  Length: > 0} message)
+        {
+            return new ClientError(message);
+        }
+
+        throw new SocketOperationException(Resources.ErrorOperationMessage_ResponseParsingError);
     }
 
     private async ValueTask CloseSocketOnProtocolError(

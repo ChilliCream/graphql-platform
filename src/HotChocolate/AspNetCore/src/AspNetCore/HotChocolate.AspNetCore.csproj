@@ -35,6 +35,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>AspNetCoreResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Remove="Subscriptions\Protocols\Apollo\**" />
+    <EmbeddedResource Remove="Subscriptions\Protocols\Apollo\**" />
   </ItemGroup>
 
   <ItemGroup>

@@ -62,6 +62,14 @@
             "VSCode"
           ]
         },
+        "MyGetApiKey": {
+          "type": "string",
+          "description": "MyGet Api Key"
+        },
+        "MyGetSource": {
+          "type": "string",
+          "description": "NuGet Source for Packages"
+        },
         "NoLogo": {
           "type": "boolean",
           "description": "Disables displaying the NUKE logo"

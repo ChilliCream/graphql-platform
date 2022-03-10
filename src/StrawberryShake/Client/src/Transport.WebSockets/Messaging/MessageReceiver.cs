@@ -25,13 +25,11 @@ internal static class MessageReceiver
         PipeWriter writer,
         ISocketClient client,
         CancellationToken cancellationToken)
-    {
-        return Task.Factory.StartNew(
+        => Task.Factory.StartNew(
             () => ReceiveAsync(client, writer, cancellationToken),
             cancellationToken,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
-    }
 
     private static async Task ReceiveAsync(
         ISocketClient client,
@@ -50,7 +48,10 @@ internal static class MessageReceiver
                     .ConfigureAwait(false);
             }
         }
-        catch (TaskCanceledException) { }
+        catch (OperationCanceledException)
+        {
+            // if this operation was cancelled we will move on.
+        }
         finally
         {
             await writer.CompleteAsync().ConfigureAwait(false);
@@ -62,13 +63,9 @@ internal static class MessageReceiver
         CancellationToken cancellationToken)
     {
         Memory<byte> memory = writer.GetMemory(1);
-
         memory.Span[0] = MessageProcessor.Delimiter;
-
         writer.Advance(1);
 
-        await writer
-            .FlushAsync(cancellationToken)
-            .ConfigureAwait(false);
+        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 }

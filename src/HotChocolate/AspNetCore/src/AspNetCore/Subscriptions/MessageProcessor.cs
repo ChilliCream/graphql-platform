@@ -1,25 +1,17 @@
-using System;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal sealed class MessageProcessor
 {
-    private readonly ISocketConnection _connection;
+    private readonly ISocketSession _session;
     private readonly PipeReader _reader;
-    private readonly IMessagePipeline _pipeline;
 
-    public MessageProcessor(
-        ISocketConnection connection,
-        IMessagePipeline pipeline,
-        PipeReader reader)
+    public MessageProcessor(ISocketSession session, PipeReader reader)
     {
-        _connection = connection;
-        _pipeline = pipeline;
+        _session = session;
         _reader = reader;
     }
 
@@ -27,7 +19,7 @@ internal sealed class MessageProcessor
     {
         Task.Factory.StartNew(
             () => ProcessMessagesAsync(cancellationToken),
-            cancellationToken,
+            CancellationToken.None,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
     }
@@ -44,20 +36,19 @@ internal sealed class MessageProcessor
 
                 do
                 {
-                    position = buffer.PositionOf(SubscriptionSession.Delimiter);
+                    position = buffer.PositionOf(Constants.Delimiter);
 
                     if (position is not null)
                     {
-                        await _pipeline.ProcessAsync(
-                            _connection,
+                        await _session.Protocol.OnReceiveAsync(
+                            _session,
                             buffer.Slice(0, position.Value),
                             cancellationToken);
 
                         // Skip the message which was read.
                         buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
                     }
-                }
-                while (position != null);
+                } while (position != null);
 
                 _reader.AdvanceTo(buffer.Start, buffer.End);
 
@@ -67,7 +58,10 @@ internal sealed class MessageProcessor
                 }
             }
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (OperationCanceledException)
+        {
+            // we will just stop receiving
+        }
         catch (WebSocketException)
         {
             // we will just stop receiving

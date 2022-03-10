@@ -3,12 +3,17 @@ namespace HotChocolate.AspNetCore;
 /// <summary>
 /// Represents the GraphQL server options.
 /// </summary>
-public class GraphQLServerOptions
+public sealed class GraphQLServerOptions
 {
     /// <summary>
     /// Gets the GraphQL tool options for Banana Cake Pop.
     /// </summary>
     public GraphQLToolOptions Tool { get; internal set; } = new();
+
+    /// <summary>
+    /// Gets the GraphQL socket options.
+    /// </summary>
+    public GraphQLSocketOptions Sockets { get; internal set; } = new();
 
     /// <summary>
     /// Gets or sets which GraphQL options are allowed on GET requests.
