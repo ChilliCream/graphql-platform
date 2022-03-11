@@ -50,27 +50,28 @@ partial class Build
     Target Test => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Partition(TestPartitionCount)
-        .Executes(() =>
-        {
-            DotNetBuildSonarSolution(AllSolutionFile);
-            DotNetBuildTestSolution(TestSolutionFile, TestProjects);
-
-            DotNetBuild(c => c
-                .SetProjectFile(TestSolutionFile)
-                .SetConfiguration(Debug));
-
-            try
-            {
-                DotNetTest(
-                    TestSettings,
-                    degreeOfParallelism: DegreeOfParallelism,
-                    completeOnFailure: true);
-            }
-            finally
-            {
-                UploadTestsAndMismatches();
-            }
-        });
+        .DependsOn(
+            TestGreenDonut,
+            TestHotChocolateAnalyzers,
+            TestHotChocolateApolloFederation,
+            TestHotChocolateAspNetCore,
+            TestHotChocolateAzureFunctions,
+            TestHotChocolateCodeGeneration,
+            TestHotChocolateCore,
+            TestHotChocolateData,
+            TestHotChocolateDiagnostics,
+            TestHotChocolateFilters,
+            TestHotChocolateLanguage,
+            TestHotChocolateMongoDb,
+            TestHotChocolateNeo4J,
+            TestHotChocolatePersistedQueries,
+            TestHotChocolateSpatial,
+            TestHotChocolateStitching,
+            TestHotChocolateUtilities,
+            TestStrawberryShakeClient,
+            TestStrawberryShakeCodeGeneration,
+            TestStrawberryShakeSourceGenerator,
+            TestStrawberryShakeTooling);
 
     Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")

@@ -13,6 +13,17 @@ stages:
     pool:
       vmImage: "ubuntu-20.04"
     jobs:
+      - job: TestGreenDonut
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestGreenDonut --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
       - job: TestHotChocolateAnalyzers
         steps:
           - task: CmdLine@2
@@ -184,6 +195,50 @@ stages:
             displayName: "Run Tests"
             inputs:
               script: "./build.cmd TestHotChocolateUtilities --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestStrawberryShakeClient
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestStrawberryShakeClient --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestStrawberryShakeCodeGeneration
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestStrawberryShakeCodeGeneration --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestStrawberryShakeSourceGenerator
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestStrawberryShakeSourceGenerator --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestStrawberryShakeTooling
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestStrawberryShakeTooling --skip --test-partition $(System.JobPositionInPhase)"
           - task: PublishBuildArtifacts@1
             displayName: "Upload Test Results"
             inputs:

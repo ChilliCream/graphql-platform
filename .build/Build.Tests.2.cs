@@ -1,24 +1,18 @@
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Nuke.Common;
-using Nuke.Common.CI;
-using Nuke.Common.CI.AzurePipelines;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
-using Nuke.Common.Tools.Codecov;
-using Nuke.Common.Tools.Coverlet;
 using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.ReportGenerator;
-using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
-using static Helpers;
 using static Nuke.Common.ProjectModel.ProjectModelTasks;
 
 partial class Build
 {
+    Target TestGreenDonut => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "GreenDonut" / "GreenDonut.sln"));
+
     Target TestHotChocolateAnalyzers => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Analyzers" / "HotChocolate.Analyzers.sln"));
@@ -82,6 +76,22 @@ partial class Build
     Target TestHotChocolateUtilities => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Utilities" / "HotChocolate.Utilities.sln"));
+
+    Target TestStrawberryShakeClient => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "StrawberryShake" / "Client" / "StrawberryShake.Client.sln"));
+
+    Target TestStrawberryShakeCodeGeneration => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "StrawberryShake" / "CodeGeneration" / "StrawberryShake.CodeGeneration.sln"));
+
+    Target TestStrawberryShakeSourceGenerator => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "StrawberryShake" / "SourceGenerator" / "StrawberryShake.SourceGenerator.sln"));
+
+    Target TestStrawberryShakeTooling => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "StrawberryShake" / "Tooling" / "StrawberryShake.Tooling.sln"));
 
     void RunTests(AbsolutePath solutionFile)
     {
