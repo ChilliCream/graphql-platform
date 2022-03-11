@@ -1,30 +1,25 @@
+using System;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
+using System.Threading;
+using System.Threading.Tasks;
+using static HotChocolate.Transport.Sockets.Delimiter;
 
-namespace HotChocolate.AspNetCore.Subscriptions;
+namespace HotChocolate.Transport.Sockets;
 
 internal sealed class MessageProcessor
 {
-    private readonly ISocketSession _session;
+    private readonly IMessageHandler _messageHandler;
     private readonly PipeReader _reader;
 
-    public MessageProcessor(ISocketSession session, PipeReader reader)
+    public MessageProcessor(IMessageHandler messageHandler, PipeReader reader)
     {
-        _session = session;
+        _messageHandler = messageHandler;
         _reader = reader;
     }
 
-    public void Begin(CancellationToken cancellationToken)
-    {
-        Task.Factory.StartNew(
-            () => ProcessMessagesAsync(cancellationToken),
-            CancellationToken.None,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
-    }
-
-    private async Task ProcessMessagesAsync(CancellationToken cancellationToken)
+    public async Task ProcessMessagesAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -36,12 +31,11 @@ internal sealed class MessageProcessor
 
                 do
                 {
-                    position = buffer.PositionOf(Constants.Delimiter);
+                    position = buffer.PositionOf(EndOfText);
 
                     if (position is not null)
                     {
-                        await _session.Protocol.OnReceiveAsync(
-                            _session,
+                        await _messageHandler.OnReceiveAsync(
                             buffer.Slice(0, position.Value),
                             cancellationToken);
 

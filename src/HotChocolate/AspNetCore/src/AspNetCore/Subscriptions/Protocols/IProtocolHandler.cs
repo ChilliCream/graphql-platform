@@ -12,18 +12,7 @@ public interface IProtocolHandler
     /// </summary>
     string Name { get; }
 
-    /// <summary>
-    /// Is invoked by the socket session for every incoming message.
-    /// </summary>
-    /// <param name="session">
-    /// The socket session.
-    /// </param>
-    /// <param name="message">
-    /// The client message.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
+
     ValueTask OnReceiveAsync(
         ISocketSession session,
         ReadOnlySequence<byte> message,

@@ -14,14 +14,7 @@ internal sealed class PingPongJob
         _options = options;
     }
 
-    public void Begin(CancellationToken cancellationToken)
-        => Task.Factory.StartNew(
-            () => KeepConnectionAliveAsync(cancellationToken),
-            cancellationToken,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
-
-    private async Task KeepConnectionAliveAsync(CancellationToken ct)
+    public async Task RunAsync(CancellationToken cancellationToken)
     {
         ISocketConnection connection = _session.Connection;
         IProtocolHandler protocolHandler = _session.Protocol;
@@ -29,13 +22,13 @@ internal sealed class PingPongJob
         try
         {
             // first we will wait for a connection to be established
-            await Task.Delay(_options.ConnectionInitializationTimeout, ct);
+            await Task.Delay(_options.ConnectionInitializationTimeout, cancellationToken);
 
             // if after the timeout no connection initialization was send by the client we will
             // close the connection.
             if (!connection.ContextData.ContainsKey(ConnectionContextKeys.Connected))
             {
-                await _session.Protocol.OnConnectionInitTimeoutAsync(_session, ct);
+                await _session.Protocol.OnConnectionInitTimeoutAsync(_session, cancellationToken);
                 return;
             }
 
@@ -45,18 +38,18 @@ internal sealed class PingPongJob
             {
                 TimeSpan interval = _options.KeepAliveInterval.Value;
 
-                while (!connection.IsClosed && !ct.IsCancellationRequested)
+                while (!connection.IsClosed && !cancellationToken.IsCancellationRequested)
                 {
-                    await Task.Delay(interval, ct);
+                    await Task.Delay(interval, cancellationToken);
 
                     if (!connection.IsClosed)
                     {
-                        await protocolHandler.SendKeepAliveMessageAsync(_session, ct);
+                        await protocolHandler.SendKeepAliveMessageAsync(_session, cancellationToken);
                     }
                 }
             }
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             // the message processing was canceled.
         }

@@ -2,11 +2,11 @@ using Nuke.Common;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.SonarScanner;
+using Serilog;
 using static System.IO.Path;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 using static Helpers;
-using Serilog;
 
 partial class Build
 {
@@ -89,7 +89,7 @@ partial class Build
                 .Add("/d:sonar.pullrequest.key={0}", GitHubPRNumber)
                 .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
                 .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
-                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"))
+                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "false"))
             .SetFramework(Net50);
 
     SonarScannerBeginSettings SonarBeginFullSettings(SonarScannerBeginSettings settings) =>
@@ -108,7 +108,7 @@ partial class Build
             .AddSourceExclusions("**/Generated/**/*.*,**/*.Designer.cs,**/*.generated.cs,**/*.js,**/*.html,**/*.css,**/Sample/**/*.*,**/Samples.*/**/*.*,**/*Tools.*/**/*.*,**/Program.Dev.cs, **/Program.cs,**/*.ts,**/*.tsx,**/*EventSource.cs,**/*EventSources.cs,**/*.Samples.cs,**/*Tests.*/**/*.*,**/*Test.*/**/*.*")
             .SetProcessArgumentConfigurator(t => t
                 .Add("/o:{0}", "chillicream")
-                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"));
+                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "false"));
 
     SonarScannerBeginSettings SonarBaseSettings(SonarScannerBeginSettings settings) =>
         settings
