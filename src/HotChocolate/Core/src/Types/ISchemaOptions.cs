@@ -113,5 +113,8 @@ public interface ISchemaOptions : IReadOnlySchemaOptions
     /// </summary>
     new bool EnableOneOf { get; set; }
 
+    /// <summary>
+    /// List of directive types that should be ignored in the  GraphQL schema.
+    /// </summary>
     new List<Type>? IgnoredDirectiveTypes { get; set; }
 }

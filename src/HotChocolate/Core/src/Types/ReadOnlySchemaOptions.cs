@@ -148,5 +148,8 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc />
     public bool EnableOneOf { get; }
 
+    /// <summary>
+    /// List of directive types that should be ignored in the  GraphQL schema.
+    /// </summary>
     public List<Type>? IgnoredDirectiveTypes { get;}
 }
