@@ -49,7 +49,6 @@ partial class Build
 
     Target Test => _ => _
         .Produces(TestResultDirectory / "*.trx")
-        .Partition(TestPartitionCount)
         .DependsOn(
             TestGreenDonut,
             TestHotChocolateAnalyzers,
