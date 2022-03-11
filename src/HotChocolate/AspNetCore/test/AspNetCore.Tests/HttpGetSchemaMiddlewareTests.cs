@@ -173,4 +173,38 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         var result = await response.Content.ReadAsStringAsync();
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Download_GraphQL_SDL_Without_Defer()
+    {
+        // arrange
+        TestServer server = CreateServerWithoutDeferDirective();
+        var url = TestServerExtensions.CreateUrl("/graphql?sdl");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        HttpResponseMessage response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync();
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_SDL_Without_Stream()
+    {
+        // arrange
+        TestServer server = CreateServerWithoutStreamDirective();
+        var url = TestServerExtensions.CreateUrl("/graphql?sdl");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        HttpResponseMessage response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync();
+        result.MatchSnapshot();
+    }
 }

@@ -34,8 +34,138 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                     .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddStarWarsTypes()
+                    .AddTypeExtension<QueryExtension>()
+                    .AddTypeExtension<SubscriptionsExtensions>()
+                    .AddExportDirectiveType()
+                    .AddStarWarsRepositories()
+                    .AddInMemorySubscriptions()
+                    .UseAutomaticPersistedQueryPipeline()
+                    .ConfigureSchemaServices(s => s
+                        .AddSingleton<PersistedQueryCache>()
+                        .AddSingleton<IReadStoredQueries>(
+                            c => c.GetService<PersistedQueryCache>())
+                        .AddSingleton<IWriteStoredQueries>(
+                            c => c.GetService<PersistedQueryCache>()))
+                    .AddGraphQLServer("evict")
+                    .AddQueryType(d => d.Name("Query"))
+                    .AddTypeExtension<QueryExtension>()
+                    .AddGraphQLServer("arguments")
+                    .AddQueryType(d =>
+                    {
+                        d
+                            .Name("QueryRoot");
+
+                        d
+                            .Field("double_arg")
+                            .Argument("d", t => t.Type<FloatType>())
+                            .Type<FloatType>()
+                            .Resolve(c => c.ArgumentValue<double?>("d"));
+
+                        d
+                            .Field("decimal_arg")
+                            .Argument("d", t => t.Type<DecimalType>())
+                            .Type<DecimalType>()
+                            .Resolve(c => c.ArgumentValue<decimal?>("d"));
+                    })
+                    .AddGraphQLServer("upload")
+                    .AddQueryType<UploadQuery>();
+
+                configureServices?.Invoke(services);
+            },
+            app => app
+                .UseWebSockets()
+                .UseRouting()
+                .UseEndpoints(endpoints =>
+                {
+                    GraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
+
+                    configureConventions?.Invoke(builder);
+                    endpoints.MapGraphQL("/evict", "evict");
+                    endpoints.MapGraphQL("/arguments", "arguments");
+                    endpoints.MapGraphQL("/upload", "upload");
+                }));
+    }
+
+    protected virtual TestServer CreateServerWithoutDeferDirective(
+        string pattern = "/graphql",
+        Action<IServiceCollection> configureServices = default,
+        Action<GraphQLEndpointConventionBuilder> configureConventions = default)
+    {
+        return ServerFactory.Create(
+            services =>
+            {
+                services
+                    .AddRouting()
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                    .AddGraphQLServer()
                     .RemoveDirectiveType(typeof(DeferDirectiveType))
+                    .AddStarWarsTypes()
+                    .AddTypeExtension<QueryExtension>()
+                    .AddTypeExtension<SubscriptionsExtensions>()
+                    .AddExportDirectiveType()
+                    .AddStarWarsRepositories()
+                    .AddInMemorySubscriptions()
+                    .UseAutomaticPersistedQueryPipeline()
+                    .ConfigureSchemaServices(s => s
+                        .AddSingleton<PersistedQueryCache>()
+                        .AddSingleton<IReadStoredQueries>(
+                            c => c.GetService<PersistedQueryCache>())
+                        .AddSingleton<IWriteStoredQueries>(
+                            c => c.GetService<PersistedQueryCache>()))
+                    .AddGraphQLServer("evict")
+                    .AddQueryType(d => d.Name("Query"))
+                    .AddTypeExtension<QueryExtension>()
+                    .AddGraphQLServer("arguments")
+                    .AddQueryType(d =>
+                    {
+                        d
+                            .Name("QueryRoot");
+
+                        d
+                            .Field("double_arg")
+                            .Argument("d", t => t.Type<FloatType>())
+                            .Type<FloatType>()
+                            .Resolve(c => c.ArgumentValue<double?>("d"));
+
+                        d
+                            .Field("decimal_arg")
+                            .Argument("d", t => t.Type<DecimalType>())
+                            .Type<DecimalType>()
+                            .Resolve(c => c.ArgumentValue<decimal?>("d"));
+                    })
+                    .AddGraphQLServer("upload")
+                    .AddQueryType<UploadQuery>();
+
+                configureServices?.Invoke(services);
+            },
+            app => app
+                .UseWebSockets()
+                .UseRouting()
+                .UseEndpoints(endpoints =>
+                {
+                    GraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
+
+                    configureConventions?.Invoke(builder);
+                    endpoints.MapGraphQL("/evict", "evict");
+                    endpoints.MapGraphQL("/arguments", "arguments");
+                    endpoints.MapGraphQL("/upload", "upload");
+                }));
+    }
+
+    protected virtual TestServer CreateServerWithoutStreamDirective(
+        string pattern = "/graphql",
+        Action<IServiceCollection> configureServices = default,
+        Action<GraphQLEndpointConventionBuilder> configureConventions = default)
+    {
+        return ServerFactory.Create(
+            services =>
+            {
+                services
+                    .AddRouting()
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                    .AddGraphQLServer()
                     .RemoveDirectiveType(typeof(StreamDirectiveType))
+                    .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
                     .AddExportDirectiveType()

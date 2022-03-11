@@ -41,7 +41,7 @@ public static class Directives
 
         void TryIncludeDirectiveType(Type type)
         {
-            if (!descriptorContext.Options.IgnoredDirectiveTypes.Contains(type)) {
+            if (descriptorContext.Options.IgnoredDirectiveTypes is null || !descriptorContext.Options.IgnoredDirectiveTypes.Contains(type)) {
                 typeReferences.Add(typeInspector.GetTypeRef(type));
             };
         }
