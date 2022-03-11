@@ -87,11 +87,17 @@ partial class Build
 
     Target TestStrawberryShakeSourceGenerator => _ => _
         .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "StrawberryShake" / "SourceGenerator" / "StrawberryShake.SourceGenerator.sln"));
+        .Executes(() => RunClientTests(SourceDirectory / "StrawberryShake" / "SourceGenerator" / "StrawberryShake.SourceGenerator.sln"));
 
     Target TestStrawberryShakeTooling => _ => _
         .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "StrawberryShake" / "Tooling" / "StrawberryShake.Tooling.sln"));
+        .Executes(() => RunClientTests(SourceDirectory / "StrawberryShake" / "Tooling" / "StrawberryShake.Tooling.sln"));
+
+    void RunClientTests(AbsolutePath solutionFile)
+    {
+        BuildCodeGenServer();
+        RunTests(solutionFile);
+    }
 
     void RunTests(AbsolutePath solutionFile)
     {

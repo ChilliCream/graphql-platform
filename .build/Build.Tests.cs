@@ -170,17 +170,17 @@ partial class Build
                         title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
                         files: new string[] { x }));
 
-            string uploadDir = Path.Combine(RootDirectory, "mismatch");
+            var uploadDir = Path.Combine(RootDirectory, "mismatch");
 
             if (!Directory.Exists(uploadDir))
             {
                 Directory.CreateDirectory(uploadDir);
             }
 
-            foreach (string mismatchDir in Directory.GetDirectories(
+            foreach (var mismatchDir in Directory.GetDirectories(
                 RootDirectory, "__mismatch__", SearchOption.AllDirectories))
             {
-                foreach (string snapshot in Directory.GetFiles(mismatchDir, "*.*"))
+                foreach (var snapshot in Directory.GetFiles(mismatchDir, "*.*"))
                 {
                     File.Copy(snapshot, Path.Combine(uploadDir, Path.GetFileName(snapshot)));
                 }
