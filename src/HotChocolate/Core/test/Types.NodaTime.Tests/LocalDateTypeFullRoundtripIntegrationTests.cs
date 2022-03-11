@@ -1,38 +1,21 @@
-using System;
 using System.Linq;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
-using NodaTime;
 using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
-    public class PeriodTypeIntegrationTests
+    public class LocalDateTypeFullRoundtripIntegrationTests
     {
-        public static class Schema
-        {
-            public class Query
-            {
-                public Period One =>
-                    Period.FromWeeks(-3) + Period.FromDays(3) + Period.FromTicks(139);
-            }
-
-            public class Mutation
-            {
-                public Period Test(Period arg)
-                    => arg + Period.FromMinutes(-10);
-            }
-        }
-
         private readonly IRequestExecutor testExecutor;
 
-        public PeriodTypeIntegrationTests()
+        public LocalDateTypeFullRoundtripIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
-                .AddQueryType<Schema.Query>()
-                .AddMutationType<Schema.Mutation>()
-                .AddNodaTime()
+                .AddQueryType<LocalDateTypeIntegrationTests.Schema.Query>()
+                .AddMutationType<LocalDateTypeIntegrationTests.Schema.Mutation>()
+                .AddNodaTime(typeof(LocalDateType))
+                .AddType(new LocalDateType(LocalDatePattern.FullRoundtrip))
                 .Create()
                 .MakeExecutable();
         }
@@ -42,7 +25,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor.Execute("query { test: one }");
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("P-3W3DT139t", queryResult!.Data!["test"]);
+            Assert.Equal("5780-05-25 (Hebrew Civil)", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -50,11 +33,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "P-3W15DT139t")
+                    .SetQuery("mutation($arg: LocalDate!) { test(arg: $arg) }")
+                    .SetVariableValue("arg", "2020-02-21 (Hebrew Civil)")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("P-3W15DT-10M139t", queryResult!.Data!["test"]);
+            Assert.Equal("2020-02-24 (Hebrew Civil)", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -62,8 +45,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "-3W3DT-10M139t")
+                    .SetQuery("mutation($arg: LocalDate!) { test(arg: $arg) }")
+                    .SetVariableValue("arg", "2020-02-20T17:42:59 (Hebrew Civil)")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
@@ -75,10 +58,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"P-3W15DT139t\") }")
+                    .SetQuery("mutation { test(arg: \"2020-02-20 (Hebrew Civil)\") }")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("P-3W15DT-10M139t", queryResult!.Data!["test"]);
+            Assert.Equal("2020-02-23 (Hebrew Civil)", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -86,20 +69,15 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"-3W3DT-10M139t\") }")
+                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59 (Hebrew Civil)\") }")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
             Assert.Equal(1, queryResult!.Errors!.Count);
             Assert.Null(queryResult.Errors[0].Code);
-            Assert.Equal("Unable to deserialize string to Period", queryResult.Errors[0].Message);
-        }
-
-        [Fact]
-        public void PatternEmpty_ThrowSchemaException()
-        {
-            static object Call() => new PeriodType(Array.Empty<IPattern<Period>>());
-            Assert.Throws<SchemaException>(Call);
+            Assert.Equal(
+                "Unable to deserialize string to LocalDate",
+                queryResult.Errors[0].Message);
         }
     }
 }

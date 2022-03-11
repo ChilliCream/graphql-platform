@@ -1,38 +1,21 @@
-using System;
 using System.Linq;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
-using NodaTime;
 using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
-    public class PeriodTypeIntegrationTests
+    public class PeriodTypeNormalizingIsoIntegrationTests
     {
-        public static class Schema
-        {
-            public class Query
-            {
-                public Period One =>
-                    Period.FromWeeks(-3) + Period.FromDays(3) + Period.FromTicks(139);
-            }
-
-            public class Mutation
-            {
-                public Period Test(Period arg)
-                    => arg + Period.FromMinutes(-10);
-            }
-        }
-
         private readonly IRequestExecutor testExecutor;
 
-        public PeriodTypeIntegrationTests()
+        public PeriodTypeNormalizingIsoIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
-                .AddQueryType<Schema.Query>()
-                .AddMutationType<Schema.Mutation>()
-                .AddNodaTime()
+                .AddQueryType<PeriodTypeIntegrationTests.Schema.Query>()
+                .AddMutationType<PeriodTypeIntegrationTests.Schema.Mutation>()
+                .AddNodaTime(typeof(PeriodType))
+                .AddType(new PeriodType(PeriodPattern.NormalizingIso))
                 .Create()
                 .MakeExecutable();
         }
@@ -42,7 +25,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor.Execute("query { test: one }");
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("P-3W3DT139t", queryResult!.Data!["test"]);
+            Assert.Equal("P-17DT-23H-59M-59.9999861S", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -51,10 +34,10 @@ namespace HotChocolate.Types.NodaTime.Tests
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "P-3W15DT139t")
+                    .SetVariableValue("arg", "P-17DT-23H-59M-59.9999861S")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("P-3W15DT-10M139t", queryResult!.Data!["test"]);
+            Assert.Equal("P-18DT-9M-59.9999861S", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -63,7 +46,7 @@ namespace HotChocolate.Types.NodaTime.Tests
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "-3W3DT-10M139t")
+                    .SetVariableValue("arg", "-P-17DT-23H-59M-59.9999861S")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
@@ -75,10 +58,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"P-3W15DT139t\") }")
+                    .SetQuery("mutation { test(arg: \"P-17DT-23H-59M-59.9999861S\") }")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("P-3W15DT-10M139t", queryResult!.Data!["test"]);
+            Assert.Equal("P-18DT-9M-59.9999861S", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -86,20 +69,13 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"-3W3DT-10M139t\") }")
+                    .SetQuery("mutation { test(arg: \"-P-17DT-23H-59M-59.9999861S\") }")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
             Assert.Equal(1, queryResult!.Errors!.Count);
             Assert.Null(queryResult.Errors[0].Code);
             Assert.Equal("Unable to deserialize string to Period", queryResult.Errors[0].Message);
-        }
-
-        [Fact]
-        public void PatternEmpty_ThrowSchemaException()
-        {
-            static object Call() => new PeriodType(Array.Empty<IPattern<Period>>());
-            Assert.Throws<SchemaException>(Call);
         }
     }
 }
