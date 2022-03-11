@@ -1,45 +1,44 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{74D95657-7BC6-409F-8484-F963A128764A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloFederation", "src\ApolloFederation\HotChocolate.ApolloFederation.csproj", "{46D3566C-FBBC-46BB-A9AB-454F348A003E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.ApolloFederation", "src\ApolloFederation\HotChocolate.ApolloFederation.csproj", "{46D3566C-FBBC-46BB-A9AB-454F348A003E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{EA937CAB-A9B1-474E-BF2A-A45399561B2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloFederation.Tests", "test\ApolloFederation.Tests\HotChocolate.ApolloFederation.Tests.csproj", "{3B96CAE2-A6C0-4BA6-A21B-1CBFE6EF7A16}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.ApolloFederation.Tests", "test\ApolloFederation.Tests\HotChocolate.ApolloFederation.Tests.csproj", "{3B96CAE2-A6C0-4BA6-A21B-1CBFE6EF7A16}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{82050CA3-2111-49D6-B682-EA22191ADB99}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AnnotationBased", "AnnotationBased", "{E296D200-558C-4217-95C3-C239C88955D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Accounts", "examples\AnnotationBased\Accounts\Accounts.csproj", "{27A5C157-B595-4158-8D58-8E5559A14E39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Accounts", "examples\AnnotationBased\Accounts\Accounts.csproj", "{27A5C157-B595-4158-8D58-8E5559A14E39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Products", "examples\AnnotationBased\Products\Products.csproj", "{7CD8650E-6358-40AB-9376-E0DB36B91C33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Products", "examples\AnnotationBased\Products\Products.csproj", "{7CD8650E-6358-40AB-9376-E0DB36B91C33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inventory", "examples\AnnotationBased\Inventory\Inventory.csproj", "{919C2EDB-72D7-476E-919F-521BCA6A2C90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Inventory", "examples\AnnotationBased\Inventory\Inventory.csproj", "{919C2EDB-72D7-476E-919F-521BCA6A2C90}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reviews", "examples\AnnotationBased\Reviews\Reviews.csproj", "{FFE872A7-6686-4820-86F4-C081714CEFD8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reviews", "examples\AnnotationBased\Reviews\Reviews.csproj", "{FFE872A7-6686-4820-86F4-C081714CEFD8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeFirst", "CodeFirst", "{4FC21B51-8DAB-487D-BF66-32E674417EAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Accounts", "examples\CodeFirst\Accounts\Accounts.csproj", "{02272634-995C-44CE-B0E6-E9CFCDE21432}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Accounts", "examples\CodeFirst\Accounts\Accounts.csproj", "{02272634-995C-44CE-B0E6-E9CFCDE21432}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Products", "examples\CodeFirst\Products\Products.csproj", "{4DA1ECA1-5AAF-465D-A2C7-DECA20DC1065}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Products", "examples\CodeFirst\Products\Products.csproj", "{4DA1ECA1-5AAF-465D-A2C7-DECA20DC1065}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inventory", "examples\CodeFirst\Inventory\Inventory.csproj", "{7C107B4E-9BDE-4944-AAF3-EA8110D04F33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Inventory", "examples\CodeFirst\Inventory\Inventory.csproj", "{7C107B4E-9BDE-4944-AAF3-EA8110D04F33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reviews", "examples\CodeFirst\Reviews\Reviews.csproj", "{D662DB3B-CB78-49A1-B45B-E518746C4DAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reviews", "examples\CodeFirst\Reviews\Reviews.csproj", "{D662DB3B-CB78-49A1-B45B-E518746C4DAF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemovedDirectives", "examples\AnnotationBased\RemovedDirectives\RemovedDirectives.csproj", "{5083E53F-80FD-47A8-9409-911E55735E73}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{46D3566C-FBBC-46BB-A9AB-454F348A003E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -82,6 +81,13 @@ Global
 		{D662DB3B-CB78-49A1-B45B-E518746C4DAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D662DB3B-CB78-49A1-B45B-E518746C4DAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D662DB3B-CB78-49A1-B45B-E518746C4DAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5083E53F-80FD-47A8-9409-911E55735E73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5083E53F-80FD-47A8-9409-911E55735E73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5083E53F-80FD-47A8-9409-911E55735E73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5083E53F-80FD-47A8-9409-911E55735E73}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{46D3566C-FBBC-46BB-A9AB-454F348A003E} = {74D95657-7BC6-409F-8484-F963A128764A}
@@ -96,5 +102,9 @@ Global
 		{4DA1ECA1-5AAF-465D-A2C7-DECA20DC1065} = {4FC21B51-8DAB-487D-BF66-32E674417EAB}
 		{7C107B4E-9BDE-4944-AAF3-EA8110D04F33} = {4FC21B51-8DAB-487D-BF66-32E674417EAB}
 		{D662DB3B-CB78-49A1-B45B-E518746C4DAF} = {4FC21B51-8DAB-487D-BF66-32E674417EAB}
+		{5083E53F-80FD-47A8-9409-911E55735E73} = {E296D200-558C-4217-95C3-C239C88955D8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {51CDBFF5-3CF8-4416-98C5-A7A62B9AAD2C}
 	EndGlobalSection
 EndGlobal
