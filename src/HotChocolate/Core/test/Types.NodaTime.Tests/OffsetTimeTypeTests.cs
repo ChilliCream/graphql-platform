@@ -1,7 +1,9 @@
+using System;
 using System.Linq;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
@@ -14,12 +16,16 @@ namespace HotChocolate.Types.NodaTime.Tests
             {
                 public OffsetTime Hours =>
                     new OffsetTime(
-                        LocalTime.FromHourMinuteSecondMillisecondTick(18, 30, 13, 10, 100),
+                        LocalTime
+                            .FromHourMinuteSecondMillisecondTick(18, 30, 13, 10, 100)
+                            .PlusNanoseconds(1234),
                         Offset.FromHours(2));
 
                 public OffsetTime HoursAndMinutes =>
                     new OffsetTime(
-                        LocalTime.FromHourMinuteSecondMillisecondTick(18, 30, 13, 10, 100),
+                        LocalTime
+                            .FromHourMinuteSecondMillisecondTick(18, 30, 13, 10, 100)
+                            .PlusNanoseconds(1234),
                         Offset.FromHoursAndMinutes(2, 35));
             }
 
@@ -30,6 +36,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         private readonly IRequestExecutor testExecutor;
+
         public OffsetTimeTypeIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
@@ -125,8 +132,17 @@ namespace HotChocolate.Types.NodaTime.Tests
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
             Assert.Equal(1, queryResult!.Errors!.Count);
-            Assert.Null(queryResult.Errors.First().Code);
-            Assert.Equal("Unable to deserialize string to OffsetTime", queryResult.Errors.First().Message);
+            Assert.Null(queryResult.Errors[0].Code);
+            Assert.Equal(
+                "Unable to deserialize string to OffsetTime",
+                queryResult.Errors[0].Message);
+        }
+
+        [Fact]
+        public void PatternEmpty_ThrowSchemaException()
+        {
+            static object Call() => new OffsetTimeType(Array.Empty<IPattern<OffsetTime>>());
+            Assert.Throws<SchemaException>(Call);
         }
     }
 }
