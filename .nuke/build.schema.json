@@ -123,7 +123,8 @@
               "Restore",
               "Sonar",
               "SonarPr",
-              "Test"
+              "Test",
+              "TestHotChocolateCore"
             ]
           }
         },
@@ -155,7 +156,8 @@
               "Restore",
               "Sonar",
               "SonarPr",
-              "Test"
+              "Test",
+              "TestHotChocolateCore"
             ]
           }
         },
