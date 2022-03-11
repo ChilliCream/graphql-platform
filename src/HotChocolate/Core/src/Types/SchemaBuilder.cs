@@ -161,6 +161,24 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
+    public ISchemaBuilder RemoveType(Type type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        if (_options.IgnoredDirectiveTypes is null)
+        {
+            _options.IgnoredDirectiveTypes = new List<Type>();
+        }
+        
+        _options.IgnoredDirectiveTypes.Add(type);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public ISchemaBuilder TryAddConvention(
         Type convention,
         CreateConvention factory,
@@ -274,6 +292,24 @@ public partial class SchemaBuilder : ISchemaBuilder
         }
 
         _types.Add(_ => TypeReference.Create(type));
+        return this;
+    }
+
+    public ISchemaBuilder RemoveDirectiveType(DirectiveType type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        if (_options.IgnoredDirectiveTypes is null)
+        {
+            _options.IgnoredDirectiveTypes = new List<Type>();
+        }
+
+        _options.IgnoredDirectiveTypes.Add(type.GetType());
+
+        _types.Remove(_ => TypeReference.Create(type));
         return this;
     }
 

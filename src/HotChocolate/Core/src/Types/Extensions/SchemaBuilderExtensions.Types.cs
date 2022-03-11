@@ -647,6 +647,40 @@ public static partial class SchemaBuilderExtensions
         return builder.AddType(directiveType);
     }
 
+    public static ISchemaBuilder RemoveDirectiveType(
+        this ISchemaBuilder builder,
+        Type directiveType)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (directiveType is null)
+        {
+            throw new ArgumentNullException(nameof(directiveType));
+        }
+
+        if (directiveType == typeof(DirectiveType)
+            || (directiveType.IsGenericType
+            && directiveType.GetGenericTypeDefinition() ==
+            typeof(DirectiveType<>)))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilderExtensions_DirectiveTypeIsBaseType,
+                nameof(directiveType));
+        }
+
+        if (!typeof(DirectiveType).IsAssignableFrom(directiveType))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilderExtensions_MustBeDirectiveType,
+                nameof(directiveType));
+        }
+
+        return builder.RemoveType(directiveType);
+    }
+
     public static ISchemaBuilder AddDirectiveType<TDirective>(
         this ISchemaBuilder builder)
         where TDirective : DirectiveType
@@ -657,6 +691,18 @@ public static partial class SchemaBuilderExtensions
         }
 
         return AddDirectiveType(builder, typeof(TDirective));
+    }
+
+    public static ISchemaBuilder RemoveDirectiveType<TDirective>(
+        this ISchemaBuilder builder)
+        where TDirective : DirectiveType
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        return builder.RemoveType(typeof(TDirective));
     }
 
     public static ISchemaBuilder SetSchema<TSchema>(

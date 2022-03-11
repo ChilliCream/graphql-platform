@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -112,4 +113,6 @@ public interface IReadOnlySchemaOptions
     /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
     /// </summary>
     bool EnableOneOf { get; }
+
+    List<Type>? IgnoredDirectiveTypes { get; }
 }

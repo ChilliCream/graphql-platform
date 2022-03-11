@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -114,6 +115,8 @@ public class SchemaOptions : ISchemaOptions
     /// <inheritdoc />
     public bool EnableOneOf { get; set; }
 
+    public List<Type>? IgnoredDirectiveTypes { get; set; }
+
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
@@ -141,7 +144,8 @@ public class SchemaOptions : ISchemaOptions
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
-            EnableOneOf = options.EnableOneOf
+            EnableOneOf = options.EnableOneOf,
+            IgnoredDirectiveTypes = options.IgnoredDirectiveTypes
         };
     }
 }

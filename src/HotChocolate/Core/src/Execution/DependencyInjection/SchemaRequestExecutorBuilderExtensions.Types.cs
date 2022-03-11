@@ -1402,6 +1402,23 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         return builder.ConfigureSchema(b => b.AddDirectiveType(directiveType));
     }
 
+    public static IRequestExecutorBuilder RemoveDirectiveType(
+        this IRequestExecutorBuilder builder,
+        Type directiveType)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (directiveType is null)
+        {
+            throw new ArgumentNullException(nameof(directiveType));
+        }
+
+        return builder.ConfigureSchema(b => b.RemoveDirectiveType(directiveType));
+    }
+
     public static IRequestExecutorBuilder AddDirectiveType<TDirective>(
         this IRequestExecutorBuilder builder)
         where TDirective : DirectiveType

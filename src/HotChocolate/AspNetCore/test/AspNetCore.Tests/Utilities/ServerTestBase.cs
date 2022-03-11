@@ -34,6 +34,8 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                     .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddStarWarsTypes()
+                    .RemoveDirectiveType(typeof(DeferDirectiveType))
+                    .RemoveDirectiveType(typeof(StreamDirectiveType))
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
                     .AddExportDirectiveType()

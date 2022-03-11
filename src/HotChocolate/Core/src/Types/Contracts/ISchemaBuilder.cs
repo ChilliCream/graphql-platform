@@ -53,6 +53,20 @@ public interface ISchemaBuilder
     ISchemaBuilder AddType(Type type);
 
     /// <summary>
+    /// Removes a GraphQL type from the schema.
+    /// </summary>
+    /// <param name="type">
+    /// The GraphQL type.
+    /// </param>
+    /// <returns>
+    /// Returns the schema builder to chain in further configuration.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="type"/> is <c>null</c>
+    /// </exception>
+    ISchemaBuilder RemoveType(Type type);
+
+    /// <summary>
     /// Adds a GraphQL type to the schema.
     /// </summary>
     /// <param name="namedType">
@@ -150,6 +164,8 @@ public interface ISchemaBuilder
     ISchemaBuilder AddRootType(ObjectType rootType, OperationType operation);
 
     ISchemaBuilder AddDirectiveType(DirectiveType type);
+
+    ISchemaBuilder RemoveDirectiveType(DirectiveType type);
 
     ISchemaBuilder SetTypeResolver(IsOfTypeFallback isOfType);
 
