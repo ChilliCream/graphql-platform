@@ -95,7 +95,7 @@ partial class Build
 
     void RunClientTests(AbsolutePath solutionFile)
     {
-        BuildCodeGenServer();
+        BuildCodeGenServer(true);
         RunTests(solutionFile);
     }
 
