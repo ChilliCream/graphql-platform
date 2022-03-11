@@ -1,6 +1,9 @@
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Transport.Sockets.Client;
@@ -11,7 +14,7 @@ using Xunit;
 
 #nullable enable
 
-namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
+namespace HotChocolate.Transport.Sockets.GraphQLOverWebSocket;
 
 public class WebSocketClientProtocolTests : SubscriptionTestBase
 {
