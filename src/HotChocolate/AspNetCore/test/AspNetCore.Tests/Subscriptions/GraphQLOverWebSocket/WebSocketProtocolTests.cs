@@ -66,7 +66,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Connect_Accept_Pong()
+    public Task Send_Connect_Accept_Ping()
         => TryTest(async ct =>
         {
             // arrange
@@ -87,11 +87,11 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             await WaitForMessage(webSocket, Messages.ConnectionAccept, ct);
             var message = await WaitForMessage(
                 webSocket,
-                Messages.Pong,
+                Messages.Ping,
                 TimeSpan.FromSeconds(5),
                 ct);
             Assert.NotNull(message);
-            Assert.Equal(Messages.Pong, message![MessageProperties.Type]);
+            Assert.Equal(Messages.Ping, message![MessageProperties.Type]);
         });
 
     [Fact]
