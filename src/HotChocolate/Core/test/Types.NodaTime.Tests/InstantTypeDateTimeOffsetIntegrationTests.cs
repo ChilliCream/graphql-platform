@@ -1,39 +1,51 @@
 using System;
-using System.Linq;
+using System.Globalization;
+using System.Text;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Extensions;
 using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
-    public class InstantTypeIntegrationTests
+    public class InstantTypeDateTimeOffsetIntegrationTests
     {
-        public static class Schema
+        class InstantDateTimeOffsetPattern : IPattern<Instant>
         {
-            public class Query
+            public ParseResult<Instant> Parse(string text)
             {
-                public Instant One =>
-                    Instant.FromUtc(2020, 02, 20, 17, 42, 59).PlusNanoseconds(1234);
+                return DateTimeOffset.TryParse(
+                        text,
+                        DateTimeFormatInfo.InvariantInfo,
+                        DateTimeStyles.AssumeUniversal,
+                        out var value)
+                    ? ParseResult<Instant>.ForValue(value.ToInstant())
+                    : ParseResult<Instant>
+                        .ForException(() => new FormatException("Could not parse DateTimeOffset"));
             }
 
-            public class Mutation
+            public string Format(Instant value)
             {
-                public Instant Test(Instant arg)
-                {
-                    return arg + Duration.FromMinutes(10);
-                }
+                return InstantPattern.General.Format(value);
+            }
+
+            public StringBuilder AppendFormat(Instant value, StringBuilder builder)
+            {
+                return InstantPattern.General.AppendFormat(value, builder);
             }
         }
 
         private readonly IRequestExecutor testExecutor;
 
-        public InstantTypeIntegrationTests()
+        public InstantTypeDateTimeOffsetIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
-                .AddQueryType<Schema.Query>()
-                .AddMutationType<Schema.Mutation>()
-                .AddNodaTime()
+                .AddQueryType<InstantTypeIntegrationTests.Schema.Query>()
+                .AddMutationType<InstantTypeIntegrationTests.Schema.Mutation>()
+                .AddNodaTime(typeof(InstantType))
+                .AddType(
+                    new InstantType(InstantPattern.ExtendedIso, new InstantDateTimeOffsetPattern()))
                 .Create()
                 .MakeExecutable();
         }
@@ -59,7 +71,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         [Fact]
-        public void DoesntParseAnIncorrectVariable()
+        public void DoesParseAnIncorrectExtendedVariableAsDateTimeOffset()
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
@@ -67,8 +79,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetVariableValue("arg", "2020-02-20T17:42:59")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
+            Assert.Equal("2020-02-20T17:52:59Z", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -83,26 +94,14 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         [Fact]
-        public void DoesntParseIncorrectLiteral()
+        public void DoesParseIncorrectExtendedLiteralAsDateTimeOffset()
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59\") }")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
-            Assert.Null(queryResult.Errors.First().Code);
-            Assert.Equal(
-                "Unable to deserialize string to Instant",
-                queryResult.Errors.First().Message);
-        }
-
-        [Fact]
-        public void PatternEmpty_ThrowSchemaException()
-        {
-            static object Call() => new InstantType(Array.Empty<IPattern<Instant>>());
-            Assert.Throws<SchemaException>(Call);
+            Assert.Equal("2020-02-20T17:52:59Z", queryResult!.Data!["test"]);
         }
     }
 }
