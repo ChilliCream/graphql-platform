@@ -150,36 +150,38 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         Dictionary<string, object?>? properties)
         => InitializeGlobalState(properties);
 
+    /// <inheritdoc />
     public IQueryRequestBuilder InitializeGlobalState(
-        Dictionary<string, object?>? globalState)
-        => InitializeGlobalState((IDictionary<string, object?>?)globalState);
+        Dictionary<string, object?>? initialState)
+        => InitializeGlobalState((IDictionary<string, object?>?)initialState);
 
     [Obsolete("Use `InitializeGlobalState`")]
     public IQueryRequestBuilder SetProperties(
         IDictionary<string, object?>? properties)
         => InitializeGlobalState(properties);
 
+    /// <inheritdoc />
     public IQueryRequestBuilder InitializeGlobalState(
-        IDictionary<string, object?>? globalState)
+        IDictionary<string, object?>? initialState)
     {
-        _contextData = globalState is null
+        _contextData = initialState is null
             ? null
-            : new Dictionary<string, object?>(globalState);
+            : new Dictionary<string, object?>(initialState);
         _readOnlyContextData = null;
         return this;
     }
-
 
     [Obsolete("Use `InitializeGlobalState`")]
     public IQueryRequestBuilder SetProperties(
         IReadOnlyDictionary<string, object?>? properties)
         => InitializeGlobalState(properties);
 
+    /// <inheritdoc />
     public IQueryRequestBuilder InitializeGlobalState(
-        IReadOnlyDictionary<string, object?>? globalState)
+        IReadOnlyDictionary<string, object?>? initialState)
     {
         _contextData = null;
-        _readOnlyContextData = globalState;
+        _readOnlyContextData = initialState;
         return this;
     }
 
@@ -187,6 +189,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     public IQueryRequestBuilder SetProperty(string name, object? value)
         => SetGlobalState(name, value);
 
+    /// <inheritdoc />
     public IQueryRequestBuilder SetGlobalState<T>(
         string name, [MaybeNull] T value)
     {
@@ -201,6 +204,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         string name, object? value)
         => AddGlobalState(name, value);
 
+    /// <inheritdoc />
     public IQueryRequestBuilder AddGlobalState<T>(
         string name, [MaybeNull] T value)
     {
@@ -215,6 +219,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         string name, object? value)
         => TryAddGlobalState(name, value);
 
+    /// <inheritdoc />
     public IQueryRequestBuilder TryAddGlobalState<T>(
         string name, [MaybeNull] T value)
     {
@@ -231,6 +236,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     public IQueryRequestBuilder TryRemoveProperty(string name)
         => RemoveGlobalState(name);
 
+    /// <inheritdoc />
     public IQueryRequestBuilder RemoveGlobalState(string name)
     {
         if (_readOnlyContextData is null && _contextData is null)

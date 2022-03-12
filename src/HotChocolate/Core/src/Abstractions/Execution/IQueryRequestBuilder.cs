@@ -49,27 +49,47 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder SetProperties(
         Dictionary<string, object?>? properties);
 
+    /// <summary>
+    /// Initializes the global state of the request to the given
+    /// <paramref name="initialState" />.
+    /// </summary>
+    /// <param name="initialState">The initial state.</param>
+    /// <returns>The query request builder.</returns>
     IQueryRequestBuilder InitializeGlobalState(
-        Dictionary<string, object?>? globalState);
+        Dictionary<string, object?>? initialState);
 
     [Obsolete("Use `InitializeGlobalState`")]
     IQueryRequestBuilder SetProperties(
         IDictionary<string, object?>? properties);
 
+    /// <inheritdoc cref="InitializeGlobalState" />
     IQueryRequestBuilder InitializeGlobalState(
-        IDictionary<string, object?>? globalState);
+        IDictionary<string, object?>? initialState);
 
     [Obsolete("Use `InitializeGlobalState`")]
     IQueryRequestBuilder SetProperties(
         IReadOnlyDictionary<string, object?>? properties);
 
+    /// <inheritdoc cref="InitializeGlobalState" />
     IQueryRequestBuilder InitializeGlobalState(
-        IReadOnlyDictionary<string, object?>? globalState);
+        IReadOnlyDictionary<string, object?>? initialState);
 
     [Obsolete("Use `AddGlobalState`")]
     IQueryRequestBuilder AddProperty(
         string name, object? value);
 
+    /// <summary>
+    /// Sets the global state for <paramref name="name" /> 
+    /// to the specified <paramref name="value" />, 
+    /// or throws an exception if it already exists.
+    /// </summary>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="value">The state value.</param>
+    /// <typeparam name="T">The type of state.</typeparam>
+    /// <returns>The query request builder.</returns>
+    /// <exception cref="System.ArgumentException">
+    /// Thrown if a state value for <paramref name="name" /> already exists.
+    /// </exception> 
     IQueryRequestBuilder AddGlobalState<T>(
         string name, [MaybeNull] T value);
 
@@ -77,6 +97,15 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder TryAddProperty(
         string name, object? value);
 
+    /// <summary>
+    /// Sets the global state for <paramref name="name" /> 
+    /// to the specified <paramref name="value" />,
+    /// if it does not yet exist.
+    /// </summary>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="value">The state value.</param>
+    /// <typeparam name="T">The type of state.</typeparam>
+    /// <returns>The query request builder.</returns>
     IQueryRequestBuilder TryAddGlobalState<T>(
         string name, [MaybeNull] T value);
 
@@ -84,6 +113,16 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder SetProperty(
         string name, object? value);
 
+    /// <summary>
+    /// Sets the global state for <paramref name="name" /> 
+    /// to the specified <paramref name="value" />.
+    /// State set previously using the same <paramref name="name" />
+    /// will be overwritten.
+    /// </summary>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="value">The new state value.</param>
+    /// <typeparam name="T">The type of state.</typeparam>
+    /// <returns>The query request builder.</returns>
     IQueryRequestBuilder SetGlobalState<T>(
         string name, [MaybeNull] T value);
 
@@ -91,6 +130,12 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder TryRemoveProperty(
         string name);
 
+    /// <summary>
+    /// Removes the global state value for the specified
+    /// <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">The name of the state.</param>
+    /// <returns>The query request builder.</returns>
     IQueryRequestBuilder RemoveGlobalState(
         string name);
 
