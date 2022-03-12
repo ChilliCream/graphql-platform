@@ -33,7 +33,7 @@ namespace HotChocolate
                 .ExecuteRequestAsync(
                     QueryRequestBuilder.New()
                         .SetQuery("{ foo }")
-                        .SetProperty(nameof(ClaimsPrincipal), user)
+                        .SetGlobalState(nameof(ClaimsPrincipal), user)
                         .Create())
                 .MatchSnapshotAsync();
         }

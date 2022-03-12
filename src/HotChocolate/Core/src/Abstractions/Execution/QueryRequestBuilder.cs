@@ -190,8 +190,8 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         => SetGlobalState(name, value);
 
     /// <inheritdoc />
-    public IQueryRequestBuilder SetGlobalState<T>(
-        string name, [MaybeNull] T value)
+    public IQueryRequestBuilder SetGlobalState(
+        string name, object? value)
     {
         InitializeContextData();
 
@@ -205,8 +205,8 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         => AddGlobalState(name, value);
 
     /// <inheritdoc />
-    public IQueryRequestBuilder AddGlobalState<T>(
-        string name, [MaybeNull] T value)
+    public IQueryRequestBuilder AddGlobalState(
+        string name, object? value)
     {
         InitializeContextData();
 
@@ -220,8 +220,8 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         => TryAddGlobalState(name, value);
 
     /// <inheritdoc />
-    public IQueryRequestBuilder TryAddGlobalState<T>(
-        string name, [MaybeNull] T value)
+    public IQueryRequestBuilder TryAddGlobalState(
+        string name, object? value)
     {
         InitializeContextData();
 

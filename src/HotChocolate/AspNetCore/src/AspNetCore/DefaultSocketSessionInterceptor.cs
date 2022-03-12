@@ -22,20 +22,20 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
     {
         HttpContext context = session.Connection.HttpContext;
         requestBuilder.TrySetServices(session.Connection.RequestServices);
-        requestBuilder.TryAddProperty(nameof(CancellationToken), session.Connection.RequestAborted);
-        requestBuilder.TryAddProperty(nameof(HttpContext), context);
-        requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
-        requestBuilder.TryAddProperty(nameof(ISocketSession), session);
-        requestBuilder.TryAddProperty(OperationSessionId, operationSessionId);
+        requestBuilder.TryAddGlobalState(nameof(CancellationToken), session.Connection.RequestAborted);
+        requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
+        requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), context.User);
+        requestBuilder.TryAddGlobalState(nameof(ISocketSession), session);
+        requestBuilder.TryAddGlobalState(OperationSessionId, operationSessionId);
 
         if (context.IsTracingEnabled())
         {
-            requestBuilder.TryAddProperty(EnableTracing, true);
+            requestBuilder.TryAddGlobalState(EnableTracing, true);
         }
 
         if (context.IncludeQueryPlan())
         {
-            requestBuilder.TryAddProperty(IncludeQueryPlan, true);
+            requestBuilder.TryAddGlobalState(IncludeQueryPlan, true);
         }
 
         return default;

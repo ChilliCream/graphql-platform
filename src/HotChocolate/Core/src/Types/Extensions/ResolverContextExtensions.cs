@@ -534,5 +534,5 @@ public static class ResolverContextExtensions
     /// Returns the user for this request.
     /// </returns>
     public static ClaimsPrincipal? GetUser(this IResolverContext context)
-        => context.GetGlobalValue<ClaimsPrincipal?>(nameof(ClaimsPrincipal));
+        => context.GetGlobalStateOrDefault<ClaimsPrincipal?>(nameof(ClaimsPrincipal));
 }

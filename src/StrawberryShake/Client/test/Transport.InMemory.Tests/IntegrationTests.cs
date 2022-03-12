@@ -236,7 +236,7 @@ public class IntegrationTests : ServerTestBase
             IQueryRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
-            requestBuilder.AddProperty("Foo", "bar");
+            requestBuilder.AddGlobalState("Foo", "bar");
             return default;
         }
     }
