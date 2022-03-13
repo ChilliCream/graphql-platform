@@ -53,6 +53,48 @@ public static class ResolverContextExtensions
         return default;
     }
 
+    /// <summary>
+    /// Gets the global state for the specified <paramref name="name" />,
+    /// or throws if the state does not exist.
+    /// </summary>
+    /// <param name="context">The resovler context.</param>
+    /// <param name="name">The name of the state.</param>
+    /// <typeparam name="T">The type of the state.</typeparam>
+    /// <returns>
+    /// Returns the global state for the specified <paramref name="name" />.
+    /// </returns>
+    [return: MaybeNull]
+    public static T GetGlobalState<T>(
+        this IResolverContext context,
+        string name)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw String_NullOrEmpty(nameof(name));
+        }
+
+        if (context.ContextData.TryGetValue(name, out var value))
+        {
+            if (value is null)
+            {
+                return default;
+            }
+
+            if (value is T typedValue)
+            {
+                return typedValue;
+            }
+        }
+
+        // todo: add resource string
+        throw new ArgumentException(string.Format("", name));
+    }
+
     [Obsolete("Use `GetScopedStateOrDefault`")]
     [return: MaybeNull]
     public static T GetScopedValue<T>(
@@ -96,6 +138,48 @@ public static class ResolverContextExtensions
         return default;
     }
 
+    /// <summary>
+    /// Gets the scoped state for the specified <paramref name="name" />,
+    /// or throws if the state does not exist.
+    /// </summary>
+    /// <param name="context">The resovler context.</param>
+    /// <param name="name">The name of the state.</param>
+    /// <typeparam name="T">The type of the state.</typeparam>
+    /// <returns>
+    /// Returns the scoped state for the specified <paramref name="name" />.
+    /// </returns>
+    [return: MaybeNull]
+    public static T GetScopedState<T>(
+        this IResolverContext context,
+        string name)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw String_NullOrEmpty(nameof(name));
+        }
+
+        if (context.ScopedContextData.TryGetValue(name, out var value))
+        {
+            if (value is null)
+            {
+                return default;
+            }
+
+            if (value is T typedValue)
+            {
+                return typedValue;
+            }
+        }
+
+        // todo: add resource string
+        throw new ArgumentException(string.Format("", name));
+    }
+
     [Obsolete("Use `GetLocalStateOrDefault`")]
     [return: MaybeNull]
     public static T GetLocalValue<T>(
@@ -137,6 +221,48 @@ public static class ResolverContextExtensions
         }
 
         return default;
+    }
+
+    /// <summary>
+    /// Gets the local state for the specified <paramref name="name" />,
+    /// or throws if the state does not exist.
+    /// </summary>
+    /// <param name="context">The resovler context.</param>
+    /// <param name="name">The name of the state.</param>
+    /// <typeparam name="T">The type of the state.</typeparam>
+    /// <returns>
+    /// Returns the local state for the specified <paramref name="name" />.
+    /// </returns>
+    [return: MaybeNull]
+    public static T GetLocalState<T>(
+        this IResolverContext context,
+        string name)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw String_NullOrEmpty(nameof(name));
+        }
+
+        if (context.LocalContextData.TryGetValue(name, out var value))
+        {
+            if (value is null)
+            {
+                return default;
+            }
+
+            if (value is T typedValue)
+            {
+                return typedValue;
+            }
+        }
+
+        // todo: add resource string
+        throw new ArgumentException(string.Format("", name));
     }
 
     [Obsolete("Use `SetGlobalState`")]
