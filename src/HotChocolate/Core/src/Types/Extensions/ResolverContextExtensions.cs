@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using HotChocolate.Resolvers;
 using static HotChocolate.Utilities.ThrowHelper;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -27,7 +28,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the global state for the specified <paramref name="name" />
     /// or the default value of <typeparamref name="T" />, if the state
-    /// could not be found or casted to <typeparamref name="T" />. 
+    /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     [return: MaybeNull]
     public static T GetGlobalStateOrDefault<T>(
@@ -91,8 +92,8 @@ public static class ResolverContextExtensions
             }
         }
 
-        // todo: add resource string
-        throw new ArgumentException(string.Format("", name));
+        throw new ArgumentException(
+            string.Format(ResolverContextExtensions_ContextData_KeyNotFound, name));
     }
 
     [Obsolete("Use `GetScopedStateOrDefault`")]
@@ -112,7 +113,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the scoped state for the specified <paramref name="name" />
     /// or the default value of <typeparamref name="T" />, if the state
-    /// could not be found or casted to <typeparamref name="T" />. 
+    /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     [return: MaybeNull]
     public static T GetScopedStateOrDefault<T>(
@@ -176,8 +177,8 @@ public static class ResolverContextExtensions
             }
         }
 
-        // todo: add resource string
-        throw new ArgumentException(string.Format("", name));
+        throw new ArgumentException(
+            string.Format(ResolverContextExtensions_ScopedContextData_KeyNotFound, name));
     }
 
     [Obsolete("Use `GetLocalStateOrDefault`")]
@@ -197,7 +198,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the local state for the specified <paramref name="name" />
     /// or the default value of <typeparamref name="T" />, if the state
-    /// could not be found or casted to <typeparamref name="T" />. 
+    /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     [return: MaybeNull]
     public static T GetLocalStateOrDefault<T>(
@@ -261,8 +262,8 @@ public static class ResolverContextExtensions
             }
         }
 
-        // todo: add resource string
-        throw new ArgumentException(string.Format("", name));
+        throw new ArgumentException(
+            string.Format(ResolverContextExtensions_LocalContextData_KeyNotFound, name));
     }
 
     [Obsolete("Use `SetGlobalState`")]
@@ -273,7 +274,7 @@ public static class ResolverContextExtensions
         => SetGlobalState(context, name, value);
 
     /// <summary>
-    /// Sets the global state for <paramref name="name" /> 
+    /// Sets the global state for <paramref name="name" />
     /// to the specified <paramref name="value" />.
     /// State set previously using the same <paramref name="name" />
     /// will be overwritten.
@@ -308,7 +309,7 @@ public static class ResolverContextExtensions
         => SetScopedState(context, name, value);
 
     /// <summary>
-    /// Sets the scoped state for <paramref name="name" /> 
+    /// Sets the scoped state for <paramref name="name" />
     /// to the specified <paramref name="value" />.
     /// State set previously using the same <paramref name="name" />
     /// will be overwritten.
@@ -343,7 +344,7 @@ public static class ResolverContextExtensions
         => SetLocalState(context, name, value);
 
     /// <summary>
-    /// Sets the local state for <paramref name="name" /> 
+    /// Sets the local state for <paramref name="name" />
     /// to the specified <paramref name="value" />.
     /// State set previously using the same <paramref name="name" />
     /// will be overwritten.

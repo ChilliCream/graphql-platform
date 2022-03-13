@@ -840,4 +840,13 @@ Type: `{0}`</value>
   <data name="ReflectionUtils_ExtractMethod_MethodExpected" xml:space="preserve">
     <value>Member is not a method!</value>
   </data>
+  <data name="ResolverContextExtensions_ScopedContextData_KeyNotFound" xml:space="preserve">
+    <value>The specified key `{0}` does not exist on `context.ScopedContextData`</value>
+  </data>
+  <data name="ResolverContextExtensions_LocalContextData_KeyNotFound" xml:space="preserve">
+    <value>The specified key `{0}` does not exist on `context.LocalContextData`</value>
+  </data>
+  <data name="ResolverContextExtensions_ContextData_KeyNotFound" xml:space="preserve">
+    <value>The specified key `{0}` does not exist on `context.ContextData`</value>
+  </data>
 </root>
