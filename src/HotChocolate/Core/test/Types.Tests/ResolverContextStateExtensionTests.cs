@@ -389,7 +389,7 @@ public class ResolverContextStateExtensionTests
 
         context.RemoveScopedState("key2");
 
-        context.ScopedContextData.MatchSnapshot();
+        Assert.False(context.ScopedContextData.ContainsKey("key2"));
     }
 
     [Fact]
@@ -580,6 +580,6 @@ public class ResolverContextStateExtensionTests
 
         context.RemoveLocalState("key2");
 
-        context.LocalContextData.MatchSnapshot();
+        Assert.False(context.LocalContextData.ContainsKey("key2"));
     }
 }
