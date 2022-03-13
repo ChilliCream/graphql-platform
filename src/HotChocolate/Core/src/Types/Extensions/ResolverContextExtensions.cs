@@ -412,18 +412,8 @@ public static class ResolverContextExtensions
         }
     }
 
-    [Obsolete("Use `RemoveGlobalState`")]
+    [Obsolete]
     public static void RemoveGlobalValue(
-        this IResolverContext context,
-        string name)
-        => RemoveGlobalState(context, name);
-
-    /// <summary>
-    /// Removes the global state set for the specified <paramref name="name" />.
-    /// </summary>
-    /// <param name="context">The resolver context.</param>
-    /// <param name="name">The name of the state.</param>
-    public static void RemoveGlobalState(
         this IResolverContext context,
         string name)
     {
