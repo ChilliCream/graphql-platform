@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
-using HotChocolate.Language;
+using HotChocolate.Transport.Sockets;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -20,8 +20,6 @@ namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
 internal static class WebSocketExtensions
 {
-    private const int _maxMessageSize = 1024 * 4;
-
     private static readonly JsonSerializerSettings _settings =
         new()
         {
@@ -140,7 +138,7 @@ internal static class WebSocketExtensions
     {
         await using var stream = new MemoryStream();
         WebSocketReceiveResult result;
-        var buffer = new byte[_maxMessageSize];
+        var buffer = new byte[SocketDefaults.BufferSize];
 
         do
         {

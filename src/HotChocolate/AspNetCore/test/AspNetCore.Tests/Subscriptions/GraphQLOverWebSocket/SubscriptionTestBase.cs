@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
 
@@ -111,14 +112,14 @@ public class SubscriptionTestBase : ServerTestBase
         WebSocketClient client = testServer.CreateWebSocketClient();
         client.ConfigureRequest = r => r.Headers.Add(
             "Sec-WebSocket-Protocol",
-            ProtocolNames.GraphQL_Transport_WS);
+            WellKnownProtocols.GraphQL_Transport_WS);
         return client;
     }
 
     protected static async Task TryTest(Func<CancellationToken, Task> action)
     {
         // we will try four times ....
-        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 60_000);
+        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 15_000);
         CancellationToken ct = cts.Token;
         var count = 0;
         var wait = 50;

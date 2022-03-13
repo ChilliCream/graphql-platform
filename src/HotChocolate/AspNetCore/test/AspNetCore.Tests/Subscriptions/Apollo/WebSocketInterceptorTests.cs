@@ -13,7 +13,6 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
-[Collection("Sockets")]
 public class WebSocketInterceptorTests : SubscriptionTestBase
 {
     public WebSocketInterceptorTests(TestServerFactory serverFactory)

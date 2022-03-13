@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
@@ -13,7 +14,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             public class Query
             {
-                public LocalDateTime One => LocalDateTime.FromDateTime(new DateTime(2020, 02, 20, 17, 42, 59));
+                public LocalDateTime One =>
+                    LocalDateTime.FromDateTime(
+                        new DateTime(2020, 02, 20, 17, 42, 59))
+                            .PlusNanoseconds(1234)
+                            .WithCalendar(CalendarSystem.Julian);
             }
 
             public class Mutation
@@ -26,6 +31,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         private readonly IRequestExecutor testExecutor;
+
         public LocalDateTimeTypeIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
@@ -41,7 +47,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor.Execute("query { test: one }");
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-02-20T17:42:59", queryResult!.Data!["test"]);
+            Assert.Equal("2020-02-07T17:42:59.000001234", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -50,10 +56,10 @@ namespace HotChocolate.Types.NodaTime.Tests
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-02-21T17:42:59")
+                    .SetVariableValue("arg", "2020-02-21T17:42:59.000001234")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-02-21T17:52:59", queryResult!.Data!["test"]);
+            Assert.Equal("2020-02-21T17:52:59.000001234", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -62,7 +68,7 @@ namespace HotChocolate.Types.NodaTime.Tests
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-02-20T17:42:59Z")
+                    .SetVariableValue("arg", "2020-02-20T17:42:59.000001234Z")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
@@ -74,10 +80,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59\") }")
+                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59.000001234\") }")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-02-20T17:52:59", queryResult!.Data!["test"]);
+            Assert.Equal("2020-02-20T17:52:59.000001234", queryResult!.Data!["test"]);
         }
 
         [Fact]
@@ -85,13 +91,22 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59Z\") }")
+                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
                     .Create());
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
             Assert.Equal(1, queryResult!.Errors!.Count);
-            Assert.Null(queryResult.Errors.First().Code);
-            Assert.Equal("Unable to deserialize string to LocalDateTime", queryResult.Errors.First().Message);
+            Assert.Null(queryResult.Errors[0].Code);
+            Assert.Equal(
+                "Unable to deserialize string to LocalDateTime",
+                queryResult.Errors[0].Message);
+        }
+
+        [Fact]
+        public void PatternEmpty_ThrowSchemaException()
+        {
+            static object Call() => new LocalDateTimeType(Array.Empty<IPattern<LocalDateTime>>());
+            Assert.Throws<SchemaException>(Call);
         }
     }
 }

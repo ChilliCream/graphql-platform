@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
@@ -16,12 +17,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                 public OffsetDate Hours =>
                     new OffsetDate(
                         LocalDate.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
-                        Offset.FromHours(2));
+                        Offset.FromHours(2)).WithCalendar(CalendarSystem.Gregorian);
 
                 public OffsetDate HoursAndMinutes =>
                     new OffsetDate(
                         LocalDate.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
-                        Offset.FromHoursAndMinutes(2, 35));
+                        Offset.FromHoursAndMinutes(2, 35)).WithCalendar(CalendarSystem.Gregorian);
             }
 
             public class Mutation
@@ -31,6 +32,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         private readonly IRequestExecutor testExecutor;
+
         public OffsetDateTypeIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
@@ -126,8 +128,17 @@ namespace HotChocolate.Types.NodaTime.Tests
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
             Assert.Equal(1, queryResult!.Errors!.Count);
-            Assert.Null(queryResult.Errors.First().Code);
-            Assert.Equal("Unable to deserialize string to OffsetDate", queryResult.Errors.First().Message);
+            Assert.Null(queryResult.Errors[0].Code);
+            Assert.Equal(
+                "Unable to deserialize string to OffsetDate",
+                queryResult.Errors[0].Message);
+        }
+
+        [Fact]
+        public void PatternEmpty_ThrowSchemaException()
+        {
+            static object Call() => new OffsetDateType(Array.Empty<IPattern<OffsetDate>>());
+            Assert.Throws<SchemaException>(Call);
         }
     }
 }

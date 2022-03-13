@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
@@ -13,13 +14,22 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             public class Query
             {
-                public OffsetDateTime Hours =>
-                    OffsetDateTime.FromDateTimeOffset(
-                        new DateTimeOffset(2020, 12, 31, 18, 30, 13, TimeSpan.FromHours(2)));
+                public OffsetDateTime Hours => OffsetDateTime
+                    .FromDateTimeOffset(
+                        new DateTimeOffset(2020, 12, 31, 18, 30, 13, TimeSpan.FromHours(2)))
+                    .PlusNanoseconds(1234);
 
-                public OffsetDateTime HoursAndMinutes =>
-                    OffsetDateTime.FromDateTimeOffset(
-                        new DateTimeOffset(2020, 12, 31, 18, 30, 13, TimeSpan.FromHours(2) + TimeSpan.FromMinutes(30)));
+                public OffsetDateTime HoursAndMinutes => OffsetDateTime
+                    .FromDateTimeOffset(
+                        new DateTimeOffset(
+                            2020,
+                            12,
+                            31,
+                            18,
+                            30,
+                            13,
+                            TimeSpan.FromHours(2) + TimeSpan.FromMinutes(30)))
+                    .PlusNanoseconds(1234);
             }
 
             public class Mutation
@@ -32,6 +42,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         private readonly IRequestExecutor testExecutor;
+
         public OffsetDateTimeTypeIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
@@ -129,6 +140,13 @@ namespace HotChocolate.Types.NodaTime.Tests
             Assert.Equal(1, queryResult!.Errors!.Count);
             Assert.Null(queryResult.Errors.First().Code);
             Assert.Equal("Unable to deserialize string to OffsetDateTime", queryResult.Errors.First().Message);
+        }
+
+        [Fact]
+        public void PatternEmpty_ThrowSchemaException()
+        {
+            static object Call() => new OffsetDateTimeType(Array.Empty<IPattern<OffsetDateTime>>());
+            Assert.Throws<SchemaException>(Call);
         }
     }
 }

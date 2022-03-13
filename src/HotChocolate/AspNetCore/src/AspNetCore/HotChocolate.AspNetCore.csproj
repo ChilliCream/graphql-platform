@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
+    <ProjectReference Include="..\Transport.Sockets\HotChocolate.Transport.Sockets.csproj" />
   </ItemGroup>
 
   <ItemGroup>

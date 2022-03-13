@@ -9,6 +9,7 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Transport.Sockets;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -18,8 +19,6 @@ namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
 internal static class WebSocketExtensions
 {
-    private const int _maxMessageSize = 1024 * 4;
-
     private static readonly JsonSerializerSettings _settings =
         new()
         {
@@ -88,7 +87,7 @@ internal static class WebSocketExtensions
         bool largeMessage = false,
         CancellationToken cancellationToken = default)
     {
-        var buffer = new byte[_maxMessageSize];
+        var buffer = new byte[SocketDefaults.BufferSize];
 
         await using Stream stream = message.CreateMessageStream(largeMessage);
         int read;
@@ -104,7 +103,7 @@ internal static class WebSocketExtensions
                 WebSocketMessageType.Text,
                 isEndOfMessage,
                 cancellationToken);
-        } while (read == _maxMessageSize);
+        } while (read == SocketDefaults.BufferSize);
     }
 
     private static Stream CreateMessageStream(this OperationMessage message, bool largeMessage)
@@ -148,8 +147,8 @@ internal static class WebSocketExtensions
     {
         await using var stream = new MemoryStream();
         WebSocketReceiveResult result;
-        var buffer = new byte[_maxMessageSize];
-        var skipped = false;
+        var buffer = new byte[SocketDefaults.BufferSize];
+        bool skipped;
 
         do
         {

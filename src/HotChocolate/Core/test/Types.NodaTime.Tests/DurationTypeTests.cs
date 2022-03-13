@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
@@ -29,6 +30,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         private readonly IRequestExecutor testExecutor;
+
         public DurationTypeIntegrationTests()
         {
             testExecutor = SchemaBuilder.New()
@@ -227,6 +229,13 @@ namespace HotChocolate.Types.NodaTime.Tests
             var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
             Assert.Equal(1, queryResult!.Errors!.Count);
+        }
+
+        [Fact]
+        public void PatternEmpty_ThrowSchemaException()
+        {
+            static object Call() => new DurationType(Array.Empty<IPattern<Duration>>());
+            Assert.Throws<SchemaException>(Call);
         }
     }
 }
