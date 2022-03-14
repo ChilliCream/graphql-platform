@@ -47,7 +47,7 @@ internal sealed class DirectiveTypeMergeHandler
         notMerged.RemoveAll(readyToMerge.Contains);
     }
 
-    protected void MergeTypes(
+    private void MergeTypes(
         ISchemaMergeContext context,
         IReadOnlyList<IDirectiveTypeInfo> types,
         NameString newTypeName)

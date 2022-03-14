@@ -126,7 +126,7 @@ namespace HotChocolate.Resolvers
                 .ExecuteRequestAsync(
                     QueryRequestBuilder.New()
                         .SetQuery("{ sayHello }")
-                        .AddProperty("someState", new SayHelloState("Hello"))
+                        .AddGlobalState("someState", new SayHelloState("Hello"))
                         .Create())
                 .MatchSnapshotAsync();
         }

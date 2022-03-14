@@ -2,7 +2,7 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    private ref partial struct TokenInfo
+    private readonly ref struct TokenInfo
     {
         public TokenInfo(int start, int end, int line, int column)
         {

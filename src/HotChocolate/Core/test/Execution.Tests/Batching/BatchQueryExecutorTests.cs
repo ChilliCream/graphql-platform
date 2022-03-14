@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Batching
             IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
 
@@ -101,7 +101,7 @@ namespace HotChocolate.Execution.Batching
             IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
         [Fact]
@@ -153,7 +153,7 @@ namespace HotChocolate.Execution.Batching
             IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
         [Fact]
@@ -235,7 +235,7 @@ namespace HotChocolate.Execution.Batching
             IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
         [Fact]
@@ -278,7 +278,7 @@ namespace HotChocolate.Execution.Batching
             IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
         [Fact]
@@ -329,7 +329,7 @@ namespace HotChocolate.Execution.Batching
             IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
         [Fact]

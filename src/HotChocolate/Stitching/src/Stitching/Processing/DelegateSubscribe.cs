@@ -32,9 +32,9 @@ internal sealed class DelegateSubscribe
             reversePath = ImmutableStack.CreateRange(path);
         }
 
-        context.SetScopedValue(WellKnownContextData.Path, path);
-        context.SetScopedValue(ReversePath, reversePath);
-        context.SetScopedValue(SchemaName, delegateDirective.Schema);
+        context.SetScopedState(WellKnownContextData.Path, path);
+        context.SetScopedState(ReversePath, reversePath);
+        context.SetScopedState(SchemaName, delegateDirective.Schema);
 
         return new ValueTask<ISourceStream>(
             new RemoteSourceStream(
@@ -96,7 +96,7 @@ internal sealed class DelegateSubscribe
             return subscriptionResult;
         }
 
-        if (result is IQueryResult {Data: null, Errors.Count: > 0} errorResult)
+        if (result is IQueryResult { Data: null, Errors.Count: > 0 } errorResult)
         {
             throw new GraphQLException(errorResult.Errors!);
         }

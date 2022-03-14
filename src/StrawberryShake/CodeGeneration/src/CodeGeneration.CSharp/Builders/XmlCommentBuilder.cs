@@ -2,66 +2,65 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public class XmlCommentBuilder : ICodeBuilder
 {
-    public class XmlCommentBuilder : ICodeBuilder
+    private string? _summary;
+    private List<string> _code = new();
+
+    public XmlCommentBuilder SetSummary(string summary)
     {
-        private string? _summary;
-        private List<string> _code = new();
+        _summary = summary;
+        return this;
+    }
 
-        public XmlCommentBuilder SetSummary(string summary)
+    public XmlCommentBuilder AddCode(string code)
+    {
+        _code.Add(code);
+        return this;
+    }
+
+    public static XmlCommentBuilder New() => new();
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="writer"></param>
+    public void Build(CodeWriter writer)
+    {
+        if (_summary is not null)
         {
-            _summary = summary;
-            return this;
-        }
+            writer.WriteIndentedLine("/// <summary>");
+            WriteCommentLines(writer, _summary);
 
-        public XmlCommentBuilder AddCode(string code)
-        {
-            _code.Add(code);
-            return this;
-        }
-
-        public static XmlCommentBuilder New() => new();
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="writer"></param>
-        public void Build(CodeWriter writer)
-        {
-            if (_summary is not null)
+            foreach (var code in _code)
             {
-                writer.WriteIndentedLine("/// <summary>");
-                WriteCommentLines(writer, _summary);
-
-                foreach (var code in _code)
-                {
-                    writer.WriteIndentedLine("/// <code>");
-                    WriteCommentLines(writer, code);
-                    writer.WriteIndentedLine("/// </code>");
-                }
-
-                writer.WriteIndentedLine("/// </summary>");
+                writer.WriteIndentedLine("/// <code>");
+                WriteCommentLines(writer, code);
+                writer.WriteIndentedLine("/// </code>");
             }
-        }
 
-        private void WriteCommentLines(CodeWriter writer, string str)
+            writer.WriteIndentedLine("/// </summary>");
+        }
+    }
+
+    private void WriteCommentLines(CodeWriter writer, string str)
+    {
+        using var reader = new StringReader(str);
+        var line = reader.ReadLine();
+        do
         {
-            using var reader = new StringReader(str);
-            var line = reader.ReadLine();
-            do
+            if (line is not null)
             {
-                if (line is not null)
-                {
-                    writer.WriteIndent();
-                    writer.Write("/// ");
-                    writer.Write(line);
-                    writer.WriteLine();
-                }
-
-                line = reader.ReadLine();
+                writer.WriteIndent();
+                writer.Write("/// ");
+                writer.Write(line);
+                writer.WriteLine();
             }
-            while (line is not null);
+
+            line = reader.ReadLine();
         }
+        while (line is not null);
     }
 }

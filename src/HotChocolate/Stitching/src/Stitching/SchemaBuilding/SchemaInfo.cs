@@ -7,8 +7,7 @@ using static HotChocolate.Language.OperationType;
 
 namespace HotChocolate.Stitching.SchemaBuilding;
 
-internal class SchemaInfo
-    : ISchemaInfo
+internal class SchemaInfo : ISchemaInfo
 {
     private static readonly Dictionary<OperationType, string> _names =
         new()
@@ -61,7 +60,7 @@ internal class SchemaInfo
 
     public IReadOnlyDictionary<string, DirectiveDefinitionNode> Directives { get; }
 
-    public ObjectTypeDefinitionNode? QueryType
+    public ObjectTypeDefinitionNode QueryType
     {
         get
         {

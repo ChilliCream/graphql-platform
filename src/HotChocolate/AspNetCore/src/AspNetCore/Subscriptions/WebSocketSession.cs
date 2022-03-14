@@ -1,55 +1,68 @@
-using System;
+using System.Buffers;
 using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Properties;
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using HotChocolate.Transport.Sockets;
+using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
+using static HotChocolate.AspNetCore.Subscriptions.ConnectionCloseReason;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
-public class WebSocketSession : ISocketSession
+internal sealed class WebSocketSession : ISocketSession
 {
-    private readonly Pipe _pipe = new();
-    private readonly ISocketConnection _connection;
-    private readonly CancellationToken _applicationStopping;
-    private readonly KeepConnectionAliveJob _keepAlive;
-    private readonly MessageProcessor _messageProcessor;
-    private readonly MessageReceiver _messageReceiver;
-    private readonly bool _disposeConnection;
-    private readonly ISocketSessionInterceptor _sessionInterceptor;
+    private static readonly GraphQLSocketOptions _defaultOptions = new();
     private bool _disposed;
 
     private WebSocketSession(
-        ISocketSessionInterceptor sessionInterceptor,
         ISocketConnection connection,
-        IMessagePipeline messagePipeline,
-        CancellationToken applicationStopping,
-        bool disposeConnection)
+        IProtocolHandler protocol,
+        ISocketSessionInterceptor interceptor,
+        IRequestExecutor requestExecutor)
     {
-        _connection = connection;
-        _applicationStopping = applicationStopping;
-        _disposeConnection = disposeConnection;
-        _sessionInterceptor = sessionInterceptor;
-
-        _keepAlive = new KeepConnectionAliveJob(connection);
-        _messageProcessor = new MessageProcessor(connection, messagePipeline, _pipe.Reader);
-        _messageReceiver = new MessageReceiver(connection, _pipe.Writer);
+        Connection = connection;
+        Protocol = protocol;
+        Operations = new OperationManager(this, interceptor, requestExecutor);
     }
 
-    public async Task HandleAsync(CancellationToken cancellationToken)
-    {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationToken, _applicationStopping);
+    public ISocketConnection Connection { get; }
 
-        if (await _connection.TryOpenAsync())
+    public IProtocolHandler Protocol { get; }
+
+    public IOperationManager Operations { get; }
+
+    public void Dispose()
+    {
+        if (!_disposed)
         {
+            Operations.Dispose();
+            Connection.Dispose();
+            _disposed = true;
+        }
+    }
+
+    public static async Task AcceptAsync(
+        HttpContext context,
+        IRequestExecutor executor,
+        ISocketSessionInterceptor interceptor)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
+        CancellationToken ct = cts.Token;
+        using var connection = new WebSocketConnection(context);
+        IProtocolHandler? protocol = await connection.TryAcceptConnection();
+
+        if (protocol is not null)
+        {
+            using var session = new WebSocketSession(connection, protocol, interceptor, executor);
+            var options = context.GetGraphQLSocketOptions() ?? _defaultOptions;
+
             try
             {
-                _keepAlive.Begin(cts.Token);
-                _messageProcessor.Begin(cts.Token);
-                await _messageReceiver.ReceiveAsync(cts.Token);
+                var pingPong = new PingPongJob(session, options);
+                var pipeline = new MessagePipeline(connection, new ProtocolMessageHandler(session));
+                pipeline.Completed += (_, _) => cts.Cancel();
+                await Task.WhenAll(pingPong.RunAsync(ct), pipeline.RunAsync(ct));
             }
-            catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
+            catch (OperationCanceledException)
             {
                 // OperationCanceledException are caught and will not
                 // bubble further. We will just close the current subscription
@@ -59,16 +72,16 @@ public class WebSocketSession : ISocketSession
             {
                 try
                 {
-                    if (!cts.IsCancellationRequested)
-                    {
-                        cts.Cancel();
-                    }
+                    await interceptor.OnCloseAsync(session, connection.HttpContext.RequestAborted);
 
-                    await _connection.CloseAsync(
-                        AspNetCoreResources.WebSocketSession_SessionEnded,
-                        SocketCloseStatus.NormalClosure,
-                        CancellationToken.None);
-                    await _sessionInterceptor.OnCloseAsync(_connection, cancellationToken);
+                    if (!connection.IsClosed)
+                    {
+                        // ensure that the connection is closed at the end.
+                        await connection.CloseAsync(
+                            WebSocketSession_SessionEnded,
+                            NormalClosure,
+                            CancellationToken.None);
+                    }
                 }
                 catch
                 {
@@ -79,52 +92,20 @@ public class WebSocketSession : ISocketSession
         }
     }
 
-    public void Dispose()
+    private sealed class ProtocolMessageHandler : IMessageHandler
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
+        private readonly ISocketSession _session;
+        private readonly IProtocolHandler _protocol;
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
+        public ProtocolMessageHandler(ISocketSession session)
         {
-            if (disposing && _disposeConnection)
-            {
-                _connection.Dispose();
-            }
-
-            _disposed = true;
-        }
-    }
-
-    public static WebSocketSession New(
-        HttpContext httpContext,
-        IMessagePipeline messagePipeline,
-        ISocketSessionInterceptor socketSessionInterceptor,
-        CancellationToken applicationStopping)
-    {
-        if (httpContext is null)
-        {
-            throw new ArgumentNullException(nameof(httpContext));
+            _session = session;
+            _protocol = session.Protocol;
         }
 
-        if (messagePipeline is null)
-        {
-            throw new ArgumentNullException(nameof(messagePipeline));
-        }
-
-        if (socketSessionInterceptor is null)
-        {
-            throw new ArgumentNullException(nameof(socketSessionInterceptor));
-        }
-
-        var connection = WebSocketConnection.New(httpContext);
-        return new WebSocketSession(
-            socketSessionInterceptor,
-            connection,
-            messagePipeline,
-            applicationStopping,
-            true);
+        public ValueTask OnReceiveAsync(
+            ReadOnlySequence<byte> message,
+            CancellationToken cancellationToken = default)
+            => _protocol.OnReceiveAsync(_session, message, cancellationToken);
     }
 }

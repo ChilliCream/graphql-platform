@@ -10,32 +10,24 @@ namespace HotChocolate.AspNetCore;
 public class WebSocketSubscriptionMiddleware : MiddlewareBase
 {
     private readonly IServerDiagnosticEvents _diagnosticEvents;
-    private readonly IHostApplicationLifetime _hostLifetime;
 
     public WebSocketSubscriptionMiddleware(
         RequestDelegate next,
         IRequestExecutorResolver executorResolver,
         IHttpResultSerializer resultSerializer,
         IServerDiagnosticEvents diagnosticEvents,
-        IHostApplicationLifetime hostLifetime,
         NameString schemaName)
         : base(next, executorResolver, resultSerializer, schemaName)
     {
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
-        _hostLifetime = hostLifetime;
     }
 
     public Task InvokeAsync(HttpContext context)
     {
-        if (context.WebSockets.IsWebSocketRequest)
-        {
-            return HandleWebSocketSessionAsync(context);
-        }
-        else
-        {
-            return NextAsync(context);
-        }
+        return context.WebSockets.IsWebSocketRequest
+            ? HandleWebSocketSessionAsync(context)
+            : NextAsync(context);
     }
 
     private async Task HandleWebSocketSessionAsync(HttpContext context)
@@ -49,20 +41,10 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
         {
             try
             {
-                IRequestExecutor requestExecutor = 
-                    await GetExecutorAsync(context.RequestAborted);
-                IMessagePipeline? messagePipeline = 
-                    requestExecutor.GetRequiredService<IMessagePipeline>();
-                ISocketSessionInterceptor? socketSessionInterceptor = 
-                    requestExecutor.GetRequiredService<ISocketSessionInterceptor>();
-                context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
-
-                await WebSocketSession
-                    .New(context,
-                        messagePipeline,
-                        socketSessionInterceptor,
-                        _hostLifetime.ApplicationStopping)
-                    .HandleAsync(context.RequestAborted);
+                var executor = await GetExecutorAsync(context.RequestAborted);
+                var interceptor = executor.GetRequiredService<ISocketSessionInterceptor>();
+                context.Items[WellKnownContextData.RequestExecutor] = executor;
+                await WebSocketSession.AcceptAsync(context, executor, interceptor);
             }
             catch (Exception ex)
             {

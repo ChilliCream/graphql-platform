@@ -7,18 +7,232 @@ stages:
     pool:
       vmImage: "ubuntu-20.04"
     jobs:
-      - job: Test
-        displayName: "Test"
-        dependsOn: []
-        continueOnError: true
-        strategy:
-          parallel: 4
+      - job: TestGreenDonut
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
-            continueOnError: true
             inputs:
-              script: "./build.cmd test --test-partition $(System.JobPositionInPhase)"
+              script: "./build.cmd TestGreenDonut --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateAnalyzers
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateAnalyzers --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateApolloFederation
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateApolloFederation --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateAspNetCore
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateAspNetCore --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateAzureFunctions
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateAzureFunctions --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateCodeGeneration
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateCodeGeneration --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateCore
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateCore --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateData
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateData --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateDiagnostics
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateDiagnostics --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateFilters
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateFilters --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateLanguage
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateLanguage --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateMongoDb
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateMongoDb --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateNeo4J
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateNeo4J --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolatePersistedQueries
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolatePersistedQueries --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateSpatial
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateSpatial --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateStitching
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateStitching --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestHotChocolateUtilities
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateUtilities --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestStrawberryShakeClient
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestStrawberryShakeClient --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestStrawberryShakeCodeGeneration
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestStrawberryShakeCodeGeneration --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestStrawberryShakeSourceGenerator
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestStrawberryShakeSourceGenerator --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: TestStrawberryShakeTooling
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestStrawberryShakeTooling --skip --test-partition $(System.JobPositionInPhase)"
           - task: PublishBuildArtifacts@1
             displayName: "Upload Test Results"
             inputs:
@@ -39,7 +253,7 @@ stages:
               pathtoPublish: "output/packages"
       - job: Publish
         displayName: "Publish"
-        dependsOn: [Test, Pack]
+        dependsOn: [Pack]
         steps:
           - task: DownloadBuildArtifacts@0
             displayName: "Download Packages"

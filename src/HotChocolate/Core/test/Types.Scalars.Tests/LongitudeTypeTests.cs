@@ -466,7 +466,7 @@ namespace HotChocolate.Types
             IExecutionResult res = await executor.ExecuteAsync("{ test }");
 
             // assert
-            (await res.ToJsonAsync()).MatchSnapshot();
+            res.ToJson().MatchSnapshot();
         }
 
         public class DefaultLongitude
