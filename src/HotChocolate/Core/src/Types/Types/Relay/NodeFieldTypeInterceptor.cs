@@ -107,10 +107,10 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         IdValue deserializedId = serializer.Deserialize(nodeId.Value);
         NameString typeName = deserializedId.TypeName;
 
-        context.SetLocalValue(NodeId, nodeId.Value);
-        context.SetLocalValue(InternalId, deserializedId.Value);
-        context.SetLocalValue(InternalType, typeName);
-        context.SetLocalValue(WellKnownContextData.IdValue, deserializedId);
+        context.SetLocalState(NodeId, nodeId.Value);
+        context.SetLocalState(InternalId, deserializedId.Value);
+        context.SetLocalState(InternalType, typeName);
+        context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
 
         if (context.Schema.TryGetType<ObjectType>(typeName, out ObjectType? type) &&
             type.ContextData.TryGetValue(NodeResolver, out var o) &&
@@ -144,10 +144,10 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                     IdValue deserializedId = serializer.Deserialize(nodeId.Value);
                     NameString typeName = deserializedId.TypeName;
 
-                    context.SetLocalValue(NodeId, nodeId.Value);
-                    context.SetLocalValue(InternalId, deserializedId.Value);
-                    context.SetLocalValue(InternalType, typeName);
-                    context.SetLocalValue(WellKnownContextData.IdValue, deserializedId);
+                    context.SetLocalState(NodeId, nodeId.Value);
+                    context.SetLocalState(InternalId, deserializedId.Value);
+                    context.SetLocalState(InternalType, typeName);
+                    context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
 
                     tasks[i] =
                         context.Schema.TryGetType<ObjectType>(typeName, out ObjectType? type) &&

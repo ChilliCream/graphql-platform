@@ -72,7 +72,7 @@ public class InMemoryClient : IInMemoryClient
         requestBuilder.SetOperation(request.Name);
         requestBuilder.SetVariableValues(CreateVariables(request.Variables));
         requestBuilder.SetExtensions(request.GetExtensionsOrNull());
-        requestBuilder.SetProperties(request.GetContextDataOrNull());
+        requestBuilder.InitializeGlobalState(request.GetContextDataOrNull());
 
         IServiceProvider applicationService = Executor.Services.GetApplicationServices();
         foreach (var interceptor in RequestInterceptors)

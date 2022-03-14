@@ -39,12 +39,12 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
 
                 try
                 {
-                    context.SetLocalValue(scopedServiceName, dbContext);
+                    context.SetLocalState(scopedServiceName, dbContext);
                     await next(context).ConfigureAwait(false);
                 }
                 finally
                 {
-                    context.RemoveLocalValue(scopedServiceName);
+                    context.RemoveLocalState(scopedServiceName);
                 }
             }, key: WellKnownMiddleware.DbContext));
 
@@ -82,12 +82,12 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
 
                     try
                     {
-                        context.SetLocalValue(scopedServiceName, dbContext);
+                        context.SetLocalState(scopedServiceName, dbContext);
                         await next(context).ConfigureAwait(false);
                     }
                     finally
                     {
-                        context.RemoveLocalValue(scopedServiceName);
+                        context.RemoveLocalState(scopedServiceName);
                     }
                 },
                 key: WellKnownMiddleware.DbContext);
