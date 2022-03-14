@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Execution;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using StrawberryShake.Transport.WebSockets;
 using Xunit;
 
 namespace HotChocolate.Stitching.Integration;

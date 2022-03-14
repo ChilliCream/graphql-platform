@@ -20,7 +20,6 @@ using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using StrawberryShake.Transport.WebSockets;
 using static HotChocolate.Stitching.ThrowHelper;
 
 namespace Microsoft.Extensions.DependencyInjection;

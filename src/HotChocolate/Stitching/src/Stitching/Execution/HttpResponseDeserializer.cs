@@ -99,9 +99,9 @@ internal static class HttpResponseDeserializer
     {
         var deserialized = new Dictionary<string, object?>();
 
-        foreach (KeyValuePair<string, object?> item in obj)
+        foreach (var (key, value) in obj)
         {
-            deserialized.Add(item.Key, DeserializeErrorValue(item.Value));
+            deserialized.Add(key, DeserializeErrorValue(value));
         }
 
         return deserialized;

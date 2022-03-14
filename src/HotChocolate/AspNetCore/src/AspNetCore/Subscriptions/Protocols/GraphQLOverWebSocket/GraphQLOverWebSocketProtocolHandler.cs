@@ -234,7 +234,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         CancellationToken cancellationToken)
     {
         using var writer = new ArrayWriter();
-        SerializeMessage(writer, Utf8Messages.Complete);
+        SerializeMessage(writer, Utf8Messages.Complete, id: operationSessionId);
         await session.Connection.SendAsync(writer.Body, cancellationToken);
     }
 
