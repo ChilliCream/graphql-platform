@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions;
-using Microsoft.Extensions.Hosting;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
