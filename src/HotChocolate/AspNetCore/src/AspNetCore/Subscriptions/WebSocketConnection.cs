@@ -4,6 +4,7 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using static System.Net.WebSockets.WebSocketMessageType;
 using static HotChocolate.Transport.Sockets.SocketDefaults;
 using static HotChocolate.Transport.Sockets.WellKnownProtocols;
@@ -28,6 +29,9 @@ internal sealed class WebSocketConnection : ISocketConnection
     public HttpContext HttpContext { get; }
 
     public IServiceProvider RequestServices => HttpContext.RequestServices;
+
+    public CancellationToken ApplicationStopping
+        => RequestServices.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping;
 
     public CancellationToken RequestAborted => HttpContext.RequestAborted;
 
