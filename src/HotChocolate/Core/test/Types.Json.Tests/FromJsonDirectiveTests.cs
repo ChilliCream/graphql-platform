@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Json.Tests;
+namespace HotChocolate.Types;
 
 public class FromJsonDirectiveTests
 {

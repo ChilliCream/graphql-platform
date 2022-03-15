@@ -8,7 +8,7 @@ using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Json.Tests;
+namespace HotChocolate.Types;
 
 public class FromJsonDescriptorTests
 {
