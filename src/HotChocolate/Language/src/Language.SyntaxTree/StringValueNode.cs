@@ -64,7 +64,7 @@ public sealed class StringValueNode
         Block = block;
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.StringValue;
+    public SyntaxKind Kind => SyntaxKind.StringValue;
 
     public Location? Location { get; }
 
