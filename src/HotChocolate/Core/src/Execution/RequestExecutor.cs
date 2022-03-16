@@ -15,6 +15,7 @@ internal sealed class RequestExecutor : IRequestExecutor
     private readonly RequestDelegate _requestDelegate;
     private readonly BatchExecutor _batchExecutor;
     private readonly ObjectPool<RequestContext> _contextPool;
+    private int _activeRequests;
 
     public RequestExecutor(
         ISchema schema,
@@ -49,6 +50,8 @@ internal sealed class RequestExecutor : IRequestExecutor
 
     public ulong Version { get; }
 
+    public int ActiveRequests => _activeRequests;
+
     public async Task<IExecutionResult> ExecuteAsync(
         IQueryRequest request,
         CancellationToken cancellationToken = default)
@@ -58,6 +61,43 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(request));
         }
 
+        Interlocked.Increment(ref _activeRequests);
+        try
+        {
+            return await ExecuteSingleAsync(request, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _activeRequests);
+        }
+    }
+
+    public Task<IBatchQueryResult> ExecuteBatchAsync(
+        IEnumerable<IQueryRequest> requestBatch,
+        bool allowParallelExecution = false,
+        CancellationToken cancellationToken = default)
+    {
+        if (requestBatch is null)
+        {
+            throw new ArgumentNullException(nameof(requestBatch));
+        }
+
+        Interlocked.Increment(ref _activeRequests);
+
+        return Task.FromResult<IBatchQueryResult>(
+            new BatchQueryResult(
+                () => _batchExecutor.ExecuteAsync(this, requestBatch),
+                null,
+                session: new DisposableAction(() =>
+                {
+                    Interlocked.Decrement(ref _activeRequests);
+                    return Task.CompletedTask;
+                })));
+    }
+
+    private async Task<IExecutionResult> ExecuteSingleAsync(IQueryRequest request, CancellationToken cancellationToken)
+    {
         IServiceScope? scope = request.Services is null
             ? _applicationServices.CreateScope()
             : null;
@@ -75,7 +115,8 @@ internal sealed class RequestExecutor : IRequestExecutor
 
             _requestContextAccessor.RequestContext = context;
 
-            await _requestDelegate(context).ConfigureAwait(false);
+            await _requestDelegate(context)
+                .ConfigureAwait(false);
 
             if (context.Result is null)
             {
@@ -107,19 +148,18 @@ internal sealed class RequestExecutor : IRequestExecutor
         }
     }
 
-    public Task<IBatchQueryResult> ExecuteBatchAsync(
-        IEnumerable<IQueryRequest> requestBatch,
-        bool allowParallelExecution = false,
-        CancellationToken cancellationToken = default)
+    private class DisposableAction : IAsyncDisposable
     {
-        if (requestBatch is null)
+        private readonly Func<Task> _action;
+
+        public DisposableAction(Func<Task> action)
         {
-            throw new ArgumentNullException(nameof(requestBatch));
+            _action = action;
         }
 
-        return Task.FromResult<IBatchQueryResult>(
-            new BatchQueryResult(
-                () => _batchExecutor.ExecuteAsync(this, requestBatch),
-                null));
+        public async ValueTask DisposeAsync()
+        {
+            await _action.Invoke().ConfigureAwait(false);
+        }
     }
 }

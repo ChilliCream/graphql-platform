@@ -141,7 +141,7 @@ internal sealed class RequestExecutorResolver
                 try
                 {
                     foreach (OnRequestExecutorEvictedAction action in
-                        registeredExecutor.Setup.OnRequestExecutorEvicted)
+                             registeredExecutor.Setup.OnRequestExecutorEvicted)
                     {
                         action.Action?.Invoke(registeredExecutor.Executor);
 
@@ -156,12 +156,34 @@ internal sealed class RequestExecutorResolver
                 }
                 finally
                 {
-                    // we will give the request executor some grace period to finish all request
-                    // in the pipeline
-                    await Task.Delay(TimeSpan.FromMinutes(5));
-                    registeredExecutor.Dispose();
+                    await CleanupExecutor(registeredExecutor);
                 }
             }, default, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+    }
+
+    private static async Task CleanupExecutor(RegisteredExecutor registeredExecutor)
+    {
+        try
+        {
+            // we will give the request executor some grace period to finish all request
+            // in the pipeline
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+            while (!cts.IsCancellationRequested && registeredExecutor.Executor.ActiveRequests != 0)
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(150), cts.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                    break;
+                }
+            }
+        }
+        finally
+        {
+            registeredExecutor.Dispose();
+        }
     }
 
     private async Task<IServiceProvider> CreateSchemaServicesAsync(
@@ -454,7 +476,7 @@ internal sealed class RequestExecutorResolver
 
         public void Dispose()
         {
-            if (_disposed)
+            if (!_disposed)
             {
                 if (Services is IDisposable d)
                 {

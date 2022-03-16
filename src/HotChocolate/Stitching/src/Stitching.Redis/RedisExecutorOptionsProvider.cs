@@ -105,7 +105,8 @@ namespace HotChocolate.Stitching.Redis
             IList<IConfigureRequestExecutorSetup> factoryOptions,
             CancellationToken cancellationToken)
         {
-            await using ServiceProvider services =
+            // Don't dispose of the Service Provider here. Causes ObjectDisposedExceptions in RequestExecutorResolver.BeginRunEvictionEvents!
+            ServiceProvider services =
                 new ServiceCollection()
                     .AddGraphQL(_schemaName)
                     .AddRemoteSchema(
