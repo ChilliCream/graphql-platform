@@ -545,7 +545,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
 
             // act
             var subscriptionResult =
-                (ISubscriptionResult)await executor.ExecuteAsync(
+                (IResponseStream)await executor.ExecuteAsync(
                     "subscription { onReview(episode: NEW_HOPE) " +
                     "{ stars } }");
 
@@ -583,7 +583,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
 
             // act
             var subscriptionResult =
-                (ISubscriptionResult)await executor.ExecuteAsync(
+                (IResponseStream)await executor.ExecuteAsync(
                     @"subscription {
                         onReview(episode: NEW_HOPE) {
                             ... on Review {
@@ -627,7 +627,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
 
             // act
             var subscriptionResult =
-                (ISubscriptionResult)await executor.ExecuteAsync(
+                (IResponseStream)await executor.ExecuteAsync(
                     @"subscription {
                         onReview(episode: NEW_HOPE) {
                             ... SomeFrag
@@ -673,7 +673,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
 
             // act
             var subscriptionResult =
-                (ISubscriptionResult)await executor.ExecuteAsync(
+                (IResponseStream)await executor.ExecuteAsync(
                     @"subscription ($ep: Episode!) {
                         onReview(episode: $ep) {
                             stars

@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
         public void RegisterDisposable_Disposable_Is_Null()
         {
             // arrange
-            var result = new SubscriptionResult(() => default!, null);
+            var result = new ResponseStream(() => default!, null);
 
             // act
             void Action() => result.RegisterDisposable(null!);
@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
         public async Task RegisterDisposable()
         {
             // arrange
-            var result = new SubscriptionResult(() => default!, null);
+            var result = new ResponseStream(() => default!, null);
             var disposable = new TestDisposable();
 
             // act
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             var session = new TestAsyncDisposable();
-            var result = new SubscriptionResult(() => default!, null, session: session);
+            var result = new ResponseStream(() => default!, null, session: session);
             var disposable = new TestDisposable();
 
             // act
@@ -56,8 +56,8 @@ namespace HotChocolate.Execution
         {
             // arrange
             var session = new TestDisposable();
-            var result = new SubscriptionResult(
-                new SubscriptionResult(() => default!, null),
+            var result = new ResponseStream(
+                new ResponseStream(() => default!, null),
                 session);
             var disposable = new TestDisposable();
 

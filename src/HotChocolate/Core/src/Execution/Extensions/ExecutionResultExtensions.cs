@@ -11,8 +11,8 @@ namespace HotChocolate;
 
 public static class ExecutionResultExtensions
 {
-    private static readonly JsonQueryResultSerializer _serializer = new(false);
-    private static readonly JsonQueryResultSerializer _serializerIndented = new(true);
+    private static readonly JsonQueryResultFormatter _formatter = new(false);
+    private static readonly JsonQueryResultFormatter _formatterIndented = new(true);
 
     public static void WriteTo(
         this IQueryResult result,
@@ -31,11 +31,11 @@ public static class ExecutionResultExtensions
 
         if (withIndentations)
         {
-            _serializerIndented.Serialize(result, writer);
+            _formatterIndented.Format(result, writer);
         }
         else
         {
-            _serializer.Serialize(result, writer);
+            _formatter.Format(result, writer);
         }
     }
 
@@ -51,8 +51,8 @@ public static class ExecutionResultExtensions
         if (result is IReadOnlyQueryResult queryResult)
         {
             return withIndentations
-                ? _serializerIndented.Serialize(queryResult)
-                : _serializer.Serialize(queryResult);
+                ? _formatterIndented.Serialize(queryResult)
+                : _formatter.Serialize(queryResult);
         }
 
         throw new NotSupportedException(ExecutionResultExtensions_OnlyQueryResults);

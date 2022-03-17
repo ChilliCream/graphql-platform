@@ -41,10 +41,10 @@ namespace HotChocolate.Execution.Serialization
             IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
 
             var memoryStream = new MemoryStream();
-            var serializer = new JsonArrayResponseStreamSerializer();
+            var serializer = new JsonArrayResponseStreamFormatter();
 
             // act
-            await serializer.SerializeAsync(stream, memoryStream, CancellationToken.None);
+            await serializer.FormatAsync(stream, memoryStream, CancellationToken.None);
 
             // assert
             memoryStream.Seek(0, SeekOrigin.Begin);
@@ -55,12 +55,12 @@ namespace HotChocolate.Execution.Serialization
         public async Task Serialize_ResponseStream_Is_Null()
         {
             // arrange
-            var serializer = new JsonArrayResponseStreamSerializer();
+            var serializer = new JsonArrayResponseStreamFormatter();
             var stream = new Mock<Stream>();
 
             // act
             Task Action() =>
-                serializer.SerializeAsync(null!, stream.Object, CancellationToken.None);
+                serializer.FormatAsync(null!, stream.Object, CancellationToken.None);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -70,12 +70,12 @@ namespace HotChocolate.Execution.Serialization
         public async Task Serialize_OutputStream_Is_Null()
         {
             // arrange
-            var serializer = new JsonArrayResponseStreamSerializer();
+            var serializer = new JsonArrayResponseStreamFormatter();
             var stream = new Mock<IResponseStream>();
 
             // act
             Task Action() =>
-                serializer.SerializeAsync(stream.Object, null!, CancellationToken.None);
+                serializer.FormatAsync(stream.Object, null!, CancellationToken.None);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);

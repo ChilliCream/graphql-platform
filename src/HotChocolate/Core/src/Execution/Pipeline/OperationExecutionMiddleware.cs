@@ -138,7 +138,7 @@ internal sealed class OperationExecutionMiddleware
                         operationContext, _operationContextPool);
 
                     var streamSession = new StreamSession(
-                        new IDisposable[] 
+                        new IDisposable[]
                         {
                             operationContextOwner,
 
@@ -154,12 +154,10 @@ internal sealed class OperationExecutionMiddleware
                     // given back to the pool.
                     operationContext = null;
 
-                    context.Result = new DeferredQueryResult
-                    (
-                        result,
-                        new DeferredTaskExecutor(operationContextOwner),
-                        session: streamSession
-                    );
+                    context.Result = new ResponseStream(
+                        () => new DeferredTaskExecutor(result, operationContextOwner));
+                    context.Result.RegisterForCleanup(result);
+                    context.Result.RegisterForCleanup(operationContextOwner);
                 }
 
                 await _next(context).ConfigureAwait(false);

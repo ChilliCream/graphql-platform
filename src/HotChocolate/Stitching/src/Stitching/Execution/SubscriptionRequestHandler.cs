@@ -29,7 +29,7 @@ internal sealed class SubscriptionRequestHandler : IRemoteRequestHandler
         IQueryRequest request,
         CancellationToken cancellationToken = default)
         => Task.FromResult<IExecutionResult>(
-            new SubscriptionResult(
+            new ResponseStream(
                 () => new Subscription(
                     _clientFactory,
                     _targetSchema,

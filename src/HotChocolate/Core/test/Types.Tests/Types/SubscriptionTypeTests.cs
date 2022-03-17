@@ -284,7 +284,7 @@ namespace HotChocolate.Types
                     .AddSubscriptionType<PureCodeFirstSourceStream>());
 
                 // act
-                var subscriptionResult = (ISubscriptionResult)await executor.ExecuteAsync(
+                var subscriptionResult = (IResponseStream)await executor.ExecuteAsync(
                     "subscription { " + field + " (userId: \"1\") }", ct);
 
                 IExecutionResult mutationResult = await executor.ExecuteAsync(

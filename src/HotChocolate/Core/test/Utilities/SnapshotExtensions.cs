@@ -13,7 +13,7 @@ namespace HotChocolate.Tests
 {
     public static class SnapshotExtensions
     {
-        private static readonly JsonArrayResponseStreamSerializer _serializer = new(true);
+        private static readonly JsonArrayResponseStreamFormatter _formatter = new(true);
 
         public static IExecutionResult MatchSnapshot(
             this IExecutionResult result)
@@ -35,7 +35,7 @@ namespace HotChocolate.Tests
             if (result is IResponseStream responseStream)
             {
                 await using var memoryStream = new MemoryStream();
-                await _serializer.SerializeAsync(responseStream, memoryStream, cancellationToken);
+                await _formatter.FormatAsync(responseStream, memoryStream, cancellationToken);
                 Encoding.UTF8.GetString(memoryStream.ToArray()).MatchSnapshot();
                 return result;
             }
