@@ -64,7 +64,7 @@ We use [Nuke](https://nuke.build/) for build automation.
 
 To work on Hot Chocolate, you will need .NET 6, Node 14, and Yarn 1.x.
 
-After cloning the repository, run `init.sh` or `init.cmd`, which are located in the repository's root. The script files will create the `src/All.sln`, which can be used to develop in Visual Studio 2022 and higher or Rider 2021.3 EAP or higher.  It will also restore the packages for the documentation.
+After cloning the repository, run `init.sh` or `init.cmd`, which are located in the repository's root. The `build.ps1`, `build.cmd` or `build.sh` script files will create the `src/All.sln`, which can be used to develop in Visual Studio 2022 and higher or Rider 2021.3 EAP or higher.  It will also restore the packages for the documentation.
 
 Other more focused solution files exist if you want to narrow in on a particular part of the platform.
 The smaller solution files are great when working with VSCode.
