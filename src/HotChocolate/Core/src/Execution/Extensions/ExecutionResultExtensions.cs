@@ -48,7 +48,7 @@ public static class ExecutionResultExtensions
             throw new ArgumentNullException(nameof(result));
         }
 
-        if (result is IReadOnlyQueryResult queryResult)
+        if (result is IQueryResult queryResult)
         {
             return withIndentations
                 ? _formatterIndented.Serialize(queryResult)
