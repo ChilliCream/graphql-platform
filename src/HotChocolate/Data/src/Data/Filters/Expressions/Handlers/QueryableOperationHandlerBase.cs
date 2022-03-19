@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using HotChocolate.Data.Filters.Internal;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -32,10 +33,17 @@ public abstract class QueryableOperationHandlerBase
 
         object? parsedValue = InputParser.ParseLiteral(value, field, type);
 
-        if ((!runtimeType.IsNullable || !CanBeNull) &&
-            IsValueNull(context, field, runtimeType, node.Value, parsedValue))
+        if ((!runtimeType.IsNullable || !CanBeNull) && parsedValue is null)
         {
             IError error = ErrorHelper.CreateNonNullError(field, value, context);
+            context.ReportError(error);
+            result = null!;
+            return false;
+        }
+
+        if (!ValueNullabilityHelpers.IsListValueValid(field.Type, runtimeType, node.Value))
+        {
+            IError error = ErrorHelper.CreateNonNullError(field, value, context, true);
             context.ReportError(error);
             result = null!;
             return false;
@@ -45,16 +53,21 @@ public abstract class QueryableOperationHandlerBase
         return true;
     }
 
+    /// <summary>
+    /// if this value is true, null values are allowed as inputs
+    /// </summary>
     protected bool CanBeNull { get; set; } = true;
 
-    protected virtual bool IsValueNull(
-        QueryableFilterContext context,
-        IFilterOperationField field,
-        IExtendedType runtimeType,
-        IValueNode node,
-        object? parsedValue)
-        => parsedValue is null;
-
+    /// <summary>
+    /// Maps a operation field to a provider specific result.
+    /// This method is called when the <see cref="FilterVisitor{TContext,T}"/> enters a
+    /// field
+    /// </summary>
+    /// <param name="context">The <see cref="IFilterVisitorContext{T}"/> of the visitor</param>
+    /// <param name="field">The field that is currently being visited</param>
+    /// <param name="value">The value node of this field</param>
+    /// <param name="parsedValue">The value of the value node</param>
+    /// <returns>If <c>true</c> is returned the action is used for further processing</returns>
     public abstract Expression HandleOperation(
         QueryableFilterContext context,
         IFilterOperationField field,

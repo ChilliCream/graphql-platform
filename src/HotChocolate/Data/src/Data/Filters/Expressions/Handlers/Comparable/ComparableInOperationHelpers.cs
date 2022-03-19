@@ -1,31 +1,35 @@
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
-namespace HotChocolate.Data.Filters.Expressions;
+namespace HotChocolate.Data.Filters.Internal;
 
-internal static class ComparableInOperationHelpers
+/// <summary>
+/// Common helpers for 'in' and 'nin' filter operations
+/// </summary>
+public static class ValueNullabilityHelpers
 {
-    public static bool IsValueNull(
+    /// <summary>
+    /// Validates if the provided array is valid
+    /// </summary>
+    public static bool IsListValueValid(
+        IType type,
         IExtendedType runtimeType,
-        IValueNode node,
-        object? parsedValue)
+        IValueNode node)
     {
-        if (parsedValue is null)
-        {
-            return true;
-        }
-
-        if (!runtimeType.IsNullable && node is ListValueNode values)
+        if (type.IsListType() &&
+            !runtimeType.IsNullable &&
+            node is ListValueNode values)
         {
             for (var i = 0; i < values.Items.Count; i++)
             {
                 if (values.Items[i].Kind == SyntaxKind.NullValue)
                 {
-                    return true;
+                    return false;
                 }
             }
         }
 
-        return false;
+        return true;
     }
 }

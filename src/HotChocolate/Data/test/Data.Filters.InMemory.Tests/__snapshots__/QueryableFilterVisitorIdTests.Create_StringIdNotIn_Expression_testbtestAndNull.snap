@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "code": "HC0026",
-        "expectedType": "[ID]!",
+        "expectedType": "[ID!]",
         "filterType": "IdOperationFilterInput"
       }
     }

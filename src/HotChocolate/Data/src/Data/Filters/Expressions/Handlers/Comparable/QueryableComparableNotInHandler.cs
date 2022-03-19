@@ -19,14 +19,6 @@ public class QueryableComparableNotInHandler
 
     protected override int Operation => DefaultFilterOperations.NotIn;
 
-    protected override bool IsValueNull(
-        QueryableFilterContext context,
-        IFilterOperationField field,
-        IExtendedType runtimeType,
-        IValueNode node,
-        object? parsedValue)
-        => ComparableInOperationHelpers.IsValueNull(runtimeType, node, parsedValue);
-
     public override Expression HandleOperation(
         QueryableFilterContext context,
         IFilterOperationField field,

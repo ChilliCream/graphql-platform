@@ -18,14 +18,6 @@ public class QueryableComparableInHandler
 
     protected override int Operation => DefaultFilterOperations.In;
 
-    protected override bool IsValueNull(
-        QueryableFilterContext context,
-        IFilterOperationField field,
-        IExtendedType runtimeType,
-        IValueNode node,
-        object? parsedValue)
-        => ComparableInOperationHelpers.IsValueNull(runtimeType, node, parsedValue);
-
     public override Expression HandleOperation(
         QueryableFilterContext context,
         IFilterOperationField field,
