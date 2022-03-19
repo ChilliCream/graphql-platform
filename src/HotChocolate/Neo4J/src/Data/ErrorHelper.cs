@@ -11,9 +11,15 @@ namespace HotChocolate.Data.Neo4J
         public static IError CreateNonNullError<T>(
             IFilterField field,
             IValueNode value,
-            IFilterVisitorContext<T> context)
+            IFilterVisitorContext<T> context,
+            bool isMemberInvalid = false)
         {
             IFilterInputType filterType = context.Types.OfType<IFilterInputType>().First();
+
+            INullabilityNode nullability =
+                isMemberInvalid && field.Type.IsListType()
+                ? new ListNullabilityNode(null, new RequiredModifierNode(null, null))
+                : new RequiredModifierNode(null, null);
 
             return ErrorBuilder.New()
                 .SetMessage(
@@ -22,7 +28,7 @@ namespace HotChocolate.Data.Neo4J
                     filterType.Print())
                 .AddLocation(value)
                 .SetCode(ErrorCodes.Data.NonNullError)
-                .SetExtension("expectedType", new NonNullType(field.Type).Print())
+                .SetExtension("expectedType", field.Type.RewriteNullability(nullability).Print())
                 .SetExtension("filterType", filterType.Print())
                 .Build();
         }
