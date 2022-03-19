@@ -1,5 +1,5 @@
-using System;
 using System.Linq.Expressions;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -18,6 +18,14 @@ public class QueryableComparableNotInHandler
     }
 
     protected override int Operation => DefaultFilterOperations.NotIn;
+
+    protected override bool IsValueNull(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        IExtendedType runtimeType,
+        IValueNode node,
+        object? parsedValue)
+        => ComparableInOperationHelpers.IsValueNull(runtimeType, node, parsedValue);
 
     public override Expression HandleOperation(
         QueryableFilterContext context,

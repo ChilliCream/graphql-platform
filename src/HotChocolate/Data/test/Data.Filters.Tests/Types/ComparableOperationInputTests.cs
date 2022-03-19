@@ -41,6 +41,30 @@ public class ComparableOperationInputTests
                     .Type<StringType>()
                     .Resolve("foo")
                     .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+            .AddFiltering(compatabilityMode: true)
+            .Create();
+
+        // assert
+#if NET6_0_OR_GREATER
+        schema.ToString().MatchSnapshot(new SnapshotNameExtension("NET6"));
+#else
+        schema.ToString().MatchSnapshot();
+#endif
+    }
+
+    [Fact]
+    public void Create_Implicit_Operation_Normalized()
+    {
+        // arrange
+        // act
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType(
+                t => t
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo")
+                    .Argument("test", a => a.Type<FilterInputType<Foo>>()))
             .AddFiltering()
             .Create();
 
@@ -95,6 +119,10 @@ public class ComparableOperationInputTests
         public double BarDouble { get; set; }
 
         public decimal BarDecimal { get; set; }
+
+        public Uri BarUri { get; set; } = default!;
+
+        public Uri? BarUriNullable { get; set; }
 
         public short? BarShortNullable { get; set; }
 

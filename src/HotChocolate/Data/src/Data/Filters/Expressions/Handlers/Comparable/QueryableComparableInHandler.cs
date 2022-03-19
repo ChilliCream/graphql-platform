@@ -1,12 +1,10 @@
-using System;
 using System.Linq.Expressions;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters.Expressions;
-
 public class QueryableComparableInHandler
     : QueryableComparableOperationHandler
 {
@@ -19,6 +17,14 @@ public class QueryableComparableInHandler
     }
 
     protected override int Operation => DefaultFilterOperations.In;
+
+    protected override bool IsValueNull(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        IExtendedType runtimeType,
+        IValueNode node,
+        object? parsedValue)
+        => ComparableInOperationHelpers.IsValueNull(runtimeType, node, parsedValue);
 
     public override Expression HandleOperation(
         QueryableFilterContext context,

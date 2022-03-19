@@ -32,7 +32,8 @@ public abstract class QueryableOperationHandlerBase
 
         object? parsedValue = InputParser.ParseLiteral(value, field, type);
 
-        if ((!runtimeType.IsNullable || !CanBeNull) && parsedValue is null)
+        if ((!runtimeType.IsNullable || !CanBeNull) &&
+            IsValueNull(context, field, runtimeType, node.Value, parsedValue))
         {
             IError error = ErrorHelper.CreateNonNullError(field, value, context);
             context.ReportError(error);
@@ -45,6 +46,14 @@ public abstract class QueryableOperationHandlerBase
     }
 
     protected bool CanBeNull { get; set; } = true;
+
+    protected virtual bool IsValueNull(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        IExtendedType runtimeType,
+        IValueNode node,
+        object? parsedValue)
+        => parsedValue is null;
 
     public abstract Expression HandleOperation(
         QueryableFilterContext context,
