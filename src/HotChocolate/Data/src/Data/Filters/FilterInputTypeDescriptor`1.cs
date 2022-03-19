@@ -99,23 +99,31 @@ public class FilterInputTypeDescriptor<T>
     /// <inheritdoc />
     public IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember)
     {
-        if (propertyOrMember.ExtractMember() is PropertyInfo m)
+        switch (propertyOrMember.TryExtractMember())
         {
-            FilterFieldDescriptor? fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Member == m);
+            case PropertyInfo m:
+                FilterFieldDescriptor? fieldDescriptor =
+                    Fields.FirstOrDefault(t => t.Definition.Member == m);
 
-            if (fieldDescriptor is null)
-            {
-                fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, m);
+                if (fieldDescriptor is null)
+                {
+                    fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, m);
+                    Fields.Add(fieldDescriptor);
+                }
+
+                return fieldDescriptor;
+
+            case MethodInfo m:
+                throw new ArgumentException(
+                    FilterInputTypeDescriptor_Field_OnlyProperties,
+                    nameof(propertyOrMember));
+
+            default:
+                fieldDescriptor = FilterFieldDescriptor
+                    .New(Context, Definition.Scope, typeof(T), propertyOrMember);
                 Fields.Add(fieldDescriptor);
-            }
-
-            return fieldDescriptor;
+                return fieldDescriptor;
         }
-
-        throw new ArgumentException(
-            FilterInputTypeDescriptor_Field_OnlyProperties,
-            nameof(propertyOrMember));
     }
 
     /// <inheritdoc />

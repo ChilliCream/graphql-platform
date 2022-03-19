@@ -1,4 +1,6 @@
+using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -13,6 +15,9 @@ public class FilterFieldDefinition
 
     public IFilterFieldHandler? Handler { get; set; }
 
+    public Expression? Expression { get; set; }
+
+    internal IFilterMetadata? Metadata { get; set; }
+
     public string? Scope { get; set; }
 }
-

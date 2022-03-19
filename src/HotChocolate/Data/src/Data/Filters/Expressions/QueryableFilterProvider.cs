@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -149,5 +150,28 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         var argumentKey = (VisitFilterArgument)VisitFilterArgumentExecutor;
         contextData[ContextVisitFilterArgumentKey] = argumentKey;
         contextData[ContextArgumentNameKey] = argumentName;
+    }
+
+    public override IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition)
+    {
+        if (fieldDefinition.Expression is not null)
+        {
+            if (fieldDefinition.Expression is not LambdaExpression lambda ||
+                lambda.Parameters.Count != 1 ||
+                lambda.Parameters[0].Type != typeDefinition.EntityType)
+            {
+                throw ThrowHelper.QueryableFilterProvider_ExpressionParameterInvalid(
+                    context.Type,
+                    typeDefinition,
+                    fieldDefinition);
+            }
+
+            return new ExpressionFilterMetadata(fieldDefinition.Expression);
+        }
+
+        return null;
     }
 }

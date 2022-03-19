@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -28,7 +29,7 @@ public class QueryableDefaultFieldHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition) =>
         !(fieldDefinition is FilterOperationFieldDefinition) &&
-        fieldDefinition.Member is not null;
+        (fieldDefinition.Member is not null || fieldDefinition.Expression is not null);
 
     public override bool TryHandleEnter(
         QueryableFilterContext context,
@@ -51,20 +52,38 @@ public class QueryableDefaultFieldHandler
             return false;
         }
 
-        Expression nestedProperty = field.Member switch
+        Expression nestedProperty;
+        if (field.Metadata is ExpressionFilterMetadata { Expression: LambdaExpression expression })
         {
-            PropertyInfo propertyInfo =>
-                Expression.Property(context.GetInstance(), propertyInfo),
+            if (expression.Parameters.Count != 1 ||
+                expression.Parameters[0].Type != field.RuntimeType.Source)
+            {
+                throw ThrowHelper.QueryableFiltering_ExpressionParamterInvalid(
+                    field.RuntimeType.Source,
+                    field);
+            }
 
-            MethodInfo methodInfo =>
-                Expression.Call(context.GetInstance(), methodInfo),
+            nestedProperty = ReplaceVariableExpressionVisitor
+                .ReplaceParameter(expression, expression.Parameters[0], context.GetInstance())
+                .Body;
+        }
+        else
+        {
+            nestedProperty = field.Member switch
+            {
+                PropertyInfo propertyInfo =>
+                    Expression.Property(context.GetInstance(), propertyInfo),
 
-            null =>
-                throw ThrowHelper.QueryableFiltering_NoMemberDeclared(field),
+                MethodInfo methodInfo =>
+                    Expression.Call(context.GetInstance(), methodInfo),
 
-            _ =>
-                throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field)
-        };
+                null =>
+                    throw ThrowHelper.QueryableFiltering_NoMemberDeclared(field),
+
+                _ =>
+                    throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field)
+            };
+        }
 
         context.PushInstance(nestedProperty);
         context.RuntimeTypes.Push(field.RuntimeType);
@@ -100,5 +119,35 @@ public class QueryableDefaultFieldHandler
         context.GetLevel().Enqueue(condition);
         action = SyntaxVisitor.Continue;
         return true;
+    }
+
+    private class ReplaceVariableExpressionVisitor : ExpressionVisitor
+    {
+        private readonly Expression _replacement;
+        private readonly ParameterExpression _parameter;
+
+        public ReplaceVariableExpressionVisitor(
+            Expression replacement,
+            ParameterExpression parameter)
+        {
+            _replacement = replacement;
+            _parameter = parameter;
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            if (node == _parameter)
+            {
+                return _replacement;
+            }
+            return base.VisitParameter(node);
+        }
+
+        public static LambdaExpression ReplaceParameter(
+            LambdaExpression lambda,
+            ParameterExpression parameter,
+            Expression replacement)
+            => (LambdaExpression)
+                new ReplaceVariableExpressionVisitor(replacement, parameter).Visit(lambda);
     }
 }

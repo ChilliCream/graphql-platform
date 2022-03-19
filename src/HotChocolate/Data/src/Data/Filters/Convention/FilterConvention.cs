@@ -300,6 +300,12 @@ public class FilterConvention
         return false;
     }
 
+    public IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition)
+        => _provider.CreateMetaData(context, typeDefinition, fieldDefinition);
+
     private bool TryCreateFilterType(
         IExtendedType runtimeType,
         [NotNullWhen(true)] out Type? type)

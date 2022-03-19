@@ -119,6 +119,9 @@ public class FilterTypeInterceptor
                             filterFieldDefinition);
                     }
 
+                    filterFieldDefinition.Metadata =
+                        convention.CreateMetaData(completionContext, def, filterFieldDefinition);
+
                     if (filterFieldDefinition.Handler is null)
                     {
                         if (convention.TryGetHandler(
