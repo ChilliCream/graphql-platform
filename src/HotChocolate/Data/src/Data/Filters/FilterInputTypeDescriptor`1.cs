@@ -120,7 +120,7 @@ public class FilterInputTypeDescriptor<T>
 
             default:
                 fieldDescriptor = FilterFieldDescriptor
-                    .New(Context, Definition.Scope, typeof(T), propertyOrMember);
+                    .New(Context, Definition.Scope, propertyOrMember);
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
         }

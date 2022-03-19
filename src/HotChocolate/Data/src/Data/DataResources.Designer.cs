@@ -646,11 +646,11 @@ namespace HotChocolate.Data
             }
         }
 
-        internal static string QueryableFiltering_ExpressionParamterInvalid
+        internal static string QueryableFiltering_ExpressionParameterInvalid
         {
             get
             {
-                return ResourceManager.GetString("QueryableFiltering_ExpressionParamterInvalid", resourceCulture);
+                return ResourceManager.GetString("QueryableFiltering_ExpressionParameterInvalid", resourceCulture);
             }
         }
 

@@ -404,12 +404,12 @@ internal static class ThrowHelper
             field.Name,
             field.Type.Print()));
 
-    public static InvalidOperationException QueryableFiltering_ExpressionParamterInvalid(
+    public static InvalidOperationException QueryableFiltering_ExpressionParameterInvalid(
         Type type,
         IFilterField field) =>
         new(string.Format(
             CultureInfo.CurrentCulture,
-            DataResources.QueryableFiltering_ExpressionParamterInvalid,
+            DataResources.QueryableFiltering_ExpressionParameterInvalid,
             type.FullName,
             field.DeclaringType.Print(),
             field.Name,

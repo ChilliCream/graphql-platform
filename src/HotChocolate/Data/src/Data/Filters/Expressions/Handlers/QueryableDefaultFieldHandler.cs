@@ -56,9 +56,9 @@ public class QueryableDefaultFieldHandler
         if (field.Metadata is ExpressionFilterMetadata { Expression: LambdaExpression expression })
         {
             if (expression.Parameters.Count != 1 ||
-                expression.Parameters[0].Type != field.RuntimeType.Source)
+                expression.Parameters[0].Type != context.RuntimeTypes.Peek()!.Source)
             {
-                throw ThrowHelper.QueryableFiltering_ExpressionParamterInvalid(
+                throw ThrowHelper.QueryableFiltering_ExpressionParameterInvalid(
                     field.RuntimeType.Source,
                     field);
             }

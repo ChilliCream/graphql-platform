@@ -42,7 +42,6 @@ public class FilterFieldDescriptor
     protected FilterFieldDescriptor(
         IDescriptorContext context,
         string? scope,
-        Type type,
         Expression expression)
         : base(context)
     {
@@ -53,7 +52,7 @@ public class FilterFieldDescriptor
         if (Definition.Expression is LambdaExpression lambda)
         {
             Definition.Type = convention.GetFieldType(lambda.ReturnType);
-            Definition.RuntimeType = type;
+            Definition.RuntimeType = lambda.ReturnType;
         }
     }
 
@@ -188,7 +187,6 @@ public class FilterFieldDescriptor
     internal static FilterFieldDescriptor New(
         IDescriptorContext context,
         string? scope,
-        Type type,
         Expression expression) =>
-        new FilterFieldDescriptor(context, scope, type, expression);
+        new FilterFieldDescriptor(context, scope, expression);
 }
