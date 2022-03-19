@@ -19,8 +19,8 @@ namespace HotChocolate.Data.Sorting;
 /// The sort convention provides defaults for inferring sorting fields.
 /// </summary>
 public class SortConvention
-    : Convention<SortConventionDefinition>,
-      ISortConvention
+    : Convention<SortConventionDefinition>
+    , ISortConvention
 {
     private const string _typePostFix = "SortInput";
 
@@ -268,6 +268,12 @@ public class SortConvention
         handler = null;
         return false;
     }
+
+    public ISortMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        ISortInputTypeDefinition typeDefinition,
+        ISortFieldDefinition fieldDefinition)
+        => _provider.CreateMetaData(context, typeDefinition, fieldDefinition);
 
     private bool TryCreateSortType(
         IExtendedType runtimeType,

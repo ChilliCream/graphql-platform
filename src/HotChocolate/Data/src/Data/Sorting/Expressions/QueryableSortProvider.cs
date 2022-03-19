@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -142,6 +144,29 @@ public class QueryableSortProvider
         var argumentKey = (VisitSortArgument)VisitSortArgumentExecutor;
         contextData[ContextVisitSortArgumentKey] = argumentKey;
         contextData[ContextArgumentNameKey] = argumentName;
+    }
+
+    public override ISortMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        ISortInputTypeDefinition typeDefinition,
+        ISortFieldDefinition fieldDefinition)
+    {
+        if (fieldDefinition.Expression is not null)
+        {
+            if (fieldDefinition.Expression is not LambdaExpression lambda ||
+                lambda.Parameters.Count != 1 ||
+                lambda.Parameters[0].Type != typeDefinition.EntityType)
+            {
+                throw ThrowHelper.QueryableSortProvider_ExpressionParameterInvalid(
+                    context.Type,
+                    typeDefinition,
+                    fieldDefinition);
+            }
+
+            return new ExpressionSortMetadata(fieldDefinition.Expression);
+        }
+
+        return null;
     }
 }
 
