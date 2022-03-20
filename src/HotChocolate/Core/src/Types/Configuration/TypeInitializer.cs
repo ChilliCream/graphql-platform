@@ -231,6 +231,8 @@ internal class TypeInitializer
             _globalComps,
             _isOfType);
 
+        // todo: this fails, when using the ExtendsType<T> API
+        //       without specifying a name for the object type extension.
         registeredType.Type.CompleteName(registeredType);
 
         if (registeredType.IsNamedType || registeredType.IsDirectiveType)
@@ -313,7 +315,6 @@ internal class TypeInitializer
                         .Where(t =>
                             t.Type is INamedType n &&
                             n.Kind == namedTypeExtension.Kind))
-
                     {
                         if (isSchemaType &&
                             extendsType.IsInstanceOfType(possibleMatchingType))

@@ -590,6 +590,45 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task ObjectTypeExtension_ExtendsType_CodeFirstType()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<CodeFirstQueryType>()
+                .AddTypeExtension<CodeFirstQueryExtensionType>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task ExtendObjectTypeAttribute_AddFields()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<AnnotationBasedQuery>()
+                .AddTypeExtension<ExtendAnnotationBasedType>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task ExtendObjectTypeAttribute_Extend_ObjectType()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<CodeFirstQueryType>()
+                .AddTypeExtension<ExtendCodeFirstType>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Ensure_Member_And_ResolverMember_Are_Correctly_Set_When_Extending()
         {
             ISchema schema =
@@ -938,6 +977,43 @@ namespace HotChocolate.Types
                     return default;
                 });
             }
+        }
+
+        public class AnnotationBasedQuery
+        {
+            public string Field1() => "";
+        }
+
+        [ExtendObjectType(typeof(AnnotationBasedQuery))]
+        public class ExtendAnnotationBasedType
+        {
+            public string Field2() => "";
+        }
+
+        public class CodeFirstQueryType : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+
+                descriptor.Field("field1").Resolve("");
+            }
+        }
+
+        public class CodeFirstQueryExtensionType : ObjectTypeExtension
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.ExtendsType<CodeFirstQueryType>();
+
+                descriptor.Field("field2").Resolve("");
+            }
+        }
+
+        [ExtendObjectType(typeof(CodeFirstQueryType))]
+        public class ExtendCodeFirstType
+        {
+            public string Field2 => "";
         }
     }
 }
