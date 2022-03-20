@@ -121,7 +121,7 @@ public class QueryableDefaultFieldHandler
         return true;
     }
 
-    private class ReplaceVariableExpressionVisitor : ExpressionVisitor
+    private sealed class ReplaceVariableExpressionVisitor : ExpressionVisitor
     {
         private readonly Expression _replacement;
         private readonly ParameterExpression _parameter;

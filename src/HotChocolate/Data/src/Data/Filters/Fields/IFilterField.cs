@@ -17,5 +17,5 @@ public interface IFilterField : IInputField
 
     IFilterFieldHandler Handler { get; }
 
-    IFilterMetadata Metadata { get; }
+    IFilterMetadata? Metadata { get; }
 }
