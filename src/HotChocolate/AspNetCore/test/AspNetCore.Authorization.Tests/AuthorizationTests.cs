@@ -24,6 +24,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task DefaultPolicy_NotFound(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -54,6 +55,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task NoAuthServices_Authenticated_True(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -80,6 +82,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task NoAuthServices_Authenticated_False(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -106,6 +109,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task Policy_NotFound(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -139,6 +143,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -172,6 +177,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task Policy_Resources_Is_IResolverContext(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -204,6 +210,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task Policy_Authorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -240,6 +247,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task Roles_UserHasNoRoles_NotAuthorized(
         Action<IRequestExecutorBuilder> configure)
     {
@@ -267,6 +275,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task Roles_UserHasDifferentRoles_NotAuthorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -296,6 +305,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task Roles_UserHasNoneOfTheRoles_NotAuthorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -325,6 +335,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task Roles_UserHasAllOfTheRoles_Authorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -357,6 +368,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task Roles_UserHasOneOfTheRoles_Authorized(
         Action<IRequestExecutorBuilder> configure)
     {
@@ -387,6 +399,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task Roles_Authorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
@@ -416,6 +429,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task PipedAuthorizeDirectives_Authorized(
         Action<IRequestExecutorBuilder> configure)
     {
@@ -461,6 +475,7 @@ public class AuthorizationTests : ServerTestBase
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
+    [ClassData(typeof(MicrosoftAuthorizeAttributeTestData))]
     public async Task PipedAuthorizeDirectives_SecondFails_NotAuthorized(
         Action<IRequestExecutorBuilder> configure)
     {
