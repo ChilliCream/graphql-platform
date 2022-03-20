@@ -14,6 +14,7 @@ public class FilterTypeInterceptor
     : TypeInterceptor
 {
     private readonly Dictionary<string, IFilterConvention> _conventions = new();
+    private readonly Dictionary<ITypeSystemMember, FilterInputTypeDefinition> _definitions = new();
 
     public override bool CanHandle(ITypeSystemObjectContext context) => true;
 
@@ -22,8 +23,11 @@ public class FilterTypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        if (definition is FilterInputTypeDefinition def)
+        // TODO check if this is ocrrect
+        if (definition is FilterInputTypeDefinition { EntityType: { } } def)
         {
+            _definitions[discoveryContext.Type] = def;
+
             IFilterConvention convention = GetConvention(
                 discoveryContext.DescriptorContext,
                 def.Scope);
@@ -34,7 +38,7 @@ public class FilterTypeInterceptor
 
             var descriptor = FilterInputTypeDescriptor.New(
                 discoveryContext.DescriptorContext,
-                def.EntityType!,
+                def.EntityType,
                 def.Scope);
 
             ApplyCorrectScope(def, discoveryContext);
@@ -49,13 +53,30 @@ public class FilterTypeInterceptor
 
             foreach (InputFieldDefinition field in def.Fields)
             {
-                if (field is FilterFieldDefinition filterField &&
-                    filterField.Member?.GetCustomAttribute(typeof(IDAttribute)) != null)
+                if (field is FilterFieldDefinition filterField)
                 {
-                    filterField.Type = discoveryContext.TypeInspector.GetTypeRef(
-                        typeof(IdOperationFilterInputType),
-                        TypeContext.Input,
-                        discoveryContext.Scope);
+                    if (filterField.Member?.GetCustomAttribute(typeof(IDAttribute)) != null)
+                    {
+                        filterField.Type = discoveryContext.TypeInspector.GetTypeRef(
+                            typeof(IdOperationFilterInputType),
+                            TypeContext.Input,
+                            discoveryContext.Scope);
+                    }
+
+                    if (filterField.HasAllowedOperations)
+                    {
+                        var originalType = filterField.Type;
+                        filterField.Type = TypeReference.Create(
+                            // TODO correct name
+                            "ThisIsAtTEst",
+                            typeReference,
+                            (_) => new FilterInputType(
+                                _definitions,
+                                typeReference,
+                                originalType!,
+                                filterField),
+                            TypeContext.Output);
+                    }
                 }
             }
         }
@@ -66,7 +87,8 @@ public class FilterTypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        if (definition is FilterInputTypeDefinition def)
+        // TODO check if this is correct
+        if (definition is FilterInputTypeDefinition { EntityType: { } } def)
         {
             IFilterConvention convention = GetConvention(
                 completionContext.DescriptorContext,
@@ -102,7 +124,7 @@ public class FilterTypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        if (definition is FilterInputTypeDefinition def)
+        if (definition is FilterInputTypeDefinition { EntityType: { } } def)
         {
             IFilterConvention convention = GetConvention(
                 completionContext.DescriptorContext,

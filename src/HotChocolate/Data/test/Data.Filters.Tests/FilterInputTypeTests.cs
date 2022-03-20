@@ -376,6 +376,23 @@ public class FilterInputTypeTest
         schema.Print().MatchSnapshot();
     }
 
+    // TODO dynamic type name and allow
+    [Fact]
+    public void FilterInputType_AllowOnlyCertainOperations()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchema(
+            s => s.AddType(
+                new FilterInputType<Foo>(x => x.BindFieldsExplicitly()
+                    .Field(x => x.Bar)
+                    .AllowOperation(DefaultFilterOperations.NotEquals)
+                    .AllowOperation(DefaultFilterOperations.Equals))));
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
     public class FooDirectiveType
         : DirectiveType<FooDirective>
     {
@@ -386,6 +403,28 @@ public class FilterInputTypeTest
             descriptor.Location(Types.DirectiveLocation.InputObject)
                 .Location(Types.DirectiveLocation.InputFieldDefinition);
         }
+    }
+
+    public class ExampleFilterinputType : FilterInputType<Book>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Book> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(x => x.Chapters).AllowEquals().AllowNotEquals();
+            descriptor.Field(x => x.Author, descriptor =>
+            {
+                descriptor.Field(x => x!.Id).AllowEquals().AllowNotEquals();
+                descriptor.Field(x => x!.Name).AllowIn().AllowNotIn().AllowContains();
+                descriptor.Field(x => x!.Address, descriptor =>
+                {
+                    descriptor.Field(x => x!.PostalCode).AllowEqual().AllowNotEquals();
+                    descriptor.Field(
+                        x => x!.Country,
+                        descriptor => descriptor.Field(x => x.Name).AllowIn());
+                });
+            });
+        }
+
     }
 
     public class FooDirective
@@ -430,6 +469,21 @@ public class FilterInputTypeTest
         public int Id { get; set; }
 
         [GraphQLNonNullType]
+        public string? Name { get; set; }
+
+        public Address? Address { get; set; }
+    }
+
+    public class Address
+    {
+        public string? Street { get; set; }
+        public string? PostalCode { get; set; }
+        public string? City { get; set; }
+        public Country? Country { get; set; }
+    }
+
+    public class Country
+    {
         public string? Name { get; set; }
     }
 

@@ -69,6 +69,16 @@ public interface IFilterInputTypeDescriptor<T>
     IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember);
 
     /// <summary>
+    /// Defines a <see cref="FilterField" /> that binds to the specified property.
+    /// </summary>
+    /// <param name="propertyOrMember">
+    /// The property to which a filter field shall be bound.
+    /// </param>
+    IFilterFieldDescriptor Field<TField>(
+        Expression<Func<T, TField>> propertyOrMember,
+        Func<IFilterInputTypeDescriptor<TField>> descriptor);
+
+    /// <summary>
     /// Ignore the specified property.
     /// </summary>
     /// <param name="operationId">

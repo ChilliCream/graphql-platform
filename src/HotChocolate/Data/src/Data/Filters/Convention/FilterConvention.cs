@@ -124,7 +124,6 @@ public class FilterConvention
         base.Complete(context);
     }
 
-
     /// <inheritdoc />
     public virtual NameString GetTypeName(Type runtimeType)
     {
