@@ -1,6 +1,8 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Types.MongoDb;
 
+namespace HotChocolate.Data.MongoDb.Filters;
+
 public class ObjectIdOperationFilterInputType
     : ComparableOperationFilterInputType<ObjectIdType>
 {
