@@ -26,6 +26,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     {
         builder.ConfigureSchema(sb => sb.AddAuthorizeDirectiveType());
         builder.Services.TryAddSingleton<IAuthorizationHandler, DefaultAuthorizationHandler>();
+        builder.TryAddTypeInterceptor<MicrosoftAuthorizeAttributeTypeInterceptor>();
         return builder;
     }
 
