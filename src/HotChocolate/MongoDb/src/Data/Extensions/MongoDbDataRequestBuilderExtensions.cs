@@ -25,8 +25,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </returns>
         public static IRequestExecutorBuilder AddMongoDbFiltering(
             this IRequestExecutorBuilder builder,
-            string? name = null) =>
-            builder.ConfigureSchema(s => s.AddMongoDbFiltering(name));
+            string? name = null,
+            bool compatabilityMode = false) =>
+            builder.ConfigureSchema(s => s.AddMongoDbFiltering(name, compatabilityMode));
 
         /// <summary>
         /// Adds sorting support.
