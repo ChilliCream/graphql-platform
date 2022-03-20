@@ -27,8 +27,9 @@ public static class HotChocolateDataRequestBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddFiltering(
         this IRequestExecutorBuilder builder,
-        string? name = null) =>
-        builder.ConfigureSchema(s => s.AddFiltering(name));
+        string? name = null,
+        bool compatabilityMode = false) =>
+        builder.ConfigureSchema(s => s.AddFiltering(name, compatabilityMode));
 
     /// <summary>
     /// Adds filtering support.

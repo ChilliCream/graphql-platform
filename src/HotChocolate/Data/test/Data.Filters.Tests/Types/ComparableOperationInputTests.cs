@@ -122,6 +122,8 @@ public class ComparableOperationInputTests
 
         public Uri BarUri { get; set; } = default!;
 
+        public byte BarByte { get; set; } = default!;
+
         public Uri? BarUriNullable { get; set; }
 
         public short? BarShortNullable { get; set; }
@@ -135,6 +137,8 @@ public class ComparableOperationInputTests
         public double? BarDoubleNullable { get; set; }
 
         public decimal? BarDecimalNullable { get; set; }
+
+        public byte? BarByteNullable { get; set; } = default!;
 
         public FooBar FooBar { get; set; }
 

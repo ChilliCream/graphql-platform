@@ -6,6 +6,21 @@ type Query {
   foo(test: FooFilterInput): String
 }
 
+input ComparableByteOperationFilterInput {
+  eq: Byte
+  neq: Byte
+  in: [Byte!]
+  nin: [Byte!]
+  gt: Byte
+  ngt: Byte
+  gte: Byte
+  ngte: Byte
+  lt: Byte
+  nlt: Byte
+  lte: Byte
+  nlte: Byte
+}
+
 input ComparableDateOnlyOperationFilterInput {
   eq: Date
   neq: Date
@@ -94,6 +109,21 @@ input ComparableInt64OperationFilterInput {
   nlt: Long
   lte: Long
   nlte: Long
+}
+
+input ComparableNullableOfByteOperationFilterInput {
+  eq: Byte
+  neq: Byte
+  in: [Byte]
+  nin: [Byte]
+  gt: Byte
+  ngt: Byte
+  gte: Byte
+  ngte: Byte
+  lt: Byte
+  nlt: Byte
+  lte: Byte
+  nlte: Byte
 }
 
 input ComparableNullableOfDateOnlyOperationFilterInput {
@@ -278,6 +308,7 @@ input FooFilterInput {
   barDouble: ComparableDoubleOperationFilterInput
   barDecimal: ComparableDecimalOperationFilterInput
   barUri: ComparableUriOperationFilterInput
+  barByte: ComparableByteOperationFilterInput
   barUriNullable: ComparableUriOperationFilterInput
   barShortNullable: ComparableNullableOfInt16OperationFilterInput
   barIntNullable: ComparableNullableOfInt32OperationFilterInput
@@ -285,6 +316,7 @@ input FooFilterInput {
   barFloatNullable: ComparableNullableOfSingleOperationFilterInput
   barDoubleNullable: ComparableNullableOfDoubleOperationFilterInput
   barDecimalNullable: ComparableNullableOfDecimalOperationFilterInput
+  barByteNullable: ComparableNullableOfByteOperationFilterInput
   fooBar: FooBarOperationFilterInput
   dateOnly: ComparableDateOnlyOperationFilterInput
   dateOnlyNullable: ComparableNullableOfDateOnlyOperationFilterInput
@@ -305,6 +337,9 @@ directive @specifiedBy("The specifiedBy URL points to a human-readable specifica
 
 "The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
 directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! = 0 "Streamed when true." if: Boolean) on FIELD
+
+"The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
+scalar Byte
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
