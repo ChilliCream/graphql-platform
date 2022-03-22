@@ -95,4 +95,24 @@ public static class ExecutionResultExtensions
     /// </returns>
     public static bool IsStreamResult(this IExecutionResult result)
         => result.Kind is BatchResult or DeferredResult or SubscriptionResult;
+
+    public static IQueryResult ExpectQueryResult(this IExecutionResult result)
+    {
+        if (result is IQueryResult qr)
+        {
+            return qr;
+        }
+
+        throw new ArgumentException("The specified result is expected to be a IQueryResult.");
+    }
+
+    public static IResponseStream ExpectResponseStream(this IExecutionResult result)
+    {
+        if (result is IResponseStream rs)
+        {
+            return rs;
+        }
+
+        throw new ArgumentException("The specified result is expected to be a IQueryResult.");
+    }
 }

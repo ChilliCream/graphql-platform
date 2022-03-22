@@ -95,46 +95,44 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-12-31T19:30:13 UTC")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
 
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult result = testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31T19:30:13 Asia/Kathmandu +05:45\") }")
+                    .SetQuery("mutation{test(arg:\"2020-12-31T19:30:13 Asia/Kathmandu +05:45\")}")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-12-31T19:40:13 Asia/Kathmandu +05:45", queryResult!.Data!["test"]);
+            Assert.Equal(
+                "2020-12-31T19:40:13 Asia/Kathmandu +05:45",
+                result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesLiteralWithUTC()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-12-31T19:30:13 UTC +00\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-12-31T19:40:13 UTC +00", queryResult!.Data!["test"]);
+            Assert.Equal("2020-12-31T19:40:13 UTC +00", result.ExpectQueryResult()!.Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-12-31T19:30:13 UTC\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
             Assert.Null(queryResult!.Data);
             Assert.Equal(1, queryResult!.Errors!.Count);
             Assert.Null(

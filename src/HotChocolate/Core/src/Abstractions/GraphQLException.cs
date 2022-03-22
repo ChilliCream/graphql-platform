@@ -32,6 +32,18 @@ public class GraphQLException : Exception
                .AsReadOnly();
     }
 
+    public GraphQLException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        Errors = new[]
+        {
+            ErrorBuilder.New()
+                .SetMessage(message)
+                .SetException(innerException)
+                .Build()
+        };
+    }
+
     protected GraphQLException(
         SerializationInfo info,
         StreamingContext context)
