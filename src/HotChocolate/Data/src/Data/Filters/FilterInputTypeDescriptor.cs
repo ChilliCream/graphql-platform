@@ -152,6 +152,36 @@ public class FilterInputTypeDescriptor
     }
 
     /// <inheritdoc />
+    public IFilterFieldDescriptor Field(
+        NameString name,
+        Action<IFilterInputTypeDescriptor> configure)
+    {
+        IFilterFieldDescriptor descriptor = Field(name);
+        descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
+        return descriptor;
+
+        FilterInputTypeDefinition CreateFieldTypeDefinition(
+            IDescriptorContext context,
+            string? scope)
+        {
+            FilterInputTypeDescriptor descriptor = New(context, typeof(object), scope);
+            descriptor.BindFieldsExplicitly();
+
+            // This resets the name on the definition. This way we can check if the user has
+            // set a custom name. The context the user specifying descriptor.Name("Foo") is
+            // preserved this way.
+            descriptor.Definition.Name = default!;
+
+            // we deactivate And and Or by default.
+            descriptor.Definition.UseAnd = false;
+            descriptor.Definition.UseOr = false;
+
+            configure(descriptor);
+            return descriptor.CreateDefinition();
+        }
+    }
+
+    /// <inheritdoc />
     public IFilterInputTypeDescriptor Ignore(int operationId)
     {
         FilterOperationFieldDescriptor? fieldDescriptor =

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -15,71 +16,93 @@ public class FilterTypeInterceptor
 {
     private readonly Dictionary<string, IFilterConvention> _conventions = new();
     private readonly Dictionary<ITypeSystemMember, FilterInputTypeDefinition> _definitions = new();
+    private readonly List<ITypeReference> _typesToRegister = new();
 
     public override bool CanHandle(ITypeSystemObjectContext context) => true;
+
+    public override bool TriggerAggregations => true;
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        // TODO check if this is ocrrect
-        if (definition is FilterInputTypeDefinition { EntityType: { } } def)
+        if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
         {
-            _definitions[discoveryContext.Type] = def;
+            return;
+        }
 
-            IFilterConvention convention = GetConvention(
-                discoveryContext.DescriptorContext,
-                def.Scope);
+        _definitions[discoveryContext.Type] = def;
 
-            SchemaTypeReference typeReference = TypeReference.Create(
-                discoveryContext.Type,
-                def.Scope);
+        IFilterConvention convention =
+            GetConvention(discoveryContext.DescriptorContext, def.Scope);
 
-            var descriptor = FilterInputTypeDescriptor.New(
-                discoveryContext.DescriptorContext,
-                def.EntityType,
-                def.Scope);
+        SchemaTypeReference typeReference =
+            TypeReference.Create(discoveryContext.Type, def.Scope);
 
-            ApplyCorrectScope(def, discoveryContext);
+        var descriptor = FilterInputTypeDescriptor
+            .New(discoveryContext.DescriptorContext, def.EntityType, def.Scope);
 
-            convention.ApplyConfigurations(typeReference, descriptor);
+        ApplyCorrectScope(def, discoveryContext);
 
-            FilterInputTypeDefinition extensionDefinition = descriptor.CreateDefinition();
+        convention.ApplyConfigurations(typeReference, descriptor);
 
-            ApplyCorrectScope(extensionDefinition, discoveryContext);
+        FilterInputTypeDefinition extensionDefinition = descriptor.CreateDefinition();
 
-            discoveryContext.RegisterDependencies(extensionDefinition);
+        ApplyCorrectScope(extensionDefinition, discoveryContext);
 
-            foreach (InputFieldDefinition field in def.Fields)
+        discoveryContext.RegisterDependencies(extensionDefinition);
+
+        foreach (InputFieldDefinition field in def.Fields)
+        {
+            if (field is FilterFieldDefinition filterField)
             {
-                if (field is FilterFieldDefinition filterField)
+                if (filterField.Member?.GetCustomAttribute(typeof(IDAttribute)) != null)
                 {
-                    if (filterField.Member?.GetCustomAttribute(typeof(IDAttribute)) != null)
-                    {
-                        filterField.Type = discoveryContext.TypeInspector.GetTypeRef(
-                            typeof(IdOperationFilterInputType),
-                            TypeContext.Input,
-                            discoveryContext.Scope);
-                    }
-
-                    if (filterField.HasAllowedOperations)
-                    {
-                        var originalType = filterField.Type;
-                        filterField.Type = TypeReference.Create(
-                            // TODO correct name
-                            "ThisIsAtTEst",
-                            typeReference,
-                            (_) => new FilterInputType(
-                                _definitions,
-                                typeReference,
-                                originalType!,
-                                filterField),
-                            TypeContext.Output);
-                    }
+                    filterField.Type = discoveryContext.TypeInspector.GetTypeRef(
+                        typeof(IdOperationFilterInputType),
+                        TypeContext.Input,
+                        discoveryContext.Scope);
                 }
+
+                RegisterDynamicTypeConfiguration(discoveryContext, typeReference, filterField);
             }
         }
+    }
+
+    private void RegisterDynamicTypeConfiguration(
+        ITypeDiscoveryContext discoveryContext,
+        ITypeReference typeReference,
+        FilterFieldDefinition filterField)
+    {
+        if (!filterField.HasAllowedOperations &&
+            filterField.CreateFieldTypeDefinition is null)
+        {
+            return;
+        }
+
+        ITypeReference? originalType = filterField.Type;
+        filterField.Type = TypeReference.Create(
+            $"FilterSubTypeConfiguration_{Guid.NewGuid():N}",
+            typeReference,
+            (_) =>
+            {
+                FilterInputTypeDefinition? explicitDefinition = null;
+
+                if (filterField.CreateFieldTypeDefinition is { } factory)
+                {
+                    explicitDefinition =
+                        factory(discoveryContext.DescriptorContext, discoveryContext.Scope);
+                }
+
+                return new FilterInputType(
+                    _definitions,
+                    explicitDefinition,
+                    typeReference,
+                    originalType!,
+                    filterField);
+            },
+            TypeContext.Input);
     }
 
     public override void OnBeforeCompleteName(
@@ -87,35 +110,34 @@ public class FilterTypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        // TODO check if this is correct
-        if (definition is FilterInputTypeDefinition { EntityType: { } } def)
+        if (definition is not FilterInputTypeDefinition def || !def.NeedsNameCompletion)
         {
-            IFilterConvention convention = GetConvention(
-                completionContext.DescriptorContext,
-                def.Scope);
+            return;
+        }
 
-            var descriptor = FilterInputTypeDescriptor.New(
-                completionContext.DescriptorContext,
-                def.EntityType!,
-                def.Scope);
+        IFilterConvention convention = GetConvention(
+            completionContext.DescriptorContext,
+            def.Scope);
 
-            SchemaTypeReference typeReference = TypeReference.Create(
-                completionContext.Type,
-                def.Scope);
+        var descriptor = FilterInputTypeDescriptor.New(
+            completionContext.DescriptorContext,
+            def.EntityType!,
+            def.Scope);
 
-            convention.ApplyConfigurations(typeReference, descriptor);
+        SchemaTypeReference typeReference = TypeReference.Create(
+            completionContext.Type,
+            def.Scope);
 
-            DataTypeExtensionHelper.MergeFilterInputTypeDefinitions(
-                completionContext,
-                descriptor.CreateDefinition(),
-                def);
+        convention.ApplyConfigurations(typeReference, descriptor);
 
-            if (def.Scope is not null)
-            {
-                definition.Name = completionContext.Scope +
-                    "_" +
-                    definition.Name;
-            }
+        DataTypeExtensionHelper.MergeFilterInputTypeDefinitions(
+            completionContext,
+            descriptor.CreateDefinition(),
+            def);
+
+        if (def.Scope is not null)
+        {
+            definition.Name = completionContext.Scope + "_" + definition.Name;
         }
     }
 
@@ -124,43 +146,57 @@ public class FilterTypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        if (definition is FilterInputTypeDefinition { EntityType: { } } def)
+        if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
         {
-            IFilterConvention convention = GetConvention(
-                completionContext.DescriptorContext,
-                def.Scope);
+            return;
+        }
+        IFilterConvention convention = GetConvention(
+            completionContext.DescriptorContext,
+            def.Scope);
 
-            foreach (InputFieldDefinition field in def.Fields)
+        foreach (InputFieldDefinition field in def.Fields)
+        {
+            if (field is FilterFieldDefinition filterFieldDefinition)
             {
-                if (field is FilterFieldDefinition filterFieldDefinition)
+                if (filterFieldDefinition.Type is null)
                 {
-                    if (filterFieldDefinition.Type is null)
+                    throw ThrowHelper.FilterInterceptor_OperationHasNoTypeSpecified(
+                        def,
+                        filterFieldDefinition);
+                }
+
+                if (filterFieldDefinition.Handler is null)
+                {
+                    if (convention.TryGetHandler(
+                        completionContext,
+                        def,
+                        filterFieldDefinition,
+                        out IFilterFieldHandler? handler))
                     {
-                        throw ThrowHelper.FilterInterceptor_OperationHasNoTypeSpecified(
+                        filterFieldDefinition.Handler = handler;
+                    }
+                    else
+                    {
+                        throw ThrowHelper.FilterInterceptor_NoHandlerFoundForField(
                             def,
                             filterFieldDefinition);
-                    }
-
-                    if (filterFieldDefinition.Handler is null)
-                    {
-                        if (convention.TryGetHandler(
-                            completionContext,
-                            def,
-                            filterFieldDefinition,
-                            out IFilterFieldHandler? handler))
-                        {
-                            filterFieldDefinition.Handler = handler;
-                        }
-                        else
-                        {
-                            throw ThrowHelper.FilterInterceptor_NoHandlerFoundForField(
-                                def,
-                                filterFieldDefinition);
-                        }
                     }
                 }
             }
         }
+    }
+
+    public override IEnumerable<ITypeReference> RegisterMoreTypes(
+        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    {
+        if (_typesToRegister.Count == 0)
+        {
+            return Array.Empty<ITypeReference>();
+        }
+
+        ITypeReference[] typesToRegister = _typesToRegister.ToArray();
+        _typesToRegister.Clear();
+        return typesToRegister;
     }
 
     private IFilterConvention GetConvention(

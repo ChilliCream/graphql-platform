@@ -82,6 +82,18 @@ internal static class ThrowHelper
                 .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
+    public static SchemaException Filtering_DefinitionForTypeNotFound(
+        FilterInputTypeDefinition typeDefinition,
+        FilterFieldDefinition fieldDefinition,
+        INamedType parentType) =>
+        new(SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.Filtering_DefinitionForTypeNotFound,
+                    typeDefinition.Name.Value,
+                    fieldDefinition.Name.Value,
+                    parentType.Name)
+                .Build());
+
     public static SchemaException Filtering_TypeMissmatch(
         IResolverContext context,
         Type expectedType,

@@ -3,33 +3,37 @@
 }
 
 type Query {
-  foo: String
+  foo(where: BookFilterInput): String
 }
 
-input FooBarStringOperationFilterInput {
-  eq: String
-  neq: String
+input AuthorInput {
+  id: ComparableInt32OperationFilterInput
 }
 
-input FooFilterInput {
-  and: [FooFilterInput!]
-  or: [FooFilterInput!]
-  bar: FooBarStringOperationFilterInput
+input BookFilterInput {
+  and: [BookFilterInput!]
+  or: [BookFilterInput!]
+  chapters: ChaptersInput
+  author: AuthorInput
 }
 
-input StringOperationFilterInput {
-  and: [StringOperationFilterInput!]
-  or: [StringOperationFilterInput!]
-  eq: String
-  neq: String
-  contains: String
-  ncontains: String
-  in: [String]
-  nin: [String]
-  startsWith: String
-  nstartsWith: String
-  endsWith: String
-  nendsWith: String
+input ChaptersInput {
+  eq: Int
+}
+
+input ComparableInt32OperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."

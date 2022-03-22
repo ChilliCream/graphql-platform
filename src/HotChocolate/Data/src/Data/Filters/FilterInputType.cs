@@ -134,6 +134,7 @@ public class FilterInputType
 
     internal FilterInputType(
         IDictionary<ITypeSystemMember, FilterInputTypeDefinition> definitionLookup,
+        FilterInputTypeDefinition? explicitDefinition,
         ITypeReference filterType,
         ITypeReference filterOperationType,
         FilterFieldDefinition fieldDefinition)
@@ -143,39 +144,19 @@ public class FilterInputType
             throw new ArgumentNullException(nameof(filterType));
         }
 
-        var inputTypeDefinition = new FilterInputTypeDefinition();
-        Definition = inputTypeDefinition;
+        FilterInputTypeDefinition filterTypeDefinition = explicitDefinition ?? new()
+        {
+            EntityType = typeof(object)
+        };
+
+        Definition = filterTypeDefinition;
         Definition.Dependencies.Add(new(filterType));
         Definition.Dependencies.Add(new(filterOperationType));
         Definition.NeedsNameCompletion = true;
         Definition.Configurations.Add(
             new CompleteConfiguration<FilterInputTypeDefinition>(
-                (c, definition) =>
-                {
-                    // TODO const => FilterContenction.cs
-                    const string inputPostFix = "FilterInput";
-                    const string _inputTypePostFix = "FilterInputType";
-
-                    IFilterInputType operationType = c.GetType<IFilterInputType>(filterOperationType);
-                    IFilterInputType parentFilterType = c.GetType<IFilterInputType>(filterType);
-
-                    // TODO this is probably not good
-                    string parentName = parentFilterType.Name;
-                    if (parentName.EndsWith(inputPostFix, StringComparison.Ordinal))
-                    {
-                        parentName = parentName.Remove(parentName.Length - inputPostFix.Length);
-                    }
-                    if (parentName.EndsWith(_inputTypePostFix, StringComparison.Ordinal))
-                    {
-                        parentName = parentName.Remove(parentName.Length - _inputTypePostFix.Length);
-                    }
-                    definition.Name =
-                        // TODO conventions
-                        parentName +
-                        UppercaseFirstLetter(fieldDefinition.Name) +
-                        operationType.Name;
-                },
-                inputTypeDefinition,
+                CreateNamingConfiguration,
+                filterTypeDefinition,
                 ApplyConfigurationOn.Naming,
                 new TypeDependency[] {
                     new(filterOperationType, TypeDependencyKind.Completed) ,
@@ -183,42 +164,94 @@ public class FilterInputType
                 }));
         Definition.Configurations.Add(
             new CompleteConfiguration<FilterInputTypeDefinition>(
-                (c, definition) =>
-                {
-                    IFilterInputType operationType = c.GetType<IFilterInputType>(filterOperationType);
-                    if (!definitionLookup.TryGetValue(operationType, out var typeDefinition))
-                    {
-                        // TODO throwhelper
-                        throw new Exception("");
-                    }
-
-                    var fieldDefinitions = typeDefinition
-                        .Fields
-                        .OfType<FilterOperationFieldDefinition>()
-                        .Where(x => fieldDefinition.AllowedOperations.Contains(x.Id));
-
-                    definition.EntityType = operationType.EntityType.Source;
-                    definition.Fields.AddRange(fieldDefinitions);
-                },
-                inputTypeDefinition,
+                CreateOperationFieldConfiguration,
+                filterTypeDefinition,
                 ApplyConfigurationOn.Completion,
-                filterOperationType,
-                TypeDependencyKind.Completed
-                ));
-    }
+                new TypeDependency[] {
+                    new(filterOperationType, TypeDependencyKind.Completed),
+                    new(filterType, TypeDependencyKind.Completed)
+                }
+            ));
 
-    public static string UppercaseFirstLetter(string? s)
-    {
-        if (s is null)
+        /// <summary>
+        /// Creates the configuration for the naming process of the inline filter types.
+        /// It uses the parent type name and the name of the field on which the new is applied,
+        /// to create a new typename
+        /// <example>
+        /// ParentTypeName: AuthorFilterInputType
+        /// Field: friends
+        /// Result: AuthorFriendsFilterInputType
+        /// </example>
+        /// </summary>
+        void CreateNamingConfiguration(
+            ITypeCompletionContext context,
+            FilterInputTypeDefinition definition)
         {
-            throw new ArgumentNullException(nameof(s));
-        }
-        s = s.Trim();
-        if (s.Length < 1)
-        {
-            throw new ArgumentException("Provided string was empty.", nameof(s));
+            if (definition.Name.HasValue)
+            {
+                return;
+            }
+
+            IFilterInputType parentFilterType = context.GetType<IFilterInputType>(filterType);
+            IFilterConvention convention = context.GetFilterConvention(context.Scope);
+            definition.Name = convention.GetTypeName(parentFilterType, fieldDefinition);
         }
 
-        return $"{char.ToUpper(s[0], CultureInfo.InvariantCulture)}{s.Substring(1)}";
+        /// <summary>
+        /// This configuration copies over the operations of the actual operation filter input to
+        /// the new one with the subset of the operations
+        /// </summary>
+        void CreateOperationFieldConfiguration(
+            ITypeCompletionContext context,
+            FilterInputTypeDefinition definition)
+        {
+            IFilterInputType sourceType =
+                context.GetType<IFilterInputType>(filterOperationType);
+
+            if (!definitionLookup.TryGetValue(sourceType, out var typeDefinition))
+            {
+                throw ThrowHelper
+                    .Filtering_DefinitionForTypeNotFound(definition, fieldDefinition, sourceType);
+            }
+
+            // if a field defines allowed operations, we copy over all the operations
+            // of the original type
+            if (fieldDefinition.HasAllowedOperations)
+            {
+                var operationFieldDefinitions = typeDefinition
+                    .Fields
+                    .OfType<FilterOperationFieldDefinition>()
+                    .Where(x => fieldDefinition.AllowedOperations.Contains(x.Id));
+
+                definition.Fields.AddRange(operationFieldDefinitions);
+
+                if (fieldDefinition.AllowedOperations.Contains(DefaultFilterOperations.And))
+                {
+                    definition.UseAnd = true;
+                }
+
+                if (fieldDefinition.AllowedOperations.Contains(DefaultFilterOperations.Or))
+                {
+                    definition.UseOr = true;
+                }
+            }
+
+            // in case there are no fields defined, the original type has either no fields
+            // or only operation fields but no 'allows'. We report an error to the user that
+            // this does not make sense
+            if (definition.Fields.Count == 0 && definition is { UseAnd: false, UseOr: false })
+            {
+                IFilterInputType parentType = context.GetType<IFilterInputType>(filterType);
+                context.ReportError(
+                    ErrorHelper.Filtering_InlineFilterTypeHadNoFields(
+                        definition,
+                        context.Type,
+                        fieldDefinition,
+                        parentType));
+            }
+
+            /// we copy over the entity type of the type source.
+            definition.EntityType = sourceType.EntityType?.Source;
+        }
     }
 }

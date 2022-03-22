@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters;
@@ -21,4 +23,10 @@ public class FilterFieldDefinition
     public List<int> AllowedOperations => _allowedOperations ??= new List<int>();
 
     public bool HasAllowedOperations => _allowedOperations?.Count > 0;
+
+    public Func<IDescriptorContext, string?, FilterInputTypeDefinition>? CreateFieldTypeDefinition
+    {
+        get;
+        set;
+    }
 }

@@ -1,0 +1,1 @@
+﻿The type (OperationName) of the field chapters in type BookFilterInput does not defined any fields. You most likely defined an operation type but did not allow any operations on it. Make sure to call e.g. AllowEq() on the field, to whitelist the allowed operations
