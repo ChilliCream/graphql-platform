@@ -16,12 +16,11 @@ public static class CommonTestExtensions
             next => async context =>
             {
                 await next(context);
-                if (context.Result is IReadOnlyQueryResult result &&
-                    context.ContextData.TryGetValue("ex", out object? queryString))
+                if (context.ContextData.TryGetValue("ex", out var queryString))
                 {
                     context.Result =
                         QueryResultBuilder
-                            .FromResult(result)
+                            .FromResult(context.Result!.ExpectQueryResult())
                             .SetContextData("ex", queryString)
                             .Create();
                 }

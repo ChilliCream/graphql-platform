@@ -290,7 +290,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeBoolean(userId: \"1\" message: true) }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 // assert
                 var results = new StringBuilder();
@@ -438,7 +438,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -478,7 +478,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeFixedMessage(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -518,7 +518,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeSysMessage(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -558,7 +558,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeOnInferTopic(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -598,7 +598,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeOnExplicit(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in

@@ -1,3 +1,5 @@
+#pragma warning disable RCS1194 
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
