@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.StarWars;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -38,7 +38,7 @@ namespace HotChocolate.Execution.Serialization
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var memoryStream = new MemoryStream();
             var serializer = new JsonArrayResponseStreamFormatter();

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Properties;
+using static HotChocolate.Execution.ExecutionResultKind;
 
 #nullable enable
 
@@ -11,18 +11,26 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
 {
     private readonly Func<IAsyncEnumerable<IQueryResult>>? _resultStreamFactory;
     private bool _isRead;
-    private bool _disposed;
 
     public ResponseStream(
         Func<IAsyncEnumerable<IQueryResult>>? resultStreamFactory,
+        ExecutionResultKind kind = SubscriptionResult,
         IReadOnlyDictionary<string, object?>? contextData = null)
     {
         _resultStreamFactory = resultStreamFactory ??
             throw new ArgumentNullException(nameof(resultStreamFactory));
+
+        if (kind is not BatchResult and not DeferredResult and not SubscriptionResult)
+        {
+            throw new ArgumentException(
+                AbstractionResources.ResponseStream_InvalidResultKind);
+        }
+
+        Kind = kind;
         ContextData = contextData;
     }
 
-    public override ExecutionResultKind Kind => ExecutionResultKind.StreamResult;
+    public override ExecutionResultKind Kind { get; }
 
     public override IReadOnlyDictionary<string, object?>? ContextData { get; }
 
@@ -40,10 +48,7 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
                 AbstractionResources.SubscriptionResult_ReadOnlyOnce);
         }
 
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(ResponseStream));
-        }
+        EnsureNotDisposed();
 
         _isRead = true;
         return _resultStreamFactory();

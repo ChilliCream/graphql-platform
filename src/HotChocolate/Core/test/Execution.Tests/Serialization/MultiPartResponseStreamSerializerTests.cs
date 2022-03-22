@@ -38,7 +38,7 @@ namespace HotChocolate.Execution.Serialization
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var memoryStream = new MemoryStream();
             var serializer = new MultiPartResponseStreamFormatter();

@@ -559,15 +559,14 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     }
                 }");
 
-            IReadOnlyQueryResult eventResult = null;
+            IQueryResult eventResult = null;
 
             using (var cts = new CancellationTokenSource(2000))
             {
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult)queryResult;
-                    eventResult = item;
+                    eventResult = queryResult;
                     break;
                 }
             }
@@ -593,25 +592,23 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     }");
 
             // assert
-            IExecutionResult result =
-                await executor.ExecuteAsync(@"
-                    mutation {
-                        createReview(episode: NEW_HOPE,
-                            review: { stars: 5 commentary: ""foo"" }) {
-                            stars
-                            commentary
-                        }
-                    }");
+            await executor.ExecuteAsync(@"
+                mutation {
+                    createReview(episode: NEW_HOPE,
+                        review: { stars: 5 commentary: ""foo"" }) {
+                        stars
+                        commentary
+                    }
+                }");
 
-            IReadOnlyQueryResult eventResult = null;
+            IQueryResult eventResult = null;
 
             using (var cts = new CancellationTokenSource(2000))
             {
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult)queryResult;
-                    eventResult = item;
+                    eventResult = queryResult;
                     break;
                 }
             }
@@ -639,25 +636,23 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     }");
 
             // assert
-            IExecutionResult result =
-                await executor.ExecuteAsync(@"
-                    mutation {
-                        createReview(episode: NEW_HOPE,
-                            review: { stars: 5 commentary: ""foo"" }) {
-                            stars
-                            commentary
-                        }
-                    }");
+            await executor.ExecuteAsync(@"
+                mutation {
+                    createReview(episode: NEW_HOPE,
+                        review: { stars: 5 commentary: ""foo"" }) {
+                        stars
+                        commentary
+                    }
+                }");
 
-            IReadOnlyQueryResult eventResult = null;
+            IQueryResult eventResult = null;
 
             using (var cts = new CancellationTokenSource(2000))
             {
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult)queryResult;
-                    eventResult = item;
+                    eventResult = queryResult;
                     break;
                 }
             }
@@ -683,25 +678,23 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     CancellationToken.None);
 
             // assert
-            IExecutionResult result =
-                await executor.ExecuteAsync(@"
-                    mutation {
-                        createReview(episode: NEW_HOPE,
-                            review: { stars: 5 commentary: ""foo"" }) {
-                            stars
-                            commentary
-                        }
-                    }");
+            await executor.ExecuteAsync(@"
+                mutation {
+                    createReview(episode: NEW_HOPE,
+                        review: { stars: 5 commentary: ""foo"" }) {
+                        stars
+                        commentary
+                    }
+                }");
 
-            IReadOnlyQueryResult eventResult = null;
+            IQueryResult eventResult = null;
 
             using (var cts = new CancellationTokenSource(2000))
             {
                 await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    var item = (IReadOnlyQueryResult)queryResult;
-                    eventResult = item;
+                    eventResult = queryResult;
                     break;
                 }
             }

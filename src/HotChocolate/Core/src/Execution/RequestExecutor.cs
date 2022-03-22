@@ -87,7 +87,7 @@ internal sealed class RequestExecutor : IRequestExecutor
                 return context.Result;
             }
 
-            if (context.Result.Kind is ExecutionResultKind.StreamResult)
+            if (context.Result.IsStreamResult())
             {
                 context.Result.RegisterForCleanup(scope);
                 scope = null;
@@ -113,6 +113,8 @@ internal sealed class RequestExecutor : IRequestExecutor
         }
 
         return Task.FromResult<IResponseStream>(
-            new ResponseStream(() => _batchExecutor.ExecuteAsync(this, requestBatch)));
+            new ResponseStream(
+                () => _batchExecutor.ExecuteAsync(this, requestBatch),
+                ExecutionResultKind.BatchResult));
     }
 }

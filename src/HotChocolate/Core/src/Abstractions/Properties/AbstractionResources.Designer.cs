@@ -218,5 +218,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate", resourceCulture);
             }
         }
+        
+        internal static string ResponseStream_InvalidResultKind {
+            get {
+                return ResourceManager.GetString("ResponseStream_InvalidResultKind", resourceCulture);
+            }
+        }
     }
 }

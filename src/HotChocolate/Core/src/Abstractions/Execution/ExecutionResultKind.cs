@@ -11,7 +11,17 @@ public enum ExecutionResultKind
     SingleResult,
 
     /// <summary>
-    /// A stream of results.
+    /// A deferred response stream.
     /// </summary>
-    StreamResult
+    DeferredResult,
+
+    /// <summary>
+    /// A batch response stream.
+    /// </summary>
+    BatchResult,
+
+    /// <summary>
+    /// A subscription response stream.
+    /// </summary>
+    SubscriptionResult
 }

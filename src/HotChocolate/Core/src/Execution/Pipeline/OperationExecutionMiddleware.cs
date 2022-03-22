@@ -155,7 +155,8 @@ internal sealed class OperationExecutionMiddleware
                     operationContext = null;
 
                     context.Result = new ResponseStream(
-                        () => new DeferredTaskExecutor(result, operationContextOwner));
+                        () => new DeferredTaskExecutor(result, operationContextOwner),
+                        ExecutionResultKind.DeferredResult);
                     context.Result.RegisterForCleanup(result);
                     context.Result.RegisterForCleanup(operationContextOwner);
                 }

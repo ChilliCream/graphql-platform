@@ -41,6 +41,18 @@ public abstract class ExecutionResult : IExecutionResult
         _cleanupTasks[length] = clean;
     }
 
+    /// <summary>
+    /// Will throw an <see cref="ObjectDisposedException"/> if the result is already disposed.
+    /// </summary>
+    protected void EnsureNotDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(ResponseStream));
+        }
+    }
+
+    /// <inheritdoc cref="IAsyncDisposable"/>
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)

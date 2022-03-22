@@ -1,4 +1,5 @@
 using System;
+using static HotChocolate.Execution.ExecutionResultKind;
 
 namespace HotChocolate.Execution;
 
@@ -82,4 +83,16 @@ public static class ExecutionResultExtensions
 
         result.RegisterForCleanup(disposable.DisposeAsync);
     }
+
+    /// <summary>
+    /// Defines if the specified <paramref name="result"/> is a response stream.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="IExecutionResult"/>.
+    /// </param>
+    /// <returns>
+    /// A boolean that specifies if the <paramref name="result"/> is a response stream.
+    /// </returns>
+    public static bool IsStreamResult(this IExecutionResult result)
+        => result.Kind is BatchResult or DeferredResult or SubscriptionResult;
 }

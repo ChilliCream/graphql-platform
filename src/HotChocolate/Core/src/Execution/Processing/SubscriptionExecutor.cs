@@ -73,7 +73,7 @@ internal sealed partial class SubscriptionExecutor
 
             var response = new ResponseStream(
                 subscription.ExecuteAsync,
-                new SingleValueExtensionData(
+                contextData: new SingleValueExtensionData(
                     WellKnownContextData.Subscription,
                     subscription));
             response.RegisterForCleanup(subscription);

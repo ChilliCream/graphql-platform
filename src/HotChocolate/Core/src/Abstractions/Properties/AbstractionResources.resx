@@ -204,4 +204,7 @@
   <data name="ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate" xml:space="preserve">
     <value>A directive cannot contain a member name.</value>
   </data>
+  <data name="ResponseStream_InvalidResultKind" xml:space="preserve">
+    <value>The result kind must be a BatchResult, DeferredResult or SubscriptionResult.</value>
+  </data>
 </root>
