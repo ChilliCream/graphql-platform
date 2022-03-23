@@ -17,7 +17,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                 public Duration PositiveWithDecimals
                     => Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19));
                 public Duration NegativeWithDecimals
-                    => Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19));
+                    => -Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19));
                 public Duration PositiveWithoutDecimals
                     => Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10));
                 public Duration PositiveWithoutSeconds
