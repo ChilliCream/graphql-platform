@@ -1,13 +1,7 @@
 ﻿{
-  "Label": null,
-  "Path": null,
-  "Data": {
+  "data": {
     "a": {
       "a": "foo"
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }

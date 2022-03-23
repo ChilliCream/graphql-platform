@@ -14,9 +14,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             public class Query
             {
-                public Duration PositiveWithDecimals 
+                public Duration PositiveWithDecimals
                     => Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19));
-                public Duration NegativeWithDecimals 
+                public Duration NegativeWithDecimals
                     => Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10, 19));
                 public Duration PositiveWithoutDecimals
                     => Duration.FromTimeSpan(new TimeSpan(123, 7, 53, 10));
@@ -57,7 +57,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturnsSerializedDataWithNegativeValue()
         {
-            IExecutionResult result = _testExecutor.Execute("query { test: negativeWithDecimals }");
+            IExecutionResult result = _testExecutor.Execute("query{test: negativeWithDecimals}");
             Assert.Equal("-123:07:53:10.019", result.ExpectQueryResult().Data!["test"]);
         }
 

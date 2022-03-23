@@ -1,11 +1,11 @@
 using System;
 using System.IO;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
+using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
 
@@ -146,7 +146,7 @@ namespace HotChocolate.Tests
 
         public static void MatchSnapshot(this GraphQLException ex)
         {
-            QueryResultBuilder.CreateError(ex.Errors).ToJson().MatchSnapshot();
+            QueryResultBuilder.CreateError(ex.Errors).MatchSnapshot();
         }
     }
 }

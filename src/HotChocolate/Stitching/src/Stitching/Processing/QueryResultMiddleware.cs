@@ -28,7 +28,7 @@ internal sealed class QueryResultMiddleware
             pathValue is IImmutableStack<SelectionPathComponent> path &&
             reversePathValue is IImmutableStack<SelectionPathComponent> reversePath)
         {
-            context.RegisterForCleanup(result.DisposeAsync);
+            context.RegisterForCleanup(() => result.DisposeAsync());
             CopyResultContextData(context, result);
 
             var value = ExtractData(result.Data, reversePath, context.ResponseName);
