@@ -17,7 +17,7 @@ namespace HotChocolate.Data.MongoDb.Paging
 {
     public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResource>
     {
-        private readonly List<Foo> foos = new List<Foo>
+        private readonly List<Foo> foos = new()
         {
             new Foo { Bar = "a" },
             new Foo { Bar = "b" },
@@ -244,12 +244,11 @@ namespace HotChocolate.Data.MongoDb.Paging
                     next => async context =>
                     {
                         await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out object? queryString))
+                        if (context.ContextData.TryGetValue("query", out var queryString))
                         {
                             context.Result =
                                 QueryResultBuilder
-                                    .FromResult(result)
+                                    .FromResult(context.Result!.ExpectQueryResult())
                                     .SetContextData("query", queryString)
                                     .Create();
                         }

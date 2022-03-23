@@ -99,7 +99,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = (SubscriptionResult)await executor.ExecuteAsync(
+        var result = (ResponseStream)await executor.ExecuteAsync(
             @"subscription Abc {
                 onCustomerChanged {
                     id

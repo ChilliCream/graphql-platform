@@ -1,19 +1,17 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using HotChocolate.Types.Relay;
-using MongoDB.Driver;
 using MongoDB.Bson;
-using Xunit;
+using MongoDB.Driver;
 using Snapshooter.Xunit;
 using Squadron;
-using System;
+using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
     [Obsolete]
-    public class MongoSortingObjectTests
-        : IClassFixture<MongoResource>
+    public class MongoSortingObjectTests : IClassFixture<MongoResource>
     {
         private readonly MongoResource _mongoResource;
 
@@ -55,7 +53,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -101,7 +99,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -145,7 +143,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -184,7 +182,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -223,7 +221,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -261,7 +259,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 

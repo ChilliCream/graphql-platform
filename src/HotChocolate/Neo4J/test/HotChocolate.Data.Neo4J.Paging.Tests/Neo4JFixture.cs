@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using HotChocolate.Data.Filters;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Data.Neo4J.Execution;
-using HotChocolate.Data.Neo4J.Filtering;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
-using Microsoft.Extensions.DependencyInjection;
 using Neo4j.Driver;
 using Squadron;
 
@@ -57,12 +54,11 @@ namespace HotChocolate.Data.Neo4J.Paging
                     next => async context =>
                     {
                         await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out var queryString))
+                        if (context.ContextData.TryGetValue("query", out var queryString))
                         {
                             context.Result =
                                 QueryResultBuilder
-                                    .FromResult(result)
+                                    .FromResult(context.Result!.ExpectQueryResult())
                                     .SetContextData("query", queryString)
                                     .Create();
                         }

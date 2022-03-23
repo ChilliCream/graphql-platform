@@ -84,7 +84,7 @@ public class InMemoryConnection : IInMemoryConnection
                     break;
                 }
 
-                case SubscriptionResult streamResult:
+                case HotChocolate.Execution.ResponseStream streamResult:
                 {
                     await foreach (IQueryResult result in
                         streamResult.ReadResultsAsync().WithCancellation(cancellationToken))
