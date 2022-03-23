@@ -141,7 +141,7 @@ internal sealed class RequestExecutorResolver
                 try
                 {
                     foreach (OnRequestExecutorEvictedAction action in
-                         registeredExecutor.Setup.OnRequestExecutorEvicted)
+                        registeredExecutor.Setup.OnRequestExecutorEvicted)
                     {
                         action.Action?.Invoke(registeredExecutor.Executor);
 
