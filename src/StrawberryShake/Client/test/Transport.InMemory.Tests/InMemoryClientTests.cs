@@ -138,7 +138,7 @@ public class InMemoryClientTests
             return Task.FromResult<IExecutionResult>(null!);
         }
 
-        public Task<IBatchQueryResult> ExecuteBatchAsync(
+        public Task<IResponseStream> ExecuteBatchAsync(
             IEnumerable<IQueryRequest> requestBatch,
             bool allowParallelExecution = false,
             CancellationToken cancellationToken = default)

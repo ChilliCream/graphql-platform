@@ -5,15 +5,13 @@ using HotChocolate.Execution;
 using Xunit;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
-using HotChocolate.Types.Relay;
 using Squadron;
 using System;
 
 namespace HotChocolate.Types.Sorting
 {
     [Obsolete]
-    public class MongoSortingTests
-        : IClassFixture<MongoResource>
+    public class MongoSortingTests : IClassFixture<MongoResource>
     {
         private readonly MongoResource _mongoResource;
 
@@ -56,7 +54,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -93,7 +91,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -130,7 +128,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -168,7 +166,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 

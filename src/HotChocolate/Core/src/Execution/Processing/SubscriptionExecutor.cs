@@ -71,13 +71,13 @@ internal sealed partial class SubscriptionExecutor
                 _diagnosticEvents)
                 .ConfigureAwait(false);
 
-            return new SubscriptionResult(
+            var response = new ResponseStream(
                 subscription.ExecuteAsync,
-                null,
-                session: subscription,
                 contextData: new SingleValueExtensionData(
                     WellKnownContextData.Subscription,
                     subscription));
+            response.RegisterForCleanup(subscription);
+            return response;
         }
         catch (GraphQLException ex)
         {
@@ -86,7 +86,7 @@ internal sealed partial class SubscriptionExecutor
                 await subscription.DisposeAsync().ConfigureAwait(false);
             }
 
-            return new SubscriptionResult(null, ex.Errors);
+            return new QueryResult(null, ex.Errors);
         }
         catch (Exception ex)
         {
@@ -99,7 +99,7 @@ internal sealed partial class SubscriptionExecutor
                 await subscription.DisposeAsync().ConfigureAwait(false);
             }
 
-            return new SubscriptionResult(null, Unwrap(error));
+            return new QueryResult(null, Unwrap(error));
         }
 
         IReadOnlyList<IError> Unwrap(IError error)

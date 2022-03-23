@@ -27,7 +27,7 @@ namespace HotChocolate.Execution.Instrumentation
             IExecutionResult result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             Assert.Collection(listener.Results, r => Assert.IsType<Droid>(r));
         }
 
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution.Instrumentation
             IExecutionResult result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             Assert.Collection(listenerA.Results, r => Assert.IsType<Droid>(r));
             Assert.Collection(listenerB.Results, r => Assert.IsType<Droid>(r));
         }
@@ -77,7 +77,7 @@ namespace HotChocolate.Execution.Instrumentation
             public bool Signal = false;
         }
 
-        public class TouchedListener : ExecutionDiagnosticEventListener
+        private class TouchedListener : ExecutionDiagnosticEventListener
         {
             private readonly Touched _touched;
 

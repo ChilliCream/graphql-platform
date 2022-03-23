@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Types;
+using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 

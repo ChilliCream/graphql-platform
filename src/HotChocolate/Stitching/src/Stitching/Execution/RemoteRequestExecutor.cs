@@ -47,7 +47,7 @@ internal sealed class RemoteRequestExecutor : IRequestExecutor
         return requestHandler.ExecuteAsync(request, cancellationToken);
     }
 
-    public Task<IBatchQueryResult> ExecuteBatchAsync(
+    public Task<IResponseStream> ExecuteBatchAsync(
         IEnumerable<IQueryRequest> requestBatch,
         bool allowParallelExecution = false,
         CancellationToken cancellationToken = default)

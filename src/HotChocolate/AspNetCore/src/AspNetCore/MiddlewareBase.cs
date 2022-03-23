@@ -123,7 +123,7 @@ public class MiddlewareBase : IDisposable
             requestBuilder.Create(), context.RequestAborted);
     }
 
-    protected static async Task<IBatchQueryResult> ExecuteOperationBatchAsync(
+    protected static async Task<IResponseStream> ExecuteOperationBatchAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,
@@ -137,7 +137,7 @@ public class MiddlewareBase : IDisposable
 
         for (var i = 0; i < operationNames.Count; i++)
         {
-            QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
+            var requestBuilder = QueryRequestBuilder.From(request);
             requestBuilder.SetOperation(operationNames[i]);
 
             await requestInterceptor.OnCreateAsync(
@@ -150,7 +150,7 @@ public class MiddlewareBase : IDisposable
             requestBatch, cancellationToken: context.RequestAborted);
     }
 
-    protected static async Task<IBatchQueryResult> ExecuteBatchAsync(
+    protected static async Task<IResponseStream> ExecuteBatchAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,
@@ -163,7 +163,7 @@ public class MiddlewareBase : IDisposable
 
         for (var i = 0; i < requests.Count; i++)
         {
-            QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(requests[i]);
+            var requestBuilder = QueryRequestBuilder.From(requests[i]);
 
             await requestInterceptor.OnCreateAsync(
                 context, requestExecutor, requestBuilder, context.RequestAborted);

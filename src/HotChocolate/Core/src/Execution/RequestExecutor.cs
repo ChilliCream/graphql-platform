@@ -87,14 +87,9 @@ internal sealed class RequestExecutor : IRequestExecutor
                 return context.Result;
             }
 
-            if (context.Result is DeferredQueryResult deferred)
+            if (context.Result.IsStreamResult())
             {
-                context.Result = new DeferredQueryResult(deferred, scope);
-                scope = null;
-            }
-            else if (context.Result is SubscriptionResult result)
-            {
-                context.Result = new SubscriptionResult(result, scope);
+                context.Result.RegisterForCleanup(scope);
                 scope = null;
             }
 
@@ -107,7 +102,7 @@ internal sealed class RequestExecutor : IRequestExecutor
         }
     }
 
-    public Task<IBatchQueryResult> ExecuteBatchAsync(
+    public Task<IResponseStream> ExecuteBatchAsync(
         IEnumerable<IQueryRequest> requestBatch,
         bool allowParallelExecution = false,
         CancellationToken cancellationToken = default)
@@ -117,9 +112,9 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(requestBatch));
         }
 
-        return Task.FromResult<IBatchQueryResult>(
-            new BatchQueryResult(
+        return Task.FromResult<IResponseStream>(
+            new ResponseStream(
                 () => _batchExecutor.ExecuteAsync(this, requestBatch),
-                null));
+                ExecutionResultKind.BatchResult));
     }
 }

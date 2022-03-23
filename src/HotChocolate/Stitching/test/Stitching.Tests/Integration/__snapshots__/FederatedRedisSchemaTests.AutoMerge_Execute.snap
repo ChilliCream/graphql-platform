@@ -1,4 +1,19 @@
 ﻿{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "extensions": {
+        "code": "HC0007",
+        "remote": {
+          "message": "Unexpected Execution Error",
+          "extensions": {
+            "code": "HC0007"
+          }
+        },
+        "schemaName": "products"
+      }
+    }
+  ],
   "data": {
     "me": {
       "id": 1,
@@ -6,9 +21,7 @@
       "reviews": [
         {
           "body": "Love it!",
-          "product": {
-            "upc": 1
-          }
+          "product": null
         },
         {
           "body": "Too expensive.",
