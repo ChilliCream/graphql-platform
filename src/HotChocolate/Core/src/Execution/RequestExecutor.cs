@@ -16,6 +16,8 @@ internal sealed class RequestExecutor : IRequestExecutor
     private readonly BatchExecutor _batchExecutor;
     private readonly ObjectPool<RequestContext> _contextPool;
 
+    private int _activeRequests;
+
     public RequestExecutor(
         ISchema schema,
         DefaultRequestContextAccessor requestContextAccessor,
@@ -48,6 +50,7 @@ internal sealed class RequestExecutor : IRequestExecutor
     public IServiceProvider Services { get; }
 
     public ulong Version { get; }
+    public int ActiveRequests => _activeRequests;
 
     public async Task<IExecutionResult> ExecuteAsync(
         IQueryRequest request,
@@ -58,6 +61,47 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(request));
         }
 
+        Interlocked.Increment(ref _activeRequests);
+
+        IExecutionResult? result = default;
+        try
+        {
+            result = await ExecuteSingleAsync(request, cancellationToken);
+            return result;
+        }
+        finally
+        {
+            DecrementActiveRequests(result);
+        }
+    }
+
+    public Task<IResponseStream> ExecuteBatchAsync(
+        IEnumerable<IQueryRequest> requestBatch,
+        bool allowParallelExecution = false,
+        CancellationToken cancellationToken = default)
+    {
+        if (requestBatch is null)
+        {
+            throw new ArgumentNullException(nameof(requestBatch));
+        }
+
+        Interlocked.Increment(ref _activeRequests);
+        ResponseStream? responseStream = default;
+        try
+        {
+            responseStream = new ResponseStream(() => _batchExecutor.ExecuteAsync(this, requestBatch),
+                ExecutionResultKind.BatchResult);
+
+            return Task.FromResult<IResponseStream>(responseStream);
+        }
+        finally
+        {
+            DecrementActiveRequests(responseStream);
+        }
+    }
+
+    private async Task<IExecutionResult> ExecuteSingleAsync(IQueryRequest request, CancellationToken cancellationToken)
+    {
         IServiceScope? scope = request.Services is null
             ? _applicationServices.CreateScope()
             : null;
@@ -102,19 +146,37 @@ internal sealed class RequestExecutor : IRequestExecutor
         }
     }
 
-    public Task<IResponseStream> ExecuteBatchAsync(
-        IEnumerable<IQueryRequest> requestBatch,
-        bool allowParallelExecution = false,
-        CancellationToken cancellationToken = default)
+    private void DecrementActiveRequests(IExecutionResult? result)
     {
-        if (requestBatch is null)
+        if (result == null || !result.IsStreamResult())
         {
-            throw new ArgumentNullException(nameof(requestBatch));
+            Interlocked.Decrement(ref _activeRequests);
+            return;
         }
 
-        return Task.FromResult<IResponseStream>(
-            new ResponseStream(
-                () => _batchExecutor.ExecuteAsync(this, requestBatch),
-                ExecutionResultKind.BatchResult));
+        result.RegisterForCleanup(new DisposableAction(() =>
+        {
+            Interlocked.Decrement(ref _activeRequests);
+#if NETCOREAPP3_1 || NETSTANDARD2_0
+            return default;
+#else
+            return ValueTask.CompletedTask;
+#endif
+        }));
+    }
+
+    private class DisposableAction : IAsyncDisposable
+    {
+        private readonly Func<ValueTask> _action;
+
+        public DisposableAction(Func<ValueTask> action)
+        {
+            _action = action;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _action.Invoke().ConfigureAwait(false);
+        }
     }
 }

@@ -27,6 +27,11 @@ public interface IRequestExecutor
     ulong Version { get; }
 
     /// <summary>
+    /// Gets the number of active requests that this Executor is currently processing.
+    /// </summary>
+    int ActiveRequests { get; }
+
+    /// <summary>
     /// Executes the given GraphQL <paramref name="request" />.
     /// </summary>
     /// <param name="request">

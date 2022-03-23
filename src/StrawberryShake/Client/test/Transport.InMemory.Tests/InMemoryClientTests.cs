@@ -129,6 +129,7 @@ public class InMemoryClientTests
         public IQueryRequest? Request { get; private set; }
 
         public ulong Version { get; }
+        public int ActiveRequests { get; }
 
         public Task<IExecutionResult> ExecuteAsync(
             IQueryRequest request,

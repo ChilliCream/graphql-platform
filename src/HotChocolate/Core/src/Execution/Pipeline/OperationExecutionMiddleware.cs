@@ -6,6 +6,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
@@ -97,8 +98,19 @@ internal sealed class OperationExecutionMiddleware
                 clonedContext.Services.GetRequiredService<DefaultRequestContextAccessor>();
             accessor.RequestContext = clonedContext;
 
+            // This prevents a closure from being formed over the clonedContext making the schema long lived.
+            IQueryRequest request = clonedContext.Request;
+            IActivator activator = clonedContext.Activator;
+            IServiceProvider services = clonedContext.Services;
+            ObjectType queryType = clonedContext.Schema.QueryType;
+
             context.Result = await _subscriptionExecutor
-                .ExecuteAsync(clonedContext, queryPlan, () => GetQueryRootValue(clonedContext))
+                .ExecuteAsync(clonedContext, queryPlan, () => RootValueResolver.Resolve(
+                    request,
+                    activator,
+                    services,
+                    queryType,
+                    ref _cachedQuery))
                 .ConfigureAwait(false);
 
             await _next(clonedContext).ConfigureAwait(false);
@@ -159,6 +171,7 @@ internal sealed class OperationExecutionMiddleware
                         ExecutionResultKind.DeferredResult);
                     context.Result.RegisterForCleanup(result);
                     context.Result.RegisterForCleanup(operationContextOwner);
+                    context.Result.RegisterForCleanup(streamSession);
                 }
 
                 await _next(context).ConfigureAwait(false);

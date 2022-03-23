@@ -30,6 +30,7 @@ internal sealed class RemoteRequestExecutor : IRequestExecutor
     public IServiceProvider Services => _innerExecutor.Services;
 
     public ulong Version => _innerExecutor.Version;
+    public int ActiveRequests => _innerExecutor.ActiveRequests;
 
     public Task<IExecutionResult> ExecuteAsync(
         IQueryRequest request,

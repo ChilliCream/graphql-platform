@@ -101,6 +101,8 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
     /// </summary>
     public ulong Version => _executor.Version;
 
+    public int ActiveRequests => _executor.ActiveRequests;
+
     /// <summary>
     /// Executes the given GraphQL <paramref name="request" />.
     /// </summary>
