@@ -1,5 +1,6 @@
 using System;
 using static HotChocolate.Execution.ExecutionResultKind;
+using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate.Execution;
 
@@ -96,6 +97,12 @@ public static class ExecutionResultExtensions
     public static bool IsStreamResult(this IExecutionResult result)
         => result.Kind is BatchResult or DeferredResult or SubscriptionResult;
 
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="result"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
     public static IQueryResult ExpectQueryResult(this IExecutionResult result)
     {
         if (result is IQueryResult qr)
@@ -103,9 +110,16 @@ public static class ExecutionResultExtensions
             return qr;
         }
 
-        throw new ArgumentException("The specified result is expected to be a IQueryResult.");
+        throw new ArgumentException(
+            ExecutionResultExtensions_ExpectQueryResult_NotQueryResult);
     }
 
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="result"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
     public static IResponseStream ExpectResponseStream(this IExecutionResult result)
     {
         if (result is IResponseStream rs)
@@ -113,6 +127,7 @@ public static class ExecutionResultExtensions
             return rs;
         }
 
-        throw new ArgumentException("The specified result is expected to be a IQueryResult.");
+        throw new ArgumentException(
+            ExecutionResultExtensions_ExpectResponseStream_NotResponseStream);
     }
 }

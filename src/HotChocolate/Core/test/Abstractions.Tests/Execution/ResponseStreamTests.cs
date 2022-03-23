@@ -139,6 +139,32 @@ namespace HotChocolate.Execution
             Assert.Throws<ArgumentNullException>(Fail);
         }
 
+        [Fact]
+        public void ExpectQueryResult()
+        {
+            // arrange
+            IExecutionResult result = new ResponseStream(() => default!);
+
+            // act
+            IResponseStream responseStream = result.ExpectResponseStream();
+
+            // assert
+            Assert.NotNull(responseStream);
+        }
+
+        [Fact]
+        public void ExpectResponseStream()
+        {
+            // arrange
+            IExecutionResult result = new ResponseStream(() => default!);
+
+            // act
+            void Fail() => result.ExpectQueryResult();
+
+            // assert
+            Assert.Throws<ArgumentException>(Fail);
+        }
+
         public class TestDisposable : IDisposable
         {
             public bool IsDisposed { get; private set; }
