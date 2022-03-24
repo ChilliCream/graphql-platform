@@ -173,7 +173,13 @@ subscription OnSubscriptionTest {
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
-            using DataTarget dataTarget = DataTarget.CreateSnapshotAndAttach(Process.GetCurrentProcess().Id);
+#if NETCOREAPP3_1
+            int processId = Process.GetCurrentProcess().Id;
+#else
+            int processId = Environment.ProcessId;
+#endif
+
+            using DataTarget dataTarget = DataTarget.CreateSnapshotAndAttach(processId);
             ClrInfo runtimeInfo = dataTarget.ClrVersions[0];
             ClrRuntime runtime = runtimeInfo.CreateRuntime();
 
@@ -202,7 +208,7 @@ subscription OnSubscriptionTest {
                     ImmutableArray<ClrInstanceField> clrInstanceFields = objType.Fields;
                     ClrInstanceField field = clrInstanceFields.First(x => x.Name == "_name");
                     ClrValueType clrValueType = field.ReadStruct(obj.Address, false);
-                    string? schemaName = clrValueType.ReadStringField(clrValueType.Type.Fields[0].Name);
+                    string schemaName = clrValueType.ReadStringField(clrValueType.Type.Fields[0].Name);
                     if (!string.IsNullOrEmpty(schemaName))
                     {
                         schemaNames.Add(schemaName);

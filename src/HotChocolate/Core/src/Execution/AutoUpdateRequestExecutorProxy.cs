@@ -86,21 +86,16 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
         return new AutoUpdateRequestExecutorProxy(requestExecutorProxy, initialExecutor);
     }
 
-    /// <summary>
-    /// Gets the schema to which this executor is bound to.
-    /// </summary>
+    /// <inheritdoc cref="IRequestExecutor"/>
     public ISchema Schema => _executor.Schema;
 
-    /// <summary>
-    /// Gets the services that are bound to this executor.
-    /// </summary>
+    /// <inheritdoc cref="IRequestExecutor"/>
     public IServiceProvider Services => _executor.Services;
 
-    /// <summary>
-    /// Gets the version of the executor.
-    /// </summary>
+    /// <inheritdoc cref="IRequestExecutor"/>
     public ulong Version => _executor.Version;
 
+    /// <inheritdoc cref="IRequestExecutor"/>
     public int ActiveRequests => _executor.ActiveRequests;
 
     /// <summary>

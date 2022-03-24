@@ -50,6 +50,7 @@ internal sealed class RequestExecutor : IRequestExecutor
     public IServiceProvider Services { get; }
 
     public ulong Version { get; }
+
     public int ActiveRequests => _activeRequests;
 
     public async Task<IExecutionResult> ExecuteAsync(
@@ -154,29 +155,44 @@ internal sealed class RequestExecutor : IRequestExecutor
             return;
         }
 
-        result.RegisterForCleanup(new DisposableAction(() =>
-        {
-            Interlocked.Decrement(ref _activeRequests);
-#if NETCOREAPP3_1 || NETSTANDARD2_0
-            return default;
-#else
-            return ValueTask.CompletedTask;
-#endif
-        }));
+        result.RegisterForCleanup(new DisposableAction(this));
     }
 
-    private class DisposableAction : IAsyncDisposable
+    private sealed class DisposableAction : IDisposable
     {
-        private readonly Func<ValueTask> _action;
+        private bool _disposed;
+        private RequestExecutor? _executor;
 
-        public DisposableAction(Func<ValueTask> action)
+        public DisposableAction(RequestExecutor executor)
         {
-            _action = action;
+            _executor = executor;
         }
 
-        public async ValueTask DisposeAsync()
+        public void Dispose()
         {
-            await _action.Invoke().ConfigureAwait(false);
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~DisposableAction()
+        {
+            Dispose(false);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (_disposed || !disposing)
+            {
+                return;
+            }
+
+            if (_executor is not null)
+            {
+                Interlocked.Decrement(ref _executor._activeRequests);
+                _executor = default;
+            }
+
+            _disposed = true;
         }
     }
 }

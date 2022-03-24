@@ -25,11 +25,16 @@ internal sealed class RemoteRequestExecutor : IRequestExecutor
             innerExecutor.Services.GetRequiredService<IRemoteBatchRequestHandler>();
     }
 
+    /// <inheritdoc cref="IRequestExecutor"/>
     public ISchema Schema => _innerExecutor.Schema;
 
+    /// <inheritdoc cref="IRequestExecutor"/>
     public IServiceProvider Services => _innerExecutor.Services;
 
+    /// <inheritdoc cref="IRequestExecutor"/>
     public ulong Version => _innerExecutor.Version;
+
+    /// <inheritdoc cref="IRequestExecutor"/>
     public int ActiveRequests => _innerExecutor.ActiveRequests;
 
     public Task<IExecutionResult> ExecuteAsync(
