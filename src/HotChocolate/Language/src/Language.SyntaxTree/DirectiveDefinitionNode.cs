@@ -16,7 +16,7 @@ public sealed class DirectiveDefinitionNode
     , IEquatable<DirectiveDefinitionNode>
 {
     /// <summary>
-    ///
+    /// Initializes a new instance of <see cref="DirectiveDefinitionNode"/>.
     /// </summary>
     /// <param name="location">
     /// The location of the named syntax node within the original source text.
