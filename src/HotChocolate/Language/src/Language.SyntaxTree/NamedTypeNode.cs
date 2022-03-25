@@ -24,7 +24,7 @@ public sealed class NamedTypeNode
         Name = name ?? throw new ArgumentNullException(nameof(name));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.NamedType;
+    public SyntaxKind Kind => SyntaxKind.NamedType;
 
     public Location? Location { get; }
 

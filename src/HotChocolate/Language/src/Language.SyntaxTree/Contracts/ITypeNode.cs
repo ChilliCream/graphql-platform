@@ -1,6 +1,5 @@
 namespace HotChocolate.Language;
 
-public interface ITypeNode
-    : ISyntaxNode
+public interface ITypeNode : ISyntaxNode
 {
 }

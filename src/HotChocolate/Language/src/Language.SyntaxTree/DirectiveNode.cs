@@ -4,8 +4,7 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class DirectiveNode
-    : ISyntaxNode
+public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
 {
     public DirectiveNode(
         string name,
@@ -38,7 +37,7 @@ public sealed class DirectiveNode
         Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.Directive;
+    public SyntaxKind Kind => SyntaxKind.Directive;
 
     public Location? Location { get; }
 
@@ -78,18 +77,77 @@ public sealed class DirectiveNode
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     public DirectiveNode WithLocation(Location? location)
-    {
-        return new DirectiveNode(location, Name, Arguments);
-    }
+        => new(location, Name, Arguments);
 
     public DirectiveNode WithName(NameNode name)
+        => new(Location, name, Arguments);
+
+    public DirectiveNode WithArguments(IReadOnlyList<ArgumentNode> arguments)
+        => new(Location, Name, arguments);
+
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
+    /// </returns>
+    public bool Equals(DirectiveNode? other)
     {
-        return new DirectiveNode(Location, name, Arguments);
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Kind == other.Kind &&
+            Equals(Location, other.Location) &&
+            Name.Equals(other.Name) &&
+            EqualityHelper.Equals(Arguments, other.Arguments);
     }
 
-    public DirectiveNode WithArguments(
-        IReadOnlyList<ArgumentNode> arguments)
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            obj is DirectiveNode other &&
+            Equals(other);
+
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
+    public override int GetHashCode()
     {
-        return new DirectiveNode(Location, Name, arguments);
+        unchecked
+        {
+            var hashCode = (int) Kind;
+            hashCode = (hashCode * 397) ^ (Location != null ? Location.GetHashCode() : 0);
+            hashCode = (hashCode * 397) ^ Name.GetHashCode();
+            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
+            return hashCode;
+        }
     }
+
+    public static bool operator ==(DirectiveNode? left, DirectiveNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(DirectiveNode? left, DirectiveNode? right)
+        => !Equals(left, right);
 }
