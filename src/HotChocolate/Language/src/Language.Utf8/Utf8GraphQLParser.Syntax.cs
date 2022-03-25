@@ -9,22 +9,39 @@ public ref partial struct Utf8GraphQLParser
     public static class Syntax
     {
         /// <summary>
+        /// Parses a GraphQL object type definitions e.g. type Foo { bar: String }
+        /// </summary>
+        public static ObjectTypeDefinitionNode ParseObjectTypeDefinition(
+            string sourceText) =>
+            Parse(sourceText, parser => parser.ParseObjectTypeDefinition());
+
+        /// <summary>
+        /// Parses a GraphQL object type definitions e.g. type Foo { bar: String }
+        /// </summary>
+        public static ObjectTypeDefinitionNode ParseObjectTypeDefinition(
+            ReadOnlySpan<byte> sourceText) =>
+            Parse(sourceText, parser => parser.ParseObjectTypeDefinition());
+
+        /// <summary>
+        /// Parses a GraphQL object type definitions e.g. type Foo { bar: String }
+        /// </summary>
+        public static ObjectTypeDefinitionNode ParseObjectTypeDefinition(
+            Utf8GraphQLReader reader) =>
+            new Utf8GraphQLParser(reader).ParseObjectTypeDefinition();
+
+        /// <summary>
         /// Parses a GraphQL field selection string e.g. field(arg: "abc")
         /// </summary>
         public static FieldNode ParseField(
             string sourceText) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseField());
+            Parse(sourceText, parser => parser.ParseField());
 
         /// <summary>
         /// Parses a GraphQL field selection string e.g. field(arg: "abc")
         /// </summary>
         public static FieldNode ParseField(
             ReadOnlySpan<byte> sourceText) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseField());
+            Parse(sourceText, parser => parser.ParseField());
 
         /// <summary>
         /// Parses a GraphQL field selection string e.g. field(arg: "abc")
@@ -38,18 +55,14 @@ public ref partial struct Utf8GraphQLParser
         /// </summary>
         public static SelectionSetNode ParseSelectionSet(
             string sourceText) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseSelectionSet());
+            Parse(sourceText, parser => parser.ParseSelectionSet());
 
         /// <summary>
         /// Parses a GraphQL selection set string e.g. { field(arg: "abc") }
         /// </summary>
         public static SelectionSetNode ParseSelectionSet(
             ReadOnlySpan<byte> sourceText) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseSelectionSet());
+            Parse(sourceText, parser => parser.ParseSelectionSet());
 
         /// <summary>
         /// Parses a GraphQL selection set string e.g. { field(arg: "abc") }
@@ -61,16 +74,12 @@ public ref partial struct Utf8GraphQLParser
         public static IValueNode ParseValueLiteral(
             string sourceText,
             bool constant = true) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseValueLiteral(constant));
+            Parse(sourceText, parser => parser.ParseValueLiteral(constant));
 
         public static IValueNode ParseValueLiteral(
             ReadOnlySpan<byte> sourceText,
             bool constant = true) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseValueLiteral(constant));
+            Parse(sourceText, parser => parser.ParseValueLiteral(constant));
 
         public static IValueNode ParseValueLiteral(
             Utf8GraphQLReader reader,
@@ -80,16 +89,12 @@ public ref partial struct Utf8GraphQLParser
         public static ObjectValueNode ParseObjectLiteral(
             string sourceText,
             bool constant = true) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseObject(constant));
+            Parse(sourceText, parser => parser.ParseObject(constant));
 
         public static ObjectValueNode ParseObjectLiteral(
             ReadOnlySpan<byte> sourceText,
             bool constant = true) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseObject(constant));
+            Parse(sourceText, parser => parser.ParseObject(constant));
 
         public static ObjectValueNode ParseObjectLiteral(
             Utf8GraphQLReader reader,
@@ -101,18 +106,14 @@ public ref partial struct Utf8GraphQLParser
         /// </summary>
         public static ITypeNode ParseTypeReference(
             string sourceText) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseTypeReference());
+            Parse(sourceText, parser => parser.ParseTypeReference());
 
         /// <summary>
         /// Parses a GraphQL type reference e.g. [String!]
         /// </summary>
         public static ITypeNode ParseTypeReference(
             ReadOnlySpan<byte> sourceText) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseTypeReference());
+            Parse(sourceText, parser => parser.ParseTypeReference());
 
         /// <summary>
         /// Parses a GraphQL type reference e.g. [String!]
@@ -126,18 +127,14 @@ public ref partial struct Utf8GraphQLParser
         /// </summary>
         public static SchemaCoordinateNode ParseSchemaCoordinate(
             string sourceText) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseSingleSchemaCoordinate());
+            Parse(sourceText, parser => parser.ParseSingleSchemaCoordinate());
 
         /// <summary>
         /// Parses a GraphQL schema coordinate e.g. Query.userById(id:)
         /// </summary>
         public static SchemaCoordinateNode ParseSchemaCoordinate(
             ReadOnlySpan<byte> sourceText) =>
-            Parse(
-                sourceText,
-                parser => parser.ParseSingleSchemaCoordinate());
+            Parse(sourceText, parser => parser.ParseSingleSchemaCoordinate());
 
         /// <summary>
         /// Parses a GraphQL schema coordinate e.g. Query.userById(id:)
@@ -201,5 +198,5 @@ public ref partial struct Utf8GraphQLParser
         }
     }
 
-    private delegate T ParseSyntax<T>(Utf8GraphQLParser parser) where T : ISyntaxNode;
+    private delegate T ParseSyntax<out T>(Utf8GraphQLParser parser) where T : ISyntaxNode;
 }
