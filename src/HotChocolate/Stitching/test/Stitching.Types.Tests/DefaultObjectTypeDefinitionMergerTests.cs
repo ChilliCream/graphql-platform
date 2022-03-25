@@ -33,6 +33,6 @@ public class DefaultObjectTypeDefinitionMergerTests
             b!.Bindings,
             t => Assert.Equal("Def", Assert.IsType<SourceBinding>(t).Source),
             t => Assert.Equal("Abc", Assert.IsType<SourceBinding>(t).Source));
-        b!.Definition.MatchSnapshot();
+        b.Definition.ToString().MatchSnapshot();
     }
 }
