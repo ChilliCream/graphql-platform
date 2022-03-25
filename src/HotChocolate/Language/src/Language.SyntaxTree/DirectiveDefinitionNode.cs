@@ -13,6 +13,7 @@ namespace HotChocolate.Language;
 public sealed class DirectiveDefinitionNode
     : ITypeSystemDefinitionNode
     , IHasName
+    , IEquatable<DirectiveDefinitionNode>
 {
     /// <summary>
     ///
@@ -201,4 +202,74 @@ public sealed class DirectiveDefinitionNode
     /// </returns>
     public DirectiveDefinitionNode WithLocations(IReadOnlyList<NameNode> locations)
         => new(Location, Name, Description, IsRepeatable, Arguments, locations);
+
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
+    /// </returns>
+    public bool Equals(DirectiveDefinitionNode? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Equals(Location, other.Location) &&
+            Name.Equals(other.Name) &&
+            Equals(Description, other.Description) &&
+            IsRepeatable == other.IsRepeatable &&
+            EqualityHelper.Equals(Arguments, other.Arguments) &&
+            EqualityHelper.Equals(Locations, other.Locations);
+    }
+
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            obj is DirectiveDefinitionNode other &&
+            Equals(other);
+
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            var hashCode = Location != null ? Location.GetHashCode() : 0;
+            hashCode = (hashCode * 397) ^ Name.GetHashCode();
+            hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+            hashCode = (hashCode * 397) ^ IsRepeatable.GetHashCode();
+            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
+            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Locations);
+            return hashCode;
+        }
+    }
+
+    public static bool operator ==(DirectiveDefinitionNode? left, DirectiveDefinitionNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(DirectiveDefinitionNode? left, DirectiveDefinitionNode? right)
+        => !Equals(left, right);
 }

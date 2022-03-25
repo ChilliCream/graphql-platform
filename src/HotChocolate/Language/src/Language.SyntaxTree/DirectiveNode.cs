@@ -4,8 +4,20 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// Represents an applied directive.
+/// </summary>
 public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="DirectiveNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the directive.
+    /// </param>
+    /// <param name="arguments">
+    /// The argument values of this directive.
+    /// </param>
     public DirectiveNode(
         string name,
         params ArgumentNode[] arguments)
@@ -13,6 +25,15 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DirectiveNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the directive.
+    /// </param>
+    /// <param name="arguments">
+    /// The argument values of this directive.
+    /// </param>
     public DirectiveNode(
         string name,
         IReadOnlyList<ArgumentNode> arguments)
@@ -20,6 +41,15 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DirectiveNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the directive.
+    /// </param>
+    /// <param name="arguments">
+    /// The argument values of this directive.
+    /// </param>
     public DirectiveNode(
         NameNode name,
         IReadOnlyList<ArgumentNode> arguments)
@@ -27,6 +57,18 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DirectiveNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the named syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name of the directive.
+    /// </param>
+    /// <param name="arguments">
+    /// The argument values of this directive.
+    /// </param>
     public DirectiveNode(
         Location? location,
         NameNode name,
@@ -37,12 +79,18 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
         Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
     }
 
+    /// <inheritdoc cref="ISyntaxNode" />
     public SyntaxKind Kind => SyntaxKind.Directive;
 
+    /// <inheritdoc cref="ISyntaxNode" />
     public Location? Location { get; }
 
+    /// <summary>
+    /// Gets the name of this directive.
+    /// </summary>
     public NameNode Name { get; }
 
+    /// <inheritdoc cref="ISyntaxNode" />
     public IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
@@ -53,6 +101,9 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
         }
     }
 
+    /// <summary>
+    /// Gets the argument values of this directive.
+    /// </summary>
     public IReadOnlyList<ArgumentNode> Arguments { get; }
 
     /// <summary>
@@ -76,12 +127,42 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public DirectiveNode WithLocation(Location? location)
         => new(location, Name, Arguments);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Name" /> with <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">
+    /// The name that shall be used to replace the current name.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="name" />.
+    /// </returns>
     public DirectiveNode WithName(NameNode name)
         => new(Location, name, Arguments);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Arguments" /> with <paramref name="arguments" />.
+    /// </summary>
+    /// <param name="arguments">
+    /// The arguments that shall be used to replace the current arguments.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="arguments" />.
+    /// </returns>
     public DirectiveNode WithArguments(IReadOnlyList<ArgumentNode> arguments)
         => new(Location, Name, arguments);
 
