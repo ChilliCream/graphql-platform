@@ -92,9 +92,10 @@ public class FilterTypeInterceptor
             return;
         }
 
+        ITypeReference? originalType = null;
         _typesToRegister.Add(() =>
         {
-            ITypeReference? originalType = filterField.Type;
+            originalType = filterField.Type;
             filterField.Type = TypeReference.Create(
                 $"FilterSubTypeConfiguration_{Guid.NewGuid():N}",
                 typeReference,
@@ -112,6 +113,7 @@ public class FilterTypeInterceptor
                     explicitDefinition =
                         factory(discoveryContext.DescriptorContext, discoveryContext.Scope);
                 }
+
                 if (originalType is null ||
                     !_typeRegistry.TryGetType(originalType, out RegisteredType? registeredType))
                 {
@@ -119,14 +121,15 @@ public class FilterTypeInterceptor
                             filterField.Name.Value,
                             parentTypeDefinition.Name.Value);
                 }
-                if (
-                    !_definitions.TryGetValue(
+
+                if (!_definitions.TryGetValue(
                         registeredType.Type,
                         out FilterInputTypeDefinition? definition))
                 {
                     throw ThrowHelper.Filtering_DefinitionForTypeNotFound(
                             filterField.Name.Value,
-                            parentTypeDefinition.Name.Value);
+                            parentTypeDefinition.Name.Value,
+                            registeredType.Type.Name);
                 }
 
                 return new FilterInputType(

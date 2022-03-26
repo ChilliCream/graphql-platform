@@ -84,12 +84,14 @@ internal static class ThrowHelper
 
     public static SchemaException Filtering_DefinitionForTypeNotFound(
         string fieldName,
-        string typeName) =>
+        string typeName,
+        string originalType) =>
         new(SchemaErrorBuilder.New()
                 .SetMessage(
                     DataResources.Filtering_DefinitionForTypeNotFound,
                     fieldName,
-                    typeName)
+                    typeName,
+                    originalType)
                 .Build());
 
     public static SchemaException Filtering_FieldHadNoType(

@@ -13,8 +13,7 @@ using Xunit;
 
 namespace HotChocolate.Data.Tests;
 
-public class FilterInputTypeTest
-    : FilterTestBase
+public class FilterInputTypeTest : FilterTestBase
 {
     [Fact]
     public void FilterInputType_DynamicName()
@@ -637,6 +636,71 @@ public class FilterInputTypeTest
 
         // assert
         schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_Should_Assert_When_TryToCustomizeNonFilterType()
+    {
+        // arrange
+        // act
+        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
+             descriptor.Operation(DefaultFilterOperations.Data).Type<StringType>().AllowEquals());
+
+        // assert
+        var ex = Assert.Throws<SchemaException>(Call);
+        ex.Errors.Single().Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_Should_Assert_When_NoTypeWasDefined()
+    {
+        // arrange
+        // act
+        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
+             descriptor.Operation(DefaultFilterOperations.Data).AllowEquals());
+
+        // assert
+        var ex = Assert.Throws<SchemaException>(Call);
+        ex.Errors.Single().Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_Should_Assert_When_NoFieldsOnOperationType()
+    {
+        // arrange
+        // act
+        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
+             descriptor.Operation(DefaultFilterOperations.Data).AllowEquals());
+
+        // assert
+        var ex = Assert.Throws<SchemaException>(Call);
+        ex.Errors.Single().Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_Should_Assert_When_CustomOperationFieldDoesNotAllowAnyOperations()
+    {
+        // arrange
+        // act
+        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
+             descriptor.Field(x => x.Title, x => x.Name("CustomName")));
+
+        // assert
+        var ex = Assert.Throws<SchemaException>(Call);
+        ex.Errors.Single().Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_Should_Assert_When_CustomnFieldDoesNotAllowAnyFields()
+    {
+        // arrange
+        // act
+        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
+             descriptor.Field(x => x.Author, x => x.Name("CustomName")));
+
+        // assert
+        var ex = Assert.Throws<SchemaException>(Call);
+        ex.Errors.Single().Message.MatchSnapshot();
     }
 
     public class FooDirectiveType
