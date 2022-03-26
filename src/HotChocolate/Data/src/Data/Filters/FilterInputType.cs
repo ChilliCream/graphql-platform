@@ -133,7 +133,7 @@ public class FilterInputType
     }
 
     internal FilterInputType(
-        IDictionary<ITypeSystemMember, FilterInputTypeDefinition> definitionLookup,
+        FilterInputTypeDefinition sourceTypeDefinition,
         FilterInputTypeDefinition? explicitDefinition,
         ITypeReference filterType,
         ITypeReference filterOperationType,
@@ -149,6 +149,39 @@ public class FilterInputType
             EntityType = typeof(object)
         };
 
+        // we merge/copy the operation fields from the original type. This way users do not have
+        // to declare the types of operations
+        foreach (var field in sourceTypeDefinition.Fields.OfType<FilterOperationFieldDefinition>())
+        {
+            FilterOperationFieldDefinition? userDefinedField = filterTypeDefinition.Fields
+                .OfType<FilterOperationFieldDefinition>()
+                .FirstOrDefault(x => x.Id == field.Id);
+
+            if (userDefinedField is not null)
+            {
+                FilterOperationFieldDefinition newDefinition = new();
+                field.CopyTo(newDefinition);
+                userDefinedField.MergeInto(newDefinition);
+                filterTypeDefinition.Fields.Remove(userDefinedField);
+                filterTypeDefinition.Fields.Add(newDefinition);
+            }
+            else if (fieldDefinition.AllowedOperations.Contains(field.Id))
+            {
+                FilterOperationFieldDefinition newDefinition = new();
+                field.CopyTo(newDefinition);
+                filterTypeDefinition.Fields.Add(newDefinition);
+            }
+        }
+
+        if (fieldDefinition.AllowedOperations.Contains(DefaultFilterOperations.And))
+        {
+            filterTypeDefinition.UseAnd = true;
+        }
+        if (fieldDefinition.AllowedOperations.Contains(DefaultFilterOperations.Or))
+        {
+            filterTypeDefinition.UseOr = true;
+        }
+
         Definition = filterTypeDefinition;
         Definition.Dependencies.Add(new(filterType));
         Definition.Dependencies.Add(new(filterOperationType));
@@ -159,17 +192,17 @@ public class FilterInputType
                 filterTypeDefinition,
                 ApplyConfigurationOn.Naming,
                 new TypeDependency[] {
-                    new(filterOperationType, TypeDependencyKind.Completed) ,
-                    new(filterType, TypeDependencyKind.Completed)
+                    new(filterOperationType, TypeDependencyKind.Named) ,
+                    new(filterType, TypeDependencyKind.Named)
                 }));
         Definition.Configurations.Add(
             new CompleteConfiguration<FilterInputTypeDefinition>(
                 CreateOperationFieldConfiguration,
                 filterTypeDefinition,
-                ApplyConfigurationOn.Completion,
+                ApplyConfigurationOn.Naming,
                 new TypeDependency[] {
-                    new(filterOperationType, TypeDependencyKind.Completed),
-                    new(filterType, TypeDependencyKind.Completed)
+                    new(filterOperationType, TypeDependencyKind.Named),
+                    new(filterType, TypeDependencyKind.Named)
                 }
             ));
 
@@ -208,31 +241,18 @@ public class FilterInputType
             IFilterInputType sourceType =
                 context.GetType<IFilterInputType>(filterOperationType);
 
-            if (!definitionLookup.TryGetValue(sourceType, out var typeDefinition))
+            // the handlers of the operations are attached to the original type. We have
+            // to copy them to the stripped down type
+            foreach (var userDefinedField in
+                    filterTypeDefinition.Fields.OfType<FilterOperationFieldDefinition>())
             {
-                throw ThrowHelper
-                    .Filtering_DefinitionForTypeNotFound(definition, fieldDefinition, sourceType);
-            }
-
-            // if a field defines allowed operations, we copy over all the operations
-            // of the original type
-            if (fieldDefinition.HasAllowedOperations)
-            {
-                var operationFieldDefinitions = typeDefinition
-                    .Fields
+                FilterOperationFieldDefinition? sourceField = sourceTypeDefinition.Fields
                     .OfType<FilterOperationFieldDefinition>()
-                    .Where(x => fieldDefinition.AllowedOperations.Contains(x.Id));
+                    .FirstOrDefault(x => x.Id == userDefinedField.Id);
 
-                definition.Fields.AddRange(operationFieldDefinitions);
-
-                if (fieldDefinition.AllowedOperations.Contains(DefaultFilterOperations.And))
+                if (sourceField is not null)
                 {
-                    definition.UseAnd = true;
-                }
-
-                if (fieldDefinition.AllowedOperations.Contains(DefaultFilterOperations.Or))
-                {
-                    definition.UseOr = true;
+                    userDefinedField.Handler = sourceField.Handler;
                 }
             }
 
@@ -251,7 +271,7 @@ public class FilterInputType
             }
 
             /// we copy over the entity type of the type source.
-            definition.EntityType = sourceType.EntityType?.Source;
+            definition.EntityType = sourceTypeDefinition.EntityType;
         }
     }
 }

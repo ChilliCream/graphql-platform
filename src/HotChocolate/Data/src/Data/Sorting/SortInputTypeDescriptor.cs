@@ -53,7 +53,7 @@ public class SortInputTypeDescriptor
 
     protected ISortConvention Convention { get; }
 
-    protected override SortInputTypeDefinition Definition { get; set; } =
+    protected internal override SortInputTypeDefinition Definition { get; protected set; } =
         new SortInputTypeDefinition();
 
     protected BindableList<SortFieldDescriptor> Fields { get; } =

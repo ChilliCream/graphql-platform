@@ -55,7 +55,7 @@ public class FilterInputTypeDescriptor
 
     protected IFilterConvention Convention { get; }
 
-    protected override FilterInputTypeDefinition Definition { get; set; } = new();
+    protected internal override FilterInputTypeDefinition Definition { get; protected set; } = new();
 
     protected BindableList<FilterFieldDescriptor> Fields { get; } = new();
 
@@ -164,18 +164,7 @@ public class FilterInputTypeDescriptor
             IDescriptorContext context,
             string? scope)
         {
-            FilterInputTypeDescriptor descriptor = New(context, typeof(object), scope);
-            descriptor.BindFieldsExplicitly();
-
-            // This resets the name on the definition. This way we can check if the user has
-            // set a custom name. The context the user specifying descriptor.Name("Foo") is
-            // preserved this way.
-            descriptor.Definition.Name = default!;
-
-            // we deactivate And and Or by default.
-            descriptor.Definition.UseAnd = false;
-            descriptor.Definition.UseOr = false;
-
+            FilterInputTypeDescriptor descriptor = Inline(context, typeof(object), scope);
             configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -277,6 +266,48 @@ public class FilterInputTypeDescriptor
     {
         FilterInputTypeDescriptor? descriptor = New(context, schemaType, scope);
         descriptor.Definition.RuntimeType = typeof(object);
+        return descriptor;
+    }
+
+    internal static FilterInputTypeDescriptor Inline(
+        IDescriptorContext context,
+        Type entityType,
+        string? scope = null)
+    {
+        FilterInputTypeDescriptor descriptor = New(context, entityType, scope);
+
+        descriptor.BindFieldsExplicitly();
+
+        // This resets the name on the definition. This way we can check if the user has
+        // set a custom name. The context the user specifying descriptor.Name("Foo") is
+        // preserved this way.
+        descriptor.Definition.Name = default!;
+
+        // we deactivate And and Or by default.
+        descriptor.Definition.UseAnd = false;
+        descriptor.Definition.UseOr = false;
+
+        return descriptor;
+    }
+
+    internal static FilterInputTypeDescriptor<T> Inline<T>(
+        IDescriptorContext context,
+        Type entityType,
+        string? scope = null)
+    {
+        FilterInputTypeDescriptor<T> descriptor = New<T>(context, entityType, scope);
+
+        descriptor.BindFieldsExplicitly();
+
+        // This resets the name on the definition. This way we can check if the user has
+        // set a custom name. The context the user specifying descriptor.Name("Foo") is
+        // preserved this way.
+        descriptor.Definition.Name = default!;
+
+        // we deactivate And and Or by default.
+        descriptor.Definition.UseAnd = false;
+        descriptor.Definition.UseOr = false;
+
         return descriptor;
     }
 

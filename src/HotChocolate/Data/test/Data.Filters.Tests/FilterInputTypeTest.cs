@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -411,7 +413,7 @@ public class FilterInputTypeTest
         // act
         ISchema schema = CreateSchemaWithFilter<Book>(x => x
             .BindFieldsExplicitly()
-            .Field(x => x.Author, d => d.Field(x => x.Name).AllowEqual().AllowNotEquals()));
+            .Field(x => x.Author, d => d.Field(x => x.Name).AllowEquals().AllowNotEquals()));
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -501,7 +503,7 @@ public class FilterInputTypeTest
         ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.Chapters, d => d.Description("Test")).AllowEqual();
+            descriptor.Field(x => x.Chapters, d => d.Description("Test")).AllowEquals();
             descriptor.Field(
                 x => x.Author,
                 d => d.Description("Test").Field(x => x.Id));
@@ -510,7 +512,6 @@ public class FilterInputTypeTest
         // assert
         schema.ToString().MatchSnapshot();
     }
-    // TODO LISTS
 
     [Fact]
     public void FilterInputType_Inline_SwitchToImplicit()
@@ -542,7 +543,7 @@ public class FilterInputTypeTest
                 authorDescriptor.Field(x => x.Name).AllowIn().AllowNotIn().AllowContains();
                 authorDescriptor.Field(x => x.Address, descriptor =>
                 {
-                    descriptor.Field(x => x.PostalCode).AllowEqual().AllowNotEquals();
+                    descriptor.Field(x => x.PostalCode).AllowEquals().AllowNotEquals();
                     descriptor.Field(
                         x => x.Country,
                         descriptor => descriptor.Field(x => x.Name).AllowIn());
@@ -554,7 +555,6 @@ public class FilterInputTypeTest
         schema.ToString().MatchSnapshot();
     }
 
-    // TODO this does not work yet
     [Fact]
     public void FilterInputType_Inline_ObjectList()
     {
@@ -563,10 +563,76 @@ public class FilterInputTypeTest
         ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.CoAuthors, descriptor =>
-            {
-                //descriptor.Operation(DefaultFilterOperations.All).;
-            });
+            descriptor.Field(
+                x => x.CoAuthors,
+                descriptor => descriptor.AllowAll(d => d.Field(y => y.Name).AllowEquals()));
+        });
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_Inline_ObjectList_AllOperations()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(
+                x => x.CoAuthors,
+                descriptor =>
+                {
+                    descriptor.AllowAll(d => d.Field(y => y.Name).AllowEquals());
+                    descriptor.AllowAny();
+                    descriptor.AllowNone(d => d.Field(y => y.Name).AllowEquals());
+                    descriptor.AllowSome(d => d.Field(y => y.Name).AllowEquals());
+                    descriptor.AllowAnd();
+                    descriptor.AllowOr();
+                });
+        });
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_Inline_ScalarList()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(
+                x => x.LinesPerPage,
+                descriptor => descriptor.AllowAll().AllowEquals());
+        });
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_Inline_ScalarList_AllOperations()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(
+                x => x.LinesPerPage,
+                descriptor =>
+                {
+                    descriptor.AllowAll().AllowEquals();
+                    descriptor.AllowAny();
+                    descriptor.AllowNone().AllowEquals();
+                    descriptor.AllowSome().AllowEquals();
+                    descriptor.AllowAnd();
+                    descriptor.AllowOr();
+                });
         });
 
         // assert
@@ -597,14 +663,13 @@ public class FilterInputTypeTest
                 authorDescriptor.Field(x => x!.Name).AllowIn().AllowNotIn().AllowContains();
                 authorDescriptor.Field(x => x!.Address, descriptor =>
                 {
-                    descriptor.Field(x => x!.PostalCode).AllowEqual().AllowNotEquals();
+                    descriptor.Field(x => x!.PostalCode).AllowEquals().AllowNotEquals();
                     descriptor.Field(
                         x => x!.Country,
                         descriptor => descriptor.Field(x => x.Name).AllowIn());
                 });
             });
         }
-
     }
 
     public class FooDirective
@@ -639,7 +704,7 @@ public class FilterInputTypeTest
         public int Pages { get; set; }
         public int Chapters { get; set; }
 
-        public int[] LinesPerPage { get; set; }
+        public int[] LinesPerPage { get; set; } = Array.Empty<int>();
 
         public ICollection<Author>? CoAuthors { get; set; }
 

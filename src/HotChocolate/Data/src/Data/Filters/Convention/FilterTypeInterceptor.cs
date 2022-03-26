@@ -16,11 +16,22 @@ public class FilterTypeInterceptor
 {
     private readonly Dictionary<string, IFilterConvention> _conventions = new();
     private readonly Dictionary<ITypeSystemMember, FilterInputTypeDefinition> _definitions = new();
-    private readonly List<ITypeReference> _typesToRegister = new();
+    private readonly List<Func<ITypeReference>> _typesToRegister = new();
+    private TypeRegistry _typeRegistry = default!;
 
     public override bool CanHandle(ITypeSystemObjectContext context) => true;
 
     public override bool TriggerAggregations => true;
+
+    internal override void InitializeContext(
+        IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeReferenceResolver typeReferenceResolver)
+    {
+        _typeRegistry = typeRegistry;
+    }
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
@@ -31,7 +42,6 @@ public class FilterTypeInterceptor
         {
             return;
         }
-
         _definitions[discoveryContext.Type] = def;
 
         IFilterConvention convention =
@@ -65,7 +75,7 @@ public class FilterTypeInterceptor
                         discoveryContext.Scope);
                 }
 
-                RegisterDynamicTypeConfiguration(discoveryContext, typeReference, filterField);
+                RegisterDynamicTypeConfiguration(discoveryContext, typeReference, def, filterField);
             }
         }
     }
@@ -73,6 +83,7 @@ public class FilterTypeInterceptor
     private void RegisterDynamicTypeConfiguration(
         ITypeDiscoveryContext discoveryContext,
         ITypeReference typeReference,
+        FilterInputTypeDefinition parentTypeDefinition,
         FilterFieldDefinition filterField)
     {
         if (!filterField.HasAllowedOperations &&
@@ -81,11 +92,18 @@ public class FilterTypeInterceptor
             return;
         }
 
-        ITypeReference? originalType = filterField.Type;
-        filterField.Type = TypeReference.Create(
-            $"FilterSubTypeConfiguration_{Guid.NewGuid():N}",
-            typeReference,
-            (_) =>
+        _typesToRegister.Add(() =>
+        {
+            ITypeReference? originalType = filterField.Type;
+            filterField.Type = TypeReference.Create(
+                $"FilterSubTypeConfiguration_{Guid.NewGuid():N}",
+                typeReference,
+                Factory,
+                TypeContext.Input);
+
+            return filterField.Type;
+
+            TypeSystemObjectBase Factory(IDescriptorContext _)
             {
                 FilterInputTypeDefinition? explicitDefinition = null;
 
@@ -94,15 +112,31 @@ public class FilterTypeInterceptor
                     explicitDefinition =
                         factory(discoveryContext.DescriptorContext, discoveryContext.Scope);
                 }
+                if (originalType is null ||
+                    !_typeRegistry.TryGetType(originalType, out RegisteredType? registeredType))
+                {
+                    throw ThrowHelper.Filtering_FieldHadNoType(
+                            filterField.Name.Value,
+                            parentTypeDefinition.Name.Value);
+                }
+                if (
+                    !_definitions.TryGetValue(
+                        registeredType.Type,
+                        out FilterInputTypeDefinition? definition))
+                {
+                    throw ThrowHelper.Filtering_DefinitionForTypeNotFound(
+                            filterField.Name.Value,
+                            parentTypeDefinition.Name.Value);
+                }
 
                 return new FilterInputType(
-                    _definitions,
+                    definition,
                     explicitDefinition,
                     typeReference,
                     originalType!,
                     filterField);
-            },
-            TypeContext.Input);
+            }
+        });
     }
 
     public override void OnBeforeCompleteName(
@@ -115,25 +149,19 @@ public class FilterTypeInterceptor
             return;
         }
 
-        IFilterConvention convention = GetConvention(
-            completionContext.DescriptorContext,
-            def.Scope);
+        IFilterConvention convention =
+            GetConvention(completionContext.DescriptorContext, def.Scope);
 
-        var descriptor = FilterInputTypeDescriptor.New(
-            completionContext.DescriptorContext,
-            def.EntityType!,
-            def.Scope);
+        var descriptor = FilterInputTypeDescriptor
+            .New(completionContext.DescriptorContext, def.EntityType!, def.Scope);
 
-        SchemaTypeReference typeReference = TypeReference.Create(
-            completionContext.Type,
-            def.Scope);
+        SchemaTypeReference typeReference =
+            TypeReference.Create(completionContext.Type, def.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        DataTypeExtensionHelper.MergeFilterInputTypeDefinitions(
-            completionContext,
-            descriptor.CreateDefinition(),
-            def);
+        DataTypeExtensionHelper
+            .MergeFilterInputTypeDefinitions(completionContext, descriptor.CreateDefinition(), def);
 
         if (def.Scope is not null)
         {
@@ -141,7 +169,7 @@ public class FilterTypeInterceptor
         }
     }
 
-    public override void OnBeforeCompleteType(
+    public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
@@ -150,9 +178,9 @@ public class FilterTypeInterceptor
         {
             return;
         }
-        IFilterConvention convention = GetConvention(
-            completionContext.DescriptorContext,
-            def.Scope);
+
+        IFilterConvention convention =
+            GetConvention(completionContext.DescriptorContext, def.Scope);
 
         foreach (InputFieldDefinition field in def.Fields)
         {
@@ -160,9 +188,8 @@ public class FilterTypeInterceptor
             {
                 if (filterFieldDefinition.Type is null)
                 {
-                    throw ThrowHelper.FilterInterceptor_OperationHasNoTypeSpecified(
-                        def,
-                        filterFieldDefinition);
+                    throw ThrowHelper
+                        .FilterInterceptor_OperationHasNoTypeSpecified(def, filterFieldDefinition);
                 }
 
                 if (filterFieldDefinition.Handler is null)
@@ -177,9 +204,8 @@ public class FilterTypeInterceptor
                     }
                     else
                     {
-                        throw ThrowHelper.FilterInterceptor_NoHandlerFoundForField(
-                            def,
-                            filterFieldDefinition);
+                        throw ThrowHelper
+                            .FilterInterceptor_NoHandlerFoundForField(def, filterFieldDefinition);
                     }
                 }
             }
@@ -194,18 +220,17 @@ public class FilterTypeInterceptor
             return Array.Empty<ITypeReference>();
         }
 
-        ITypeReference[] typesToRegister = _typesToRegister.ToArray();
+        ITypeReference[] typesToRegister = _typesToRegister
+            .Select(x => x())
+            .ToArray();
+
         _typesToRegister.Clear();
         return typesToRegister;
     }
 
-    private IFilterConvention GetConvention(
-        IDescriptorContext context,
-        string? scope)
+    private IFilterConvention GetConvention(IDescriptorContext context, string? scope)
     {
-        if (!_conventions.TryGetValue(
-            scope ?? "",
-            out IFilterConvention? convention))
+        if (!_conventions.TryGetValue(scope ?? "", out IFilterConvention? convention))
         {
             convention = context.GetFilterConvention(scope);
             _conventions[scope ?? ""] = convention;
@@ -222,15 +247,11 @@ public class FilterTypeInterceptor
         {
             if (field is FilterFieldDefinition filterFieldDefinition &&
                 field.Type is not null &&
-                filterFieldDefinition.Type is not null)
+                filterFieldDefinition.Type is { } filterFieldType &&
+                discoveryContext.TryPredictTypeKind(filterFieldType, out TypeKind kind) &&
+                kind is not TypeKind.Scalar and not TypeKind.Enum)
             {
-                if (discoveryContext.TryPredictTypeKind(
-                        filterFieldDefinition.Type,
-                        out TypeKind kind) &&
-                    kind != TypeKind.Scalar && kind != TypeKind.Enum)
-                {
-                    field.Type = field.Type.With(scope: discoveryContext.Scope);
-                }
+                field.Type = field.Type.With(scope: discoveryContext.Scope);
             }
         }
     }

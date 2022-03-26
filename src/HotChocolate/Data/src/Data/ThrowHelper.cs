@@ -83,15 +83,23 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException Filtering_DefinitionForTypeNotFound(
-        FilterInputTypeDefinition typeDefinition,
-        FilterFieldDefinition fieldDefinition,
-        INamedType parentType) =>
+        string fieldName,
+        string typeName) =>
         new(SchemaErrorBuilder.New()
                 .SetMessage(
                     DataResources.Filtering_DefinitionForTypeNotFound,
-                    typeDefinition.Name.Value,
-                    fieldDefinition.Name.Value,
-                    parentType.Name)
+                    fieldName,
+                    typeName)
+                .Build());
+
+    public static SchemaException Filtering_FieldHadNoType(
+        string fieldName,
+        string typeName) =>
+        new(SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.Filtering_FieldHadNoType,
+                    fieldName,
+                    typeName)
                 .Build());
 
     public static SchemaException Filtering_TypeMissmatch(
