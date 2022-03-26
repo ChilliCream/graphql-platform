@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +18,11 @@ internal sealed class ParallelBatchRequestHandler : IRemoteBatchRequestHandler
             throw new ArgumentNullException(nameof(requestHandlers));
     }
 
-    public Task<IBatchQueryResult> ExecuteAsync(
+    public Task<IResponseStream> ExecuteAsync(
         IEnumerable<IQueryRequest> requestBatch,
         CancellationToken cancellationToken = default)
-        => Task.FromResult<IBatchQueryResult>(
-            new BatchQueryResult(
-                () => new Executor(_requestHandlers, requestBatch),
-                Array.Empty<IError>()));
+        => Task.FromResult<IResponseStream>(
+            new ResponseStream(() => new Executor(_requestHandlers, requestBatch)));
 
     private sealed class Executor : IAsyncEnumerable<IQueryResult>
     {

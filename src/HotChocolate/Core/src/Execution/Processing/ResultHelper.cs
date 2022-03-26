@@ -232,7 +232,7 @@ internal sealed partial class ResultHelper : IResultHelper
                 Resources.ResultHelper_BuildResult_InvalidResult);
         }
 
-        return new QueryResult
+        var result = new QueryResult
         (
             _data,
             _errors.Count == 0 ? null : new List<IError>(_errors),
@@ -240,9 +240,15 @@ internal sealed partial class ResultHelper : IResultHelper
             CreateExtensionData(_contextData),
             _label,
             _path,
-            _hasNext,
-            resultMemoryOwner: _data is null ? null : _resultOwner
+            _hasNext
         );
+
+        if (_data is not null)
+        {
+            result.RegisterForCleanup(_resultOwner);
+        }
+
+        return result;
     }
 
     private IReadOnlyDictionary<string, object?>? CreateExtensionData(

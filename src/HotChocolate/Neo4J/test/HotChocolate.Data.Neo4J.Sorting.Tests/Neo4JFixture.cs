@@ -57,7 +57,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
                     next => async context =>
                     {
                         await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
+                        if (context.Result is IQueryResult result &&
                             context.ContextData.TryGetValue("query", out var queryString))
                         {
                             context.Result =
