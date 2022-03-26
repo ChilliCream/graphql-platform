@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 namespace HotChocolate.Stitching.Redis;
@@ -106,17 +107,34 @@ namespace HotChocolate.Stitching.Redis;
             CancellationToken cancellationToken)
         {
             // Don't dispose of the Service Provider here. Causes ObjectDisposedExceptions in RequestExecutorResolver.BeginRunEvictionEvents!
-            ServiceProvider services =
-                new ServiceCollection()
-                    .AddGraphQL(_schemaName)
-                    .AddRemoteSchema(
-                        schemaDefinition.Name,
-                        (sp, ct) => new ValueTask<RemoteSchemaDefinition>(schemaDefinition))
-                    .Services
-                    .BuildServiceProvider();
+            IServiceCollection serviceCollection = new ServiceCollection();
+
+            serviceCollection
+                .AddGraphQL(_schemaName)
+                .AddRemoteSchema(
+                    schemaDefinition.Name,
+                    (sp, ct) => new ValueTask<RemoteSchemaDefinition>(schemaDefinition));
+
+            ServiceProvider? serviceProvider = default;
+            serviceCollection.AddTransient<IConfigureOptions<RequestExecutorSetup>>(
+                _ => new ConfigureNamedOptions<RequestExecutorSetup>(
+                    schemaDefinition.Name,
+                    e =>
+                    {
+                        e.OnRequestExecutorEvicted.Add(
+                            // when ever we evict this schema we will clear the caches.
+                            new OnRequestExecutorEvictedAction(
+                                _ =>
+                                {
+                                    serviceProvider?.Dispose();
+                                    serviceProvider = null;
+                                }));
+                    }));
+
+            serviceProvider = serviceCollection.BuildServiceProvider();
 
             IRequestExecutorOptionsMonitor optionsMonitor =
-                services.GetRequiredService<IRequestExecutorOptionsMonitor>();
+                serviceProvider.GetRequiredService<IRequestExecutorOptionsMonitor>();
 
             RequestExecutorSetup options =
                 await optionsMonitor.GetAsync(schemaDefinition.Name, cancellationToken)
