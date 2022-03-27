@@ -25,27 +25,27 @@ public class ParserBenchmarks
         _kitchenSinkBytes = Encoding.UTF8.GetBytes(_kitchenSinkString);
     }
 
-    // [Benchmark]
+    [Benchmark]
     public DocumentNode Introspection_Parse_String()
         => Utf8GraphQLParser.Parse(_introspectionString);
 
-    // [Benchmark]
+    [Benchmark]
     public DocumentNode Introspection_Parse_Bytes()
         => Utf8GraphQLParser.Parse(_introspectionBytes);
 
-    // [Benchmark]
+    [Benchmark]
     public DocumentNode KitchenSink_Schema_Parse_String()
         => Utf8GraphQLParser.Parse(_kitchenSinkSchemaString);
 
-    // [Benchmark]
+    [Benchmark]
     public DocumentNode KitchenSink_Schema_Parse_Bytes()
         => Utf8GraphQLParser.Parse(_kitchenSinkSchemaBytes);
 
-    // [Benchmark]
+    [Benchmark]
     public DocumentNode KitchenSink_Query_Parse_String()
         => Utf8GraphQLParser.Parse(_kitchenSinkString);
 
-    // [Benchmark]
+    [Benchmark]
     public DocumentNode KitchenSink_Query_Parse_Bytes()
         => Utf8GraphQLParser.Parse(_kitchenSinkBytes);
 }

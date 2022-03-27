@@ -1,38 +1,28 @@
 ``` ini
 
 BenchmarkDotNet=v0.13.1, OS=macOS Monterey 12.3 (21E230) [Darwin 21.4.0]
-Apple M1 Max, 1 CPU, 10 logical and 10 physical cores
+Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
 .NET SDK=6.0.200
-  [Host]     : .NET 6.0.2 (6.0.222.6406), Arm64 RyuJIT
-  DefaultJob : .NET 6.0.2 (6.0.222.6406), Arm64 RyuJIT
+  [Host]     : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
+  DefaultJob : .NET 6.0.2 (6.0.222.6406), X64 RyuJIT
 
 
 ```
-|                          Method |     Mean |    Error |   StdDev |   Median | Rank |   Gen 0 | Allocated |
-|-------------------------------- |---------:|---------:|---------:|---------:|-----:|--------:|----------:|
-|      Introspection_Parse_String | 12.56 μs | 0.034 μs | 0.030 μs | 12.56 μs |    2 |  8.6365 |     18 KB |
-|       Introspection_Parse_Bytes | 12.41 μs | 0.033 μs | 0.028 μs | 12.42 μs |    1 |  8.6365 |     18 KB |
-| KitchenSink_Schema_Parse_String | 29.37 μs | 0.124 μs | 0.116 μs | 29.38 μs |    5 | 18.4326 |     38 KB |
-|  KitchenSink_Schema_Parse_Bytes | 29.11 μs | 0.125 μs | 0.097 μs | 29.14 μs |    5 | 18.4326 |     38 KB |
-|  KitchenSink_Query_Parse_String | 23.88 μs | 0.084 μs | 0.079 μs | 23.88 μs |    4 | 16.6931 |     34 KB |
-|   KitchenSink_Query_Parse_Bytes | 23.18 μs | 0.057 μs | 0.051 μs | 23.18 μs |    3 | 16.6931 |     34 KB |
+|                          Method |     Mean |    Error |   StdDev |   Median | Rank |  Gen 0 |  Gen 1 | Allocated |
+|-------------------------------- |---------:|---------:|---------:|---------:|-----:|-------:|-------:|----------:|
+|      Introspection_Parse_String | 13.50 μs | 0.096 μs | 0.090 μs | 13.49 μs |    2 | 1.7242 | 0.1831 |     18 KB |
+|       Introspection_Parse_Bytes | 13.21 μs | 0.064 μs | 0.060 μs | 13.22 μs |    1 | 1.7242 | 0.1831 |     18 KB |
+| KitchenSink_Schema_Parse_String | 35.10 μs | 0.256 μs | 0.240 μs | 35.02 μs |    6 | 3.6621 | 0.7324 |     38 KB |
+|  KitchenSink_Schema_Parse_Bytes | 34.33 μs | 0.252 μs | 0.223 μs | 34.25 μs |    5 | 3.6621 | 0.7324 |     38 KB |
+|  KitchenSink_Query_Parse_String | 26.59 μs | 0.181 μs | 0.161 μs | 26.57 μs |    4 | 3.3264 | 0.6409 |     34 KB |
+|   KitchenSink_Query_Parse_Bytes | 25.76 μs | 0.105 μs | 0.098 μs | 25.78 μs |    3 | 3.3264 | 0.6409 |     34 KB |
 
-
-Wip
-|                          Method |     Mean |    Error |   StdDev |   Median | Rank |   Gen 0 | Allocated |
-|-------------------------------- |---------:|---------:|---------:|---------:|-----:|--------:|----------:|
-|      Introspection_Parse_String | 12.52 μs | 0.037 μs | 0.031 μs | 12.51 μs |    1 |  8.6365 |     18 KB |
-|       Introspection_Parse_Bytes | 12.47 μs | 0.043 μs | 0.038 μs | 12.47 μs |    1 |  8.6365 |     18 KB |
-| KitchenSink_Schema_Parse_String | 28.72 μs | 0.099 μs | 0.088 μs | 28.69 μs |    3 | 18.4326 |     38 KB |
-|  KitchenSink_Schema_Parse_Bytes | 29.09 μs | 0.139 μs | 0.123 μs | 29.09 μs |    4 | 18.4326 |     38 KB |
-|  KitchenSink_Query_Parse_String | 23.14 μs | 0.061 μs | 0.051 μs | 23.13 μs |    2 | 16.6931 |     34 KB |
-|   KitchenSink_Query_Parse_Bytes | 23.28 μs | 0.052 μs | 0.040 μs | 23.29 μs |    2 | 16.6931 |     34 KB |
-
-|                          Method |     Mean |    Error |   StdDev |   Median | Rank |   Gen 0 | Allocated |
-|-------------------------------- |---------:|---------:|---------:|---------:|-----:|--------:|----------:|
-|      Introspection_Parse_String | 12.52 μs | 0.044 μs | 0.037 μs | 12.51 μs |    1 |  8.6365 |     18 KB |
-|       Introspection_Parse_Bytes | 12.73 μs | 0.044 μs | 0.039 μs | 12.73 μs |    2 |  8.6365 |     18 KB |
-| KitchenSink_Schema_Parse_String | 29.16 μs | 0.133 μs | 0.125 μs | 29.15 μs |    4 | 18.4326 |     38 KB |
-|  KitchenSink_Schema_Parse_Bytes | 29.06 μs | 0.144 μs | 0.128 μs | 29.07 μs |    4 | 18.4326 |     38 KB |
-|  KitchenSink_Query_Parse_String | 24.27 μs | 0.097 μs | 0.091 μs | 24.24 μs |    3 | 16.6931 |     34 KB |
-|   KitchenSink_Query_Parse_Bytes | 24.10 μs | 0.070 μs | 0.066 μs | 24.08 μs |    3 | 16.6931 |     34 KB |
+12.7.0
+|                          Method |     Mean |    Error |   StdDev |   Median | Rank |  Gen 0 |  Gen 1 | Allocated |
+|-------------------------------- |---------:|---------:|---------:|---------:|-----:|-------:|-------:|----------:|
+|      Introspection_Parse_String | 13.51 μs | 0.064 μs | 0.053 μs | 13.51 μs |    2 | 1.7242 | 0.1831 |     18 KB |
+|       Introspection_Parse_Bytes | 13.22 μs | 0.053 μs | 0.050 μs | 13.21 μs |    1 | 1.7242 | 0.1831 |     18 KB |
+| KitchenSink_Schema_Parse_String | 35.18 μs | 0.283 μs | 0.251 μs | 35.19 μs |    4 | 3.7231 | 0.7935 |     39 KB |
+|  KitchenSink_Schema_Parse_Bytes | 36.12 μs | 0.714 μs | 0.850 μs | 35.91 μs |    5 | 3.7231 | 0.7324 |     39 KB |
+|  KitchenSink_Query_Parse_String | 25.91 μs | 0.227 μs | 0.201 μs | 25.90 μs |    3 | 3.3569 | 0.6714 |     34 KB |
+|   KitchenSink_Query_Parse_Bytes | 25.69 μs | 0.158 μs | 0.148 μs | 25.69 μs |    3 | 3.3569 | 0.6409 |     34 KB |

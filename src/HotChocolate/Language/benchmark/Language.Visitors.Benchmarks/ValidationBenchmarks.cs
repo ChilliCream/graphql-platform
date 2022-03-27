@@ -18,16 +18,16 @@ public class WalkerBenchmarks
             resources.GetResourceString("IntrospectionQuery.graphql"));
     }
 
-    // [Benchmark]
+    [Benchmark]
     public void Walker_V1()
         => _walkerV1.Visit(_introspectionQuery, null);
 
-    // [Benchmark]
+    [Benchmark]
     public void Walker_V2()
         => _introspectionQuery.Accept(_walkerV2);
 
 
-    // [Benchmark]
+    [Benchmark]
     public void Walker_V3()
         => _walkerV3.Visit(_introspectionQuery);
 }

@@ -22,7 +22,7 @@ public class ReaderBenchmarks
         _kitchenSinkBytes = Encoding.UTF8.GetBytes(kitchenSinkString);
     }
 
-    // [Benchmark]
+    [Benchmark]
     public void Introspection_Read_Bytes()
     {
         var reader = new Utf8GraphQLReader(_introspectionBytes);
@@ -33,7 +33,7 @@ public class ReaderBenchmarks
         }
     }
 
-    // [Benchmark]
+    [Benchmark]
     public void KitchenSink_Schema_Read_Bytes()
     {
         var reader = new Utf8GraphQLReader(_kitchenSinkSchemaBytes);
@@ -44,7 +44,7 @@ public class ReaderBenchmarks
         }
     }
 
-    // [Benchmark]
+    [Benchmark]
     public void KitchenSink_Query_Read_Bytes()
     {
         var reader = new Utf8GraphQLReader(_kitchenSinkBytes);

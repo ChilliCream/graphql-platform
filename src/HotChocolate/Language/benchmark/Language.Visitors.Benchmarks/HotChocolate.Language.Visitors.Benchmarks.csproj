@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Language\HotChocolate.Language.csproj" />
+    <PackageReference Include="HotChocolate.Language" Version="12.7.0" />
+    <!--ProjectReference Include="..\..\src\Language\HotChocolate.Language.csproj" /-->
   </ItemGroup>
 
   <ItemGroup>
