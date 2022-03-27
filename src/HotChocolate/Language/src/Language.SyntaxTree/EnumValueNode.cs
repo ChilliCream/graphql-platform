@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using HotChocolate.Language.Properties;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -19,6 +20,12 @@ public sealed class EnumValueNode
     private ReadOnlyMemory<byte> _memory;
     private string? _value;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="EnumTypeDefinitionNode"/>.
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public EnumValueNode(object value)
     {
         if (value is null)
@@ -30,27 +37,51 @@ public sealed class EnumValueNode
 
         _value = stringValue ??
             throw new ArgumentException(
-                "The value string representation mustn't be null.",
+                Resources.EnumValueNode_ValueIsNull,
                 nameof(value));
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="EnumTypeDefinitionNode"/>.
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public EnumValueNode(string value)
         : this(null, value)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="EnumTypeDefinitionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the named syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public EnumValueNode(Location? location, string value)
     {
         Location = location;
         _value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="EnumTypeDefinitionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the named syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public EnumValueNode(Location? location, ReadOnlyMemory<byte> value)
     {
         if (value.IsEmpty)
         {
             throw new ArgumentNullException(
-                "The value mustn't be empty.",
+                Resources.EnumValueNode_ValueIsEmpty,
                 nameof(value));
         }
 
@@ -58,10 +89,13 @@ public sealed class EnumValueNode
         _memory = value;
     }
 
+    /// <inheritdoc cref="ISyntaxNode" />
     public SyntaxKind Kind => SyntaxKind.EnumValue;
 
+    /// <inheritdoc cref="ISyntaxNode" />
     public Location? Location { get; }
 
+    /// <inheritdoc cref="IValueNode{T}" />
     public unsafe string Value
     {
         get
@@ -77,8 +111,10 @@ public sealed class EnumValueNode
         }
     }
 
+    /// <inheritdoc cref="IValueNode" />
     object IValueNode.Value => Value;
 
+    /// <inheritdoc cref="ISyntaxNode" />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
     /// <summary>
@@ -207,17 +243,20 @@ public sealed class EnumValueNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Gets the value of this literal as span.
+    /// </summary>
     public unsafe ReadOnlySpan<byte> AsSpan()
     {
         if (_memory.IsEmpty)
         {
-            int length = checked(_value!.Length * 4);
+            var length = checked(_value!.Length * 4);
             Span<byte> span = stackalloc byte[length];
 
             fixed (char* c = _value)
             fixed (byte* b = span)
             {
-                int buffered = Encoding.UTF8.GetBytes(c, _value.Length, b, span.Length);
+                var buffered = Encoding.UTF8.GetBytes(c, _value.Length, b, span.Length);
 
                 Memory<byte> memory = new byte[buffered];
                 span.Slice(0, buffered).CopyTo(memory.Span);
@@ -229,18 +268,42 @@ public sealed class EnumValueNode
         return _memory.Span;
     }
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public EnumValueNode WithLocation(Location? location)
-    {
-        return new EnumValueNode(location, Value);
-    }
+        => new(location, Value);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Value" /> with <paramref name="value" />.
+    /// </summary>
+    /// <param name="value">
+    /// The value of this literal.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="value" />.
+    /// </returns>
     public EnumValueNode WithValue(string value)
-    {
-        return new EnumValueNode(Location, value);
-    }
+        => new(Location, value);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Value" /> with <paramref name="value" />.
+    /// </summary>
+    /// <param name="value">
+    /// The value of this literal.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="value" />.
+    /// </returns>
     public EnumValueNode WithValue(Memory<byte> value)
-    {
-        return new EnumValueNode(Location, value);
-    }
+        => new(Location, value);
 }
