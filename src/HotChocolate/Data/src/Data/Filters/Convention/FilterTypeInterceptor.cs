@@ -147,7 +147,7 @@ public class FilterTypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        if (definition is not FilterInputTypeDefinition def || !def.NeedsNameCompletion)
+        if (definition is not FilterInputTypeDefinition def)
         {
             return;
         }
