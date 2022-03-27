@@ -75,4 +75,7 @@
   <data name="UnexpectedToken" xml:space="preserve">
     <value>Unexpected token: {0}.</value>
   </data>
+  <data name="Utf8GraphQLReader_ReadPunctuatorToken_InvalidState" xml:space="preserve">
+    <value>Code is not a punctuator.</value>
+  </data>
 </root>

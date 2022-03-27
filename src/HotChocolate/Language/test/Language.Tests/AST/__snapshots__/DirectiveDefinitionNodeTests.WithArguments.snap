@@ -1,4 +1,4 @@
-{
+﻿{
   "Kind": "DirectiveDefinition",
   "Location": null,
   "Name": {
@@ -13,7 +13,6 @@
     "Block": false
   },
   "IsRepeatable": true,
-  "IsUnique": false,
   "Arguments": [
     {
       "Kind": "InputValueDefinition",

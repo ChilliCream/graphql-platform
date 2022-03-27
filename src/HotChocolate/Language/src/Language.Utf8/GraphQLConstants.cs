@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language;
@@ -11,13 +12,9 @@ internal static partial class GraphQLConstants
 {
     private static readonly bool[] _isLetterOrUnderscore = new bool[256];
     private static readonly bool[] _isLetterOrDigitOrUnderscore = new bool[256];
-    private static readonly bool[] _isEscapeCharacter = new bool[256];
-    private static readonly bool[] _isPunctuator = new bool[256];
     private static readonly bool[] _isDigitOrMinus = new bool[256];
     private static readonly bool[] _isDigit = new bool[256];
-    private static readonly byte[] _escapeCharacters = new byte[256];
     private static readonly bool[] _trimComment = new bool[256];
-    private static readonly TokenKind[] _punctuatorKind = new TokenKind[256];
 
     public const int StackallocThreshold = 256;
 
@@ -113,25 +110,90 @@ internal static partial class GraphQLConstants
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDigit(this byte c)
-        => _isDigit[c];
+        => c > 47 && c < 59;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDigitOrMinus(this byte c)
-        => _isDigitOrMinus[c];
+    {
+        if (c > 47 && c < 59)
+        {
+            return true;
+        }
+
+        if (c is Hyphen)
+        {
+            return true;
+        }
+
+        return false;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsPunctuator(this byte c)
-        => _isPunctuator[c];
+    {
+        switch (c)
+        {
+            case Bang:
+            case Dollar:
+            case Ampersand:
+            case LeftParenthesis:
+            case RightParenthesis:
+            case Dot:
+            case Colon:
+            case Equal:
+            case QuestionMark:
+            case At:
+            case LeftBracket:
+            case RightBracket:
+            case LeftBrace:
+            case Pipe:
+            case RightBrace:
+                return true;
+
+            default:
+                return false;
+        }
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsValidEscapeCharacter(this byte c)
-        => _isEscapeCharacter[c];
+    {
+        switch (c)
+        {
+            case Quote:
+            case ForwardSlash:
+            case Backslash:
+            case B:
+            case F:
+            case N:
+            case R:
+            case T:
+            case U:
+                return true;
+
+            default:
+                return false;
+        }
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte EscapeCharacter(this byte c)
-        => _escapeCharacters[c];
+    {
+        switch (c)
+        {
+            case B:
+                return Backspace;
+            case F:
+                return FormFeed;
+            case N:
+                return LineFeed;
+            case R:
+                return Return;
+            case T:
+                return HorizontalTab;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static TokenKind PunctuatorKind(this byte c)
-        => _punctuatorKind[c];
+            default:
+                return c;
+        }
+    }
 }

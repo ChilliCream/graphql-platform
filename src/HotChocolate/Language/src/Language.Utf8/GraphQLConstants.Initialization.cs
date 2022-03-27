@@ -4,62 +4,11 @@ internal static partial class GraphQLConstants
 {
     static GraphQLConstants()
     {
-        InitializeIsEscapeCharacterCache();
-        InitializeEscapeCharacterCache();
-        InitializeIsPunctuatorCache();
         InitializeIsLetterOrUnderscoreCache();
         InitializeIsLetterOrDigitOUnderscoreCache();
         InitializeIsDigitCache();
         InitializeIsDigitOrMinusCache();
         InitializeTrimComment();
-        InitializePunctuator();
-    }
-
-    private static void InitializeIsEscapeCharacterCache()
-    {
-        _isEscapeCharacter[Quote] = true;
-        _isEscapeCharacter[ForwardSlash] = true;
-        _isEscapeCharacter[Backslash] = true;
-        _isEscapeCharacter[B] = true;
-        _isEscapeCharacter[F] = true;
-        _isEscapeCharacter[N] = true;
-        _isEscapeCharacter[R] = true;
-        _isEscapeCharacter[T] = true;
-        _isEscapeCharacter[U] = true;
-    }
-
-    private static void InitializeEscapeCharacterCache()
-    {
-        for (int i = byte.MinValue; i <= byte.MaxValue; i++)
-        {
-            var c = (char)i;
-            _escapeCharacters[c] = (byte)c;
-        }
-
-        _escapeCharacters[B] = Backspace;
-        _escapeCharacters[F] = FormFeed;
-        _escapeCharacters[N] = LineFeed;
-        _escapeCharacters[R] = Return;
-        _escapeCharacters[T] = HorizontalTab;
-    }
-
-    private static void InitializeIsPunctuatorCache()
-    {
-        _isPunctuator[Bang] = true;
-        _isPunctuator[Dollar] = true;
-        _isPunctuator[QuestionMark] = true;
-        _isPunctuator[Ampersand] = true;
-        _isPunctuator[LeftParenthesis] = true;
-        _isPunctuator[RightParenthesis] = true;
-        _isPunctuator[Colon] = true;
-        _isPunctuator[Equal] = true;
-        _isPunctuator[At] = true;
-        _isPunctuator[LeftBracket] = true;
-        _isPunctuator[RightBracket] = true;
-        _isPunctuator[LeftBrace] = true;
-        _isPunctuator[Pipe] = true;
-        _isPunctuator[RightBrace] = true;
-        _isPunctuator[Dot] = true;
     }
 
     private static void InitializeIsLetterOrUnderscoreCache()
@@ -137,23 +86,5 @@ internal static partial class GraphQLConstants
         _trimComment[Hash] = true;
         _trimComment[Space] = true;
         _trimComment[HorizontalTab] = true;
-    }
-
-    private static void InitializePunctuator()
-    {
-        _punctuatorKind[Bang] = TokenKind.Bang;
-        _punctuatorKind[QuestionMark] = TokenKind.QuestionMark;
-        _punctuatorKind[Dollar] = TokenKind.Dollar;
-        _punctuatorKind[Ampersand] = TokenKind.Ampersand;
-        _punctuatorKind[LeftParenthesis] = TokenKind.LeftParenthesis;
-        _punctuatorKind[RightParenthesis] = TokenKind.RightParenthesis;
-        _punctuatorKind[Colon] = TokenKind.Colon;
-        _punctuatorKind[Equal] = TokenKind.Equal;
-        _punctuatorKind[At] = TokenKind.At;
-        _punctuatorKind[LeftBracket] = TokenKind.LeftBracket;
-        _punctuatorKind[RightBracket] = TokenKind.RightBracket;
-        _punctuatorKind[LeftBrace] = TokenKind.LeftBrace;
-        _punctuatorKind[RightBrace] = TokenKind.RightBrace;
-        _punctuatorKind[Pipe] = TokenKind.Pipe;
     }
 }

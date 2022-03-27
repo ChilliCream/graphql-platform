@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -239,7 +238,59 @@ ReadNameToken_Next:
         }
         else
         {
-            _kind = code.PunctuatorKind();
+            switch (code)
+            {
+                case GraphQLConstants.Bang:
+                    _kind = TokenKind.Bang;
+                    break;
+                case GraphQLConstants.Dollar:
+                    _kind = TokenKind.Dollar;
+                    break;
+                case GraphQLConstants.Ampersand:
+                    _kind = TokenKind.Ampersand;
+                    break;
+                case GraphQLConstants.LeftParenthesis:
+                    _kind = TokenKind.LeftParenthesis;
+                    break;
+                case GraphQLConstants.RightParenthesis:
+                    _kind = TokenKind.RightParenthesis;
+                    break;
+                case GraphQLConstants.Dot:
+                    _kind = TokenKind.Dot;
+                    break;
+                case GraphQLConstants.Colon:
+                    _kind = TokenKind.Colon;
+                    break;
+                case GraphQLConstants.Equal:
+                    _kind = TokenKind.Equal;
+                    break;
+                case GraphQLConstants.QuestionMark:
+                    _kind = TokenKind.QuestionMark;
+                    break;
+                case GraphQLConstants.At:
+                    _kind = TokenKind.At;
+                    break;
+                case GraphQLConstants.LeftBracket:
+                    _kind = TokenKind.LeftBracket;
+                    break;
+                case GraphQLConstants.RightBracket:
+                    _kind = TokenKind.RightBracket;
+                    break;
+                case GraphQLConstants.LeftBrace:
+                    _kind = TokenKind.LeftBrace;
+                    break;
+                case GraphQLConstants.Pipe:
+                    _kind = TokenKind.Pipe;
+                    break;
+                case GraphQLConstants.RightBrace:
+                    _kind = TokenKind.RightBrace;
+                    break;
+                default:
+                    // we should never get to this point since we first check
+                    // if code is a punctuator.
+                    throw new InvalidOperationException(
+                        Utf8GraphQLReader_ReadPunctuatorToken_InvalidState);
+            }
         }
     }
 
