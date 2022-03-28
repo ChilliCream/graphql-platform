@@ -27,9 +27,8 @@ public class ReaderBenchmarks
     {
         var reader = new Utf8GraphQLReader(_introspectionBytes);
 
-        while (!reader.IsEndOfStream())
+        while (reader.Read())
         {
-            reader.Read();
         }
     }
 
@@ -38,9 +37,8 @@ public class ReaderBenchmarks
     {
         var reader = new Utf8GraphQLReader(_kitchenSinkSchemaBytes);
 
-        while (!reader.IsEndOfStream())
+        while (reader.Read())
         {
-            reader.Read();
         }
     }
 
@@ -49,9 +47,8 @@ public class ReaderBenchmarks
     {
         var reader = new Utf8GraphQLReader(_kitchenSinkBytes);
 
-        while (!reader.IsEndOfStream())
+        while (reader.Read())
         {
-            reader.Read();
         }
     }
 }
