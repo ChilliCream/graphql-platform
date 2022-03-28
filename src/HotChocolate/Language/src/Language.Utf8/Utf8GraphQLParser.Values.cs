@@ -29,7 +29,7 @@ public ref partial struct Utf8GraphQLParser
     /// Defines if only constant values are allowed;
     /// otherwise, variables are allowed.
     /// </param>
-    internal IValueNode ParseValueLiteral(bool isConstant)
+    private IValueNode ParseValueLiteral(bool isConstant)
     {
         if (_reader.Kind == TokenKind.LeftBracket)
         {
@@ -65,7 +65,7 @@ public ref partial struct Utf8GraphQLParser
         TokenInfo start = Start();
 
         var isBlock = _reader.Kind == TokenKind.BlockString;
-        string value = ExpectString();
+        var value = ExpectString();
         Location? location = CreateLocation(in start);
 
         return new StringValueNode(location, value, isBlock);

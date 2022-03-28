@@ -29,7 +29,7 @@ public sealed class VariableNode
         Name = name ?? throw new ArgumentNullException(nameof(name));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.Variable;
+    public SyntaxKind Kind => SyntaxKind.Variable;
 
     public Location? Location { get; }
 
