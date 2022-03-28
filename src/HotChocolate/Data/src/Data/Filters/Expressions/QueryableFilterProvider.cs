@@ -41,7 +41,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 
     public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
     {
-        ApplyFiltering applyFilter = CreateApplicatorAsync<TEntityType>(argumentName);
+        ApplyFiltering applyFilter = CreateApplicator<TEntityType>(argumentName);
 
         return next => context => ExecuteAsync(next, context);
 
@@ -57,7 +57,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         }
     }
 
-    private static ApplyFiltering CreateApplicatorAsync<TEntityType>(NameString argumentName)
+    private static ApplyFiltering CreateApplicator<TEntityType>(NameString argumentName)
     {
         return (context, input) =>
         {
@@ -71,12 +71,12 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 
             // if no filter is defined we can stop here and yield back control.
             var skipFiltering =
-            context.LocalContextData.TryGetValue(SkipFilteringKey, out var skip) &&
-            skip is true;
+                context.LocalContextData.TryGetValue(SkipFilteringKey, out var skip) &&
+                skip is true;
 
             // ensure filtering is only applied once
             context.LocalContextData =
-            context.LocalContextData.SetItem(SkipFilteringKey, true);
+                context.LocalContextData.SetItem(SkipFilteringKey, true);
 
             if (filter.IsNull() || skipFiltering)
             {
@@ -99,7 +99,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 
                 // compile expression tree
                 if (visitorContext.TryCreateLambda(
-                out Expression<Func<TEntityType, bool>>? where))
+                    out Expression<Func<TEntityType, bool>>? where))
                 {
                     input = input switch
                     {
