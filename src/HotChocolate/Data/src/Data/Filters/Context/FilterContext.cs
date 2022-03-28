@@ -1,110 +1,94 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 
 namespace HotChocolate.Data.Filters;
-public class FilterContext : IFilterContext
+
+/// <summary>
+/// Encapuslates all filter specific information
+/// </summary>
+public class FilterContext : FilterValue, IFilterContext
 {
-    private IReadOnlyList<IFilterFieldInfo>? _fieldInfos;
-    private IReadOnlyList<IFilterOperationInfo>? _operationInfos;
+    private readonly IResolverContext _context;
 
-    private readonly InputParser _inputParser;
-    private readonly IType? _type;
-
-    public FilterContext(IValueNode valueNode, IType type, InputParser inputParser)
+    /// <summary>
+    /// Creates a new instance of <see cref="FilterContext" />
+    /// </summary>
+    public FilterContext(
+        IResolverContext context,
+        IType type,
+        IValueNode valueNode,
+        InputParser inputParser)
+        : base(type, valueNode, inputParser)
     {
-        ValueNode = valueNode;
-        _type = type;
-        _inputParser = inputParser;
+        _context = context;
     }
 
-    public IValueNode ValueNode { get; }
-
-    public IFilterMemberInfo? Parent { get; }
-
-    public IReadOnlyList<IFilterFieldInfo> GetFields()
+    /// <inheritdoc />
+    public void EnableFilterExecution(bool enable = true)
     {
-        Initialize();
-        return _fieldInfos;
-    }
-
-    public IReadOnlyList<IFilterOperationInfo> GetOperations()
-    {
-        Initialize();
-        return _operationInfos;
-    }
-
-    public IDictionary<string, object?> ToDictionary()
-    {
-        Initialize();
-        Dictionary<string, object?> data = new();
-
-        foreach (var field in GetFields())
+        if (enable)
         {
-            data[field.Field.Name.Value] = field.ToDictionary();
-        }
-
-        foreach (var operation in GetOperations())
-        {
-            data[operation.Field.Name.Value] = operation.Value;
-        }
-
-        return data;
-    }
-
-    [MemberNotNull(nameof(_fieldInfos))]
-    [MemberNotNull(nameof(_operationInfos))]
-    private void Initialize()
-    {
-        if (_fieldInfos is not null && _operationInfos is not null)
-        {
-            return;
-        }
-
-        if (ValueNode is ObjectValueNode valueNode &&
-            _type is FilterInputType filterInputType)
-        {
-            var fieldInfos = new List<IFilterFieldInfo>();
-            var operationInfos = new List<IFilterOperationInfo>();
-            foreach (var fieldValue in valueNode.Fields)
-            {
-                var field = filterInputType.Fields
-                    .FirstOrDefault(x => x.Name.Value == fieldValue.Name.Value);
-                if (fieldValue is { })
-                {
-                    if (field is FilterOperationField operationField)
-                    {
-                        FilterContext context = new(fieldValue.Value, field.Type, _inputParser);
-                        FilterOperationInfo info = new(
-                            context,
-                            this,
-                            operationField,
-                            _inputParser.ParseLiteral(fieldValue.Value, field));
-
-                        operationInfos.Add(info);
-                    }
-                    else if (field is FilterField filterField)
-                    {
-                        FilterFieldInfo info = new(
-                            fieldValue.Value,
-                            field.Type,
-                            _inputParser,
-                            this,
-                            filterField);
-                        fieldInfos.Add(info);
-                    }
-                }
-            }
-            _fieldInfos = fieldInfos;
-            _operationInfos = operationInfos;
+            _context.LocalContextData = _context.LocalContextData.Remove(SkipFilteringKey);
         }
         else
         {
-            _fieldInfos = Array.Empty<IFilterFieldInfo>();
-            _operationInfos = Array.Empty<IFilterOperationInfo>();
+            _context.LocalContextData = _context.LocalContextData.SetItem(SkipFilteringKey, true);
+        }
+    }
+
+    /// <inheritdoc />
+    public IDictionary<string, object?>? ToDictionary()
+        => Serialize(this) as IDictionary<string, object?>;
+
+    private object? Serialize(IFilterValueInfo? value)
+    {
+        switch (value)
+        {
+            case null:
+                return null;
+
+            case IFilterValueCollection collection:
+                return collection.Select(Serialize).ToArray();
+
+            case IFilterValue v:
+                Dictionary<string, object?> data = new();
+
+                foreach (var field in v.GetFields())
+                {
+                    SerializeAndAssign(field.Field.Name, field.Value);
+                }
+
+                foreach (var operation in v.GetOperations())
+                {
+                    SerializeAndAssign(operation.Field.Name, operation.Value);
+                }
+
+                return data;
+
+                void SerializeAndAssign(string fieldName, IFilterValueInfo? value)
+                {
+                    if (value is null)
+                    {
+                        data[fieldName] = null;
+                    }
+                    else if (value.Type.NamedType().IsScalarType() &&
+                       value is IFilterValue filterValue)
+                    {
+                        data[fieldName] = filterValue.ParseValue();
+                    }
+                    else
+                    {
+                        data[fieldName] = Serialize(value);
+                    }
+                }
+
+            default:
+                throw new InvalidOperationException();
         }
     }
 }

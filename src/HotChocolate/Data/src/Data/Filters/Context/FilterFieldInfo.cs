@@ -1,23 +1,19 @@
-using HotChocolate.Language;
-using HotChocolate.Types;
-
 namespace HotChocolate.Data.Filters;
 
+/// <summary>
+/// Represents the value of a field in filtering
+/// </summary>
 public class FilterFieldInfo : IFilterFieldInfo
 {
-    public FilterFieldInfo(
-        IFilterValue value,
-        IFilterMemberInfo? parent,
-        IFilterField field)
+    public FilterFieldInfo(IFilterField field, IFilterValueInfo value)
     {
-        Parent = parent;
         Field = field;
         Value = value;
     }
 
-    public IFilterMemberInfo? Parent { get; }
-
+    /// <inheritdoc />
     public IFilterField Field { get; }
 
-    public IFilterValue? Value { get; }
+    /// <inheritdoc />
+    public IFilterValueInfo? Value { get; }
 }

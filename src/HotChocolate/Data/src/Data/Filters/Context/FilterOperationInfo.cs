@@ -1,23 +1,21 @@
-using HotChocolate.Language;
-using HotChocolate.Types;
-
 namespace HotChocolate.Data.Filters;
 
+/// <summary>
+/// Represents the value of a operation in filtering
+/// </summary>
 public class FilterOperationInfo : IFilterOperationInfo
 {
     public FilterOperationInfo(
-        IFilterValue value,
-        IFilterMemberInfo? parent,
-        IFilterOperationField field)
+        IFilterOperationField field,
+        IFilterValueInfo value)
     {
-        Parent = parent;
         Field = field;
         Value = value;
     }
 
-    public IFilterMemberInfo? Parent { get; }
-
+    /// <inheritdoc />
     public IFilterOperationField Field { get; }
 
-    public IFilterValue? Value { get; }
+    /// <inheritdoc />
+    public IFilterValueInfo? Value { get; }
 }

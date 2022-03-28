@@ -6,8 +6,14 @@ using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 
 namespace HotChocolate.Data.Filters;
 
+/// <summary>
+/// Common extension of <see cref="IResolverContext" /> for filter context
+/// </summary>
 public static class FilterContextResolverContextExtensions
 {
+    /// <summary>
+    /// Creates a <see cref="FilterContext" /> from the filter argument.
+    /// </summary>
     public static IFilterContext? GetFilterContext(this IResolverContext context)
     {
         IObjectField field = context.Selection.Field;
@@ -28,6 +34,12 @@ public static class FilterContextResolverContextExtensions
             return null;
         }
 
-        return new FilterContext(filter, filterInput, context.Service<InputParser>());
+        FilterContext filterContext =
+            new(context, filterInput, filter, context.Service<InputParser>());
+
+        // disable the execution of filtering by default
+        filterContext.EnableFilterExecution(false);
+
+        return filterContext;
     }
 }

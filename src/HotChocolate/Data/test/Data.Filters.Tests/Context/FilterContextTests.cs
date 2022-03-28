@@ -48,11 +48,12 @@ public class FilterContextTests
         Assert.NotNull(context);
         IFilterFieldInfo field = Assert.Single(context!.GetFields());
         Assert.Empty(context.GetOperations());
-        IFilterOperationInfo operation = Assert.Single(field.GetOperations());
-        Assert.Empty(field.GetFields());
+        IFilterOperationInfo operation =
+            Assert.Single(Assert.IsType<FilterValue>(field.Value).GetOperations());
+        Assert.Empty(Assert.IsType<FilterValue>(field.Value).GetFields());
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("eq", operation.Field.Name);
-        Assert.Equal("test", operation.Value);
+        Assert.Equal("test", Assert.IsType<FilterValue>(operation.Value).ParseValue());
     }
 
     [Fact]
@@ -90,12 +91,68 @@ public class FilterContextTests
         Assert.NotNull(context);
         IFilterFieldInfo field = Assert.Single(context!.GetFields());
         Assert.Empty(context.GetOperations());
-        IFilterOperationInfo operation = Assert.Single(field.GetOperations());
-        Assert.Empty(field.GetFields());
+        IFilterOperationInfo operation =
+            Assert.Single(Assert.IsType<FilterValue>(field.Value).GetOperations());
+        Assert.Empty(Assert.IsType<FilterValue>(field.Value).GetFields());
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("in", operation.Field.Name);
-        Assert.Equal("a", ((IEnumerable<string>)operation.Value!).FirstOrDefault());
-        Assert.Equal("b", ((IEnumerable<string>)operation.Value!).LastOrDefault());
+        var value =
+            Assert.IsType<FilterValue>(operation.Value!).ParseValue() as IEnumerable<string>;
+        Assert.Equal("a", value!.FirstOrDefault());
+        Assert.Equal("b", value!.LastOrDefault());
+    }
+
+    [Fact]
+    public async Task GetFields_Should_RetunFilterValueCollectionWhenOr()
+    {
+        // arrange
+        IFilterContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseFiltering()
+                .Resolve(x =>
+                {
+                    context = x.GetFilterContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddFiltering()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = @"
+            {
+                test(where: {
+                    or: [
+                        { title: { eq: ""a"" } }
+                        { title: { eq: ""b"" } }
+                    ]
+                }) {
+                    title
+                }
+            }
+        ";
+
+        await executor.ExecuteAsync(query);
+
+        // assert
+        Assert.NotNull(context);
+        IFilterOperationInfo operation = Assert.Single(context!.GetOperations());
+        Assert.Empty(context!.GetFields());
+        var valueCollection = Assert.IsType<FilterValueCollection>(operation.Value);
+        var field0 = Assert.Single(Assert.IsType<FilterValue>(valueCollection[0]).GetFields());
+        Assert.Equal("title", field0.Field.Name);
+        var operation0 = Assert.Single(Assert.IsType<FilterValue>(field0.Value).GetOperations());
+        Assert.Equal("eq", operation0.Field.Name);
+        Assert.Equal("a", Assert.IsType<FilterValue>(operation0.Value).ParseValue());
+        var field1 = Assert.Single(Assert.IsType<FilterValue>(valueCollection[1]).GetFields());
+        Assert.Equal("title", field1.Field.Name);
+        var operation1 = Assert.Single(Assert.IsType<FilterValue>(field1.Value).GetOperations());
+        Assert.Equal("eq", operation1.Field.Name);
+        Assert.Equal("b", Assert.IsType<FilterValue>(operation1.Value).ParseValue());
     }
 
     [Fact]
@@ -133,17 +190,15 @@ public class FilterContextTests
         Assert.NotNull(context);
         IFilterFieldInfo author = Assert.Single(context!.GetFields());
         Assert.Empty(context.GetOperations());
-        IFilterFieldInfo name = Assert.Single(author!.GetFields());
-        Assert.Empty(author.GetOperations());
-        IFilterOperationInfo operation = Assert.Single(name.GetOperations());
-        Assert.Empty(name.GetFields());
+        IFilterFieldInfo name = Assert.Single(Assert.IsType<FilterValue>(author.Value).GetFields());
+        Assert.Empty(Assert.IsType<FilterValue>(author.Value).GetOperations());
+        IFilterOperationInfo operation =
+            Assert.Single(Assert.IsType<FilterValue>(name.Value).GetOperations());
+        Assert.Empty(Assert.IsType<FilterValue>(name.Value).GetFields());
         Assert.Equal("author", author.Field.Name);
-        Assert.Equal(context, author.Parent);
         Assert.Equal("name", name.Field.Name);
-        Assert.Equal(author, name.Parent);
         Assert.Equal("eq", operation.Field.Name);
-        Assert.Equal(name, operation.Parent);
-        Assert.Equal("test", operation.Value);
+        Assert.Equal("test", Assert.IsType<FilterValue>(operation).ParseValue());
     }
 
     [Fact]
@@ -170,6 +225,21 @@ public class FilterContextTests
         const string query = @"
             {
                 test(where: {
+                    and: [
+                        {
+                            title: {
+                                in: [""a"", ""b""]
+                            }
+                            author: {
+                                name: {
+                                    eq: ""test""
+                                    neq: ""test""
+                                }
+                            }
+                        }
+                        { pages: { eq: 1 } }
+                        { isActive: { eq: true } }
+                    ],
                     or: [
                         { title: { eq: ""a"" } }
                         { title: { eq: ""b"" } }
@@ -180,7 +250,7 @@ public class FilterContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query);
 
         // assert
         Assert.NotNull(context);
@@ -194,7 +264,10 @@ public class FilterContextTests
         public string? Title { get; set; }
 
         public int Pages { get; set; }
+
         public int Chapters { get; set; }
+
+        public bool IsActive { get; set; }
 
         public Author? Author { get; set; }
 

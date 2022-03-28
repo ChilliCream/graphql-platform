@@ -6,6 +6,9 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Data.Filters;
 
+/// <summary>
+/// Registers the expression builder that provides support for <see cref="FilterContext" />
+/// </summary>
 internal sealed class FilterContextParameterExpressionBuilder
     : IParameterExpressionBuilder
 {
@@ -17,15 +20,20 @@ internal sealed class FilterContextParameterExpressionBuilder
             .GetMethods(BindingFlags.Static)
             .First(method => method.Name.Equals(_getFilterContext, StringComparison.Ordinal));
 
+    /// <inheritdoc />
     public ArgumentKind Kind => ArgumentKind.Service;
 
+    /// <inheritdoc />
     public bool IsPure => false;
 
+    /// <inheritdoc />
     public bool IsDefaultHandler => false;
 
+    /// <inheritdoc />
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(IFilterContext);
 
+    /// <inheritdoc />
     public Expression Build(ParameterInfo parameter, Expression context)
         => Expression.Call(_getFilterContextMethod, context);
 }

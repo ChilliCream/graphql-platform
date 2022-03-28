@@ -1,32 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Filters;
 
-public interface IFilterOperationInfo : IFilterMemberInfo
+/// <summary>
+/// Represents the value of a operation in filtering
+/// </summary>
+public interface IFilterOperationInfo
 {
+    /// <summary>
+    /// The field this operation represents
+    /// </summary>
     IFilterOperationField Field { get; }
-}
 
-public interface IFilterValueCollection : IEnumerable<IFilterValue>, IFilterValue
-{
-}
-
-public class FilterValueCollection : List<IFilterValue>, IFilterValueCollection
-{
-    public FilterValueCollection() : base()
-    {
-    }
-
-    public FilterValueCollection(IEnumerable<IFilterValue> collection) : base(collection)
-    {
-    }
-
-    public FilterValueCollection(int capacity) : base(capacity)
-    {
-    }
-}
-
-public interface IFilterValue
-{
+    /// <summary>
+    /// The value of this operation
+    /// </summary>
+    IFilterValueInfo? Value { get; }
 }

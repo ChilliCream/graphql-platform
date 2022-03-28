@@ -1,11 +1,17 @@
 namespace HotChocolate.Data.Filters;
 
-public interface IFilterFieldInfo : IFilterMemberInfo
+/// <summary>
+/// Represents the value of a field in filtering
+/// </summary>
+public interface IFilterFieldInfo
 {
+    /// <summary>
+    /// The field this filter represents
+    /// </summary>
     IFilterField Field { get; }
-}
 
-public interface IFilterMemberInfo
-{
-    IFilterValue? Value { get; }
+    /// <summary>
+    /// The value of this field
+    /// </summary>
+    IFilterValueInfo? Value { get; }
 }
