@@ -81,7 +81,6 @@ public ref partial struct Utf8GraphQLParser
     /// Defines if only constant values are allowed;
     /// otherwise, variables are allowed.
     /// </param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ListValueNode ParseList(bool isConstant)
     {
         TokenInfo start = Start();
@@ -127,7 +126,6 @@ public ref partial struct Utf8GraphQLParser
     /// Defines if only constant values are allowed;
     /// otherwise, variables are allowed.
     /// </param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ObjectValueNode ParseObject(bool isConstant)
     {
         TokenInfo start = Start();
@@ -163,7 +161,6 @@ public ref partial struct Utf8GraphQLParser
         );
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ObjectFieldNode ParseObjectField(bool isConstant)
     {
         TokenInfo start = Start();
@@ -184,7 +181,6 @@ public ref partial struct Utf8GraphQLParser
         );
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseScalarValue()
     {
         if (TokenHelper.IsString(in _reader))
@@ -228,7 +224,6 @@ public ref partial struct Utf8GraphQLParser
         throw Unexpected(kind);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseEnumValue()
     {
         TokenInfo start = Start();
@@ -260,7 +255,7 @@ public ref partial struct Utf8GraphQLParser
             return NullValueNode.Default;
         }
 
-        ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+        var value = _reader.GetString();
         MoveNext();
         location = CreateLocation(in start);
 

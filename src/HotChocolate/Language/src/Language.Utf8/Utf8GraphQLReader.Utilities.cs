@@ -8,11 +8,9 @@ namespace HotChocolate.Language;
 public ref partial struct Utf8GraphQLReader
 {
     public string GetString()
-    {
-        return _value.Length == 0
+        => _value.Length == 0
             ? string.Empty
             : GetString(_value, _kind == TokenKind.BlockString);
-    }
 
     public static string GetString(
         ReadOnlySpan<byte> escapedValue,
@@ -44,9 +42,6 @@ public ref partial struct Utf8GraphQLReader
             }
         }
     }
-
-    internal static string GetScalarValue(ReadOnlySpan<byte> unescapedValue) =>
-        GetString(unescapedValue);
 
     public static unsafe string GetString(ReadOnlySpan<byte> unescapedValue)
     {
@@ -132,17 +127,6 @@ public ref partial struct Utf8GraphQLReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool SkipKeyword(ReadOnlySpan<byte> keyword)
-    {
-        if (Kind == TokenKind.Name && Value.SequenceEqual(keyword))
-        {
-            MoveNext();
-            return true;
-        }
-        return false;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ReadOnlySpan<byte> Expect(TokenKind kind)
     {
         ReadOnlySpan<byte> value = Value;
@@ -153,18 +137,5 @@ public ref partial struct Utf8GraphQLReader
         }
 
         return value;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void ExpectKeyword(ReadOnlySpan<byte> keyword)
-    {
-        if (!SkipKeyword(keyword))
-        {
-            string found = Kind == TokenKind.Name
-                ? GetName()
-                : Kind.ToString();
-
-            throw new SyntaxException(this, Parser_InvalidToken, GetString(keyword), found);
-        }
     }
 }
