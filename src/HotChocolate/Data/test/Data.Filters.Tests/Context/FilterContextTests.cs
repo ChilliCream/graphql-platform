@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -198,7 +200,7 @@ public class FilterContextTests
         Assert.Equal("author", author.Field.Name);
         Assert.Equal("name", name.Field.Name);
         Assert.Equal("eq", operation.Field.Name);
-        Assert.Equal("test", Assert.IsType<FilterValue>(operation).ParseValue());
+        Assert.Equal("test", Assert.IsType<FilterValue>(operation.Value).ParseValue());
     }
 
     [Fact]
@@ -250,11 +252,107 @@ public class FilterContextTests
             }
         ";
 
-        var result = await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query);
 
         // assert
         Assert.NotNull(context);
         context!.ToDictionary().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task EnableFilterExecution_Should_EnableFilterExecution()
+    {
+        IImmutableDictionary<string, object?>? localContextData = null;
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseFiltering()
+                .Resolve(x =>
+                {
+                    x.GetFilterContext()?.EnableFilterExecution();
+                    localContextData = x.LocalContextData.Add("foo", true);
+
+                    return Array.Empty<Book>();
+                }))
+            .AddFiltering()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = @"
+            {
+                test(where: {
+                    title: {
+                        in: [""a"", ""b""]
+                    }
+                    author: {
+                        name: {
+                            eq: ""test""
+                            neq: ""test""
+                        }
+                    }
+                }) {
+                    title
+                }
+            }
+        ";
+
+        await executor.ExecuteAsync(query);
+
+        // assert
+        Assert.NotNull(localContextData);
+        Assert.False(localContextData!.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
+    }
+
+    [Fact]
+    public async Task EnableFilterExecution_Should_DisableFilterExecutionByDefault()
+    {
+        IImmutableDictionary<string, object?>? localContextData = null;
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseFiltering()
+                .Resolve(x =>
+                {
+                    x.GetFilterContext();
+                    localContextData = x.LocalContextData.Add("foo", true);
+
+                    return Array.Empty<Book>();
+                }))
+            .AddFiltering()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = @"
+            {
+                test(where: {
+                    title: {
+                        in: [""a"", ""b""]
+                    }
+                    author: {
+                        name: {
+                            eq: ""test""
+                            neq: ""test""
+                        }
+                    }
+                }) {
+                    title
+                }
+            }
+        ";
+
+        await executor.ExecuteAsync(query);
+
+        // assert
+        Assert.NotNull(localContextData);
+        Assert.True(localContextData!.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
     }
 
     public class Book
@@ -281,4 +379,3 @@ public class FilterContextTests
         public string? Name { get; set; }
     }
 }
-

@@ -17,7 +17,7 @@ internal sealed class FilterContextParameterExpressionBuilder
 
     private static readonly MethodInfo _getFilterContextMethod =
         typeof(FilterContextResolverContextExtensions)
-            .GetMethods(BindingFlags.Static)
+            .GetMethods(BindingFlags.Static | BindingFlags.Public)
             .First(method => method.Name.Equals(_getFilterContext, StringComparison.Ordinal));
 
     /// <inheritdoc />
