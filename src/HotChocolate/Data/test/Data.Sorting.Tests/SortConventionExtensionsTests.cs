@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Resolvers;
@@ -358,6 +359,11 @@ public class SortConventionExtensionsTests
         public void ConfigureField(NameString argumentName, IObjectFieldDescriptor descriptor)
         {
             throw new NotImplementedException();
+        }
+
+        public ISortMetadata? CreateMetaData(ITypeCompletionContext context, ISortInputTypeDefinition typeDefinition, ISortFieldDefinition fieldDefinition)
+        {
+            return null;
         }
     }
 

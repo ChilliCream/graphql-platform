@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -19,6 +20,23 @@ public class SortFieldDescriptor
     {
         Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
         Definition.Scope = scope;
+    }
+
+    protected SortFieldDescriptor(
+         IDescriptorContext context,
+         string? scope,
+         Expression expression)
+         : base(context)
+    {
+        ISortConvention convention = context.GetSortConvention(scope);
+
+        Definition.Expression = expression;
+        Definition.Scope = scope;
+        if (Definition.Expression is LambdaExpression lambda)
+        {
+            Definition.Type = convention.GetFieldType(lambda.ReturnType);
+            Definition.RuntimeType = lambda.ReturnType;
+        }
     }
 
     protected SortFieldDescriptor(
@@ -165,4 +183,10 @@ public class SortFieldDescriptor
         NameString fieldName,
         string? scope) =>
         new SortFieldDescriptor(context, scope, fieldName);
+
+    internal static SortFieldDescriptor New(
+        IDescriptorContext context,
+        string? scope,
+        Expression expression) =>
+        new SortFieldDescriptor(context, scope, expression);
 }

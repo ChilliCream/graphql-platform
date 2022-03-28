@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -12,4 +13,8 @@ public class SortFieldDefinition
     public ISortFieldHandler? Handler { get; set; }
 
     public string? Scope { get; set; }
+
+    public Expression? Expression { get; set; }
+
+    internal ISortMetadata? Metadata { get; set; }
 }

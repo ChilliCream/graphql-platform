@@ -15,6 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.InMemory.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.SqlLite.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="DataResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DataResources.Designer.cs</LastGenOutput>

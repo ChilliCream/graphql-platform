@@ -160,4 +160,12 @@ public interface ISortConvention : IConvention
     /// the field descriptor where the filtering is applied
     /// </param>
     void ConfigureField(IObjectFieldDescriptor fieldDescriptor);
+
+    /// <summary>
+    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// </summary>
+    ISortMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        ISortInputTypeDefinition typeDefinition,
+        ISortFieldDefinition fieldDefinition);
 }
