@@ -15,7 +15,7 @@ public class QuerySyntaxPrinterTests
         DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
         // act
-        string result = queryDocument.ToString(false);
+        var result = queryDocument.ToString(false);
 
         // assert
         Assert.Equal(query, result);
@@ -30,7 +30,7 @@ public class QuerySyntaxPrinterTests
         DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
         // act
-        string result = queryDocument.ToString(false);
+        var result = queryDocument.ToString(false);
 
         // assert
         Assert.Equal(query, result);
@@ -40,11 +40,11 @@ public class QuerySyntaxPrinterTests
     public void Serialize_ShortHandQueryWithIndentation_LineBetweenFields()
     {
         // arrange
-        string query = "{ foo { foo bar { foo @foo @bar bar @bar baz } } }";
+        var query = "{ foo { foo bar { foo @foo @bar bar @bar baz } } }";
         DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
         // act
-        string result = queryDocument.ToString();
+        var result = queryDocument.ToString();
 
         // assert
         result.MatchSnapshot();
@@ -54,11 +54,11 @@ public class QuerySyntaxPrinterTests
     public void Serialize_KitchenSinkWithIndentation_OutputIsFormatted()
     {
         // arrange
-        string query = FileResource.Open("kitchen-sink.graphql");
+        var query = FileResource.Open("kitchen-sink.graphql");
         DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
         // act
-        string result = queryDocument.ToString();
+        var result = queryDocument.ToString();
 
         // assert
         result.MatchSnapshot();
@@ -68,11 +68,11 @@ public class QuerySyntaxPrinterTests
     public void Serialize_KitchenSinkWithoutIndentation_OutputIsOneLine()
     {
         // arrange
-        string query = FileResource.Open("kitchen-sink.graphql");
+        var query = FileResource.Open("kitchen-sink.graphql");
         DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
         // act
-        string result = queryDocument.ToString();
+        var result = queryDocument.ToString();
 
         // assert
         result.MatchSnapshot();
@@ -82,11 +82,11 @@ public class QuerySyntaxPrinterTests
     public void Serialize_KitchenSinkWithIndentation_CanBeParsed()
     {
         // arrange
-        string query = FileResource.Open("kitchen-sink.graphql");
+        var query = FileResource.Open("kitchen-sink.graphql");
         DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
         // act
-        string result = queryDocument.ToString();
+        var result = queryDocument.ToString();
 
         // assert
         result.MatchSnapshot();
@@ -97,11 +97,11 @@ public class QuerySyntaxPrinterTests
     public void Serialize_KitchenSinkWithoutIndentation_CanBeParsed()
     {
         // arrange
-        string query = FileResource.Open("kitchen-sink.graphql");
+        var query = FileResource.Open("kitchen-sink.graphql");
         DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
         // act
-        string serializedQuery = queryDocument.ToString();
+        var serializedQuery = queryDocument.ToString();
 
         // assert
         DocumentNode parsedQuery = Utf8GraphQLParser.Parse(serializedQuery);
@@ -112,13 +112,13 @@ public class QuerySyntaxPrinterTests
     public void Serialize_QueryWithVarDeclaration_InOutShouldBeTheSame()
     {
         // arrange
-        string query =
+        var query =
             "query Foo($bar: [String!]!) { foo(s: \"String\") " +
             "{ bar @foo { baz @foo @bar } } }";
         DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
         // act
-        string serializedQuery = queryDocument.ToString(false);
+        var serializedQuery = queryDocument.ToString(false);
 
         // assert
         Assert.Equal(query, serializedQuery);
@@ -128,12 +128,12 @@ public class QuerySyntaxPrinterTests
     public void Serialize_FragmentWithVariableDefs_InOutShouldBeTheSame()
     {
         // arrange
-        string query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
+        var query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
         DocumentNode queryDocument = Utf8GraphQLParser.Parse(query,
             new ParserOptions(allowFragmentVariables: true));
 
         // act
-        string result = queryDocument.ToString(false);
+        var result = queryDocument.ToString(false);
 
         // assert
         Assert.Equal(query, result);

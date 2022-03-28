@@ -8,14 +8,8 @@ namespace HotChocolate.Language;
 /// that are used to tokenize a GraphQL source text.
 /// These utilities are used by the lexer default implementation.
 /// </summary>
-internal static partial class GraphQLConstants
+internal static class GraphQLConstants
 {
-    private static readonly bool[] _isLetterOrUnderscore = new bool[256];
-    private static readonly bool[] _isLetterOrDigitOrUnderscore = new bool[256];
-    private static readonly bool[] _isDigitOrMinus = new bool[256];
-    private static readonly bool[] _isDigit = new bool[256];
-    private static readonly bool[] _trimComment = new bool[256];
-
     public const int StackallocThreshold = 256;
 
     public const byte Null = (byte)'\u0000';
@@ -94,28 +88,57 @@ internal static partial class GraphQLConstants
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrDigitOrUnderscore(this byte c)
-        => _isLetterOrDigitOrUnderscore[c];
+    {
+        if (c > 96 && c < 123 || c > 64 && c < 91)
+        {
+            return true;
+        }
+
+        if (c > 47 && c < 58)
+        {
+            return true;
+        }
+
+        if (Underscore == c)
+        {
+            return true;
+        }
+
+        return false;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrDigitOrUnderscore(this char c)
-        => _isLetterOrDigitOrUnderscore[(byte)c];
+        => IsLetterOrDigitOrUnderscore((byte)c);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrUnderscore(this byte c)
-        => _isLetterOrUnderscore[c];
+    {
+        if (c > 96 && c < 123 || c > 64 && c < 91)
+        {
+            return true;
+        }
+
+        if (Underscore == c)
+        {
+            return true;
+        }
+
+        return false;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrUnderscore(this char c)
-        => _isLetterOrUnderscore[(byte)c];
+        => IsLetterOrUnderscore((byte)c);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDigit(this byte c)
-        => c > 47 && c < 59;
+        => c > 47 && c < 58;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDigitOrMinus(this byte c)
     {
-        if (c > 47 && c < 59)
+        if (c > 47 && c < 58)
         {
             return true;
         }
