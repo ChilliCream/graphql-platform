@@ -335,6 +335,7 @@ public class FilterContextTests
                 test(where: {
                     title: {
                         in: [""a"", ""b""]
+                        eq: null
                     }
                     author: {
                         name: {
@@ -353,6 +354,77 @@ public class FilterContextTests
         // assert
         Assert.NotNull(localContextData);
         Assert.True(localContextData!.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
+    }
+
+    [Fact]
+    public async Task GetFilterContext_ReturnNullWhenNoFiltering()
+    {
+        var obj = new object();
+
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .Resolve(x =>
+                {
+                    obj = x.GetFilterContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddFiltering()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = @"
+            {
+                test {
+                    title
+                }
+            }
+        ";
+
+        await executor.ExecuteAsync(query);
+
+        // assert
+        Assert.Null(obj);
+    }
+
+    [Fact]
+    public async Task FilterContext_Should_NotFail_When_FilterArgumentIsNotProvided()
+    {
+        // arrange
+        IFilterContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseFiltering()
+                .Resolve(x =>
+                {
+                    context = x.GetFilterContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddFiltering()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = @"
+            {
+                test {
+                    title
+                }
+            }
+        ";
+
+        await executor.ExecuteAsync(query);
+
+        // assert
+        Assert.NotNull(context);
+        context!.ToDictionary().MatchSnapshot();
     }
 
     public class Book
