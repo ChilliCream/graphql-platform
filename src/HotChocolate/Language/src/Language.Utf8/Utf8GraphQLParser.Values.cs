@@ -81,6 +81,7 @@ public ref partial struct Utf8GraphQLParser
     /// Defines if only constant values are allowed;
     /// otherwise, variables are allowed.
     /// </param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ListValueNode ParseList(bool isConstant)
     {
         TokenInfo start = Start();
@@ -146,7 +147,13 @@ public ref partial struct Utf8GraphQLParser
 
         while (_reader.Kind != TokenKind.RightBrace)
         {
-            fields.Add(ParseObjectField(isConstant));
+            TokenInfo fieldStart = Start();
+            NameNode name = ParseName();
+            ExpectColon();
+            IValueNode value = ParseValueLiteral(isConstant);
+            Location? fieldLocation = CreateLocation(in fieldStart);
+
+            fields.Add(new ObjectFieldNode(fieldLocation, name, value));
         }
 
         // skip closing token
@@ -161,26 +168,7 @@ public ref partial struct Utf8GraphQLParser
         );
     }
 
-    private ObjectFieldNode ParseObjectField(bool isConstant)
-    {
-        TokenInfo start = Start();
-
-        NameNode name = ParseName();
-
-        ExpectColon();
-
-        IValueNode value = ParseValueLiteral(isConstant);
-
-        Location? location = CreateLocation(in start);
-
-        return new ObjectFieldNode
-        (
-            location,
-            name,
-            value
-        );
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseScalarValue()
     {
         if (TokenHelper.IsString(in _reader))
@@ -224,6 +212,7 @@ public ref partial struct Utf8GraphQLParser
         throw Unexpected(kind);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseEnumValue()
     {
         TokenInfo start = Start();
