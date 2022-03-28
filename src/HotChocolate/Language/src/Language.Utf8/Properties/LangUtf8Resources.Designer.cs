@@ -75,9 +75,9 @@ namespace HotChocolate.Language.Properties {
             }
         }
         
-        internal static string Reader_InvalidToken {
+        internal static string ThrowHelper_Reader_InvalidToken {
             get {
-                return ResourceManager.GetString("Reader_InvalidToken", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_Reader_InvalidToken", resourceCulture);
             }
         }
         
@@ -162,6 +162,48 @@ namespace HotChocolate.Language.Properties {
         internal static string Utf8GraphQLReader_ReadPunctuatorToken_InvalidState {
             get {
                 return ResourceManager.GetString("Utf8GraphQLReader_ReadPunctuatorToken_InvalidState", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UnexpectedProperty {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnexpectedProperty", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InvalidRequestStructure {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidRequestStructure", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NoIdAndNoQuery {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NoIdAndNoQuery", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_QueryMustBeStringOrNull {
+            get {
+                return ResourceManager.GetString("ThrowHelper_QueryMustBeStringOrNull", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ExpectedObjectOrNull {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ExpectedObjectOrNull", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ExpectedStringOrNull {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ExpectedStringOrNull", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UnexpectedToken {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnexpectedToken", resourceCulture);
             }
         }
     }
