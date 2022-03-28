@@ -6,12 +6,12 @@ namespace HotChocolate.Data.Filters;
 /// <summary>
 /// An abstract class that represents the value of a filter
 /// </summary>
-public abstract class FilterValueInfo : IFilterValueInfo
+public abstract class FilterValueNode : IFilterValueNode
 {
     /// <summary>
-    /// Creates a new instance of <see cref="FilterValueInfo"/>
+    /// Creates a new instance of <see cref="FilterValueNode"/>
     /// </summary>
-    protected FilterValueInfo(IType type, IValueNode valueNode)
+    protected FilterValueNode(IType type, IValueNode valueNode)
     {
         Type = type;
         ValueNode = valueNode;

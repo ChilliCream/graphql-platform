@@ -5,9 +5,9 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// Represents a collection of <see cref="IFilterValueInfo">
+/// Represents a collection of <see cref="IFilterValueNode">
 /// </summary>
-public class FilterValueCollection : List<IFilterValueInfo>, IFilterValueCollection
+public class FilterValueCollection : List<IFilterValueNode>, IFilterValueCollection
 {
     /// <summary>
     /// Creates a new instance of <see cref="FilterValueCollection"/>
@@ -15,7 +15,7 @@ public class FilterValueCollection : List<IFilterValueInfo>, IFilterValueCollect
     public FilterValueCollection(
         IType type,
         IValueNode valueNode,
-        IEnumerable<IFilterValueInfo> collection)
+        IEnumerable<IFilterValueNode> collection)
         : base(collection)
     {
         Type = type;

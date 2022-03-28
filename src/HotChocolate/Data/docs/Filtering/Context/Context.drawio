@@ -1,20 +1,20 @@
 <mxfile host="65bd71144e">
     <diagram id="Sr89QmnRuElkf7226DeY" name="Page-1">
-        <mxGraphModel dx="1092" dy="799" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1577" dy="1141" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="2" value="Filter Context" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=17;" parent="1" vertex="1">
+                <mxCell id="2" value="Filter Context" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=17;fontStyle=1" parent="1" vertex="1">
                     <mxGeometry x="40" y="50" width="240" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="5" value="IFilterValueInfo" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" parent="1" vertex="1">
+                <mxCell id="5" value="IFilterValueNode" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" parent="1" vertex="1">
                     <mxGeometry x="825" y="198" width="140" height="52" as="geometry"/>
                 </mxCell>
                 <mxCell id="26" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;fontSize=17;strokeWidth=3;rounded=0;" parent="1" source="9" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="920" y="250" as="targetPoint"/>
                         <Array as="points">
-                            <mxPoint x="1115" y="290"/>
+                            <mxPoint x="1185" y="290"/>
                             <mxPoint x="920" y="290"/>
                         </Array>
                     </mxGeometry>
@@ -23,7 +23,7 @@
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="1140" y="310" as="sourcePoint"/>
                         <Array as="points">
-                            <mxPoint x="1330" y="346"/>
+                            <mxPoint x="1330" y="372"/>
                             <mxPoint x="1330" y="224"/>
                             <mxPoint x="1140" y="224"/>
                             <mxPoint x="1090" y="224"/>
@@ -36,27 +36,24 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="9" value="IFilterValueCollection" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" parent="1" vertex="1">
-                    <mxGeometry x="1000" y="320" width="230" height="52" as="geometry"/>
+                    <mxGeometry x="1070" y="346" width="230" height="52" as="geometry"/>
                 </mxCell>
-                <mxCell id="25" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=17;strokeWidth=3;rounded=0;" parent="1" source="10" target="5" edge="1">
+                <mxCell id="25" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;fontSize=17;strokeWidth=3;rounded=0;" parent="1" source="10" target="5" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="800" y="290"/>
-                            <mxPoint x="895" y="290"/>
+                            <mxPoint x="710" y="290"/>
+                            <mxPoint x="860" y="290"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="10" value="IFilterValue" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" parent="1" vertex="1">
-                    <mxGeometry x="640" y="320" width="320" height="104" as="geometry"/>
-                </mxCell>
-                <mxCell id="17" value="ParseValue() : object?" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" parent="10" vertex="1">
-                    <mxGeometry y="26" width="320" height="26" as="geometry"/>
+                <mxCell id="10" value="IFilterInfo" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="346" width="320" height="78" as="geometry"/>
                 </mxCell>
                 <mxCell id="18" value="GetOperations(): IFilterOperationField[]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" parent="10" vertex="1">
-                    <mxGeometry y="52" width="320" height="26" as="geometry"/>
+                    <mxGeometry y="26" width="320" height="26" as="geometry"/>
                 </mxCell>
                 <mxCell id="19" value="GetFields(): IFilterField[]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" parent="10" vertex="1">
-                    <mxGeometry y="78" width="320" height="26" as="geometry"/>
+                    <mxGeometry y="52" width="320" height="26" as="geometry"/>
                 </mxCell>
                 <mxCell id="12" value="IFilterOperationField" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" parent="1" vertex="1">
                     <mxGeometry x="60" y="130" width="270" height="80" as="geometry"/>
@@ -114,6 +111,40 @@
                             <mxPoint x="50" y="440"/>
                             <mxPoint x="50" y="306"/>
                         </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="33" value="IFilterValue" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" vertex="1" parent="1">
+                    <mxGeometry x="880" y="346" width="180" height="52" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="Value: object?" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" vertex="1" parent="33">
+                    <mxGeometry y="26" width="180" height="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" style="edgeStyle=none;html=1;exitX=0.461;exitY=-0.058;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=17;strokeWidth=3;rounded=0;exitPerimeter=0;" edge="1" parent="1" source="33" target="5">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="963" y="310"/>
+                            <mxPoint x="895" y="310"/>
+                        </Array>
+                        <mxPoint x="720" y="356" as="sourcePoint"/>
+                        <mxPoint x="905" y="260" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="40" value="IFilterContext" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" vertex="1" parent="1">
+                    <mxGeometry x="496" y="530" width="370" height="78" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="EnableFilterExecution(bool enable = true):void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" vertex="1" parent="40">
+                    <mxGeometry y="26" width="370" height="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="ToDictionary(): IDictionary&lt;string, object?&gt;?" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" vertex="1" parent="40">
+                    <mxGeometry y="52" width="370" height="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;fontSize=17;strokeWidth=3;rounded=0;" edge="1" parent="1" source="40">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="680" y="470"/>
+                        </Array>
+                        <mxPoint x="530" y="520" as="sourcePoint"/>
+                        <mxPoint x="680" y="424" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
             </root>

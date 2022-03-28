@@ -13,5 +13,5 @@ public interface IFilterOperationInfo
     /// <summary>
     /// The value of this operation
     /// </summary>
-    IFilterValueInfo? Value { get; }
+    IFilterValueNode? Value { get; }
 }

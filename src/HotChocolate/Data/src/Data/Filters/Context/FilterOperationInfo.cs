@@ -7,7 +7,7 @@ public class FilterOperationInfo : IFilterOperationInfo
 {
     public FilterOperationInfo(
         IFilterOperationField field,
-        IFilterValueInfo value)
+        IFilterValueNode value)
     {
         Field = field;
         Value = value;
@@ -17,5 +17,5 @@ public class FilterOperationInfo : IFilterOperationInfo
     public IFilterOperationField Field { get; }
 
     /// <inheritdoc />
-    public IFilterValueInfo? Value { get; }
+    public IFilterValueNode? Value { get; }
 }

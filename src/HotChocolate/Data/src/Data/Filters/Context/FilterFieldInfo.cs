@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 public class FilterFieldInfo : IFilterFieldInfo
 {
-    public FilterFieldInfo(IFilterField field, IFilterValueInfo value)
+    public FilterFieldInfo(IFilterField field, IFilterValueNode value)
     {
         Field = field;
         Value = value;
@@ -15,5 +15,5 @@ public class FilterFieldInfo : IFilterFieldInfo
     public IFilterField Field { get; }
 
     /// <inheritdoc />
-    public IFilterValueInfo? Value { get; }
+    public IFilterValueNode? Value { get; }
 }

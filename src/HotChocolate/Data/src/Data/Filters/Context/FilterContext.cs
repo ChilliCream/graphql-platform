@@ -11,8 +11,9 @@ namespace HotChocolate.Data.Filters;
 /// <summary>
 /// Encapuslates all filter specific information
 /// </summary>
-public class FilterContext : FilterValue, IFilterContext
+public class FilterContext : IFilterContext
 {
+    private readonly FilterInfo _value;
     private readonly IResolverContext _context;
 
     /// <summary>
@@ -23,8 +24,8 @@ public class FilterContext : FilterValue, IFilterContext
         IType type,
         IValueNode valueNode,
         InputParser inputParser)
-        : base(type, valueNode, inputParser)
     {
+        _value = new FilterInfo(type, valueNode, inputParser);
         _context = context;
     }
 
@@ -42,10 +43,16 @@ public class FilterContext : FilterValue, IFilterContext
     }
 
     /// <inheritdoc />
-    public IDictionary<string, object?>? ToDictionary()
-        => Serialize(this) as IDictionary<string, object?>;
+    public IReadOnlyList<IFilterFieldInfo> GetFields() => _value.GetFields();
 
-    private object? Serialize(IFilterValueInfo? value)
+    /// <inheritdoc />
+    public IReadOnlyList<IFilterOperationInfo> GetOperations() => _value.GetOperations();
+
+    /// <inheritdoc />
+    public IDictionary<string, object?>? ToDictionary()
+        => Serialize(_value) as IDictionary<string, object?>;
+
+    private object? Serialize(IFilterValueNode? value)
     {
         switch (value)
         {
@@ -55,31 +62,29 @@ public class FilterContext : FilterValue, IFilterContext
             case IFilterValueCollection collection:
                 return collection.Select(Serialize).ToArray();
 
-            case IFilterValue v:
+            case IFilterValue filterValue:
+                return filterValue.Value;
+
+            case IFilterInfo info:
                 Dictionary<string, object?> data = new();
 
-                foreach (var field in v.GetFields())
+                foreach (var field in info.GetFields())
                 {
                     SerializeAndAssign(field.Field.Name, field.Value);
                 }
 
-                foreach (var operation in v.GetOperations())
+                foreach (var operation in info.GetOperations())
                 {
                     SerializeAndAssign(operation.Field.Name, operation.Value);
                 }
 
                 return data;
 
-                void SerializeAndAssign(string fieldName, IFilterValueInfo? value)
+                void SerializeAndAssign(string fieldName, IFilterValueNode? value)
                 {
                     if (value is null)
                     {
                         data[fieldName] = null;
-                    }
-                    else if (value.Type.NamedType().IsScalarType() &&
-                       value is IFilterValue filterValue)
-                    {
-                        data[fieldName] = filterValue.ParseValue();
                     }
                     else
                     {

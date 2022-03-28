@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Filters;
 /// <summary>
 /// Encapuslates all filter specific information
 /// </summary>
-public interface IFilterContext : IFilterValue
+public interface IFilterContext : IFilterInfo
 {
     /// <summary>
     /// Enables the filter exceution if <paramref name="skip"/> is <c>true</c>.

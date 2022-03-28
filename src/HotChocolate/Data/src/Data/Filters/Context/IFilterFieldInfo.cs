@@ -13,5 +13,5 @@ public interface IFilterFieldInfo
     /// <summary>
     /// The value of this field
     /// </summary>
-    IFilterValueInfo? Value { get; }
+    IFilterValueNode? Value { get; }
 }
