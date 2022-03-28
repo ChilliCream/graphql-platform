@@ -7,7 +7,7 @@ namespace HotChocolate.Stitching.Execution;
 
 internal interface IRemoteBatchRequestHandler
 {
-    Task<IBatchQueryResult> ExecuteAsync(
+    Task<IResponseStream> ExecuteAsync(
         IEnumerable<IQueryRequest> requestBatch,
         CancellationToken cancellationToken = default);
 }

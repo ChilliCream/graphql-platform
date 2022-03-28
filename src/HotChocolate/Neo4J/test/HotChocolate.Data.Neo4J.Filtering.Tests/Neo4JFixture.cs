@@ -58,12 +58,11 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     next => async context =>
                     {
                         await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out var queryString))
+                        if (context.ContextData.TryGetValue("query", out var queryString))
                         {
                             context.Result =
                                 QueryResultBuilder
-                                    .FromResult(result)
+                                    .FromResult(context.Result!.ExpectQueryResult())
                                     .SetContextData("query", queryString)
                                     .Create();
                         }

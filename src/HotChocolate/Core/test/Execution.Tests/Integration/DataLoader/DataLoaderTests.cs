@@ -10,6 +10,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
+using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -391,9 +392,9 @@ namespace HotChocolate.Execution.Integration.DataLoader
                     .BuildRequestExecutorAsync();
 
             IExecutionResult result = await executor.ExecuteAsync(
-                @"mutation { 
-                a: doSomething(key: ""a"") 
-                b: doSomething(key: ""b"") 
+                @"mutation {
+                a: doSomething(key: ""a"")
+                b: doSomething(key: ""b"")
             }");
 
             result.MatchSnapshot();
@@ -523,7 +524,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
         public class CustomDataLoader : BatchDataLoader<string, string>
         {
             public CustomDataLoader(
-                IBatchScheduler batchScheduler, 
+                IBatchScheduler batchScheduler,
                 DataLoaderOptions? options = null)
                 : base(batchScheduler, options)
             {

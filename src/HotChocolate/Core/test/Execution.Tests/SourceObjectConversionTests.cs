@@ -32,8 +32,12 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync("{ foo { qux } }");
 
             // assert
-            Assert.True(result.Errors is null, "There should be no errors.");
-            Assert.True(conversionTriggered, "The custom converter should have been hit.");
+            Assert.True(
+                Assert.IsType<QueryResult>(result).Errors is null,
+                "There should be no errors.");
+            Assert.True(
+                conversionTriggered,
+                "The custom converter should have been hit.");
             result.MatchSnapshot();
         }
 

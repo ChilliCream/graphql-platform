@@ -48,7 +48,7 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
             await batchResult.MatchSnapshotAsync();
@@ -98,7 +98,7 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
             await batchResult.MatchSnapshotAsync();
@@ -150,7 +150,7 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
             await batchResult.MatchSnapshotAsync();
@@ -232,7 +232,7 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
             await batchResult.MatchSnapshotAsync();
@@ -275,7 +275,7 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
             await batchResult.MatchSnapshotAsync();
@@ -326,7 +326,7 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
             await batchResult.MatchSnapshotAsync();

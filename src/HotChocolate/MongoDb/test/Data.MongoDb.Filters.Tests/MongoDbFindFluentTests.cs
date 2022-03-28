@@ -144,7 +144,6 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             res2.MatchDocumentSnapshot("2020-01-12");
         }
-
         public class Foo
         {
             [BsonId]
@@ -172,9 +171,8 @@ namespace HotChocolate.Data.MongoDb.Filters
 
         private static IRequestExecutor CreateSchema<TEntity>(
             Func<IExecutable<TEntity>> resolver)
-            where TEntity : class
-        {
-            return new ServiceCollection()
+            where TEntity : class 
+            => new ServiceCollection()
                 .AddGraphQL()
                 .AddFiltering(x => x.AddMongoDbDefaults())
                 .AddQueryType(
@@ -182,28 +180,25 @@ namespace HotChocolate.Data.MongoDb.Filters
                         .Name("Query")
                         .Field("root")
                         .Type<ListType<ObjectType<TEntity>>>()
-                        .Resolve(
-                            async ctx => await new ValueTask<IExecutable<TEntity>>(resolver()))
-                        .Use(
-                            next => async context =>
+                        .Resolve(async _ => await new ValueTask<IExecutable<TEntity>>(resolver()))
+                        .Use(next => async context =>
+                        {
+                            await next(context);
+                            if (context.Result is IExecutable executable)
                             {
-                                await next(context);
-                                if (context.Result is IExecutable executable)
-                                {
-                                    context.ContextData["query"] = executable.Print();
-                                }
-                            })
+                                context.ContextData["query"] = executable.Print();
+                            }
+                        })
                         .UseFiltering<FilterInputType<TEntity>>())
                 .UseRequest(
                     next => async context =>
                     {
                         await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out object? queryString))
+                        if (context.ContextData.TryGetValue("query", out object? queryString))
                         {
                             context.Result =
                                 QueryResultBuilder
-                                    .FromResult(result)
+                                    .FromResult(context.Result!.ExpectQueryResult())
                                     .SetContextData("query", queryString)
                                     .Create();
                         }
@@ -215,6 +210,5 @@ namespace HotChocolate.Data.MongoDb.Filters
                 .GetRequestExecutorAsync()
                 .GetAwaiter()
                 .GetResult();
-        }
     }
 }

@@ -1,8 +1,5 @@
 using System;
-using System.Buffers;
-using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing;
 

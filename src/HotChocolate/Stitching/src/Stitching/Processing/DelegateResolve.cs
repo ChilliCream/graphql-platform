@@ -156,7 +156,7 @@ internal sealed class DelegateResolve
         return true;
     }
 
-    private static async Task<IReadOnlyQueryResult> ExecuteQueryAsync(
+    private static async Task<IQueryResult> ExecuteQueryAsync(
         IResolverContext context,
         IQueryRequest request,
         string schemaName)
@@ -168,7 +168,7 @@ internal sealed class DelegateResolve
                 context.RequestAborted)
                 .ConfigureAwait(false);
 
-        if (result is IReadOnlyQueryResult queryResult)
+        if (result is IQueryResult queryResult)
         {
             return queryResult;
         }

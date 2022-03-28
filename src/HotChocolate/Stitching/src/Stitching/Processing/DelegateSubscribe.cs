@@ -61,7 +61,7 @@ internal sealed class DelegateSubscribe
 
         public async IAsyncEnumerable<object> ReadEventsAsync()
         {
-            await using SubscriptionResult result =
+            await using ResponseStream result =
                 await ExecuteSubscribeAsync(
                         _context,
                         _request,
@@ -79,7 +79,7 @@ internal sealed class DelegateSubscribe
         public ValueTask DisposeAsync() => default;
     }
 
-    private static async ValueTask<SubscriptionResult> ExecuteSubscribeAsync(
+    private static async ValueTask<ResponseStream> ExecuteSubscribeAsync(
         IResolverContext context,
         IQueryRequest request,
         string schemaName)
@@ -91,7 +91,7 @@ internal sealed class DelegateSubscribe
                 context.RequestAborted)
                 .ConfigureAwait(false);
 
-        if (result is SubscriptionResult subscriptionResult)
+        if (result is ResponseStream subscriptionResult)
         {
             return subscriptionResult;
         }
