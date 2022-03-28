@@ -140,17 +140,17 @@ public ref partial struct Utf8GraphQLParser
 
     private bool SkipDot() => _reader.Skip(TokenKind.Dot);
 
-    private bool SkipRepeatableKeyword() =>
-        SkipKeyword(GraphQLKeywords.Repeatable);
+    private bool SkipRepeatableKeyword()
+        => SkipKeyword(GraphQLKeywords.Repeatable);
 
-    private bool SkipImplementsKeyword() =>
-        SkipKeyword(GraphQLKeywords.Implements);
+    private bool SkipImplementsKeyword()
+        => SkipKeyword(GraphQLKeywords.Implements);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipKeyword(ReadOnlySpan<byte> keyword)
     {
-        if (_reader.Kind == TokenKind.Name
-            && _reader.Value.SequenceEqual(keyword))
+        if (_reader.Kind == TokenKind.Name &&
+            _reader.Value.SequenceEqual(keyword))
         {
             MoveNext();
             return true;
@@ -166,6 +166,6 @@ public ref partial struct Utf8GraphQLParser
         return description;
     }
 
-    private SyntaxException Unexpected(TokenKind kind) =>
-        new(_reader, UnexpectedToken, Print(kind));
+    private SyntaxException Unexpected(TokenKind kind)
+        => new(_reader, UnexpectedToken, Print(kind));
 }

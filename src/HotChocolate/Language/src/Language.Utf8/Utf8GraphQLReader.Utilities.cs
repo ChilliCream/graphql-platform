@@ -110,9 +110,14 @@ public ref partial struct Utf8GraphQLReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool MoveNext()
     {
-        while (Read() && _kind == TokenKind.Comment)
-        { }
-        return !IsEndOfStream();
+        bool read;
+
+        do
+        {
+            read = Read();
+        } while (read && _kind == TokenKind.Comment);
+
+        return read;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

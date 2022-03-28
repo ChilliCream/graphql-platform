@@ -697,7 +697,7 @@ ReadNameToken_Next:
     /// Sets the state to a new line.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void NewLine()
+    private void NewLine()
     {
         _line++;
         _lineStart = _position;
@@ -711,7 +711,7 @@ ReadNameToken_Next:
     /// The number of lines to skip.
     /// </param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void NewLine(int lines)
+    private void NewLine(int lines)
     {
         if (lines < 1)
         {
@@ -730,14 +730,14 @@ ReadNameToken_Next:
     /// Updates the column index.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void UpdateColumn() => _column = 1 + _position - _lineStart;
+    private void UpdateColumn() => _column = 1 + _position - _lineStart;
 
     /// <summary>
     /// Checks if the lexer source pointer has reached
     /// the end of the GraphQL source text.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsEndOfStream() => _position >= _length;
+    private bool IsEndOfStream() => _position >= _length;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsEndOfStream(int position) => position >= _length;
