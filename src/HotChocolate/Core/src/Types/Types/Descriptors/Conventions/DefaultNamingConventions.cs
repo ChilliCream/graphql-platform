@@ -341,8 +341,17 @@ public class DefaultNamingConventions
                 nameof(fieldName));
         }
 
-        return fieldName.Length > 1
-            ? fieldName.Substring(0, 1).ToLowerInvariant() + fieldName.Substring(1)
-            : fieldName.ToLowerInvariant();
+        if(fieldName.Length < 2)
+            return fieldName.ToLowerInvariant();
+
+        var lastUpperCaseIndex = 0;
+
+        for (var i = 0; i < fieldName.Length; i++)
+        {
+            if (char.IsUpper(fieldName[i]))
+                lastUpperCaseIndex = i;
+        }
+
+        return fieldName[..lastUpperCaseIndex].ToLowerInvariant() + fieldName[lastUpperCaseIndex..];
     }
 }
