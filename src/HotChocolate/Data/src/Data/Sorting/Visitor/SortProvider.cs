@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -15,9 +16,9 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class SortProvider<TContext>
-    : Convention<SortProviderDefinition>,
-      ISortProvider,
-      ISortProviderConvention
+    : Convention<SortProviderDefinition>
+    , ISortProvider
+    , ISortProviderConvention
     where TContext : ISortVisitorContext
 {
     private readonly List<ISortFieldHandler<TContext>> _fieldHandlers =
@@ -172,4 +173,10 @@ public abstract class SortProvider<TContext>
         IObjectFieldDescriptor descriptor)
     {
     }
+
+    public virtual ISortMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        ISortInputTypeDefinition typeDefinition,
+        ISortFieldDefinition fieldDefinition)
+        => null;
 }
