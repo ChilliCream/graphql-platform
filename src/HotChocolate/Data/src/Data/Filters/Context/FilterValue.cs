@@ -33,18 +33,16 @@ public class FilterValue : FilterValueInfo, IFilterValue
     public IReadOnlyList<IFilterFieldInfo> GetFields()
     {
         Initialize();
-        return _fieldInfos;
+        return _fieldInfos!;
     }
 
     /// <inheritdoc />
     public IReadOnlyList<IFilterOperationInfo> GetOperations()
     {
         Initialize();
-        return _operationInfos;
+        return _operationInfos!;
     }
 
-    [MemberNotNull(nameof(_fieldInfos))]
-    [MemberNotNull(nameof(_operationInfos))]
     private void Initialize()
     {
         if (_fieldInfos is not null && _operationInfos is not null)
