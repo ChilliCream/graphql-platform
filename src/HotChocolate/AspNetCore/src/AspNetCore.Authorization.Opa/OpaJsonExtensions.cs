@@ -1,7 +1,10 @@
 #if NET6_0
 using System.Net.Http.Json;
 #endif
+using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HotChocolate.AspNetCore.Authorization;
 

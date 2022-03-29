@@ -51,15 +51,12 @@ public class AuthorizationTestData : IEnumerable<object[]>
             {
                 o.ConnectionTimeout = TimeSpan.FromSeconds(60);
             })
-            .AddOpaResponseHandler<HasAgeDefinedResponse>("graphql/authz/has_age_defined",
-                context =>
-                {
-                    return context.Result switch
-                    {
-                        { Allow: true } => new QueryResponse<bool?> { Result = true },
-                        _ => new QueryResponse<bool?> { Result = false }
-                    };
-                })
+            .AddOpaResultHandler<HasAgeDefinedResponse>(Policies.HasDefinedAge,
+               x => x switch
+               {
+                   { Result.Allow: true } => x.Allowed(),
+                   _ => x.NotAllowed(),
+               })
             .UseField(_schemaMiddleware);
 
     private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
@@ -70,14 +67,11 @@ public class AuthorizationTestData : IEnumerable<object[]>
             {
                 o.ConnectionTimeout = TimeSpan.FromSeconds(60);
             })
-            .AddOpaResponseHandler<HasAgeDefinedResponse>("graphql/authz/has_age_defined",
-               context =>
+            .AddOpaResultHandler<HasAgeDefinedResponse>(Policies.HasDefinedAge,
+                x => x switch
                 {
-                    return context.Result switch
-                    {
-                        { Allow: true } => new QueryResponse<bool?> { Result = true },
-                        _ => new QueryResponse<bool?> { Result = false }
-                    };
+                    { Result.Allow: true } => x.Allowed(),
+                    _ => x.NotAllowed(),
                 })
             .UseField(_schemaMiddleware);
 

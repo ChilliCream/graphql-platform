@@ -1,3 +1,6 @@
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -23,7 +26,6 @@ public class OpaAuthorizationHandler : IAuthorizationHandler
         AuthorizeDirective directive)
     {
         IOpaService? opaService = context.Services.GetRequiredService<IOpaService>();
-        IOpaDecision? opaDecision = context.Services.GetRequiredService<IOpaDecision>();
         IOpaQueryRequestFactory? factory = context.Services.GetRequiredService<IOpaQueryRequestFactory>();
         IOptions<OpaOptions> options = context.Services.GetRequiredService<IOptions<OpaOptions>>();
 
@@ -34,13 +36,6 @@ public class OpaAuthorizationHandler : IAuthorizationHandler
 
         if (httpResponse is null) throw new InvalidOperationException("Opa response must not be null");
 
-        if (!options.Value.PolicyResultHandlers.TryGetValue(policyPath, out IPolicyResultHandler? handler))
-        {
-            throw new InvalidOperationException($"No policy result handler registered for policy: '{policyPath}'");
-        }
-
-        ResponseBase? response = await handler.HandleAsync(policyPath, httpResponse, context);
-        AuthorizeResult decision = opaDecision.Map(response);
-        return decision;
+        return await options.Value.GetResultHandlerFor(policyPath).HandleAsync(policyPath, httpResponse, context);
     }
 }

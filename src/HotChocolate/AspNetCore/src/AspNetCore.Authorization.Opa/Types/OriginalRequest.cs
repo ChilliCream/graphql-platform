@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Extensions.Primitives;
 
 namespace HotChocolate.AspNetCore.Authorization;
