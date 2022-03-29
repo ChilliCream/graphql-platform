@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using NodaTime.Text;
 using Xunit;
@@ -41,24 +40,21 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void QueryReturns()
         {
             IExecutionResult? result = testExecutor.Execute("query { test: hours }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("+02", queryResult!.Data!["test"]);
+            Assert.Equal("+02", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsWithMinutes()
         {
             IExecutionResult? result = testExecutor.Execute("query { test: hoursAndMinutes }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("+02:35", queryResult!.Data!["test"]);
+            Assert.Equal("+02:35", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsWithZ()
         {
             IExecutionResult? result = testExecutor.Execute("query { test: zOffset }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("Z", queryResult!.Data!["test"]);
+            Assert.Equal("Z", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -69,8 +65,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: Offset!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "+02")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("+03:05", queryResult!.Data!["test"]);
+            Assert.Equal("+03:05", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -81,8 +76,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: Offset!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "+02:35")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("+03:40", queryResult!.Data!["test"]);
+            Assert.Equal("+03:40", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -93,9 +87,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: Offset!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "18:30:13+02")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
 
         [Fact]
@@ -105,8 +98,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"+02\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("+03:05", queryResult!.Data!["test"]);
+            Assert.Equal("+03:05", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -116,8 +108,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"+02:35\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("+03:40", queryResult!.Data!["test"]);
+            Assert.Equal("+03:40", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -127,8 +118,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"Z\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("+01:05", queryResult!.Data!["test"]);
+            Assert.Equal("+01:05", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -138,11 +128,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"18:30:13+02\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
-            Assert.Null(queryResult.Errors[0].Code);
-            Assert.Equal("Unable to deserialize string to Offset", queryResult.Errors[0].Message);
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Equal(
+                "Unable to deserialize string to Offset", 
+                result.ExpectQueryResult().Errors![0].Message);
         }
 
         [Fact]

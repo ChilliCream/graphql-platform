@@ -111,7 +111,7 @@ internal sealed class RemoteRequestScheduler : IRemoteRequestScheduler
     {
         try
         {
-            IBatchQueryResult batchQueryResult =
+            IResponseStream batchQueryResult =
                 await Executor.ExecuteBatchAsync(
                     _bufferedRequests.Select(t => t.Request),
                     true,

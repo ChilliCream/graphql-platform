@@ -194,6 +194,9 @@ public class SortTypeInterceptor : TypeInterceptor
                     field.Type = field.Type!.With(scope: completionContext.Scope);
                 }
 
+                sortFieldDefinition.Metadata =
+                     convention.CreateMetaData(completionContext, definition, sortFieldDefinition);
+
                 if (sortFieldDefinition.Handler is null)
                 {
                     if (convention.TryGetFieldHandler(

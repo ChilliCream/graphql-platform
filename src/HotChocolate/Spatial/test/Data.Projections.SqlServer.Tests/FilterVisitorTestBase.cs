@@ -84,12 +84,11 @@ namespace HotChocolate.Data.Projections.Spatial
                 {
                     await next(context);
 
-                    if (context.Result is IReadOnlyQueryResult result &&
-                        context.ContextData.TryGetValue("sql", out var queryString))
+                    if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
                             QueryResultBuilder
-                                .FromResult(result)
+                                .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("sql", queryString)
                                 .Create();
                     }

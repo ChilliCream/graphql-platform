@@ -1,6 +1,5 @@
-using System.Threading.Tasks;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
+using HotChocolate.Tests;
 using Xunit;
 
 namespace HotChocolate.Execution

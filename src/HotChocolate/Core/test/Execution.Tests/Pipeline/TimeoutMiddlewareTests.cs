@@ -45,9 +45,9 @@ namespace HotChocolate.Execution.Pipeline
                 .AddSubscriptionType<Subscriptions>()
                 .ExecuteRequestAsync("subscription { onFoo }", cancellationToken: cts.Token);
 
-            SubscriptionResult stream = Assert.IsType<SubscriptionResult>(result);
+            ResponseStream responseStream = Assert.IsType<ResponseStream>(result);
 
-            IAsyncEnumerable<IQueryResult> enumerable = stream.ReadResultsAsync();
+            IAsyncEnumerable<IQueryResult> enumerable = responseStream.ReadResultsAsync();
             IAsyncEnumerator<IQueryResult> enumerator = enumerable.GetAsyncEnumerator(
                 CancellationToken.None);
 

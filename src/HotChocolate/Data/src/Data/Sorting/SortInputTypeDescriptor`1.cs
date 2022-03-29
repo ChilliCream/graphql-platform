@@ -101,23 +101,31 @@ public class SortInputTypeDescriptor<T>
     /// <inheritdoc />
     public ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember)
     {
-        if (propertyOrMember.ExtractMember() is PropertyInfo m)
+        switch (propertyOrMember.TryExtractMember())
         {
-            SortFieldDescriptor? fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Member == m);
+            case PropertyInfo m:
+                SortFieldDescriptor? fieldDescriptor =
+                    Fields.FirstOrDefault(t => t.Definition.Member == m);
 
-            if (fieldDescriptor is null)
-            {
-                fieldDescriptor = SortFieldDescriptor.New(Context, Definition.Scope, m);
+                if (fieldDescriptor is null)
+                {
+                    fieldDescriptor = SortFieldDescriptor.New(Context, Definition.Scope, m);
+                    Fields.Add(fieldDescriptor);
+                }
+
+                return fieldDescriptor;
+
+            case MethodInfo m:
+                throw new ArgumentException(
+                    SortInputTypeDescriptor_Field_OnlyProperties,
+                    nameof(propertyOrMember));
+
+            default:
+                fieldDescriptor = SortFieldDescriptor
+                    .New(Context, Definition.Scope, propertyOrMember);
                 Fields.Add(fieldDescriptor);
-            }
-
-            return fieldDescriptor;
+                return fieldDescriptor;
         }
-
-        throw new ArgumentException(
-            SortInputTypeDescriptor_Field_OnlyProperties,
-            nameof(propertyOrMember));
     }
 
     /// <inheritdoc />

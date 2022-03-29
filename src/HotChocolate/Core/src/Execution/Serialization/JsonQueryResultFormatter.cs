@@ -13,12 +13,12 @@ using static HotChocolate.Execution.Serialization.JsonConstants;
 
 namespace HotChocolate.Execution.Serialization;
 
-public sealed class JsonQueryResultSerializer : IQueryResultSerializer
+public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 {
     private readonly JsonWriterOptions _options;
 
     /// <summary>
-    /// Creates a new instance of <see cref="JsonQueryResultSerializer" />.
+    /// Creates a new instance of <see cref="JsonQueryResultFormatter" />.
     /// </summary>
     /// <param name="indented">
     /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
@@ -30,7 +30,7 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     /// <param name="encoder">
     /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
     /// </param>
-    public JsonQueryResultSerializer(bool indented = false, JavaScriptEncoder? encoder = null)
+    public JsonQueryResultFormatter(bool indented = false, JavaScriptEncoder? encoder = null)
     {
         _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
     }
@@ -44,7 +44,7 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
 
         using var buffer = new ArrayWriter();
 
-        Serialize(result, buffer);
+        Format(result, buffer);
 
         fixed (byte* b = buffer.GetInternalBuffer())
         {
@@ -105,7 +105,7 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     }
 
     /// <inheritdoc />
-    public void Serialize(IQueryResult result, IBufferWriter<byte> writer)
+    public void Format(IQueryResult result, IBufferWriter<byte> writer)
     {
         if (result is null)
         {
@@ -123,9 +123,9 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     }
 
     /// <inheritdoc />
-    public async Task SerializeAsync(
+    public async Task FormatAsync(
         IQueryResult result,
-        Stream stream,
+        Stream outputStream,
         CancellationToken cancellationToken = default)
     {
         if (result is null)
@@ -133,12 +133,12 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
             throw new ArgumentNullException(nameof(result));
         }
 
-        if (stream is null)
+        if (outputStream is null)
         {
-            throw new ArgumentNullException(nameof(stream));
+            throw new ArgumentNullException(nameof(outputStream));
         }
 
-        await using var writer = new Utf8JsonWriter(stream, _options);
+        await using var writer = new Utf8JsonWriter(outputStream, _options);
 
         WriteResult(writer, result);
 

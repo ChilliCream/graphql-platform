@@ -37,7 +37,7 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 
@@ -77,7 +77,7 @@ namespace HotChocolate.Execution
                             .SetVariableValue("stream", false)
                             .Create());
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 
@@ -119,7 +119,7 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 
@@ -173,7 +173,7 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 
@@ -200,7 +200,7 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 
@@ -228,7 +228,7 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 
@@ -256,7 +256,7 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 
