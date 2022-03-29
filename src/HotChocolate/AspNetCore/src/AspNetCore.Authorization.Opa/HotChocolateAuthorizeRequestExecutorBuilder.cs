@@ -36,7 +36,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         {
             IOptions<OpaOptions>? options = f.GetRequiredService<IOptions<OpaOptions>>();
             c.BaseAddress = options.Value.BaseAddress;
-            c.Timeout = options.Value.ConnectionTimeout;
+            c.Timeout = TimeSpan.FromMilliseconds(options.Value.TimeoutMs);
         });
 
         builder.Services.AddOptions<OpaOptions>().Configure<IServiceProvider>((o, f) =>

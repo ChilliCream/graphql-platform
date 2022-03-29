@@ -13,7 +13,7 @@ public abstract class PolicyResultHandlerBase<T> : IPolicyResultHandler
     protected abstract Task<IOpaAuthzResult<T>> MakeDecision(PolicyResultContext<T> context);
     protected virtual Task OnAllowed(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
     protected virtual Task OnNotAllowed(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
-    protected virtual Task OnPolicNotFound(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
+    protected virtual Task OnPolicyNotFound(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
     protected virtual Task OnNotAuthenticated(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
     protected virtual Task OnNoDefaultPolicy(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
 
@@ -43,7 +43,7 @@ public abstract class PolicyResultHandlerBase<T> : IPolicyResultHandler
                 await OnNoDefaultPolicy(context, opaAuthzResult);
                 break;
             case AuthorizeResult.PolicyNotFound:
-                await OnPolicNotFound(context, opaAuthzResult);
+                await OnPolicyNotFound(context, opaAuthzResult);
                 break;
             default:
                 throw new ArgumentOutOfRangeException($"{opaAuthzResult.Result}");
