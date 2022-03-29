@@ -7,10 +7,17 @@ import input.request
 
 default allow = false
 
-input["token"] = replace(request.headers["Authorization"], "Bearer ", "")
+valid_jwt = token {
+  token := replace(request.headers["Authorization"], "Bearer ", "")
+  startswith(token, "eyJhbG") # a toy validation
+}
 
-claims := io.jwt.decode(input.token)[1]
+claims = cl {
+  cl := io.jwt.decode(valid_jwt)[1]
+  valid_jwt
+}
 
 allow {
+  valid_jwt
   claims.birthdate
 }

@@ -17,12 +17,12 @@ internal static class OpaJsonExtensions
 #endif
     }
 
-    internal static async Task<QueryResponse?> QueryResponseFromJsonAsync(this HttpContent content, JsonSerializerOptions options, CancellationToken token)
+    internal static async Task<T> FromJsonAsync<T>(this HttpContent content, JsonSerializerOptions options, CancellationToken token)
     {
 #if NET6_0
-        return await content.ReadFromJsonAsync<QueryResponse>(options, token).ConfigureAwait(false);
+        return await content.ReadFromJsonAsync<T>(options, token).ConfigureAwait(false);
 #else
-        return await JsonSerializer.DeserializeAsync<QueryResponse>(await content.ReadAsStreamAsync().ConfigureAwait(false), options, token).ConfigureAwait(false);
+        return await JsonSerializer.DeserializeAsync<T>(await content.ReadAsStreamAsync().ConfigureAwait(false), options, token).ConfigureAwait(false);
 #endif
     }
 }

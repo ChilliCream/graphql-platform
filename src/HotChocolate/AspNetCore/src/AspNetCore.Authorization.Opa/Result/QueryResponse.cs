@@ -5,11 +5,11 @@ namespace HotChocolate.AspNetCore.Authorization;
 
 public abstract class ResponseBase { }
 
-public sealed class QueryResponse : ResponseBase
+public sealed class QueryResponse<T> : ResponseBase
 {
     public Guid? DecisionId { get; set; }
-    [JsonConverter(typeof(OpaResultFieldConverter))]
-    public bool? Result { get; set; }
+    //[JsonConverter(typeof(OpaResultFieldConverter))]
+    public T? Result { get; set; }
 }
 
 public sealed class PolicyNotFound : ResponseBase

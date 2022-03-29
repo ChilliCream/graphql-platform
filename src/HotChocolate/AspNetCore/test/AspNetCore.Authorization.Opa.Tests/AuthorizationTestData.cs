@@ -1,19 +1,32 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text.Json;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
+public class HasAgeDefinedResponse
+{
+    public bool Allow { get; set; }
+    public Claims Claims { get; set; }
+}
+
+public class Claims
+{
+    public string Birthdate { get; set; }
+    public long Iat { get; set; }
+    public string Name { get; set; }
+    public string Sub { get; set; }
+}
+
 public class AuthorizationTestData : IEnumerable<object[]>
 {
     private readonly string SchemaCode = @"
             type Query {
                 default: String @authorize
-                age: String @authorize(policy: ""graphql/authz/has_age_defined/allow"")
+                age: String @authorize(policy: ""graphql/authz/has_age_defined"")
                 roles: String @authorize(roles: [""a""])
                 roles_ab: String @authorize(roles: [""a"" ""b""])
                 piped: String
@@ -38,6 +51,15 @@ public class AuthorizationTestData : IEnumerable<object[]>
             {
                 o.ConnectionTimeout = TimeSpan.FromSeconds(60);
             })
+            .AddOpaResponseHandler<HasAgeDefinedResponse>("graphql/authz/has_age_defined",
+                context =>
+                {
+                    return context.Result switch
+                    {
+                        { Allow: true } => new QueryResponse<bool?> { Result = true },
+                        _ => new QueryResponse<bool?> { Result = false }
+                    };
+                })
             .UseField(_schemaMiddleware);
 
     private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
@@ -48,6 +70,15 @@ public class AuthorizationTestData : IEnumerable<object[]>
             {
                 o.ConnectionTimeout = TimeSpan.FromSeconds(60);
             })
+            .AddOpaResponseHandler<HasAgeDefinedResponse>("graphql/authz/has_age_defined",
+               context =>
+                {
+                    return context.Result switch
+                    {
+                        { Allow: true } => new QueryResponse<bool?> { Result = true },
+                        _ => new QueryResponse<bool?> { Result = false }
+                    };
+                })
             .UseField(_schemaMiddleware);
 
     public IEnumerator<object[]> GetEnumerator()
