@@ -320,6 +320,51 @@ public class SortingContextTests
         context!.ToList().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task SortingContext_Should_NotFail_When_SortingArgumentHasAListValue()
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseSorting<TestSortType>()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = @"
+            {
+                test(order: {title: 1, id: [1,2,3]}) {
+                    title
+                }
+            }
+        ";
+
+        await executor.ExecuteAsync(query);
+
+        // assert
+        Assert.NotNull(context);
+        context!.ToList().MatchSnapshot();
+    }
+
+    public class TestSortType : SortInputType<Book>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<Book> descriptor)
+        {
+            descriptor.Field(x => x.Id).Type<ListType<IntType>>();
+            descriptor.Field(x => x.Title).Type<NonNullType<IntType>>();
+        }
+    }
+
     public class Book
     {
         public int Id { get; set; }

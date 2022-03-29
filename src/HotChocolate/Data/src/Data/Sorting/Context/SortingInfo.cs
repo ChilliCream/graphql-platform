@@ -58,7 +58,6 @@ public class SortingInfo : SortingValueNode, ISortingInfo
                     {
                         fieldInfos ??= new();
                         fieldInfos.Add(new SortingFieldInfo(fieldInfo, value));
-                        break;
                     }
                 }
             }
