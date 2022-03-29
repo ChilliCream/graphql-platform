@@ -1,5 +1,6 @@
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -24,9 +25,22 @@ public class OpaAuthorizationHandler : IAuthorizationHandler
         IOpaService? opaService = context.Services.GetRequiredService<IOpaService>();
         IOpaDecision? opaDecision = context.Services.GetRequiredService<IOpaDecision>();
         IOpaQueryRequestFactory? factory = context.Services.GetRequiredService<IOpaQueryRequestFactory>();
+        IOptions<OpaOptions> options = context.Services.GetRequiredService<IOptions<OpaOptions>>();
 
-        ResponseBase? response = await opaService.QueryAsync(directive.Policy ?? string.Empty,
+        var policyPath = directive.Policy ?? string.Empty;
+
+        HttpResponseMessage? httpResponse = await opaService.QueryAsync(policyPath,
             factory.CreateRequest(context, directive), context.RequestAborted).ConfigureAwait(false);
-        return opaDecision.Map(response);
+
+        if (httpResponse is null) throw new InvalidOperationException("Opa response must not be null");
+
+        if (!options.Value.PolicyResultHandlers.TryGetValue(policyPath, out IPolicyResultHandler? handler))
+        {
+            throw new InvalidOperationException($"No policy result handler registered for policy: '{policyPath}'");
+        }
+
+        ResponseBase? response = await handler.HandleAsync(policyPath, httpResponse, context);
+        AuthorizeResult decision = opaDecision.Map(response);
+        return decision;
     }
 }

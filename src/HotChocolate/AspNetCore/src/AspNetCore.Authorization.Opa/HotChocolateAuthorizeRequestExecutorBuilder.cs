@@ -3,6 +3,7 @@ using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -29,15 +30,16 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         builder.AddAuthorizationHandler<OpaAuthorizationHandler>();
         builder.Services.AddSingleton<IOpaQueryRequestFactory, DefaultQueryRequestFactory>();
         builder.Services.AddSingleton<IOpaDecision, DefaultOpaDecision>();
+        builder.Services.AddSingleton<DefaultPolicyResultHandler>();
         builder.Services.AddHttpClient<IOpaService, OpaService>((f, c) =>
         {
-            OpaOptions? options = f.GetRequiredService<OpaOptions>();
-            c.BaseAddress = options.BaseAddress;
-            c.Timeout = options.ConnectionTimeout;
+            IOptions<OpaOptions>? options = f.GetRequiredService<IOptions<OpaOptions>>();
+            c.BaseAddress = options.Value.BaseAddress;
+            c.Timeout = options.Value.ConnectionTimeout;
         });
-        builder.Services.AddSingleton(f =>
+
+        builder.Services.AddOptions<OpaOptions>().Configure<IServiceProvider>((o, f) =>
         {
-            var options = new OpaOptions();
             var jsonOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -48,10 +50,44 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
 #endif
             };
             jsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
-            options.JsonSerializerOptions = jsonOptions;
-            configure?.Invoke(f.GetRequiredService<IConfiguration>(), options);
-            return options;
+            o.JsonSerializerOptions = jsonOptions;
+            configure?.Invoke(f.GetRequiredService<IConfiguration>(), o);
         });
+
         return builder;
+    }
+
+    public static IRequestExecutorBuilder AddOpaResponseHandler<T>(this IRequestExecutorBuilder builder, string policyPath, Func<IServiceProvider, T?>? factory=null)
+        where T : class, IPolicyResultHandler
+    {
+        if (factory is not null)
+        {
+            builder.Services.AddSingleton(factory);
+        }
+        else
+        {
+            builder.Services.AddSingleton<T>();
+        }
+
+        builder.Services.AddOptions<OpaOptions>()
+            .Configure<IServiceProvider>((o, f) =>
+            {
+                o.PolicyResultHandlers.Add(policyPath, f.GetRequiredService<T>());
+            });
+        return builder;
+    }
+
+    public static IRequestExecutorBuilder AddOpaResponseHandlerAsync<T>(this IRequestExecutorBuilder builder,
+        string policyPath, Func<PolicyResultContext<T>, Task<ResponseBase>> func)
+    {
+        return builder.AddOpaResponseHandler(policyPath,
+            f => new DelegatePolicyResultHandler<T, ResponseBase>(func, f.GetRequiredService<IOptions<OpaOptions>>()));
+    }
+
+    public static IRequestExecutorBuilder AddOpaResponseHandler<T>(this IRequestExecutorBuilder builder,
+        string policyPath, Func<PolicyResultContext<T>, ResponseBase> func)
+    {
+        return builder.AddOpaResponseHandler(policyPath,
+            f => new DelegatePolicyResultHandler<T, ResponseBase>(ctx => Task.FromResult(func(ctx)), f.GetRequiredService<IOptions<OpaOptions>>()));
     }
 }
