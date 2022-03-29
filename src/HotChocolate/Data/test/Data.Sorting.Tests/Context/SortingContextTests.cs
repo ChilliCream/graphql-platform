@@ -361,7 +361,9 @@ public class SortingContextTests
         protected override void Configure(ISortInputTypeDescriptor<Book> descriptor)
         {
             descriptor.Field(x => x.Id).Type<ListType<IntType>>();
-            descriptor.Field(x => x.Author).Type<ListType<SortInputType<Author>>>();
+            descriptor
+                .Field(x => x.Author)
+                .Type<NonNullType<ListType<NonNullType<SortInputType<Author>>>>>();
             descriptor.Field(x => x.Title).Type<NonNullType<IntType>>();
         }
     }
