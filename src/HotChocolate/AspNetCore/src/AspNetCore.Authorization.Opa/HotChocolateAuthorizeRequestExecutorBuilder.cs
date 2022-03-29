@@ -1,8 +1,11 @@
+using System;
 using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -29,8 +32,6 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     {
         builder.AddAuthorizationHandler<OpaAuthorizationHandler>();
         builder.Services.AddSingleton<IOpaQueryRequestFactory, DefaultQueryRequestFactory>();
-        builder.Services.AddSingleton<IOpaDecision, DefaultOpaDecision>();
-        builder.Services.AddSingleton<DefaultPolicyResultHandler>();
         builder.Services.AddHttpClient<IOpaService, OpaService>((f, c) =>
         {
             IOptions<OpaOptions>? options = f.GetRequiredService<IOptions<OpaOptions>>();
@@ -57,7 +58,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddOpaResponseHandler<T>(this IRequestExecutorBuilder builder, string policyPath, Func<IServiceProvider, T?>? factory=null)
+    public static IRequestExecutorBuilder AddOpaResultHandler<T>(this IRequestExecutorBuilder builder, string policyPath, Func<IServiceProvider, T?>? factory=null)
         where T : class, IPolicyResultHandler
     {
         if (factory is not null)
@@ -77,17 +78,31 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddOpaResponseHandlerAsync<T>(this IRequestExecutorBuilder builder,
-        string policyPath, Func<PolicyResultContext<T>, Task<ResponseBase>> func)
+    public static IRequestExecutorBuilder AddOpaResultHandlerAsync<T>(this IRequestExecutorBuilder builder,
+        string policyPath, Func<PolicyResultContext<T>, Task<IOpaAuthzResult<T>>> func)
     {
-        return builder.AddOpaResponseHandler(policyPath,
-            f => new DelegatePolicyResultHandler<T, ResponseBase>(func, f.GetRequiredService<IOptions<OpaOptions>>()));
+        return builder.AddOpaResultHandler(policyPath,
+            f => new DelegatePolicyResultHandler<T>(func, f.GetRequiredService<IOptions<OpaOptions>>()));
     }
 
-    public static IRequestExecutorBuilder AddOpaResponseHandler<T>(this IRequestExecutorBuilder builder,
-        string policyPath, Func<PolicyResultContext<T>, ResponseBase> func)
+    public static IRequestExecutorBuilder AddOpaResultHandler<T>(this IRequestExecutorBuilder builder,
+        string policyPath, Func<PolicyResultContext<T>, IOpaAuthzResult<T>> makeDecisionFunc,
+        Action<IMiddlewareContext, IOpaAuthzResult<T>>? onAllowed = null
+
+        )
     {
-        return builder.AddOpaResponseHandler(policyPath,
-            f => new DelegatePolicyResultHandler<T, ResponseBase>(ctx => Task.FromResult(func(ctx)), f.GetRequiredService<IOptions<OpaOptions>>()));
+        return builder.AddOpaResultHandler(policyPath,
+            f =>
+                new DelegatePolicyResultHandler<T>(
+                    ctx => Task.FromResult(makeDecisionFunc(ctx)),
+                    f.GetRequiredService<IOptions<OpaOptions>>())
+                {
+                    OnAllowedFunc = onAllowed is not null ? (context, result) =>
+                        {
+                            onAllowed(context, result);
+                            return Task.CompletedTask;
+                        }
+                        : null
+                });
     }
 }

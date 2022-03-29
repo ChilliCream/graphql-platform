@@ -1,8 +1,10 @@
+using System.Net.Http;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
 public interface IPolicyResultHandler
 {
-    Task<ResponseBase?> HandleAsync(string policyPath, HttpResponseMessage response, IMiddlewareContext context);
+    Task<AuthorizeResult> HandleAsync(string policyPath, HttpResponseMessage response, IMiddlewareContext context);
 }

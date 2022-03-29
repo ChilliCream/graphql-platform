@@ -13,7 +13,7 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
         [Authorize]
         public string GetDefault() => "foo";
 
-        [Authorize(Policy = "graphql/authz/has_age_defined/allow")]
+        [Authorize(Policy = Policies.HasDefinedAge)]
         public string GetAge() => "foo";
 
         [Authorize(Roles = new[] { "a" })]
@@ -38,14 +38,11 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
             .AddOpaAuthorizationHandler((c, o) =>
             {
                 o.ConnectionTimeout = TimeSpan.FromSeconds(60);
-            }).AddOpaResponseHandler<HasAgeDefinedResponse>("graphql/authz/has_age_defined",
-                context =>
+            }).AddOpaResultHandler<HasAgeDefinedResponse>(Policies.HasDefinedAge,
+                x => x switch
                 {
-                    return context.Result switch
-                    {
-                        { Allow: true } => new QueryResponse<bool?> { Result = true },
-                        _ => new QueryResponse<bool?> { Result = false }
-                    };
+                    { Result.Allow: true } => x.Allowed(),
+                    _ => x.NotAllowed(),
                 });
 
     public IEnumerator<object[]> GetEnumerator()

@@ -4,7 +4,7 @@ namespace HotChocolate.AspNetCore.Authorization;
 
 public class PolicyResultContext<T>
 {
-    public PolicyResultContext(string policyPath, T? result, IMiddlewareContext context)
+    public PolicyResultContext(string policyPath, T result, IMiddlewareContext context)
     {
         PolicyPath = policyPath;
         Result = result;
