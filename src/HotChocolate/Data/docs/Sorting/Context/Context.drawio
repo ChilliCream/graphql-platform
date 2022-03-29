@@ -1,10 +1,10 @@
 <mxfile host="65bd71144e">
     <diagram id="Sr89QmnRuElkf7226DeY" name="Page-1">
-        <mxGraphModel dx="753" dy="409" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="684" dy="802" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="2" value="Filter Context" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=17;" parent="1" vertex="1">
+                <mxCell id="2" value="Sorting Context" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=17;" parent="1" vertex="1">
                     <mxGeometry x="40" y="50" width="240" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="5" value="ISortingValueInfo" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" parent="1" vertex="1">
@@ -70,7 +70,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="29" style="edgeStyle=none;html=1;entryX=-0.013;entryY=0.178;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;fontSize=17;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" target="13" edge="1" source="35">
+                <mxCell id="29" style="edgeStyle=none;html=1;entryX=-0.013;entryY=0.178;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;fontSize=17;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="35" target="13" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="50" y="411"/>
@@ -80,13 +80,13 @@
                         <mxPoint x="220" y="440" as="sourcePoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="33" value="ISortingValue" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" vertex="1" parent="1">
+                <mxCell id="33" value="ISortingValue" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" parent="1" vertex="1">
                     <mxGeometry x="140" y="372" width="220" height="52" as="geometry"/>
                 </mxCell>
-                <mxCell id="35" value="GetFields(): ISortingField[]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" vertex="1" parent="33">
+                <mxCell id="35" value="GetFields(): ISortingField[]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" parent="33" vertex="1">
                     <mxGeometry y="26" width="220" height="26" as="geometry"/>
                 </mxCell>
-                <mxCell id="36" style="edgeStyle=none;html=1;fontSize=17;strokeWidth=3;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="33">
+                <mxCell id="36" style="edgeStyle=none;html=1;fontSize=17;strokeWidth=3;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="33" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="250" y="352"/>
@@ -94,6 +94,29 @@
                         </Array>
                         <mxPoint x="200" y="352" as="sourcePoint"/>
                         <mxPoint x="440" y="300" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="37" value="ISortingContext" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=17;" vertex="1" parent="1">
+                    <mxGeometry x="130" y="510" width="370" height="104" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="ToList(): IDictionary&lt;string, object?&gt;[]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" vertex="1" parent="37">
+                    <mxGeometry y="26" width="370" height="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="GetFields(): ISortingField[][]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" vertex="1" parent="37">
+                    <mxGeometry y="52" width="370" height="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="EnableSortingExecution(enabled=true):void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=17;" vertex="1" parent="37">
+                    <mxGeometry y="78" width="370" height="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" style="edgeStyle=none;html=1;entryX=-0.017;entryY=0.156;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;fontSize=17;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" target="13">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="40" y="581"/>
+                            <mxPoint x="40" y="476"/>
+                            <mxPoint x="40" y="220"/>
+                        </Array>
+                        <mxPoint x="130" y="581" as="sourcePoint"/>
+                        <mxPoint x="67.00999999999999" y="391.02" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
             </root>
