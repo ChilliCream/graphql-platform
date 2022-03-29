@@ -37,7 +37,7 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
             .AddAuthorization()
             .AddOpaAuthorizationHandler((c, o) =>
             {
-                o.ConnectionTimeout = TimeSpan.FromSeconds(60);
+                o.TimeoutMs = 60000;
             }).AddOpaResultHandler<HasAgeDefinedResponse>(Policies.HasDefinedAge,
                 x => x switch
                 {
