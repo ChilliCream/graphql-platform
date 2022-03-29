@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -63,7 +63,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -78,7 +78,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -95,7 +95,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -110,7 +110,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -125,7 +125,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.ToJson().MatchSnapshot();
         }
 
@@ -152,7 +152,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync("{ __typename a }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -183,7 +183,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -202,7 +202,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync("{ __typename @upper a }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -221,7 +221,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 

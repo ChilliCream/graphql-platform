@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -29,12 +27,8 @@ internal sealed class SubscriptionRequestHandler : IRemoteRequestHandler
         IQueryRequest request,
         CancellationToken cancellationToken = default)
         => Task.FromResult<IExecutionResult>(
-            new SubscriptionResult(
-                () => new Subscription(
-                    _clientFactory,
-                    _targetSchema,
-                    CreateRequest(request)),
-                Array.Empty<IError>()));
+            new ResponseStream(
+                () => new Subscription(_clientFactory, _targetSchema, CreateRequest(request))));
 
     private static OperationRequest CreateRequest(IQueryRequest queryRequest)
         => new(queryRequest.Query!.ToString(),
@@ -64,11 +58,6 @@ internal sealed class SubscriptionRequestHandler : IRemoteRequestHandler
                 await _clientFactory.CreateClientAsync(_targetSchema, cancellationToken);
 
             SocketResult socketResult = await client.ExecuteAsync(_request, cancellationToken);
-
-            cancellationToken.Register(() =>
-            {
-                Debugger.Break();
-            });
 
             await foreach (OperationResult payload in
                 socketResult.ReadResultsAsync().WithCancellation(cancellationToken))

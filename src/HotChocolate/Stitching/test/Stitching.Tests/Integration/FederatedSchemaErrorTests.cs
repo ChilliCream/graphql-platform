@@ -115,7 +115,7 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
 
         // assert
         Assert.Collection(
-            result.Errors!.Select(t => t.Path!.ToString()).OrderBy(t => t),
+            result.ExpectQueryResult().Errors!.Select(t => t.Path!.ToString()).OrderBy(t => t),
             t => Assert.Equal("/a[0]/error", t),
             t => Assert.Equal("/b[0]/error", t),
             t => Assert.Equal("/b[1]/error", t));

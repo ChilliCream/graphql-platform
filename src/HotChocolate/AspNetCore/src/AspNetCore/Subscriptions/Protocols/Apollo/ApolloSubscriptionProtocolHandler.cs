@@ -15,7 +15,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 {
-    private readonly JsonQueryResultSerializer _serializer = new();
+    private readonly JsonQueryResultFormatter _formatter = new();
     private readonly ISocketSessionInterceptor _interceptor;
 
     public ApolloSubscriptionProtocolHandler(ISocketSessionInterceptor interceptor)
@@ -225,7 +225,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Data);
         jsonWriter.WritePropertyName(Payload);
-        _serializer.Serialize(result, jsonWriter);
+        _formatter.Serialize(result, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
@@ -243,7 +243,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
-        _serializer.Serialize(errors[0], jsonWriter);
+        _formatter.Serialize(errors[0], jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);

@@ -218,5 +218,23 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate", resourceCulture);
             }
         }
+        
+        internal static string ResponseStream_InvalidResultKind {
+            get {
+                return ResourceManager.GetString("ResponseStream_InvalidResultKind", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_ExpectResponseStream_NotResponseStream {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectResponseStream_NotResponseStream", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_ExpectQueryResult_NotQueryResult {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectQueryResult_NotQueryResult", resourceCulture);
+            }
+        }
     }
 }

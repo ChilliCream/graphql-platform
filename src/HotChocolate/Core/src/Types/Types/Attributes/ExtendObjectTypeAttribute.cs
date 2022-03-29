@@ -105,7 +105,7 @@ public sealed class ExtendObjectTypeAttribute
         {
             descriptor.Extend().OnBeforeCreate(d =>
             {
-                foreach (string fieldName in IgnoreProperties)
+                foreach (var fieldName in IgnoreProperties)
                 {
                     d.FieldIgnores.Add(new ObjectFieldBinding(
                         fieldName,

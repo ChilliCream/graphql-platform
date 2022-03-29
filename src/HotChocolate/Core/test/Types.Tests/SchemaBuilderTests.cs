@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Tests;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -35,11 +36,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType((Type)null, OperationType.Query);
+            void Action()
+                => SchemaBuilder.New().AddRootType(((Type)null)!, OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -143,11 +144,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType((ObjectType)null, OperationType.Query);
+            void Action()
+                => SchemaBuilder.New().AddRootType(((ObjectType)null)!, OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -215,12 +216,13 @@ namespace HotChocolate
             var fooType = new FooType();
 
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType(fooType, OperationType.Query)
-                .AddRootType(fooType, OperationType.Query);
+            void Action()
+                => SchemaBuilder.New()
+                    .AddRootType(fooType, OperationType.Query)
+                    .AddRootType(fooType, OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -392,11 +394,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .Use((FieldMiddleware)null);
+            void Action()
+                => SchemaBuilder.New().Use(((FieldMiddleware)null)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -405,12 +407,11 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddDocument(sp =>
-                    Utf8GraphQLParser.Parse("type Query { a: String }"))
-                .Use(next => context =>
+                .AddDocument(_ => Utf8GraphQLParser.Parse("type Query { a: String }"))
+                .Use(_ => context =>
                 {
                     context.Result = "foo";
-                    return default(ValueTask);
+                    return default;
                 })
                 .Create();
 
@@ -437,14 +438,14 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddDocument(sp =>
+                .AddDocument(_ =>
                     Utf8GraphQLParser.Parse("type Query { a: Foo }"))
-                .AddDocument(sp =>
+                .AddDocument(_ =>
                     Utf8GraphQLParser.Parse("type Foo { a: String }"))
-                .Use(next => context =>
+                .Use(_ => context =>
                 {
                     context.Result = "foo";
-                    return default(ValueTask);
+                    return default;
                 })
                 .Create();
 
@@ -1489,7 +1490,7 @@ namespace HotChocolate
         {
             int sum = 0;
             ISchema schema = SchemaBuilder.New()
-                .SetContextData("abc", o => 1)
+                .SetContextData("abc", _ => 1)
                 .SetContextData("abc", o => ((int)o) + 1)
                 .SetContextData("abc", o => sum = (int)o)
                 .AddQueryType(d => d
@@ -1512,7 +1513,7 @@ namespace HotChocolate
                 .TryAddSchemaInterceptor(new DummySchemaInterceptor(
                     c => c.ContextData["name"] = c.ContextData["name"] + "1"))
                 .TryAddTypeInterceptor(new DelegateTypeInterceptor(
-                    onAfterRegisterDependencies: (c, d, cd) =>
+                    onAfterRegisterDependencies: (c, d, _) =>
                     {
                         if (d is ObjectTypeDefinition def && def.Name.Equals("Query"))
                         {
@@ -1541,7 +1542,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1568,7 +1569,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1596,11 +1597,11 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
-                .AddConvention<IMockConvention>(sp => convention)
+                .AddConvention<IMockConvention>(_ => convention)
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
@@ -1623,7 +1624,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1651,7 +1652,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1678,7 +1679,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1706,11 +1707,11 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
-                .TryAddConvention<IMockConvention>(sp => convention)
+                .TryAddConvention<IMockConvention>(_ => convention)
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
@@ -1733,7 +1734,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1761,7 +1762,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1789,11 +1790,11 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
-                .AddConvention(typeof(IMockConvention),sp => convention)
+                .AddConvention(typeof(IMockConvention),_ => convention)
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
@@ -1816,7 +1817,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1844,7 +1845,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1872,11 +1873,11 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
-                .TryAddConvention(typeof(IMockConvention), sp => convention)
+                .TryAddConvention(typeof(IMockConvention), _ => convention)
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
@@ -1899,7 +1900,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1927,7 +1928,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1955,7 +1956,7 @@ namespace HotChocolate
                         .Field("foo")
                         .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1988,8 +1989,8 @@ namespace HotChocolate
                             {
                                 context = ctx;
                             }))
-                .AddConvention<IMockConvention>(sp => convention)
-                .AddConvention<IMockConvention>(sp => new MockConventionExtension())
+                .AddConvention<IMockConvention>(_ => convention)
+                .AddConvention<IMockConvention>(_ => new MockConventionExtension())
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
@@ -2098,7 +2099,7 @@ namespace HotChocolate
                         .Resolve("bar")
                         .Extend()
                         .OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))

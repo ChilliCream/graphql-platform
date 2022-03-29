@@ -1,8 +1,8 @@
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 
@@ -84,7 +84,7 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 
@@ -122,7 +122,7 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 
@@ -159,7 +159,7 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+            IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
             var results = new StringBuilder();
 

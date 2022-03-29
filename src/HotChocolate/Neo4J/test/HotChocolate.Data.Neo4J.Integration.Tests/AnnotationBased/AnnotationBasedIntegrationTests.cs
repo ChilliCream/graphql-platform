@@ -22,45 +22,45 @@ namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased
 
             IExecutionResult res1 = await tester.ExecuteAsync(
                 @"{
-                        actors {
-                            name
-                            actedIn {
-                                title
-                            }
+                    actors {
+                        name
+                        actedIn {
+                            title
                         }
-                    }");
+                    }
+                }");
 
             res1.MatchSnapshot("MoviesSchema_Actors_Query");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 @"{
-                        actors (where : {name : { startsWith : ""Keanu"" }}) {
-                            name
-                            actedIn {
-                                title
-                            }
+                    actors (where : {name : { startsWith : ""Keanu"" }}) {
+                        name
+                        actedIn {
+                            title
                         }
-                    }");
+                    }
+                }");
 
             res2.MatchSnapshot("MoviesSchema_Name_StartsWith_Actors_Query");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 @"{
-                        movies {
-                            title
-                        }
-                    }");
+                    movies {
+                        title
+                    }
+                }");
             res3.MatchSnapshot("MoviesSchema_Movies_Query");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 @"{
-                        actors(order: [{ name : ASC }]) {
-                            name
-                            actedIn {
-                                title
-                            }
+                    actors(order: [{ name : ASC }]) {
+                        name
+                        actedIn {
+                            title
                         }
-                    }");
+                    }
+                }");
             res4.MatchSnapshot("MoviesSchema_Name_Desc_Sort_Actors_Query");
         }
     }
