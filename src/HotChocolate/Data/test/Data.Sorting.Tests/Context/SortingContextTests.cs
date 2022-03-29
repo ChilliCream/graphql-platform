@@ -343,7 +343,7 @@ public class SortingContextTests
         // act
         const string query = @"
             {
-                test(order: {title: 1, id: [1,2,3]}) {
+                test(order: {title: 1, id: [1,2,3], author: [{name:DESC}]}) {
                     title
                 }
             }
@@ -361,6 +361,7 @@ public class SortingContextTests
         protected override void Configure(ISortInputTypeDescriptor<Book> descriptor)
         {
             descriptor.Field(x => x.Id).Type<ListType<IntType>>();
+            descriptor.Field(x => x.Author).Type<ListType<SortInputType<Author>>>();
             descriptor.Field(x => x.Title).Type<NonNullType<IntType>>();
         }
     }
