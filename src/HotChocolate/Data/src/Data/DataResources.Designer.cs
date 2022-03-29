@@ -177,6 +177,18 @@ namespace HotChocolate.Data {
             }
         }
 
+        internal static string QueryableSortProvider_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableSortProvider_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+
+        internal static string QueryableSorting_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableSorting_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+
         internal static string FilterConvention_CouldNotConvertValue {
             get {
                 return ResourceManager.GetString("FilterConvention_CouldNotConvertValue", resourceCulture);
