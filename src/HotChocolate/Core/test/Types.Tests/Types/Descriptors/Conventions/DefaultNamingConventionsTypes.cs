@@ -8,6 +8,7 @@ namespace HotChocolate.Types.Descriptors
 
         [InlineData("IOFile", "ioFile")]
         [InlineData("FooBar", "fooBar")]
+        [InlineData("FOOBarBaz", "fooBarBar")]
         [Theory]
         public void GetFormattedFieldName_ReturnsFormattedFieldName(
               string fieldName,
