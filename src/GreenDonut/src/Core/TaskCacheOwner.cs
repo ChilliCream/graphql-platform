@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using Microsoft.Extensions.ObjectPool;
 
 namespace GreenDonut
@@ -13,6 +14,7 @@ namespace GreenDonut
         private readonly ObjectPool<TaskCache> _pool;
         private readonly TaskCache _cache;
         private bool _disposed;
+        private readonly ConcurrentDictionary<string, TaskCache> _map = new();
 
         /// <summary>
         /// Rents a new cache from <see cref="TaskCachePool.Shared"/>.
@@ -37,6 +39,11 @@ namespace GreenDonut
         /// </summary>
         public ITaskCache Cache => _cache;
 
+        public ITaskCache CacheByKey(string key)
+        {
+            return _map.GetOrAdd(key, k => _pool.Get());
+        }
+
         /// <summary>
         /// Returns the rented cache back to the <see cref="ObjectPool{TaskCache}"/>.
         /// </summary>
@@ -45,6 +52,10 @@ namespace GreenDonut
             if (!_disposed)
             {
                 _pool.Return(_cache);
+                foreach (TaskCache cache in _map.Values)
+                {
+                    _pool.Return(cache);
+                }
                 _disposed = true;
             }
         }
