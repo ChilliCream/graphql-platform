@@ -18,7 +18,7 @@ public class FilterInfo : FilterValueNode, IFilterInfo
     private readonly InputParser _inputParser;
 
     /// <summary>
-    /// Creates a new instance of <see cref="FilterInfo"/>
+    /// Initializes a new instance of <see cref="FilterInfo"/>
     /// </summary>
     public FilterInfo(IType type, IValueNode valueNode, InputParser inputParser)
         : base(type, valueNode)
