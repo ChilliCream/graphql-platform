@@ -602,5 +602,23 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("GlobalIdInputValueFormatter_IdsHaveInvalidFormat", resourceCulture);
             }
         }
+
+        internal static string Sorting_DefinitionForTypeNotFound {
+            get {
+                return ResourceManager.GetString("Sorting_DefinitionForTypeNotFound", resourceCulture);
+            }
+        }
+
+        internal static string Sorting_FieldHadNoType {
+            get {
+                return ResourceManager.GetString("Sorting_FieldHadNoType", resourceCulture);
+            }
+        }
+
+        internal static string Sorting_InlineFilterTypeHadNoFields {
+            get {
+                return ResourceManager.GetString("Sorting_InlineFilterTypeHadNoFields", resourceCulture);
+            }
+        }
     }
 }

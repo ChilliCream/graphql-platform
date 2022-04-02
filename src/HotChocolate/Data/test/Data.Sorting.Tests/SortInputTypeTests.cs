@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Data.Sorting;
@@ -231,7 +232,7 @@ public class SortInputTypeTest
     }
 
     [Fact]
-    public void FilterInputType_Should_InfereType_When_ItIsAInterface()
+    public void SortInputType_Should_InfereType_When_ItIsAInterface()
     {
         // arrange
         ISchemaBuilder builder = SchemaBuilder.New()
@@ -245,6 +246,141 @@ public class SortInputTypeTest
         // assert
         schema.ToString().MatchSnapshot();
         schema.Print().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInputType_Inline_ConfigureNestedType()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchemaWithSort<Book>(x => x
+            .BindFieldsExplicitly()
+            .Field(x => x.Author, d => d.Field(x => x.Name)));
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInputType_Inline_ConfigureNestedTypeWithNestedFields()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchemaWithSort<Book>(x => x
+            .BindFieldsExplicitly()
+            .Field(x => x.Author, d => d.Field(x => x.Account, d => d.Field(x => x.Name))));
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInputType_Inline_RenameTypes()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchemaWithSort<Book>(descriptor =>
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(
+                x => x.Author,
+                d => d.Name("AuthorInput").Field(x => x.Id));
+        });
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInputType_Inline_AddDirective()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchemaWithSort<Book>(descriptor =>
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(
+                x => x.Author,
+                d => d.Directive("Foobar").Field(x => x.Id));
+        }, x => x.AddDirectiveType(
+            new DirectiveType(x => x
+                .Name("Foobar")
+                .Location(Types.DirectiveLocation.InputObject))));
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInputType_Inline_SetTypeDescription()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchemaWithSort<Book>(descriptor =>
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(x => x.Chapters);
+            descriptor.Field(
+                x => x.Author,
+                d => d.Description("Test").Field(x => x.Id));
+        });
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInputType_Inline_SwitchToImplicit()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchemaWithSort<Book>(descriptor =>
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(x => x.Author, d => d.BindFieldsImplicitly());
+        });
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInputType_Should_Assert_When_TryToCustomizeNonSortType()
+    {
+        // arrange
+        // act
+        void Call() => CreateSchemaWithSort<Book>(descriptor =>
+             descriptor.Field("somedata", d => d.Name("Asd")).Type<StringType>());
+
+        // assert
+        var ex = Assert.Throws<SchemaException>(Call);
+        ex.Errors.Single().Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void SortInputType_Should_Assert_When_NoTypeWasDefined()
+    {
+        // arrange
+        // act
+        void Call() => CreateSchemaWithSort<Book>(descriptor =>
+             descriptor.Field("somedata", d => d.Name("asd")));
+
+        // assert
+        var ex = Assert.Throws<SchemaException>(Call);
+        ex.Errors.Single().Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterInputType_Should_Assert_When_CustomnFieldDoesNotAllowAnyFields()
+    {
+        // arrange
+        // act
+        void Call() => CreateSchemaWithSort<Book>(descriptor =>
+             descriptor.Field(x => x.Author, x => x.Name("CustomName")));
+
+        // assert
+        var ex = Assert.Throws<SchemaException>(Call);
+        ex.Errors.Single().Message.MatchSnapshot();
     }
 
     public class IgnoreTest
@@ -307,6 +443,8 @@ public class SortInputTypeTest
 
         [GraphQLNonNullType]
         public string Name { get; set; } = default!;
+
+        public User? Account { get; set; }
     }
 
     public class User

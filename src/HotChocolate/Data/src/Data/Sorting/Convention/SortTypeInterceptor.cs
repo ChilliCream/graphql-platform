@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
@@ -11,8 +12,23 @@ namespace HotChocolate.Data.Sorting;
 public class SortTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<string, ISortConvention> _conventions = new();
+    private readonly List<Func<ITypeReference>> _typesToRegister = new();
+    private TypeRegistry _typeRegistry = default!;
+    private readonly Dictionary<ITypeSystemMember, SortInputTypeDefinition> _definitions = new();
 
     public override bool CanHandle(ITypeSystemObjectContext context) => true;
+
+    public override bool TriggerAggregations => true;
+
+    internal override void InitializeContext(
+        IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeReferenceResolver typeReferenceResolver)
+    {
+        _typeRegistry = typeRegistry;
+    }
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
@@ -84,6 +100,18 @@ public class SortTypeInterceptor : TypeInterceptor
         SortInputTypeDefinition extensionDefinition = descriptor.CreateDefinition();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
+
+        foreach (InputFieldDefinition field in definition.Fields)
+        {
+            if (field is SortFieldDefinition sortField)
+            {
+                RegisterDynamicTypeConfiguration(
+                    discoveryContext,
+                    typeReference,
+                    definition,
+                    sortField);
+            }
+        }
     }
 
     private void OnBeforeRegisteringDependencies(
@@ -108,6 +136,67 @@ public class SortTypeInterceptor : TypeInterceptor
         SortEnumTypeDefinition extensionDefinition = descriptor.CreateDefinition();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
+    }
+
+    private void RegisterDynamicTypeConfiguration(
+        ITypeDiscoveryContext discoveryContext,
+        ITypeReference typeReference,
+        SortInputTypeDefinition parentTypeDefinition,
+        SortFieldDefinition sortField)
+    {
+        if (sortField.CreateFieldTypeDefinition is null)
+        {
+            return;
+        }
+
+        ITypeReference? originalType = null;
+        _typesToRegister.Add(() =>
+        {
+            originalType = sortField.Type;
+            sortField.Type = TypeReference.Create(
+                $"SortSubTypeConfiguration_{Guid.NewGuid():N}",
+                typeReference,
+                Factory,
+                TypeContext.Input);
+
+            return sortField.Type;
+
+            TypeSystemObjectBase Factory(IDescriptorContext _)
+            {
+                SortInputTypeDefinition? explicitDefinition = null;
+
+                if (sortField.CreateFieldTypeDefinition is { } factory)
+                {
+                    explicitDefinition =
+                        factory(discoveryContext.DescriptorContext, discoveryContext.Scope);
+                }
+
+                if (originalType is null ||
+                    !_typeRegistry.TryGetType(originalType, out RegisteredType? registeredType))
+                {
+                    throw ThrowHelper.Sorting_FieldHadNoType(
+                            sortField.Name.Value,
+                            parentTypeDefinition.Name.Value);
+                }
+
+                if (!_definitions.TryGetValue(
+                        registeredType.Type,
+                        out SortInputTypeDefinition? definition))
+                {
+                    throw ThrowHelper.Sorting_DefinitionForTypeNotFound(
+                            sortField.Name.Value,
+                            parentTypeDefinition.Name.Value,
+                            registeredType.Type.Name);
+                }
+
+                return new SortInputType(
+                    definition,
+                    explicitDefinition,
+                    typeReference,
+                    originalType!,
+                    sortField);
+            }
+        });
     }
 
     private void OnBeforeCompleteName(

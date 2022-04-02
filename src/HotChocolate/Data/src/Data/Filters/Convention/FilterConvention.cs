@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Data.Utilities;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -222,7 +223,7 @@ public class FilterConvention
             parentName = parentName.Remove(parentName.Length - operationInputTypePostFix.Length);
         }
 
-        return parentName + UppercaseFirstLetter(fieldDefinition.Name) + _inputPostFix;
+        return parentName + NameHelpers.UppercaseFirstLetter(fieldDefinition.Name) + _inputPostFix;
     }
 
     /// <inheritdoc />
@@ -401,20 +402,5 @@ public class FilterConvention
                 }
             }
         }
-    }
-
-    private static string UppercaseFirstLetter(string? s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-        s = s.Trim();
-        if (s.Length < 1)
-        {
-            throw new ArgumentException("Provided string was empty.", nameof(s));
-        }
-
-        return $"{char.ToUpper(s[0], CultureInfo.InvariantCulture)}{s.Substring(1)}";
     }
 }

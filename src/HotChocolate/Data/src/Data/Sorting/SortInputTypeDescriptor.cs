@@ -134,6 +134,25 @@ public class SortInputTypeDescriptor
     }
 
     /// <inheritdoc />
+    public ISortFieldDescriptor Field(
+        NameString name,
+        Action<ISortInputTypeDescriptor> configure)
+    {
+        ISortFieldDescriptor descriptor = Field(name);
+        descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
+        return descriptor;
+
+        SortInputTypeDefinition CreateFieldTypeDefinition(
+            IDescriptorContext context,
+            string? scope)
+        {
+            SortInputTypeDescriptor descriptor = Inline(context, typeof(object), scope);
+            configure(descriptor);
+            return descriptor.CreateDefinition();
+        }
+    }
+
+    /// <inheritdoc />
     public ISortInputTypeDescriptor Ignore(NameString name)
     {
         SortFieldDescriptor? fieldDescriptor =
@@ -216,4 +235,38 @@ public class SortInputTypeDescriptor
         SortInputTypeDescriptor descriptor,
         string? scope = null) =>
         From<T>(descriptor.Context, descriptor.Definition, scope);
+
+    internal static SortInputTypeDescriptor Inline(
+        IDescriptorContext context,
+        Type entityType,
+        string? scope = null)
+    {
+        SortInputTypeDescriptor descriptor = New(context, entityType, scope);
+
+        descriptor.BindFieldsExplicitly();
+
+        // This resets the name on the definition. This way we can check if the user has
+        // set a custom name. The context the user specifying descriptor.Name("Foo") is
+        // preserved this way.
+        descriptor.Definition.Name = default!;
+
+        return descriptor;
+    }
+
+    internal static SortInputTypeDescriptor<TField> Inline<TField>(
+        IDescriptorContext context,
+        Type entityType,
+        string? scope = null)
+    {
+        SortInputTypeDescriptor<TField> descriptor = New<TField>(context, entityType, scope);
+
+        descriptor.BindFieldsExplicitly();
+
+        // This resets the name on the definition. This way we can check if the user has
+        // set a custom name. The context the user specifying descriptor.Name("Foo") is
+        // preserved this way.
+        descriptor.Definition.Name = default!;
+
+        return descriptor;
+    }
 }
