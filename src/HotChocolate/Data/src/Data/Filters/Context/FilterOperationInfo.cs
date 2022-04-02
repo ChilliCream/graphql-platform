@@ -5,6 +5,9 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 public class FilterOperationInfo : IFilterOperationInfo
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="FilterOperationInfo"/>
+    /// </summary>
     public FilterOperationInfo(
         IFilterOperationField field,
         IFilterValueNode value)
