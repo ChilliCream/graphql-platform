@@ -5,6 +5,9 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 public class FilterFieldInfo : IFilterFieldInfo
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="FilterFieldInfo"/>
+    /// </summary>
     public FilterFieldInfo(IFilterField field, IFilterValueNode value)
     {
         Field = field;
