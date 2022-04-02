@@ -5,6 +5,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -27,8 +28,13 @@ public static class HotChocolateDataRequestBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddFiltering(
         this IRequestExecutorBuilder builder,
-        string? name = null) =>
-        builder.ConfigureSchema(s => s.AddFiltering(name));
+        string? name = null)
+    {
+        builder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new FilterContextParameterExpressionBuilder());
+
+        return builder.ConfigureSchema(s => s.AddFiltering(name));
+    }
 
     /// <summary>
     /// Adds filtering support.
@@ -48,8 +54,14 @@ public static class HotChocolateDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddFiltering(
         this IRequestExecutorBuilder builder,
         Action<IFilterConventionDescriptor> configure,
-        string? name = null) =>
-        builder.ConfigureSchema(s => s.AddFiltering(configure, name));
+        string? name = null)
+    {
+        builder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new FilterContextParameterExpressionBuilder());
+
+        return builder
+            .ConfigureSchema(s => s.AddFiltering(configure, name));
+    }
 
     /// <summary>
     /// Adds filtering support.
@@ -69,17 +81,22 @@ public static class HotChocolateDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddFiltering<TConvention>(
         this IRequestExecutorBuilder builder,
         string? name = null)
-        where TConvention : class, IFilterConvention =>
-        builder.ConfigureSchema(s => s.AddFiltering<TConvention>(name));
+        where TConvention : class, IFilterConvention
+    {
+        builder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new FilterContextParameterExpressionBuilder());
+
+        return builder.ConfigureSchema(s => s.AddFiltering<TConvention>(name));
+    }
 
     /// <summary>
-    /// Adds filtering support.
+    /// Adds sorting support.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="name">
-    /// The filter convention name.
+    /// The sort convention name.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
@@ -90,7 +107,7 @@ public static class HotChocolateDataRequestBuilderExtensions
         builder.ConfigureSchema(s => s.AddSorting(name));
 
     /// <summary>
-    /// Adds filtering support.
+    /// Adds sorting support.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
@@ -99,7 +116,7 @@ public static class HotChocolateDataRequestBuilderExtensions
     /// Configures the convention.
     /// </param>
     /// <param name="name">
-    /// The filter convention name.
+    /// The sort convention name.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
@@ -111,16 +128,16 @@ public static class HotChocolateDataRequestBuilderExtensions
         builder.ConfigureSchema(s => s.AddSorting(configure, name));
 
     /// <summary>
-    /// Adds filtering support.
+    /// Adds sorting support.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="name">
-    /// The filter convention name.
+    /// The sort convention name.
     /// </param>
     /// <typeparam name="TConvention">
-    /// The concrete filter convention type.
+    /// The concrete sort convention type.
     /// </typeparam>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
@@ -132,13 +149,13 @@ public static class HotChocolateDataRequestBuilderExtensions
         builder.ConfigureSchema(s => s.AddSorting<TConvention>(name));
 
     /// <summary>
-    /// Adds filtering support.
+    /// Adds projections support.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="name">
-    /// The filter convention name.
+    /// The projection convention name.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
@@ -149,7 +166,7 @@ public static class HotChocolateDataRequestBuilderExtensions
         AddProjections(builder, x => x.AddDefaults(), name);
 
     /// <summary>
-    /// Adds filtering support.
+    /// Adds projection support.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
@@ -158,7 +175,7 @@ public static class HotChocolateDataRequestBuilderExtensions
     /// Configures the convention.
     /// </param>
     /// <param name="name">
-    /// The filter convention name.
+    /// The projection convention name.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
@@ -174,16 +191,16 @@ public static class HotChocolateDataRequestBuilderExtensions
                 name));
 
     /// <summary>
-    /// Adds filtering support.
+    /// Adds projection support.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="name">
-    /// The filter convention name.
+    /// The projection convention name.
     /// </param>
     /// <typeparam name="TConvention">
-    /// The concrete filter convention type.
+    /// The concrete projection convention type.
     /// </typeparam>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
