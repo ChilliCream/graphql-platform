@@ -14,10 +14,18 @@ namespace HotChocolate.Types;
 
 public static class DataLoaderResolverContextExtensions
 {
+    public static Task<TValue> BatchAsync<TKey, TValue>(
+        this IResolverContext context,
+        FetchBatch<TKey, TValue> fetch,
+        TKey key,
+        string? dataLoaderName = null)
+        where TKey : notnull
+        => BatchDataLoader(context, fetch, dataLoaderName).LoadAsync(key, context.RequestAborted);
+
     public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
         this IResolverContext context,
         FetchBatch<TKey, TValue> fetch,
-        string? key = null)
+        string? dataLoaderName = null)
         where TKey : notnull
     {
         if (context is null)
@@ -34,36 +42,45 @@ public static class DataLoaderResolverContextExtensions
         IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchBatchDataLoader<TKey, TValue> Loader()
             => new(
+                dataLoaderName ?? "default",
                 fetch,
                 services.GetRequiredService<IBatchScheduler>(),
                 services.GetRequiredService<DataLoaderOptions>());
 
-        return key is null
+        return dataLoaderName is null
             ? reg.GetOrRegister(Loader)
-            : reg.GetOrRegister(key, Loader);
+            : reg.GetOrRegister(dataLoaderName, Loader);
     }
 
     [Obsolete]
     public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
         this IResolverContext context,
-        string key,
+        string dataLoaderName,
         FetchBatch<TKey, TValue> fetch)
         where TKey : notnull
     {
-        if (string.IsNullOrEmpty(key))
+        if (string.IsNullOrEmpty(dataLoaderName))
         {
             throw new ArgumentException(
                 DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(key));
+                nameof(dataLoaderName));
         }
 
-        return BatchDataLoader(context, fetch, key);
+        return BatchDataLoader(context, fetch, dataLoaderName);
     }
+
+    public static Task<TValue[]> GroupAsync<TKey, TValue>(
+        this IResolverContext context,
+        FetchGroup<TKey, TValue> fetch,
+        TKey key,
+        string? dataLoaderName = null)
+        where TKey : notnull
+        => GroupDataLoader(context, fetch, dataLoaderName).LoadAsync(key, context.RequestAborted);
 
     public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
         this IResolverContext context,
         FetchGroup<TKey, TValue> fetch,
-        string? key = null)
+        string? dataLoaderName = null)
         where TKey : notnull
     {
         if (context is null)
@@ -80,13 +97,14 @@ public static class DataLoaderResolverContextExtensions
         IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchGroupedDataLoader<TKey, TValue> Loader()
             => new(
+                dataLoaderName ?? "default",
                 fetch,
                 services.GetRequiredService<IBatchScheduler>(),
                 services.GetRequiredService<DataLoaderOptions>());
 
-        return key is null
+        return dataLoaderName is null
             ? reg.GetOrRegister(Loader)
-            : reg.GetOrRegister(key, Loader);
+            : reg.GetOrRegister(dataLoaderName, Loader);
     }
 
     [Obsolete]
@@ -106,9 +124,17 @@ public static class DataLoaderResolverContextExtensions
         return GroupDataLoader(context, fetch, key);
     }
 
+    public static Task<TValue> CacheAsync<TKey, TValue>(
+        this IResolverContext context,
+        FetchCache<TKey, TValue> fetch,
+        TKey key,
+        string? dataLoaderName = null)
+        where TKey : notnull
+        => CacheDataLoader(context, fetch, dataLoaderName).LoadAsync(key, context.RequestAborted);
+
     public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
         this IResolverContext context,
-        FetchCacheCt<TKey, TValue> fetch,
+        FetchCache<TKey, TValue> fetch,
         string? key = null)
         where TKey : notnull
     {
@@ -125,7 +151,10 @@ public static class DataLoaderResolverContextExtensions
         IServiceProvider services = context.Services;
         IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchCacheDataLoader<TKey, TValue> Loader()
-            => new(fetch, services.GetRequiredService<DataLoaderOptions>());
+            => new(
+                key ?? "default",
+                fetch,
+                services.GetRequiredService<DataLoaderOptions>());
 
         return key is null
             ? reg.GetOrRegister(Loader)
@@ -136,7 +165,7 @@ public static class DataLoaderResolverContextExtensions
     public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
         this IResolverContext context,
         string key,
-        FetchCacheCt<TKey, TValue> fetch)
+        FetchCache<TKey, TValue> fetch)
         where TKey : notnull
     {
         if (string.IsNullOrEmpty(key))
@@ -148,6 +177,12 @@ public static class DataLoaderResolverContextExtensions
 
         return CacheDataLoader(context, fetch, key);
     }
+
+    public static Task<TValue> CacheAsync<TValue>(
+        this IResolverContext context,
+        Func<CancellationToken, Task<TValue>> fetch,
+        string? dataLoaderName = null)
+        => FetchOnceAsync(context, fetch, dataLoaderName);
 
     public static Task<TValue> FetchOnceAsync<TValue>(
         this IResolverContext context,

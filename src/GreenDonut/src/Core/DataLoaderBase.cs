@@ -25,15 +25,13 @@ namespace GreenDonut;
 /// <typeparam name="TValue">A value type.</typeparam>
 public abstract partial class DataLoaderBase<TKey, TValue>
     : IDataLoader<TKey, TValue>
-        , IDisposable
+    , IDisposable
     where TKey : notnull
 {
     private readonly object _sync = new();
     private readonly CancellationTokenSource _disposeTokenSource = new();
     private readonly IBatchScheduler _batchScheduler;
-    private readonly string _cacheKeyType;
     private readonly int _maxBatchSize;
-    private readonly ITaskCache? _cache;
     private readonly TaskCacheOwner? _cacheOwner;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private Batch<TKey>? _currentBatch;
@@ -60,29 +58,29 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         if (options.Caching && options.Cache is null)
         {
             _cacheOwner = new TaskCacheOwner();
-            _cache = _cacheOwner.Cache;
+            Cache = _cacheOwner.Cache;
         }
         else
         {
-            _cache = options.Caching
+            Cache = options.Caching
                 ? options.Cache
                 : null;
         }
 
         _batchScheduler = batchScheduler;
         _maxBatchSize = options.MaxBatchSize;
-        _cacheKeyType = GetCacheKeyType(GetType());
+        CacheKeyType = GetCacheKeyType(GetType());
     }
 
     /// <summary>
     /// Gets access to the cache of this DataLoader.
     /// </summary>
-    protected ITaskCache? Cache => _cache;
+    protected ITaskCache? Cache { get; }
 
     /// <summary>
     /// Gets the cache key type for this DataLoader.
     /// </summary>
-    protected string CacheKeyType => _cacheKeyType;
+    protected virtual string CacheKeyType { get; }
 
     /// <inheritdoc />
     public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken = default)
@@ -93,13 +91,13 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
 
         var cached = true;
-        TaskCacheKey cacheKey = new(_cacheKeyType, key);
+        TaskCacheKey cacheKey = new(CacheKeyType, key);
 
         lock (_sync)
         {
-            if (_cache is not null)
+            if (Cache is not null)
             {
-                Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
+                Task<TValue> cachedTask = Cache.GetOrAddTask(cacheKey, CreatePromise);
 
                 if (cached)
                 {
@@ -136,7 +134,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         lock (_sync)
         {
-            if (_cache is not null)
+            if (Cache is not null)
             {
                 InitializeWithCache();
             }
@@ -156,8 +154,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
                 cached = true;
                 currentKey = key;
-                TaskCacheKey cacheKey = new(_cacheKeyType, key);
-                Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
+                TaskCacheKey cacheKey = new(CacheKeyType, key);
+                Task<TValue> cachedTask = Cache.GetOrAddTask(cacheKey, CreatePromise);
 
                 if (cached)
                 {
@@ -197,10 +195,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             throw new ArgumentNullException(nameof(key));
         }
 
-        if (_cache is not null)
+        if (Cache is not null)
         {
-            TaskCacheKey cacheKey = new(_cacheKeyType, key);
-            _cache.TryRemove(cacheKey);
+            TaskCacheKey cacheKey = new(CacheKeyType, key);
+            Cache.TryRemove(cacheKey);
         }
     }
 
@@ -217,10 +215,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             throw new ArgumentNullException(nameof(value));
         }
 
-        if (_cache is not null)
+        if (Cache is not null)
         {
-            TaskCacheKey cacheKey = new(_cacheKeyType, key);
-            _cache.TryAdd(cacheKey, value);
+            TaskCacheKey cacheKey = new(CacheKeyType, key);
+            Cache.TryAdd(cacheKey, value);
         }
     }
 
@@ -233,10 +231,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         foreach (TKey key in keys)
         {
-            if (_cache is not null)
+            if (Cache is not null)
             {
-                TaskCacheKey cacheKey = new(_cacheKeyType, key);
-                _cache.TryRemove(cacheKey);
+                TaskCacheKey cacheKey = new(CacheKeyType, key);
+                Cache.TryRemove(cacheKey);
             }
 
             batch.GetPromise<TValue>(key).TrySetException(error);
@@ -359,12 +357,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         Func<TItem, TV> value)
         where TK : notnull
     {
-        if (_cache is not null)
+        if (Cache is not null)
         {
             foreach (TItem item in items)
             {
                 TaskCacheKey cacheKey = new(cacheKeyType, key(item));
-                _cache.TryAdd(cacheKey, () => Task.FromResult(value(item)));
+                Cache.TryAdd(cacheKey, () => Task.FromResult(value(item)));
             }
         }
     }
@@ -385,10 +383,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         TV value)
         where TK : notnull
     {
-        if (_cache is not null)
+        if (Cache is not null)
         {
             TaskCacheKey cacheKey = new(cacheKeyType, key);
-            _cache.TryAdd(cacheKey, () => Task.FromResult(value));
+            Cache.TryAdd(cacheKey, () => Task.FromResult(value));
         }
     }
 
