@@ -13,11 +13,17 @@ internal sealed class FetchCacheDataLoader<TKey, TValue>
 {
     private readonly FetchCacheCt<TKey, TValue> _fetch;
 
-    public FetchCacheDataLoader(FetchCacheCt<TKey, TValue> fetch, DataLoaderOptions options)
+    public FetchCacheDataLoader(
+        string key,
+        FetchCacheCt<TKey, TValue> fetch,
+        DataLoaderOptions options)
         : base(options)
     {
         _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
+        CacheKeyType = $"{GetCacheKeyType(GetType())}-{key}";
     }
+
+    protected override string CacheKeyType { get; }
 
     protected override Task<TValue> LoadSingleAsync(
         TKey key,

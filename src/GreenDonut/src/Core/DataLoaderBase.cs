@@ -29,7 +29,6 @@ namespace GreenDonut
         private readonly object _sync = new();
         private readonly CancellationTokenSource _disposeTokenSource = new();
         private readonly IBatchScheduler _batchScheduler;
-        private readonly string _cacheKeyType;
         private readonly int _maxBatchSize;
         private readonly ITaskCache? _cache;
         private readonly TaskCacheOwner? _cacheOwner;
@@ -69,7 +68,7 @@ namespace GreenDonut
 
             _batchScheduler = batchScheduler;
             _maxBatchSize = options.MaxBatchSize;
-            _cacheKeyType = GetCacheKeyType(GetType());
+            CacheKeyType = GetCacheKeyType(GetType());
         }
 
         /// <summary>
@@ -80,7 +79,7 @@ namespace GreenDonut
         /// <summary>
         /// Gets the cache key type for this DataLoader.
         /// </summary>
-        protected string CacheKeyType => _cacheKeyType;
+        protected virtual string CacheKeyType { get; }
 
         /// <inheritdoc />
         public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken = default)
@@ -91,7 +90,7 @@ namespace GreenDonut
             }
 
             var cached = true;
-            TaskCacheKey cacheKey = new(_cacheKeyType, key);
+            TaskCacheKey cacheKey = new(CacheKeyType, key);
 
             lock (_sync)
             {
@@ -154,7 +153,7 @@ namespace GreenDonut
 
                     cached = true;
                     currentKey = key;
-                    TaskCacheKey cacheKey = new(_cacheKeyType, key);
+                    TaskCacheKey cacheKey = new(CacheKeyType, key);
                     Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
 
                     if (cached)
@@ -197,7 +196,7 @@ namespace GreenDonut
 
             if (_cache is not null)
             {
-                TaskCacheKey cacheKey = new(_cacheKeyType, key);
+                TaskCacheKey cacheKey = new(CacheKeyType, key);
                 _cache.TryRemove(cacheKey);
             }
         }
@@ -217,7 +216,7 @@ namespace GreenDonut
 
             if (_cache is not null)
             {
-                TaskCacheKey cacheKey = new(_cacheKeyType, key);
+                TaskCacheKey cacheKey = new(CacheKeyType, key);
                 _cache.TryAdd(cacheKey, value);
             }
         }
@@ -233,7 +232,7 @@ namespace GreenDonut
             {
                 if (_cache is not null)
                 {
-                    TaskCacheKey cacheKey = new(_cacheKeyType, key);
+                    TaskCacheKey cacheKey = new(CacheKeyType, key);
                     _cache.TryRemove(cacheKey);
                 }
 
