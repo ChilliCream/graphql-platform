@@ -18,7 +18,6 @@
     "Block": false
   },
   "IsRepeatable": true,
-  "IsUnique": false,
   "Arguments": [],
   "Locations": []
 }

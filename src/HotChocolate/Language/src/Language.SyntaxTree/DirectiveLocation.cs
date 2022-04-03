@@ -5,8 +5,7 @@ using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language;
 
-public sealed class DirectiveLocation
-    : IEquatable<DirectiveLocation?>
+public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
 {
     private static readonly Dictionary<string, DirectiveLocation> _cache;
 
@@ -69,10 +68,7 @@ public sealed class DirectiveLocation
         }
     }
 
-    public override string ToString()
-    {
-        return _value;
-    }
+    public override string ToString() => _value;
 
     public static DirectiveLocation Query { get; } = new("QUERY");
 
@@ -110,20 +106,13 @@ public sealed class DirectiveLocation
 
     public static DirectiveLocation InputObject { get; } = new("INPUT_OBJECT");
 
-    public static DirectiveLocation InputFieldDefinition { get; } =
-        new("INPUT_FIELD_DEFINITION");
+    public static DirectiveLocation InputFieldDefinition { get; } = new("INPUT_FIELD_DEFINITION");
 
     public static bool IsValidName(string value)
-    {
-        return _cache.ContainsKey(value);
-    }
+        => _cache.ContainsKey(value);
 
-    public static bool TryParse(
-        string value,
-        out DirectiveLocation? location)
-    {
-        return _cache.TryGetValue(value, out location);
-    }
+    public static bool TryParse(string value, out DirectiveLocation? location)
+        => _cache.TryGetValue(value, out location);
 
     private static IEnumerable<DirectiveLocation> GetAll()
     {

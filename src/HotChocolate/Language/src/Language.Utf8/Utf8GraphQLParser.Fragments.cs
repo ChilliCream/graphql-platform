@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language;
 
@@ -12,7 +11,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="ParseFragmentSpread" /> and
     /// <see cref="ParseInlineFragment" />.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ISelectionNode ParseFragment()
     {
         TokenInfo start = Start();

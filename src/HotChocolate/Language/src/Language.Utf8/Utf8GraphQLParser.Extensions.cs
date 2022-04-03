@@ -5,8 +5,7 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<OperationTypeDefinitionNode> _emptyOpDefs =
-        new List<OperationTypeDefinitionNode>();
+    private static readonly List<OperationTypeDefinitionNode> _emptyOpDefs = new();
 
     private ITypeSystemExtensionNode ParseTypeExtension()
     {
@@ -64,7 +63,6 @@ public ref partial struct Utf8GraphQLParser
     /// * - extend schema Directives[Const]? { OperationTypeDefinition+ }
     /// * - extend schema Directives[Const]
     /// </summary>
-    /// <param name="context">The parser context.</param>
     private SchemaExtensionNode ParseSchemaExtension(in TokenInfo start)
     {
         MoveNext();

@@ -62,5 +62,17 @@ namespace HotChocolate.Language.Properties {
                 return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate", resourceCulture);
             }
         }
+        
+        internal static string EnumValueNode_ValueIsNull {
+            get {
+                return ResourceManager.GetString("EnumValueNode_ValueIsNull", resourceCulture);
+            }
+        }
+        
+        internal static string EnumValueNode_ValueIsEmpty {
+            get {
+                return ResourceManager.GetString("EnumValueNode_ValueIsEmpty", resourceCulture);
+            }
+        }
     }
 }
