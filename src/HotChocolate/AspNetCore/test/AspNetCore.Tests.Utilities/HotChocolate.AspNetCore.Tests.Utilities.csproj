@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.AspNetCore.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
+    <AssemblyName>HotChocolate.AspNetCore.Tests.Utilities</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetCore.Tests.Utilities</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +11,6 @@
     <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Transport.Sockets.Client\HotChocolate.Transport.Sockets.Client.csproj" />
-    <ProjectReference Include="..\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

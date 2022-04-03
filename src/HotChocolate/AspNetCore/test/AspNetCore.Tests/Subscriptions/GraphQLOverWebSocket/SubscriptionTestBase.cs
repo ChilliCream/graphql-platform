@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;

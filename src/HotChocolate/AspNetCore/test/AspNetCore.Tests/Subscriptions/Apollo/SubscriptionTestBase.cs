@@ -5,8 +5,8 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.TestHost;
-using HotChocolate.AspNetCore.Utilities;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Apollo;

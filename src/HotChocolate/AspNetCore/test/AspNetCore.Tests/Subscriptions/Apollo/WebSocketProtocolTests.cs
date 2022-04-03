@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
