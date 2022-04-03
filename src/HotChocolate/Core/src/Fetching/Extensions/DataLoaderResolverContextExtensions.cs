@@ -34,6 +34,7 @@ public static class DataLoaderResolverContextExtensions
         IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchBatchDataLoader<TKey, TValue> Loader()
             => new(
+                key ?? "default",
                 fetch,
                 services.GetRequiredService<IBatchScheduler>(),
                 services.GetRequiredService<DataLoaderOptions>());
@@ -80,6 +81,7 @@ public static class DataLoaderResolverContextExtensions
         IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchGroupedDataLoader<TKey, TValue> Loader()
             => new(
+                key ?? "default",
                 fetch,
                 services.GetRequiredService<IBatchScheduler>(),
                 services.GetRequiredService<DataLoaderOptions>());
@@ -125,7 +127,7 @@ public static class DataLoaderResolverContextExtensions
         IServiceProvider services = context.Services;
         IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchCacheDataLoader<TKey, TValue> Loader()
-            => new(fetch, services.GetRequiredService<DataLoaderOptions>());
+            => new(key ?? "default", fetch, services.GetRequiredService<DataLoaderOptions>());
 
         return key is null
             ? reg.GetOrRegister(Loader)
