@@ -14,6 +14,25 @@ namespace HotChocolate.Types;
 
 public static class DataLoaderResolverContextExtensions
 {
+    /// <summary>
+    /// Batches a call to a data source with the specified <paramref name="fetch"/> for
+    /// the specified <paramref name="key"/> with an implicit DataLoader.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic.
+    /// </param>
+    /// <param name="key">
+    /// The key to fetch.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <returns>
+    /// Returns the value for the requested key.
+    /// </returns>
     public static Task<TValue> BatchAsync<TKey, TValue>(
         this IResolverContext context,
         FetchBatch<TKey, TValue> fetch,
@@ -22,6 +41,21 @@ public static class DataLoaderResolverContextExtensions
         where TKey : notnull
         => BatchDataLoader(context, fetch, dataLoaderName).LoadAsync(key, context.RequestAborted);
 
+    /// <summary>
+    /// Creates a new BatchDataLoader with the specified <paramref name="fetch"/> logic.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <returns>
+    /// Returns the DataLoader.
+    /// </returns>
     public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
         this IResolverContext context,
         FetchBatch<TKey, TValue> fetch,
@@ -52,6 +86,21 @@ public static class DataLoaderResolverContextExtensions
             : reg.GetOrRegister(dataLoaderName, Loader);
     }
 
+    /// <summary>
+    /// Creates a new batch DataLoader with the specified <paramref name="fetch"/> logic.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic.
+    /// </param>
+    /// <returns>
+    /// Returns the DataLoader.
+    /// </returns>
     [Obsolete]
     public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
         this IResolverContext context,
@@ -69,6 +118,25 @@ public static class DataLoaderResolverContextExtensions
         return BatchDataLoader(context, fetch, dataLoaderName);
     }
 
+    /// <summary>
+    /// Batches a call to a data source with the specified <paramref name="fetch"/> for
+    /// the specified <paramref name="key"/> with an implicit GroupDataLoader.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic for a GroupDataLoader.
+    /// </param>
+    /// <param name="key">
+    /// The key to fetch.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <returns>
+    /// Returns the value for the requested key.
+    /// </returns>
     public static Task<TValue[]> GroupAsync<TKey, TValue>(
         this IResolverContext context,
         FetchGroup<TKey, TValue> fetch,
@@ -77,6 +145,21 @@ public static class DataLoaderResolverContextExtensions
         where TKey : notnull
         => GroupDataLoader(context, fetch, dataLoaderName).LoadAsync(key, context.RequestAborted);
 
+    /// <summary>
+    /// Creates a new GroupDataLoader with the specified <paramref name="fetch"/> logic.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic for the GroupDataLoader.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <returns>
+    /// Returns the DataLoader.
+    /// </returns>
     public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
         this IResolverContext context,
         FetchGroup<TKey, TValue> fetch,
@@ -107,23 +190,57 @@ public static class DataLoaderResolverContextExtensions
             : reg.GetOrRegister(dataLoaderName, Loader);
     }
 
+    /// <summary>
+    /// Creates a new GroupDataLoader with the specified <paramref name="fetch"/> logic.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic for the GroupDataLoader.
+    /// </param>
+    /// <returns>
+    /// Returns the DataLoader.
+    /// </returns>
     [Obsolete]
     public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
         this IResolverContext context,
-        string key,
+        string dataLoaderName,
         FetchGroup<TKey, TValue> fetch)
         where TKey : notnull
     {
-        if (string.IsNullOrEmpty(key))
+        if (string.IsNullOrEmpty(dataLoaderName))
         {
             throw new ArgumentException(
                 DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(key));
+                nameof(dataLoaderName));
         }
 
-        return GroupDataLoader(context, fetch, key);
+        return GroupDataLoader(context, fetch, dataLoaderName);
     }
 
+    /// <summary>
+    /// Executes a call to a data source with the specified <paramref name="fetch"/> for
+    /// the specified <paramref name="key"/> with an implicit CacheDataLoader.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fetch">
+    /// The fetch logic for a CacheDataLoader.
+    /// </param>
+    /// <param name="key">
+    /// The key to fetch.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <returns>
+    /// Returns the value for the requested key.
+    /// </returns>
     public static Task<TValue> CacheAsync<TKey, TValue>(
         this IResolverContext context,
         FetchCache<TKey, TValue> fetch,
