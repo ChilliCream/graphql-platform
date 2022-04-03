@@ -38,21 +38,9 @@ public static class DataLoaderResolverContextExtensions
                 services.GetRequiredService<IBatchScheduler>(),
                 services.GetRequiredService<DataLoaderOptions>());
 
-        FetchBatchDataLoader<TKey, TValue> LoaderWithKey(string cacheKey)
-            => new(
-                fetch,
-                services.GetRequiredService<IBatchScheduler>(),
-                new DataLoaderOptions
-                {
-                    Caching = true,
-                    Cache = services.GetRequiredService<TaskCacheOwner>().CacheByKey(cacheKey),
-                    DiagnosticEvents = services.GetService<IDataLoaderDiagnosticEvents>(),
-                    MaxBatchSize = 1024
-                });
-
         return key is null
             ? reg.GetOrRegister(Loader)
-            : reg.GetOrRegister(key, () => LoaderWithKey(key));
+            : reg.GetOrRegister(key, Loader);
     }
 
     [Obsolete]
@@ -96,21 +84,9 @@ public static class DataLoaderResolverContextExtensions
                 services.GetRequiredService<IBatchScheduler>(),
                 services.GetRequiredService<DataLoaderOptions>());
 
-        FetchGroupedDataLoader<TKey, TValue> LoaderWithKey(string cacheKey)
-            => new(
-                fetch,
-                services.GetRequiredService<IBatchScheduler>(),
-                new DataLoaderOptions
-                {
-                    Caching = true,
-                    Cache = services.GetRequiredService<TaskCacheOwner>().CacheByKey(cacheKey),
-                    DiagnosticEvents = services.GetService<IDataLoaderDiagnosticEvents>(),
-                    MaxBatchSize = 1024
-                });
-
         return key is null
             ? reg.GetOrRegister(Loader)
-            : reg.GetOrRegister(key, () => LoaderWithKey(key));
+            : reg.GetOrRegister(key, Loader);
     }
 
     [Obsolete]
@@ -151,21 +127,9 @@ public static class DataLoaderResolverContextExtensions
         FetchCacheDataLoader<TKey, TValue> Loader()
             => new(fetch, services.GetRequiredService<DataLoaderOptions>());
 
-        FetchCacheDataLoader<TKey, TValue> LoaderWithKey(string cacheKey)
-            => new(
-                fetch,
-                new DataLoaderOptions
-                {
-                    Caching = true,
-                    Cache = services.GetRequiredService<TaskCacheOwner>().CacheByKey(cacheKey),
-                    DiagnosticEvents = services.GetService<IDataLoaderDiagnosticEvents>(),
-                    MaxBatchSize = 1024
-                });
-
-
         return key is null
             ? reg.GetOrRegister(Loader)
-            : reg.GetOrRegister(key, () => LoaderWithKey(key));
+            : reg.GetOrRegister(key, Loader);
     }
 
     [Obsolete]
