@@ -42,10 +42,10 @@ public class CollectionSegmentType<T>
 
     protected static void ApplyConfig(IObjectTypeDescriptor<CollectionSegment> descriptor)
     {
-        descriptor
-            .Name(dependency => $"{dependency.Name}CollectionSegment")
-            .DependsOn<T>()
-            .BindFieldsExplicitly();
+        //descriptor
+        //    .Name(dependency => $"{dependency.Name}CollectionSegment")
+        //    .DependsOn<T>()
+        //    .BindFieldsExplicitly();
 
         descriptor
             .Field(i => i.Items)

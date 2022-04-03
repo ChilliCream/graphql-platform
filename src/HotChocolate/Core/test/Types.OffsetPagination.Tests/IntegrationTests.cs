@@ -1,13 +1,12 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Pagination.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -562,7 +561,7 @@ namespace HotChocolate.Types.Pagination
                     .AddQueryType<QueryAttr>()
                     .AddInterfaceType<ISome>(d => d
                         .Field(t => t.ExplicitType())
-                        .UseOffsetPaging())
+                        .UseOffsetPaging(options: new PagingOptions { InferCollectionSegmentNameFromField = false }))
                     .ModifyOptions(o =>
                     {
                         o.RemoveUnreachableTypes = false;
@@ -776,7 +775,7 @@ namespace HotChocolate.Types.Pagination
             _source = source;
         }
 
-        public object Source =>_source;
+        public object Source => _source;
 
         public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
