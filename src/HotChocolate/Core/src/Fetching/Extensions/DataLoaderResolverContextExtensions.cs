@@ -15,8 +15,10 @@ namespace HotChocolate.Types;
 public static class DataLoaderResolverContextExtensions
 {
     /// <summary>
-    /// Batches a call to a data source with the specified <paramref name="fetch"/> for
-    /// the specified <paramref name="key"/> with an implicit DataLoader.
+    /// This utility methods creates a new <see cref="GreenDonut.BatchDataLoader{TKey,TValue}" />
+    /// with the provided <paramref name="fetch"/> logic and invoked the
+    /// <see cref="IDataLoader{TKey,TValue}.LoadAsync(TKey,CancellationToken)"/> with
+    /// the specified <paramref name="key"/>.
     /// </summary>
     /// <param name="context">
     /// The resolver context.
@@ -119,8 +121,10 @@ public static class DataLoaderResolverContextExtensions
     }
 
     /// <summary>
-    /// Batches a call to a data source with the specified <paramref name="fetch"/> for
-    /// the specified <paramref name="key"/> with an implicit GroupDataLoader.
+    /// This utility methods creates a new <see cref="GroupedDataLoader{TKey,TValue}" />
+    /// with the provided <paramref name="fetch"/> logic and invoked the
+    /// <see cref="IDataLoader{TKey,TValue}.LoadAsync(TKey,CancellationToken)"/> with
+    /// the specified <paramref name="key"/>.
     /// </summary>
     /// <param name="context">
     /// The resolver context.
@@ -223,8 +227,10 @@ public static class DataLoaderResolverContextExtensions
     }
 
     /// <summary>
-    /// Executes a call to a data source with the specified <paramref name="fetch"/> for
-    /// the specified <paramref name="key"/> with an implicit CacheDataLoader.
+    /// This utility methods creates a new <see cref="GreenDonut.CacheDataLoader{TKey,TValue}" />
+    /// with the provided <paramref name="fetch"/> logic and invoked the
+    /// <see cref="IDataLoader{TKey,TValue}.LoadAsync(TKey,CancellationToken)"/> with
+    /// the specified <paramref name="key"/>.
     /// </summary>
     /// <param name="context">
     /// The resolver context.
