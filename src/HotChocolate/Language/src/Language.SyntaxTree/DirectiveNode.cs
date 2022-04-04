@@ -188,9 +188,7 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
             return true;
         }
 
-        return Kind == other.Kind &&
-            Equals(Location, other.Location) &&
-            Name.Equals(other.Name) &&
+        return Name.Equals(other.Name) &&
             EqualityHelper.Equals(Arguments, other.Arguments);
     }
 
@@ -218,9 +216,7 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     {
         unchecked
         {
-            var hashCode = (int) Kind;
-            hashCode = (hashCode * 397) ^ (Location != null ? Location.GetHashCode() : 0);
-            hashCode = (hashCode * 397) ^ Name.GetHashCode();
+            var hashCode = Name.GetHashCode();
             hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
             return hashCode;
         }

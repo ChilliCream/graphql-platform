@@ -189,8 +189,7 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
             return true;
         }
 
-        return Equals(Location, other.Location) &&
-            Name.Equals(other.Name) &&
+        return Name.Equals(other.Name) &&
             Value.Equals(other.Value);
     }
 
@@ -219,7 +218,6 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
         unchecked
         {
             var hashCode = Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ (Location != null ? Location.GetHashCode() : 0);
             hashCode = (hashCode * 397) ^ Name.GetHashCode();
             hashCode = (hashCode * 397) ^ Value.GetHashCode();
             return hashCode;

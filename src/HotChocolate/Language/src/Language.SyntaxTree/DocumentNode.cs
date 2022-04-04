@@ -5,10 +5,11 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language;
 
 /// <summary>
+/// <para>
 /// The <see cref="DocumentNode"/> represents a parsed GraphQL document
 /// which also is the root node of a parsed GraphQL document.
-///
-/// The document can contain schema definition nodes or query nodes.
+/// </para>
+/// <para>The document can contain schema definition nodes or query nodes.</para>
 /// </summary>
 public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
 {
@@ -128,8 +129,7 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
             return true;
         }
 
-        return Equals(Location, other.Location) &&
-            EqualityHelper.Equals(Definitions, other.Definitions);
+        return EqualityHelper.Equals(Definitions, other.Definitions);
     }
 
     /// <summary>
@@ -156,8 +156,7 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     {
         unchecked
         {
-            return ((Location != null ? Location.GetHashCode() : 0) * 397) ^
-                Definitions.GetHashCode();
+            return Definitions.GetHashCode();
         }
     }
 
