@@ -15,13 +15,18 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     private int _queryCacheSize = 100;
 
     /// <summary>
-    /// Sets the maximum allowed execution time of a query to a default 
-    /// value of <c>30</c> seconds. If a debugger us attached the default
-    /// value id <c>30</c> minutes.
+    /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
+    /// <para>
+    /// If the debugger is attached (<see cref="Debugger.IsAttached"/>) new instances will be
+    /// initialized with a default <see cref="ExecutionTimeout"/> of 30 minutes; otherwise, the
+    /// default <see cref="ExecutionTimeout"/> will be 30 seconds.
+    /// </para>
     /// </summary>
     public RequestExecutorOptions()
     {
-        _executionTimeout = Debugger.IsAttached ? TimeSpan.FromMinutes(30) : TimeSpan.FromSeconds(30);
+        _executionTimeout = Debugger.IsAttached
+            ? TimeSpan.FromMinutes(30)
+            : TimeSpan.FromSeconds(30);
     }
 
     /// <summary>
