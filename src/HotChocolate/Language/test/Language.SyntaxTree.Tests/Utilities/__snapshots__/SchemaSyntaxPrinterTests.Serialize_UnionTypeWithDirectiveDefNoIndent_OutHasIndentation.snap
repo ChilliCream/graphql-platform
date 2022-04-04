@@ -1,0 +1,1 @@
+﻿union A @a = B | C union A @a @b = B | C

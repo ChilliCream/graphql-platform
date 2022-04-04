@@ -1,0 +1,15 @@
+﻿"abc"
+interface Foo @a {
+  "abc"
+  bar: String
+  "abc"
+  baz: [Int]
+}
+
+"abc"
+interface Foo @a @b {
+  "abc"
+  bar: String @foo
+  "abc"
+  baz("abc" a: String = "abc"): [Int] @foo @bar
+}
