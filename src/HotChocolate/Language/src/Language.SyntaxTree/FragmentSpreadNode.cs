@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -6,6 +7,7 @@ namespace HotChocolate.Language;
 public sealed class FragmentSpreadNode
     : NamedSyntaxNode
     , ISelectionNode
+    , IEquatable<FragmentSpreadNode>
 {
     public FragmentSpreadNode(
         Location? location,
@@ -62,4 +64,41 @@ public sealed class FragmentSpreadNode
     {
         return new FragmentSpreadNode(Location, Name, directives);
     }
+
+    public bool Equals(FragmentSpreadNode? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return base.Equals(other)
+               && Kind == other.Kind;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is FragmentSpreadNode other
+            && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(base.GetHashCode(), (int)Kind);
+    }
+
+    public static bool operator ==(
+        FragmentSpreadNode? left,
+        FragmentSpreadNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(
+        FragmentSpreadNode? left,
+        FragmentSpreadNode? right)
+        => !Equals(left, right);
 }

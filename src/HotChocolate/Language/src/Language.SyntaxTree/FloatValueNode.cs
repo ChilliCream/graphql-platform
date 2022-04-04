@@ -212,11 +212,7 @@ public sealed class FloatValueNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            return (Kind.GetHashCode() * 397)
-             ^ (Value.GetHashCode() * 97);
-        }
+        return HashCode.Combine(Kind, Value);
     }
 
     /// <summary>

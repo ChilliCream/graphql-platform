@@ -6,6 +6,7 @@ namespace HotChocolate.Language;
 
 public sealed class InlineFragmentNode
     : ISelectionNode
+    , IEquatable<InlineFragmentNode>
 {
     public InlineFragmentNode(
         Location? location,
@@ -97,4 +98,43 @@ public sealed class InlineFragmentNode
             Location, TypeCondition,
             Directives, selectionSet);
     }
+
+    public bool Equals(InlineFragmentNode? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Kind == other.Kind
+               && TypeCondition.IsEqualTo(other.TypeCondition)
+               && SelectionSet.IsEqualTo(other.SelectionSet)
+               && Directives.IsEqualTo(other.Directives);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is InlineFragmentNode other
+            && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine((int)Kind, TypeCondition, Directives, SelectionSet);
+    }
+
+    public static bool operator ==(
+        InlineFragmentNode? left,
+        InlineFragmentNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(
+        InlineFragmentNode? left,
+        InlineFragmentNode? right)
+        => !Equals(left, right);
 }

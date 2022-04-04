@@ -20,6 +20,7 @@ namespace HotChocolate.Language;
 public sealed class FieldNode
     : NamedSyntaxNode
     , ISelectionNode
+    , IEquatable<FieldNode>
 {
     public FieldNode(
         Location? location,
@@ -190,4 +191,44 @@ public sealed class FieldNode
     /// </returns>
     public FieldNode WithRequired(INullabilityNode? required)
         => new(Location, Name, Alias, required, Directives, Arguments, SelectionSet);
+
+    public bool Equals(FieldNode? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return base.Equals(other)
+               && Alias.IsEqualTo(other.Alias)
+               && Required.IsEqualTo(other.Required)
+               && SelectionSet.IsEqualTo(other.SelectionSet)
+               && Arguments.IsEqualTo(other.Arguments);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is FieldNode other
+            && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(base.GetHashCode(), Alias, Arguments, Required, SelectionSet);
+    }
+
+    public static bool operator ==(
+        FieldNode? left,
+        FieldNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(
+        FieldNode? left,
+        FieldNode? right)
+        => !Equals(left, right);
 }
