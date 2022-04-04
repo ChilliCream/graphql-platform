@@ -382,9 +382,9 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         TestServer server = CreateStarWarsServer();
 
         var query = @"
-                query ($upload: Upload!) {
-                    objectUpload(input: { file: $upload })
-                }";
+            query ($upload: Upload!) {
+                objectUpload(input: { file: $upload })
+            }";
 
         var request = JsonConvert.SerializeObject(
             new ClientQueryRequest
@@ -417,7 +417,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         TestServer server = CreateStarWarsServer();
 
         var query = @"
-                query ($input: [[InputWithFileInput!]]) {
+                query ($input: [[InputWithFileInput!]!]!) {
                     listUpload(input: $input)
                 }";
 
