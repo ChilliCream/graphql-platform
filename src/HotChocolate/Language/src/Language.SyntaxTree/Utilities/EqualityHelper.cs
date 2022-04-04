@@ -41,17 +41,12 @@ internal static class EqualityHelper
                 return true;
             }
 
-            if (ReferenceEquals(x, null))
+            if (x is null)
             {
-                if (ReferenceEquals(y, null))
-                {
-                    return true;
-                }
-
-                return false;
+                return y is null;
             }
 
-            if (ReferenceEquals(y, null))
+            if (y is null)
             {
                 return false;
             }

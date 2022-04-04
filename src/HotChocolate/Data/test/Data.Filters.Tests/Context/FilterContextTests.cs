@@ -273,7 +273,7 @@ public class FilterContextTests
                 .UseFiltering()
                 .Resolve(x =>
                 {
-                    x.GetFilterContext()?.EnableFilterExecution();
+                    x.GetFilterContext()?.Handled(false);
                     localContextData = x.LocalContextData.Add("foo", true);
 
                     return Array.Empty<Book>();

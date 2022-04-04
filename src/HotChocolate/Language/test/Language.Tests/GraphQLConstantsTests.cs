@@ -2,17 +2,17 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Foo
+public class GraphQLConstantsTests
 {
     [Fact]
     public void IsLetterOrUnderscore()
     {
-        for (char c = 'a'; c <= 'z'; c++)
+        for (var c = 'a'; c <= 'z'; c++)
         {
             Assert.True(GraphQLConstants.IsLetterOrUnderscore((byte)c));
         }
 
-        for (char c = 'A'; c <= 'Z'; c++)
+        for (var c = 'A'; c <= 'Z'; c++)
         {
             Assert.True(GraphQLConstants.IsLetterOrUnderscore((byte)c));
         }
@@ -23,17 +23,17 @@ public class Foo
     [Fact]
     public void IsLetterOrDigitOrUnderscore()
     {
-        for (char c = 'a'; c <= 'z'; c++)
+        for (var c = 'a'; c <= 'z'; c++)
         {
             Assert.True(GraphQLConstants.IsLetterOrDigitOrUnderscore((byte)c));
         }
 
-        for (char c = 'A'; c <= 'Z'; c++)
+        for (var c = 'A'; c <= 'Z'; c++)
         {
             Assert.True(GraphQLConstants.IsLetterOrDigitOrUnderscore((byte)c));
         }
 
-        for (char c = '0'; c <= '9'; c++)
+        for (var c = '0'; c <= '9'; c++)
         {
             Assert.True(GraphQLConstants.IsLetterOrDigitOrUnderscore((byte)c));
         }

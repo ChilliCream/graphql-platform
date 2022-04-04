@@ -36,6 +36,48 @@ public class BooleanValueNodeTests
     }
 
     [Fact]
+    public void EqualsBooleanValueNode_SameLocation()
+    {
+        // arrange
+        var a = new BooleanValueNode(new Location(1, 1, 1, 1), false);
+        var b = new BooleanValueNode(new Location(1, 1, 1, 1), false);
+        var c = new BooleanValueNode(new Location(1, 1, 1, 1), true);
+
+        // act
+        var abResult = a.Equals(b);
+        var aaResult = a.Equals(a);
+        var acResult = a.Equals(c);
+        var aNullResult = a.Equals(default);
+
+        // assert
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
+    }
+
+    [Fact]
+    public void EqualsBooleanValueNode_DifferentLocation()
+    {
+        // arrange
+        var a = new BooleanValueNode(new Location(1, 1, 1, 1), false);
+        var b = new BooleanValueNode(new Location(2, 2, 2, 2), false);
+        var c = new BooleanValueNode(new Location(3, 3, 3, 3), true);
+
+        // act
+        var abResult = a.Equals(b);
+        var aaResult = a.Equals(a);
+        var acResult = a.Equals(c);
+        var aNullResult = a.Equals(default);
+
+        // assert
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
+    }
+
+    [Fact]
     public void EqualsBooleanValueNode()
     {
         // arrange
@@ -44,16 +86,16 @@ public class BooleanValueNodeTests
         var c = new BooleanValueNode(true);
 
         // act
-        bool ab_result = a.Equals(b);
-        bool aa_result = a.Equals(a);
-        bool ac_result = a.Equals(c);
-        bool anull_result = a.Equals(default);
+        var abResult = a.Equals(b);
+        var aaResult = a.Equals(a);
+        var acResult = a.Equals(c);
+        var aNullResult = a.Equals(default);
 
         // assert
-        Assert.True(ab_result);
-        Assert.True(aa_result);
-        Assert.False(ac_result);
-        Assert.False(anull_result);
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
     }
 
     [Fact]
@@ -66,11 +108,11 @@ public class BooleanValueNodeTests
         var d = new StringValueNode("foo");
 
         // act
-        bool ab_result = a.Equals((IValueNode)b);
-        bool aa_result = a.Equals((IValueNode)a);
-        bool ac_result = a.Equals((IValueNode)c);
-        bool ad_result = a.Equals((IValueNode)d);
-        bool anull_result = a.Equals(default(IValueNode));
+        var ab_result = a.Equals((IValueNode)b);
+        var aa_result = a.Equals((IValueNode)a);
+        var ac_result = a.Equals((IValueNode)c);
+        var ad_result = a.Equals((IValueNode)d);
+        var anull_result = a.Equals(default(IValueNode));
 
         // assert
         Assert.True(ab_result);
@@ -91,20 +133,20 @@ public class BooleanValueNodeTests
         var e = 1;
 
         // act
-        bool ab_result = a.Equals((object)b);
-        bool aa_result = a.Equals((object)a);
-        bool ac_result = a.Equals((object)c);
-        bool ad_result = a.Equals((object)d);
-        bool ae_result = a.Equals((object)e);
-        bool anull_result = a.Equals(default(object));
+        var abResult = a.Equals((object)b);
+        var aaResult = a.Equals((object)a);
+        var acResult = a.Equals((object)c);
+        var adResult = a.Equals((object)d);
+        var aeResult = a.Equals((object)e);
+        var aNullResult = a.Equals(default(object));
 
         // assert
-        Assert.True(ab_result);
-        Assert.True(aa_result);
-        Assert.False(ac_result);
-        Assert.False(ad_result);
-        Assert.False(ae_result);
-        Assert.False(anull_result);
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(adResult);
+        Assert.False(aeResult);
+        Assert.False(aNullResult);
     }
 
     [Fact]
@@ -116,13 +158,35 @@ public class BooleanValueNodeTests
         var c = new BooleanValueNode(true);
 
         // act
-        int ahash = a.GetHashCode();
-        int bhash = b.GetHashCode();
-        int chash = c.GetHashCode();
+        var ahash = a.GetHashCode();
+        var bhash = b.GetHashCode();
+        var chash = c.GetHashCode();
 
         // assert
         Assert.Equal(ahash, bhash);
         Assert.NotEqual(ahash, chash);
+    }
+
+    [Fact]
+    public void CompareGetHashCode_With_Location()
+    {
+        // arrange
+        var a = new BooleanValueNode(new(1, 1, 1, 1), false);
+        var b = new BooleanValueNode(new(2, 2, 2, 2), false);
+        var c = new BooleanValueNode(new(1, 1, 1, 1), true);
+        var d = new BooleanValueNode(new(2, 2, 2, 2), true);
+
+        // act
+        var aHash = a.GetHashCode();
+        var bHash = b.GetHashCode();
+        var cHash = c.GetHashCode();
+        var dHash = d.GetHashCode();
+
+        // assert
+        Assert.Equal(aHash, bHash);
+        Assert.NotEqual(aHash, cHash);
+        Assert.Equal(cHash, dHash);
+        Assert.NotEqual(aHash, dHash);
     }
 
     [Fact]
@@ -133,12 +197,12 @@ public class BooleanValueNodeTests
         var b = new BooleanValueNode(true);
 
         // act
-        string astring = a.ToString();
-        string bstring = b.ToString();
+        var aString = a.ToString();
+        var bString = b.ToString();
 
         // assert
-        Assert.Equal("false", astring);
-        Assert.Equal("true", bstring);
+        Assert.Equal("false", aString);
+        Assert.Equal("true", bString);
     }
 
     [Fact]

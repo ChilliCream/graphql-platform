@@ -203,8 +203,7 @@ public sealed class EnumTypeDefinitionNode
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is EnumTypeDefinitionNode other &&
-            Equals(other);
+            (obj is EnumTypeDefinitionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -216,10 +215,9 @@ public sealed class EnumTypeDefinitionNode
     {
         unchecked
         {
-            return (base.GetHashCode() * 397) ^
-                (Description != null
-                    ? Description.GetHashCode()
-                    : 0);
+            var hashCode = base.GetHashCode();
+            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
+            return (hashCode * 397) ^ (Description?.GetHashCode() ?? 0);
         }
     }
 

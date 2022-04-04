@@ -151,7 +151,7 @@ public class SortingContextTests
                 .UseSorting()
                 .Resolve(x =>
                 {
-                    x.GetSortingContext()?.EnableSortingExecution();
+                    x.GetSortingContext()?.Handled(false);
                     localContextData = x.LocalContextData.Add("foo", true);
 
                     return Array.Empty<Book>();
