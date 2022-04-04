@@ -3,9 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Http.Extensions;
 
-namespace HotChocolate.AspNetCore.Utilities;
+namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 [ExtendObjectType(OperationTypeNames.Subscription)]
 public class SubscriptionsExtensions

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
 
-namespace HotChocolate.AspNetCore.Utilities;
+namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 public class ClientQueryResult
 {

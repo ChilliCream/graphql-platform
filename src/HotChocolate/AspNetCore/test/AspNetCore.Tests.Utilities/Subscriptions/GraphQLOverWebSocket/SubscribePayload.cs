@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
+namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 
 public sealed class SubscribePayload
 {

@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language.Utilities;
 
 internal static class EqualityHelper
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Equals<T>(IReadOnlyList<T> a, IReadOnlyList<T> b) where T : ISyntaxNode
     {
         if (a.Count == 0 && b.Count == 0)

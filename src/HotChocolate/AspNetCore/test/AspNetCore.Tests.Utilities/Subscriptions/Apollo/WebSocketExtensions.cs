@@ -15,9 +15,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
-namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
+namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 
-internal static class WebSocketExtensions
+public static class WebSocketExtensions
 {
     private static readonly JsonSerializerSettings _settings =
         new()
@@ -33,6 +33,16 @@ internal static class WebSocketExtensions
             webSocket,
             new InitializeConnectionMessage(),
             cancellationToken: cancellationToken);
+
+    public static async Task SendConnectionInitializeAsync(
+        this WebSocket webSocket,
+        Dictionary<string, object?>? payload,
+        CancellationToken cancellationToken)
+    {
+        using var writer = new ArrayWriter();
+        MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
+        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+    }
 
     public static async Task SendTerminateConnectionAsync(
         this WebSocket webSocket,

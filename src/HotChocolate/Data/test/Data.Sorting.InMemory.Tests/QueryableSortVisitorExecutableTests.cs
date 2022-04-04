@@ -5,25 +5,24 @@ using Xunit;
 
 namespace HotChocolate.Data.Sorting;
 
-public class QueryableSortVisitorExecutableTests
-    : IClassFixture<SchemaCache>
+public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true }, new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { Bar = true },
-            new FooNullable { Bar = null },
-            new FooNullable { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
+    };
 
     private readonly SchemaCache _cache;
 
-    public QueryableSortVisitorExecutableTests(
-        SchemaCache cache)
+    public QueryableSortVisitorExecutableTests(SchemaCache cache)
     {
         _cache = cache;
     }
@@ -109,13 +108,11 @@ public class QueryableSortVisitorExecutableTests
         public bool? Bar { get; set; }
     }
 
-    public class FooSortType
-        : SortInputType<Foo>
+    public class FooSortType : SortInputType<Foo>
     {
     }
 
-    public class FooNullableSortType
-        : SortInputType<FooNullable>
+    public class FooNullableSortType : SortInputType<FooNullable>
     {
     }
 }
