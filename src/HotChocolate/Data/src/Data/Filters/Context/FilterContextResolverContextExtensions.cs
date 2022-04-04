@@ -38,7 +38,7 @@ public static class FilterContextResolverContextExtensions
             new(context, filterInput, filter, context.Service<InputParser>());
 
         // disable the execution of filtering by default
-        filterContext.EnableFilterExecution(false);
+        filterContext.Handled(true);
 
         return filterContext;
     }

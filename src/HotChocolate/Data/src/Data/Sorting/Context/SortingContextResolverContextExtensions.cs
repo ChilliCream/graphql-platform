@@ -1,4 +1,3 @@
-using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -35,8 +34,8 @@ public static class SortingContextResolverContextExtensions
         SortingContext sortingContext =
             new(context, sortingInput, sorting, context.Service<InputParser>());
 
-        // disable the execution of sortinging by default
-        sortingContext.EnableSortingExecution(false);
+        // disable the execution of sorting by default
+        sortingContext.Handled(true);
 
         return sortingContext;
     }
