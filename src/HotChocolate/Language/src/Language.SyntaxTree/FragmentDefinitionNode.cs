@@ -7,6 +7,7 @@ namespace HotChocolate.Language;
 public sealed class FragmentDefinitionNode
     : NamedSyntaxNode
     , IExecutableDefinitionNode
+    , IEquatable<FragmentDefinitionNode>
 {
     public FragmentDefinitionNode(
         Location? location,
@@ -124,4 +125,44 @@ public sealed class FragmentDefinitionNode
             TypeCondition,
             Directives, selectionSet);
     }
+
+    public bool Equals(FragmentDefinitionNode? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return base.Equals(other)
+               && Kind == other.Kind
+               && TypeCondition.IsEqualTo(other.TypeCondition)
+               && SelectionSet.IsEqualTo(other.SelectionSet)
+               && VariableDefinitions.IsEqualTo(other.VariableDefinitions);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is FragmentDefinitionNode other
+            && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(base.GetHashCode(), (int)Kind, VariableDefinitions, TypeCondition, SelectionSet);
+    }
+
+    public static bool operator ==(
+        FragmentDefinitionNode? left,
+        FragmentDefinitionNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(
+        FragmentDefinitionNode? left,
+        FragmentDefinitionNode? right)
+        => !Equals(left, right);
 }
