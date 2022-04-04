@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
@@ -11,8 +11,7 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore;
 
-public class ToolConfigurationFileMiddlewareTests
-    : ServerTestBase
+public class ToolConfigurationFileMiddlewareTests : ServerTestBase
 {
     public ToolConfigurationFileMiddlewareTests(TestServerFactory serverFactory)
         : base(serverFactory)

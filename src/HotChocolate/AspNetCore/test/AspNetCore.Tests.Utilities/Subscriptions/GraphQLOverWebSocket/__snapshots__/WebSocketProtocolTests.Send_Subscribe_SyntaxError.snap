@@ -1,0 +1,15 @@
+﻿{
+  "id": "abc",
+  "type": "error",
+  "payload": [
+    {
+      "message": "Expected a `Name`-token, but found a `Integer`-token.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 46
+        }
+      ]
+    }
+  ]
+}

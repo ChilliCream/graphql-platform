@@ -6,10 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using Microsoft.AspNetCore.TestHost;
-using HotChocolate.AspNetCore.Utilities;
 using Xunit;
 
-namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
+namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 
 public class SubscriptionTestBase : ServerTestBase
 {
