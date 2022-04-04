@@ -138,7 +138,7 @@ public class SortingContextTests
     }
 
     [Fact]
-    public async Task EnableSortingExecution_Should_EnableSortingExecution()
+    public async Task Handled_Should_EnableSortingExecution()
     {
         IImmutableDictionary<string, object?>? localContextData = null;
         // arrange
@@ -176,7 +176,7 @@ public class SortingContextTests
     }
 
     [Fact]
-    public async Task EnableSortingExecution_Should_DisableSortingExecutionByDefault()
+    public async Task Handled_Should_DisableSortingExecutionByDefault()
     {
         IImmutableDictionary<string, object?>? localContextData = null;
         // arrange
