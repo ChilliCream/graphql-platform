@@ -63,9 +63,9 @@ public static class SyntaxPrinter
         CancellationToken cancellationToken = default)
     {
 #if NETSTANDARD2_0
-        using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
+        using var streamWriter = new StreamWriter(stream, new UTF8Encoding(false));
 #else
-        await using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
+        await using var streamWriter = new StreamWriter(stream, new UTF8Encoding(false));
 #endif
 
         var syntaxWriter = StringSyntaxWriter.Rent();
