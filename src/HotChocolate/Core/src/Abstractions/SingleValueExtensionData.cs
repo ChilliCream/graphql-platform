@@ -9,7 +9,7 @@ using HotChocolate.Properties;
 namespace HotChocolate;
 
 /// <summary>
-/// An optimized extension data dictionary for <see cref="IExecutionResult.Extensions"/> or
+/// An optimized extension data dictionary for <see cref="QueryResult.Extensions"/> or
 /// <see cref="IExecutionResult.ContextData"/> when only one value is needed.
 /// </summary>
 public sealed class SingleValueExtensionData : IReadOnlyDictionary<string, object?>
