@@ -261,4 +261,173 @@ public class DirectiveDefinitionNodeTests
         // assert
         directiveDefinition.ToString().MatchSnapshot();
     }
+
+    [Fact]
+    public void Equals_With_Same_Location()
+    {
+        // arrange
+        var arguments = new List<InputValueDefinitionNode>
+        {
+            new(null,
+                new NameNode("abc"),
+                new StringValueNode("def"),
+                new NamedTypeNode("efg"),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var locations = new List<NameNode>
+        {
+            new(DirectiveLocation.Field.ToString())
+        };
+
+        var a = new DirectiveDefinitionNode(
+            TestLocations.Location1,
+            new("aa"),
+            null,
+            true,
+            arguments,
+            locations);
+        var b = new DirectiveDefinitionNode(
+            TestLocations.Location1,
+            new("aa"),
+            null,
+            true,
+            arguments,
+            locations);
+        var c = new DirectiveDefinitionNode(
+            TestLocations.Location1,
+            new("bb"),
+            null,
+            true,
+            arguments,
+            locations);
+
+        // act
+        var abResult = a.Equals(b);
+        var aaResult = a.Equals(a);
+        var acResult = a.Equals(c);
+        var aNullResult = a.Equals(default);
+
+        // assert
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
+    }
+
+    [Fact]
+    public void Equals_With_Different_Location()
+    {
+        // arrange
+        var arguments = new List<InputValueDefinitionNode>
+        {
+            new(null,
+                new NameNode("abc"),
+                new StringValueNode("def"),
+                new NamedTypeNode("efg"),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var locations = new List<NameNode>
+        {
+            new(DirectiveLocation.Field.ToString())
+        };
+
+        var a = new DirectiveDefinitionNode(
+            TestLocations.Location1,
+            new("aa"),
+            null,
+            true,
+            arguments,
+            locations);
+        var b = new DirectiveDefinitionNode(
+            TestLocations.Location2,
+            new("aa"),
+            null,
+            true,
+            arguments,
+            locations);
+        var c = new DirectiveDefinitionNode(
+            TestLocations.Location1,
+            new("bb"),
+            null,
+            true,
+            arguments,
+            locations);
+
+        // act
+        var abResult = a.Equals(b);
+        var aaResult = a.Equals(a);
+        var acResult = a.Equals(c);
+        var aNullResult = a.Equals(default);
+
+        // assert
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
+    }
+
+    [Fact]
+    public void GetHashCode_With_Location()
+    {
+        // arrange
+        var arguments = new List<InputValueDefinitionNode>
+        {
+            new(null,
+                new NameNode("abc"),
+                new StringValueNode("def"),
+                new NamedTypeNode("efg"),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var locations = new List<NameNode>
+        {
+            new(DirectiveLocation.Field.ToString())
+        };
+
+        var a = new DirectiveDefinitionNode(
+            TestLocations.Location1,
+            new("aa"),
+            null,
+            true,
+            arguments,
+            locations);
+        var b = new DirectiveDefinitionNode(
+            TestLocations.Location2,
+            new("aa"),
+            null,
+            true,
+            arguments,
+            locations);
+        var c = new DirectiveDefinitionNode(
+            TestLocations.Location1,
+            new("bb"),
+            null,
+            true,
+            arguments,
+            locations);
+        var d = new DirectiveDefinitionNode(
+            TestLocations.Location2,
+            new("bb"),
+            null,
+            true,
+            arguments,
+            locations);
+
+        // act
+        var aHash = a.GetHashCode();
+        var bHash = b.GetHashCode();
+        var cHash = c.GetHashCode();
+        var dHash = d.GetHashCode();
+
+        // assert
+        Assert.Equal(aHash, bHash);
+        Assert.NotEqual(aHash, cHash);
+        Assert.Equal(cHash, dHash);
+        Assert.NotEqual(aHash, dHash);
+    }
 }

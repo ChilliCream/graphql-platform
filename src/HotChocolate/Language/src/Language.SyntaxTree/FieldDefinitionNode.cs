@@ -196,7 +196,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
     /// </returns>
     public bool Equals(FieldDefinitionNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -223,8 +223,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is FieldDefinitionNode other &&
-            Equals(other);
+            (obj is FieldDefinitionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -237,7 +236,8 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
         unchecked
         {
             var hashCode = base.GetHashCode();
-            hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
+            hashCode = (hashCode * 397) ^ ((Description?.GetHashCode()) ?? 0);
             hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
             hashCode = (hashCode * 397) ^ Type.GetHashCode();
             return hashCode;

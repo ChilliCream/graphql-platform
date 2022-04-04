@@ -4,112 +4,102 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class EnumTypeDefinitionNodeTests
+public class EnumTypeExtensionNodeTests
 {
     [Fact]
-    public void EnumTypeDefinitionWithLocation()
+    public void EnumTypeExtensionWithLocation()
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
         var name = new NameNode("foo");
-        var description = new StringValueNode("bar");
         var directives = new List<DirectiveNode>();
         var values = new List<EnumValueDefinitionNode>();
 
         // act
-        var type = new EnumTypeDefinitionNode(
+        var type = new EnumTypeExtensionNode(
             location,
             name,
-            description,
             directives,
             values);
 
         // assert
-        Assert.Equal(SyntaxKind.EnumTypeDefinition, type.Kind);
+        Assert.Equal(SyntaxKind.EnumTypeExtension, type.Kind);
         Assert.Equal(location, type.Location);
         Assert.Equal(name, type.Name);
-        Assert.Equal(description, type.Description);
         Assert.Equal(directives, type.Directives);
         Assert.Equal(values, type.Values);
     }
 
     [Fact]
-    public void EnumTypeDefinitionWithoutLocation()
+    public void EnumTypeExtensionWithoutLocation()
     {
         // arrange
         var name = new NameNode("foo");
-        var description = new StringValueNode("bar");
         var directives = new List<DirectiveNode>();
         var values = new List<EnumValueDefinitionNode>();
 
         // act
-        var type = new EnumTypeDefinitionNode(
+        var type = new EnumTypeExtensionNode(
             null,
             name,
-            description,
             directives,
             values);
 
         // assert
-        Assert.Equal(SyntaxKind.EnumTypeDefinition, type.Kind);
+        Assert.Equal(SyntaxKind.EnumTypeExtension, type.Kind);
         Assert.Null(type.Location);
         Assert.Equal(name, type.Name);
-        Assert.Equal(description, type.Description);
         Assert.Equal(directives, type.Directives);
         Assert.Equal(values, type.Values);
     }
 
     [Fact]
-    public void EnumTypeDefinitionWithoutName_ArgumentNullException()
+    public void EnumTypeExtensionWithoutName_ArgumentNullException()
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        var description = new StringValueNode("bar");
         var directives = new List<DirectiveNode>();
         var values = new List<EnumValueDefinitionNode>();
 
         // act
-        EnumTypeDefinitionNode Action()
-            => new(location, null, description, directives, values);
+        EnumTypeExtensionNode Action()
+            => new(location, null, directives, values);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
-    public void EnumTypeDefinitionWithoutDirectives_ArgumentNullException()
+    public void EnumTypeExtensionWithoutDirectives_ArgumentNullException()
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
         var name = new NameNode("foo");
-        var description = new StringValueNode("bar");
         var values = new List<EnumValueDefinitionNode>();
 
 
         // act
-        EnumTypeDefinitionNode Action()
-            => new(location, name, description, null, values);
+        EnumTypeExtensionNode Action()
+            => new(location, name, null, values);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
-    public void EnumTypeDefinitionWithoutValues_ArgumentNullException()
+    public void EnumTypeExtensionWithoutValues_ArgumentNullException()
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
         var name = new NameNode("foo");
-        var description = new StringValueNode("bar");
         var directives = new List<DirectiveNode>();
 
         // act
-        Action a = () => new EnumTypeDefinitionNode(
-             location,
-             name,
-             description,
-             directives,
-             null);
+        Action a = () => new EnumTypeExtensionNode(
+            location,
+            name,
+            directives,
+            null);
 
         // assert
         Assert.Throws<ArgumentNullException>(a);
@@ -121,14 +111,12 @@ public class EnumTypeDefinitionNodeTests
         // arrange
         var location = new Location(0, 0, 0, 0);
         var name = new NameNode("foo");
-        var description = new StringValueNode("bar");
         var directives = new List<DirectiveNode>();
         var values = new List<EnumValueDefinitionNode>();
 
-        var type = new EnumTypeDefinitionNode(
+        var type = new EnumTypeExtensionNode(
            location,
            name,
-           description,
            directives,
            values);
 
@@ -141,44 +129,17 @@ public class EnumTypeDefinitionNodeTests
     }
 
     [Fact]
-    public void WithDescription()
-    {
-        // arrange
-        var location = new Location(0, 0, 0, 0);
-        var name = new NameNode("foo");
-        var description = new StringValueNode("bar");
-        var directives = new List<DirectiveNode>();
-        var values = new List<EnumValueDefinitionNode>();
-
-        var type = new EnumTypeDefinitionNode(
-           location,
-           name,
-           description,
-           directives,
-           values);
-
-        // act
-        type = type.WithDescription(new StringValueNode("baz"));
-
-
-        // assert
-        Assert.Equal("baz", type.Description.Value);
-    }
-
-    [Fact]
     public void WithDirectives()
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
         var name = new NameNode("foo");
-        var description = new StringValueNode("bar");
         var directives = new List<DirectiveNode>();
         var values = new List<EnumValueDefinitionNode>();
 
-        var type = new EnumTypeDefinitionNode(
+        var type = new EnumTypeExtensionNode(
            location,
            name,
-           description,
            new List<DirectiveNode>(),
            values);
 
@@ -196,14 +157,12 @@ public class EnumTypeDefinitionNodeTests
         // arrange
         var location = new Location(0, 0, 0, 0);
         var name = new NameNode("foo");
-        var description = new StringValueNode("bar");
         var directives = new List<DirectiveNode>();
         var values = new List<EnumValueDefinitionNode>();
 
-        var type = new EnumTypeDefinitionNode(
+        var type = new EnumTypeExtensionNode(
            location,
            name,
-           description,
            directives,
            new List<EnumValueDefinitionNode>());
 
@@ -221,14 +180,12 @@ public class EnumTypeDefinitionNodeTests
         // arrange
         var location = new Location(0, 0, 0, 0);
         var name = new NameNode("foo");
-        var description = new StringValueNode("bar");
         var directives = new List<DirectiveNode>();
         var values = new List<EnumValueDefinitionNode>();
 
-        var type = new EnumTypeDefinitionNode(
+        var type = new EnumTypeExtensionNode(
            null,
            name,
-           description,
            directives,
            values);
 
@@ -249,22 +206,19 @@ public class EnumTypeDefinitionNodeTests
             new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
-        var a = new EnumTypeDefinitionNode(
+        var a = new EnumTypeExtensionNode(
             TestLocations.Location1,
             new("aa"),
-            null,
             Array.Empty<DirectiveNode>(),
             values);
-        var b = new EnumTypeDefinitionNode(
+        var b = new EnumTypeExtensionNode(
             TestLocations.Location1,
             new("aa"),
-            null,
             Array.Empty<DirectiveNode>(),
             values);
-        var c = new EnumTypeDefinitionNode(
+        var c = new EnumTypeExtensionNode(
             TestLocations.Location1,
             new("ab"),
-            null,
             Array.Empty<DirectiveNode>(),
             values);
 
@@ -290,22 +244,19 @@ public class EnumTypeDefinitionNodeTests
             new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
-        var a = new EnumTypeDefinitionNode(
+        var a = new EnumTypeExtensionNode(
             TestLocations.Location1,
             new("aa"),
-            null,
             Array.Empty<DirectiveNode>(),
             values);
-        var b = new EnumTypeDefinitionNode(
+        var b = new EnumTypeExtensionNode(
             TestLocations.Location2,
             new("aa"),
-            null,
             Array.Empty<DirectiveNode>(),
             values);
-        var c = new EnumTypeDefinitionNode(
+        var c = new EnumTypeExtensionNode(
             TestLocations.Location1,
             new("ab"),
-            null,
             Array.Empty<DirectiveNode>(),
             values);
 
@@ -331,28 +282,24 @@ public class EnumTypeDefinitionNodeTests
             new EnumValueDefinitionNode(null, new("DEF"), null, Array.Empty<DirectiveNode>())
         };
 
-        var a = new EnumTypeDefinitionNode(
+        var a = new EnumTypeExtensionNode(
             TestLocations.Location1,
             new("aa"),
-            null,
             Array.Empty<DirectiveNode>(),
             values);
-        var b = new EnumTypeDefinitionNode(
+        var b = new EnumTypeExtensionNode(
             TestLocations.Location2,
             new("aa"),
-            null,
             Array.Empty<DirectiveNode>(),
             values);
-        var c = new EnumTypeDefinitionNode(
+        var c = new EnumTypeExtensionNode(
             TestLocations.Location1,
             new("ab"),
-            null,
             Array.Empty<DirectiveNode>(),
             values);
-        var d = new EnumTypeDefinitionNode(
+        var d = new EnumTypeExtensionNode(
             TestLocations.Location2,
             new("ab"),
-            null,
             Array.Empty<DirectiveNode>(),
             values);
 

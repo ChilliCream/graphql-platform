@@ -215,7 +215,7 @@ public sealed class DirectiveDefinitionNode
     /// </returns>
     public bool Equals(DirectiveDefinitionNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -243,8 +243,7 @@ public sealed class DirectiveDefinitionNode
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is DirectiveDefinitionNode other &&
-            Equals(other);
+            (obj is DirectiveDefinitionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -257,7 +256,8 @@ public sealed class DirectiveDefinitionNode
         unchecked
         {
             var hashCode = Name.GetHashCode();
-            hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
+            hashCode = (hashCode * 397) ^ (Description?.GetHashCode() ?? 0);
             hashCode = (hashCode * 397) ^ IsRepeatable.GetHashCode();
             hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
             hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Locations);

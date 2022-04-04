@@ -7,9 +7,8 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language;
 
 /// <summary>
-/// Represents a enum value literal.
-///
-/// http://facebook.github.io/graphql/June2018/#sec-Enum-Value
+/// <para>Represents a enum value literal.</para>
+/// <para>http://facebook.github.io/graphql/June2018/#sec-Enum-Value</para>
 /// </summary>
 public sealed class EnumValueNode
     : IValueNode<string>
@@ -173,14 +172,7 @@ public sealed class EnumValueNode
     /// A hash code for this instance that is suitable for use in
     /// hashing algorithms and data structures such as a hash table.
     /// </returns>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            return (Kind.GetHashCode() * 397)
-             ^ (Value.GetHashCode() * 97);
-        }
-    }
+    public override int GetHashCode() => HashCode.Combine(Kind, Value);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
