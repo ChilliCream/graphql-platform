@@ -30,15 +30,15 @@ public class FilterContext : IFilterContext
     }
 
     /// <inheritdoc />
-    public void EnableFilterExecution(bool enable = true)
+    public void Handled(bool isHandled)
     {
-        if (enable)
+        if (isHandled)
         {
-            _context.LocalContextData = _context.LocalContextData.Remove(SkipFilteringKey);
+            _context.LocalContextData = _context.LocalContextData.SetItem(SkipFilteringKey, true);
         }
         else
         {
-            _context.LocalContextData = _context.LocalContextData.SetItem(SkipFilteringKey, true);
+            _context.LocalContextData = _context.LocalContextData.Remove(SkipFilteringKey);
         }
     }
 

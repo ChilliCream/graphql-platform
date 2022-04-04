@@ -9,7 +9,7 @@ using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// Encapuslates all sorting specific information
+/// Encapsulated all sorting specific information
 /// </summary>
 public class SortingContext : ISortingContext
 {
@@ -29,20 +29,20 @@ public class SortingContext : ISortingContext
             ? listValueNode.Items
                 .Select(x => new SortingInfo(type, x, inputParser))
                 .ToArray()
-            : new[] { new SortingInfo(type, valueNode, inputParser) };
+            : new[] {new SortingInfo(type, valueNode, inputParser)};
         _context = context;
     }
 
     /// <inheritdoc />
-    public void EnableSortingExecution(bool enable = true)
+    public void Handled(bool isHandled)
     {
-        if (enable)
+        if (isHandled)
         {
-            _context.LocalContextData = _context.LocalContextData.Remove(SkipSortingKey);
+            _context.LocalContextData = _context.LocalContextData.SetItem(SkipSortingKey, true);
         }
         else
         {
-            _context.LocalContextData = _context.LocalContextData.SetItem(SkipSortingKey, true);
+            _context.LocalContextData = _context.LocalContextData.Remove(SkipSortingKey);
         }
     }
 
@@ -53,12 +53,12 @@ public class SortingContext : ISortingContext
     /// <inheritdoc />
     public IList<IDictionary<string, object?>> ToList()
         => _value
-             .Select(x => Serialize(x))
-             .OfType<IDictionary<string, object?>>()
-             .Where(x => x.Count > 0)
-             .ToArray();
+            .Select(Serialize)
+            .OfType<IDictionary<string, object?>>()
+            .Where(x => x.Count > 0)
+            .ToArray();
 
-    private object? Serialize(ISortingValueNode? value)
+    private static object? Serialize(ISortingValueNode? value)
     {
         switch (value)
         {
