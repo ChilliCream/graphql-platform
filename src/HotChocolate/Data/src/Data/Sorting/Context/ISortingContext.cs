@@ -13,7 +13,7 @@ public interface ISortingContext
     /// manually
     /// </summary>
     /// <param name="isHandled">If false, sorting is applied on the result of the resolver</param>
-    void Handled(bool isHandled );
+    void Handled(bool isHandled);
 
     /// <summary>
     /// Serializes the input object to a dictionary
