@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -260,7 +259,7 @@ public class FilterContextTests
     }
 
     [Fact]
-    public async Task EnableFilterExecution_Should_EnableFilterExecution()
+    public async Task Handled_Should_EnableFilterExecution()
     {
         IImmutableDictionary<string, object?>? localContextData = null;
         // arrange
@@ -273,7 +272,7 @@ public class FilterContextTests
                 .UseFiltering()
                 .Resolve(x =>
                 {
-                    x.GetFilterContext()?.EnableFilterExecution();
+                    x.GetFilterContext()?.Handled(false);
                     localContextData = x.LocalContextData.Add("foo", true);
 
                     return Array.Empty<Book>();
@@ -308,7 +307,7 @@ public class FilterContextTests
     }
 
     [Fact]
-    public async Task EnableFilterExecution_Should_DisableFilterExecutionByDefault()
+    public async Task Handled_Should_DisableFilterExecutionByDefault()
     {
         IImmutableDictionary<string, object?>? localContextData = null;
         // arrange
