@@ -39,8 +39,7 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
         IReadOnlyList<IDefinitionNode> definitions)
     {
         Location = location;
-        Definitions = definitions ??
-            throw new ArgumentNullException(nameof(definitions));
+        Definitions = definitions ?? throw new ArgumentNullException(nameof(definitions));
     }
 
     /// <inheritdoc cref="ISyntaxNode" />
@@ -119,7 +118,7 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     /// </returns>
     public bool Equals(DocumentNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -143,8 +142,7 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is DocumentNode other &&
-            Equals(other);
+            (obj is DocumentNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -156,7 +154,8 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     {
         unchecked
         {
-            return Definitions.GetHashCode();
+            var hashCode = Kind.GetHashCode();
+            return (hashCode * 397) ^ EqualityHelper.GetHashCode(Definitions);
         }
     }
 

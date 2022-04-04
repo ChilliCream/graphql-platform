@@ -1,21 +1,25 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
 /// <summary>
-/// A field describes one discrete piece of information available to 
+/// <para>
+/// A field describes one discrete piece of information available to
 /// request within a selection set.
-/// 
-/// Some fields describe complex data or relationships to other data. 
-/// In order to further explore this data, a field may itself contain 
-/// a selection set, allowing for deeply nested requests. 
-/// 
-/// All GraphQL operations must specify their selections down to fields 
+/// </para>
+/// <para>
+/// Some fields describe complex data or relationships to other data.
+/// In order to further explore this data, a field may itself contain
+/// a selection set, allowing for deeply nested requests.
+/// </para>
+/// <para>
+/// All GraphQL operations must specify their selections down to fields
 /// which return scalar values to ensure an unambiguously shaped response.
-/// 
-/// Field : Alias? Name Arguments? Nullability? Directives? SelectionSet?
+/// </para>
+/// <para>Field : Alias? Name Arguments? Nullability? Directives? SelectionSet?</para>
 /// </summary>
 public sealed class FieldNode
     : NamedSyntaxNode
@@ -41,12 +45,24 @@ public sealed class FieldNode
     /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.Field;
 
+    /// <summary>
+    /// By default a field’s response key in the response object will use that field’s name.
+    /// However, you can define a different response key by specifying an alias.
+    /// </summary>
+    /// <value></value>
     public NameNode? Alias { get; }
 
+    /// <summary>
+    /// Gets the assigned field argument values.
+    /// </summary>
+    /// <value></value>
     public IReadOnlyList<ArgumentNode> Arguments { get; }
 
     public INullabilityNode? Required { get; }
 
+    /// <summary>
+    /// Gets the fields selection set.
+    /// </summary>
     public SelectionSetNode? SelectionSet { get; }
 
     /// <inheritdoc />
@@ -204,7 +220,7 @@ public sealed class FieldNode
     /// </returns>
     public bool Equals(FieldNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -215,10 +231,10 @@ public sealed class FieldNode
         }
 
         return base.Equals(other)
-               && Alias.IsEqualTo(other.Alias)
-               && Required.IsEqualTo(other.Required)
-               && SelectionSet.IsEqualTo(other.SelectionSet)
-               && Arguments.IsEqualTo(other.Arguments);
+            && Alias.IsEqualTo(other.Alias)
+            && Required.IsEqualTo(other.Required)
+            && SelectionSet.IsEqualTo(other.SelectionSet)
+            && Arguments.IsEqualTo(other.Arguments);
     }
 
     /// <summary>
@@ -231,10 +247,8 @@ public sealed class FieldNode
     /// true if the specified object  is equal to the current object; otherwise, false.
     /// </returns>
     public override bool Equals(object? obj)
-    {
-        return ReferenceEquals(this, obj) ||
+        => ReferenceEquals(this, obj) ||
             (obj is FieldNode other && Equals(other));
-    }
 
     /// <summary>
     /// Serves as the default hash function.
@@ -243,15 +257,16 @@ public sealed class FieldNode
     /// A hash code for the current object.
     /// </returns>
     public override int GetHashCode()
-        => HashCode.Combine(base.GetHashCode(), Alias, Arguments, Required, SelectionSet);
+        => HashCode.Combine(
+            base.GetHashCode(),
+            Alias,
+            EqualityHelper.GetHashCode(Arguments),
+            Required,
+            SelectionSet);
 
-    public static bool operator ==(
-        FieldNode? left,
-        FieldNode? right)
+    public static bool operator ==(FieldNode? left, FieldNode? right)
         => Equals(left, right);
 
-    public static bool operator !=(
-        FieldNode? left,
-        FieldNode? right)
+    public static bool operator !=(FieldNode? left, FieldNode? right)
         => !Equals(left, right);
 }
