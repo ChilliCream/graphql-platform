@@ -64,7 +64,7 @@ public abstract class ComplexTypeDefinitionNodeBase
     /// </returns>
     public bool Equals(ComplexTypeDefinitionNodeBase? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -90,7 +90,7 @@ public abstract class ComplexTypeDefinitionNodeBase
     /// </returns>
     public override bool Equals(object? obj)
     {
-        if (ReferenceEquals(null, obj))
+        if (obj is null)
         {
             return false;
         }
@@ -119,6 +119,7 @@ public abstract class ComplexTypeDefinitionNodeBase
         unchecked
         {
             var hashCode = base.GetHashCode();
+            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
             hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Interfaces);
             hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Fields);
             return hashCode;

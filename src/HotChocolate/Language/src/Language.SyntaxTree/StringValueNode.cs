@@ -236,6 +236,9 @@ public sealed class StringValueNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Gets a readonly span to access the string value memory.
+    /// </summary>
     public ReadOnlySpan<byte> AsSpan()
     {
         if (_memory.IsEmpty)
