@@ -1,0 +1,9 @@
+﻿type Foo @a(x: "y") {
+  bar: String
+  baz: [Int]
+}
+
+type Foo @a @b {
+  bar: String @foo
+  baz(a: String = "abc"): [Int] @foo @bar
+}
