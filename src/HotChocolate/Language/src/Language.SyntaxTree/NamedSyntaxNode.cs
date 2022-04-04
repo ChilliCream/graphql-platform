@@ -75,9 +75,7 @@ public abstract class NamedSyntaxNode : INamedSyntaxNode, IEquatable<NamedSyntax
             return true;
         }
 
-        return Kind == other.Kind &&
-            Equals(Location, other.Location) &&
-            Name.Equals(other.Name) &&
+        return Name.Equals(other.Name) &&
             EqualityHelper.Equals(Directives, other.Directives);
     }
 
@@ -120,8 +118,7 @@ public abstract class NamedSyntaxNode : INamedSyntaxNode, IEquatable<NamedSyntax
     {
         unchecked
         {
-            var hashCode = (int)Kind;
-            hashCode = (hashCode * 397) ^ Name.GetHashCode();
+            var hashCode = Name.GetHashCode();
             hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Directives);
             return hashCode;
         }

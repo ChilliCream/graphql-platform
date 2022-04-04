@@ -225,8 +225,7 @@ public sealed class DirectiveDefinitionNode
             return true;
         }
 
-        return Equals(Location, other.Location) &&
-            Name.Equals(other.Name) &&
+        return Name.Equals(other.Name) &&
             Equals(Description, other.Description) &&
             IsRepeatable == other.IsRepeatable &&
             EqualityHelper.Equals(Arguments, other.Arguments) &&
@@ -257,8 +256,7 @@ public sealed class DirectiveDefinitionNode
     {
         unchecked
         {
-            var hashCode = Location != null ? Location.GetHashCode() : 0;
-            hashCode = (hashCode * 397) ^ Name.GetHashCode();
+            var hashCode = Name.GetHashCode();
             hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
             hashCode = (hashCode * 397) ^ IsRepeatable.GetHashCode();
             hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
