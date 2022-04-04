@@ -1,16 +1,21 @@
 using Xunit;
+using HotChocolate.Language;
+using System.Net.Security;
 
 namespace Language.SyntaxTree.Tests;
 
 public class OptionalModifierNodeTests
 {
+    private readonly ListNullabilityNode _element1 = new(new Location(1, 1, 1, 1), null);
+    private readonly ListNullabilityNode _element2 = new(new Location(1, 1, 1, 1), null);
+
     [Fact]
     public void Equals_With_Same_Location()
     {
         // arrange
-        var a = new OptionalModifierNode(new Location(1, 1, 1, 1), new("aa"), new IntValueNode(123));
-        var b = new ArgumentNode(new Location(1, 1, 1, 1), new("aa"), new IntValueNode(123));
-        var c = new ArgumentNode(new Location(1, 1, 1, 1), new("aa"), new IntValueNode(567));
+        var a = new OptionalModifierNode(new Location(1, 1, 1, 1), _element1);
+        var b = new OptionalModifierNode(new Location(1, 1, 1, 1), _element1);
+        var c = new OptionalModifierNode(new Location(1, 1, 1, 1), _element2);
 
         // act
         var abResult = a.Equals(b);
@@ -29,9 +34,9 @@ public class OptionalModifierNodeTests
     public void Equals_With_Different_Location()
     {
         // arrange
-        var a = new ArgumentNode(new Location(1, 1, 1, 1), new("aa"), new IntValueNode(123));
-        var b = new ArgumentNode(new Location(2, 2, 2, 2), new("aa"), new IntValueNode(123));
-        var c = new ArgumentNode(new Location(3, 3, 3, 3), new("aa"), new IntValueNode(567));
+        var a = new OptionalModifierNode(new Location(1, 1, 1, 1), _element1);
+        var b = new OptionalModifierNode(new Location(2, 2, 2, 2), _element1);
+        var c = new OptionalModifierNode(new Location(3, 3, 3, 3), _element2);
 
         // act
         var abResult = a.Equals(b);
@@ -50,10 +55,10 @@ public class OptionalModifierNodeTests
     public void GetHashCode_With_Location()
     {
         // arrange
-        var a = new ArgumentNode(new Location(1, 1, 1, 1), new("aa"), new IntValueNode(123));
-        var b = new ArgumentNode(new Location(2, 2, 2, 2), new("aa"), new IntValueNode(123));
-        var c = new ArgumentNode(new Location(1, 1, 1, 1), new("aa"), new IntValueNode(567));
-        var d = new ArgumentNode(new Location(2, 2, 2, 2), new("aa"), new IntValueNode(567));
+        var a = new OptionalModifierNode(new Location(1, 1, 1, 1), _element1);
+        var b = new OptionalModifierNode(new Location(2, 2, 2, 2), _element1);
+        var c = new OptionalModifierNode(new Location(1, 1, 1, 1), _element2);
+        var d = new OptionalModifierNode(new Location(2, 2, 2, 2), _element2);
 
         // act
         var aHash = a.GetHashCode();

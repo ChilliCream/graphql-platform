@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Language.Visit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Language.Tests", "test\Language.Tests\HotChocolate.Language.Tests.csproj", "{B507C5E7-145A-4BB1-A932-26D39CB37A2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Language.SyntaxTree.Tests", "test\Language.SyntaxTree.Tests\HotChocolate.Language.SyntaxTree.Tests.csproj", "{5E20BDB8-4C08-4DB8-BDFC-35B01D73603D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Language.SyntaxTree.Tests", "test\Language.SyntaxTree.Tests\HotChocolate.Language.SyntaxTree.Tests.csproj", "{5E20BDB8-4C08-4DB8-BDFC-35B01D73603D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -80,7 +80,7 @@ public sealed class OptionalModifierNode : INullabilityModifierNode, IEquatable<
 
     /// <inheritdoc />
     public override int GetHashCode()
-       => HashCode.Combine(base.GetHashCode(), Element);
+       => HashCode.Combine(Element?.GetHashCode());
 
     public static bool operator ==(
         OptionalModifierNode? left,

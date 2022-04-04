@@ -1,33 +1,27 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
-
-    <IsPackable>false</IsPackable>
+    <AssemblyName>HotChocolate.Language.SyntaxTree.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Language.SyntaxTree</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="3.1.0">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <ProjectReference Include="..\..\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
   </ItemGroup>
 
-   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
+  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
     <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
-
 </Project>
+
