@@ -28,18 +28,22 @@ public class SortInputType
 
     public IExtendedType EntityType { get; private set; } = default!;
 
-    protected override InputObjectTypeDefinition CreateDefinition(
-        ITypeDiscoveryContext context)
+    protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        var descriptor = SortInputTypeDescriptor.FromSchemaType(
-            context.DescriptorContext,
-            GetType(),
-            context.Scope);
+        if (Definition is null)
+        {
+            var descriptor = SortInputTypeDescriptor.FromSchemaType(
+                context.DescriptorContext,
+                GetType(),
+                context.Scope);
 
-        _configure!(descriptor);
-        _configure = null;
+            _configure!(descriptor);
+            _configure = null;
 
-        return descriptor.CreateDefinition();
+            Definition = descriptor.CreateDefinition();
+        }
+
+        return Definition;
     }
 
     protected virtual void Configure(ISortInputTypeDescriptor descriptor)
@@ -51,7 +55,7 @@ public class SortInputType
         InputObjectTypeDefinition definition)
     {
         base.OnRegisterDependencies(context, definition);
-        if (definition is SortInputTypeDefinition { EntityType: { } } sortDefinition)
+        if (definition is SortInputTypeDefinition {EntityType: { }} sortDefinition)
         {
             SetTypeIdentity(
                 typeof(SortInputType<>).MakeGenericType(sortDefinition.EntityType));
@@ -80,7 +84,7 @@ public class SortInputType
 
         foreach (InputFieldDefinition fieldDefinition in definition.Fields)
         {
-            if (fieldDefinition is SortFieldDefinition { Ignore: false } field)
+            if (fieldDefinition is SortFieldDefinition {Ignore: false} field)
             {
                 fields[index] = new SortField(field, index);
                 index++;
@@ -97,8 +101,7 @@ public class SortInputType
 
     // we are disabling the default configure method so
     // that this does not lead to confusion.
-    protected sealed override void Configure(
-        IInputObjectTypeDescriptor descriptor)
+    protected sealed override void Configure(IInputObjectTypeDescriptor descriptor)
     {
         throw new NotSupportedException();
     }
@@ -147,21 +150,22 @@ public class SortInputType
                 CreateNamingConfiguration,
                 sortTypeDefinition,
                 ApplyConfigurationOn.Naming,
-                new TypeDependency[] {
-                    new(sortOperationType, TypeDependencyKind.Named) ,
+                new TypeDependency[]
+                {
+                    new(sortOperationType, TypeDependencyKind.Named),
                     new(sortType, TypeDependencyKind.Named)
                 }));
 
-        /// <summary>
-        /// Creates the configuration for the naming process of the inline sort types.
-        /// It uses the parent type name and the name of the field on which the new is applied,
-        /// to create a new typename
-        /// <example>
-        /// ParentTypeName: AuthorSortInputType
-        /// Field: friends
-        /// Result: AuthorFriendsSortInputType
-        /// </example>
-        /// </summary>
+        // <summary>
+        // Creates the configuration for the naming process of the inline sort types.
+        // It uses the parent type name and the name of the field on which the new is applied,
+        // to create a new typename
+        // <example>
+        // ParentTypeName: AuthorSortInputType
+        // Field: friends
+        // Result: AuthorFriendsSortInputType
+        // </example>
+        // </summary>
         void CreateNamingConfiguration(
             ITypeCompletionContext context,
             SortInputTypeDefinition definition)

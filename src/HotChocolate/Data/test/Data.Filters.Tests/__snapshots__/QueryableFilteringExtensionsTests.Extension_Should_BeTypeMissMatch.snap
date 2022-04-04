@@ -198,7 +198,7 @@
   ],
   "Extensions": null,
   "ContextData": {
-    "ex": "For more details look at the `Errors` property.\n\n1. Filtering is expected to be of type System.Collections.Generic.IEnumerable`1[[HotChocolate.Data.Filtering.QueryableFilteringExtensionsTests+Foo, HotChocolate.Data.Filters.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], but was of type System.Object\n"
+    "ex": "For more details look at the `Errors` property.\n\n1. Filtering is expected to be of type System.Collections.Generic.IEnumerable`1[[HotChocolate.Data.Filtering.QueryableFilteringExtensionsTests+Foo, HotChocolate.Data.Filters.Tests, Version=7.16.3.0, Culture=neutral, PublicKeyToken=null]], but was of type System.Object\n"
   },
   "HasNext": null
 }

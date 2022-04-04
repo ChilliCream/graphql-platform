@@ -141,7 +141,7 @@ public class SortInputTypeDescriptor<T>
             string? scope)
         {
             SortInputTypeDescriptor<TField> descriptor =
-                Inline<TField>(context, typeof(object), scope);
+                Inline<TField>(context, typeof(TField), scope);
             configure(descriptor);
             return descriptor.CreateDefinition();
         }

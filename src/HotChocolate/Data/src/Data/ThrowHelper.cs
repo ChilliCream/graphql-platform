@@ -242,7 +242,7 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    DataResources.SortInterceptor_NoFieldHandlerFoundForField,
+                        DataResources.SortInterceptor_NoFieldHandlerFoundForField,
                     field.Name,
                     type.Name)
                 .Build());

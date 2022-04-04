@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Data.Sorting;
@@ -10,8 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Data.Tests;
 
-public class SortInputTypeTest
-    : SortTestBase
+public class SortInputTypeTest : SortTestBase
 {
     [Fact]
     public void SortInputType_DynamicName()
@@ -371,7 +369,7 @@ public class SortInputTypeTest
     }
 
     [Fact]
-    public void FilterInputType_Should_Assert_When_CustomnFieldDoesNotAllowAnyFields()
+    public void SortInputType_Should_Assert_When_CustomFieldDoesNotAllowAnyFields()
     {
         // arrange
         // act

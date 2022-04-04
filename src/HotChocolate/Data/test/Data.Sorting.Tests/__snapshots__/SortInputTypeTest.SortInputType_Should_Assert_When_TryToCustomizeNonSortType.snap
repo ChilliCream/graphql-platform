@@ -1,1 +1,1 @@
-﻿For the field somedata of type BookSortInput was no field handler found.
+﻿There was an issue creating the type of the field somedata in type BookSortInput. The type definiton of String was not found. Make sure you only customize fields of type SortInputType!
