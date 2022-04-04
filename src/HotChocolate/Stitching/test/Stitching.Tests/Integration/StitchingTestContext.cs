@@ -5,7 +5,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Stitching.Execution;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;

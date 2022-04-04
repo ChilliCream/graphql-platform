@@ -2,34 +2,15 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "extensions": {
-        "code": "HC0007",
-        "remote": {
-          "message": "Unexpected Execution Error",
-          "extensions": {
-            "code": "HC0007"
-          }
-        },
-        "schemaName": "products"
-      }
-    }
-  ],
-  "data": {
-    "me": {
-      "id": 1,
-      "name": "Ada Lovelace",
-      "reviews": [
+      "locations": [
         {
-          "body": "Love it!",
-          "product": null
-        },
-        {
-          "body": "Too expensive.",
-          "product": {
-            "upc": 2
-          }
+          "line": 2,
+          "column": 21
         }
+      ],
+      "path": [
+        "me"
       ]
     }
-  }
+  ]
 }

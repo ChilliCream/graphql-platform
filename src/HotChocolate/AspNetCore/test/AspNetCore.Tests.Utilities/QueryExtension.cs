@@ -3,7 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HotChocolate.AspNetCore.Utilities;
+namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 [ExtendObjectType("Query")]
 public class QueryExtension

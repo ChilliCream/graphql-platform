@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.AspNetCore.Utilities;
+namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 public class TestServerFactory : IDisposable
 {

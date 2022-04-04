@@ -4,12 +4,11 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
 
-namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
+namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 
 public class SubscriptionTestBase : ServerTestBase
 {
