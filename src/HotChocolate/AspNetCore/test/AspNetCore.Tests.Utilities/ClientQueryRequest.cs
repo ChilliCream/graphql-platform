@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace HotChocolate.AspNetCore.Utilities;
+namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 public class ClientQueryRequest
 {

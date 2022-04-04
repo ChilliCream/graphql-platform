@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace HotChocolate.AspNetCore.Utilities;
+namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 public class ClientRawResult
 {

@@ -3,7 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 
-namespace HotChocolate.AspNetCore.Utilities;
+namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 public class UploadQuery
 {
