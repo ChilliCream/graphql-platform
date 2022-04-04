@@ -7,28 +7,76 @@ namespace HotChocolate.Language;
 /// <summary>
 /// This syntax node represents a argument value of a <see cref="FieldNode"/>.
 /// </summary>
-public sealed class ArgumentNode : ISyntaxNode
+public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
     public ArgumentNode(string name, string value)
         : this(null, new NameNode(name), new StringValueNode(value))
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
     public ArgumentNode(string name, int value)
         : this(null, new NameNode(name), new IntValueNode(value))
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
     public ArgumentNode(string name, IValueNode value)
         : this(null, new NameNode(name), value)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
     public ArgumentNode(NameNode name, IValueNode value)
         : this(null, name, value)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the named syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
     public ArgumentNode(Location? location, NameNode name, IValueNode value)
     {
         Location = location;
@@ -36,16 +84,20 @@ public sealed class ArgumentNode : ISyntaxNode
         Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    /// <inheritdoc />
-    public SyntaxKind Kind { get; } = SyntaxKind.Argument;
+    /// <inheritdoc cref="ISyntaxNode" />
+    public SyntaxKind Kind => SyntaxKind.Argument;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ISyntaxNode" />
     public Location? Location { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// The name of the argument.
+    /// </summary>
     public NameNode Name { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// The value of the argument.
+    /// </summary>
     public IValueNode Value { get; }
 
     /// <inheritdoc />
@@ -77,7 +129,7 @@ public sealed class ArgumentNode : ISyntaxNode
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Location" /> with <paramref name="location" />.
     /// </summary>
     /// <param name="location">
@@ -87,10 +139,10 @@ public sealed class ArgumentNode : ISyntaxNode
     /// Returns the new node with the new <paramref name="location" />.
     /// </returns>
     public ArgumentNode WithLocation(Location? location)
-        => new ArgumentNode(location, Name, Value);
+        => new(location, Name, Value);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Name" /> with <paramref name="name" />.
     /// </summary>
     /// <param name="name">
@@ -100,10 +152,10 @@ public sealed class ArgumentNode : ISyntaxNode
     /// Returns the new node with the new <paramref name="name" />.
     /// </returns>
     public ArgumentNode WithName(NameNode name)
-        => new ArgumentNode(Location, name, Value);
+        => new(Location, name, Value);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Value" /> with <paramref name="value" />.
     /// </summary>
     /// <param name="value">
@@ -113,5 +165,68 @@ public sealed class ArgumentNode : ISyntaxNode
     /// Returns the new node with the new <paramref name="value" />.
     /// </returns>
     public ArgumentNode WithValue(IValueNode value)
-        => new ArgumentNode(Location, Name, value);
+        => new(Location, Name, value);
+
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
+    /// </returns>
+    public bool Equals(ArgumentNode? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Name.Equals(other.Name) &&
+            Value.Equals(other.Value);
+    }
+
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            obj is ArgumentNode other &&
+            Equals(other);
+
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            var hashCode = Kind.GetHashCode();
+            hashCode = (hashCode * 397) ^ Name.GetHashCode();
+            hashCode = (hashCode * 397) ^ Value.GetHashCode();
+            return hashCode;
+        }
+    }
+
+    public static bool operator ==(ArgumentNode? left, ArgumentNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(ArgumentNode? left, ArgumentNode? right)
+        => !Equals(left, right);
 }

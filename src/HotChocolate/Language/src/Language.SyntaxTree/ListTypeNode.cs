@@ -15,16 +15,11 @@ public sealed class ListTypeNode
 
     public ListTypeNode(Location? location, ITypeNode type)
     {
-        if (type == null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
         Location = location;
-        Type = type;
+        Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.ListType;
+    public SyntaxKind Kind => SyntaxKind.ListType;
 
     public Location? Location { get; }
 

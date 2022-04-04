@@ -33,7 +33,7 @@
   <data name="QuerySyntaxRewriter_NotSupported" xml:space="preserve">
     <value>The given syntax node is not supported by this rewriter.</value>
   </data>
-  <data name="Reader_InvalidToken" xml:space="preserve">
+  <data name="ThrowHelper_Reader_InvalidToken" xml:space="preserve">
     <value>Expected a `{0}`-token.</value>
   </data>
   <data name="Reader_UnexpectedDigitAfterDot" xml:space="preserve">
@@ -74,5 +74,29 @@
   </data>
   <data name="UnexpectedToken" xml:space="preserve">
     <value>Unexpected token: {0}.</value>
+  </data>
+  <data name="Utf8GraphQLReader_ReadPunctuatorToken_InvalidState" xml:space="preserve">
+    <value>Code is not a punctuator.</value>
+  </data>
+  <data name="ThrowHelper_UnexpectedProperty" xml:space="preserve">
+    <value>Unexpected request property name `{0}` found.</value>
+  </data>
+  <data name="ThrowHelper_InvalidRequestStructure" xml:space="preserve">
+    <value>Expected `{` or `[` as first syntax token.</value>
+  </data>
+  <data name="ThrowHelper_NoIdAndNoQuery" xml:space="preserve">
+    <value>The request is missing the `query` property and the `id` property.</value>
+  </data>
+  <data name="ThrowHelper_QueryMustBeStringOrNull" xml:space="preserve">
+    <value>The query field must be a string or null.</value>
+  </data>
+  <data name="ThrowHelper_ExpectedObjectOrNull" xml:space="preserve">
+    <value>Expected an object or a null-token, but found a {0}-token with value `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_ExpectedStringOrNull" xml:space="preserve">
+    <value>Expected a string-token or a null-token, but found a {0}-token with value `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_UnexpectedToken" xml:space="preserve">
+    <value>Unexpected token found `{0}` while expecting a scalar value.</value>
   </data>
 </root>

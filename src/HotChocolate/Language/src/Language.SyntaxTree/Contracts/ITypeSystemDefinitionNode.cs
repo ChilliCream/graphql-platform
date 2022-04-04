@@ -5,7 +5,6 @@ namespace HotChocolate.Language;
 /// type system. Tools may use this definition language to provide utilities
 /// such as client code generation or service boot‐strapping.
 /// </summary>
-public interface ITypeSystemDefinitionNode
-    : IDefinitionNode
+public interface ITypeSystemDefinitionNode : IDefinitionNode
 {
 }

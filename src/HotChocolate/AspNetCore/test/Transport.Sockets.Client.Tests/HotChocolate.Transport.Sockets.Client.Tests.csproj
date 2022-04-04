@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
     <ProjectReference Include="..\..\src\Transport.Sockets.Client\HotChocolate.Transport.Sockets.Client.csproj" />
+    <ProjectReference Include="..\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>
