@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class OptionalModifierNode : INullabilityModifierNode
+public sealed class OptionalModifierNode : INullabilityModifierNode, IEquatable<OptionalModifierNode>
 {
     public OptionalModifierNode(ListNullabilityNode element) : this(null, element) { }
 
@@ -55,4 +56,39 @@ public sealed class OptionalModifierNode : INullabilityModifierNode
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
+
+    /// <inheritdoc />
+    public bool Equals(OptionalModifierNode? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Element.IsEqualTo(other.Element);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as OptionalModifierNode);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+       => HashCode.Combine(base.GetHashCode(), Element);
+
+    public static bool operator ==(
+        OptionalModifierNode? left,
+        OptionalModifierNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(
+        OptionalModifierNode? left,
+        OptionalModifierNode? right)
+        => !Equals(left, right);
 }
