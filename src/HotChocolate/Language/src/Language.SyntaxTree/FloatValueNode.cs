@@ -210,10 +210,7 @@ public sealed class FloatValueNode
     /// A hash code for this instance that is suitable for use in
     /// hashing algorithms and data structures such as a hash table.
     /// </returns>
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Kind, Value);
-    }
+    public override int GetHashCode() => HashCode.Combine(Kind, Value);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
