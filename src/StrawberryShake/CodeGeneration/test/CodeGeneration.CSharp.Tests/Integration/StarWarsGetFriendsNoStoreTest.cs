@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
@@ -12,7 +12,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
 {
     public class StarWarsGetFriendsNoStoreTest : ServerTestBase
     {
-        public StarWarsGetFriendsNoStoreTest(TestServerFactory serverFactory) : base(serverFactory)
+        public StarWarsGetFriendsNoStoreTest(TestServerFactory serverFactory)
+            : base(serverFactory)
         {
         }
 

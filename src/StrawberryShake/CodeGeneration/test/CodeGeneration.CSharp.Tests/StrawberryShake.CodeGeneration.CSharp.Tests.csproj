@@ -15,6 +15,7 @@
     <ProjectReference Include="..\..\..\Client\src\Persistence.SQLite\StrawberryShake.Persistence.SQLite.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Transport.InMemory\StrawberryShake.Transport.InMemory.csproj" />
+    <ProjectReference Include="..\..\..\Client\test\Transport.WebSocket.Tests\StrawberryShake.Transport.WebSocket.Tests.csproj" />
     <ProjectReference Include="..\..\src\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
   </ItemGroup>
 

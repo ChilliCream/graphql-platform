@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -16,9 +15,9 @@ using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 #nullable enable
 
-namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
+namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 
-internal static class WebSocketExtensions
+public static class WebSocketExtensions
 {
     private static readonly JsonSerializerSettings _settings =
         new()

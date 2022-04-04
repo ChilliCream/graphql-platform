@@ -478,7 +478,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         var count = 1024 * 1024 * 129;
         var buffer = new byte[count];
 
-        for (int i = 0; i < buffer.Length; i++)
+        for (var i = 0; i < buffer.Length; i++)
         {
             buffer[i] = 0xFF;
         }

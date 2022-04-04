@@ -4,12 +4,11 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Tests.Utilities;
-using HotChocolate.Transport.Sockets;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
 
-namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
+namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 
 public class SubscriptionTestBase : ServerTestBase
 {
@@ -24,7 +23,7 @@ public class SubscriptionTestBase : ServerTestBase
         WebSocket webSocket,
         string type,
         CancellationToken cancellationToken)
-        => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(1), cancellationToken);
+        => WaitForMessage(webSocket, type, TimeSpan.FromMilliseconds(500), cancellationToken);
 
     protected async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
         WebSocket webSocket,
@@ -41,20 +40,20 @@ public class SubscriptionTestBase : ServerTestBase
         {
             while (!combinedCts.Token.IsCancellationRequested)
             {
+                await Task.Delay(50, combinedCts.Token);
+
                 var message = await webSocket.ReceiveServerMessageAsync(combinedCts.Token);
 
-                if(message is null)
-                {
-                    await Task.Delay(5, combinedCts.Token);
-                    continue;
-                }
-
-                if (type.Equals(message["type"]))
+                if (message != null && type.Equals(message[MessageProperties.Type]))
                 {
                     return message;
                 }
 
-                throw new InvalidOperationException($"Unexpected message type: {message["type"]}");
+                if (message?[MessageProperties.Type].Equals("ka") == false)
+                {
+                    throw new InvalidOperationException(
+                        $"Unexpected message type: {message[MessageProperties.Type]}");
+                }
             }
         }
         catch (OperationCanceledException)
@@ -68,7 +67,7 @@ public class SubscriptionTestBase : ServerTestBase
     protected Task WaitForConditions(
         Func<bool> condition,
         CancellationToken cancellationToken)
-        => WaitForConditions(condition, TimeSpan.FromMilliseconds(500), cancellationToken);
+        => WaitForConditions(condition, TimeSpan.FromSeconds(5), cancellationToken);
 
     protected async Task WaitForConditions(
         Func<bool> condition,
@@ -100,26 +99,24 @@ public class SubscriptionTestBase : ServerTestBase
         CancellationToken cancellationToken)
     {
         var webSocket = await client.ConnectAsync(SubscriptionUri, cancellationToken);
-        await webSocket.SendConnectionInitAsync(cancellationToken);
+        await webSocket.SendConnectionInitializeAsync(cancellationToken);
         var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
         Assert.NotNull(message);
-        Assert.Equal("connection_ack", message["type"]);
+        Assert.Equal("connection_ack", message[MessageProperties.Type]);
         return webSocket;
     }
 
     protected static WebSocketClient CreateWebSocketClient(TestServer testServer)
     {
         WebSocketClient client = testServer.CreateWebSocketClient();
-        client.ConfigureRequest = r => r.Headers.Add(
-            "Sec-WebSocket-Protocol",
-            WellKnownProtocols.GraphQL_Transport_WS);
+        client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");
         return client;
     }
 
     protected static async Task TryTest(Func<CancellationToken, Task> action)
     {
         // we will try four times ....
-        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 15_000);
+        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 60_000);
         CancellationToken ct = cts.Token;
         var count = 0;
         var wait = 50;
