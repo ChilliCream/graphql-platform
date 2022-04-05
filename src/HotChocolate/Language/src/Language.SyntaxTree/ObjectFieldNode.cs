@@ -8,8 +8,6 @@ public sealed class ObjectFieldNode
     : ISyntaxNode
     , IEquatable<ObjectFieldNode>
 {
-    private int? _hash;
-
     public ObjectFieldNode(string name, bool value)
         : this(null, new NameNode(name), new BooleanValueNode(value))
     {
@@ -46,7 +44,7 @@ public sealed class ObjectFieldNode
         Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.ObjectField;
+    public SyntaxKind Kind => SyntaxKind.ObjectField;
 
     public Location? Location { get; }
 
@@ -85,7 +83,7 @@ public sealed class ObjectFieldNode
             return true;
         }
 
-        return other.Name.Equals(Name) && other.Value.Equals(Value);
+        return other.Name.IsEqualTo(Name) && other.Value.IsEqualTo(Value);
     }
 
     /// <summary>
@@ -125,17 +123,10 @@ public sealed class ObjectFieldNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            if (_hash == null)
-            {
-                _hash = (Kind.GetHashCode() * 397)
-                    ^ (Name.GetHashCode() * 97)
-                    ^ (Value.GetHashCode() * 7);
-            }
-
-            return _hash.Value;
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(Name);
+        hashCode.Add(Value);
+        return hashCode.ToHashCode();
     }
 
     /// <summary>
@@ -144,7 +135,7 @@ public sealed class ObjectFieldNode
     /// <returns>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
-    public override string ToString() => SyntaxPrinter.Print(this, true);
+    public override string ToString() => this.Print(true);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -157,20 +148,11 @@ public sealed class ObjectFieldNode
     /// <returns>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
-    public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
+    public string ToString(bool indented) => this.Print(indented);
 
-    public ObjectFieldNode WithLocation(Location? location)
-    {
-        return new ObjectFieldNode(location, Name, Value);
-    }
+    public ObjectFieldNode WithLocation(Location? location) => new ObjectFieldNode(location, Name, Value);
 
-    public ObjectFieldNode WithName(NameNode name)
-    {
-        return new ObjectFieldNode(Location, name, Value);
-    }
+    public ObjectFieldNode WithName(NameNode name) => new ObjectFieldNode(Location, name, Value);
 
-    public ObjectFieldNode WithValue(IValueNode value)
-    {
-        return new ObjectFieldNode(Location, Name, value);
-    }
+    public ObjectFieldNode WithValue(IValueNode value) => new ObjectFieldNode(Location, Name, value);
 }
