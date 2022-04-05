@@ -23,8 +23,8 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
 
     protected virtual TestServer CreateStarWarsServer(
         string pattern = "/graphql",
-        Action<IServiceCollection> configureServices = default,
-        Action<GraphQLEndpointConventionBuilder> configureConventions = default)
+        Action<IServiceCollection>? configureServices = default,
+        Action<GraphQLEndpointConventionBuilder>? configureConventions = default)
     {
         return ServerFactory.Create(
             services =>
@@ -43,9 +43,9 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                     .ConfigureSchemaServices(s => s
                         .AddSingleton<PersistedQueryCache>()
                         .AddSingleton<IReadStoredQueries>(
-                            c => c.GetService<PersistedQueryCache>())
+                            c => c.GetRequiredService<PersistedQueryCache>())
                         .AddSingleton<IWriteStoredQueries>(
-                            c => c.GetService<PersistedQueryCache>()))
+                            c => c.GetRequiredService<PersistedQueryCache>()))
                     .AddGraphQLServer("evict")
                     .AddQueryType(d => d.Name("Query"))
                     .AddTypeExtension<QueryExtension>()
@@ -87,7 +87,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
     }
 
     protected virtual TestServer CreateServer(
-        Action<IEndpointRouteBuilder> configureConventions = default)
+        Action<IEndpointRouteBuilder>? configureConventions = default)
     {
         return ServerFactory.Create(
             services => services

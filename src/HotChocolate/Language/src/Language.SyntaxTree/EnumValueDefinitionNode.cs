@@ -15,7 +15,7 @@ public sealed class EnumValueDefinitionNode
     /// Initializes a new instance of <see cref="EnumValueDefinitionNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The name that this syntax node holds.
@@ -145,7 +145,7 @@ public sealed class EnumValueDefinitionNode
     /// </returns>
     public bool Equals(EnumValueDefinitionNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -169,8 +169,7 @@ public sealed class EnumValueDefinitionNode
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is EnumValueDefinitionNode other &&
-            Equals(other);
+            (obj is EnumValueDefinitionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -182,10 +181,9 @@ public sealed class EnumValueDefinitionNode
     {
         unchecked
         {
-            return (base.GetHashCode() * 397) ^
-                (Description != null
-                    ? Description.GetHashCode()
-                    : 0);
+            var hashCode = base.GetHashCode();
+            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
+            return (hashCode * 397) ^ (Description?.GetHashCode() ?? 0);
         }
     }
 
