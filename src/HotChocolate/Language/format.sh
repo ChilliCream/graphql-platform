@@ -9,3 +9,4 @@ dotnet format $src/Language.SyntaxTree
 dotnet format $src/Language.Utf8
 dotnet format $src/Language.Visitors
 dotnet format $test/Language.Tests
+dotnet format $test/Language.SyntaxTree.Tests

@@ -79,10 +79,7 @@ public sealed class NamedTypeNode
 
     public override int GetHashCode()
     {
-        unchecked
-        {
-            return Name.GetHashCode() * 397;
-        }
+        return HashCode.Combine(Name);
     }
 
     /// <summary>
