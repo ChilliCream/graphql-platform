@@ -1,30 +1,21 @@
 using Xunit;
-using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Language.SyntaxTree;
 
-public class FieldDefinitionNodeTests
+public class EnumValueNodeTests
 {
-    [Fact]
-    public void Equals_FieldDefinitionNode_When_Both_Are_Equal()
-    {
-        // arrange
-        FieldDefinitionNode a = ParseFieldDefinition("foo(a: String): String @bar");
-        FieldDefinitionNode b = ParseFieldDefinition("foo(a: String): String @bar");
-
-        // act
-        var success = a.Equals(b);
-
-        // assert
-        Assert.True(success);
-    }
-
     [Fact]
     public void Equals_With_Same_Location()
     {
-        var a = ParseFieldDefinition("foo(a: String): String @bar");
-        var b = ParseFieldDefinition("foo(a: String): String @bar");
-        var c = ParseFieldDefinition("bar(a: String): String @bar");
+        var a = new EnumValueNode(
+            TestLocations.Location1,
+            new("AA"));
+        var b = new EnumValueNode(
+            TestLocations.Location1,
+            new("AA"));
+        var c = new EnumValueNode(
+            TestLocations.Location1,
+            new("AB"));
 
         // act
         var abResult = a.Equals(b);
@@ -43,9 +34,15 @@ public class FieldDefinitionNodeTests
     public void Equals_With_Different_Location()
     {
         // arrange
-        var a = ParseFieldDefinition("foo(a: String): String @bar");
-        var b = ParseFieldDefinition("   foo  (a : String): String @bar");
-        var c = ParseFieldDefinition("bar(a: String): String @bar");
+        var a = new EnumValueNode(
+            TestLocations.Location1,
+            new("AA"));
+        var b = new EnumValueNode(
+            TestLocations.Location2,
+            new("AA"));
+        var c = new EnumValueNode(
+            TestLocations.Location1,
+            new("AB"));
 
         // act
         var abResult = a.Equals(b);
@@ -64,10 +61,18 @@ public class FieldDefinitionNodeTests
     public void GetHashCode_With_Location()
     {
         // arrange
-        var a = ParseFieldDefinition("foo(a: String): String @bar");
-        var b = ParseFieldDefinition("   foo  (a : String): String @bar");
-        var c = ParseFieldDefinition("bar(a: String): String @bar");
-        var d = ParseFieldDefinition("   bar  (a : String): String @bar");
+        var a = new EnumValueNode(
+            TestLocations.Location1,
+            new("AA"));
+        var b = new EnumValueNode(
+            TestLocations.Location2,
+            new("AA"));
+        var c = new EnumValueNode(
+            TestLocations.Location1,
+            new("AB"));
+        var d = new EnumValueNode(
+            TestLocations.Location2,
+            new("AB"));
 
         // act
         var aHash = a.GetHashCode();

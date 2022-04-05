@@ -116,4 +116,7 @@
   <data name="FloatValueNode_ValueEmpty" xml:space="preserve">
     <value>The value of a float value mustn't be empty.</value>
   </data>
+  <data name="IntValueNode_ValueCannotBeEmpty" xml:space="preserve">
+    <value>The value of an int value node mustn't be empty.</value>
+  </data>
 </root>
