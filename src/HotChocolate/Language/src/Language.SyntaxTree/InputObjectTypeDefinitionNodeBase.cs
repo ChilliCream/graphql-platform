@@ -105,7 +105,7 @@ public abstract class InputObjectTypeDefinitionNodeBase
     {
         var hashCode = new HashCode();
         hashCode.Add(base.GetHashCode());
-        HashCodeExtensions.AddNodes(ref hashCode, Fields);
+        hashCode.AddNodes(Fields);
         return hashCode.ToHashCode();
     }
 
