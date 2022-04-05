@@ -51,7 +51,7 @@ public sealed class EnumTypeDefinitionNode
         Description = description;
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.EnumTypeDefinition;
 
     /// <summary>
@@ -59,7 +59,7 @@ public sealed class EnumTypeDefinitionNode
     /// </summary>
     public StringValueNode? Description { get; }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         if (Description is not null)

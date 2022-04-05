@@ -44,7 +44,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.FieldDefinition;
 
     /// <summary>
@@ -62,7 +62,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
     /// </summary>
     public ITypeNode Type { get; }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         if (Description is not null)

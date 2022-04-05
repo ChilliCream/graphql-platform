@@ -52,10 +52,10 @@ public sealed class DirectiveDefinitionNode
         Locations = locations ?? throw new ArgumentNullException(nameof(locations));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.DirectiveDefinition;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>

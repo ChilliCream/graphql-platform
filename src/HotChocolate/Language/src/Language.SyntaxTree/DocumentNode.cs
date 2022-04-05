@@ -42,10 +42,10 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
         Definitions = definitions ?? throw new ArgumentNullException(nameof(definitions));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.Document;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -53,7 +53,7 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     /// </summary>
     public IReadOnlyList<IDefinitionNode> Definitions { get; }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Definitions;
 
     /// <summary>

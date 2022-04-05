@@ -79,10 +79,10 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
         Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.Directive;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -90,7 +90,7 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// </summary>
     public NameNode Name { get; }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
