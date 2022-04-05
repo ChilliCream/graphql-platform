@@ -39,7 +39,7 @@ internal static class HashCodeExtensions
     }
 #endif
 
-    public static void AddNodes(ref HashCode hashCode, IReadOnlyList<ISyntaxNode> nodes)
+    public static void AddNodes(this ref HashCode hashCode, IReadOnlyList<ISyntaxNode> nodes)
     {
         for (var i = 0; i < nodes.Count; i++)
         {

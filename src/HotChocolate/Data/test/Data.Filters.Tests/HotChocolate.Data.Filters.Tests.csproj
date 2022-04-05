@@ -3,6 +3,8 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Filters.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

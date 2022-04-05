@@ -5,7 +5,6 @@ using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 using static HotChocolate.Types.Spatial.WellKnownFields;
 using static HotChocolate.Types.Spatial.Serialization.GeoJsonSerializers;
-using static HotChocolate.Types.Spatial.Properties.Resources;
 
 namespace HotChocolate.Types.Spatial.Serialization
 {
@@ -116,8 +115,8 @@ namespace HotChocolate.Types.Spatial.Serialization
                 }
 
                 if (GeoJsonTypeSerializer.Default.TryParseString(
-                    typeName,
-                    out GeoJsonGeometryType kind))
+                        typeName,
+                        out GeoJsonGeometryType kind))
                 {
                     return Serializers[kind].ParseResult(type, resultValue);
                 }
@@ -226,8 +225,8 @@ namespace HotChocolate.Types.Spatial.Serialization
                 }
 
                 if (GeoJsonTypeSerializer.Default.TryParseString(
-                    typeName,
-                    out GeoJsonGeometryType kind))
+                        typeName,
+                        out GeoJsonGeometryType kind))
                 {
                     return Serializers[kind].Deserialize(type, resultValue);
                 }

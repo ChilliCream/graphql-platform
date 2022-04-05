@@ -250,7 +250,7 @@ public sealed class FragmentDefinitionNode
         var hashCode = new HashCode();
         hashCode.Add(base.GetHashCode());
         hashCode.Add(Kind);
-        HashCodeExtensions.AddNodes(ref hashCode, VariableDefinitions);
+        hashCode.AddNodes(VariableDefinitions);
         hashCode.Add(TypeCondition);
         hashCode.Add(SelectionSet);
         return hashCode.ToHashCode();

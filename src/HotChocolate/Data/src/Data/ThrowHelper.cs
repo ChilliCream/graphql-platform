@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Data.Filters;
@@ -491,13 +492,13 @@ internal static class ThrowHelper
         ISortInputTypeDefinition typeDefinition,
         ISortFieldDefinition field) =>
         new(SchemaErrorBuilder
-                .New()
-                .SetMessage(
-                    DataResources.QueryableSortProvider_ExpressionParameterInvalid,
-                    typeDefinition.EntityType?.FullName,
-                    field.Name)
-                .SetTypeSystemObject(type)
-                .Build());
+            .New()
+            .SetMessage(
+                DataResources.QueryableSortProvider_ExpressionParameterInvalid,
+                typeDefinition.EntityType?.FullName,
+                field.Name)
+            .SetTypeSystemObject(type)
+            .Build());
 
     public static InvalidOperationException QueryableSorting_NoMemberDeclared(ISortField field) =>
         new(string.Format(
@@ -531,4 +532,13 @@ internal static class ThrowHelper
                 "The IDs `{0}` have an invalid format.",
                 string.Join(", ", ids))
             .Build());
+
+    public static InvalidOperationException SelectionContext_NoTypeForAbstractFieldProvided(
+        INamedType type,
+        IEnumerable<ObjectType> possibleTypes) =>
+        new(string.Format(
+            CultureInfo.CurrentCulture,
+            DataResources.SelectionContext_NoTypeForAbstractFieldProvided,
+            type.NamedType().Name,
+            string.Join(",", possibleTypes.Select(x => x.NamedType().Name))));
 }
