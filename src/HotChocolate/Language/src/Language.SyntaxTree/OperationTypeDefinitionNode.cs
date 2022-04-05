@@ -6,6 +6,7 @@ namespace HotChocolate.Language;
 
 public sealed class OperationTypeDefinitionNode
     : ISyntaxNode
+    , IEquatable<OperationTypeDefinitionNode>
 {
     public OperationTypeDefinitionNode(
         Location? location,
@@ -17,7 +18,7 @@ public sealed class OperationTypeDefinitionNode
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.OperationTypeDefinition;
+    public SyntaxKind Kind => SyntaxKind.OperationTypeDefinition;
 
     public Location? Location { get; }
 
@@ -51,21 +52,33 @@ public sealed class OperationTypeDefinitionNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public OperationTypeDefinitionNode WithLocation(Location? location)
+    public OperationTypeDefinitionNode WithLocation(Location? location) =>
+        new(location, Operation, Type);
+
+    public OperationTypeDefinitionNode WithOperation(OperationType operation) =>
+        new(Location, operation, Type);
+
+    public OperationTypeDefinitionNode WithType(NamedTypeNode type) =>
+        new(Location, Operation, type);
+
+    public bool Equals(OperationTypeDefinitionNode? other)
     {
-        return new OperationTypeDefinitionNode(
-            location, Operation, Type);
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Operation == other.Operation && Type.Equals(other.Type);
     }
 
-    public OperationTypeDefinitionNode WithOperation(OperationType operation)
-    {
-        return new OperationTypeDefinitionNode(
-            Location, operation, Type);
-    }
+    public override bool Equals(object? obj) => ReferenceEquals(this, obj) ||
+                                                obj is OperationTypeDefinitionNode other &&
+                                                Equals(other);
 
-    public OperationTypeDefinitionNode WithType(NamedTypeNode type)
-    {
-        return new OperationTypeDefinitionNode(
-            Location, Operation, type);
-    }
+    public override int GetHashCode() => HashCode.Combine((int)Operation, Type, Kind);
 }
