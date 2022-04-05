@@ -28,8 +28,7 @@ namespace HotChocolate.PersistedQueries.Redis
         /// </param>
         public RedisQueryStorage(IDatabase database, TimeSpan? queryExpiration = null)
         {
-            _database = database
-                ?? throw new ArgumentNullException(nameof(database));
+            _database = database ?? throw new ArgumentNullException(nameof(database));
             _queryExpiration = queryExpiration;
         }
 
