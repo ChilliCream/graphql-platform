@@ -5,19 +5,16 @@ package graphql.authz.has_age_defined
 
 import input.request
 
-default allow = false
+default allow = { "allow" : false }
 
-valid_jwt = token {
+valid_jwt = [is_valid, claims] {
   token := replace(request.headers["Authorization"], "Bearer ", "")
-  startswith(token, "eyJhbG") # a toy validation
+  claims := io.jwt.decode(token)[1]
+  is_valid := startswith(token, "eyJhbG") # a toy validation
+  is_valid
 }
 
-claims = cl {
-  cl := io.jwt.decode(valid_jwt)[1]
-  valid_jwt
-}
-
-allow {
-  valid_jwt
+allow = {"allow": is_valid, "claims": claims } {
+  [is_valid, claims] := valid_jwt
   claims.birthdate
 }
