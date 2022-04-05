@@ -58,7 +58,7 @@ namespace HotChocolate.PersistedQueries.Redis
         }
 
         [Fact]
-        public async Task ExecutePersistedQuery_After_Expiry()
+        public async Task ExecutePersistedQuery_After_Expiration()
         {
             // arrange
             var queryId = Guid.NewGuid().ToString("N");
@@ -100,7 +100,7 @@ namespace HotChocolate.PersistedQueries.Redis
         }
 
         [Fact]
-        public async Task ExecutePersistedQuery_Within_Expiry_Timespan()
+        public async Task ExecutePersistedQuery_Before_Expiration()
         {
             // arrange
             var queryId = Guid.NewGuid().ToString("N");
