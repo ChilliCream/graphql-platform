@@ -10,7 +10,8 @@ namespace HotChocolate.Language;
 /// complex structs.
 /// https://graphql.github.io/graphql-spec/June2018/#sec-Input-Objects
 /// </summary>
-public sealed class InputValueDefinitionNode : NamedSyntaxNode, IEquatable<InputValueDefinitionNode>
+public sealed class InputValueDefinitionNode : NamedSyntaxNode
+    , IEquatable<InputValueDefinitionNode>
 {
     public InputValueDefinitionNode(
         Location? location,
@@ -101,8 +102,8 @@ public sealed class InputValueDefinitionNode : NamedSyntaxNode, IEquatable<Input
     /// An object to compare with this object.
     /// </param>
     /// <returns>
-    /// <see langword="true" /> if the current object is equal to the
-    /// <paramref name="other" /> parameter; otherwise, <see langword="false" />.
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
     /// </returns>
     public bool Equals(InputValueDefinitionNode? other)
     {
@@ -116,10 +117,10 @@ public sealed class InputValueDefinitionNode : NamedSyntaxNode, IEquatable<Input
             return true;
         }
 
-        return base.Equals(other) &&
-            Equals(Description, other.Description) &&
-            Type.Equals(other.Type) &&
-            Equals(DefaultValue, other.DefaultValue);
+        return base.Equals(other)
+               && Description.IsEqualTo(other.Description)
+               && Type.IsEqualTo(other.Type)
+               && DefaultValue.IsEqualTo(other.DefaultValue);
     }
 
     /// <summary>
@@ -129,13 +130,13 @@ public sealed class InputValueDefinitionNode : NamedSyntaxNode, IEquatable<Input
     /// The object to compare with the current object.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the specified object  is equal to the current object;
-    /// otherwise, <c>false</c>.
+    /// true if the specified object  is equal to the current object; otherwise, false.
     /// </returns>
     public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            obj is InputValueDefinitionNode other &&
-            Equals(other);
+    {
+        return ReferenceEquals(this, obj) || obj is InputValueDefinitionNode other
+            && Equals(other);
+    }
 
     /// <summary>
     /// Serves as the default hash function.
@@ -145,19 +146,16 @@ public sealed class InputValueDefinitionNode : NamedSyntaxNode, IEquatable<Input
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = base.GetHashCode();
-            hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
-            hashCode = (hashCode * 397) ^ Type.GetHashCode();
-            hashCode = (hashCode * 397) ^ (DefaultValue != null ? DefaultValue.GetHashCode() : 0);
-            return hashCode;
-        }
+        return HashCode.Combine(base.GetHashCode(), Description, Type, DefaultValue);
     }
 
-    public static bool operator ==(InputValueDefinitionNode? left, InputValueDefinitionNode? right)
+    public static bool operator ==(
+        InputValueDefinitionNode? left,
+        InputValueDefinitionNode? right)
         => Equals(left, right);
 
-    public static bool operator !=(InputValueDefinitionNode? left, InputValueDefinitionNode? right)
+    public static bool operator !=(
+        InputValueDefinitionNode? left,
+        InputValueDefinitionNode? right)
         => !Equals(left, right);
 }
