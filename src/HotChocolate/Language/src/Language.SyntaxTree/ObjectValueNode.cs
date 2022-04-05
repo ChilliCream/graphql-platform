@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -25,7 +26,8 @@ public sealed class ObjectValueNode
         IReadOnlyList<ObjectFieldNode> fields)
     {
         Location = location;
-        Fields = fields ?? throw new ArgumentNullException(nameof(fields));
+        Fields = fields.OrderBy(t => t.Name.Value).ToArray() ??
+                 throw new ArgumentNullException(nameof(fields));
     }
 
     public SyntaxKind Kind => SyntaxKind.ObjectValue;
@@ -65,7 +67,7 @@ public sealed class ObjectValueNode
             return true;
         }
 
-        return other.Fields.IsEqualTo(Fields);
+        return EqualityHelper.Equals(other.Fields, Fields);
     }
 
     /// <summary>
@@ -139,6 +141,7 @@ public sealed class ObjectValueNode
     public override int GetHashCode()
     {
         var hashCode = new HashCode();
+        hashCode.Add(Kind);
         hashCode.AddNodes(Fields);
         return hashCode.ToHashCode();
     }
@@ -149,7 +152,7 @@ public sealed class ObjectValueNode
     /// <returns>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
-    public override string ToString() => this.Print(true);
+    public override string ToString() => SyntaxPrinter.Print(this, true);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -162,9 +165,10 @@ public sealed class ObjectValueNode
     /// <returns>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
-    public string ToString(bool indented) => this.Print(indented);
+    public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public ObjectValueNode WithLocation(Location? location) => new ObjectValueNode(location, Fields);
+    public ObjectValueNode WithLocation(Location? location) => new(location, Fields);
 
-    public ObjectValueNode WithFields(IReadOnlyList<ObjectFieldNode> fields) => new ObjectValueNode(Location, fields);
+    public ObjectValueNode WithFields(IReadOnlyList<ObjectFieldNode> fields) =>
+        new(Location, fields);
 }
