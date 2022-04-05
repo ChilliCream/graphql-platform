@@ -23,12 +23,13 @@ namespace HotChocolate
         /// A factory that resolves the redis database that
         /// shall be used for persistence.
         /// </param>
-        /// <param name="queryExpiryTimeSpan">
+        /// <param name="queryExpiration">
         /// A timespan after that a query will be removed from the cache.
         /// </param>
         public static IServiceCollection AddRedisQueryStorage(
             this IServiceCollection services,
-            Func<IServiceProvider, IDatabase> databaseFactory, TimeSpan? queryExpiryTimeSpan = null)
+            Func<IServiceProvider, IDatabase> databaseFactory,
+            TimeSpan? queryExpiration = null)
         {
             if (services is null)
             {
@@ -41,7 +42,7 @@ namespace HotChocolate
             }
 
             return services
-                .AddReadOnlyRedisQueryStorage(databaseFactory, queryExpiryTimeSpan)
+                .AddReadOnlyRedisQueryStorage(databaseFactory, queryExpiration)
                 .AddSingleton<IWriteStoredQueries>(sp => sp.GetRequiredService<RedisQueryStorage>());
         }
 
@@ -55,12 +56,13 @@ namespace HotChocolate
         /// A factory that resolves the redis database that
         /// shall be used for persistence.
         /// </param>
-        /// <param name="queryExpiryTimeSpan">
+        /// <param name="queryExpiration">
         /// A timespan after that a query will be removed from the cache.
         /// </param>
         public static IServiceCollection AddReadOnlyRedisQueryStorage(
             this IServiceCollection services,
-            Func<IServiceProvider, IDatabase> databaseFactory, TimeSpan? queryExpiryTimeSpan = null)
+            Func<IServiceProvider, IDatabase> databaseFactory,
+            TimeSpan? queryExpiration = null)
         {
             if (services is null)
             {
@@ -75,7 +77,7 @@ namespace HotChocolate
             return services
                 .RemoveService<IReadStoredQueries>()
                 .RemoveService<IWriteStoredQueries>()
-                .AddSingleton(sp => new RedisQueryStorage(databaseFactory(sp), queryExpiryTimeSpan))
+                .AddSingleton(sp => new RedisQueryStorage(databaseFactory(sp), queryExpiration))
                 .AddSingleton<IReadStoredQueries>(sp => sp.GetRequiredService<RedisQueryStorage>());
         }
 
