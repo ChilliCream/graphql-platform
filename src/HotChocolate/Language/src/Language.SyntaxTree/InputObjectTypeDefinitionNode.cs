@@ -133,7 +133,7 @@ public sealed class InputObjectTypeDefinitionNode
     /// <see cref="Description" /> with <paramref name="description" />.
     /// </summary>
     /// <param name="description">
-    /// The description that shall be used to replace the current location.
+    /// The description that shall be used to replace the current description.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="name" />.
