@@ -105,10 +105,10 @@ public abstract class EnumTypeDefinitionNodeBase
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            return (base.GetHashCode() * 397) ^ EqualityHelper.GetHashCode(Values);
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(base.GetHashCode());
+        hashCode.AddNodes(Values);
+        return hashCode.ToHashCode();
     }
 
     public static bool operator ==(

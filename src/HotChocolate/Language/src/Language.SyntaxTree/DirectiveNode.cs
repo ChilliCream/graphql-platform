@@ -213,12 +213,11 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ Name.GetHashCode();
-            return (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        hashCode.Add(Name);
+        hashCode.AddNodes(Arguments);
+        return hashCode.ToHashCode();
     }
 
     public static bool operator ==(DirectiveNode? left, DirectiveNode? right)

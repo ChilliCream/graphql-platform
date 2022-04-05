@@ -213,12 +213,11 @@ public sealed class EnumTypeDefinitionNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = base.GetHashCode();
-            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
-            return (hashCode * 397) ^ (Description?.GetHashCode() ?? 0);
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(base.GetHashCode());
+        hashCode.Add(Kind);
+        hashCode.Add(Description);
+        return hashCode.ToHashCode();
     }
 
     public static bool operator ==(EnumTypeDefinitionNode? left, EnumTypeDefinitionNode? right)

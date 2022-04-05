@@ -253,16 +253,14 @@ public sealed class DirectiveDefinitionNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = Name.GetHashCode();
-            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ (Description?.GetHashCode() ?? 0);
-            hashCode = (hashCode * 397) ^ IsRepeatable.GetHashCode();
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Locations);
-            return hashCode;
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        hashCode.Add(Name);
+        hashCode.Add(Description);
+        hashCode.Add(IsRepeatable);
+        hashCode.AddNodes(Arguments);
+        hashCode.AddNodes(Locations);
+        return hashCode.ToHashCode();
     }
 
     public static bool operator ==(DirectiveDefinitionNode? left, DirectiveDefinitionNode? right)
