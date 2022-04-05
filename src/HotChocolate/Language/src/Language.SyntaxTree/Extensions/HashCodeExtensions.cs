@@ -1,6 +1,13 @@
+
+using System;
+using System.Collections.Generic;
+#if NET6_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#else
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#endif
 
 namespace HotChocolate.Language;
 
@@ -31,4 +38,12 @@ internal static class HashCodeExtensions
         }
     }
 #endif
+
+    public static void AddNodes(ref HashCode hashCode, IReadOnlyList<ISyntaxNode> nodes)
+    {
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            hashCode.Add(nodes[i]);
+        }
+    }
 }

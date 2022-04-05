@@ -16,7 +16,7 @@ public abstract class ComplexTypeDefinitionNodeBase
     /// <see cref="ComplexTypeDefinitionNodeBase"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The name that this syntax node holds.

@@ -13,7 +13,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
     /// Initializes a new instance of <see cref="FieldDefinitionNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The name that this syntax node holds.

@@ -87,8 +87,7 @@ public sealed class FragmentSpreadNode
             return true;
         }
 
-        return base.Equals(other)
-               && Kind == other.Kind;
+        return base.Equals(other);
     }
 
     /// <summary>

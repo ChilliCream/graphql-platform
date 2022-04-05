@@ -30,7 +30,7 @@ public sealed class FieldNode
     /// Initializes a new instance of <see cref="FieldNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The field name.
@@ -73,15 +73,16 @@ public sealed class FieldNode
     /// By default a field’s response key in the response object will use that field’s name.
     /// However, you can define a different response key by specifying an alias.
     /// </summary>
-    /// <value></value>
     public NameNode? Alias { get; }
 
     /// <summary>
     /// Gets the assigned field argument values.
     /// </summary>
-    /// <value></value>
     public IReadOnlyList<ArgumentNode> Arguments { get; }
 
+    /// <summary>
+    /// Gets the client-side nullability definition.
+    /// </summary>
     public INullabilityNode? Required { get; }
 
     /// <summary>
@@ -282,12 +283,16 @@ public sealed class FieldNode
     /// A hash code for the current object.
     /// </returns>
     public override int GetHashCode()
-        => HashCode.Combine(
-            base.GetHashCode(),
-            Alias,
-            EqualityHelper.GetHashCode(Arguments),
-            Required,
-            SelectionSet);
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(base.GetHashCode());
+        hashCode.Add(Kind);
+        hashCode.Add(Alias);
+        HashCodeExtensions.AddNodes(ref hashCode, Arguments);
+        hashCode.Add(Required);
+        hashCode.Add(SelectionSet);
+        return hashCode.ToHashCode();
+    }
 
     public static bool operator ==(FieldNode? left, FieldNode? right)
         => Equals(left, right);
