@@ -24,7 +24,7 @@ namespace HotChocolate
         /// shall be used for persistence.
         /// </param>
         /// <param name="queryExpiration">
-        /// A timespan after that a query will be removed from the cache.
+        /// A timeout after which a query is removed from the Redis cache.
         /// </param>
         public static IServiceCollection AddRedisQueryStorage(
             this IServiceCollection services,
