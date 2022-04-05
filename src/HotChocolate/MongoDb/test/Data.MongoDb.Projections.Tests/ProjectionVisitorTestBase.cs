@@ -114,7 +114,7 @@ namespace HotChocolate.Data.MongoDb.Projections
 
         public class StubObject<T>
         {
-            public T Root { get; set; }
+            public T Root { get; set; } = default!;
         }
     }
 }

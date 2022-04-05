@@ -288,7 +288,7 @@ public sealed class FieldNode
         hashCode.Add(base.GetHashCode());
         hashCode.Add(Kind);
         hashCode.Add(Alias);
-        HashCodeExtensions.AddNodes(ref hashCode, Arguments);
+        hashCode.AddNodes(Arguments);
         hashCode.Add(Required);
         hashCode.Add(SelectionSet);
         return hashCode.ToHashCode();
