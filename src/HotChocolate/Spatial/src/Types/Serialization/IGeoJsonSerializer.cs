@@ -99,7 +99,7 @@ namespace HotChocolate.Types.Spatial.Serialization
         bool TrySerialize(
             IType type,
             object? runtimeValue,
-            [NotNullWhen(true)] out object? resultValue);
+            out object? resultValue);
 
         /// <summary>
         /// Parses the GraphQL value syntax of this type into a runtime value representation.
