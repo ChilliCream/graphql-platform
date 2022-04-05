@@ -179,7 +179,7 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
     /// </returns>
     public bool Equals(ArgumentNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -204,8 +204,7 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is ArgumentNode other &&
-            Equals(other);
+            (obj is ArgumentNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -213,16 +212,7 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
     /// <returns>
     /// A hash code for the current object.
     /// </returns>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hashCode = Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ Name.GetHashCode();
-            hashCode = (hashCode * 397) ^ Value.GetHashCode();
-            return hashCode;
-        }
-    }
+    public override int GetHashCode() => HashCode.Combine(Kind, Name, Value);
 
     public static bool operator ==(ArgumentNode? left, ArgumentNode? right)
         => Equals(left, right);

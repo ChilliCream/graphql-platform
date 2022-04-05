@@ -114,12 +114,7 @@ public sealed class BooleanValueNode
             return true;
         }
 
-        if (other is BooleanValueNode b)
-        {
-            return Equals(b);
-        }
-
-        return false;
+        return Equals(other as BooleanValueNode);
     }
 
     /// <summary>
@@ -158,13 +153,7 @@ public sealed class BooleanValueNode
     /// hashing algorithms and data structures such as a hash table.
     /// </returns>
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            return (Kind.GetHashCode() * 397)
-             ^ (Value.GetHashCode() * 97);
-        }
-    }
+        => HashCode.Combine(Kind, Value);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
