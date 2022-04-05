@@ -51,10 +51,10 @@ public class VariableNodeTests
     {
         // arrange
         // act
-        Action action = () => new VariableNode((NameNode)null);
+        VariableNode Action() => new((NameNode)null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -64,10 +64,10 @@ public class VariableNodeTests
         Location location = AstTestHelper.CreateDummyLocation();
 
         // act
-        Action action = () => new VariableNode(location, null);
+        VariableNode Action() => new(location, null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]

@@ -50,7 +50,7 @@ public sealed class EnumValueNode
     /// Initializes a new instance of <see cref="EnumTypeDefinitionNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
