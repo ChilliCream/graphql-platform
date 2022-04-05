@@ -39,10 +39,10 @@ public sealed class EnumTypeExtensionNode
     {
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.EnumTypeExtension;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
@@ -164,13 +164,7 @@ public sealed class EnumTypeExtensionNode
     /// A hash code for the current object.
     /// </returns>
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hashCode = base.GetHashCode();
-            return (hashCode * 397) ^ Kind.GetHashCode();
-        }
-    }
+        => HashCode.Combine(base.GetHashCode(), Kind);
 
     public static bool operator ==(EnumTypeExtensionNode? left, EnumTypeExtensionNode? right)
         => Equals(left, right);

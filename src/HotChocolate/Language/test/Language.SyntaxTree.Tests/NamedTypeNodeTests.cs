@@ -2,20 +2,20 @@ using Xunit;
 
 namespace HotChocolate.Language.SyntaxTree;
 
-public class OptionalModifierNodeTests
+public class NamedTypeNodeTests
 {
-    private readonly ListNullabilityNode _element1 =
-        new(new Location(1, 1, 1, 1), null);
-    private readonly ListNullabilityNode _element2 =
-        new(new Location(1, 1, 1, 1), new OptionalModifierNode(null, null));
-
     [Fact]
     public void Equals_With_Same_Location()
     {
-        // arrange
-        var a = new OptionalModifierNode(new Location(1, 1, 1, 1), _element1);
-        var b = new OptionalModifierNode(new Location(1, 1, 1, 1), _element1);
-        var c = new OptionalModifierNode(new Location(1, 1, 1, 1), _element2);
+        var a = new NamedTypeNode(
+            TestLocations.Location1,
+            new("aa"));
+        var b = new NamedTypeNode(
+            TestLocations.Location1,
+            new("aa"));
+        var c = new NamedTypeNode(
+            TestLocations.Location1,
+            new("bb"));
 
         // act
         var abResult = a.Equals(b);
@@ -34,9 +34,15 @@ public class OptionalModifierNodeTests
     public void Equals_With_Different_Location()
     {
         // arrange
-        var a = new OptionalModifierNode(new Location(1, 1, 1, 1), _element1);
-        var b = new OptionalModifierNode(new Location(2, 2, 2, 2), _element1);
-        var c = new OptionalModifierNode(new Location(3, 3, 3, 3), _element2);
+        var a = new NamedTypeNode(
+            TestLocations.Location1,
+            new("aa"));
+        var b = new NamedTypeNode(
+            TestLocations.Location2,
+            new("aa"));
+        var c = new NamedTypeNode(
+            TestLocations.Location1,
+            new("bb"));
 
         // act
         var abResult = a.Equals(b);
@@ -55,10 +61,18 @@ public class OptionalModifierNodeTests
     public void GetHashCode_With_Location()
     {
         // arrange
-        var a = new OptionalModifierNode(new Location(1, 1, 1, 1), _element1);
-        var b = new OptionalModifierNode(new Location(2, 2, 2, 2), _element1);
-        var c = new OptionalModifierNode(new Location(1, 1, 1, 1), _element2);
-        var d = new OptionalModifierNode(new Location(2, 2, 2, 2), _element2);
+        var a = new NamedTypeNode(
+            TestLocations.Location1,
+            new("aa"));
+        var b = new NamedTypeNode(
+            TestLocations.Location2,
+            new("aa"));
+        var c = new NamedTypeNode(
+            TestLocations.Location1,
+            new("bb"));
+        var d = new NamedTypeNode(
+            TestLocations.Location2,
+            new("bb"));
 
         // act
         var aHash = a.GetHashCode();

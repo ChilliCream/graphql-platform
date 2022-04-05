@@ -84,10 +84,10 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
         Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.Argument;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
@@ -50,7 +49,7 @@ public abstract class NamedSyntaxNode : INamedSyntaxNode, IEquatable<NamedSyntax
     /// <inheritdoc />
     public abstract string ToString(bool indented);
 
-    /// <inheritdoc cref="object" />
+    /// <inheritdoc />
     public abstract override string ToString();
 
     /// <summary>
@@ -75,8 +74,8 @@ public abstract class NamedSyntaxNode : INamedSyntaxNode, IEquatable<NamedSyntax
             return true;
         }
 
-        return Name.IsEqualTo(other.Name)
-               && Directives.IsEqualTo(other.Directives);
+        return Name.IsEqualTo(other.Name) &&
+            Directives.IsEqualTo(other.Directives);
     }
 
     /// <summary>

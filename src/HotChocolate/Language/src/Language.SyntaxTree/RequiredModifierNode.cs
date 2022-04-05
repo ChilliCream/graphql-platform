@@ -1,14 +1,13 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class RequiredModifierNode : INullabilityModifierNode
+public sealed class RequiredModifierNode
+    : INullabilityModifierNode
+    , IEquatable<RequiredModifierNode>
 {
-    public RequiredModifierNode(ListNullabilityNode element) : this(null, element) { }
-
-    public RequiredModifierNode(Location location) : this(location, null) { }
-
     public RequiredModifierNode(Location? location, ListNullabilityNode? element)
     {
         Location = location;
@@ -55,4 +54,32 @@ public sealed class RequiredModifierNode : INullabilityModifierNode
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
+
+    public bool Equals(RequiredModifierNode? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Equals(Element, other.Element);
+    }
+
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            (obj is RequiredModifierNode other && Equals(other));
+
+    public override int GetHashCode()
+        => HashCode.Combine(Kind, Element);
+
+    public static bool operator ==(RequiredModifierNode? left, RequiredModifierNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(RequiredModifierNode? left, RequiredModifierNode? right)
+        => !Equals(left, right);
 }

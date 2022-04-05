@@ -61,10 +61,10 @@ public sealed class EnumValueNode
         Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.EnumValue;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <inheritdoc cref="IValueNode{T}" />
@@ -73,7 +73,7 @@ public sealed class EnumValueNode
     /// <inheritdoc cref="IValueNode" />
     object IValueNode.Value => Value;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
     /// <summary>

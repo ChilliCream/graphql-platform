@@ -139,10 +139,10 @@ public sealed class FloatValueNode
         Format = format;
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.FloatValue;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -171,7 +171,7 @@ public sealed class FloatValueNode
 
     object IValueNode.Value => Value;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
     /// <summary>

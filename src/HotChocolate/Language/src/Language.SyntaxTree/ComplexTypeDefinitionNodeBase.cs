@@ -116,14 +116,12 @@ public abstract class ComplexTypeDefinitionNodeBase
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = base.GetHashCode();
-            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Interfaces);
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Fields);
-            return hashCode;
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(base.GetHashCode());
+        hashCode.Add(Kind);
+        hashCode.AddNodes(Interfaces);
+        hashCode.AddNodes(Fields);
+        return hashCode.ToHashCode();
     }
 
     public static bool operator ==(
