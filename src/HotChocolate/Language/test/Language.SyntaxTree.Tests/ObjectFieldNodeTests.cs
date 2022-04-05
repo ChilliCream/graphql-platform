@@ -8,10 +8,14 @@ public class ObjectFieldNodeTests
     public void EqualsObjectFieldNode_SameLocation()
     {
         // arrange
-        var a = new ObjectFieldNode(TestLocations.Location1, new NameNode("aa"), new FloatValueNode(1.2));
-        var b = new ObjectFieldNode(TestLocations.Location1, new NameNode("aa"), new FloatValueNode(1.2));
-        var c = new ObjectFieldNode(TestLocations.Location1, new NameNode("aa"), new FloatValueNode(2.1));
-        var d = new ObjectFieldNode(TestLocations.Location1, new NameNode("dd"), new FloatValueNode(1.2));
+        var a = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+            new IntValueNode(1));
+        var b = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+            new IntValueNode(1));
+        var c = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+            new IntValueNode(2));
+        var d = new ObjectFieldNode(TestLocations.Location1, new NameNode("d"),
+            new IntValueNode(1));
 
         // act
         var aaResult = a.Equals(a);
@@ -32,10 +36,14 @@ public class ObjectFieldNodeTests
     public void EqualsObjectFieldNode_DifferentLocations()
     {
         // arrange
-        var a = new ObjectFieldNode(TestLocations.Location1, new NameNode("aa"), new FloatValueNode(1.2));
-        var b = new ObjectFieldNode(TestLocations.Location2, new NameNode("aa"), new FloatValueNode(1.2));
-        var c = new ObjectFieldNode(TestLocations.Location3, new NameNode("aa"), new FloatValueNode(2.1));
-        var d = new ObjectFieldNode(TestLocations.Location3, new NameNode("dd"), new FloatValueNode(1.2));
+        var a = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+            new IntValueNode(1));
+        var b = new ObjectFieldNode(TestLocations.Location2, new NameNode("a"),
+            new IntValueNode(1));
+        var c = new ObjectFieldNode(TestLocations.Location3, new NameNode("a"),
+            new IntValueNode(2));
+        var d = new ObjectFieldNode(TestLocations.Location3, new NameNode("d"),
+            new IntValueNode(1));
 
         // act
         var aaResult = a.Equals(a);
@@ -56,11 +64,16 @@ public class ObjectFieldNodeTests
     public void CompareGetHashCode_WithLocation()
     {
         // arrange
-        var a = new ObjectFieldNode(TestLocations.Location1, new NameNode("aa"), new FloatValueNode(1.2));
-        var b = new ObjectFieldNode(TestLocations.Location2, new NameNode("aa"), new FloatValueNode(1.2));
-        var c = new ObjectFieldNode(TestLocations.Location1, new NameNode("aa"), new FloatValueNode(2.1));
-        var d = new ObjectFieldNode(TestLocations.Location2, new NameNode("dd"), new FloatValueNode(1.2));
-        var e = new ObjectFieldNode(TestLocations.Location3, new NameNode("dd"), new FloatValueNode(1.2));
+        var a = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+            new IntValueNode(1));
+        var b = new ObjectFieldNode(TestLocations.Location2, new NameNode("a"),
+            new IntValueNode(1));
+        var c = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+            new IntValueNode(2));
+        var d = new ObjectFieldNode(TestLocations.Location2, new NameNode("d"),
+            new IntValueNode(1));
+        var e = new ObjectFieldNode(TestLocations.Location3, new NameNode("d"),
+            new IntValueNode(1));
 
         // act
         var aHash = a.GetHashCode();
@@ -129,5 +142,3 @@ public class ObjectFieldNodeTests
         Assert.Equal("def", Assert.IsType<StringValueNode>(obj.Value).Value);
     }
 }
-
-
