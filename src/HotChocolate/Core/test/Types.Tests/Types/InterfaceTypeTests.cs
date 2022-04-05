@@ -1,30 +1,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class InterfaceTypeTests
-        : TypeTestBase
+    public class InterfaceTypeTests : TypeTestBase
     {
         [Fact]
         public void InterfaceType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InterfaceType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInterfaceType(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn<StringType>()
                     .Field("bar")
-                    .Type<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Type<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
@@ -35,16 +35,14 @@ namespace HotChocolate.Types
         public void InterfaceType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InterfaceType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInterfaceType(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn(typeof(StringType))
                     .Field("bar")
-                    .Type<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Type<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
@@ -55,14 +53,12 @@ namespace HotChocolate.Types
         public void GenericInterfaceType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InterfaceType<IFoo>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInterfaceType<IFoo>(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
@@ -73,14 +69,12 @@ namespace HotChocolate.Types
         public void GenericInterfaceType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InterfaceType<IFoo>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInterfaceType<IFoo>(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn(typeof(StringType))));
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn(typeof(StringType)))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
@@ -124,16 +118,14 @@ namespace HotChocolate.Types
         public void InferSchemaInterfaceTypeFromClrInterface()
         {
             // arrange && act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType<IFoo>();
-                c.RegisterQueryType<FooImpl>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddType<IFoo>()
+                .AddQueryType<FooImpl>()
+                .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("FooImpl");
-            Assert.Collection(type.Implements,
-                t => Assert.Equal("IFoo", t.Name));
+            Assert.Collection(type.Implements, t => Assert.Equal("IFoo", t.Name));
         }
 
         [Fact]
@@ -165,12 +157,13 @@ namespace HotChocolate.Types
 
 
         [Fact]
-        public void UnignoreFieldsFromClrInterface()
+        public void UnIgnoreFieldsFromClrInterface()
         {
             // arrange
             // act
             InterfaceType<IFoo> fooType = CreateType(
-                new InterfaceType<IFoo>(t => {
+                new InterfaceType<IFoo>(t =>
+                {
                     t.Ignore(p => p.Bar);
                     t.Field(p => p.Bar).Ignore(false);
                 }),
@@ -232,8 +225,8 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field(f => f.Bar)
                     .Directive("foo")),
-                    b => b.AddDirectiveType<FooDirectiveType>()
-                        .ModifyOptions(o => o.StrictValidation = false));
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -250,8 +243,8 @@ namespace HotChocolate.Types
                     .Directive(new NameString("foo"))
                     .Field(f => f.Bar)
                     .Directive(new NameString("foo"))),
-                    b => b.AddDirectiveType<FooDirectiveType>()
-                        .ModifyOptions(o => o.StrictValidation = false));
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -268,8 +261,8 @@ namespace HotChocolate.Types
                     .Directive(new DirectiveNode("foo"))
                     .Field(f => f.Bar)
                     .Directive(new DirectiveNode("foo"))),
-                    b => b.AddDirectiveType<FooDirectiveType>()
-                        .ModifyOptions(o => o.StrictValidation = false));
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -300,9 +293,9 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
-                .Directive<FooDirective>()
-                .Field(f => f.Bar)
-                .Directive<FooDirective>()),
+                    .Directive<FooDirective>()
+                    .Field(f => f.Bar)
+                    .Directive<FooDirective>()),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -317,11 +310,11 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType fooType = CreateType(new InterfaceType(d => d
-                .Name("FooInt")
-                .Directive("foo")
-                .Field("id")
-                .Type<StringType>()
-                .Directive("foo")),
+                    .Name("FooInt")
+                    .Directive("foo")
+                    .Field("id")
+                    .Type<StringType>()
+                    .Directive("foo")),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -336,11 +329,11 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType fooType = CreateType(new InterfaceType(d => d
-                .Name("FooInt")
-                .Directive(new NameString("foo"))
-                .Field("bar")
-                .Type<StringType>()
-                .Directive(new NameString("foo"))),
+                    .Name("FooInt")
+                    .Directive(new NameString("foo"))
+                    .Field("bar")
+                    .Type<StringType>()
+                    .Directive(new NameString("foo"))),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -355,11 +348,11 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType fooType = CreateType(new InterfaceType(d => d
-                .Name("FooInt")
-                .Directive(new DirectiveNode("foo"))
-                .Field("id")
-                .Type<StringType>()
-                .Directive(new DirectiveNode("foo"))),
+                    .Name("FooInt")
+                    .Directive(new DirectiveNode("foo"))
+                    .Field("id")
+                    .Type<StringType>()
+                    .Directive(new DirectiveNode("foo"))),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -374,11 +367,11 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType fooType = CreateType(new InterfaceType(d => d
-                .Name("FooInt")
-                .Directive(new FooDirective())
-                .Field("id")
-                .Type<StringType>()
-                .Directive(new FooDirective())),
+                    .Name("FooInt")
+                    .Directive(new FooDirective())
+                    .Field("id")
+                    .Type<StringType>()
+                    .Directive(new FooDirective())),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -393,11 +386,11 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType fooType = CreateType(new InterfaceType(d => d
-                .Name("FooInt")
-                .Directive<FooDirective>()
-                .Field("id")
-                .Type<StringType>()
-                .Directive<FooDirective>()),
+                    .Name("FooInt")
+                    .Directive<FooDirective>()
+                    .Field("id")
+                    .Type<StringType>()
+                    .Directive<FooDirective>()),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -445,28 +438,23 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                InterfaceTypeDescriptorExtensions
-                    .Ignore<IFoo>(null, t => t.Bar);
+            void Action() => InterfaceTypeDescriptorExtensions.Ignore<IFoo>(null, t => t.Bar);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
         public void Ignore_ExpressionIsNull_ArgumentNullException()
         {
             // arrange
-            InterfaceTypeDescriptor<IFoo> descriptor =
-                InterfaceTypeDescriptor.New<IFoo>(DescriptorContext.Create());
+            var descriptor = InterfaceTypeDescriptor.New<IFoo>(DescriptorContext.Create());
 
             // act
-            Action action = () =>
-                InterfaceTypeDescriptorExtensions
-                    .Ignore(descriptor, null);
+            void Action() => descriptor.Ignore(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -479,7 +467,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType(new InterfaceType<IFoo>(d => d
                     .Ignore(t => t.Bar)))
                 .ModifyOptions(o => o.StrictValidation = false)
@@ -499,7 +487,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType(new InterfaceType<FooObsolete>())
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
@@ -515,7 +503,7 @@ namespace HotChocolate.Types
                 .AddQueryType(c => c.Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType(new InterfaceType<FooDeprecated>())
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
@@ -535,6 +523,209 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void AnnotationBased_Interface_Issue_3577_Inheritance_Control()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<PetQuery>()
+                .AddType<Canina>()
+                .AddType<Dog>()
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void InterfaceType_InInterfaceType_ThrowsSchemaException()
+        {
+            // arrange
+            // act
+            Exception ex = Record.Exception(
+                () => SchemaBuilder
+                    .New()
+                    .AddQueryType(x => x.Name("Query").Field("Foo").Resolve("bar"))
+                    .AddType<InterfaceType<InterfaceType<IFoo>>>()
+                    .ModifyOptions(o => o.StrictRuntimeTypeValidation = true)
+                    .Create());
+
+            // assert
+            Assert.IsType<SchemaException>(ex);
+            ex.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Specify_Field_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddInterfaceType(d =>
+                {
+                    d.Name("Bar");
+                    d.Field("Foo").Type("String");
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Specify_Argument_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddInterfaceType(d =>
+                {
+                    d.Name("Bar");
+                    d.Field("Foo")
+                        .Argument("a", t => t.Type("Int"))
+                        .Type("String");
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AnnotationBased_DeprecatedArguments_Valid()
+        {
+            // arrange
+
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddInterfaceType<DeprecatedInterface>()
+                .AddType<DeprecatedImplementation>()
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AnnotationBased_DeprecatedArgumentsWithNonNullType_Invalid()
+        {
+            // arrange
+
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddInterfaceType<DeprecatedNonNullInterface>()
+                .AddType<DeprecatedNonNullImplementation>()
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException ex = await Assert.ThrowsAsync<SchemaException>(call);
+            ex.Errors[0].ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DeprecatedArguments_Valid()
+        {
+            // arrange
+
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddInterfaceType(x => x
+                    .Name("Interface")
+                    .Field("bar")
+                    .Type<IntType>()
+                    .Argument("baz", y => y.Type<IntType>().Deprecated("b")))
+                .AddObjectType(x => x
+                    .Name("Foo")
+                    .Implements("Interface")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Type<IntType>()
+                    .Argument("baz", y => y.Type<IntType>().Deprecated("b")))
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DeprecatedArgumentsWithNonNullType_Invalid()
+        {
+            // arrange
+
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddInterfaceType(x => x
+                    .Name("Interface")
+                    .Field("bar")
+                    .Type<IntType>()
+                    .Argument("baz", y => y.Type<NonNullType<IntType>>().Deprecated("b")))
+                .AddObjectType(x => x
+                    .Name("Foo")
+                    .Implements("Interface")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Type<IntType>()
+                    .Argument("baz", y => y.Type<NonNullType<IntType>>().Deprecated("b")))
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException ex = await Assert.ThrowsAsync<SchemaException>(call);
+            ex.Errors[0].ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DeprecatedArguments_Valid()
+        {
+            // arrange
+
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddDocumentFromString(@"
+                    interface Interface  {
+                        bar(a: String @deprecated(reason:""reason"")): Int!
+                    }
+
+                    type Foo implements Interface  {
+                        bar(a: String @deprecated(reason:""reason"")): Int!
+                    }
+                ")
+                .AddResolver("Foo", "bar", x => 1)
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DeprecatedArgumentsWithNonNullType_Invalid()
+        {
+            // arrange
+
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
+                .AddDocumentFromString(@"
+                    interface Interface  {
+                        bar(a: String! @deprecated(reason:""reason"")): Int!
+                    }
+
+                    type Foo implements Interface  {
+                        bar(a: String! @deprecated(reason:""reason"")): Int!
+                    }
+                ")
+                .AddResolver("Foo", "bar", x => 1)
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException ex = await Assert.ThrowsAsync<SchemaException>(call);
+            ex.Errors[0].ToString().MatchSnapshot();
+        }
+
         public interface IFoo
         {
             bool Bar { get; }
@@ -542,20 +733,13 @@ namespace HotChocolate.Types
             int Qux(string a);
         }
 
-        public class FooImpl
-            : IFoo
+        public class FooImpl : IFoo
         {
-            public bool Bar => throw new System.NotImplementedException();
+            public bool Bar => throw new NotImplementedException();
 
-            public string Baz()
-            {
-                throw new System.NotImplementedException();
-            }
+            public string Baz() => throw new NotImplementedException();
 
-            public int Qux(string a)
-            {
-                throw new System.NotImplementedException();
-            }
+            public int Qux(string a) => throw new NotImplementedException();
         }
 
         public class FooDirectiveType
@@ -564,13 +748,16 @@ namespace HotChocolate.Types
             protected override void Configure(
                 IDirectiveTypeDescriptor<FooDirective> descriptor)
             {
-                descriptor.Name("foo");
-                descriptor.Location(DirectiveLocation.Interface)
+                descriptor
+                    .Name("foo")
+                    .Location(DirectiveLocation.Interface)
                     .Location(DirectiveLocation.FieldDefinition);
             }
         }
 
-        public class FooDirective { }
+        public class FooDirective
+        {
+        }
 
         public class FooObsolete
         {
@@ -590,23 +777,65 @@ namespace HotChocolate.Types
         {
             public string Hello => "World!";
 
-            public IEnumerable<Fruit> GetFruits() => new Fruit[] {new Orange(), new Pineapple()};
+            public IEnumerable<Fruit> GetFruits() => new Fruit[] { new Orange(), new Pineapple() };
+        }
+
+        [InterfaceType]
+        public class DeprecatedInterface
+        {
+            public int? Deprecated([GraphQLDeprecated("reason")] int? deprecated) => deprecated;
+        }
+
+        [InterfaceType]
+        public class DeprecatedImplementation : DeprecatedInterface
+        {
+        }
+
+        [InterfaceType]
+        public class DeprecatedNonNullInterface
+        {
+            public int Deprecated([GraphQLDeprecated("reason")] int deprecated) => deprecated;
+        }
+
+        [InterfaceType]
+        public class DeprecatedNonNullImplementation : DeprecatedInterface
+        {
         }
 
         [InterfaceType]
         public class Fruit
         {
-            public string Taste { get; } = "Sweet";
+            public string Taste => "Sweet";
         }
 
         public class Orange : Fruit
         {
-            public string Color { get; } = "Orange";
+            public string Color => "Orange";
         }
 
         public class Pineapple : Fruit
         {
-            public string Shape { get; } = "Strange";
+            public string Shape => "Strange";
+        }
+
+        public class PetQuery
+        {
+            public Pet GetDog() => new Dog { Name = "Foo" };
+        }
+
+        [InterfaceType(Inherited = true)]
+        public class Pet
+        {
+            public string Name { get; set; }
+        }
+
+        public class Canina : Pet
+        {
+        }
+
+        [ObjectType]
+        public class Dog : Canina
+        {
         }
     }
 }

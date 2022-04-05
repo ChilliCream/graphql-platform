@@ -4,11 +4,18 @@
   "SubscriptionTypeName": "Subscription",
   "StrictValidation": true,
   "UseXmlDocumentation": true,
+  "ResolveXmlDocumentationFileName": null,
   "SortFieldsByName": false,
   "PreserveSyntaxNodes": false,
   "RemoveUnreachableTypes": false,
   "DefaultBindingBehavior": "Implicit",
   "FieldMiddleware": "UserDefinedFields",
   "EnableDirectiveIntrospection": false,
-  "DefaultDirectiveVisibility": "Public"
+  "DefaultDirectiveVisibility": "Public",
+  "AllowInlining": true,
+  "DefaultResolverStrategy": "Parallel",
+  "ValidatePipelineOrder": true,
+  "StrictRuntimeTypeValidation": false,
+  "DefaultIsOfTypeCheck": null,
+  "EnableOneOf": false
 }

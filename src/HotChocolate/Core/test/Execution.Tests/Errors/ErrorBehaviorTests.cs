@@ -123,7 +123,7 @@ namespace HotChocolate.Execution.Errors
         {
             Snapshot.FullName();
             return TestHelper.ExpectError(
-                "type Query { a: String } type Mutation { bar: String }",
+                @"type Query { a: String } type Mutation { bar: String }",
                 "mutation { foo }");
         }
 
@@ -137,6 +137,56 @@ namespace HotChocolate.Execution.Errors
                     .AddQueryType<QueryType>()
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = false));
         }
+
+        [Fact]
+        public async void Resolver_InvalidParentCast()
+        {
+            Snapshot.FullName();
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d
+                    .Field("foo")
+                    .Type<ObjectType<Foo>>()
+                    .Extend()
+                    // in the pure resolver we will return the wrong type
+                    .Definition.Resolver = _ => new ValueTask<object>(new Baz()))
+                .ExecuteRequestAsync("{ foo { bar } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async void PureResolver_InvalidParentCast()
+        {
+            Snapshot.FullName();
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d
+                    .Field("foo")
+                    .Type<ObjectType<Foo>>()
+                    .Extend()
+                    // in the pure resolver we will return the wrong type
+                    .Definition.PureResolver = _ => new Baz())
+                .ExecuteRequestAsync("{ foo { bar } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async void SetMaxAllowedValidationErrors_To_1()
+        {
+            Snapshot.FullName();
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d
+                    .Field("foo")
+                    .Type<ObjectType<Foo>>()
+                    .Extend()
+                    // in the pure resolver we will return the wrong type
+                    .Definition.PureResolver = _ => new Baz())
+                .SetMaxAllowedValidationErrors(1)
+                .ExecuteRequestAsync("{ a b c d }")
+                .MatchSnapshotAsync();
+        }
+
 
         private async Task ExpectError(
             string query,
@@ -157,8 +207,7 @@ namespace HotChocolate.Execution.Errors
             Assert.Equal(expectedErrorCount, errors);
         }
 
-        public class QueryType
-            : ObjectType<Query>
+        public class QueryType : ObjectType<Query>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Query> descriptor)
@@ -242,6 +291,11 @@ namespace HotChocolate.Execution.Errors
         }
 
         public class Foo
+        {
+            public string Bar => throw new Exception("baz");
+        }
+
+        public class Baz
         {
             public string Bar => throw new Exception("baz");
         }

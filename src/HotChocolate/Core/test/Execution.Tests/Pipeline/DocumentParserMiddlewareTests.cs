@@ -20,8 +20,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentParserMiddleware(
                 context => default,
-                new NoopDiagnosticEvents(),
-                cache,
+                new NoopExecutionDiagnosticEvents(),
                 hashProvider);
 
             var request = QueryRequestBuilder.New()
@@ -51,8 +50,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentParserMiddleware(
                 context => default,
-                new NoopDiagnosticEvents(),
-                cache,
+                new NoopExecutionDiagnosticEvents(),
                 hashProvider);
 
             var request = QueryRequestBuilder.New()
@@ -82,8 +80,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentParserMiddleware(
                 context => throw new Exception("Should not be invoked."),
-                new NoopDiagnosticEvents(),
-                cache,
+                new NoopExecutionDiagnosticEvents(),
                 hashProvider);
 
             var request = QueryRequestBuilder.New()

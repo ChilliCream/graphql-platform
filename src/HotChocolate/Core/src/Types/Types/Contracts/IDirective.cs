@@ -3,24 +3,23 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public interface IDirective
 {
-    public interface IDirective
-    {
-        NameString Name { get; }
+    NameString Name { get; }
 
-        DirectiveType Type { get; }
+    DirectiveType Type { get; }
 
-        object Source { get; }
+    object Source { get; }
 
-        IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; }
+    IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; }
 
-        T ToObject<T>();
+    T ToObject<T>();
 
-        DirectiveNode ToNode();
+    DirectiveNode ToNode();
 
-        DirectiveNode ToNode(bool removeNullArguments);
+    DirectiveNode ToNode(bool removeNullArguments);
 
-        T GetArgument<T>(string argumentName);
-    }
+    T GetArgument<T>(string argumentName);
 }

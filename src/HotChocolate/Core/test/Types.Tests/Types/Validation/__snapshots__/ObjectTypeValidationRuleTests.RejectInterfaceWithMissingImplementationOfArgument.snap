@@ -1,0 +1,11 @@
+﻿{
+  "message": "The argument `second` of the implemented field `first` must be defined. The field `first` must include an argument of the same name for every argument defined on the implemented field of the interface type `Test`.",
+  "type": "Foo",
+  "extensions": {
+    "field": "first",
+    "implementedField": "first",
+    "missingArgument": "second",
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
+  }
+}
+

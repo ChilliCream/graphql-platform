@@ -1,7 +1,6 @@
-namespace HotChocolate.Language.Visitors
+namespace HotChocolate.Language.Visitors;
+
+public class SkipAndLeaveSyntaxVisitorAction : ISyntaxVisitorAction
 {
-    public class SkipAndLeaveSyntaxVisitorAction : ISyntaxVisitorAction
-    {
-        public SyntaxVisitorActionKind Kind => SyntaxVisitorActionKind.SkipAndLeave;
-    }
+    public SyntaxVisitorActionKind Kind => SyntaxVisitorActionKind.SkipAndLeave;
 }

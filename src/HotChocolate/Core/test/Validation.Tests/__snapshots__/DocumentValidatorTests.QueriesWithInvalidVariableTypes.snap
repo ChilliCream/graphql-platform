@@ -12,7 +12,7 @@
     "Extensions": {
       "operation": "takesCat",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -112,7 +112,7 @@
     "Extensions": {
       "operation": "takesDogBang",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -221,7 +221,7 @@
     "Extensions": {
       "operation": "takesListOfPet",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -330,14 +330,14 @@
     "Extensions": {
       "operation": "takesCatOrDog",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
       "Kind": "OperationDefinition",
       "Location": {
         "Start": 298,
-        "End": 397,
+        "End": 384,
         "Line": 14,
         "Column": 17
       },
@@ -409,7 +409,7 @@
         "Kind": "SelectionSet",
         "Location": {
           "Start": 339,
-          "End": 397,
+          "End": 384,
           "Line": 14,
           "Column": 58
         },
@@ -430,7 +430,7 @@
     "Extensions": {
       "variable": "cat",
       "variableType": "Cat",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -495,7 +495,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -595,7 +595,7 @@
     "Extensions": {
       "variable": "dog",
       "variableType": "Dog!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -669,7 +669,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -778,7 +778,7 @@
     "Extensions": {
       "variable": "pets",
       "variableType": "[Pet]",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -852,7 +852,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -961,7 +961,7 @@
     "Extensions": {
       "variable": "catOrDog",
       "variableType": "CatOrDog",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -1026,14 +1026,14 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
       "Kind": "OperationDefinition",
       "Location": {
         "Start": 298,
-        "End": 397,
+        "End": 384,
         "Line": 14,
         "Column": 17
       },
@@ -1105,7 +1105,7 @@
         "Kind": "SelectionSet",
         "Location": {
           "Start": 339,
-          "End": 397,
+          "End": 384,
           "Line": 14,
           "Column": 58
         },

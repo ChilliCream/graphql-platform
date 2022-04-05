@@ -1,7 +1,7 @@
 ﻿using System;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Directives
 {
     public class CostDirectiveTests
     {
@@ -10,12 +10,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action a = () => new CostDirective(0);
-            Action b = () => new CostDirective(0, "a");
+            void Action() => new CostDirective(0);
+            void Action1() => new CostDirective(0, "a");
 
             // assert
-            Assert.Throws<ArgumentOutOfRangeException>(a);
-            Assert.Throws<ArgumentOutOfRangeException>(b);
+            Assert.Throws<ArgumentOutOfRangeException>(Action);
+            Assert.Throws<ArgumentOutOfRangeException>(Action1);
         }
 
         [Fact]
@@ -23,12 +23,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action a = () => new CostDirective(1, " ");
-            Action b = () => new CostDirective(1, (MultiplierPathString[])null);
+            void Action() => new CostDirective(1, " ");
+            void Action1() => new CostDirective(1, null);
 
             // assert
-            Assert.Throws<ArgumentException>(a);
-            Assert.Throws<ArgumentNullException>(b);
+            Assert.Throws<ArgumentException>(Action);
+            Assert.Throws<ArgumentNullException>(Action1);
         }
 
         [Fact]

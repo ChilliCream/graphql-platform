@@ -36,15 +36,17 @@ namespace HotChocolate.Execution.Pipeline
             var context = new RequestContext(
                 new Mock<ISchema>().Object,
                 1,
-                new Mock<IServiceProvider>().Object,
                 new Mock<IErrorHandler>().Object,
                 new Mock<ITypeConverter>().Object,
                 new Mock<IActivator>().Object,
-                new Mock<IDiagnosticEvents>().Object,
-                new Mock<IQueryRequest>().Object);
+                new Mock<IExecutionDiagnosticEvents>().Object);
+
+            context.Initialize(
+                new Mock<IQueryRequest>().Object,
+                new Mock<IServiceProvider>().Object);
 
             // act
-            RequestDelegate compiledMiddleware = middleware(factoryContext, context => default);
+            RequestDelegate compiledMiddleware = middleware(factoryContext, c => default);
             await compiledMiddleware(context);
 
 

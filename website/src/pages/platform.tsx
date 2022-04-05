@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
 import { HotChocolate } from "../components/images/hot-chocolate";
+import { Layout } from "../components/layout";
 import { Link } from "../components/misc/link";
 import {
   ContentContainer,
@@ -11,7 +12,6 @@ import {
 } from "../components/misc/marketing-elements";
 import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
-import { Layout } from "../components/structure/layout";
 import UnderConstructionSvg from "../images/under-construction.svg";
 
 const PlatformPage: FC = () => {
@@ -70,25 +70,10 @@ const PlatformPage: FC = () => {
           <ContentContainer>
             <SectionTitle>Strawberry Shake</SectionTitle>
             <p>
-              Strawberry Shake is our client tool to generates custom .Net
+              Strawberry Shake is a tool that generates custom .Net
               clients for any GraphQL endpoint.
             </p>
             <Link to="/docs/strawberryshake">Learn more</Link>
-          </ContentContainer>
-        </SectionRow>
-      </Section>
-      <Section>
-        <SectionRow>
-          <ImageContainer>
-            <UnderConstructionSvg />
-          </ImageContainer>
-          <ContentContainer>
-            <SectionTitle>Marshmallow Pie</SectionTitle>
-            <p>
-              Keep track of all clients that depend on your GraphQL endpoints.
-            </p>
-            {/* comment in again, once there is documentation */}
-            {/* <Link to="/docs/marshmallowpie">Learn more</Link> */}
           </ContentContainer>
         </SectionRow>
       </Section>

@@ -180,7 +180,7 @@ namespace HotChocolate.Data.MongoDb.Sorting
                         .Name("Query")
                         .Field("root")
                         .Type<ListType<ObjectType<TEntity>>>()
-                        .Resolver(
+                        .Resolve(
                             async ctx => await new ValueTask<IExecutable<TEntity>>(resolver()))
                         .Use(
                             next => async context =>
@@ -196,12 +196,11 @@ namespace HotChocolate.Data.MongoDb.Sorting
                     next => async context =>
                     {
                         await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out object? queryString))
+                        if (context.ContextData.TryGetValue("query", out var queryString))
                         {
                             context.Result =
                                 QueryResultBuilder
-                                    .FromResult(result)
+                                    .FromResult(context.Result!.ExpectQueryResult())
                                     .SetContextData("query", queryString)
                                     .Create();
                         }

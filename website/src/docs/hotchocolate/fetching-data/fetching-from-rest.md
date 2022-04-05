@@ -2,7 +2,7 @@
 title: "Fetching from REST"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 
@@ -74,7 +74,7 @@ You will have to register the client in the dependency injection of your GraphQL
 To expose the API you can inject the generated client into your resolvers.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 // Query.cs
@@ -111,8 +111,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 // Query.cs
@@ -152,7 +152,7 @@ public class QueryType : ObjectType<Query>
 // TodoType.cs
 public class TodoType : ObjectType<Todo>
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Todo> descriptor)
     {
         descriptor
             .Field(f => f.Id)
@@ -183,8 +183,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 // Query.cs
@@ -225,14 +225,14 @@ public class Startup
                   isCompleted: Boolean
                 }
             ")
-            .BindComplexType<Query>();
+            .BindRuntimeType<Query>();
     }
 
     // Omitted code for brevity
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 You can now head over to your Banana Cake Pop on your GraphQL Server (/graphql) and query todos:

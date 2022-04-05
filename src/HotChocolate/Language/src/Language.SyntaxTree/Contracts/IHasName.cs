@@ -1,10 +1,12 @@
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+/// <summary>
+/// Represents named syntax nodes.
+/// </summary>
+public interface IHasName
 {
     /// <summary>
-    /// Represents types that containe a name node.
+    /// Gets a name of the named syntax node.
     /// </summary>
-    public interface IHasName
-    {
-        NameNode Name { get; }
-    }
+    NameNode Name { get; }
 }

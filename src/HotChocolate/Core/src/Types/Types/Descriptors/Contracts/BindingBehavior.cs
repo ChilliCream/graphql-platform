@@ -1,8 +1,17 @@
-﻿namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// Defines the type system binding behavior.
+/// </summary>
+public enum BindingBehavior
 {
-    public enum BindingBehavior
-    {
-        Implicit = 0,
-        Explicit = 1
-    }
+    /// <summary>
+    /// Implicitly bind type system members.
+    /// </summary>
+    Implicit = 0,
+
+    /// <summary>
+    /// Type system members need to be explicitly bound.
+    /// </summary>
+    Explicit = 1
 }

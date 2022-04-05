@@ -7,32 +7,33 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.AspNetCore.Authorization
-{
-    public class AuthorizeSchemaTests
-    {
-        [Fact]
-        public async Task AuthorizeOnExtension()
-        {
-            await new ServiceCollection()
-                .AddGraphQLServer()
-                .AddQueryType()
-                .AddTypeExtension<QueryExtensions>()
-                .AddAuthorization()
-                .ExecuteRequestAsync(
-                    QueryRequestBuilder
-                        .New()
-                        .SetQuery("{ bar }")
-                        .AddProperty(nameof(ClaimsPrincipal), new ClaimsPrincipal())
-                        .Create())
-                .MatchSnapshotAsync();
-        }
+namespace HotChocolate.AspNetCore.Authorization;
 
-        [Authorize]
-        [ExtendObjectType(OperationTypeNames.Query)]
-        public class QueryExtensions
-        {
-            public string Bar() => "bar";
-        }
+public class AuthorizeSchemaTests
+{
+    [Fact]
+    public async Task AuthorizeOnExtension()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType()
+            .AddTypeExtension<QueryExtensions>()
+            .AddAuthorization()
+            .ExecuteRequestAsync(
+                QueryRequestBuilder
+                    .New()
+                    .SetQuery("{ bar }")
+                    .AddGlobalState(nameof(ClaimsPrincipal), new ClaimsPrincipal())
+                    .Create())
+            .MatchSnapshotAsync();
+    }
+
+    [Authorize]
+    [ExtendObjectType(OperationTypeNames.Query)]
+    public class QueryExtensions
+    {
+        public string Bar() => "bar";
     }
 }

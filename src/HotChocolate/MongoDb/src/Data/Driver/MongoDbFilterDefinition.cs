@@ -1,6 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 namespace HotChocolate.Data.MongoDb
 {
@@ -17,9 +18,17 @@ namespace HotChocolate.Data.MongoDb
             return Render(documentSerializer, serializerRegistry);
         }
 
+        public override BsonDocument Render(
+            IBsonSerializer<BsonDocument> documentSerializer,
+            IBsonSerializerRegistry serializerRegistry,
+            LinqProvider provider)
+        {
+            return Render(documentSerializer, serializerRegistry);
+        }
+
         public FilterDefinition<T> ToFilterDefinition<T>() => new FilterDefinitionWrapper<T>(this);
 
-        private class FilterDefinitionWrapper<T> : FilterDefinition<T>
+        private sealed class FilterDefinitionWrapper<T> : FilterDefinition<T>
         {
             private readonly MongoDbFilterDefinition _filter;
 
@@ -33,6 +42,14 @@ namespace HotChocolate.Data.MongoDb
                 IBsonSerializerRegistry serializerRegistry)
             {
                 return _filter.Render(documentSerializer, serializerRegistry);
+            }
+
+            public override BsonDocument Render(
+                IBsonSerializer<T> documentSerializer,
+                IBsonSerializerRegistry serializerRegistry,
+                LinqProvider provider)
+            {
+                return Render(documentSerializer, serializerRegistry);
             }
         }
     }

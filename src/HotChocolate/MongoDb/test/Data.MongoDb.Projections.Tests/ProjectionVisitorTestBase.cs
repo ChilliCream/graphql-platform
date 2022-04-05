@@ -46,15 +46,17 @@ namespace HotChocolate.Data.MongoDb.Projections
 
             return builder
                 .AddMongoDbProjections()
+                .AddObjectIdConverters()
                 .AddMongoDbFiltering()
                 .AddMongoDbSorting()
+                .AddMongoDbPagingProviders()
                 .AddQueryType(
                     new ObjectType<StubObject<TEntity>>(
                         c =>
                         {
                             c.Name("Query");
                             ApplyConfigurationToFieldDescriptor<TEntity>(
-                                c.Field(x => x.Root).Resolver(resolver),
+                                c.Field(x => x.Root).Resolve(resolver),
                                 usePaging,
                                 useOffsetPaging);
                         }))
@@ -62,12 +64,11 @@ namespace HotChocolate.Data.MongoDb.Projections
                     next => async context =>
                     {
                         await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out var queryString))
+                        if (context.ContextData.TryGetValue("query", out var queryString))
                         {
                             context.Result =
                                 QueryResultBuilder
-                                    .FromResult(result)
+                                    .FromResult(context.Result!.ExpectQueryResult())
                                     .SetContextData("query", queryString)
                                     .Create();
                         }
@@ -88,12 +89,12 @@ namespace HotChocolate.Data.MongoDb.Projections
         {
             if (usePaging)
             {
-                descriptor.UseMongoDbPaging<ObjectType<TEntity>>();
+                descriptor.UsePaging<ObjectType<TEntity>>();
             }
 
             if (useOffsetPaging)
             {
-                descriptor.UseMongoDbOffsetPaging<ObjectType<TEntity>>();
+                descriptor.UseOffsetPaging<ObjectType<TEntity>>();
             }
 
             descriptor

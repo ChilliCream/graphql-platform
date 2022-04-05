@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const List = styled.div`
   display: flex;
   gap: 2rem;
-  background-color: #e7e9eb;
+  background-color: #e8ecf5;
 
   ~ .gatsby-highlight {
     margin-top: 0;

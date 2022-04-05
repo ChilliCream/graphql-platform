@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.DataLoader;
+using HotChocolate.Fetching;
+using HotChocolate.Types;
 using Moq;
 using Xunit;
 
@@ -18,11 +19,11 @@ namespace HotChocolate.Resolvers
             // act
             Action a = () => DataLoaderResolverContextExtensions
                 .BatchDataLoader(
-                    null,
+                    null!,
                     new FetchBatch<string, string>((keys, ct) => Task
                         .FromResult<IReadOnlyDictionary<string, string>>(
                             null)),
-                    key: "abc");
+                    dataLoaderName: "abc");
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -36,7 +37,7 @@ namespace HotChocolate.Resolvers
             // act
             Action a = () => DataLoaderResolverContextExtensions
                 .BatchDataLoader(
-                    null,
+                    null!,
                     "abc",
                     new FetchBatch<string, string>((keys, ct) => Task
                         .FromResult<IReadOnlyDictionary<string, string>>(
@@ -77,7 +78,7 @@ namespace HotChocolate.Resolvers
                 .BatchDataLoader(
                     resolverContext.Object,
                     default(FetchBatch<string, string>),
-                    key: "123");
+                    dataLoaderName: "123");
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -113,7 +114,7 @@ namespace HotChocolate.Resolvers
                     null,
                     new FetchGroup<string, string>((keys, ct) =>
                         Task.FromResult(lookup.Object)),
-                    key: "abc");
+                    dataLoaderName: "abc");
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -169,7 +170,7 @@ namespace HotChocolate.Resolvers
                 .GroupDataLoader(
                     resolverContext.Object,
                     default(FetchGroup<string, string>),
-                    key: "123");
+                    dataLoaderName: "123");
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -201,7 +202,7 @@ namespace HotChocolate.Resolvers
             Action a = () => DataLoaderResolverContextExtensions
                 .CacheDataLoader(
                     null,
-                    new FetchCacheCt<string, string>((keys, ct) =>
+                    new FetchCache<string, string>((keys, ct) =>
                         Task.FromResult(string.Empty)),
                     key: "abc");
 
@@ -219,7 +220,7 @@ namespace HotChocolate.Resolvers
                 .CacheDataLoader(
                     null,
                     "abc",
-                    new FetchCacheCt<string, string>((keys, ct) =>
+                    new FetchCache<string, string>((keys, ct) =>
                         Task.FromResult(string.Empty)));
 
             // assert
@@ -238,7 +239,7 @@ namespace HotChocolate.Resolvers
                 .CacheDataLoader(
                     resolverContext.Object,
                     null,
-                    new FetchCacheCt<string, string>((keys, ct) =>
+                    new FetchCache<string, string>((keys, ct) =>
                             Task.FromResult(string.Empty)));
 
             // assert
@@ -255,7 +256,7 @@ namespace HotChocolate.Resolvers
             Action a = () => DataLoaderResolverContextExtensions
                 .CacheDataLoader(
                     resolverContext.Object,
-                    default(FetchCacheCt<string, string>),
+                    default(FetchCache<string, string>),
                     key: "123");
 
             // assert
@@ -274,7 +275,7 @@ namespace HotChocolate.Resolvers
                 .CacheDataLoader(
                     resolverContext.Object,
                     "123",
-                    default(FetchCacheCt<string, string>));
+                    default(FetchCache<string, string>));
 
             // assert
             Assert.Throws<ArgumentNullException>(a);

@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Sorting
             schema.ToString().MatchSnapshot();
         }
 
-        private class CustomConvention : SortingNamingConventionSnakeCase
+        private sealed class CustomConvention : SortingNamingConventionSnakeCase
         {
             public override NameString ArgumentName => "test";
 
@@ -99,7 +99,7 @@ namespace HotChocolate.Types.Sorting
         {
             ctx.AddObjectType(x => x.Name("Test")
                 .Field("foo")
-                .Resolver(resolvedItems)
+                .Resolve(resolvedItems)
                 .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
                 .UseSorting());
             return ctx;

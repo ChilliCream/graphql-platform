@@ -2,10 +2,10 @@ import React, { FC } from "react";
 import styled from "styled-components";
 import TimesIconSvg from "../../images/times.svg";
 
-interface DocPagePaneHeaderProps {
-  showWhenScreenWidthIsSmallerThan: number;
-  title: string;
-  onClose: () => void;
+export interface DocPagePaneHeaderProps {
+  readonly showWhenScreenWidthIsSmallerThan: number;
+  readonly title: string;
+  readonly onClose: () => void;
 }
 
 export const DocPagePaneHeader: FC<DocPagePaneHeaderProps> = ({

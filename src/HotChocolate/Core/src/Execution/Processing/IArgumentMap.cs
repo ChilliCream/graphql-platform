@@ -1,12 +1,13 @@
 using System.Collections.Generic;
+using HotChocolate.Resolvers;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+public interface IArgumentMap : IReadOnlyDictionary<NameString, ArgumentValue>
 {
-    public interface IArgumentMap
-        : IReadOnlyDictionary<NameString, ArgumentValue>
-    {
-        bool IsFinal { get; }
+    bool IsFinalNoErrors { get; }
 
-        bool HasErrors { get; }
-    }
+    bool IsFinal { get; }
+
+    bool HasErrors { get; }
 }

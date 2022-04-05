@@ -1,8 +1,10 @@
-﻿using HotChocolate.Resolvers;
+using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types
-{
-    public delegate ObjectType ResolveAbstractType(
-        IResolverContext context,
-        object resolverResult);
-}
+namespace HotChocolate.Types;
+
+/// <summary>
+/// Gets the concrete object type of a resolver result.
+/// </summary>
+public delegate ObjectType ResolveAbstractType(
+    IResolverContext context,
+    object resolverResult);

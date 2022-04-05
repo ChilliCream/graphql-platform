@@ -1,0 +1,15 @@
+﻿{
+  "data": {
+    "books": [
+      {
+        "title": "Foo1"
+      },
+      {
+        "title": "Bar1"
+      },
+      {
+        "title": "Baz1"
+      }
+    ]
+  }
+}

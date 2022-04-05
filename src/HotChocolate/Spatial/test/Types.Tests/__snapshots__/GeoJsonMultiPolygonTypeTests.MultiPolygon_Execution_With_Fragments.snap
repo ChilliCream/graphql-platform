@@ -1,4 +1,5 @@
 ﻿{
+  "Kind": "SingleResult",
   "Label": null,
   "Path": null,
   "Data": null,
@@ -19,7 +20,7 @@
       ],
       "Extensions": {
         "typeCondition": "MultiPolygon",
-        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence"
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-Spread-Type-Existence"
       },
       "Exception": null,
       "SyntaxNode": {
@@ -63,6 +64,7 @@
               "Kind": "Field",
               "Alias": null,
               "Arguments": [],
+              "Required": null,
               "SelectionSet": null,
               "Location": {
                 "Start": 31,
@@ -86,6 +88,7 @@
               "Kind": "Field",
               "Alias": null,
               "Arguments": [],
+              "Required": null,
               "SelectionSet": null,
               "Location": {
                 "Start": 36,
@@ -109,6 +112,7 @@
               "Kind": "Field",
               "Alias": null,
               "Arguments": [],
+              "Required": null,
               "SelectionSet": null,
               "Location": {
                 "Start": 48,
@@ -132,6 +136,7 @@
               "Kind": "Field",
               "Alias": null,
               "Arguments": [],
+              "Required": null,
               "SelectionSet": null,
               "Location": {
                 "Start": 53,

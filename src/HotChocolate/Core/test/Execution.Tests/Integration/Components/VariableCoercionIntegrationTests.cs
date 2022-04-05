@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution.Integration.Regressions
+namespace HotChocolate.Execution.Integration.Components
 {
     public class VariableCoercionIntegrationTests
     {

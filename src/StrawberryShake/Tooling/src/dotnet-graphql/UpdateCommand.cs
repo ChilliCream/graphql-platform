@@ -5,37 +5,43 @@ namespace StrawberryShake.Tools
 {
     public static class UpdateCommand
     {
-        public static CommandLineApplication Create()
+        public static void Build(CommandLineApplication update)
         {
-            var init = new CommandLineApplication();
-            init.AddName("update");
-            init.AddHelp<UpdateHelpTextGenerator>();
+            update.Description = "Update local schema";
 
-            CommandOption pathArg = init.Option(
+            CommandOption pathArg = update.Option(
                 "-p|--Path",
                 "The directory where the client shall be located.",
                 CommandOptionType.SingleValue);
 
-            CommandOption urlArg = init.Option(
+            CommandOption urlArg = update.Option(
                 "-u|--uri",
                 "The URL to the GraphQL endpoint.",
                 CommandOptionType.SingleValue);
 
-            CommandOption jsonArg = init.Option(
+            CommandOption jsonArg = update.Option(
                 "-j|--json",
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
 
-            AuthArguments authArguments = init.AddAuthArguments();
+            CommandOption headersArg = update.Option(
+                "-x|--headers",
+                "Custom headers used in request to Graph QL server. " +
+                "Can be used mulitple times. Example: --headers key1=value1 --headers key2=value2",
+                CommandOptionType.MultipleValue);
 
-            init.OnExecuteAsync(cancellationToken =>
+            AuthArguments authArguments = update.AddAuthArguments();
+
+            update.OnExecuteAsync(cancellationToken =>
             {
-                var arguments = new UpdateCommandArguments(urlArg, pathArg, authArguments);
-                var handler = CommandTools.CreateHandler<UpdateCommandHandler>(jsonArg);
+                var arguments = new UpdateCommandArguments(
+                    urlArg,
+                    pathArg,
+                    authArguments,
+                    headersArg);
+                UpdateCommandHandler handler = CommandTools.CreateHandler<UpdateCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
-
-            return init;
         }
     }
 }

@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -79,16 +81,16 @@ namespace HotChocolate.Execution
                     type Bar {
                         baz: String
                     }")
-                .Use(next => context =>
+                .Use(_ => context =>
                 {
-                    if (context.Field.Type.NamedType() is ObjectType type)
+                    if (context.Selection.Type.NamedType() is ObjectType type)
                     {
                         foreach (IFieldSelection selection in context.GetSelections(type))
                         {
                             CollectSelections(context, selection, list);
                         }
                     }
-                    return default(ValueTask);
+                    return default;
                 })
                 .Create();
 
@@ -106,17 +108,45 @@ namespace HotChocolate.Execution
             list.Select(t => t.SyntaxNode.Name.Value).ToList().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task CustomServiceProvider()
+        {
+            // arrange
+            Snapshot.FullName();
+            var services = new DictionaryServiceProvider(typeof(string), "hello");
+
+            // assert
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name(OperationTypeNames.Query);
+
+                    d.Field("foo")
+                        .Resolve(ctx => ctx.Service<string>())
+                        .Use(next => async context =>
+                        {
+                            context.Services = services;
+                            await next(context);
+                        });
+                })
+                .ExecuteRequestAsync("{ foo }")
+
+            // assert
+                .MatchSnapshotAsync();
+        }
+
         private static void CollectSelections(
             IResolverContext context,
             IFieldSelection selection,
             ICollection<IFieldSelection> collected)
         {
-            if (selection.Field.Type.IsLeafType())
+            if (selection.Type.IsLeafType())
             {
                 collected.Add(selection);
             }
 
-            if (selection.Field.Type.NamedType() is ObjectType objectType)
+            if (selection.Type.NamedType() is ObjectType objectType)
             {
                 foreach (IFieldSelection child in context.GetSelections(
                     objectType, selection.SyntaxNode.SelectionSet))

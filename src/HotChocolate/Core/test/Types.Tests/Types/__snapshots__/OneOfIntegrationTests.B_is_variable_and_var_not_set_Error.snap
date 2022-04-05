@@ -1,0 +1,17 @@
+﻿{
+  "errors": [
+    {
+      "message": "Variable \u0060var\u0060 is required.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 7
+        }
+      ],
+      "extensions": {
+        "code": "HC0018",
+        "variable": "var"
+      }
+    }
+  ]
+}

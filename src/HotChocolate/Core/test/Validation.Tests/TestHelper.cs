@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
+using HotChocolate.Validation.Options;
 using Snapshooter.Xunit;
 using Xunit;
-using HotChocolate.Validation.Options;
-using System.Linq;
-using HotChocolate.Execution;
 
 namespace HotChocolate.Validation
 {
@@ -39,16 +38,19 @@ namespace HotChocolate.Validation
             configure(builder);
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            var rule = services.GetRequiredService<IValidationConfiguration>()
-                .GetRules(Schema.DefaultName).First();
+            IDocumentValidatorRule rule =
+                services.GetRequiredService<IValidationConfiguration>()
+                    .GetRules(Schema.DefaultName).First();
 
-            IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+            DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
             context.Prepare(query);
 
+            context.ContextData = new Dictionary<string, object>();
+
             if (contextData is not null)
             {
-                foreach ((var key, object value) in contextData)
+                foreach (var (key, value) in contextData)
                 {
                     context.ContextData[key] = value;
                 }
@@ -92,16 +94,21 @@ namespace HotChocolate.Validation
             configure(builder);
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            var rule = services.GetRequiredService<IValidationConfiguration>()
-                .GetRules(Schema.DefaultName).First();
+            IDocumentValidatorRule rule =
+                services.GetRequiredService<IValidationConfiguration>()
+                    .GetRules(Schema.DefaultName).First();
 
-            IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+            DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+            context.MaxAllowedErrors = int.MaxValue;
+
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
             context.Prepare(query);
 
+            context.ContextData = new Dictionary<string, object>();
+
             if (contextData is not null)
             {
-                foreach ((var key, object value) in contextData)
+                foreach (var (key, value) in contextData)
                 {
                     context.ContextData[key] = value;
                 }

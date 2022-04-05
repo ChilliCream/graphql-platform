@@ -79,22 +79,22 @@ SchemaBuilder.New()
     });
 ```
 
- ## Customizable IErrors 
+## Customizable IErrors
 
 Hot Chocolate provides some methods in Error to help add or remove messages,
 codes, locations, paths and more, making error messages more readable
 
- - `RemoveCode()`
- - `RemoveException()`
- - `RemoveExtension(string key)`
- - `RemoveExtensions()`
- - `RemoveLocations()`
- - `RemovePath()`
- - `SetExtension(string key, object? value)`
- - `WithCode(string? code)`
- - `WithException(Exception? exception)`
- - `WithExtensions(IReadOnlyDictionary<string, object?> extensions)`
- - `WithLocations(IReadOnlyList<Location>? locations)`
- - `WithMessage(string message)`
- - `WithPath(IReadOnlyList<object>? path)`
- - `WithPath(Path? path)`
+- `RemoveCode()`
+- `RemoveException()`
+- `RemoveExtension(string key)`
+- `RemoveExtensions()`
+- `RemoveLocations()`
+- `RemovePath()`
+- `SetExtension(string key, object? value)`
+- `WithCode(string? code)`
+- `WithException(Exception? exception)`
+- `WithExtensions(IReadOnlyDictionary<string, object?> extensions)`
+- `WithLocations(IReadOnlyList<Location>? locations)`
+- `WithMessage(string message)`
+- `WithPath(IReadOnlyList<object>? path)`
+- `WithPath(Path? path)`

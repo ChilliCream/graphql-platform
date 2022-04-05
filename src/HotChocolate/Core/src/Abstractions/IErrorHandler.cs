@@ -1,16 +1,15 @@
-﻿using System;
+using System;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public interface IErrorHandler
 {
-    public interface IErrorHandler
-    {
-        IError Handle(IError error);
+    IError Handle(IError error);
 
-        /// <summary>
-        /// Creates an error from an unexpected exception.
-        /// </summary>
-        /// <param name="exception"></param>
-        /// <returns></returns>
-        IErrorBuilder CreateUnexpectedError(Exception exception);
-    }
+    /// <summary>
+    /// Creates an error from an unexpected exception.
+    /// </summary>
+    /// <param name="exception"></param>
+    /// <returns></returns>
+    IErrorBuilder CreateUnexpectedError(Exception exception);
 }

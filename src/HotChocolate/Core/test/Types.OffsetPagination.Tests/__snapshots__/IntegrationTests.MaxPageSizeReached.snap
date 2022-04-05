@@ -1,0 +1,19 @@
+﻿{
+  "errors": [
+    {
+      "message": "The maximum allowed items per page were exceeded.",
+      "path": [
+        "letters"
+      ],
+      "extensions": {
+        "code": "HC0051",
+        "field": "Query.letters",
+        "requestedItems": 51,
+        "maxAllowedItems": 50
+      }
+    }
+  ],
+  "data": {
+    "letters": null
+  }
+}

@@ -44,10 +44,10 @@ namespace HotChocolate.Execution.Instrumentation
                 .AddApolloTracing(TracingPreference.Always, new TestTimestampProvider()));
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync("{ a }");
+            await executor.ExecuteAsync("{ a }");
 
             // the second execution will not parse or validate since these steps are cached.
-            result = await executor.ExecuteAsync("{ a }");
+            IExecutionResult result = await executor.ExecuteAsync("{ a }");
 
             // assert
             result.ToJson().MatchSnapshot();
@@ -97,7 +97,7 @@ namespace HotChocolate.Execution.Instrumentation
             result.ToJson().MatchSnapshot();
         }
 
-        private class TestTimestampProvider : ITimestampProvider
+        private sealed class TestTimestampProvider : ITimestampProvider
         {
             private DateTime _utcNow = new DateTime(2010, 10, 10, 12, 00, 00);
             private long _nowInNanoseconds = 10;

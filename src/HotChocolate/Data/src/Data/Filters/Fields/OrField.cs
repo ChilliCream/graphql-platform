@@ -1,47 +1,40 @@
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public sealed class OrField
+    : FilterOperationField
+    , IOrField
 {
-    public sealed class OrField
-        : InputField
-        , IOrField
+    internal OrField(IDescriptorContext context, int index, string? scope)
+        : base(CreateDefinition(context, scope), index)
     {
-        internal OrField(
-            IDescriptorContext context,
-            string? scope)
-            : base(CreateDefinition(context, scope), default)
-        {
-        }
-
-        public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
-
-        IFilterInputType IOrField.DeclaringType => DeclaringType;
-
-        protected override void OnCompleteField(
-            ITypeCompletionContext context,
-            InputFieldDefinition definition)
-        {
-            Coordinate = Coordinate.With(typeName: context.Type.Name);
-
-            definition.Type = TypeReference.Create(
-                new ListTypeNode(
-                    new NonNullTypeNode(
-                        new NamedTypeNode(context.Type.Name))),
-                TypeContext.Input,
-                context.Type.Scope);
-
-            base.OnCompleteField(context, definition);
-        }
-
-        private static InputFieldDefinition CreateDefinition(
-            IDescriptorContext context,
-            string? scope) =>
-            FilterOperationFieldDescriptor
-                .New(context, DefaultFilterOperations.Or, scope)
-                .CreateDefinition();
     }
+
+    public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
+
+    IFilterInputType IOrField.DeclaringType => DeclaringType;
+
+    protected override void OnCompleteField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        InputFieldDefinition definition)
+    {
+        definition.Type = TypeReference.Parse(
+            $"[{context.Type.Name}!]",
+            TypeContext.Input,
+            context.Type.Scope);
+
+        base.OnCompleteField(context, declaringMember, definition);
+    }
+
+    private static FilterOperationFieldDefinition CreateDefinition(
+        IDescriptorContext context,
+        string? scope) =>
+        FilterOperationFieldDescriptor
+            .New(context, DefaultFilterOperations.Or, scope)
+            .CreateDefinition();
 }

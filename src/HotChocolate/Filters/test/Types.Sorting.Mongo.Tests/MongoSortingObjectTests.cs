@@ -1,19 +1,17 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using HotChocolate.Types.Relay;
-using MongoDB.Driver;
 using MongoDB.Bson;
-using Xunit;
+using MongoDB.Driver;
 using Snapshooter.Xunit;
 using Squadron;
-using System;
+using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
     [Obsolete]
-    public class MongoSortingObjectTests
-        : IClassFixture<MongoResource>
+    public class MongoSortingObjectTests : IClassFixture<MongoResource>
     {
         private readonly MongoResource _mongoResource;
 
@@ -55,7 +53,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -101,7 +99,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -145,7 +143,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -155,7 +153,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IServiceProvider services = new ServiceCollection()
-                .AddSingleton<IMongoCollection<Parent>>(sp =>
+                .AddSingleton(_ =>
                 {
                     IMongoDatabase database = _mongoResource.CreateDatabase();
                     IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
@@ -184,7 +182,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -193,7 +191,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IServiceProvider services = new ServiceCollection()
-                .AddSingleton<IMongoCollection<Parent>>(sp =>
+                .AddSingleton(_ =>
                 {
                     IMongoDatabase database = _mongoResource.CreateDatabase();
                     IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
@@ -223,7 +221,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -261,7 +259,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             result.MatchSnapshot();
         }
 
@@ -270,15 +268,16 @@ namespace HotChocolate.Types.Sorting
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Query");
+
                 descriptor.Field("items")
                     .Type<ListType<ParentType>>()
                     .UseSorting<ParentSortInputType>()
-                    .Resolver(ctx => ctx.Service<IMongoCollection<Parent>>().AsQueryable());
+                    .Resolve(ctx => ctx.Service<IMongoCollection<Parent>>().AsQueryable());
 
                 descriptor.Field("paging")
                     .UsePaging<ParentType>()
                     .UseSorting<ParentSortInputType>()
-                    .Resolver(ctx => ctx.Service<IMongoCollection<Parent>>().AsQueryable());
+                    .Resolve(ctx => ctx.Service<IMongoCollection<Parent>>().AsQueryable());
             }
         }
 
@@ -304,7 +303,7 @@ namespace HotChocolate.Types.Sorting
             {
                 descriptor.Field(t => t.Id)
                     .Type<IdType>()
-                    .Resolver(c => c.Parent<Model>().Id);
+                    .Resolve(c => c.Parent<Model>().Id);
             }
         }
 
@@ -317,7 +316,7 @@ namespace HotChocolate.Types.Sorting
                     .Type<ModelType>();
                 descriptor.Field(t => t.Id)
                     .Type<IdType>()
-                    .Resolver(c => c.Parent<Model>().Id);
+                    .Resolve(c => c.Parent<Model>().Id);
             }
         }
         public class Parent

@@ -2,7 +2,7 @@
 title: "Resolvers"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 When it comes to fetching data in a GraphQL server, it will always come down to a resolver.
 
@@ -64,7 +64,7 @@ Properties are also covered in detail by the [object type documentation](/docs/h
 A regular resolver is just a simple method, which returns a value.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -83,8 +83,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Query
@@ -124,8 +124,8 @@ descriptor
     });
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Query
@@ -144,7 +144,7 @@ public class Startup
                     foo: String!
                 }
             ")
-            .BindComplexType<Query>();
+            .BindRuntimeType<Query>();
     }
 }
 ```
@@ -162,7 +162,7 @@ services
     .AddResolver("Query", "foo", (context) => "Bar");
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Async Resolver
@@ -250,134 +250,31 @@ There are also specific arguments that will be automatically populated by Hot Ch
 
 # Injecting Services
 
-Resolvers integrate nicely with `Microsoft.Extensions.DependecyInjection`.
-We can access all registered services in our resolvers.
-
 Let's assume we have created a `UserService` and registered it as a service.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddSingleton<UserService>()
+var builder = WebApplication.CreateBuilder(args);
 
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>();
-    }
-}
-```
+builder.Services.AddSingleton<UserService>()
 
-We can then access the `UserService` in our resolvers like the following.
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
-
-```csharp
-public class Query
-{
-    public List<User> GetUsers([Service] UserService userService)
-        => userService.GetUsers();
-}
-```
-
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
-
-```csharp
-public class Query
-{
-    public List<User> GetUsers([Service] UserService userService)
-        => userService.GetUsers();
-}
-
-public class QueryType: ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor
-            .Field(f => f.Foo(default))
-            .Type<ListType<UserType>>();
-    }
-}
-```
-
-When using the `Resolve` method, we can access services through the `IResolverContext`.
-
-```csharp
-descriptor
-    .Field("foo")
-    .Resolve(context =>
-    {
-        var userService = context.Service<UserService>();
-
-        return userService.GetUsers();
-    });
-```
-
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-```csharp
-public class Query
-{
-    public List<User> GetUsers([Service] UserService userService)
-        => userService.GetUsers();
-}
-```
-
-When using `AddResolver()`, we can access services through the `IResolverContext`.
-
-```csharp
-services
+builder.Services
     .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Query {
-          users: [User!]!
-        }
-    ")
-    .AddResolver("Query", "users", (context) =>
-    {
-        var userService = context.Service<UserService>();
-
-        return userService.GetUsers();
-    });
+    .AddQueryType<Query>();
 ```
 
-</ExampleTabs.Schema>
-</ExampleTabs>
-
-Hot Chocolate will correctly inject the service depending on its lifetime. For example, a scoped service is only instantiated once per scope (by default that's the GraphQL request execution) and this same instance is injected into all resolvers who share the same scope.
-
-## Constructor Injection
-
-Of course we can also inject services into the constructor of our types.
+We can now access it like the following in our resolvers.
 
 ```csharp
 public class Query
 {
-    private readonly UserService _userService;
-
-    public Query(UserService userService)
-    {
-        _userService = userService;
-    }
-
-     public List<User> GetUsers()
-        => _userService.GetUsers();
+    public List<User> GetUsers([Service] UserService userService)
+        => userService.GetUsers();
 }
 ```
 
-It's important to note that the service lifetime of types is singleton per default for performance reasons.
+[Learn more about dependency injection](/docs/hotchocolate/server/dependency-injection)
 
-**This means one instance per injected service is kept around and used for the entire lifetime of the GraphQL server, regardless of the original lifetime of the service.**
-
-If we depend on truly transient or scoped services, we need to inject them directly into the dependent methods as described [above](#injecting-services).
-
-[Learn more about service lifetimes in ASP.NET Core](https://docs.microsoft.com/dotnet/core/extensions/dependency-injection#service-lifetimes)
-
-## IHttpContextAccessor
+# Accessing the HttpContext
 
 The [IHttpContextAccessor](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.ihttpcontextaccessor) allows us to access the [HttpContext](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpcontext) of the current request from within our resolvers. This is useful, if we for example need to set a header or cookie.
 
@@ -401,20 +298,6 @@ After this we can inject it into our resolvers and make use of the the `HttpCont
 public string Foo(string id, [Service] IHttpContextAccessor httpContextAccessor)
 {
     if (httpContextAccessor.HttpContext is not null)
-    {
-        // Omitted code for brevity
-    }
-}
-```
-
-## IResolverContext
-
-The `IResolverContext` is mainly used in delegate resolvers of the Code-first approach, but we can also access it in the Annotation-based approach, by simply injecting it.
-
-```csharp
-public class Query
-{
-    public string Foo(IResolverContext context)
     {
         // Omitted code for brevity
     }
@@ -453,7 +336,7 @@ From the point of view of this `friends` resolver, the `User` CLR type is its _p
 We can access this so called _parent_ value like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 In the Annotation-based approach we can just access the properties using the `this` keyword.
 
@@ -487,8 +370,8 @@ public class User
 
 This is especially useful when using [type extensions](/docs/hotchocolate/defining-a-schema/extending-types).
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class User
@@ -526,8 +409,8 @@ public class UserType : ObjectType<User>
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class User
@@ -559,5 +442,5 @@ services
     });
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

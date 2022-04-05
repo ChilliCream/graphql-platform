@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
+using HotChocolate.Types.Pagination.Extensions;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -68,6 +69,62 @@ namespace HotChocolate.Types.Pagination
                         }
                     }
                 }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task No_Paging_Boundaries()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    letters {
+                        items
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task MaxPageSizeReached()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync($@"
+                {{
+                    letters(take: {51}) {{
+                        items
+                        pageInfo {{
+                            hasNextPage
+                            hasPreviousPage
+                        }}
+                    }}
+                }}")
                 .MatchSnapshotAsync();
         }
 
@@ -540,6 +597,29 @@ namespace HotChocolate.Types.Pagination
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task FluentPagingTests()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<FluentPaging>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    items {
+                        items
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -627,6 +707,18 @@ namespace HotChocolate.Types.Pagination
             public string Bar { get; set; } = default!;
         }
 
+        public class FluentPaging
+        {
+            [UseOffsetPaging(ProviderName = "Items")]
+            public async Task<CollectionSegment<string>> GetItems(
+                int? skip,
+                int? take,
+                CancellationToken cancellationToken)
+                => await new[] { "a", "b", "c", "d" }
+                    .AsQueryable()
+                    .ApplyOffsetPaginationAsync(skip, take, cancellationToken);
+        }
+
         public class QueryAttr
         {
             [UseOffsetPaging]
@@ -703,7 +795,7 @@ namespace HotChocolate.Types.Pagination
 
         public string Print()
         {
-            return _source.ToString();
+            return _source.ToString()!;
         }
     }
 }

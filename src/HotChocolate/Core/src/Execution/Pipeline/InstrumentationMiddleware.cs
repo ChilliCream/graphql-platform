@@ -2,33 +2,32 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Pipeline;
+
+internal sealed class InstrumentationMiddleware
 {
-    internal sealed class InstrumentationMiddleware
+    private readonly RequestDelegate _next;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+
+    public InstrumentationMiddleware(
+        RequestDelegate next,
+        IExecutionDiagnosticEvents diagnosticEvents)
     {
-        private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
+    }
 
-        public InstrumentationMiddleware(
-            RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents)
+    public async ValueTask InvokeAsync(IRequestContext context)
+    {
+        using (_diagnosticEvents.ExecuteRequest(context))
         {
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
-        }
+            await _next(context).ConfigureAwait(false);
 
-        public async ValueTask InvokeAsync(IRequestContext context)
-        {
-            using (_diagnosticEvents.ExecuteRequest(context))
+            if (context.Exception is { } exception)
             {
-                await _next(context).ConfigureAwait(false);
-
-                if (context.Exception is { } exception)
-                {
-                    _diagnosticEvents.RequestError(context, exception);
-                }
+                _diagnosticEvents.RequestError(context, exception);
             }
         }
     }

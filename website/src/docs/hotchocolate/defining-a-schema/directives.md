@@ -100,8 +100,7 @@ public class MyDirectiveType : DirectiveType
 }
 ```
 
-> Note: We can specify multiple locations using a pipe `|`.
-> `descriptor.Location(DirectiveLocation.Field | DirectiveLocation.Object);`
+[Learn more about Locations](#locations)
 
 We also have to register the directive explicitly.
 
@@ -240,6 +239,111 @@ public class FooType : ObjectType
 
 Since the directive instance that we have added to our type is now a strong .NET type, we don't have to fear changes to the directive structure or name anymore.
 
+## Locations
+
+A directive can define one or multiple locations, where it can be applied. Multiple locations are seperated by a pipe `|`.
+
+```csharp
+descriptor.Location(DirectiveLocation.Field | DirectiveLocation.Object);
+```
+
+Generally we distinguish between two types of locations: Type system and executable locations.
+
+### Type System Locations
+
+Type system locations specify where we can place a specific directive in the schema. The arguments of directives specified in these locations are fixed. We can query such directives through introspection.
+
+The following schema shows where type system directives can be applied.
+
+```sdl
+directive @schema on SCHEMA
+directive @object on OBJECT
+directive @argumentDefinition on ARGUMENT_DEFINITION
+directive @fieldDefinition on FIELD_DEFINITION
+directive @inputObject on INPUT_OBJECT
+directive @inputFieldDefinition on INPUT_FIELD_DEFINITION
+directive @interface on INTERFACE
+directive @enum on ENUM
+directive @enumValue on ENUM_VALUE
+directive @union on UNION
+directive @scalar on SCALAR
+schema @schema {
+  query: Query
+}
+type Query @object {
+  search(by: SearchInput! @argumentDefinition): SearchResult @fieldDefinition
+}
+input SearchInput @inputObject {
+  searchTerm: String @inputFieldDefinition
+}
+interface HasDescription @interface {
+  description: String
+}
+type Product implements HasDescription {
+  added: DateTime
+  description: String
+}
+enum UserKind @enum {
+  Administrator @enumValue
+  Moderator
+}
+type User {
+  name: String
+  userKind: UserKind
+}
+union SearchResult @union = Product | User
+scalar DateTime @scalar
+```
+
+### Executable Locations
+
+Executable locations specify where a client can place a specific directive, when executing an operation.
+
+Our server defines the following directives.
+
+```sdl
+directive @query on QUERY
+directive @field on FIELD
+directive @fragmentSpread on FRAGMENT_SPREAD
+directive @inlineFragment on INLINE_FRAGMENT
+directive @fragmentDefinition on FRAGMENT_DEFINITION
+directive @mutation on MUTATION
+directive @subscription on SUBSCRIPTION
+```
+
+The following request document shows where we, as a client, can apply these directives.
+
+```graphql
+query getUsers @query {
+  search(by: { searchTerm: "Foo" }) @field {
+    ...DescriptionFragment @fragmentSpread
+    ... on User @inlineFragment {
+      userKind
+    }
+  }
+}
+
+fragment DescriptionFragment on HasDescription @fragmentDefinition {
+  description
+}
+
+mutation createNewUser @mutation {
+  createUser(input: { name: "Ada Lovelace" }) {
+    user {
+      name
+    }
+  }
+}
+
+subscription subscribeToUser @subscription {
+  onUserChanged(id: 1) {
+    user {
+      name
+    }
+  }
+}
+```
+
 ## Middleware
 
 What makes directives in Hot Chocolate very useful is the ability to associate a middleware with it. A middleware can alternate the result, or even produce the result, of a field. A directive middleware is only added to a field middleware pipeline when the directive was annotated to the object definition, the field definition or the field.
@@ -277,7 +381,7 @@ The resolver pipeline consists of a sequence of directive delegates, called one 
 Each delegate can perform operations before and after the next delegate. A delegate can also decide to not pass a resolver request to the next delegate, which is called short-circuiting the resolver pipeline.
 Short-circuiting is often desirable because it avoids unnecessary work.
 
-The order of the middleware pipeline is defined by the order of the directives. Since, executable directives will flow from the object type to its field definitions the directives of the type would be called first in the order that they were annotated.
+The order of the middleware pipeline is defined by the order of the directives. Since executable directives will flow from the object type to its field definitions, the directives of the type would be called first in the order that they were annotated.
 
 ```sdl
 type Query {

@@ -164,5 +164,77 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SingleValueExtensionData_KeyIsEmpty", resourceCulture);
             }
         }
+        
+        internal static string FieldCoordinate_Parse_InvalidComponentCount {
+            get {
+                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidComponentCount", resourceCulture);
+            }
+        }
+        
+        internal static string FieldCoordinate_Parse_InvalidFieldComponentCount {
+            get {
+                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidFieldComponentCount", resourceCulture);
+            }
+        }
+        
+        internal static string FieldCoordinate_Parse_InvalidFormat {
+            get {
+                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidFormat", resourceCulture);
+            }
+        }
+        
+        internal static string AggregateError_Message {
+            get {
+                return ResourceManager.GetString("AggregateError_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ResultValue_NameIsNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ResultValue_NameIsNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string QueryResult_DataAndResultAreNull {
+            get {
+                return ResourceManager.GetString("QueryResult_DataAndResultAreNull", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_TryRewriteNullability_InvalidNullabilityStructure {
+            get {
+                return ResourceManager.GetString("ThrowHelper_TryRewriteNullability_InvalidNullabilityStructure", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate", resourceCulture);
+            }
+        }
+        
+        internal static string ResponseStream_InvalidResultKind {
+            get {
+                return ResourceManager.GetString("ResponseStream_InvalidResultKind", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_ExpectResponseStream_NotResponseStream {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectResponseStream_NotResponseStream", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_ExpectQueryResult_NotQueryResult {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectQueryResult_NotQueryResult", resourceCulture);
+            }
+        }
     }
 }

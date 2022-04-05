@@ -1,29 +1,24 @@
 ﻿using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using HotChocolate.StarWars.Models;
 using HotChocolate.StarWars.Resolvers;
 
 namespace HotChocolate.StarWars.Types
 {
-    public class HumanType
-        : ObjectType<Human>
+    public class HumanType : ObjectType<Human>
     {
         protected override void Configure(IObjectTypeDescriptor<Human> descriptor)
         {
             descriptor.Implements<CharacterType>();
 
-            descriptor.Field(t => t.Id)
-                .Type<NonNullType<IdType>>();
+            descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
+            descriptor.Field(f => f.Name).Type<NonNullType<StringType>>();
+            descriptor.Field(t => t.AppearsIn).Type<ListType<EpisodeType>>();
 
-            descriptor.Field(f => f.Name)
-                .Type<NonNullType<StringType>>();
-
-            descriptor.Field(t => t.AppearsIn)
-                .Type<ListType<EpisodeType>>();
-
-            descriptor.Field<SharedResolvers>(r => r.GetCharacter(default, default))
+            descriptor
+                .Field<SharedResolvers>(r => r.GetCharacter(default, default))
                 .UsePaging<CharacterType>()
-                .Name("friends");
+                .Name("friends")
+                .Parallel();
 
             descriptor.Field<SharedResolvers>(r => r.GetOtherHuman(default, default));
 

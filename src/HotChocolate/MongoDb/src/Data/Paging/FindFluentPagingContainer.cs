@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types.Pagination;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Paging
@@ -9,20 +10,23 @@ namespace HotChocolate.Data.MongoDb.Paging
     internal class FindFluentPagingContainer<TEntity> : IMongoPagingContainer<TEntity>
     {
         public readonly IFindFluent<TEntity, TEntity> _source;
+        private readonly IFindFluent<TEntity, TEntity> _initSource;
 
         public FindFluentPagingContainer(IFindFluent<TEntity, TEntity> source)
         {
+            // This is the only way to somewhat clone the IFindFluent
+            _initSource = source.Project(Builders<TEntity>.Projection.As<TEntity>());
             _source = source;
         }
 
         public async Task<int> CountAsync(CancellationToken cancellationToken)
         {
-            return (int)await _source
+            return (int)await _initSource
                 .CountDocumentsAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
 
-        public async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ToIndexEdgesAsync(
+        public async ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteQueryAsync(
             int offset,
             CancellationToken cancellationToken)
         {

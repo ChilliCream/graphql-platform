@@ -2,18 +2,19 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+public interface IFragment : IOptionalSelection
 {
-    public interface IFragment : IOptionalSelection
-    {
-        IObjectType TypeCondition { get; }
+    public int Id { get; }
 
-        ISyntaxNode SyntaxNode { get; }
+    IObjectType TypeCondition { get; }
 
-        IReadOnlyList<DirectiveNode> Directives { get; }
+    ISyntaxNode SyntaxNode { get; }
 
-        ISelectionSet SelectionSet { get; }
+    IReadOnlyList<DirectiveNode> Directives { get; }
 
-        string? GetLabel(IVariableValueCollection variables);
-    }
+    ISelectionSet SelectionSet { get; }
+
+    string? GetLabel(IVariableValueCollection variables);
 }

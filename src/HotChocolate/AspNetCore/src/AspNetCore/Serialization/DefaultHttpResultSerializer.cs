@@ -1,167 +1,159 @@
-using System;
-using System.IO;
 using System.Net;
+using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 using static HotChocolate.AspNetCore.ErrorHelper;
+using static HotChocolate.Execution.ExecutionResultKind;
 
-namespace HotChocolate.AspNetCore.Serialization
+namespace HotChocolate.AspNetCore.Serialization;
+
+public class DefaultHttpResultSerializer : IHttpResultSerializer
 {
-    public class DefaultHttpResultSerializer : IHttpResultSerializer
+    private readonly JsonQueryResultFormatter _jsonFormatter;
+
+    private readonly string _deferContentType;
+    private readonly IResponseStreamFormatter _deferFormatter;
+
+    private readonly string _batchContentType;
+    private readonly IResponseStreamFormatter _batchFormatter;
+
+    /// <summary>
+    /// Creates a new instance of <see cref="DefaultHttpResultSerializer" />.
+    /// </summary>
+    /// <param name="batchSerialization">
+    /// Specifies the output-format for batched queries.
+    /// </param>
+    /// <param name="deferSerialization">
+    /// Specifies the output-format for deferred queries.
+    /// </param>
+    /// <param name="indented">
+    /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
+    /// should pretty print the JSON which includes:
+    /// indenting nested JSON tokens, adding new lines, and adding
+    /// white space between property names and values.
+    /// By default, the JSON is written without extra white spaces.
+    /// </param>
+    /// <param name="encoder">
+    /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
+    /// </param>
+    public DefaultHttpResultSerializer(
+        HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
+        HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked,
+        bool indented = false,
+        JavaScriptEncoder? encoder = null)
     {
-        private readonly JsonQueryResultSerializer _jsonSerializer;
-        private readonly JsonArrayResponseStreamSerializer _jsonArraySerializer;
-        private readonly MultiPartResponseStreamSerializer _multiPartSerializer;
+        _jsonFormatter = new JsonQueryResultFormatter(indented, encoder);
+        var jsonArrayFormatter = new JsonArrayResponseStreamFormatter(_jsonFormatter);
+        var multiPartFormatter = new MultiPartResponseStreamFormatter(_jsonFormatter);
 
-        private readonly HttpResultSerialization _batchSerialization;
-        private readonly HttpResultSerialization _deferSerialization;
-
-        /// <summary>
-        /// Creates a new instance of <see cref="DefaultHttpResultSerializer" />.
-        /// </summary>
-        /// <param name="batchSerialization">
-        /// Specifies the output-format for batched queries.
-        /// </param>
-        /// <param name="deferSerialization">
-        /// Specifies the output-format for deferred queries.
-        /// </param>
-        /// <param name="indented">
-        /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
-        /// should pretty print the JSON which includes:
-        /// indenting nested JSON tokens, adding new lines, and adding
-        /// white space between property names and values.
-        /// By default, the JSON is written without extra white spaces.
-        /// </param>
-        public DefaultHttpResultSerializer(
-            HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
-            HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked,
-            bool indented = false)
+        if (deferSerialization is HttpResultSerialization.JsonArray)
         {
-            _batchSerialization = batchSerialization;
-            _deferSerialization = deferSerialization;
-
-            _jsonSerializer = new(indented);
-            _jsonArraySerializer = new(indented);
-            _multiPartSerializer = new(indented);
+            _deferContentType = ContentType.Json;
+            _deferFormatter = jsonArrayFormatter;
+        }
+        else
+        {
+            _deferContentType = ContentType.MultiPart;
+            _deferFormatter = multiPartFormatter;
         }
 
-        public virtual string GetContentType(IExecutionResult result)
+        if (batchSerialization is HttpResultSerialization.JsonArray)
         {
-            if (result == null)
+            _batchContentType = ContentType.Json;
+            _batchFormatter = jsonArrayFormatter;
+        }
+        else
+        {
+            _batchContentType = ContentType.MultiPart;
+            _batchFormatter = multiPartFormatter;
+        }
+    }
+
+    public virtual string GetContentType(IExecutionResult result)
+    {
+        if (result is null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
+        return result.Kind switch
+        {
+            SingleResult => ContentType.Json,
+            DeferredResult => _deferContentType,
+            BatchResult => _batchContentType,
+            _ => ContentType.Json
+        };
+    }
+
+    public HttpStatusCode GetStatusCode(IExecutionResult result)
+    {
+        return result switch
+        {
+            QueryResult queryResult => GetStatusCode(queryResult),
+            ResponseStream streamResult => GetStatusCode(streamResult),
+            _ => HttpStatusCode.InternalServerError
+        };
+    }
+
+    protected virtual HttpStatusCode GetStatusCode(IQueryResult result)
+    {
+        if (result.Data is not null)
+        {
+            return HttpStatusCode.OK;
+        }
+
+        if (result.ContextData is not null)
+        {
+            if (result.ContextData.ContainsKey(WellKnownContextData.ValidationErrors))
             {
-                throw new ArgumentNullException(nameof(result));
+                return HttpStatusCode.BadRequest;
             }
 
-            switch (result)
+            if (result.ContextData.ContainsKey(WellKnownContextData.OperationNotAllowed))
             {
-                case QueryResult:
-                    return ContentType.Json;
-
-                case DeferredQueryResult:
-                    return _deferSerialization == HttpResultSerialization.JsonArray
-                        ? ContentType.Json
-                        : ContentType.MultiPart;
-
-                case BatchQueryResult:
-                    return _batchSerialization == HttpResultSerialization.JsonArray
-                        ? ContentType.Json
-                        : ContentType.MultiPart;
-
-                default:
-                    return ContentType.Json;
+                return HttpStatusCode.MethodNotAllowed;
             }
         }
 
-        public virtual HttpStatusCode GetStatusCode(IExecutionResult result)
+        // if a persisted query is not found when using the active persisted query pipeline
+        // is used we will return a success status code.
+        if (result.Errors is { Count: 1 } &&
+            result.Errors[0] is { Code: ErrorCodes.Execution.PersistedQueryNotFound })
         {
-            return result switch
-            {
-                QueryResult queryResult => GetStatusCode(queryResult),
-                DeferredQueryResult => HttpStatusCode.OK,
-                BatchQueryResult => HttpStatusCode.OK,
-                _ => HttpStatusCode.InternalServerError
-            };
+            return HttpStatusCode.OK;
         }
 
-        private HttpStatusCode GetStatusCode(IQueryResult result)
+        return HttpStatusCode.InternalServerError;
+    }
+
+    protected virtual HttpStatusCode GetStatusCode(ResponseStream responseStream)
+        => HttpStatusCode.OK;
+
+    public virtual async ValueTask SerializeAsync(
+        IExecutionResult result,
+        Stream stream,
+        CancellationToken cancellationToken)
+    {
+        switch (result)
         {
-            if (result.Data is not null)
-            {
-                return HttpStatusCode.OK;
-            }
+            case IQueryResult queryResult:
+                await _jsonFormatter.FormatAsync(queryResult, stream, cancellationToken);
+                break;
 
-            if (result.ContextData is not null)
-            {
-                if (result.ContextData.ContainsKey(WellKnownContextData.ValidationErrors))
-                {
-                    return HttpStatusCode.BadRequest;
-                }
+            case IResponseStream { Kind: DeferredResult } streamResult:
+                await _deferFormatter.FormatAsync(streamResult, stream, cancellationToken);
+                break;
 
-                if (result.ContextData.ContainsKey(WellKnownContextData.OperationNotAllowed))
-                {
-                    return HttpStatusCode.MethodNotAllowed;
-                }
-            }
+            case IResponseStream { Kind: BatchResult } streamResult:
+                await _batchFormatter.FormatAsync(streamResult, stream, cancellationToken);
+                break;
 
-            // if a persisted query is not found when using the active persisted query pipeline
-            // is used we will return a success status code.
-            if (result.Errors is { Count: 1 } &&
-                result.Errors[0] is { Code: ErrorCodes.Execution.PersistedQueryNotFound })
-            {
-                return HttpStatusCode.OK;
-            }
-
-            return HttpStatusCode.InternalServerError;
-        }
-
-        public virtual async ValueTask SerializeAsync(
-            IExecutionResult result,
-            Stream stream,
-            CancellationToken cancellationToken)
-        {
-            switch (result)
-            {
-                case IQueryResult queryResult:
-                    await _jsonSerializer
-                        .SerializeAsync(queryResult, stream, cancellationToken)
-                        .ConfigureAwait(false);
-                    break;
-
-                case DeferredQueryResult deferredResult
-                    when _deferSerialization == HttpResultSerialization.JsonArray:
-                    await _jsonArraySerializer
-                        .SerializeAsync(deferredResult, stream, cancellationToken)
-                        .ConfigureAwait(false);
-                    break;
-
-                case DeferredQueryResult deferredResult:
-                    await _multiPartSerializer
-                        .SerializeAsync(deferredResult, stream, cancellationToken)
-                        .ConfigureAwait(false);
-                    break;
-
-                case BatchQueryResult batchResult
-                    when _batchSerialization == HttpResultSerialization.JsonArray:
-                    await _jsonArraySerializer
-                        .SerializeAsync(batchResult, stream, cancellationToken)
-                        .ConfigureAwait(false);
-                    break;
-
-                case BatchQueryResult batchResult:
-                    await _multiPartSerializer
-                        .SerializeAsync(batchResult, stream, cancellationToken)
-                        .ConfigureAwait(false);
-                    break;
-
-                default:
-                    await _jsonSerializer
-                        .SerializeAsync(ResponseTypeNotSupported(), stream, cancellationToken)
-                        .ConfigureAwait(false);
-                    break;
-            }
+            default:
+                await _jsonFormatter.FormatAsync(
+                    ResponseTypeNotSupported(),
+                    stream,
+                    cancellationToken);
+                break;
         }
     }
 }

@@ -2,8 +2,8 @@ import { graphql } from "gatsby";
 import React, { FC } from "react";
 import { BlogArticleFragment } from "../../graphql-types";
 import { BlogArticle } from "../components/blog-article/blog-article";
+import { Layout } from "../components/layout";
 import { SEO } from "../components/misc/seo";
-import { Layout } from "../components/structure/layout";
 
 interface BlogArticleTemplateProps {
   data: BlogArticleFragment;
@@ -16,7 +16,7 @@ const BlogArticleTemplate: FC<BlogArticleTemplateProps> = ({ data }) => {
         description={data.mdx!.excerpt || undefined}
         imageUrl={
           data.mdx!.frontmatter!.featuredImage?.childImageSharp!
-            .gatsbyImageData!.src
+            .gatsbyImageData!.images.fallback.src
         }
         isArticle
         title={data.mdx!.frontmatter!.title!}

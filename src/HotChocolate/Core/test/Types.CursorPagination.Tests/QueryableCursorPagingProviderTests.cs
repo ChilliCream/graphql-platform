@@ -427,7 +427,11 @@ namespace HotChocolate.Types.Pagination
                 _arguments = arguments;
             }
 
-            public IServiceProvider Services => throw new NotImplementedException();
+            public IServiceProvider Services
+            {
+                get => throw new NotImplementedException();
+                set => throw new NotImplementedException();
+            }
 
             public ISchema Schema => throw new NotImplementedException();
 
@@ -451,12 +455,12 @@ namespace HotChocolate.Types.Pagination
 
             public bool HasErrors => throw new NotImplementedException();
 
-            public IImmutableDictionary<string, object> ScopedContextData
+            public IImmutableDictionary<string, object?> ScopedContextData
             {
                 get => throw new NotImplementedException();
                 set => throw new NotImplementedException();
             }
-            public IImmutableDictionary<string, object> LocalContextData
+            public IImmutableDictionary<string, object?> LocalContextData
             {
                 get => throw new NotImplementedException();
                 set => throw new NotImplementedException();
@@ -466,7 +470,7 @@ namespace HotChocolate.Types.Pagination
 
             public CancellationToken RequestAborted => default;
 
-            public IDictionary<string, object> ContextData => throw new NotImplementedException();
+            public IDictionary<string, object?> ContextData => throw new NotImplementedException();
 
             public T Argument<T>(NameString name)
             {
@@ -536,6 +540,11 @@ namespace HotChocolate.Types.Pagination
                 }
 
                 throw new NotSupportedException();
+            }
+
+            public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+            {
+                throw new NotImplementedException();
             }
 
             public IReadOnlyList<IFieldSelection> GetSelections(
@@ -611,7 +620,7 @@ namespace HotChocolate.Types.Pagination
 
             public string Print()
             {
-                return _source.ToString();
+                return _source.ToString()!;
             }
         }
     }

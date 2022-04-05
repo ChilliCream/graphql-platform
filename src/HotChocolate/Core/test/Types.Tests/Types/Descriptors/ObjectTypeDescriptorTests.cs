@@ -9,8 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class ObjectTypeDescriptorTests
-        : DescriptorTestBase
+    public class ObjectTypeDescriptorTests : DescriptorTestBase
     {
         [Fact]
         public void InferNameFromType()
@@ -186,7 +185,7 @@ namespace HotChocolate.Types
         public async Task UseMiddleware()
         {
             // arrange
-            ISchema schema = Schema.Create(c => c.RegisterQueryType<BarType>());
+            ISchema schema = SchemaBuilder.New().AddQueryType<BarType>().Create();
             IRequestExecutor executor = schema.MakeExecutable();
 
             // act
@@ -196,8 +195,7 @@ namespace HotChocolate.Types
             result.ToJson().MatchSnapshot();
         }
 
-        public class Foo
-            : FooBase
+        public class Foo : FooBase
         {
             public string A { get; set; }
             public override string B { get; set; }
@@ -209,8 +207,7 @@ namespace HotChocolate.Types
         }
 
         [GraphQLName("FooAttr")]
-        public class Foo2
-            : FooBase
+        public class Foo2 : FooBase
         {
         }
 
@@ -219,8 +216,7 @@ namespace HotChocolate.Types
             public virtual string B { get; set; }
         }
 
-        public class BarType
-            : ObjectType
+        public class BarType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
@@ -241,7 +237,7 @@ namespace HotChocolate.Types
 
         public class TestFieldMiddleware1
         {
-            private FieldDelegate _next;
+            private readonly FieldDelegate _next;
 
             public TestFieldMiddleware1(FieldDelegate next)
             {
@@ -250,7 +246,7 @@ namespace HotChocolate.Types
 
             public ValueTask InvokeAsync(IMiddlewareContext context)
             {
-                context.Result = context.Field.Name + "_456";
+                context.Result = context.Selection.Field.Name + "_456";
                 return _next(context);
             }
         }
@@ -266,7 +262,7 @@ namespace HotChocolate.Types
 
             public ValueTask InvokeAsync(IMiddlewareContext context)
             {
-                context.Result = context.Field.Name + "_789";
+                context.Result = context.Selection.Field.Name + "_789";
                 return _next(context);
             }
         }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -39,7 +39,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             // act
             IOperationResult<IIntrospectionQueryResult> result =
                 await client.IntrospectionQuery.ExecuteAsync(ct);
-
 
             // assert
             result.MatchSnapshot();

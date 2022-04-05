@@ -1,14 +1,16 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+
+#nullable enable
 
 namespace HotChocolate.Execution
 {
@@ -18,15 +20,16 @@ namespace HotChocolate.Execution
         public async Task ExecuteOneFieldQueryWithProperty()
         {
             // arrange
-            var schema = Schema.Create(
-                c => c.RegisterType<QueryTypeWithProperty>());
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryTypeWithProperty>()
+                .Create();
 
             // act
             IExecutionResult result =
                 await schema.MakeExecutable().ExecuteAsync("{ test }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -34,15 +37,16 @@ namespace HotChocolate.Execution
         public async Task ExecuteOneFieldQueryWithMethod()
         {
             // arrange
-            var schema = Schema.Create(
-                c => c.RegisterType<QueryTypeWithMethod>());
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryTypeWithMethod>()
+                .Create();
 
             // act
             IExecutionResult result =
                 await schema.MakeExecutable().ExecuteAsync("{ test }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -50,15 +54,16 @@ namespace HotChocolate.Execution
         public async Task ExecuteOneFieldQueryWithQuery()
         {
             // arrange
-            var schema = Schema.Create(
-                c => c.RegisterType<QueryTypeWithMethod>());
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryTypeWithMethod>()
+                .Create();
 
             // act
             IExecutionResult result =
                 await schema.MakeExecutable().ExecuteAsync("{ query }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -66,7 +71,7 @@ namespace HotChocolate.Execution
         public async Task ExecuteWithUnionType()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
             // act
             IExecutionResult result =
@@ -82,7 +87,7 @@ namespace HotChocolate.Execution
                         ");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -90,15 +95,15 @@ namespace HotChocolate.Execution
         public void UnionTypeResolveType()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
             var context = new Mock<IResolverContext>(
                 MockBehavior.Strict);
 
             // act
             UnionType fooBar = schema.GetType<UnionType>("FooBar");
-            ObjectType teaType = fooBar.ResolveConcreteType(context.Object, "tea");
-            ObjectType barType = fooBar.ResolveConcreteType(context.Object, "bar");
+            ObjectType? teaType = fooBar.ResolveConcreteType(context.Object, "tea");
+            ObjectType? barType = fooBar.ResolveConcreteType(context.Object, "bar");
 
             // assert
             Assert.Null(teaType);
@@ -109,15 +114,13 @@ namespace HotChocolate.Execution
         public void UnionType_Contains_TypeName()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
-            var context = new Mock<IResolverContext>(
-                MockBehavior.Strict);
             UnionType fooBar = schema.GetType<UnionType>("FooBar");
 
             // act
-            bool shouldBeFalse = fooBar.ContainsType("Tea");
-            bool shouldBeTrue = fooBar.ContainsType("Bar");
+            var shouldBeFalse = fooBar.ContainsType("Tea");
+            var shouldBeTrue = fooBar.ContainsType("Bar");
 
             // assert
             Assert.True(shouldBeTrue);
@@ -128,17 +131,15 @@ namespace HotChocolate.Execution
         public void UnionType_Contains_ObjectType()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
-            var context = new Mock<IResolverContext>(
-                MockBehavior.Strict);
             UnionType fooBar = schema.GetType<UnionType>("FooBar");
             ObjectType bar = schema.GetType<ObjectType>("Bar");
             ObjectType tea = schema.GetType<ObjectType>("Tea");
 
             // act
-            bool shouldBeTrue = fooBar.ContainsType(bar);
-            bool shouldBeFalse = fooBar.ContainsType(tea);
+            var shouldBeTrue = fooBar.ContainsType(bar);
+            var shouldBeFalse = fooBar.ContainsType(tea);
 
             // assert
             Assert.True(shouldBeTrue);
@@ -149,17 +150,15 @@ namespace HotChocolate.Execution
         public void UnionType_Contains_IObjectType()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
-            var context = new Mock<IResolverContext>(
-                MockBehavior.Strict);
             IUnionType fooBar = schema.GetType<UnionType>("FooBar");
             IObjectType tea = schema.GetType<ObjectType>("Tea");
             IObjectType bar = schema.GetType<ObjectType>("Bar");
 
             // act
-            bool shouldBeFalse = fooBar.ContainsType(tea);
-            bool shouldBeTrue = fooBar.ContainsType(bar);
+            var shouldBeFalse = fooBar.ContainsType(tea);
+            var shouldBeTrue = fooBar.ContainsType(bar);
 
             // assert
             Assert.True(shouldBeTrue);
@@ -170,7 +169,7 @@ namespace HotChocolate.Execution
         public async Task ExecuteWithInterface()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
             // act
             IExecutionResult result =
@@ -178,7 +177,7 @@ namespace HotChocolate.Execution
                     "{ drink { ... on Tea { kind } } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -186,14 +185,14 @@ namespace HotChocolate.Execution
         public void InterfaceTypeResolveType()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
             var context = new Mock<IResolverContext>(
                 MockBehavior.Strict);
 
             // act
             InterfaceType drink = schema.GetType<InterfaceType>("Drink");
-            ObjectType teaType = drink.ResolveConcreteType(context.Object, "tea");
-            ObjectType barType = drink.ResolveConcreteType(context.Object, "bar");
+            ObjectType? teaType = drink.ResolveConcreteType(context.Object, "tea");
+            ObjectType? barType = drink.ResolveConcreteType(context.Object, "bar");
 
             // assert
             Assert.NotNull(teaType);
@@ -204,7 +203,7 @@ namespace HotChocolate.Execution
         public async Task ExecuteImplicitField()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
             // act
             IExecutionResult result =
@@ -212,7 +211,7 @@ namespace HotChocolate.Execution
                     "{ dog { name } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -220,7 +219,7 @@ namespace HotChocolate.Execution
         public async Task ExecuteImplicitFieldWithNameAttribute()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
             // act
             IExecutionResult result =
@@ -228,7 +227,7 @@ namespace HotChocolate.Execution
                     "{ dog { desc } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -236,7 +235,7 @@ namespace HotChocolate.Execution
         public async Task ExecuteImplicitAsyncField()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
             // act
             IExecutionResult result =
@@ -244,7 +243,7 @@ namespace HotChocolate.Execution
                     "{ dog { name2 } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -252,7 +251,7 @@ namespace HotChocolate.Execution
         public async Task ExecuteExplicitAsyncField()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
             // act
             IExecutionResult result =
@@ -260,7 +259,7 @@ namespace HotChocolate.Execution
                     "{ dog { names } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -285,19 +284,32 @@ namespace HotChocolate.Execution
                 .MatchSnapshotAsync();
         }
 
-        private static Schema CreateSchema()
+        // https://github.com/ChilliCream/hotchocolate/issues/2305
+        [Fact]
+        public async Task EnsureThatArgumentDefaultIsUsedWhenVariableValueIsOmitted()
         {
-            return Schema.Create(c =>
-            {
-                c.RegisterType<QueryType>();
-                c.RegisterType<FooType>();
-                c.RegisterType<BarType>();
-                c.RegisterType<FooBarUnionType>();
-                c.RegisterType<DrinkType>();
-                c.RegisterType<TeaType>();
-                c.RegisterType<DogType>();
-            });
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("query($v: String) { foo(value: $v) }")
+                    .Create();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithDefaultValue>()
+                .ExecuteRequestAsync(request)
+                .MatchSnapshotAsync();
         }
+
+        private static ISchema CreateSchema()
+            => SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddType<FooType>()
+                .AddType<BarType>()
+                .AddType<FooBarUnionType>()
+                .AddType<DrinkType>()
+                .AddType<TeaType>()
+                .AddType<DogType>()
+                .Create();
 
         public class Query
         {
@@ -314,8 +326,7 @@ namespace HotChocolate.Execution
             public string TestProp => "Hello World!";
         }
 
-        public class QueryTypeWithProperty
-            : ObjectType<Query>
+        public class QueryTypeWithProperty : ObjectType<Query>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Query> descriptor)
@@ -325,8 +336,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class QueryTypeWithMethod
-            : ObjectType<Query>
+        public class QueryTypeWithMethod : ObjectType<Query>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Query> descriptor)
@@ -337,65 +347,59 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class QueryType
-            : ObjectType
+        public class QueryType : ObjectType
         {
-            protected override void Configure(
-                IObjectTypeDescriptor descriptor)
+            protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Query");
                 descriptor.Field("foo")
                     .Type<NonNullType<FooType>>()
-                    .Resolver(() => "foo");
+                    .Resolve(() => "foo");
                 descriptor.Field("bar")
                     .Type<NonNullType<BarType>>()
-                    .Resolver(c => "bar");
+                    .Resolve(c => "bar");
                 descriptor.Field("fooOrBar")
                     .Type<NonNullType<ListType<NonNullType<FooBarUnionType>>>>()
-                    .Resolver(() => new object[] { "foo", "bar" });
+                    .Resolve(() => new object[] { "foo", "bar" });
                 descriptor.Field("tea")
                     .Type<TeaType>()
-                    .Resolver(() => "tea");
+                    .Resolve(() => "tea");
                 descriptor.Field("drink")
                     .Type<DrinkType>()
-                    .Resolver(() => "tea");
+                    .Resolve(() => "tea");
                 descriptor.Field("dog")
                     .Type<DogType>()
-                    .Resolver(() => new Dog());
+                    .Resolve(() => new Dog());
             }
         }
 
-        public class FooType
-            : ObjectType
+        public class FooType : ObjectType
         {
-            protected override void Configure(
-                IObjectTypeDescriptor descriptor)
+            protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Foo");
                 descriptor.Field("bar")
                     .Type<NonNullType<FooType>>()
-                    .Resolver(() => "bar");
-                descriptor.Field("nameFoo").Resolver(() => "foo");
+                    .Resolve(() => "bar");
+                descriptor.Field("nameFoo").Resolve(() => "foo");
                 descriptor.IsOfType((c, obj) => obj.Equals("foo"));
             }
         }
 
-        public class BarType
-            : ObjectType
+        public class BarType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Bar");
                 descriptor.Field("foo")
                     .Type<NonNullType<FooType>>()
-                    .Resolver(() => "foo");
-                descriptor.Field("nameBar").Resolver(() => "bar");
+                    .Resolve(() => "foo");
+                descriptor.Field("nameBar").Resolve(() => "bar");
                 descriptor.IsOfType((c, obj) => obj.Equals("bar"));
             }
         }
 
-        public class TeaType
-            : ObjectType
+        public class TeaType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
@@ -403,16 +407,14 @@ namespace HotChocolate.Execution
                 descriptor.Implements<DrinkType>();
                 descriptor.Field("kind")
                     .Type<NonNullType<DrinkKindType>>()
-                    .Resolver(() => DrinkKind.BlackTea);
+                    .Resolve(() => DrinkKind.BlackTea);
                 descriptor.IsOfType((c, obj) => obj.Equals("tea"));
             }
         }
 
-        public class DrinkType
-            : InterfaceType
+        public class DrinkType : InterfaceType
         {
-            protected override void Configure(
-                IInterfaceTypeDescriptor descriptor)
+            protected override void Configure(IInterfaceTypeDescriptor descriptor)
             {
                 descriptor.Name("Drink");
                 descriptor.Field("kind")
@@ -420,8 +422,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class DrinkKindType
-            : EnumType<DrinkKind>
+        public class DrinkKindType : EnumType<DrinkKind>
         {
             protected override void Configure(
                 IEnumTypeDescriptor<DrinkKind> descriptor)
@@ -436,8 +437,7 @@ namespace HotChocolate.Execution
             Water
         }
 
-        public class FooBarUnionType
-            : UnionType
+        public class FooBarUnionType : UnionType
         {
             protected override void Configure(IUnionTypeDescriptor descriptor)
             {
@@ -452,8 +452,7 @@ namespace HotChocolate.Execution
             public bool WithTail { get; set; }
         }
 
-        public class Dog
-            : Pet
+        public class Dog : Pet
         {
             public string Name { get; } = "a";
 
@@ -471,8 +470,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class DogType
-            : ObjectType<Dog>
+        public class DogType : ObjectType<Dog>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Dog> descriptor)
@@ -512,7 +510,7 @@ namespace HotChocolate.Execution
 
             public string Print()
             {
-                return _source.ToString();
+                return _source.ToString()!;
             }
         }
 
@@ -527,10 +525,15 @@ namespace HotChocolate.Execution
 
         public class QueryFieldCasing
         {
-            public string YourFieldName { get; set; }
+            public string YourFieldName { get; set; } = default!;
 
             [GraphQLDeprecated("This is deprecated")]
-            public string YourFieldname { get; set; }
+            public string YourFieldname { get; set; } = default!;
+        }
+
+        public class QueryWithDefaultValue
+        {
+            public string Foo(string value = "abc") => value;
         }
     }
 }

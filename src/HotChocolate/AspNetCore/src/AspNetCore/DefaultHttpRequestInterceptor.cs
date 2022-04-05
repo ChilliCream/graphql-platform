@@ -1,30 +1,31 @@
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using HotChocolate.Execution;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
 {
-    public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
+    public virtual ValueTask OnCreateAsync(
+        HttpContext context,
+        IRequestExecutor requestExecutor,
+        IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
     {
-        public virtual ValueTask OnCreateAsync(
-            HttpContext context,
-            IRequestExecutor requestExecutor,
-            IQueryRequestBuilder requestBuilder,
-            CancellationToken cancellationToken)
+        requestBuilder.TrySetServices(context.RequestServices);
+        requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
+        requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), context.User);
+        requestBuilder.TryAddGlobalState(nameof(CancellationToken), context.RequestAborted);
+
+        if (context.IsTracingEnabled())
         {
-            requestBuilder.TrySetServices(context.RequestServices);
-            requestBuilder.TryAddProperty(nameof(HttpContext), context);
-            requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
-            requestBuilder.TryAddProperty(nameof(CancellationToken), context.RequestAborted);
-
-            if (context.IsTracingEnabled())
-            {
-                requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
-            }
-
-            return default;
+            requestBuilder.TryAddGlobalState(WellKnownContextData.EnableTracing, true);
         }
+
+        if (context.IncludeQueryPlan())
+        {
+            requestBuilder.TryAddGlobalState(WellKnownContextData.IncludeQueryPlan, true);
+        }
+
+        return default;
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,58 +18,93 @@ namespace HotChocolate.Execution.Instrumentation
             // arrange
             var listener = new TestListener();
             IRequestExecutor executor = await CreateExecutorAsync(c => c
-               .AddDiagnosticEventListener(sp => listener)
+               .AddDiagnosticEventListener(_ => listener)
                .AddStarWarsTypes()
                .Services
                .AddStarWarsRepositories());
 
             // act
-            await executor.ExecuteAsync("{ hero { name } }");
+            IExecutionResult result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
-            Assert.Collection(listener.Results,
-                r => Assert.IsType<Droid>(r),
-                r => Assert.IsType<string>(r));
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+            Assert.Collection(listener.Results, r => Assert.IsType<Droid>(r));
+        }
+
+        [Fact]
+        public async Task Intercept_Resolver_Result_With_Listener_2()
+        {
+            // arrange
+            ServiceProvider services = new ServiceCollection()
+                .AddSingleton<Touched>()
+                .AddGraphQL()
+                .AddDiagnosticEventListener<TouchedListener>()
+                .AddStarWars()
+                .Services
+                .BuildServiceProvider();
+
+            // act
+            await services.ExecuteRequestAsync("{ hero { name } }");
+
+            // assert
+            Assert.True(services.GetRequiredService<Touched>().Signal);
         }
 
         [Fact]
         public async Task Intercept_Resolver_Result_With_Multiple_Listener()
         {
             // arrange
-            var listener_a = new TestListener();
-            var listener_b = new TestListener();
+            var listenerA = new TestListener();
+            var listenerB = new TestListener();
             IRequestExecutor executor = await CreateExecutorAsync(c => c
-               .AddDiagnosticEventListener(sp => listener_a)
-               .AddDiagnosticEventListener(sp => listener_b)
+               .AddDiagnosticEventListener(_ => listenerA)
+               .AddDiagnosticEventListener(_ => listenerB)
                .AddStarWarsTypes()
                .Services
                .AddStarWarsRepositories());
 
             // act
-            await executor.ExecuteAsync("{ hero { name } }");
+            IExecutionResult result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
-            Assert.Collection(listener_a.Results,
-                r => Assert.IsType<Droid>(r),
-                r => Assert.IsType<string>(r));
-            Assert.Collection(listener_b.Results,
-                r => Assert.IsType<Droid>(r),
-                r => Assert.IsType<string>(r));
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+            Assert.Collection(listenerA.Results, r => Assert.IsType<Droid>(r));
+            Assert.Collection(listenerB.Results, r => Assert.IsType<Droid>(r));
         }
 
-
-        private class TestListener : DiagnosticEventListener
+        public class Touched
         {
-            public List<object> Results { get; } = new List<object>();
+            public bool Signal = false;
+        }
+
+        private class TouchedListener : ExecutionDiagnosticEventListener
+        {
+            private readonly Touched _touched;
+
+            public TouchedListener(Touched touched)
+            {
+                _touched = touched;
+            }
+
+            public override IDisposable ExecuteRequest(IRequestContext context)
+            {
+                _touched.Signal = true;
+                return EmptyScope;
+            }
+        }
+
+        private sealed class TestListener : ExecutionDiagnosticEventListener
+        {
+            public List<object> Results { get; } = new();
 
             public override bool EnableResolveFieldValue => true;
 
-            public override IActivityScope ResolveFieldValue(IMiddlewareContext context)
+            public override IDisposable ResolveFieldValue(IMiddlewareContext context)
             {
                 return new ResolverActivityScope(context, Results);
             }
 
-            private class ResolverActivityScope : IActivityScope
+            private sealed class ResolverActivityScope : IDisposable
             {
                 public ResolverActivityScope(IMiddlewareContext context, List<object> results)
                 {

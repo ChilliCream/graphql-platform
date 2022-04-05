@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -13,7 +14,8 @@ namespace HotChocolate.Data.MongoDb.Filters
     public class MongoDbComparableGreaterThanOrEqualsHandler
         : MongoDbComparableOperationHandler
     {
-        public MongoDbComparableGreaterThanOrEqualsHandler()
+        public MongoDbComparableGreaterThanOrEqualsHandler(InputParser inputParser)
+            : base(inputParser)
         {
             CanBeNull = false;
         }
@@ -28,7 +30,7 @@ namespace HotChocolate.Data.MongoDb.Filters
             IValueNode value,
             object? parsedValue)
         {
-            if (parsedValue is {})
+            if (parsedValue is { })
             {
                 var doc = new MongoDbFilterOperation("$gte", parsedValue);
                 return new MongoDbFilterOperation(context.GetMongoFilterScope().GetPath(), doc);

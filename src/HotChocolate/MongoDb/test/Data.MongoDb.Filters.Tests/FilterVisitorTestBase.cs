@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Squadron;
 
@@ -37,12 +38,13 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             return new ServiceCollection()
                 .AddGraphQL()
+                .AddObjectIdConverters()
                 .AddFiltering(x => x.BindRuntimeType<TEntity, T>().AddMongoDbDefaults())
                 .AddQueryType(
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(resolver)
+                        .Resolve(resolver)
                         .Use(
                             next => async context =>
                             {
@@ -53,16 +55,16 @@ namespace HotChocolate.Data.MongoDb.Filters
                                 }
                             })
                         .UseFiltering<T>())
+                .AddType(new TimeSpanType(TimeSpanFormat.DotNet))
                 .UseRequest(
                     next => async context =>
                     {
                         await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out var queryString))
+                        if (context.ContextData.TryGetValue("query", out var queryString))
                         {
                             context.Result =
                                 QueryResultBuilder
-                                    .FromResult(result)
+                                    .FromResult(context.Result!.ExpectQueryResult())
                                     .SetContextData("query", queryString)
                                     .Create();
                         }

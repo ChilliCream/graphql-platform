@@ -13,11 +13,14 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var options = new SchemaOptions();
-            var naming = new DefaultNamingConventions();
+            var namingConventions = new DefaultNamingConventions(
+                new XmlDocumentationProvider(
+                    new XmlDocumentationFileResolver(),
+                    new NoOpStringBuilderPool()));
             var conventions = new Dictionary<(Type, string), List<CreateConvention>>();
             var services = new DictionaryServiceProvider(
                 typeof(INamingConventions),
-                naming);
+                namingConventions);
 
             // act
             var context = DescriptorContext.Create(
@@ -30,7 +33,7 @@ namespace HotChocolate.Types.Descriptors
                 new AggregateTypeInterceptor());
 
             // assert
-            Assert.Equal(naming, context.Naming);
+            Assert.Equal(namingConventions, context.Naming);
             Assert.NotNull(context.TypeInspector);
             Assert.Equal(options, context.Options);
         }
@@ -41,7 +44,10 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var options = new SchemaOptions();
-            var naming = new DefaultNamingConventions();
+            var naming = new DefaultNamingConventions(
+                new XmlDocumentationProvider(
+                    new XmlDocumentationFileResolver(),
+                    new NoOpStringBuilderPool()));
             var conventions = new Dictionary<(Type, string), List<CreateConvention>>
             {
                 { (typeof(INamingConventions), null), new List<CreateConvention>{s => naming} }
@@ -103,7 +109,7 @@ namespace HotChocolate.Types.Descriptors
             Assert.NotNull(context.TypeInspector);
         }
 
-        private class Convention : Descriptors.Convention
+        private sealed class Convention : Descriptors.Convention
         {
             public static Convention Default { get; } = new Convention();
         }

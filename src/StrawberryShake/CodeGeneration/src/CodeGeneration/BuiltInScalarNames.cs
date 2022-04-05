@@ -1,50 +1,36 @@
 using System.Collections.Generic;
+using HotChocolate.Types;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration;
+
+public static class BuiltInScalarNames
 {
-    public static class BuiltInScalarNames
+    private static readonly HashSet<string> _typeNames = new()
     {
-        public const string String = nameof(String);
-        public const string ID = nameof(ID);
-        public const string Boolean = nameof(Boolean);
-        public const string Short = nameof(Short);
-        public const string Int = nameof(Int);
-        public const string Long = nameof(Long);
-        public const string Float = nameof(Float);
-        public const string Decimal = nameof(Decimal);
-        public const string Url = nameof(Url);
-        public const string Uuid = nameof(Uuid);
-        public const string Byte = nameof(Byte);
-        public const string ByteArray = nameof(ByteArray);
-        public const string Any = nameof(Any);
-        public const string DateTime = nameof(DateTime);
-        public const string Date = nameof(Date);
-        public const string TimeSpan = nameof(TimeSpan);
-        public const string MultiplierPath = nameof(MultiplierPath);
-        public const string Name = nameof(Name);
+        ScalarNames.String,
+        ScalarNames.ID,
+        ScalarNames.Boolean,
+        ScalarNames.Byte,
+        ScalarNames.Short,
+        ScalarNames.Int,
+        ScalarNames.Long,
+        ScalarNames.Float,
+        ScalarNames.Decimal,
+        ScalarNames.URL,
+        "Url",
+        "URI",
+        "Uri",
+        ScalarNames.UUID,
+        "Uuid",
+        "Guid",
+        ScalarNames.DateTime,
+        ScalarNames.Date,
+        ScalarNames.MultiplierPath,
+        ScalarNames.Name,
+        ScalarNames.ByteArray,
+        ScalarNames.Any,
+        ScalarNames.TimeSpan
+    };
 
-        private static readonly HashSet<string> _typeNames = new()
-        {
-            String,
-            ID,
-            Boolean,
-            Byte,
-            Short,
-            Int,
-            Long,
-            Float,
-            Decimal,
-            Url,
-            Uuid,
-            DateTime,
-            Date,
-            MultiplierPath,
-            Name,
-            ByteArray,
-            Any,
-            TimeSpan
-        };
-
-        public static bool IsBuiltInScalar(string typeName) => _typeNames.Contains(typeName);
-    }
+    public static bool IsBuiltInScalar(string typeName) => _typeNames.Contains(typeName);
 }

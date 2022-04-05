@@ -2,7 +2,7 @@
 title: "Subscriptions"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 The subscription type in GraphQL is used to add real-time capabilities to our applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
 
@@ -30,7 +30,7 @@ Hot Chocolate implements subscriptions via WebSockets and uses the pub/sub appro
 A subscription type can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Subscription
@@ -52,8 +52,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class SubscriptionType : ObjectType
@@ -90,8 +90,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Subscription
@@ -116,15 +116,23 @@ public class Startup
                   author: String
                 }
             ")
-            .BindComplexType<Subscription>();
+            .BindRuntimeType<Subscription>();
     }
 
     // Omitted code for brevity
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
+
+> ⚠️ Note: Only **one** subscription type can be registered using `AddSubscriptionType()`. If we want to split up our subscription type into multiple classes, we can do so using type extensions.
+>
+> [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
+
+A subscription type is just a regular object type, so everything that applies to an object type also applies to the subscription type (this is true for all all root types).
+
+[Learn more about object types](/docs/hotchocolate/defining-a-schema/object-types)
 
 # Transport
 
@@ -169,6 +177,8 @@ In order to use the Redis provider we have to add the `HotChocolate.Subscription
 dotnet add package HotChocolate.Subscriptions.Redis
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 After we have added the package we can setup the Redis subscription provider.
 
 ```csharp
@@ -182,7 +192,7 @@ Our Redis subscription provider uses the [StackExchange.Redis](https://github.co
 
 To publish events and trigger subscriptions, we can use the `ITopicEventSender`. The `ITopicEventSender` is an abstraction for the registered event publishing provider. Using this abstraction allows us to seamlessly switch between subscription providers, when necessary.
 
-Most of the time we will be publishing events for successful mutations. Therefor we can simply inject the `ITopicEventSender` into our mutations like we would with every other `Service`. Of course we can not only publish events from mutations, but everywhere we have access to the `ITopicEventSender` through the DI Container.
+Most of the time we will be publishing events for successful mutations. Therefore we can simply inject the `ITopicEventSender` into our mutations like we would with every other `Service`. Of course we can not only publish events from mutations, but everywhere we have access to the `ITopicEventSender` through the DI Container.
 
 ```csharp
 public class Mutation
@@ -253,11 +263,9 @@ public class Subscription
     public ValueTask<ISourceStream<Book>> BookPublished(string author,
         [Service] ITopicEventReceiver receiver)
     {
-        string topic = $"{author}_PublishedBook";
-        ISourceStream<Book> stream =
-            receiver.SubscribeAsync<string, Book>(topic);
+        var topic = $"{author}_PublishedBook";
 
-        return stream;
+        return receiver.SubscribeAsync<string, Book>(topic);
     }
 }
 
@@ -279,9 +287,7 @@ public class Subscription
         => receiver.SubscribeAsync<string, Book>("ExampleTopic");
 
     [Subscribe(With = nameof(SubscribeToBooks))]
-    public ValueTask<ISourceStream<Book>> BookAdded([EventMessage] Book book)
+    public Book BookAdded([EventMessage] Book book)
         => book;
 }
 ```
-
-<!-- todo: arguments with Subscribe(With = "...") -->

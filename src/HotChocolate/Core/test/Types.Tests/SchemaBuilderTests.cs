@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Tests;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -35,11 +36,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType((Type)null, OperationType.Query);
+            void Action()
+                => SchemaBuilder.New().AddRootType(((Type)null)!, OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -143,11 +144,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType((ObjectType)null, OperationType.Query);
+            void Action()
+                => SchemaBuilder.New().AddRootType(((ObjectType)null)!, OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -215,12 +216,13 @@ namespace HotChocolate
             var fooType = new FooType();
 
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddRootType(fooType, OperationType.Query)
-                .AddRootType(fooType, OperationType.Query);
+            void Action()
+                => SchemaBuilder.New()
+                    .AddRootType(fooType, OperationType.Query)
+                    .AddRootType(fooType, OperationType.Query);
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -281,7 +283,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddMutationType(typeof(FooType))
                 .Create();
 
@@ -295,7 +297,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddMutationType<FooType>()
                 .Create();
 
@@ -309,7 +311,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddMutationType<Foo>()
                 .Create();
 
@@ -337,7 +339,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddSubscriptionType(typeof(FooType))
                 .Create();
 
@@ -351,7 +353,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddSubscriptionType<FooType>()
                 .Create();
 
@@ -365,7 +367,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddSubscriptionType<Foo>()
                 .Create();
 
@@ -392,11 +394,11 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .Use((FieldMiddleware)null);
+            void Action()
+                => SchemaBuilder.New().Use(((FieldMiddleware)null)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -405,12 +407,11 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddDocument(sp =>
-                    Utf8GraphQLParser.Parse("type Query { a: String }"))
-                .Use(next => context =>
+                .AddDocument(_ => Utf8GraphQLParser.Parse("type Query { a: String }"))
+                .Use(_ => context =>
                 {
                     context.Result = "foo";
-                    return default(ValueTask);
+                    return default;
                 })
                 .Create();
 
@@ -437,14 +438,14 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddDocument(sp =>
+                .AddDocument(_ =>
                     Utf8GraphQLParser.Parse("type Query { a: Foo }"))
-                .AddDocument(sp =>
+                .AddDocument(_ =>
                     Utf8GraphQLParser.Parse("type Foo { a: String }"))
-                .Use(next => context =>
+                .Use(_ => context =>
                 {
                     context.Result = "foo";
-                    return default(ValueTask);
+                    return default;
                 })
                 .Create();
 
@@ -463,40 +464,6 @@ namespace HotChocolate
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
-        }
-
-        // TODO : review why this was wrong and check what happens if the parent
-        // of the resolver functions is more specific
-        [Fact]
-        public void AddType_TypeIsResolverTypeByType_QueryContainsBazField()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
-                .AddType(typeof(QueryResolverOnType))
-                .Create();
-
-            // assert
-            schema.MakeExecutable().Execute("{ foo }").MatchSnapshot();
-        }
-
-        [Fact]
-        public void AddType_TypeIsResolverTypeByName_QueryContainsBazField()
-        {
-            // arrange
-            string schemaSDL = "type Query { foo: String baz: String }";
-
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(schemaSDL)
-                .AddResolver("Query", "foo", "baz")
-                .AddType(typeof(QueryResolverOnName))
-                .Create();
-
-            // assert
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            Assert.True(queryType.Fields.ContainsField("baz"));
         }
 
         [Fact]
@@ -518,7 +485,7 @@ namespace HotChocolate
             var queryType = new ObjectType(t => t
                 .Name("Query")
                 .Field("foo")
-                .Resolver("bar"));
+                .Resolve("bar"));
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -550,12 +517,12 @@ namespace HotChocolate
             var queryType = new ObjectType(t => t
                 .Name("Query")
                 .Field("foo")
-                .Resolver("bar"));
+                .Resolve("bar"));
 
             var queryTypeExtension = new ObjectTypeExtension(t => t
                 .Name("Query")
                 .Field("bar")
-                .Resolver("foo"));
+                .Resolve("foo"));
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -587,7 +554,7 @@ namespace HotChocolate
             var queryType = new ObjectType(t => t
                 .Name("Query")
                 .Field("foo")
-                .Resolver("bar"));
+                .Resolve("bar"));
 
             var directiveType = new DirectiveType(t => t
                 .Name("foo")
@@ -635,7 +602,7 @@ namespace HotChocolate
             var queryType = new ObjectType(t => t
                 .Name("Query")
                 .Field("foo")
-                .Resolver("bar"));
+                .Resolve("bar"));
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -655,7 +622,7 @@ namespace HotChocolate
             var queryType = new ObjectType(t => t
                 .Name("Query")
                 .Field("foo")
-                .Resolver("bar"));
+                .Resolve("bar"));
 
             var schemaDef = new Schema(t => t
                 .Name("FooBar"));
@@ -678,7 +645,7 @@ namespace HotChocolate
             var queryType = new ObjectType(t => t
                 .Name("Query")
                 .Field("foo")
-                .Resolver("bar"));
+                .Resolve("bar"));
 
             var schemaDef = new Schema(t => t
                 .Description("TestMe"));
@@ -701,7 +668,7 @@ namespace HotChocolate
             var queryType = new ObjectType(t => t
                 .Name("TestMe")
                 .Field("foo")
-                .Resolver("bar"));
+                .Resolve("bar"));
 
             var schemaDef = new Schema(t => t
                 .Name("TestMe"));
@@ -763,7 +730,7 @@ namespace HotChocolate
             var queryType = new ObjectType(t => t
                 .Name("TestMe")
                 .Field("foo")
-                .Resolver("bar"));
+                .Resolve("bar"));
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -794,7 +761,7 @@ namespace HotChocolate
             var queryType = new ObjectType(t => t
                 .Name("TestMe")
                 .Field("foo")
-                .Resolver("bar"));
+                .Resolve("bar"));
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -812,14 +779,14 @@ namespace HotChocolate
             // arrange
             // act
             Action action = () => SchemaBuilder.New()
-               .AddResolver((FieldResolver)null);
+               .AddRootResolver((FieldResolver)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
         }
 
         [Fact]
-        public void AddResolver_Resolver_ResolverIsSet()
+        public async Task AddResolver_Resolver_ResolverIsSet()
         {
             // arrange
             var queryType = new ObjectType(t => t
@@ -827,21 +794,20 @@ namespace HotChocolate
                 .Field("foo")
                 .Type<StringType>());
 
-            FieldResolverDelegate resolverDelegate =
-                c => new ValueTask<object>(null);
-            var resolverDescriptor =
-                new FieldResolver("TestMe", "foo", resolverDelegate);
+            ValueTask<object> ResolverDelegate(IResolverContext c) => new("test");
 
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(queryType)
-                .AddResolver(resolverDescriptor)
+                .AddResolver("TestMe", "foo", ResolverDelegate)
                 .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("TestMe");
             Assert.NotNull(type);
-            Assert.Equal(resolverDelegate, type.Fields["foo"].Resolver);
+
+            var context = new Mock<IResolverContext>();
+            Assert.Equal("test", await type.Fields["foo"].Resolver!(context.Object));
         }
 
         [Fact]
@@ -863,11 +829,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () =>
-                SchemaBuilderExtensions.BindClrType<int, StringType>(null);
+            void Action() => SchemaBuilderExtensions.BindClrType<int, StringType>(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -875,11 +840,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () =>
-                SchemaBuilder.New().BindClrType(null, typeof(StringType));
+            void Action() => SchemaBuilder.New().BindRuntimeType(null, typeof(StringType));
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -887,11 +851,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () =>
-                SchemaBuilder.New().BindClrType(typeof(string), null);
+            void Action() => SchemaBuilder.New().BindRuntimeType(typeof(string), null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -899,11 +862,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () =>
-                SchemaBuilder.New().BindClrType(typeof(string), typeof(string));
+            void Action() => SchemaBuilder.New().BindRuntimeType(typeof(string), typeof(string));
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -914,7 +876,7 @@ namespace HotChocolate
                 .Name("Query")
                 .Field("foo")
                 .Type(new DynamicFooType("MyFoo"))
-                .Resolver(new object()));
+                .Resolve(new object()));
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -933,7 +895,7 @@ namespace HotChocolate
                 .Name("Query")
                 .Field("foo")
                 .Type(new DynamicFooType("MyFoo"))
-                .Resolver(new object()));
+                .Resolve(new object()));
 
             // act
             Action action = () => SchemaBuilder.New()
@@ -954,7 +916,7 @@ namespace HotChocolate
                 .Name("Query")
                 .Field("foo")
                 .Type<DynamicFooType>()
-                .Resolver(new object()));
+                .Resolve(new object()));
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -1133,7 +1095,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1154,7 +1116,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1178,7 +1140,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1289,7 +1251,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1312,7 +1274,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1334,7 +1296,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1356,7 +1318,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1387,7 +1349,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1415,7 +1377,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1441,7 +1403,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1468,7 +1430,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1491,7 +1453,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1513,7 +1475,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1528,13 +1490,13 @@ namespace HotChocolate
         {
             int sum = 0;
             ISchema schema = SchemaBuilder.New()
-                .SetContextData("abc", o => 1)
+                .SetContextData("abc", _ => 1)
                 .SetContextData("abc", o => ((int)o) + 1)
                 .SetContextData("abc", o => sum = (int)o)
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
             Assert.Equal(2, sum);
         }
@@ -1547,11 +1509,11 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .TryAddSchemaInterceptor(new DummySchemaInterceptor(
                     c => c.ContextData["name"] = c.ContextData["name"] + "1"))
                 .TryAddTypeInterceptor(new DelegateTypeInterceptor(
-                    onAfterRegisterDependencies: (c, d, cd) =>
+                    onAfterRegisterDependencies: (c, d, _) =>
                     {
                         if (d is ObjectTypeDefinition def && def.Name.Equals("Query"))
                         {
@@ -1578,9 +1540,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1605,9 +1567,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1633,13 +1595,13 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
-                .AddConvention<IMockConvention>(sp => convention)
+                .AddConvention<IMockConvention>(_ => convention)
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
@@ -1660,9 +1622,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1688,9 +1650,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1715,9 +1677,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1743,13 +1705,13 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
-                .TryAddConvention<IMockConvention>(sp => convention)
+                .TryAddConvention<IMockConvention>(_ => convention)
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
@@ -1770,9 +1732,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1798,9 +1760,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1826,13 +1788,13 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
-                .AddConvention(typeof(IMockConvention),sp => convention)
+                .AddConvention(typeof(IMockConvention),_ => convention)
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
@@ -1853,9 +1815,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1881,9 +1843,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1909,13 +1871,13 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
-                .TryAddConvention(typeof(IMockConvention), sp => convention)
+                .TryAddConvention(typeof(IMockConvention), _ => convention)
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
@@ -1936,9 +1898,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1964,9 +1926,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -1992,9 +1954,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -2021,14 +1983,14 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
-                .AddConvention<IMockConvention>(sp => convention)
-                .AddConvention<IMockConvention>(sp => new MockConventionExtension())
+                .AddConvention<IMockConvention>(_ => convention)
+                .AddConvention<IMockConvention>(_ => new MockConventionExtension())
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => throw new InvalidOperationException());
@@ -2049,9 +2011,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -2077,9 +2039,9 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend().OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -2107,12 +2069,12 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
-                        .Extend().OnBeforeCreate(
-                            (ctx, def) =>
-                            {
-                                context = ctx;
-                            }))
+                        .Resolve("bar")
+                        .Extend()
+                        .OnBeforeCreate((ctx, _) =>
+                        {
+                            context = ctx;
+                        }))
                 .Create();
             IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
                 () => convention);
@@ -2134,10 +2096,10 @@ namespace HotChocolate
                     d => d
                         .Name("Query")
                         .Field("foo")
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Extend()
                         .OnBeforeCreate(
-                            (ctx, def) =>
+                            (ctx, _) =>
                             {
                                 context = ctx;
                             }))
@@ -2192,10 +2154,9 @@ namespace HotChocolate
             }
         }
 
-        public class DynamicFooType
-            : ObjectType
+        public class DynamicFooType : ObjectType
         {
-            private NameString _typeName;
+            private readonly NameString _typeName;
 
             public DynamicFooType(NameString typeName)
             {
@@ -2205,7 +2166,7 @@ namespace HotChocolate
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name(_typeName);
-                descriptor.Field("bar").Resolver("baz");
+                descriptor.Field("bar").Resolve("baz");
             }
         }
 
@@ -2222,7 +2183,7 @@ namespace HotChocolate
         }
         public class TestConvention : Convention, ITestConvention
         {
-            public static TestConvention New () => new TestConvention();
+            public static TestConvention New () => new();
         }
 
         public class TestConventionServiceDependency : Convention, ITestConvention
@@ -2244,48 +2205,46 @@ namespace HotChocolate
                 descriptor.Name("ConventionTestType");
                 base.Configure(descriptor);
             }
-            protected override void OnCompleteName(ITypeCompletionContext context, ObjectTypeDefinition definition)
+            protected override void OnCompleteName(
+                ITypeCompletionContext context,
+                ObjectTypeDefinition definition)
             {
                 base.OnCompleteName(context, definition);
                 Context = context.DescriptorContext;
             }
         }
 
-        public class QueryType
-            : ObjectType
+        public class QueryType : ObjectType
         {
             protected override void Configure(
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Query");
-                descriptor.Field("foo").Type<StringType>().Resolver("bar");
+                descriptor.Field("foo").Type<StringType>().Resolve("bar");
             }
         }
 
-        public class MutationType
-            : ObjectType
+        public class MutationType : ObjectType
         {
             protected override void Configure(
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Mutation");
-                descriptor.Field("bar").Type<IntType>().Resolver(123);
+                descriptor.Field("bar").Type<IntType>().Resolve(123);
             }
         }
 
-        public class SubscriptionType
-            : ObjectType
+        public class SubscriptionType : ObjectType
         {
             protected override void Configure(
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Subscription");
-                descriptor.Field("onFoo").Type<IntType>().Resolver(123);
+                descriptor.Field("onFoo").Type<IntType>().Resolve(123);
             }
         }
 
-        public class FooType
-            : ObjectType<Foo>
+        public class FooType : ObjectType<Foo>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Foo> descriptor)
@@ -2294,8 +2253,7 @@ namespace HotChocolate
             }
         }
 
-        public class BarType
-            : ObjectType<Bar>
+        public class BarType : ObjectType<Bar>
         {
         }
 
@@ -2309,20 +2267,7 @@ namespace HotChocolate
             public string Baz { get; }
         }
 
-        [GraphQLResolverOf(typeof(QueryType))]
-        public class QueryResolverOnType
-        {
-            public string GetFoo([Parent] object o) => "QueryResolverOnType";
-        }
-
-        [GraphQLResolverOf("Query")]
-        public class QueryResolverOnName
-        {
-            public string Baz { get; }
-        }
-
-        public class MySchema
-            : Schema
+        public class MySchema : Schema
         {
             protected override void Configure(ISchemaTypeDescriptor descriptor)
             {
@@ -2330,9 +2275,7 @@ namespace HotChocolate
             }
         }
 
-        public class MyEnumType
-            : EnumType
-        { }
+        public class MyEnumType : EnumType { }
 
         public class QueryWithIntField
         {
@@ -2351,8 +2294,7 @@ namespace HotChocolate
             public string Foo { get; set; }
         }
 
-        public class MyInterceptor
-            : TypeInterceptor
+        public class MyInterceptor : TypeInterceptor
         {
             public override void OnAfterCompleteType(
                 ITypeCompletionContext completionContext,

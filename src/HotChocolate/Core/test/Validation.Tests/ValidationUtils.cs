@@ -1,9 +1,8 @@
-using HotChocolate.Configuration;
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
-using System;
 
 #nullable enable
 
@@ -11,16 +10,16 @@ namespace HotChocolate.Validation
 {
     public static class ValidationUtils
     {
-        public static IDocumentValidatorContext CreateContext(ISchema? schema = null)
+        public static DocumentValidatorContext CreateContext(ISchema? schema = null)
         {
-            return new DocumentValidatorContext { Schema = schema ?? CreateSchema() };
+            return new() { Schema = schema ?? CreateSchema() };
         }
 
         public static void Prepare(this IDocumentValidatorContext context, DocumentNode document)
         {
             context.Fragments.Clear();
 
-            for (int i = 0; i < document.Definitions.Count; i++)
+            for (var i = 0; i < document.Definitions.Count; i++)
             {
                 IDefinitionNode definitionNode = document.Definitions[i];
                 if (definitionNode.Kind == SyntaxKind.FragmentDefinition)
@@ -31,60 +30,62 @@ namespace HotChocolate.Validation
             }
         }
 
-        public static void RegisterDirective(
-            this ISchemaConfiguration context,
+        public static ISchemaBuilder AddDirectiveType(
+            this ISchemaBuilder builder,
             string name,
             DirectiveLocation location) =>
-            RegisterDirective(context, name, location, x => x);
+            AddDirectiveType(builder, name, location, x => x);
 
-        public static void RegisterDirective(
-            this ISchemaConfiguration context,
+        public static ISchemaBuilder AddDirectiveType(
+            this ISchemaBuilder builder,
             string name,
             DirectiveLocation location,
             Func<IDirectiveTypeDescriptor, IDirectiveTypeDescriptor> configure) =>
-            context.RegisterDirective(new DirectiveType(x =>
+            builder.AddDirectiveType(new DirectiveType(x =>
                 configure(x.Name(name).Location(location))));
 
-        public static Schema CreateSchema()
-        {
-            return Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryType>();
-                c.RegisterMutationType<MutationType>();
-                c.RegisterType<AlienType>();
-                c.RegisterType<CatOrDogType>();
-                c.RegisterType<CatType>();
-                c.RegisterType<DogOrHumanType>();
-                c.RegisterType<DogType>();
-                c.RegisterType<HumanOrAlienType>();
-                c.RegisterType<HumanType>();
-                c.RegisterType<PetType>();
-                c.RegisterType<BeingType>();
-                c.RegisterType<ArgumentsType>();
-                c.RegisterSubscriptionType<SubscriptionType>();
-                c.RegisterType<ComplexInputType>();
-                c.RegisterType<Complex2InputType>();
-                c.RegisterType<Complex3InputType>();
-                c.RegisterType<InvalidScalar>();
-                c.RegisterDirective<ComplexDirective>();
-                c.RegisterDirective(new CustomDirectiveType("directive"));
-                c.RegisterDirective(new CustomDirectiveType("directive1"));
-                c.RegisterDirective(new CustomDirectiveType("directive2"));
-                c.RegisterDirective("onMutation", DirectiveLocation.Mutation);
-                c.RegisterDirective("onQuery", DirectiveLocation.Query);
-                c.RegisterDirective("onSubscription", DirectiveLocation.Subscription);
-                c.RegisterDirective("onFragmentDefinition", DirectiveLocation.FragmentDefinition);
-                c.RegisterDirective("onVariableDefinition", DirectiveLocation.VariableDefinition);
-                c.RegisterDirective("directiveA",
-                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition);
-                c.RegisterDirective("directiveB",
-                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition);
-                c.RegisterDirective("directiveC",
-                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition);
-                c.RegisterDirective("repeatable",
-                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition,
-                     x => x.Repeatable());
-            });
-        }
+        public static ISchema CreateSchema()
+            => SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddMutationType<MutationType>()
+                .AddType<AlienType>()
+                .AddType<CatOrDogType>()
+                .AddType<CatType>()
+                .AddType<DogOrHumanType>()
+                .AddType<DogType>()
+                .AddType<HumanOrAlienType>()
+                .AddType<HumanType>()
+                .AddType<PetType>()
+                .AddType<BeingType>()
+                .AddType<ArgumentsType>()
+                .AddSubscriptionType<SubscriptionType>()
+                .AddType<ComplexInputType>()
+                .AddType<Complex2InputType>()
+                .AddType<Complex3InputType>()
+                .AddType<InvalidScalar>()
+                .AddDirectiveType<ComplexDirective>()
+                .AddDirectiveType(new CustomDirectiveType("directive"))
+                .AddDirectiveType(new CustomDirectiveType("directive1"))
+                .AddDirectiveType(new CustomDirectiveType("directive2"))
+                .AddDirectiveType("onMutation", DirectiveLocation.Mutation)
+                .AddDirectiveType("onQuery", DirectiveLocation.Query)
+                .AddDirectiveType("onSubscription", DirectiveLocation.Subscription)
+                .AddDirectiveType("onFragmentDefinition", DirectiveLocation.FragmentDefinition)
+                .AddDirectiveType("onVariableDefinition", DirectiveLocation.VariableDefinition)
+                .AddDirectiveType("directiveA",
+                    DirectiveLocation.Field |
+                    DirectiveLocation.FragmentDefinition)
+                .AddDirectiveType("directiveB",
+                    DirectiveLocation.Field |
+                    DirectiveLocation.FragmentDefinition)
+                .AddDirectiveType("directiveC",
+                    DirectiveLocation.Field |
+                    DirectiveLocation.FragmentDefinition)
+                .AddDirectiveType("repeatable",
+                    DirectiveLocation.Field |
+                    DirectiveLocation.FragmentDefinition,
+                    x => x.Repeatable())
+                .ModifyOptions(o => o.EnableOneOf = true)
+                .Create();
     }
 }

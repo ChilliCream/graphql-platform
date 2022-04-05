@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -122,6 +123,20 @@ namespace HotChocolate.Types
             Assert.True(type.ContextData.ContainsKey("foo"));
         }
 
+        [Fact]
+        public void EnumTypeExtension_Ignore_Fields()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<FooType>()
+                .AddType<FooIgnoreTypeExtension>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class DummyQuery
         {
             public string Foo { get; set; }
@@ -146,6 +161,16 @@ namespace HotChocolate.Types
             {
                 descriptor.Name("Foo");
                 descriptor.Value(Foo.Quox).Name("_QUOX");
+            }
+        }
+
+        public class FooIgnoreTypeExtension
+            : EnumTypeExtension
+        {
+            protected override void Configure(IEnumTypeDescriptor descriptor)
+            {
+                descriptor.Name("Foo");
+                descriptor.Value(Foo.Bar).Ignore();
             }
         }
 

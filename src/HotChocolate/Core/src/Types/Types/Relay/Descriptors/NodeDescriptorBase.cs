@@ -1,127 +1,123 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 
 #nullable enable
 
-namespace HotChocolate.Types.Relay.Descriptors
+namespace HotChocolate.Types.Relay.Descriptors;
+
+public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
 {
-    public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
+    protected NodeDescriptorBase(IDescriptorContext context)
+        : base(context)
     {
-        protected NodeDescriptorBase(IDescriptorContext context)
-            : base(context)
+    }
+
+    protected internal sealed override NodeDefinition Definition { get; protected set; } =
+        new();
+
+    protected abstract IObjectFieldDescriptor ConfigureNodeField();
+
+    public virtual IObjectFieldDescriptor ResolveNode(
+        FieldResolverDelegate fieldResolver)
+    {
+        Definition.Resolver = fieldResolver ??
+            throw new ArgumentNullException(nameof(fieldResolver));
+
+        return ConfigureNodeField();
+    }
+
+    public IObjectFieldDescriptor ResolveNode<TId>(
+        NodeResolverDelegate<object, TId> fieldResolver)
+    {
+        if (fieldResolver is null)
         {
+            throw new ArgumentNullException(nameof(fieldResolver));
         }
 
-        protected internal sealed override NodeDefinition Definition { get; protected set; } =
-            new NodeDefinition();
-
-        protected abstract IObjectFieldDescriptor ConfigureNodeField();
-
-        public virtual IObjectFieldDescriptor ResolveNode(
-            FieldResolverDelegate fieldResolver)
+        return ResolveNode(async ctx =>
         {
-            Definition.Resolver = fieldResolver ??
-                throw new ArgumentNullException(nameof(fieldResolver));
+            if (ctx.LocalContextData.TryGetValue(
+                WellKnownContextData.InternalId,
+                out var o) && o is TId id)
+            {
+                return await fieldResolver(ctx, id).ConfigureAwait(false);
+            }
 
-            return ConfigureNodeField();
+            return null;
+        });
+    }
+
+    public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
+        Expression<Func<TResolver, object?>> method)
+    {
+        if (method is null)
+        {
+            throw new ArgumentNullException(nameof(method));
         }
 
-        public IObjectFieldDescriptor ResolveNode<TId>(
-            NodeResolverDelegate<object, TId> fieldResolver)
+        MemberInfo? member = method.TryExtractMember();
+
+        if (member is MethodInfo m)
         {
-            if (fieldResolver is null)
-            {
-                throw new ArgumentNullException(nameof(fieldResolver));
-            }
-
-            return ResolveNode(async ctx =>
-            {
-                if (ctx.LocalContextData.TryGetValue(
-                    WellKnownContextData.InternalId,
-                    out var o) && o is TId id)
-                {
-                    return await fieldResolver(ctx, id).ConfigureAwait(false);
-                }
-
-                return null;
-            });
+            FieldResolverDelegates resolver =
+                Context.ResolverCompiler.CompileResolve(
+                    m,
+                    typeof(object),
+                    typeof(TResolver),
+                    ParameterExpressionBuilders);
+            return ResolveNode(resolver.Resolver!);
         }
 
-        public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
-            Expression<Func<TResolver, object?>> method)
+        throw new ArgumentException(
+            TypeResources.NodeDescriptor_MustBeMethod,
+            nameof(member));
+    }
+
+    public IObjectFieldDescriptor ResolveNodeWith(MethodInfo method)
+    {
+        if (method is null)
         {
-            if (method is null)
-            {
-                throw new ArgumentNullException(nameof(method));
-            }
-
-            MemberInfo member = method.TryExtractMember();
-
-            if (member is MethodInfo m)
-            {
-                FieldResolver resolver =
-                    ResolverCompiler.Resolve.Compile(
-                        new ResolverDescriptor(
-                            typeof(object),
-                            new FieldMember("_", "_", m),
-                            resolverType: typeof(TResolver)));
-                return ResolveNode(resolver.Resolver);
-            }
-
-            throw new ArgumentException(
-                TypeResources.NodeDescriptor_MustBeMethod,
-                nameof(member));
+            throw new ArgumentNullException(nameof(method));
         }
 
-        public IObjectFieldDescriptor ResolveNodeWith(MethodInfo method)
+        FieldResolverDelegates resolver =
+            Context.ResolverCompiler.CompileResolve(
+                method,
+                typeof(object),
+                method.DeclaringType ?? typeof(object),
+                ParameterExpressionBuilders);
+
+        return ResolveNode(resolver.Resolver!);
+    }
+
+    protected static class ConverterHelper
+    {
+        private static ResultConverterDefinition? _resultConverter;
+
+        private static ResultConverterDefinition Converter
         {
-            if (method is null)
-            {
-                throw new ArgumentNullException(nameof(method));
-            }
-
-            FieldResolver resolver =
-                ResolverCompiler.Resolve.Compile(
-                    new ResolverDescriptor(
-                        typeof(object),
-                        new FieldMember("_", "_", method),
-                        resolverType: method.DeclaringType ?? typeof(object)));
-
-            return ResolveNode(resolver.Resolver);
+            get => _resultConverter ??= IdMiddleware.Create();
         }
 
-        protected static class MiddlewareHelper
+        public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
         {
-            private static FieldMiddleware? _middleware;
+            IList<ResultConverterDefinition> converters =
+                descriptor.Extend().Definition.ResultConverters;
 
-            private static FieldMiddleware Middleware
+            if (!converters.Contains(Converter))
             {
-                get
-                {
-                    return _middleware ??=
-                        FieldClassMiddlewareFactory.Create<IdMiddleware>();
-                }
+                converters.Add(Converter);
             }
 
-            public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
-            {
-                descriptor.Extend().OnBeforeCreate(d =>
-                {
-                    if (!d.MiddlewareComponents.Contains(Middleware))
-                    {
-                        d.MiddlewareComponents.Add(Middleware);
-                    }
-                });
-
-                return descriptor;
-            }
+            return descriptor;
         }
     }
 }

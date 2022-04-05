@@ -1,34 +1,34 @@
 using System;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+/// <summary>
+/// Denotes a deprecated field on a GraphQL type or a
+/// deprecated value on a GraphQL enum.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field // Required for enum values
+    | AttributeTargets.Property
+    | AttributeTargets.Parameter
+    | AttributeTargets.Method)]
+public sealed class GraphQLDeprecatedAttribute : Attribute
 {
     /// <summary>
-    /// Denotes a deprecated field on a GraphQL type or a
-    /// deprecated value on a GraphQL enum.
+    /// Initializes a new instance of the <see cref="GraphQLDeprecatedAttribute"/>
+    /// with a specific deprecation reason.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field // Required for enum values
-        | AttributeTargets.Property
-        | AttributeTargets.Method)]
-    public sealed class GraphQLDeprecatedAttribute : Attribute
+    /// <param name="deprecationReason">The deprecation reason.</param>
+    public GraphQLDeprecatedAttribute(string deprecationReason)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GraphQLDeprecatedAttribute"/>
-        /// with a specific deprecation reason.
-        /// </summary>
-        /// <param name="deprecationReason">The deprecation reason.</param>
-        public GraphQLDeprecatedAttribute(string deprecationReason)
+        if (string.IsNullOrEmpty(deprecationReason))
         {
-            if (string.IsNullOrEmpty(deprecationReason))
-            {
-                throw new ArgumentNullException(nameof(deprecationReason));
-            }
-            
-            DeprecationReason = deprecationReason;
+            throw new ArgumentNullException(nameof(deprecationReason));
         }
-        
-        /// <summary>
-        /// The reason the field or enum value was deprecated.
-        /// </summary>
-        public string DeprecationReason { get; }
+
+        DeprecationReason = deprecationReason;
     }
+
+    /// <summary>
+    /// The reason the field or enum value was deprecated.
+    /// </summary>
+    public string DeprecationReason { get; }
 }

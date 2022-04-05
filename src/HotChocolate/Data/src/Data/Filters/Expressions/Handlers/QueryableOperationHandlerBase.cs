@@ -1,48 +1,54 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
-namespace HotChocolate.Data.Filters.Expressions
+namespace HotChocolate.Data.Filters.Expressions;
+
+public abstract class QueryableOperationHandlerBase
+    : FilterOperationHandler<QueryableFilterContext, Expression>
 {
-    public abstract class QueryableOperationHandlerBase
-        : FilterOperationHandler<QueryableFilterContext, Expression>
+    protected QueryableOperationHandlerBase(InputParser inputParser)
     {
-        public override bool TryHandleOperation(
-            QueryableFilterContext context,
-            IFilterOperationField field,
-            ObjectFieldNode node,
-            [NotNullWhen(true)] out Expression result)
+        InputParser = inputParser;
+    }
+
+    protected InputParser InputParser { get; }
+
+    public override bool TryHandleOperation(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        ObjectFieldNode node,
+        [NotNullWhen(true)] out Expression? result)
+    {
+        IValueNode value = node.Value;
+        IExtendedType runtimeType = context.RuntimeTypes.Peek();
+
+        Type type = field.Type.IsListType()
+            ? runtimeType.Source.MakeArrayType()
+            : runtimeType.Source;
+
+        object? parsedValue = InputParser.ParseLiteral(value, field, type);
+
+        if ((!runtimeType.IsNullable || !CanBeNull) && parsedValue is null)
         {
-            IValueNode value = node.Value;
-            object? parsedValue = field.Type.ParseLiteral(value);
-
-            if ((!context.RuntimeTypes.Peek().IsNullable || !CanBeNull) && parsedValue is null)
-            {
-                context.ReportError(
-                    ErrorHelper.CreateNonNullError(field, value, context));
-
-                result = null!;
-                return false;
-            }
-
-            if (field.Type.IsInstanceOfType(value))
-            {
-                result = HandleOperation(
-                    context, field, value, parsedValue);
-
-                return true;
-            }
-
-            throw new InvalidOperationException();
+            IError error = ErrorHelper.CreateNonNullError(field, value, context);
+            context.ReportError(error);
+            result = null!;
+            return false;
         }
 
-        protected bool CanBeNull { get; set; } = true;
-
-        public abstract Expression HandleOperation(
-            QueryableFilterContext context,
-            IFilterOperationField field,
-            IValueNode value,
-            object parsedValue);
+        result = HandleOperation(context, field, value, parsedValue);
+        return true;
     }
+
+    protected bool CanBeNull { get; set; } = true;
+
+    public abstract Expression HandleOperation(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        IValueNode value,
+        object? parsedValue);
 }

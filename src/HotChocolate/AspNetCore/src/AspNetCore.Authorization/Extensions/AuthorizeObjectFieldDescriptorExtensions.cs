@@ -1,45 +1,44 @@
-﻿using System;
+using System;
 using HotChocolate.AspNetCore.Authorization;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public static class AuthorizeObjectFieldDescriptorExtensions
 {
-    public static class AuthorizeObjectFieldDescriptorExtensions
+    public static IObjectFieldDescriptor Authorize(
+        this IObjectFieldDescriptor descriptor,
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
-        public static IObjectFieldDescriptor Authorize(
-            this IObjectFieldDescriptor descriptor,
-            ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+        if (descriptor == null)
         {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            return descriptor.Directive(new AuthorizeDirective(apply: apply));
+            throw new ArgumentNullException(nameof(descriptor));
         }
 
-        public static IObjectFieldDescriptor Authorize(
-            this IObjectFieldDescriptor descriptor,
-            string policy,
-            ApplyPolicy apply = ApplyPolicy.BeforeResolver)
-        {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+        return descriptor.Directive(new AuthorizeDirective(apply: apply));
+    }
 
-            return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));
+    public static IObjectFieldDescriptor Authorize(
+        this IObjectFieldDescriptor descriptor,
+        string policy,
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+    {
+        if (descriptor == null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
         }
 
-        public static IObjectFieldDescriptor Authorize(
-            this IObjectFieldDescriptor descriptor,
-            params string[] roles)
-        {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+        return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));
+    }
 
-            return descriptor.Directive(new AuthorizeDirective(roles));
+    public static IObjectFieldDescriptor Authorize(
+        this IObjectFieldDescriptor descriptor,
+        params string[] roles)
+    {
+        if (descriptor == null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
         }
+
+        return descriptor.Directive(new AuthorizeDirective(roles));
     }
 }

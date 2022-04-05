@@ -37,7 +37,7 @@ namespace HotChocolate.Regressions
             IExecutionResult result = await executor.ExecuteAsync(Query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             Verify(input);
         }
 
@@ -83,7 +83,7 @@ namespace HotChocolate.Regressions
                                 "complexList",
                                 new List<Dictionary<string, object?>>
                                 {
-                                    new Dictionary<string, object?> { { "value", 2 } }
+                                    new() { { "value", 2 } }
                                 }
                             }
                         }
@@ -91,7 +91,7 @@ namespace HotChocolate.Regressions
                 });
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             Verify(input);
         }
 
@@ -139,7 +139,7 @@ namespace HotChocolate.Regressions
                 descriptor.Field("eat")
                     .Type<NonNullType<BooleanType>>()
                     .Argument("topping", arg => arg.Type(typeof(ToppingInput)))
-                    .Resolver(ctx => _onEat(ctx.ArgumentValue<ToppingInput>("topping")));
+                    .Resolve(ctx => _onEat(ctx.ArgumentValue<ToppingInput>("topping")));
             }
         }
 

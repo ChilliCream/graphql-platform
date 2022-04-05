@@ -1,65 +1,89 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
-namespace GreenDonut
+namespace GreenDonut;
+
+/// <summary>
+/// A memorization cache for <c>DataLoader</c>.
+/// </summary>
+public interface ITaskCache
 {
     /// <summary>
-    /// A memorization cache for <c>DataLoader</c>.
+    /// Gets the maximum size of the cache.
     /// </summary>
-    public interface ITaskCache
-    {
-        /// <summary>
-        /// Gets the maximum size of the cache.
-        /// </summary>
-        int Size { get; }
+    int Size { get; }
 
-        /// <summary>
-        /// Gets the count of the entries inside the cache.
-        /// </summary>
-        int Usage { get; }
+    /// <summary>
+    /// Gets the count of the entries inside the cache.
+    /// </summary>
+    int Usage { get; }
 
-        /// <summary>
-        /// Clears the complete cache.
-        /// </summary>
-        void Clear();
+    /// <summary>
+    /// Gets a task from the cache if a task with the specified <paramref name="key"/> already
+    /// exists; otherwise, the <paramref name="createTask"/> factory is used to create a new
+    /// task and add it to the cache.
+    /// </summary>
+    /// <param name="key">A cache entry key.</param>
+    /// <param name="createTask">A factory to create the new task.</param>
+    /// <typeparam name="T">The task type.</typeparam>
+    /// <returns>
+    /// Returns either the retrieved or new task from the cache.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="key"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="createTask"/> is <c>null</c>.
+    /// </exception>
+    T GetOrAddTask<T>(TaskCacheKey key, Func<T> createTask) where T : Task;
 
-        /// <summary>
-        /// Removes a specific entry from the cache.
-        /// </summary>
-        /// <param name="key">A cache entry key.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="key"/> is <c>null</c>.
-        /// </exception>
-        void Remove(object key);
+    /// <summary>
+    /// Tries to add a single task to the cache. It does nothing if the
+    /// task exists already.
+    /// </summary>
+    /// <param name="key">A cache entry key.</param>
+    /// <param name="value">A task.</param>
+    /// <typeparam name="T">The task type.</typeparam>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="key"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="value"/> is <c>null</c>.
+    /// </exception>
+    /// <returns>
+    /// A value indicating whether the add was successful.
+    /// </returns>
+    bool TryAdd<T>(TaskCacheKey key, T value) where T : Task;
 
-        /// <summary>
-        /// Tries to add a single entry to the cache. It does nothing if the
-        /// cache entry exists already.
-        /// </summary>
-        /// <param name="key">A cache entry key.</param>
-        /// <param name="value">A cache entry value.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="key"/> is <c>null</c>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="value"/> is <c>null</c>.
-        /// </exception>
-        /// <returns>
-        /// A value indicating whether the add was successful.
-        /// </returns>
-        bool TryAdd(object key, object value);
+    /// <summary>
+    /// Tries to add a single task to the cache. It does nothing if the
+    /// task exists already.
+    /// </summary>
+    /// <param name="key">A cache entry key.</param>
+    /// <param name="createTask">A factory to create the new task.</param>
+    /// <typeparam name="T">The task type.</typeparam>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="key"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="createTask"/> is <c>null</c>.
+    /// </exception>
+    /// <returns>
+    /// A value indicating whether the add was successful.
+    /// </returns>
+    bool TryAdd<T>(TaskCacheKey key, Func<T> createTask) where T : Task;
 
-        /// <summary>
-        /// Tries to gets a single entry from the cache.
-        /// </summary>
-        /// <param name="key">A cache entry key.</param>
-        /// <param name="value">A single cache entry value.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="key"/> is <c>null</c>.
-        /// </exception>
-        /// <returns>
-        /// A value indicating whether the get request returned an entry.
-        /// </returns>
-        bool TryGetValue(object key, [NotNullWhen(true)]out object? value);
-    }
+    /// <summary>
+    /// Removes a specific task from the cache.
+    /// </summary>
+    /// <param name="key">A cache entry key.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="key"/> is <c>null</c>.
+    /// </exception>
+    bool TryRemove(TaskCacheKey key);
+
+    /// <summary>
+    /// Clears the complete cache.
+    /// </summary>
+    void Clear();
 }

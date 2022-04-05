@@ -6,6 +6,18 @@ namespace HotChocolate.Types.Spatial
 {
     internal class GeoJsonResolvers
     {
+        public Coordinate[][] GetGeometryCollectionCoordinates(
+            [Parent] GeometryCollection collection)
+        {
+            Coordinate[][] coordinates = new Coordinate[collection.Count][];
+            for (var i = 0; i < collection.Count; i++)
+            {
+                coordinates[i] = collection[i].Coordinates;
+            }
+
+            return coordinates;
+        }
+
         public GeoJsonGeometryType GetType([Parent] Geometry geometry) =>
             geometry.OgcGeometryType switch
             {

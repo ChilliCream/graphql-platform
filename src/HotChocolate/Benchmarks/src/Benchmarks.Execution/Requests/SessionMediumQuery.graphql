@@ -1,0 +1,29 @@
+{
+  sessions(first: 50) {
+    nodes {
+      ... SessionInfo
+    }
+  }  
+}
+
+fragment SessionInfo on Session {
+  id
+  abstract
+  title
+  startTime
+  endTime
+  speakers {
+    ...SpeakerInfo
+  }
+  track {
+    id
+    name
+  }
+}
+
+fragment SpeakerInfo on Speaker {
+  id
+  name
+  bio
+  webSite
+}

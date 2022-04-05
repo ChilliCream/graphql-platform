@@ -1,0 +1,4 @@
+﻿Result 1:
+00:00:00.1701112
+{"errors":[{"message":"The specified operation \u0060GetHero\u0060 cannot be found.","locations":[{"line":1,"column":1}],"extensions":{"operationName":"GetHero"}}]}
+

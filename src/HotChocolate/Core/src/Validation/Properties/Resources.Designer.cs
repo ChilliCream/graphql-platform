@@ -266,13 +266,7 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_MaxExecutionDepth", resourceCulture);
             }
         }
-        
-        internal static string HotChocolateValidationBuilderExtensions_MinimumAllowedValue {
-            get {
-                return ResourceManager.GetString("HotChocolateValidationBuilderExtensions_MinimumAllowedValue", resourceCulture);
-            }
-        }
-        
+
         internal static string ErrorHelper_DirectiveMustBeUniqueInLocation {
             get {
                 return ResourceManager.GetString("ErrorHelper_DirectiveMustBeUniqueInLocation", resourceCulture);
@@ -282,6 +276,18 @@ namespace HotChocolate.Validation.Properties {
         internal static string ErrorHelper_IntrospectionNotAllowed {
             get {
                 return ResourceManager.GetString("ErrorHelper_IntrospectionNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_OneOfMustHaveExactlyOneField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OneOfMustHaveExactlyOneField", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_OneOfVariablesMustBeNonNull {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OneOfVariablesMustBeNonNull", resourceCulture);
             }
         }
     }

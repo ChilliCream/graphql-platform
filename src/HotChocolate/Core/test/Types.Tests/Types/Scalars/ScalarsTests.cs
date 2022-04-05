@@ -23,7 +23,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            bool isScalar = Scalars.TryGetKind(value, out ValueKind kind);
+            var isScalar = Scalars.TryGetKind(value, out ValueKind kind);
 
             // assert
             Assert.True(isScalar);
@@ -48,10 +48,10 @@ namespace HotChocolate.Types
             Type type = typeof(Nullable<>).MakeGenericType(value.GetType());
             ConstructorInfo constructor =
                 type.GetConstructor(new[] { value.GetType() });
-            object nullableValue = constructor.Invoke(new[] { value });
+            var nullableValue = constructor!.Invoke(new[] { value });
 
             // act
-            bool isScalar = Scalars.TryGetKind(
+            var isScalar = Scalars.TryGetKind(
                 nullableValue, out ValueKind kind);
 
             // assert
@@ -63,10 +63,10 @@ namespace HotChocolate.Types
         public void Decimal_Is_Float()
         {
             // arrange
-            decimal d = 123.123M;
+            var d = 123.123M;
 
             // act
-            bool isScalar = Scalars.TryGetKind(d, out ValueKind kind);
+            var isScalar = Scalars.TryGetKind(d, out ValueKind kind);
 
             // assert
             Assert.True(isScalar);
@@ -80,7 +80,7 @@ namespace HotChocolate.Types
             decimal? d = 123.123M;
 
             // act
-            bool isScalar = Scalars.TryGetKind(d, out ValueKind kind);
+            var isScalar = Scalars.TryGetKind(d, out ValueKind kind);
 
             // assert
             Assert.True(isScalar);
@@ -91,10 +91,10 @@ namespace HotChocolate.Types
         public void Object_Is_Not_A_Serialized_Scalar()
         {
             // arrange
-            object o = new object();
+            var o = new object();
 
             // act
-            bool isScalar = Scalars.TryGetKind(o, out _);
+            var isScalar = Scalars.TryGetKind(o, out _);
 
             // assert
             Assert.False(isScalar);
@@ -107,7 +107,7 @@ namespace HotChocolate.Types
             var list = new List<object>();
 
             // act
-            bool success = Scalars.TryGetKind(list, out ValueKind kind);
+            var success = Scalars.TryGetKind(list, out ValueKind kind);
 
             // assert
             Assert.True(success);
@@ -121,7 +121,7 @@ namespace HotChocolate.Types
             var list = new object[0];
 
             // act
-            bool success = Scalars.TryGetKind(list, out ValueKind kind);
+            var success = Scalars.TryGetKind(list, out ValueKind kind);
 
             // assert
             Assert.True(success);
@@ -135,7 +135,7 @@ namespace HotChocolate.Types
             var list = new Dictionary<string, object>();
 
             // act
-            bool success = Scalars.TryGetKind(list, out ValueKind kind);
+            var success = Scalars.TryGetKind(list, out ValueKind kind);
 
             // assert
             Assert.True(success);

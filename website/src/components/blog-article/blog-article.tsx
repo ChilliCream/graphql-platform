@@ -15,8 +15,8 @@ import { BlogArticleMetadata } from "./blog-article-metadata";
 import { BlogArticleSharebar } from "./blog-article-sharebar";
 import { BlogArticleTags } from "./blog-article-tags";
 
-interface BlogArticleProps {
-  data: BlogArticleFragment;
+export interface BlogArticleProps {
+  readonly data: BlogArticleFragment;
 }
 
 export const BlogArticle: FC<BlogArticleProps> = ({ data }) => {
@@ -58,10 +58,7 @@ export const BlogArticleGraphQLFragment = graphql`
       frontmatter {
         featuredImage {
           childImageSharp {
-            gatsbyImageData(
-              layout: CONSTRAINED
-              width: 800
-            )
+            gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
           }
         }
         path
@@ -81,7 +78,7 @@ const ArticleWrapper = styled.div`
   grid-template-rows: 1fr auto;
   padding: 0;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     padding: 20px 10px 0;
   }
 `;
@@ -91,5 +88,8 @@ const Container = styled.div`
   flex: 0 0 auto;
   flex-direction: row;
   width: 100%;
-  max-width: 820px;
+
+  @media only screen and (min-width: 860px) {
+    max-width: 820px;
+  }
 `;

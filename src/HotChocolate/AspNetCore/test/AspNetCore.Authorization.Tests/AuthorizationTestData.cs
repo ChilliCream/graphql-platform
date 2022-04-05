@@ -5,12 +5,11 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.AspNetCore.Authorization
+namespace HotChocolate.AspNetCore.Authorization;
+
+public class AuthorizationTestData : IEnumerable<object[]>
 {
-    public class AuthorizationTestData
-        : IEnumerable<object[]>
-    {
-        private readonly string SchemaCode = @"
+    private readonly string SchemaCode = @"
             type Query {
                 default: String @authorize
                 age: String @authorize(policy: ""HasAgeDefined"")
@@ -24,30 +23,29 @@ namespace HotChocolate.AspNetCore.Authorization
             }
         ";
 
-        private FieldMiddleware SchemaMiddleware = next => context =>
-        {
-            context.Result = "foo";
-            return next.Invoke(context);
-        };
+    private readonly FieldMiddleware _schemaMiddleware = next => context =>
+    {
+        context.Result = "foo";
+        return next.Invoke(context);
+    };
 
-        private Action<IRequestExecutorBuilder> CreateSchema() =>
-            sb => sb
-                .AddDocumentFromString(SchemaCode)
-                .AddAuthorizeDirectiveType()
-                .UseField(SchemaMiddleware);
+    private Action<IRequestExecutorBuilder> CreateSchema() =>
+        sb => sb
+            .AddDocumentFromString(SchemaCode)
+            .AddAuthorization()
+            .UseField(_schemaMiddleware);
 
-        private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
-            sb => sb
-                .AddDocumentFromString(SchemaCode)
-                .AddAuthorizeDirectiveType()
-                .UseField(SchemaMiddleware);
+    private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
+        sb => sb
+            .AddDocumentFromString(SchemaCode)
+            .AddAuthorization()
+            .UseField(_schemaMiddleware);
 
-        public IEnumerator<object[]> GetEnumerator()
-        {
-            yield return new object[] { CreateSchema() };
-            yield return new object[] { CreateSchemaWithBuilder() };
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public IEnumerator<object[]> GetEnumerator()
+    {
+        yield return new object[] { CreateSchema() };
+        yield return new object[] { CreateSchemaWithBuilder() };
     }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

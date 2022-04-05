@@ -9,13 +9,13 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import { Helmet } from "react-helmet";
 
-interface SEOProps {
-  description?: string;
-  imageUrl?: string;
-  isArticle?: boolean;
-  lang?: string;
-  meta?: JSX.IntrinsicElements["meta"][];
-  title: string;
+export interface SEOProps {
+  readonly description?: string;
+  readonly imageUrl?: string;
+  readonly isArticle?: boolean;
+  readonly lang?: string;
+  readonly meta?: JSX.IntrinsicElements["meta"][];
+  readonly title: string;
 }
 
 export const SEO: FC<SEOProps> = ({
@@ -42,10 +42,7 @@ export const SEO: FC<SEOProps> = ({
           sourceInstanceName: { eq: "images" }
         ) {
           childImageSharp {
-            gatsbyImageData(
-              layout: FIXED
-              width: 1200
-            )
+            gatsbyImageData(layout: FIXED, width: 1200, quality: 100)
           }
         }
       }
@@ -55,7 +52,7 @@ export const SEO: FC<SEOProps> = ({
   const metaAuthor = `@${site.siteMetadata.author}`;
   const metaDescription = description || site.siteMetadata.description;
   const metaImageUrl = `${site.siteMetadata.siteUrl}${
-    imageUrl || image?.childImageSharp!.gatsbyImageData!.src
+    imageUrl ?? image?.childImageSharp!.gatsbyImageData!.images.fallback.src
   }`;
 
   return (

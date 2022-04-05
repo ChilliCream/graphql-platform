@@ -1,13 +1,12 @@
 using System;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public interface IDocumentHashProvider
 {
-    public interface IDocumentHashProvider
-    {
-        string Name { get; }
+    string Name { get; }
 
-        HashFormat Format { get; }
+    HashFormat Format { get; }
 
-        string ComputeHash(ReadOnlySpan<byte> document);
-    }
+    string ComputeHash(ReadOnlySpan<byte> document);
 }

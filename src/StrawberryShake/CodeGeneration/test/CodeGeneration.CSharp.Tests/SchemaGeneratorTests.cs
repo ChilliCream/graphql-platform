@@ -2,16 +2,16 @@ using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp;
+
+public class SchemaGeneratorTests
 {
-    public class SchemaGeneratorTests
+    [Fact]
+    public void Schema_With_Spec_Errors()
     {
-        [Fact]
-        public void Schema_With_Spec_Errors()
-        {
-            AssertResult(
-                strictValidation: false,
-                @"
+        AssertResult(
+            strictValidation: false,
+            @"
                     query getListingsCount {
                         listings {
                         ... ListingsPayload
@@ -21,16 +21,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         count
                     }
                 ",
-                FileResource.Open("BridgeClientDemo.graphql"),
-                "extend schema @key(fields: \"id\")");
-        }
+            FileResource.Open("BridgeClientDemo.graphql"),
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void Query_With_Nested_Fragments()
-        {
-            AssertResult(
-                strictValidation: true,
-                @"
+    [Fact]
+    public void Query_With_Nested_Fragments()
+    {
+        AssertResult(
+            strictValidation: true,
+            @"
                     query getAll(){
                         listings{
                             ... ListingsPayload
@@ -53,15 +53,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         startingPrice
                     }
                 ",
-                FileResource.Open("MultipleInterfaceSchema.graphql"),
-                "extend schema @key(fields: \"id\")");
-        }
+            FileResource.Open("MultipleInterfaceSchema.graphql"),
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void Create_Query_With_Skip_Take()
-        {
-            AssertResult(
-                @"query SearchNewsItems($query: String! $skip: Int $take: Int) {
+    [Fact]
+    public void Create_Query_With_Skip_Take()
+    {
+        AssertResult(
+            @"query SearchNewsItems($query: String! $skip: Int $take: Int) {
                     newsItems(skip: $skip take: $take query: $query) {
                         items {
                             id
@@ -70,7 +70,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         }
                     }
                 }",
-                @"schema {
+            @"schema {
                     query: Query
                 }
 
@@ -84,7 +84,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 type NewsItem implements Node {
                     id: ID!
-                    feedId: Uuid!
+                    feedId: UUID!
                     feedUrl: String!
                     html: String!
                     image: String!
@@ -110,14 +110,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     ""Indicates whether more items exist prior the set defined by the clients arguments.""
                     hasPreviousPage: Boolean!
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void Create_PeopleSearch_From_ActiveDirectory_Schema()
-        {
-            AssertResult(
-                @"query PeopleSearch($term:String! $skip:Int $take:Int $inactive:Boolean) {
+    [Fact]
+    public void Create_PeopleSearch_From_ActiveDirectory_Schema()
+    {
+        AssertResult(
+            @"query PeopleSearch($term:String! $skip:Int $take:Int $inactive:Boolean) {
                   people: peopleSearch(
                     term: $term
                     includeInactive: $inactive
@@ -153,15 +153,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     displayName
                   }
                 }",
-                "extend schema @key(fields: \"id\")",
-                FileResource.Open("ActiveDirectory.Schema.graphql"));
-        }
+            "extend schema @key(fields: \"id\")",
+            FileResource.Open("ActiveDirectory.Schema.graphql"));
+    }
 
-        [Fact]
-        public void Create_GetFeatsPage()
-        {
-            AssertResult(
-                @"query GetFeatsPage($skip: Int, $take: Int) {
+    [Fact]
+    public void Create_GetFeatsPage()
+    {
+        AssertResult(
+            @"query GetFeatsPage($skip: Int, $take: Int) {
                     feats(skip: $skip, take: $take) {
                         items {
                             name,
@@ -173,15 +173,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         }
                     }
                 }",
-                "extend schema @key(fields: \"id\")",
-                FileResource.Open("Schema_Bug_1.graphql"));
-        }
+            "extend schema @key(fields: \"id\")",
+            FileResource.Open("Schema_Bug_1.graphql"));
+    }
 
-        [Fact]
-        public void Create_GetFeatById()
-        {
-            AssertResult(
-                @"query GetFeatById($id: Uuid!) {
+    [Fact]
+    public void Create_GetFeatById()
+    {
+        AssertResult(
+            @"query GetFeatById($id: UUID!) {
                     feats(where: {id: {eq: $id}}) {
                         items {
                             id,
@@ -193,23 +193,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         }
                     }
                 }",
-                "extend schema @key(fields: \"id\")",
-                FileResource.Open("Schema_Bug_1.graphql"));
-        }
+            "extend schema @key(fields: \"id\")",
+            FileResource.Open("Schema_Bug_1.graphql"));
+    }
 
-        [Fact]
-        public void Create_DataType_Query()
-        {
-            AssertResult(
-                @"query GetAllFoos {
+    [Fact]
+    public void Create_DataType_Query()
+    {
+        AssertResult(
+            @"query GetAllFoos {
                     test {
                         profile {
                             name
                         }
                     }
                 }",
-                "extend schema @key(fields: \"id\")",
-                @"schema {
+            "extend schema @key(fields: \"id\")",
+            @"schema {
                     query: Query
                 }
 
@@ -225,28 +225,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     # id: ID! # Can no longer generate if no id is present
                     name: String
                 }");
-        }
+    }
 
-        [Fact]
-        public void Create_UpdateMembers_Mutation()
-        {
-            AssertResult(
-                @"mutation UpdateMembers($input: UpdateProjectMembersInput!) {
+    [Fact]
+    public void Create_UpdateMembers_Mutation()
+    {
+        AssertResult(
+            @"mutation UpdateMembers($input: UpdateProjectMembersInput!) {
                     project {
                         updateMembers(input: $input) {
                             correlationId
                         }
                     }
                 }",
-                "extend schema @key(fields: \"id\")",
-                FileResource.Open("Schema_Bug_2.graphql"));
-        }
+            "extend schema @key(fields: \"id\")",
+            FileResource.Open("Schema_Bug_2.graphql"));
+    }
 
-        [Fact]
-        public void QueryInterference()
-        {
-            AssertResult(
-                @"query GetFeatsPage(
+    [Fact]
+    public void QueryInterference()
+    {
+        AssertResult(
+            @"query GetFeatsPage(
                   $skip: Int!
                   $take: Int!
                   $searchTerm: String! = """"
@@ -279,7 +279,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     text
                   }
                 }",
-                @"query GetFeatById($id: Uuid!) {
+            @"query GetFeatById($id: UUID!) {
                   feats(where: { id: { eq: $id } }) {
                     items {
                       ...FeatById
@@ -300,15 +300,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     name
                   }
                 }",
-                "extend schema @key(fields: \"id\")",
-                FileResource.Open("Schema_Bug_1.graphql"));
-        }
+            "extend schema @key(fields: \"id\")",
+            FileResource.Open("Schema_Bug_1.graphql"));
+    }
 
-        [Fact]
-        public void NodeTypenameCollision()
-        {
-            AssertResult(
-                @"
+    [Fact]
+    public void NodeTypenameCollision()
+    {
+        AssertResult(
+            @"
                 type Query {
                     node(id: ID!): Node
                     workspaces: [Workspace!]!
@@ -326,22 +326,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     description: String
                 }
                 ",
-                @"
+            @"
                 query Nodes($id: ID!) {
                     node(id: $id) {
                         __typename
                         id
                     }
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void Full_Extension_File()
-        {
-            AssertResult(
-                strictValidation: false,
-                @"
+    [Fact]
+    public void Full_Extension_File()
+    {
+        AssertResult(
+            strictValidation: false,
+            @"
                     query getListingsCount {
                         listings {
                         ... ListingsPayload
@@ -351,8 +351,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         count
                     }
                 ",
-                FileResource.Open("BridgeClientDemo.graphql"),
-                @"scalar _KeyFieldSet
+            FileResource.Open("BridgeClientDemo.graphql"),
+            @"scalar _KeyFieldSet
 
                 directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
 
@@ -365,13 +365,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 directive @rename(name: String!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE
 
                 extend schema @key(fields: ""id"")");
-        }
+    }
 
-        [Fact]
-        public void NonNullLists()
-        {
-            AssertResult(
-                @"
+    [Fact]
+    public void NonNullLists()
+    {
+        AssertResult(
+            @"
                 query getAll {
                   listings {
                     ...Offer
@@ -387,7 +387,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                    amenities7
                 }
                 ",
-                @"
+            @"
                 schema {
                   query: Query
                   mutation: null
@@ -413,33 +413,121 @@ namespace StrawberryShake.CodeGeneration.CSharp
                   ITEM1
                   ITEM2
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void MultiLineDocumentation()
-        {
-            AssertResult(
-                @"query Foo {
+    [Fact]
+    public void MultiLineDocumentation()
+    {
+        AssertResult(
+            @"query Foo {
                     abc
                 }",
-                @"type Query {
+            @"type Query {
                     """"""
                     ABC
                     DEF
                     """"""
                     abc: String
                 }");
-        }
+    }
 
-        [Fact]
-        public void IntrospectionQuery()
-        {
-            AssertResult(
-                FileResource.Open("IntrospectionQuery.graphql"),
-                @"type Query {
+    [Fact]
+    public void IntrospectionQuery()
+    {
+        AssertResult(
+            FileResource.Open("IntrospectionQuery.graphql"),
+            @"type Query {
                     abc: String
                 }");
-        }
+    }
+
+    [Fact]
+    public void FieldsWithUnderlineInName()
+    {
+        AssertResult(
+            @"
+                    query GetBwr_TimeSeries(
+                      $where: bwr_TimeSeriesFilterInput
+                      $readDataInput: ReadDataInput!
+                    ) {
+                      bwr_TimeSeries(where: $where) {
+                        nodes {
+                          ...Bwr_TimeSeries
+                        }
+                      }
+                    }
+
+                    fragment Bwr_TimeSeries on bwr_TimeSeries {
+                      inventoryId: _inventoryItemId
+                      area
+                      source
+                      type
+                      name
+                      category
+                      specification
+                      commodity
+                      resolution {
+                        timeUnit
+                        factor
+                      }
+                      unit
+                      validationCriteria {
+                        ...Bwr_ValidationCriteria
+                      }
+                      importSpecification {
+                        fromPeriod
+                        toPeriod
+                      }
+                      _dataPoints(input: $readDataInput) {
+                        timestamp
+                        value
+                        flag
+                      }
+                    }
+
+                    fragment Bwr_ValidationCriteria on bwr_ValidationCriteria {
+                      _inventoryItemId
+                      name
+                      completeness
+                      lowerBound
+                      upperBound
+                    }
+                ",
+            "extend schema @key(fields: \"id\")",
+            FileResource.Open("FieldsWithUnderlinePrefix.graphql"));
+    }
+
+    [Fact]
+    public void HasuraMutation()
+    {
+        AssertResult(
+            @"
+                     mutation insertPeople($people: [people_insert_input!]!) {
+                        insert_people(objects: $people)
+                        {
+                            affected_rows
+                        }
+                    }
+                ",
+            "extend schema @key(fields: \"id\")",
+            FileResource.Open("HasuraSchema.graphql"));
+    }
+
+    [Fact]
+    public void LowerCaseScalarArgument()
+    {
+        AssertResult(
+            @"
+                    query GetPeopleByPk($id: uuid!) {
+                        people_by_pk(id: $id) {
+                            id
+                            firstName
+                            lastName
+                        }
+                    }
+                ",
+            "extend schema @key(fields: \"id\")",
+            FileResource.Open("HasuraSchema.graphql"));
     }
 }

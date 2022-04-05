@@ -1,25 +1,19 @@
 using System;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public readonly ref struct GraphQLSocketMessage
 {
-    public readonly ref struct GraphQLSocketMessage
+    public GraphQLSocketMessage(string type, string? id, ReadOnlySpan<byte> payload)
     {
-        public GraphQLSocketMessage(string type, string? id, ReadOnlySpan<byte> payload)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            Type = type;
-            Id = id;
-            Payload = payload;
-        }
-
-        public string? Id { get; }
-
-        public string Type { get; }
-
-        public ReadOnlySpan<byte> Payload { get; }
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+        Id = id;
+        Payload = payload;
     }
+
+    public string? Id { get; }
+
+    public string Type { get; }
+
+    public ReadOnlySpan<byte> Payload { get; }
 }

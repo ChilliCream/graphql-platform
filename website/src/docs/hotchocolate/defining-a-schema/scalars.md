@@ -2,7 +2,7 @@
 title: "Scalars"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
 
@@ -77,7 +77,7 @@ It is **not** automatically inferred and the `IdType` needs to be [explicitly sp
 `ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Product
@@ -95,8 +95,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class Product
@@ -134,8 +134,8 @@ public class QueryType : ObjectType
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class Product
@@ -158,7 +158,7 @@ public class Startup
                  id: ID
                }
             ")
-            .BindComplexType<Product>()
+            .BindRuntimeType<Product>()
             .AddResolver("Query", "product", context =>
             {
                 var id = context.ArgumentValue<int>("id");
@@ -169,7 +169,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 Notice how our code uses `int` for the `Id`, but in a request / response it would be serialized as a `string`. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.
@@ -286,6 +286,8 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 dotnet add package HotChocolate.Types.Scalars
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 **Available Scalars:**
 
 | Type             | Description                                                                                                                                              |
@@ -316,8 +318,10 @@ dotnet add package HotChocolate.Types.Scalars
 | Port             | TCP port within the range of 0 to 65535                                                                                                                  |
 | Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                       |
 | Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                      |
+| SignedByte       | Signed 8-bit numeric non‐fractional value greater than or equal to -127 and smaller than or equal to 128.                                                |
 | UnsignedInt      | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
 | UnsignedLong     | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
+| UnsignedShort    | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.                                                   |
 | UtcOffset        | A value of format `±hh:mm`                                                                                                                               |
 
 [1]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
@@ -343,6 +347,8 @@ It can be installed like the following.
 ```bash
 dotnet add package HotChocolate.Types.NodaTime
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 **Available Scalars:**
 

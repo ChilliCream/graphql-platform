@@ -3,63 +3,66 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Validation;
+using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Execution.ErrorHelper;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Pipeline;
+
+internal sealed class DocumentValidationMiddleware
 {
-    internal sealed class DocumentValidationMiddleware
+    private readonly RequestDelegate _next;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly IDocumentValidator _documentValidator;
+
+    public DocumentValidationMiddleware(
+        RequestDelegate next,
+        IExecutionDiagnosticEvents diagnosticEvents,
+        IDocumentValidator documentValidator)
     {
-        private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly IDocumentValidator _documentValidator;
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
+        _documentValidator = documentValidator ??
+            throw new ArgumentNullException(nameof(documentValidator));
+    }
 
-        public DocumentValidationMiddleware(
-            RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
-            IDocumentValidator documentValidator)
+    public async ValueTask InvokeAsync(IRequestContext context)
+    {
+        if (context.Document is null)
         {
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
-            _documentValidator = documentValidator ??
-                throw new ArgumentNullException(nameof(documentValidator));
+            context.Result = StateInvalidForDocumentValidation();
         }
-
-        public async ValueTask InvokeAsync(IRequestContext context)
+        else
         {
-            if (context.Document is null)
+            if (context.ValidationResult is null || _documentValidator.HasDynamicRules)
             {
-                context.Result = StateInvalidForDocumentValidation();
-            }
-            else
-            {
-                if (context.ValidationResult is null)
+                using (_diagnosticEvents.ValidateDocument(context))
                 {
-                    using (_diagnosticEvents.ValidateDocument(context))
+                    context.ValidationResult = _documentValidator.Validate(
+                        context.Schema,
+                        context.Document,
+                        context.ContextData,
+                        context.ValidationResult is not null);
+
+                    if (!context.IsValidDocument)
                     {
-                        context.ValidationResult = _documentValidator.Validate(
-                            context.Schema,
-                            context.Document,
-                            context.ContextData);
+                        // if the validation failed we will report errors within the validation
+                        // span and we will complete the pipeline since we do not have a valid
+                        // GraphQL request.
+                        DocumentValidatorResult validationResult = context.ValidationResult;
+
+                        context.Result = QueryResultBuilder.CreateError(
+                            validationResult.Errors,
+                            new Dictionary<string, object?> { { ValidationErrors, true } });
+
+                        _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
+                        return;
                     }
                 }
-
-                if (context.ValidationResult is { HasErrors: true } validationResult)
-                {
-                    context.Result = QueryResultBuilder.CreateError(
-                        validationResult.Errors,
-                        new Dictionary<string, object?>
-                        {
-                            { WellKnownContextData.ValidationErrors, true }
-                        });
-                    _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
-                }
-                else
-                {
-                    await _next(context).ConfigureAwait(false);
-                }
             }
+
+            await _next(context).ConfigureAwait(false);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace HotChocolate.Data.MongoDb.Paging
 {
     public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResource>
     {
-        private readonly List<Foo> foos = new List<Foo>
+        private readonly List<Foo> foos = new()
         {
             new Foo { Bar = "a" },
             new Foo { Bar = "b" },
@@ -41,27 +41,26 @@ namespace HotChocolate.Data.MongoDb.Paging
             IRequestExecutor executor = await CreateSchemaAsync();
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos {
-                        edges {
-                            node {
+                .ExecuteAsync(@"
+                    {
+                        foos {
+                            edges {
+                                node {
+                                    bar
+                                }
+                                cursor
+                            }
+                            nodes {
                                 bar
                             }
-                            cursor
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
+                            }
                         }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }");
+                    }");
             result.MatchDocumentSnapshot();
         }
 
@@ -73,27 +72,26 @@ namespace HotChocolate.Data.MongoDb.Paging
             IRequestExecutor executor = await CreateSchemaAsync();
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos(first: 2) {
-                        edges {
-                            node {
+                .ExecuteAsync(@"
+                    {
+                        foos(first: 2) {
+                            edges {
+                                node {
+                                    bar
+                                }
+                                cursor
+                            }
+                            nodes {
                                 bar
                             }
-                            cursor
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
+                            }
                         }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }");
+                    }");
             result.MatchDocumentSnapshot();
         }
 
@@ -105,27 +103,26 @@ namespace HotChocolate.Data.MongoDb.Paging
             IRequestExecutor executor = await CreateSchemaAsync();
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos(first: 2 after: ""MQ=="") {
-                        edges {
-                            node {
+                .ExecuteAsync(@"
+                    {
+                        foos(first: 2 after: ""MQ=="") {
+                            edges {
+                                node {
+                                    bar
+                                }
+                                cursor
+                            }
+                            nodes {
                                 bar
                             }
-                            cursor
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
+                            }
                         }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }");
+                    }");
             result.MatchDocumentSnapshot();
         }
 
@@ -138,27 +135,26 @@ namespace HotChocolate.Data.MongoDb.Paging
 
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos {
-                        edges {
-                            node {
+                .ExecuteAsync(@"
+                    {
+                        foos {
+                            edges {
+                                node {
+                                    bar
+                                }
+                                cursor
+                            }
+                            nodes {
                                 bar
                             }
-                            cursor
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
+                            }
                         }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }");
+                    }");
             result.MatchDocumentSnapshot();
         }
 
@@ -171,13 +167,29 @@ namespace HotChocolate.Data.MongoDb.Paging
 
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos {
-                        totalCount
-                    }
-                }");
+                .ExecuteAsync(@"
+                    {
+                        foos {
+                            totalCount
+                        }
+                    }");
+            result.MatchDocumentSnapshot();
+        }
+
+        [Fact]
+        public async Task TotalCount_AndFirst()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor = await CreateSchemaAsync();
+
+            IExecutionResult result = await executor
+                .ExecuteAsync(@"
+                    {
+                        foos(first:1) {
+                            totalCount
+                        }
+                    }");
             result.MatchDocumentSnapshot();
         }
 
@@ -191,8 +203,8 @@ namespace HotChocolate.Data.MongoDb.Paging
 
         private Func<IResolverContext, MongoDbAggregateFluentExecutable<TResult>>
             BuildResolver<TResult>(
-                MongoResource mongoResource,
-                IEnumerable<TResult> results)
+            MongoResource mongoResource,
+            IEnumerable<TResult> results)
             where TResult : class
         {
             IMongoCollection<TResult> collection =
@@ -206,15 +218,15 @@ namespace HotChocolate.Data.MongoDb.Paging
         private ValueTask<IRequestExecutor> CreateSchemaAsync()
         {
             return new ServiceCollection()
-                .AddTransient<CursorPagingProvider, MongoDbCursorPagingProvider>()
                 .AddGraphQL()
+                .AddMongoDbPagingProviders()
                 .AddFiltering(x => x.AddMongoDbDefaults())
                 .AddQueryType(
                     descriptor =>
                     {
                         descriptor
                             .Field("foos")
-                            .Resolver(BuildResolver(_resource, foos))
+                            .Resolve(BuildResolver(_resource, foos))
                             .Type<ListType<ObjectType<Foo>>>()
                             .Use(
                                 next => async context =>
@@ -232,12 +244,11 @@ namespace HotChocolate.Data.MongoDb.Paging
                     next => async context =>
                     {
                         await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out object? queryString))
+                        if (context.ContextData.TryGetValue("query", out var queryString))
                         {
                             context.Result =
                                 QueryResultBuilder
-                                    .FromResult(result)
+                                    .FromResult(context.Result!.ExpectQueryResult())
                                     .SetContextData("query", queryString)
                                     .Create();
                         }

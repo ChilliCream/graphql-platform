@@ -12,12 +12,12 @@ namespace HotChocolate.Execution
         public async Task ConvertSourceObject()
         {
             // arrange
-            bool conversionTriggered = false;
+            var conversionTriggered = false;
 
-            var executor = new ServiceCollection()
+            IRequestExecutor executor = new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddTypeConverter<Foo, Baz>(input => 
+                .AddTypeConverter<Foo, Baz>(input =>
                 {
                     conversionTriggered = true;
                     return new Baz { Qux = input.Bar };
@@ -32,7 +32,12 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync("{ foo { qux } }");
 
             // assert
-            Assert.True(conversionTriggered);
+            Assert.True(
+                Assert.IsType<QueryResult>(result).Errors is null,
+                "There should be no errors.");
+            Assert.True(
+                conversionTriggered,
+                "The custom converter should have been hit.");
             result.MatchSnapshot();
         }
 
@@ -55,8 +60,7 @@ namespace HotChocolate.Execution
                 await schema.MakeExecutable().ExecuteAsync(request);
 
             // assert
-            result.MatchSnapshot(options =>
-                options.IgnoreField("Errors[0].Exception"));
+            result.ToJson().MatchSnapshot();
         }
 
         public class Query
@@ -64,8 +68,7 @@ namespace HotChocolate.Execution
             public Foo Foo { get; } = new Foo { Bar = "bar" };
         }
 
-        public class QueryType
-            : ObjectType<Query>
+        public class QueryType : ObjectType<Query>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Query> descriptor)
@@ -84,8 +87,7 @@ namespace HotChocolate.Execution
             public string Qux { get; set; }
         }
 
-        public class BazType
-            : ObjectType<Baz>
+        public class BazType : ObjectType<Baz>
         {
         }
     }

@@ -31,7 +31,7 @@ namespace HotChocolate.Types
                     .AddSubscriptionType(t => t
                         .Field("test")
                         .Type<StringType>()
-                        .Resolver(ctx => ctx.GetEventMessage<string>())
+                        .Resolve(ctx => ctx.GetEventMessage<string>())
                         .Subscribe(_ => new List<string> { "a", "b", "c" }))
                     .ModifyOptions(t => t.StrictValidation = false)
                     .Create();
@@ -65,7 +65,7 @@ namespace HotChocolate.Types
                     .AddSubscriptionType(t => t
                         .Field("test")
                         .Type<StringType>()
-                        .Resolver(ctx => ctx.GetEventMessage<string>())
+                        .Resolve(ctx => ctx.GetEventMessage<string>())
                         .Subscribe(_ => Task.FromResult<IEnumerable<string>>(
                             new List<string> { "a", "b", "c" })))
                     .ModifyOptions(t => t.StrictValidation = false)
@@ -102,7 +102,7 @@ namespace HotChocolate.Types
                     .AddSubscriptionType(t => t
                         .Field("test")
                         .Type<StringType>()
-                        .Resolver(ctx => ctx.GetEventMessage<string>())
+                        .Resolve(ctx => ctx.GetEventMessage<string>())
                         .Subscribe(_ => observable))
                     .ModifyOptions(t => t.StrictValidation = false)
                     .Create();
@@ -140,7 +140,7 @@ namespace HotChocolate.Types
                     .AddSubscriptionType(t => t
                         .Field("test")
                         .Type<StringType>()
-                        .Resolver(ctx => ctx.GetEventMessage<string>())
+                        .Resolve(ctx => ctx.GetEventMessage<string>())
                         .Subscribe(_ => Task.FromResult<IObservable<string>>(observable)))
                     .ModifyOptions(t => t.StrictValidation = false)
                     .Create();
@@ -175,7 +175,7 @@ namespace HotChocolate.Types
                     .AddSubscriptionType(t => t
                         .Field("test")
                         .Type<StringType>()
-                        .Resolver(ctx => ctx.GetEventMessage<string>())
+                        .Resolve(ctx => ctx.GetEventMessage<string>())
                         .Subscribe(_ => new TestAsyncEnumerable()))
                     .ModifyOptions(t => t.StrictValidation = false)
                     .Create();
@@ -209,7 +209,7 @@ namespace HotChocolate.Types
                     .AddSubscriptionType(t => t
                         .Field("test")
                         .Type<StringType>()
-                        .Resolver(ctx => ctx.GetEventMessage<string>())
+                        .Resolve(ctx => ctx.GetEventMessage<string>())
                         .Subscribe(_ => Task.FromResult<IAsyncEnumerable<string>>(
                             new TestAsyncEnumerable())))
                     .ModifyOptions(t => t.StrictValidation = false)
@@ -279,18 +279,18 @@ namespace HotChocolate.Types
                 // act
                 IRequestExecutor executor = await CreateExecutorAsync(r => r
                     .AddInMemorySubscriptions()
-                    .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                    .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                     .AddMutationType<MyMutation>()
                     .AddSubscriptionType<PureCodeFirstSourceStream>());
 
                 // act
-                var subscriptionResult = (ISubscriptionResult)await executor.ExecuteAsync(
+                var subscriptionResult = (IResponseStream)await executor.ExecuteAsync(
                     "subscription { " + field + " (userId: \"1\") }", ct);
 
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeBoolean(userId: \"1\" message: true) }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 // assert
                 var results = new StringBuilder();
@@ -425,7 +425,7 @@ namespace HotChocolate.Types
                 // arrange
                 IRequestExecutor executor = await CreateExecutorAsync(r => r
                     .AddInMemorySubscriptions()
-                    .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                    .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                     .AddMutationType<MyMutation>()
                     .AddSubscriptionType<MySubscription>());
 
@@ -438,7 +438,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -465,7 +465,7 @@ namespace HotChocolate.Types
                 // arrange
                 IRequestExecutor executor = await CreateExecutorAsync(r => r
                     .AddInMemorySubscriptions()
-                    .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                    .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                     .AddMutationType<MyMutation>()
                     .AddSubscriptionType<MySubscription>());
 
@@ -478,7 +478,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeFixedMessage(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -505,7 +505,7 @@ namespace HotChocolate.Types
                 // arrange
                 IRequestExecutor executor = await CreateExecutorAsync(r => r
                     .AddInMemorySubscriptions()
-                    .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                    .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                     .AddMutationType<MyMutation>()
                     .AddSubscriptionType<MySubscription>());
 
@@ -518,7 +518,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeSysMessage(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -545,7 +545,7 @@ namespace HotChocolate.Types
                 // arrange
                 IRequestExecutor executor = await CreateExecutorAsync(r => r
                     .AddInMemorySubscriptions()
-                    .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                    .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                     .AddMutationType<MyMutation>()
                     .AddSubscriptionType<MySubscription>());
 
@@ -558,7 +558,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeOnInferTopic(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -585,7 +585,7 @@ namespace HotChocolate.Types
                 // arrange
                 IRequestExecutor executor = await CreateExecutorAsync(r => r
                     .AddInMemorySubscriptions()
-                    .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                    .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                     .AddMutationType<MyMutation>()
                     .AddSubscriptionType<MySubscription>());
 
@@ -598,7 +598,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeOnExplicit(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -622,7 +622,7 @@ namespace HotChocolate.Types
             // act
             IRequestExecutor executor = await CreateExecutorAsync(r => r
                 .AddInMemorySubscriptions()
-                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddMutationType<MyMutation>()
                 .AddSubscriptionType<MySubscription>());
 
@@ -637,7 +637,7 @@ namespace HotChocolate.Types
             // act
             IRequestExecutor executor = await CreateExecutorAsync(r => r
                 .AddInMemorySubscriptions()
-                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddSubscriptionType(d => d.Name("Subscription"))
                 .AddTypeExtension<MySubscriptionExtension>());
 
@@ -651,7 +651,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             async Task Error() => await CreateExecutorAsync(r => r.AddInMemorySubscriptions()
-                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddSubscriptionType<InvalidSubscription_TwoTopicAttributes>());
 
             // assert
@@ -884,7 +884,7 @@ namespace HotChocolate.Types
                 return new(OnSomethingObj());
             }
 
-            private class StringObservable
+            private sealed class StringObservable
                 : IObservable<string>
                 , IObservable<object>
             {
@@ -898,7 +898,7 @@ namespace HotChocolate.Types
                     return new Subscription(observer);
                 }
 
-                private class Subscription : IDisposable
+                private sealed class Subscription : IDisposable
                 {
                     public Subscription(IObserver<string> observer)
                     {

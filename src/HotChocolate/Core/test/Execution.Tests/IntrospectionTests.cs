@@ -1,10 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
-using HotChocolate.Types;
 using HotChocolate.Tests;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -63,7 +63,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -78,7 +78,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -95,7 +95,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -110,7 +110,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -125,7 +125,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.ToJson().MatchSnapshot();
         }
 
@@ -133,13 +133,9 @@ namespace HotChocolate.Execution
         public async Task FieldMiddlewareDoesNotHaveAnEffectOnIntrospection()
         {
             // arrange
-            var query = "{ __typename a }";
-
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterExtendedScalarTypes();
-                c.RegisterType<Query>();
-                c.Use(next => async context =>
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .Use(next => async context =>
                 {
                     await next.Invoke(context);
 
@@ -147,16 +143,16 @@ namespace HotChocolate.Execution
                     {
                         context.Result = s.ToUpperInvariant();
                     }
-                });
-            });
+                })
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync("{ __typename a }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -187,7 +183,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -195,22 +191,18 @@ namespace HotChocolate.Execution
         public async Task DirectiveMiddlewareDoesWorkOnIntrospection()
         {
             // arrange
-            var query = "{ __typename @upper a }";
-
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterExtendedScalarTypes();
-                c.RegisterType<Query>();
-                c.RegisterDirective<UpperDirectiveType>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddDirectiveType<UpperDirectiveType>()
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync("{ __typename @upper a }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -229,7 +221,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -391,12 +383,13 @@ namespace HotChocolate.Execution
         private static ISchema CreateSchema()
         {
             return SchemaBuilder.New()
+                .AddType<BarDirectiveType>()
                 .AddQueryType<Query>()
                 .ModifyOptions(o => o.RemoveUnreachableTypes = false)
                 .Create();
         }
 
-        private class Query : ObjectType
+        private sealed class Query : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
@@ -404,15 +397,48 @@ namespace HotChocolate.Execution
 
                 descriptor.Field("a")
                     .Type<StringType>()
-                    .Resolver(() => "a");
+                    .Resolve(() => "a");
 
                 descriptor.Field("b")
                     .Type<Foo>()
-                    .Resolver(() => new object());
+                    .Resolve(() => new object());
+
+                descriptor.Field("c")
+                    .Type<StringType>()
+                    .Argument("c_arg", x => x.Type<StringType>().Deprecated("TEST"))
+                    .Resolve(() => "c");
+
+                descriptor.Field("d")
+                    .Type<StringType>()
+                    .Argument("d_arg", x => x.Type<FooInput>())
+                    .Resolve(() => "d");
             }
         }
 
-        private class Foo : ObjectType
+        private sealed class BarDirectiveType : DirectiveType
+        {
+            protected override void Configure(IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("Bar");
+                descriptor.Location(DirectiveLocation.Query | DirectiveLocation.Field);
+                descriptor.Argument("a").Type<StringType>();
+                descriptor.Argument("b").Type<StringType>().Deprecated("TEST 3");
+            }
+        }
+
+        private sealed class FooInput : InputObjectType
+        {
+            protected override void Configure(IInputObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("FooInput");
+
+                descriptor.Field("a").Type<StringType>();
+
+                descriptor.Field("b").Type<StringType>().Deprecated("TEST 2");
+            }
+        }
+
+        private sealed class Foo : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
@@ -420,27 +446,27 @@ namespace HotChocolate.Execution
 
                 descriptor.Field("a")
                     .Type<StringType>()
-                    .Resolver(() => "foo.a");
+                    .Resolve(() => "foo.a");
             }
         }
 
-        private class BarType : ObjectType
+        private sealed class BarType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Bar");
                 descriptor.Field("a")
                     .Type<StringType>()
-                    .Argument("b", a => a.Type<BazType>()
-                        .DefaultValue(new Baz { Qux = "fooBar" }))
-                    .Resolver(() => "foo.a");
+                    .Argument("b",
+                        a => a.Type<BazType>()
+                            .DefaultValue(new Baz { Qux = "fooBar" }))
+                    .Resolve(() => "foo.a");
             }
         }
 
         public class BazType : InputObjectType<Baz>
         {
-            protected override void Configure(
-                IInputObjectTypeDescriptor<Baz> descriptor)
+            protected override void Configure(IInputObjectTypeDescriptor<Baz> descriptor)
             {
                 descriptor.Name("Baz");
                 descriptor.Field(t => t.Qux).DefaultValue("123456");
@@ -452,11 +478,9 @@ namespace HotChocolate.Execution
             public string Qux { get; set; }
         }
 
-        private sealed class UpperDirectiveType
-            : DirectiveType
+        private sealed class UpperDirectiveType : DirectiveType
         {
-            protected override void Configure(
-                IDirectiveTypeDescriptor descriptor)
+            protected override void Configure(IDirectiveTypeDescriptor descriptor)
             {
                 descriptor.Name("upper");
                 descriptor.Location(DirectiveLocation.Field);

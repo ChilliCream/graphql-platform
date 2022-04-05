@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Microsoft ResX Schema
+
+    Version 2.0
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
+    associated with the data types.
+
+    Example:
+
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+
+    There are any number of "resheader" rows that contain simple
+    name/value pairs.
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
+    mimetype set.
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
+    extensible. For a given mimetype the value must be set accordingly:
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
+    read any of the formats listed below.
+
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ExternalDirective_Description" xml:space="preserve">
+    <value>Directive to indicate that a field is owned by another service, for example via Apollo federation.</value>
+  </data>
+  <data name="FieldsetType_Description" xml:space="preserve">
+    <value>Scalar representing a set of fields.</value>
+  </data>
+  <data name="KeyDirective_Description" xml:space="preserve">
+    <value>Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface.</value>
+  </data>
+  <data name="ProvidesDirective_Description" xml:space="preserve">
+    <value>Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway.</value>
+  </data>
+  <data name="RequiresDirective_Description" xml:space="preserve">
+    <value>Used to annotate the required input fieldset from a base type for a resolver.</value>
+  </data>
+  <data name="EntityType_Description" xml:space="preserve">
+    <value>Union of all types that key directive applied. This information is needed by the Apollo federation gateway.</value>
+  </data>
+  <data name="ThrowHelper_FieldSet_HasInvalidFormat" xml:space="preserve">
+    <value>The fieldset has an invalid format.</value>
+  </data>
+  <data name="ThrowHelper_Scalar_CannotParseValue" xml:space="preserve">
+    <value>{0} cannot parse the given value of type `{1}`</value>
+  </data>
+  <data name="ThrowHelper_Key_FieldSet_CannotBeEmpty" xml:space="preserve">
+    <value>The key attribute is used on `{0}` without specifying the the field set.</value>
+  </data>
+  <data name="ThrowHelper_Provides_FieldSet_CannotBeEmpty" xml:space="preserve">
+    <value>FieldSet is null or empty on type</value>
+  </data>
+  <data name="ThrowHelper_Requires_FieldSet_CannotBeEmpty" xml:space="preserve">
+    <value>FieldSet is null or empty on type</value>
+  </data>
+  <data name="FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
+  <data name="FieldDescriptorExtensions_Requires_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
+  <data name="FieldDescriptorExtensions_Provides_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
+  <data name="ThrowHelper_EntityType_NoEntities" xml:space="preserve">
+    <value>The schema has no types with a KeyDirective and therefor no entities. Apollo federation requires at least on entity.</value>
+  </data>
+  <data name="ServiceType_Description" xml:space="preserve">
+    <value>This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec.</value>
+  </data>
+  <data name="ThrowHelper_EntityResolver_NoEntityResolverFound" xml:space="preserve">
+    <value>The apollo gateway tries to resolve an entity for which no EntityResolver method was found.</value>
+  </data>
+  <data name="EntityResolver_MustBeMethod" xml:space="preserve">
+    <value>The EntityResolver must be a method. Please check if the EntityResolverAttribute is correctly set to a method.</value>
+  </data>
+  <data name="ThrowHelper_Any_HasInvalidFormat" xml:space="preserve">
+    <value>The given any representation has an invalid format.</value>
+  </data>
+  <data name="Any_Description" xml:space="preserve">
+    <value>The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema.</value>
+  </data>
+  <data name="ResolveReference_MustBeMethod" xml:space="preserve">
+    <value>The expression must refer to a method representing the reference resolver.</value>
+  </data>
+</root>

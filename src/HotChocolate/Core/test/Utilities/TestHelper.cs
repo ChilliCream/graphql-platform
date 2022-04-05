@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
@@ -6,8 +8,6 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
-using System.Linq;
-using System.Threading;
 
 namespace HotChocolate.Tests
 {
@@ -31,17 +31,18 @@ namespace HotChocolate.Tests
 
         public static async Task<IExecutionResult> ExpectValid(
             string query,
-            TestConfiguration? configuration)
+            TestConfiguration? configuration,
+            CancellationToken cancellationToken = default)
         {
             // arrange
             IRequestExecutor executor = await CreateExecutorAsync(configuration);
             IReadOnlyQueryRequest request = CreateRequest(configuration, query);
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request, default);
+            IExecutionResult result = await executor.ExecuteAsync(request, cancellationToken);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             return result;
         }
 
@@ -91,25 +92,25 @@ namespace HotChocolate.Tests
             IReadOnlyQueryRequest request = CreateRequest(configuration, query);
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request, default);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.NotNull(result.Errors);
+            IQueryResult queryResult = Assert.IsType<QueryResult>(result);
+            Assert.NotNull(queryResult.Errors);
 
             if (elementInspectors.Length > 0)
             {
-                Assert.Collection(result.Errors!, elementInspectors);
+                Assert.Collection(queryResult.Errors!, elementInspectors);
             }
 
-            result.MatchSnapshot();
+            queryResult.MatchSnapshot();
         }
 
         public static async Task<T> CreateTypeAsync<T>()
             where T : INamedType
         {
             ISchema schema = await CreateSchemaAsync(c => c
-                .AddQueryType(d => d
-                    .Name("Query").Field("foo").Resolver("result"))
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
                 .AddType<T>()
                 .ModifyOptions(o => o.StrictValidation = false));
             return schema.Types.OfType<T>().Single();
@@ -126,8 +127,7 @@ namespace HotChocolate.Tests
             INamedType type)
         {
             return CreateSchemaAsync(c => c
-                .AddQueryType(d => d
-                    .Name("Query").Field("foo").Resolver("result"))
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
                 .AddType(type)
                 .ModifyOptions(o => o.StrictValidation = false));
         }
@@ -225,7 +225,7 @@ namespace HotChocolate.Tests
                 }
 
                 await Task.Delay(wait).ConfigureAwait(false);
-                wait = wait * 2;
+                wait *= 2;
             }
 
             async Task<bool> ExecuteAsync(int attempt)

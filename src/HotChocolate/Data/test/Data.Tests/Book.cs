@@ -1,14 +1,15 @@
-namespace HotChocolate.Data
+namespace HotChocolate.Data;
+
+public class Book
 {
-    public class Book
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        [IsProjected(true)]
-        public int AuthorId { get; set; }
+    [IsProjected(true)]
+    public int AuthorId { get; set; }
 
-        public string? Title { get; set; }
+    public string? Title { get; set; }
 
-        public virtual Author? Author { get; set; }
-    }
+    public virtual Author? Author { get; set; }
+
+    public virtual Publisher? Publisher { get; set; }
 }

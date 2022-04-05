@@ -65,7 +65,7 @@ type Address {
 In the scenario of schema stitching, the configuration of the gateway schema is on the gateway itself.
 The gateway pulls the schema from the downstream services and can be extended with SDL.
 The benefit of this approach is that no configuration on the downstream services is needed.
-With this approach, it is possible to also stitch thrid party GraphQL services.
+With this approach, it is possible to also stitch third party GraphQL services.
 
 Gateway:
 
@@ -86,7 +86,7 @@ graph TD;
 The major difference between schema federation and schema stitching is where the extensions are stored.
 In the federated approach, the schema extensions are defined on the federated service.
 The domain services push the schema on a cache (like Redis).
-The gateway is subscribed to changed from this cache and can hot reload the schema if the configuration of a domain service changes.
+The gateway is subscribed to changes from this cache and can hot reload the schema if the configuration of a domain service changes.
 It is also possible to set up federations in a pull setup.
 In this setup, the downstream services expose a field on their schema to fetch the stitching information.
 The gateway then fetches the federation information from the downstream service on startup.

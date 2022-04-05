@@ -32,8 +32,14 @@ namespace HotChocolate.Data.Projections.Spatial
             await _resource.RunSqlScriptAsync(
                 "CREATE EXTENSION postgis;\n" + sql,
                 databaseName);
-            dbContext.AddRange(results);
-            dbContext.SaveChanges();
+
+            DbSet<T> set = dbContext.Set<T>();
+
+            foreach (T result in results)
+            {
+                set.Add(result);
+                await dbContext.SaveChangesAsync();
+            }
 
             return ctx => dbContext.Data.AsQueryable();
         }
@@ -55,7 +61,7 @@ namespace HotChocolate.Data.Projections.Spatial
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(resolver)
+                        .Resolve(resolver)
                         .UseProjection()
                         .Use(next => async context =>
                         {
@@ -78,12 +84,11 @@ namespace HotChocolate.Data.Projections.Spatial
                 {
                     await next(context);
 
-                    if (context.Result is IReadOnlyQueryResult result &&
-                        context.ContextData.TryGetValue("sql", out var queryString))
+                    if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
                             QueryResultBuilder
-                                .FromResult(result)
+                                .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("sql", queryString)
                                 .Create();
                     }

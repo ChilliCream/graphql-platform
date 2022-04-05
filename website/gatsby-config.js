@@ -29,6 +29,7 @@ module.exports = {
       },
     ],
     tools: {
+      bcp: `https://eat.bananacakepop.com`,
       github: `https://github.com/ChilliCream/hotchocolate`,
       slack: `http://slack.chillicream.com/`,
       twitter: `https://twitter.com/Chilli_Cream`,
@@ -49,6 +50,7 @@ module.exports = {
             options: {
               mermaidOptions: {
                 fontFamily: "sans-serif",
+                sequence: { showSequenceNumbers: true },
               },
             },
           },
@@ -56,7 +58,7 @@ module.exports = {
             resolve: `gatsby-remark-images`,
             options: {
               maxWidth: 800,
-              quality: 90,
+              quality: 100,
               backgroundColor: "transparent",
             },
           },
@@ -126,7 +128,12 @@ module.exports = {
     },
     `gatsby-transformer-json`,
     `gatsby-plugin-image`,
-    `gatsby-plugin-sharp`,
+    {
+      resolve: `gatsby-plugin-sharp`,
+      options: {
+        quality: 100,
+      },
+    },
     `gatsby-transformer-sharp`,
     {
       resolve: "gatsby-plugin-web-font-loader",
@@ -142,8 +149,8 @@ module.exports = {
         name: `ChilliCream GraphQL`,
         short_name: `ChilliCream`,
         start_url: `/`,
-        background_color: `#f40010`,
-        theme_color: `#f40010`,
+        background_color: `#3b4f74`,
+        theme_color: `#3b4f74`,
         display: `standalone`,
         icon: `src/images/chillicream-favicon.png`,
       },
@@ -183,13 +190,10 @@ module.exports = {
             ...options,
             id: baseUrl,
             title,
-            link: baseUrl,
+            site_url: baseUrl,
             description,
             copyright: `All rights reserved ${currentYear}, ${company}`,
-            author: {
-              name: author,
-              link: "https://twitter.com/Chilli_Cream",
-            },
+            author,
             generator: "ChilliCream",
             image: `${baseUrl}/favicon-32x32.png`,
             favicon: `${baseUrl}/favicon-32x32.png`,
@@ -221,7 +225,7 @@ module.exports = {
                       path
                       featuredImage {
                         childImageSharp {
-                          gatsbyImageData(layout: CONSTRAINED, width: 800)
+                          gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
                         }
                       }
                     }
@@ -238,37 +242,28 @@ module.exports = {
                 },
               },
             }) =>
-              allMdx.edges.map(({ node }) => {
-                const date = new Date(Date.parse(node.frontmatter.date));
+              allMdx.edges.map(({ node: { excerpt, frontmatter, body } }) => {
+                const date = new Date(Date.parse(frontmatter.date));
                 const imgSrcPattern = new RegExp(
                   `(${pathPrefix})?/static/`,
                   "g"
                 );
-                const link = siteUrl + pathPrefix + node.frontmatter.path;
-                let image = node.frontmatter.featuredImage
+                const link = siteUrl + pathPrefix + frontmatter.path;
+                let image = frontmatter.featuredImage
                   ? siteUrl +
-                    node.frontmatter.featuredImage.childImageSharp
-                      .gatsbyImageData.src
+                    frontmatter.featuredImage.childImageSharp.gatsbyImageData
+                      .src
                   : null;
 
                 return {
-                  id: node.frontmatter.path,
-                  link,
-                  title: node.frontmatter.title,
+                  url: link,
+                  title: frontmatter.title,
                   date,
                   published: date,
-                  description: node.excerpt,
-                  content: node.body.replace(
-                    imgSrcPattern,
-                    `${siteUrl}/static/`
-                  ),
+                  description: excerpt,
+                  content: body.replace(imgSrcPattern, `${siteUrl}/static/`),
                   image,
-                  author: [
-                    {
-                      name: node.frontmatter.author,
-                      link: node.frontmatter.authorUrl,
-                    },
-                  ],
+                  author: frontmatter.author,
                 };
               }),
             title: "ChilliCream Blog",

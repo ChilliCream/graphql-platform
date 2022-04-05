@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -124,7 +125,17 @@ namespace HotChocolate.Execution.Benchmarks
             IQueryExecutor executer,
             IReadOnlyQueryRequest request)
         {
-            return await executer.ExecuteAsync(request);
+            try
+            {
+                return await executer.ExecuteAsync(request);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Full Exception:");
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
+                throw;
+            }
         }
 
         private static async Task<IExecutionResult> FiveRequestsInParallel(

@@ -44,8 +44,8 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             FieldResolverDelegate resolver = null;
             var resolverFunc = new Func<IResolverContext, object>(_ => "foo");
-            var descriptor = new Mock<IObjectFieldDescriptor>();
-            descriptor.Setup(t => t.Resolver(It.IsAny<FieldResolverDelegate>()))
+            var descriptor = new Mock<IObjectFieldDescriptor>(MockBehavior.Strict);
+            descriptor.Setup(t => t.Resolve(It.IsAny<FieldResolverDelegate>()))
                 .Returns(
                     new Func<FieldResolverDelegate, IObjectFieldDescriptor>(
                     r =>
@@ -55,8 +55,7 @@ namespace HotChocolate.Types.Descriptors
                     }));
 
             // act
-            ResolverObjectFieldDescriptorExtensions
-                .Resolver(descriptor.Object, resolverFunc);
+            ResolverObjectFieldDescriptorExtensions.Resolver(descriptor.Object, resolverFunc);
 
             // assert
             Assert.Equal("foo", await resolver.Invoke(

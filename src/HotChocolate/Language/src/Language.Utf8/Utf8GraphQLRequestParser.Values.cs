@@ -1,251 +1,247 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using HotChocolate.Language.Properties;
 using System.Runtime.CompilerServices;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public ref partial struct Utf8GraphQLRequestParser
 {
-    public ref partial struct Utf8GraphQLRequestParser
+    private object? ParseValue()
     {
-        private object? ParseValue()
+        return _reader.Kind switch
         {
-            return _reader.Kind switch
-            {
-                TokenKind.LeftBracket => ParseList(),
-                TokenKind.LeftBrace => ParseObject(),
-                TokenKind.String => ParseScalar(),
-                TokenKind.Integer => ParseScalar(),
-                TokenKind.Float => ParseScalar(),
-                TokenKind.Name => ParseScalar(),
-                _ => throw ThrowHelper.UnexpectedToken(_reader)
-            };
+            TokenKind.LeftBracket => ParseList(),
+            TokenKind.LeftBrace => ParseObject(),
+            TokenKind.String => ParseScalar(),
+            TokenKind.Integer => ParseScalar(),
+            TokenKind.Float => ParseScalar(),
+            TokenKind.Name => ParseScalar(),
+            _ => throw ThrowHelper.UnexpectedToken(_reader)
+        };
+    }
+
+    private int SkipValue()
+    {
+        return _reader.Kind switch
+        {
+            TokenKind.LeftBracket => SkipList(),
+            TokenKind.LeftBrace => SkipObject(),
+            TokenKind.String => SkipScalar(),
+            TokenKind.Integer => SkipScalar(),
+            TokenKind.Float => SkipScalar(),
+            TokenKind.Name => SkipScalar(),
+            _ => throw ThrowHelper.UnexpectedToken(_reader)
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private IReadOnlyDictionary<string, object?> ParseObject()
+    {
+        _reader.Expect(TokenKind.LeftBrace);
+
+        var obj = new Dictionary<string, object?>();
+
+        while (_reader.Kind != TokenKind.RightBrace)
+        {
+            ParseObjectField(obj);
         }
 
-        private int SkipValue()
+        // skip closing token
+        _reader.Expect(TokenKind.RightBrace);
+
+        return obj;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int SkipObject()
+    {
+        _reader.Expect(TokenKind.LeftBrace);
+
+        while (_reader.Kind != TokenKind.RightBrace)
         {
-            return _reader.Kind switch
-            {
-                TokenKind.LeftBracket => SkipList(),
-                TokenKind.LeftBrace => SkipObject(),
-                TokenKind.String => SkipScalar(),
-                TokenKind.Integer => SkipScalar(),
-                TokenKind.Float => SkipScalar(),
-                TokenKind.Name => SkipScalar(),
-                _ => throw ThrowHelper.UnexpectedToken(_reader)
-            };
+            SkipObjectField();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IReadOnlyDictionary<string, object?> ParseObject()
+        // skip closing token
+        var end = _reader.End;
+        _reader.Expect(TokenKind.RightBrace);
+        return end;
+    }
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ParseObjectField(IDictionary<string, object?> obj)
+    {
+        if (_reader.Kind != TokenKind.String)
         {
-            _reader.Expect(TokenKind.LeftBrace);
-
-            var obj = new Dictionary<string, object?>();
-
-            while (_reader.Kind != TokenKind.RightBrace)
-            {
-                ParseObjectField(obj);
-            }
-
-            // skip closing token
-            _reader.Expect(TokenKind.RightBrace);
-
-            return obj;
+            throw new SyntaxException(
+                _reader,
+                ParseMany_InvalidOpenToken,
+                TokenKind.String,
+                TokenPrinter.Print(in _reader));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int SkipObject()
+        var name = _reader.GetString();
+        _reader.MoveNext();
+        _reader.Expect(TokenKind.Colon);
+        var value = ParseValue();
+        obj.Add(name, value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SkipObjectField()
+    {
+        if (_reader.Kind != TokenKind.String)
         {
-            _reader.Expect(TokenKind.LeftBrace);
-
-            while (_reader.Kind != TokenKind.RightBrace)
-            {
-                SkipObjectField();
-            }
-
-            // skip closing token
-            var end = _reader.End;
-            _reader.Expect(TokenKind.RightBrace);
-            return end;
+            throw new SyntaxException(
+                _reader,
+                ParseMany_InvalidOpenToken,
+                TokenKind.String,
+                TokenPrinter.Print(in _reader));
         }
 
+        _reader.MoveNext();
+        _reader.Expect(TokenKind.Colon);
+        SkipValue();
+    }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ParseObjectField(IDictionary<string, object?> obj)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private IReadOnlyList<object?> ParseList()
+    {
+        if (_reader.Kind != TokenKind.LeftBracket)
         {
-            if (_reader.Kind != TokenKind.String)
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.String,
-                        TokenVisualizer.Visualize(in _reader)));
-            }
-
-            string name = _reader.GetString();
-            _reader.MoveNext();
-            _reader.Expect(TokenKind.Colon);
-            object? value = ParseValue();
-            obj.Add(name, value);
+            throw new SyntaxException(
+                _reader,
+                ParseMany_InvalidOpenToken,
+                TokenKind.LeftBracket,
+                TokenPrinter.Print(in _reader));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SkipObjectField()
-        {
-            if (_reader.Kind != TokenKind.String)
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.String,
-                        TokenVisualizer.Visualize(in _reader)));
-            }
+        var list = new List<object?>();
 
-            _reader.MoveNext();
-            _reader.Expect(TokenKind.Colon);
+        // skip opening token
+        _reader.MoveNext();
+
+        while (_reader.Kind != TokenKind.RightBracket)
+        {
+            list.Add(ParseValue());
+        }
+
+        // skip closing token
+        _reader.Expect(TokenKind.RightBracket);
+
+        return list;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int SkipList()
+    {
+        // skip opening token
+        _reader.MoveNext();
+
+        while (_reader.Kind != TokenKind.RightBracket)
+        {
             SkipValue();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IReadOnlyList<object?> ParseList()
+        // skip closing token
+        var end = _reader.End;
+        _reader.Expect(TokenKind.RightBracket);
+        return end;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private object? ParseScalar()
+    {
+        string? value;
+
+        switch (_reader.Kind)
         {
-            if (_reader.Kind != TokenKind.LeftBracket)
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBracket,
-                        TokenVisualizer.Visualize(in _reader)));
-            }
+            case TokenKind.String:
+                value = _reader.GetString();
+                _reader.MoveNext();
+                return value;
 
-            var list = new List<object?>();
+            case TokenKind.Integer:
+                value = _reader.GetScalarValue();
+                _reader.MoveNext();
+                return long.Parse(value, CultureInfo.InvariantCulture);
 
-            // skip opening token
-            _reader.MoveNext();
+            case TokenKind.Float:
+                value = _reader.GetScalarValue();
+                _reader.MoveNext();
+                return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
 
-            while (_reader.Kind != TokenKind.RightBracket)
-            {
-                list.Add(ParseValue());
-            }
-
-            // skip closing token
-            _reader.Expect(TokenKind.RightBracket);
-
-            return list;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int SkipList()
-        {
-            // skip opening token
-            _reader.MoveNext();
-
-            while (_reader.Kind != TokenKind.RightBracket)
-            {
-                SkipValue();
-            }
-
-            // skip closing token
-            var end = _reader.End;
-            _reader.Expect(TokenKind.RightBracket);
-            return end;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private object? ParseScalar()
-        {
-            string? value;
-
-            switch (_reader.Kind)
-            {
-                case TokenKind.String:
-                    value = _reader.GetString();
+            case TokenKind.Name:
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
+                {
                     _reader.MoveNext();
-                    return value;
+                    return true;
+                }
 
-                case TokenKind.Integer:
-                    value = _reader.GetScalarValue();
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
+                {
                     _reader.MoveNext();
-                    return long.Parse(value, CultureInfo.InvariantCulture);
+                    return false;
+                }
 
-                case TokenKind.Float:
-                    value = _reader.GetScalarValue();
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
+                {
                     _reader.MoveNext();
-                    return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
+                    return null;
+                }
 
-                case TokenKind.Name:
-                    if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
-                    {
-                        _reader.MoveNext();
-                        return true;
-                    }
+                throw ThrowHelper.UnexpectedToken(_reader);
 
-                    if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
-                    {
-                        _reader.MoveNext();
-                        return false;
-                    }
-
-                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
-                    {
-                        _reader.MoveNext();
-                        return null;
-                    }
-
-                    throw ThrowHelper.UnexpectedToken(_reader);
-
-                default:
-                    throw ThrowHelper.UnexpectedToken(_reader);
-            }
+            default:
+                throw ThrowHelper.UnexpectedToken(_reader);
         }
+    }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int SkipScalar()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int SkipScalar()
+    {
+        var end = _reader.End;
+
+        switch (_reader.Kind)
         {
-            var end = _reader.End;
+            case TokenKind.String:
+                _reader.MoveNext();
+                return end;
 
-            switch (_reader.Kind)
-            {
-                case TokenKind.String:
+            case TokenKind.Integer:
+                _reader.MoveNext();
+                return end;
+
+            case TokenKind.Float:
+                _reader.MoveNext();
+                return end;
+
+            case TokenKind.Name:
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
+                {
                     _reader.MoveNext();
                     return end;
+                }
 
-                case TokenKind.Integer:
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
+                {
                     _reader.MoveNext();
                     return end;
+                }
 
-                case TokenKind.Float:
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
+                {
                     _reader.MoveNext();
                     return end;
+                }
 
-                case TokenKind.Name:
-                    if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
-                    {
-                        _reader.MoveNext();
-                        return end;
-                    }
+                throw ThrowHelper.UnexpectedToken(_reader);
 
-                    if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
-                    {
-                        _reader.MoveNext();
-                        return end;
-                    }
-
-                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
-                    {
-                        _reader.MoveNext();
-                        return end;
-                    }
-
-                    throw ThrowHelper.UnexpectedToken(_reader);
-
-                default:
-                    throw ThrowHelper.UnexpectedToken(_reader);
-            }
+            default:
+                throw ThrowHelper.UnexpectedToken(_reader);
         }
     }
 }

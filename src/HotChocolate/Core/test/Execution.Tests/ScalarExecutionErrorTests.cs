@@ -6,6 +6,8 @@ using HotChocolate.Types;
 using HotChocolate.Tests;
 using Xunit;
 
+#nullable enable
+
 namespace HotChocolate.Execution
 {
     public class ScalarExecutionErrorTests
@@ -14,10 +16,9 @@ namespace HotChocolate.Execution
         public async Task OutputType_ClrValue_CannotBeConverted()
         {
             // arrange
-            var schema = Schema.Create(t =>
-            {
-                t.RegisterQueryType<QueryType>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
@@ -33,10 +34,9 @@ namespace HotChocolate.Execution
         public async Task OutputType_ClrValue_CannotBeParsed()
         {
             // arrange
-            var schema = Schema.Create(t =>
-            {
-                t.RegisterQueryType<QueryType>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
@@ -52,10 +52,9 @@ namespace HotChocolate.Execution
         public async Task InputType_Literal_CannotBeParsed()
         {
             // arrange
-            var schema = Schema.Create(t =>
-            {
-                t.RegisterQueryType<QueryType>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
@@ -71,17 +70,16 @@ namespace HotChocolate.Execution
         public async Task InputType_Variable_CannotBeDeserialized()
         {
             // arrange
-            var schema = Schema.Create(t =>
-            {
-                t.RegisterQueryType<QueryType>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "query a($a: Foo) { fooToString(name: $a) }",
-                new Dictionary<string, object>
+                new Dictionary<string, object?>
                 {
                     {"a", " "}
                 });
@@ -101,35 +99,32 @@ namespace HotChocolate.Execution
             public string FooToString(string name) => name;
         }
 
-        public class QueryType
-            : ObjectType<Query>
+        public class QueryType : ObjectType<Query>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Query> descriptor)
             {
-                descriptor.Field(t => t.StringToName(default))
+                descriptor.Field(t => t.StringToName(default!))
                     .Argument("name", a => a.Type<StringType>())
                     .Type<NameType>();
 
-                descriptor.Field(t => t.NameToString(default))
+                descriptor.Field(t => t.NameToString(default!))
                     .Argument("name", a => a.Type<NameType>())
                     .Type<StringType>();
 
-                descriptor.Field(t => t.StringToFoo(default))
+                descriptor.Field(t => t.StringToFoo(default!))
                     .Argument("name", a => a.Type<StringType>())
                     .Type<FooType>();
 
-                descriptor.Field(t => t.FooToString(default))
+                descriptor.Field(t => t.FooToString(default!))
                     .Argument("name", a => a.Type<FooType>())
                     .Type<StringType>();
             }
         }
 
-        public class FooType
-            : ScalarType
+        public class FooType : ScalarType
         {
-            public FooType()
-                : base("Foo")
+            public FooType() : base("Foo")
             {
             }
 
@@ -147,20 +142,20 @@ namespace HotChocolate.Execution
                     return true;
                 }
 
-                return literal is StringValueNode s && s.Value == "a";
+                return literal is StringValueNode { Value: "a" };
             }
 
-            public override bool IsInstanceOfType(object value)
+            public override bool IsInstanceOfType(object? value)
             {
                 if (value is null)
                 {
                     return true;
                 }
 
-                return value is string s && s == "a";
+                return value is "a";
             }
 
-            public override object ParseLiteral(IValueNode literal, bool withDefaults = true)
+            public override object? ParseLiteral(IValueNode literal)
             {
                 if (literal is null)
                 {
@@ -172,7 +167,7 @@ namespace HotChocolate.Execution
                     return null;
                 }
 
-                if (literal is StringValueNode s && s.Value == "a")
+                if (literal is StringValueNode { Value: "a" })
                 {
                     return "a";
                 }
@@ -180,14 +175,14 @@ namespace HotChocolate.Execution
                 throw new SerializationException("StringValue is not a.", this);
             }
 
-            public override IValueNode ParseValue(object value)
+            public override IValueNode ParseValue(object? value)
             {
                 if (value is null)
                 {
                     return NullValueNode.Default;
                 }
 
-                if (value is string s && s == "a")
+                if (value is "a")
                 {
                     return new StringValueNode("a");
                 }
@@ -195,10 +190,12 @@ namespace HotChocolate.Execution
                 throw new SerializationException("String is not a.", this);
             }
 
-            public override IValueNode ParseResult(object resultValue) => ParseValue(resultValue);
+            public override IValueNode ParseResult(object? resultValue) 
+                => ParseValue(resultValue);
 
             public override bool TrySerialize(
-                object runtimeValue, out object resultValue)
+                object? runtimeValue, 
+                out object? resultValue)
             {
                 if (runtimeValue is null)
                 {
@@ -206,7 +203,7 @@ namespace HotChocolate.Execution
                     return true;
                 }
 
-                if (runtimeValue is string s && s == "a")
+                if (runtimeValue is string and "a")
                 {
                     resultValue = new StringValueNode("a");
                     return true;
@@ -217,7 +214,8 @@ namespace HotChocolate.Execution
             }
 
             public override bool TryDeserialize(
-                object resultValue, out object runtimeValue)
+                object? resultValue, 
+                out object?runtimeValue)
             {
                 if (resultValue is null)
                 {
@@ -225,7 +223,7 @@ namespace HotChocolate.Execution
                     return true;
                 }
 
-                if (resultValue is string s && s == "a")
+                if (resultValue is "a")
                 {
                     runtimeValue = "a";
                     return true;

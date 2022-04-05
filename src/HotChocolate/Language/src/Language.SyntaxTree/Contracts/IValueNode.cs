@@ -1,11 +1,8 @@
-﻿using System;
+using System;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public interface IValueNode : ISyntaxNode, IEquatable<IValueNode>
 {
-    public interface IValueNode
-        : ISyntaxNode
-        , IEquatable<IValueNode?>
-    {
-        object? Value { get; }
-    }
+    object? Value { get; }
 }

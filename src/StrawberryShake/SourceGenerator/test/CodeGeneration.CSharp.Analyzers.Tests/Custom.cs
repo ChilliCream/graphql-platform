@@ -1,6 +1,5 @@
-namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests;
+
+public class Custom
 {
-    public class Custom
-    {
-    }
 }

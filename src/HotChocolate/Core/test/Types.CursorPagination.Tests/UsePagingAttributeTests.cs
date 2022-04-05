@@ -134,6 +134,16 @@ namespace HotChocolate.Types.Pagination
             }
         }
 
+        [Fact]
+        public void UsePagingAttribute_Can_Use_Defaults()
+        {
+            var attr = new UsePagingAttribute();
+
+            Assert.True(attr.AllowBackwardPagination);
+            Assert.True(attr.InferConnectionNameFromField);
+            Assert.False(attr.RequirePagingBoundaries);
+        }
+
         public class QueryType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)

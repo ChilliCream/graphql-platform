@@ -119,7 +119,7 @@ Let us say we want to create a simple middleware that can be put on properties a
 ```csharp
 public sealed class ToUpperAttribute : ObjectFieldDescriptorAttribute
 {
-    protected override void OnConfigure(IObjectFieldDescriptor descriptor)
+    public override void OnConfigure(IObjectFieldDescriptor descriptor)
     {
         descriptor.Use(next => async ctx =>
         {

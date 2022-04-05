@@ -2,35 +2,35 @@ using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp;
+
+public class OperationGeneratorTests
 {
-    public class OperationGeneratorTests
+    [Fact]
+    public void Response_Name_Is_Correctly_Cased()
     {
-        [Fact]
-        public void Response_Name_Is_Correctly_Cased()
-        {
-            AssertResult(
-                @"query GetSomething{ bar_baz_foo : foo_bar_baz }",
-                @"type Query {
+        AssertResult(
+            "query GetSomething{ bar_baz_foo : foo_bar_baz }",
+            @"type Query {
                     foo_bar_baz: String
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void Operation_With_MultipleOperations()
-        {
-            AssertResult(
-                @"query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    [Fact]
+    public void Operation_With_MultipleOperations()
+    {
+        AssertResult(
+            @"query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                     foo(single: $single, list: $list, nestedList:$nestedList)
                 }",
-                @"query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+            @"query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                     foo(single: $single, list: $list, nestedList:$nestedList)
                 }",
-                @"query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+            @"query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                     foo(single: $single, list: $list, nestedList:$nestedList)
                 }",
-                @"type Query {
+            @"type Query {
                     foo(single: Bar!, list: [Bar!]!, nestedList: [[Bar]]): String
                 }
 
@@ -41,28 +41,66 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     nestedList: [Bar!]!
                     nestedMatrix: [[Bar]]
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void Generate_ChatClient_AllOperations()
-        {
-            // arrange
-            AssertResult(
-                FileResource.Open("ChatOperations.graphql"),
-                FileResource.Open("Schema.extensions.graphql"),
-                FileResource.Open("ChatSchema.graphql"));
-        }
+    [Fact]
+    public void Generate_ChatClient_AllOperations()
+    {
+        // arrange
+        AssertResult(
+            FileResource.Open("ChatOperations.graphql"),
+            FileResource.Open("Schema.extensions.graphql"),
+            FileResource.Open("ChatSchema.graphql"));
+    }
 
-        [Fact]
-        public void Nullable_List_Input()
-        {
-            AssertResult(
-                @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
-                "type Query { foo(bar: Bar ): String }",
-                "input Bar { baz: [Baz] }",
-                "input Baz { qux: String }",
-                "extend schema @key(fields: \"id\")");
-        }
+    [Fact]
+    public void Nullable_List_Input()
+    {
+        AssertResult(
+            @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+            "type Query { foo(bar: Bar ): String }",
+            "input Bar { baz: [Baz] }",
+            "input Baz { qux: String }",
+            "extend schema @key(fields: \"id\")");
+    }
+
+    [Fact]
+    public void Nullable_ValueType_Input()
+    {
+        AssertResult(
+            @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+            "type Query { foo(bar: Bar ): String }",
+            "scalar IntPtr",
+            "input Bar { nullablePtr: IntPtr }",
+            @"extend scalar IntPtr
+                @serializationType(name: ""global::System.String"")
+                @runtimeType(name: ""global::System.IntPtr"", valueType: true)");
+    }
+
+    [Fact]
+    public void NonNullable_ValueType_Input()
+    {
+        AssertResult(
+            @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+            "type Query { foo(bar: Bar ): String }",
+            "scalar IntPtr",
+            "input Bar { nonNullablePtr: IntPtr! }",
+            @"extend scalar IntPtr
+                @serializationType(name: ""global::System.String"")
+                @runtimeType(name: ""global::System.IntPtr"", valueType: true)");
+    }
+
+    [Fact]
+    public void NonNullableValueType_WithoutGlobal_Input()
+    {
+        AssertResult(
+            @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+            "type Query { foo(bar: Bar ): String }",
+            "scalar IntPtr",
+            "input Bar { nonNullablePtr: IntPtr! }",
+            @"extend scalar IntPtr
+                @serializationType(name: ""global::System.String"")
+                @runtimeType(name: ""System.IntPtr"", valueType: true)");
     }
 }

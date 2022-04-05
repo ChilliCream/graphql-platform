@@ -96,7 +96,9 @@ namespace HotChocolate.Validation
         public void NotOnExistingTypeOnFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentValidatorContext context = ValidationUtils.CreateContext();
+            context.MaxAllowedErrors = int.MaxValue;
+
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -128,7 +130,9 @@ namespace HotChocolate.Validation
         public void NotExistingTypeOnInlineFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentValidatorContext context = ValidationUtils.CreateContext();
+            context.MaxAllowedErrors = int.MaxValue;
+
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {

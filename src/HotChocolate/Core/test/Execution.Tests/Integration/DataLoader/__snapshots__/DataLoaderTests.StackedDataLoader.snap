@@ -1,10 +1,11 @@
 ﻿[
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
-      "a": "aaabacadae",
-      "b": "babbbcbdbe"
+      "a": "aaabacadaeafagah",
+      "b": "babbbcbdbebfbgbh"
     },
     "Errors": null,
     "Extensions": null,
@@ -12,10 +13,11 @@
     "HasNext": null
   },
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
-      "a": "aaabacadae"
+      "a": "aaabacadaeafagah"
     },
     "Errors": null,
     "Extensions": null,
@@ -23,10 +25,11 @@
     "HasNext": null
   },
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
-      "c": "cacbcccdce"
+      "c": "cacbcccdcecfcgch"
     },
     "Errors": null,
     "Extensions": null,

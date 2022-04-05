@@ -11,10 +11,10 @@ namespace HotChocolate.Types.Relay
         public async Task ExecuteQueryThatReturnsId_IdShouldBeOpaque()
         {
             // arrange
-            var schema = Schema.Create(t =>
-            {
-                t.RegisterQueryType<SomeQuery>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<SomeQuery>()
+                .AddGlobalObjectIdentification(false)
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 

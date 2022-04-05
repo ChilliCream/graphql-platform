@@ -1,79 +1,39 @@
-using System.Linq;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis;
 
-namespace GreenDonut
+namespace GreenDonut;
+
+internal class Batch<TKey> where TKey : notnull
 {
-    public class Batch<TKey, TValue>
-        where TKey : notnull
+    private readonly List<TKey> _keys = new();
+    private readonly Dictionary<TKey, object> _items = new();
+
+    public int Size => _keys.Count;
+
+    public IReadOnlyList<TKey> Keys => _keys;
+
+    public TaskCompletionSource<TValue> GetOrCreatePromise<TValue>(TKey key)
     {
-        private readonly object _sync = new object();
-        private readonly Dictionary<TKey, TaskCompletionSource<TValue>> _items =
-            new Dictionary<TKey, TaskCompletionSource<TValue>>();
-        private bool _hasDispatched;
-
-        public IReadOnlyList<TKey> Keys => _items.Keys.ToArray();
-
-        public int Size => _items.Count;
-
-        public bool TryGetOrCreate(
-            TKey key,
-            [NotNullWhen(true)] out TaskCompletionSource<TValue>? promise)
+        if(_items.TryGetValue(key, out var value))
         {
-            if (!_hasDispatched)
-            {
-                lock (_sync)
-                {
-                    if (!_hasDispatched)
-                    {
-                        if (_items.ContainsKey(key))
-                        {
-                            promise = _items[key];
-                        }
-                        else
-                        {
-                            promise = new TaskCompletionSource<TValue>(
-                                TaskCreationOptions.RunContinuationsAsynchronously);
-                            _items.Add(key, promise);
-                        }
-
-                        return true;
-                    }
-                }
-            }
-
-            promise = null;
-            return false;
+            return (TaskCompletionSource<TValue>)value;
         }
 
-        public TaskCompletionSource<TValue> Get(TKey key)
-        {
-            return _items[key];
-        }
+        var promise = new TaskCompletionSource<TValue>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public ValueTask StartDispatchingAsync(Func<ValueTask> dispatch)
-        {
-            bool execute = false;
+        _keys.Add(key);
+        _items.Add(key, promise);
 
-            if (!_hasDispatched)
-            {
-                lock (_sync)
-                {
-                    if (!_hasDispatched)
-                    {
-                        execute = _hasDispatched = true;
-                    }
-                }
-            }
+        return promise;
+    }
 
-            if (execute)
-            {
-                return dispatch();
-            }
+    public TaskCompletionSource<TValue> GetPromise<TValue>(TKey key)
+        => (TaskCompletionSource<TValue>)_items[key];
 
-            return default;
-        }
+    internal void ClearUnsafe()
+    {
+        _keys.Clear();
+        _items.Clear();
     }
 }

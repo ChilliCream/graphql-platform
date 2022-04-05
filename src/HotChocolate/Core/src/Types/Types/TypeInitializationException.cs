@@ -1,21 +1,20 @@
 using System;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+[Serializable]
+public class TypeInitializationException : Exception
 {
-    [Serializable]
-    public class TypeInitializationException : Exception
-    {
-        public TypeInitializationException() { }
+    public TypeInitializationException() { }
 
-        public TypeInitializationException(string message)
-            : base(message) { }
+    public TypeInitializationException(string message)
+        : base(message) { }
 
-        public TypeInitializationException(string message, Exception inner)
-            : base(message, inner) { }
+    public TypeInitializationException(string message, Exception inner)
+        : base(message, inner) { }
 
-        protected TypeInitializationException(
-            System.Runtime.Serialization.SerializationInfo info,
-            System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) { }
-    }
+    protected TypeInitializationException(
+        System.Runtime.Serialization.SerializationInfo info,
+        System.Runtime.Serialization.StreamingContext context)
+        : base(info, context) { }
 }

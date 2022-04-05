@@ -1,19 +1,18 @@
 using System;
 
-namespace StrawberryShake
+namespace StrawberryShake;
+
+public partial class CachePolicy : IDisposable
 {
-    public partial class CachePolicy : IDisposable
+    private readonly IDisposable _session;
+
+    public CachePolicy(IDisposable session)
     {
-        private readonly IDisposable _session;
+        _session = session;
+    }
 
-        public CachePolicy(IDisposable session)
-        {
-            _session = session;
-        }
-
-        public void Dispose()
-        {
-            _session.Dispose();
-        }
+    public void Dispose()
+    {
+        _session.Dispose();
     }
 }

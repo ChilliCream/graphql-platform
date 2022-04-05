@@ -1,15 +1,15 @@
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp;
+
+public class ResultTypeGeneratorTests
 {
-    public class ResultTypeGeneratorTests
+    [Fact]
+    public void Operation_With_Complex_Types()
     {
-        [Fact]
-        public void Operation_With_Complex_Types()
-        {
-            AssertResult(
-                @"query GetFoo {
+        AssertResult(
+            @"query GetFoo {
                     foo {
                         str
                         strNonNullable
@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         nestedMatrix { str }
                     }
                 }",
-                @"type Query {
+            @"type Query {
                     foo: Baz
                 }
 
@@ -29,14 +29,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     nestedList: [Baz!]!
                     nestedMatrix: [[Baz]]
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void Operation_With_Comments()
-        {
-            AssertResult(
-                @"query GetFoo {
+    [Fact]
+    public void Operation_With_Comments()
+    {
+        AssertResult(
+            @"query GetFoo {
                     foo {
                         str
                         strNonNullable
@@ -45,7 +45,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         nestedMatrix { str }
                     }
                 }",
-                @"type Query {
+            @"type Query {
                     foo: Baz
                 }
 
@@ -62,14 +62,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     ""Field nestedMatrix""
                     nestedMatrix: [[Baz]]
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void Operation_With_NullableData()
-        {
-            AssertResult(
-                @"
+    [Fact]
+    public void Operation_With_NullableData()
+    {
+        AssertResult(
+            @"
                 schema {
                     query: Query
                     subscription: Subscription
@@ -99,7 +99,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                   fooDATE: String!
                   fooTEXT: String
                 }",
-                @"
+            @"
                 subscription OnFooUpdated {
                   onFooUpdated {
                     action
@@ -115,14 +115,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                   }
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void Nested_Entity()
-        {
-            AssertResult(
-                @"
+    [Fact]
+    public void Nested_Entity()
+    {
+        AssertResult(
+            @"
                 schema {
                   query: Query
                 }
@@ -131,18 +131,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                   decodeVIN: DecodeVIN!
                 }
 
-                scalar Uuid
+                scalar UUID
 
                 type DecodeVIN {
                   vehicleMake: VehicleMake
                   vehicleModel: VehicleModel
-                  vehicleMakeId: Uuid
-                  vehicleModelId: Uuid
+                  vehicleMakeId: UUID
+                  vehicleModelId: UUID
                   isValid: Boolean!
                 }
 
                 type VehicleMake {
-                  id: Uuid!
+                  id: UUID!
                   make: String
                   makeCode: String
                   isDisabled: Boolean!
@@ -150,15 +150,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
 
                 type VehicleModel {
-                  id: Uuid!
-                  vehicleMakeId: Uuid!
+                  id: UUID!
+                  vehicleMakeId: UUID!
                   model: String
                   modelCode: String
                   modelType: String
                   isDisabled: Boolean!
                   vehicleMake: VehicleMake
                 }",
-                @"
+            @"
                 query decodeVIN{
                   decodeVIN{
                     ...DecodeVINModel
@@ -190,7 +190,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                   isDisabled
                 }
                 ",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
     }
 }

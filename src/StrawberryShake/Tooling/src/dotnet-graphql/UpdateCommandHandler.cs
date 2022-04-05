@@ -43,7 +43,8 @@ namespace StrawberryShake.Tools
                 arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()!.Trim()) : null,
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
                 accessToken?.Token,
-                accessToken?.Scheme);
+                accessToken?.Scheme,
+                CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
 
             return context.Path is null
                 ? await FindAndUpdateSchemasAsync(context, cancellationToken)
@@ -64,10 +65,12 @@ namespace StrawberryShake.Tools
                         context, path, cancellationToken)
                         .ConfigureAwait(false);
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch
                 {
                     return 1;
                 }
+#pragma warning restore CA1031 // Do not catch general exception types
             }
             return 0;
         }
@@ -126,7 +129,8 @@ namespace StrawberryShake.Tools
             HttpClient client = HttpClientFactory.Create(
                 context.Uri ?? serviceUri,
                 context.Token,
-                context.Scheme);
+                context.Scheme,
+                context.CustomHeaders);
 
             return await IntrospectionHelper.DownloadSchemaAsync(
                 client, FileSystem, activity, schemaFilePath,

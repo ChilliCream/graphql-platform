@@ -320,5 +320,53 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ResultHelper_BuildResult_InvalidResult", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_MaxComplexityReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxComplexityReached", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_StateInvalidForComplexityAnalyzer_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_StateInvalidForComplexityAnalyzer_Message", resourceCulture);
+            }
+        }
+        
+        internal static string BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed {
+            get {
+                return ResourceManager.GetString("BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string QueryPlan_InvalidFragmentId {
+            get {
+                return ResourceManager.GetString("QueryPlan_InvalidFragmentId", resourceCulture);
+            }
+        }
+        
+        internal static string WorkBacklog_NotFullyInitialized {
+            get {
+                return ResourceManager.GetString("WorkBacklog_NotFullyInitialized", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_OperationCanceled_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OperationCanceled_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ResolverContext_CannotCastParent {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ResolverContext_CannotCastParent", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_OnlyQueryResults {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_OnlyQueryResults", resourceCulture);
+            }
+        }
     }
 }
