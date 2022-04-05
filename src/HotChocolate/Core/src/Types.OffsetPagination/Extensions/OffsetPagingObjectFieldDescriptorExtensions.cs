@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
@@ -114,9 +115,19 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             ? (NameString?)EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
+                ITypeReference? typeRef = itemType is not null
+                    ? c.TypeInspector.GetTypeRef(itemType)
+                    : null;
+
+                if (typeRef is null &&
+                    d.Type is SyntaxTypeReference syntaxTypeRef &&
+                    syntaxTypeRef.Type.IsListType())
+                {
+                    typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
+                }
 
                 MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
-                d.Type = CreateTypeRef(c, resolverMember, collectionSegmentName, itemType, options);
+                d.Type = CreateTypeRef(c, resolverMember, collectionSegmentName, typeRef, options);
                 d.CustomSettings.Add(typeof(CollectionSegment));
             });
 
@@ -221,35 +232,55 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         IDescriptorContext context,
         MemberInfo? resolverMember,
         NameString? collectionSegmentName,
-        Type? type,
+        ITypeReference? typeReference,
         PagingOptions options)
     {
-        // first we will try and infer the schema type of the collection.
-        IExtendedType schemaType = PagingHelper.GetSchemaType(
-            context.TypeInspector,
-            resolverMember,
-            type);
+        ITypeInspector typeInspector = context.TypeInspector;
 
-        // we need to ensure that the schema type is a valid output type. For this we create a
-        // type info which decomposes the type into its logical type components and is able
-        // to check if the named type component is really an output type.
-        if (!context.TypeInspector.TryCreateTypeInfo(schemaType, out ITypeInfo? typeInfo) ||
-            !typeInfo.IsOutputType())
+        if (typeReference is null)
         {
-            throw OffsetPagingObjectFieldDescriptorExtensions_InvalidType();
+            // if there is no explicit node type provided we will try and
+            // infer the schema type from the resolver member.
+            typeReference = TypeReference.Create(
+                PagingHelper.GetSchemaType(typeInspector, resolverMember),
+                TypeContext.Output);
+        }
+
+        // if the node type is a syntax type reference we will try to preserve the actual
+        // runtime type for later usage.
+        if (typeReference.Kind == TypeReferenceKind.Syntax &&
+            PagingHelper.TryGetNamedType(typeInspector, resolverMember, out Type? namedType))
+        {
+            context.TryBindRuntimeType(
+                ((SyntaxTypeReference)typeReference).Type.NamedType().Name.Value,
+                namedType);
         }
 
         options = context.GetSettings(options);
 
         // once we have identified the correct type we will create the
         // paging result type from it.
-        IExtendedType connectionType = context.TypeInspector.GetType(
-            options.IncludeTotalCount ?? false
-                ? typeof(CollectionSegmentCountType<>).MakeGenericType(schemaType.Source)
-                : typeof(CollectionSegmentType<>).MakeGenericType(schemaType.Source));
+        //IExtendedType connectionType = context.TypeInspector.GetType(
+        //    options.IncludeTotalCount ?? false
+        //        ? typeof(CollectionSegmentCountType<>).MakeGenericType(schemaType.Source)
+        //        : typeof(CollectionSegmentType<>).MakeGenericType(schemaType.Source));
 
         // last but not leas we create a type reference that can be put on the field definition
         // to tell the type discovery that this field needs this result type.
+
+        return collectionSegmentName is null
+            ? TypeReference.Create(
+                "HotChocolate_Types_CollectionSegment",
+                typeReference,
+                _ => new CollectionSegmentType(null, typeReference,context),
+                TypeContext.Output)
+            : TypeReference.Create(
+                connectionName.Value + "Connection",
+                TypeContext.Output,
+                factory: _ => new ConnectionType(
+                    connectionName.Value,
+                    nodeType,
+                    withTotalCount));
         return CreateCollectionSegmentType(connectionType, collectionSegmentName);
     }
 
