@@ -51,7 +51,7 @@ namespace HotChocolate.Data.MongoDb.Sorting
                     BarBool = false,
                     BarEnum = BarEnum.FOO,
                     BarString = "testctest",
-                    ObjectArray = null,
+                    ObjectArray = null!,
                 }
             }
         };
@@ -150,7 +150,7 @@ namespace HotChocolate.Data.MongoDb.Sorting
         {
             // arrange
             IRequestExecutor? tester =
-                CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+                CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
@@ -203,7 +203,7 @@ namespace HotChocolate.Data.MongoDb.Sorting
         {
             // arrange
             IRequestExecutor tester =
-                CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+                CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
@@ -256,7 +256,7 @@ namespace HotChocolate.Data.MongoDb.Sorting
         {
             // arrange
             IRequestExecutor tester =
-                CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+                CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
@@ -309,7 +309,7 @@ namespace HotChocolate.Data.MongoDb.Sorting
         {
             // arrange
             IRequestExecutor tester =
-                CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+                CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(

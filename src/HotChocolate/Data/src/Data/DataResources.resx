@@ -293,4 +293,7 @@
   <data name="GlobalIdInputValueFormatter_IdsHaveInvalidFormat" xml:space="preserve">
     <value>The IDs `{0}` have an invalid format.</value>
   </data>
+  <data name="SelectionContext_NoTypeForAbstractFieldProvided" xml:space="preserve">
+    <value>The type {0} is an abstract type. You need to provide a type for a selection of a interface or union. Possible types are: {1}</value>
+  </data>
 </root>

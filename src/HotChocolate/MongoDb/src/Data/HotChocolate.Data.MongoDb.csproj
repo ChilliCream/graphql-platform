@@ -4,6 +4,9 @@
     <PackageId>HotChocolate.Data.MongoDb</PackageId>
     <AssemblyName>HotChocolate.Data.MongoDb</AssemblyName>
     <RootNamespace>HotChocolate.Data.MongoDb</RootNamespace>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NeutralLanguage>en</NeutralLanguage>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
     <Description>Contains extensions for seamless integration of MongoDb into the HotChocolate.Data package</Description>
   </PropertyGroup>
