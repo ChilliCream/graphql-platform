@@ -1,8 +1,6 @@
 using Xunit;
-using HotChocolate.Language;
-using System.Net.Security;
 
-namespace Language.SyntaxTree.Tests;
+namespace HotChocolate.Language.SyntaxTree;
 
 public class OptionalModifierNodeTests
 {

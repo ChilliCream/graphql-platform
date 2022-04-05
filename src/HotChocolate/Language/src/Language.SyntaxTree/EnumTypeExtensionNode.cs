@@ -19,7 +19,7 @@ public sealed class EnumTypeExtensionNode
     /// Initializes a new instance of <see cref="EnumTypeExtensionNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The name that this syntax node holds.
@@ -155,8 +155,7 @@ public sealed class EnumTypeExtensionNode
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is EnumTypeExtensionNode other &&
-            Equals(other);
+            (obj is EnumTypeExtensionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -164,7 +163,14 @@ public sealed class EnumTypeExtensionNode
     /// <returns>
     /// A hash code for the current object.
     /// </returns>
-    public override int GetHashCode() => base.GetHashCode();
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            var hashCode = base.GetHashCode();
+            return (hashCode * 397) ^ Kind.GetHashCode();
+        }
+    }
 
     public static bool operator ==(EnumTypeExtensionNode? left, EnumTypeExtensionNode? right)
         => Equals(left, right);

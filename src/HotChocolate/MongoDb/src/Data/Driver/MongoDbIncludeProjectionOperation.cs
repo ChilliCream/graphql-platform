@@ -8,7 +8,6 @@ namespace HotChocolate.Data.MongoDb
     public sealed class MongoDbIncludeProjectionOperation : MongoDbProjectionDefinition
     {
         private readonly string _path;
-        private readonly SortDirection _direction;
 
         public MongoDbIncludeProjectionOperation (
             string field)

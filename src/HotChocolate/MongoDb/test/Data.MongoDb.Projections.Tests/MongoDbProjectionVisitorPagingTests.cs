@@ -364,7 +364,7 @@ namespace HotChocolate.Data.MongoDb.Projections
 
             public bool Bar { get; set; }
 
-            public string Baz { get; set; }
+            public string Baz { get; set; } = default!;
 
             public string? Qux { get; set; }
 
