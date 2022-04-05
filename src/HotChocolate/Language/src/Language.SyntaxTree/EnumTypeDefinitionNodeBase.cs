@@ -16,7 +16,7 @@ public abstract class EnumTypeDefinitionNodeBase
     /// <see cref="EnumTypeDefinitionNodeBase"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The enum type name.
