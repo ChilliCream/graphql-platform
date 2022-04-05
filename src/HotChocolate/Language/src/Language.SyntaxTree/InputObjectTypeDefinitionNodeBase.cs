@@ -63,7 +63,7 @@ public abstract class InputObjectTypeDefinitionNodeBase
         }
 
         return base.Equals(other)
-               && Fields.Equals(other.Fields);
+               && Fields.IsEqualTo(other.Fields);
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public abstract class InputObjectTypeDefinitionNodeBase
     {
         var hashCode = new HashCode();
         hashCode.Add(base.GetHashCode());
-        HashCodeExtensions.AddNodes(ref hashCode, Fields);
+        hashCode.AddNodes(Fields);
         return hashCode.ToHashCode();
     }
 
