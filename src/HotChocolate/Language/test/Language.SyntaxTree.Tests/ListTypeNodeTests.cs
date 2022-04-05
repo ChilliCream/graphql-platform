@@ -23,10 +23,10 @@ public class ListTypeNodeTests
     {
         // arrange
         // act
-        Action action = () => new ListTypeNode(null);
+        ListTypeNode Action() => new(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -65,10 +65,10 @@ public class ListTypeNodeTests
         var location = new Location(1, 1, 1, 1);
 
         // act
-        Action action = () => new ListTypeNode(location, null);
+        ListTypeNode Action() => new(location, null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -130,9 +130,9 @@ public class ListTypeNodeTests
         var type = new ListTypeNode(location, initialType);
 
         // act
-        Action action = () => type.WithType(null);
+        void Action() => type.WithType(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 }

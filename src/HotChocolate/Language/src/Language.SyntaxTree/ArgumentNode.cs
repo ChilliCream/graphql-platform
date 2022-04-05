@@ -69,7 +69,7 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
     /// Initializes a new instance of <see cref="ArgumentNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The argument name.

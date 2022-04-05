@@ -1,12 +1,45 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// <para>
+/// Interface type extensions are used to represent an interface which has been
+/// extended from some original interface. For example, this might be used to
+/// represent common local data on many types, or by a GraphQL service which is
+/// itself an extension of another GraphQL service.
+/// </para>
+/// <code>
+/// extend interface NamedEntity {
+///   name: String
+/// }
+/// </code>
+/// </summary>
 public sealed class InterfaceTypeExtensionNode
-    : InterfaceTypeDefinitionNodeBase
+    : ComplexTypeDefinitionNodeBase
     , ITypeExtensionNode
+    , IEquatable<InterfaceTypeExtensionNode>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="InterfaceTypeExtensionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name of this interface..
+    /// </param>
+    /// <param name="directives">
+    /// The applied directives of this interface.
+    /// </param>
+    /// <param name="interfaces">
+    /// The interfaces implemented by this interface.
+    /// </param>
+    /// <param name="fields">
+    /// The fields of this interface.
+    /// </param>
     public InterfaceTypeExtensionNode(
         Location? location,
         NameNode name,
@@ -17,8 +50,10 @@ public sealed class InterfaceTypeExtensionNode
     {
     }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.InterfaceTypeExtension;
+    /// <inheritdoc />
+    public override SyntaxKind Kind => SyntaxKind.InterfaceTypeExtension;
 
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
@@ -60,36 +95,128 @@ public sealed class InterfaceTypeExtensionNode
     /// </returns>
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public InterfaceTypeExtensionNode WithLocation(Location? location)
-    {
-        return new InterfaceTypeExtensionNode(
-            location, Name, Directives, Interfaces, Fields);
-    }
+        => new(location, Name, Directives, Interfaces, Fields);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">
+    /// The name that shall be used to replace the current <see cref="NamedSyntaxNode.Name" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="name" />.
+    /// </returns>
     public InterfaceTypeExtensionNode WithName(NameNode name)
+        => new(Location, name, Directives, Interfaces, Fields);
+
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Directives" /> with <paramref name="directives" />.
+    /// </summary>
+    /// <param name="directives">
+    /// The directives that shall be used to replace the current
+    /// <see cref="NamedSyntaxNode.Directives" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="directives" />.
+    /// </returns>
+    public InterfaceTypeExtensionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, directives, Interfaces, Fields);
+
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="InputObjectTypeDefinitionNodeBase.Fields" /> with <paramref name="fields" />.
+    /// </summary>
+    /// <param name="fields">
+    /// The fields that shall be used to replace the current
+    /// <see cref="InputObjectTypeDefinitionNodeBase.Fields" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="fields" />.
+    /// </returns>
+    public InterfaceTypeExtensionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields)
+        => new(Location, Name, Directives, Interfaces, fields);
+
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="ComplexTypeDefinitionNodeBase.Interfaces" /> with <paramref name="interfaces" />.
+    /// </summary>
+    /// <param name="interfaces">
+    /// The <paramref name="interfaces"/> that shall be used to replace the current
+    /// <see cref="ComplexTypeDefinitionNodeBase.Fields" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="interfaces" />.
+    /// </returns>
+    public InterfaceTypeExtensionNode WithInterfaces(IReadOnlyList<NamedTypeNode> interfaces)
+        => new(Location, Name, Directives, interfaces, Fields);
+
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
+    /// </returns>
+    public bool Equals(InterfaceTypeExtensionNode? other)
     {
-        return new InterfaceTypeExtensionNode(
-            Location, name, Directives, Interfaces, Fields);
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return base.Equals(other);
     }
 
-    public InterfaceTypeExtensionNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new InterfaceTypeExtensionNode(
-            Location, Name, directives, Interfaces, Fields);
-    }
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            (obj is InterfaceTypeExtensionNode other && Equals(other));
 
-    public InterfaceTypeExtensionNode WithFields(
-        IReadOnlyList<FieldDefinitionNode> fields)
-    {
-        return new InterfaceTypeExtensionNode(
-            Location, Name, Directives, Interfaces, fields);
-    }
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), Kind);
 
-    public InterfaceTypeExtensionNode WithInterfaces(
-        IReadOnlyList<NamedTypeNode> interfaces)
-    {
-        return new InterfaceTypeExtensionNode(
-            Location, Name, Directives, interfaces, Fields);
-    }
+    public static bool operator ==(
+        InterfaceTypeExtensionNode? left,
+        InterfaceTypeExtensionNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(
+        InterfaceTypeExtensionNode? left,
+        InterfaceTypeExtensionNode? right)
+        => !Equals(left, right);
 }
