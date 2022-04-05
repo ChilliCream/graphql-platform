@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
 public sealed class ObjectValueNode
     : IValueNode<IReadOnlyList<ObjectFieldNode>>
-    , IEquatable<ObjectValueNode>
+        , IEquatable<ObjectValueNode>
 {
-    private int? _hash;
-
     public ObjectValueNode(
         params ObjectFieldNode[] fields)
         : this(null, fields)
@@ -31,7 +28,7 @@ public sealed class ObjectValueNode
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.ObjectValue;
+    public SyntaxKind Kind => SyntaxKind.ObjectValue;
 
     public Location? Location { get; }
 
@@ -68,27 +65,7 @@ public sealed class ObjectValueNode
             return true;
         }
 
-        if (other.Fields.Count == Fields.Count)
-        {
-            IEnumerator<ObjectFieldNode> otherFields = other.Fields
-                .OrderBy(t => t.Name.Value, StringComparer.Ordinal)
-                .GetEnumerator();
-
-            foreach (ObjectFieldNode field in
-                Fields.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
-            {
-                otherFields.MoveNext();
-
-                if (!otherFields.Current.Equals(field))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return false;
+        return other.Fields.IsEqualTo(Fields);
     }
 
     /// <summary>
@@ -161,22 +138,9 @@ public sealed class ObjectValueNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            if (_hash == null)
-            {
-                var hash = (Kind.GetHashCode() * 397);
-
-                foreach (ObjectFieldNode field in Fields.OrderBy(
-                    t => t.Name.Value, StringComparer.Ordinal))
-                {
-                    hash = hash ^ (field.GetHashCode() * 397);
-                }
-                _hash = hash;
-            }
-
-            return _hash.Value;
-        }
+        var hashCode = new HashCode();
+        hashCode.AddNodes(Fields);
+        return hashCode.ToHashCode();
     }
 
     /// <summary>
@@ -185,7 +149,7 @@ public sealed class ObjectValueNode
     /// <returns>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
-    public override string ToString() => SyntaxPrinter.Print(this, true);
+    public override string ToString() => this.Print(true);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -198,16 +162,9 @@ public sealed class ObjectValueNode
     /// <returns>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
-    public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
+    public string ToString(bool indented) => this.Print(indented);
 
-    public ObjectValueNode WithLocation(Location? location)
-    {
-        return new ObjectValueNode(location, Fields);
-    }
+    public ObjectValueNode WithLocation(Location? location) => new ObjectValueNode(location, Fields);
 
-    public ObjectValueNode WithFields(
-        IReadOnlyList<ObjectFieldNode> fields)
-    {
-        return new ObjectValueNode(Location, fields);
-    }
+    public ObjectValueNode WithFields(IReadOnlyList<ObjectFieldNode> fields) => new ObjectValueNode(Location, fields);
 }
