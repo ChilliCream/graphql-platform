@@ -199,28 +199,26 @@ public sealed class FloatValueNode
             return true;
         }
 
-        if (other._floatValue.HasValue
-            && _floatValue.HasValue
-            && other._floatValue.Value.Equals(_floatValue.Value))
+        ReadOnlyMemory<byte> ourMem = AsMemory();
+        ReadOnlyMemory<byte> otherMem = other.AsMemory();
+
+        // memory is not doing a deep equality check,
+        // but it will be equal if we are referring to the same
+        // underlying array.
+        if (otherMem.Equals(ourMem))
         {
             return true;
         }
 
-        if (other._doubleValue.HasValue
-            && _doubleValue.HasValue
-            && other._doubleValue.Value.Equals(_doubleValue.Value))
+        // if the length is not equals we can do a quick exit.
+        if (ourMem.Length != otherMem.Length)
         {
-            return true;
+            return false;
         }
 
-        if (other._decimalValue.HasValue
-            && _decimalValue.HasValue
-            && other._decimalValue.Value.Equals(_decimalValue.Value))
-        {
-            return true;
-        }
-
-        return other.AsSpan().SequenceEqual(AsSpan());
+        // last we will do a sequence equals and compare the utf8string representation of
+        // this value.
+        return ourMem.Span.SequenceEqual(otherMem.Span);
     }
 
     /// <summary>
@@ -248,12 +246,12 @@ public sealed class FloatValueNode
             return true;
         }
 
-        if (other is FloatValueNode f)
+        if (other.GetType() != GetType())
         {
-            return Equals(f);
+            return false;
         }
 
-        return false;
+        return Equals((FloatValueNode)other);
     }
 
     /// <summary>
@@ -280,7 +278,12 @@ public sealed class FloatValueNode
             return true;
         }
 
-        return Equals(obj as FloatValueNode);
+        if (obj.GetType() != GetType())
+        {
+            return false;
+        }
+
+        return Equals((FloatValueNode)obj);
     }
 
     /// <summary>
@@ -291,7 +294,20 @@ public sealed class FloatValueNode
     /// A hash code for this instance that is suitable for use in
     /// hashing algorithms and data structures such as a hash table.
     /// </returns>
-    public override int GetHashCode() => HashCode.Combine(Kind, Value);
+    public override int GetHashCode()
+    {
+#if NETCOREAPP3_1_OR_GREATER
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        hashCode.AddBytes(AsSpan());
+        return hashCode.ToHashCode();
+#else
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        HashCodeExtensions.AddBytes(ref hashCode, AsSpan());
+        return hashCode.ToHashCode();
+#endif
+    }
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -325,6 +341,7 @@ public sealed class FloatValueNode
         }
 
         var format = Format == FloatFormat.FixedPoint ? 'g' : 'e';
+
         if (Utf8Parser.TryParse(AsSpan(), out float value, out _, format))
         {
             _floatValue = value;
@@ -345,6 +362,7 @@ public sealed class FloatValueNode
         }
 
         var format = Format == FloatFormat.FixedPoint ? 'g' : 'e';
+
         if (Utf8Parser.TryParse(AsSpan(), out double value, out _, format))
         {
             _doubleValue = value;
@@ -365,6 +383,7 @@ public sealed class FloatValueNode
         }
 
         var format = Format == FloatFormat.FixedPoint ? 'g' : 'e';
+
         if (Utf8Parser.TryParse(AsSpan(), out decimal value, out _, format))
         {
             _decimalValue = value;
@@ -378,6 +397,9 @@ public sealed class FloatValueNode
     /// Gets a readonly span to access the float value memory.
     /// </summary>
     public ReadOnlySpan<byte> AsSpan()
+        => AsMemory().Span;
+
+    private ReadOnlyMemory<byte> AsMemory()
     {
         if (_memory.IsEmpty)
         {
@@ -402,7 +424,7 @@ public sealed class FloatValueNode
             _memory = memory;
         }
 
-        return _memory.Span;
+        return _memory;
     }
 
     /// <summary>
@@ -482,4 +504,10 @@ public sealed class FloatValueNode
     /// </returns>
     public FloatValueNode WithValue(ReadOnlySpan<byte> value, FloatFormat format)
         => new(Location, value.ToArray(), format);
+
+    public static bool operator ==(FloatValueNode? left, FloatValueNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(FloatValueNode? left, FloatValueNode? right)
+        => !Equals(left, right);
 }

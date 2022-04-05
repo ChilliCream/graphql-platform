@@ -11,7 +11,7 @@ public class FloatValueNodeTests
     public void CreateFloatValue(string value)
     {
         // arrange
-        byte[] buffer = Encoding.UTF8.GetBytes(value);
+        var buffer = Encoding.UTF8.GetBytes(value);
 
         // act
         var floatValueNode = new FloatValueNode(
@@ -29,7 +29,7 @@ public class FloatValueNodeTests
     public void CreateFloatValueWithLocation(string value)
     {
         // arrange
-        byte[] buffer = Encoding.UTF8.GetBytes(value);
+        var buffer = Encoding.UTF8.GetBytes(value);
         var location = new Location(0, 0, 0, 0);
 
         // act
@@ -48,7 +48,7 @@ public class FloatValueNodeTests
     public void ToSingle(string value, float expected)
     {
         // arrange
-        byte[] buffer = Encoding.UTF8.GetBytes(value);
+        var buffer = Encoding.UTF8.GetBytes(value);
         var location = new Location(0, 0, 0, 0);
 
         // act
@@ -65,7 +65,7 @@ public class FloatValueNodeTests
     public void ToDouble(string value, double expected)
     {
         // arrange
-        byte[] buffer = Encoding.UTF8.GetBytes(value);
+        var buffer = Encoding.UTF8.GetBytes(value);
         var location = new Location(0, 0, 0, 0);
 
         // act
@@ -82,7 +82,7 @@ public class FloatValueNodeTests
     public void ToDecimal(string value, decimal expected)
     {
         // arrange
-        byte[] buffer = Encoding.UTF8.GetBytes(value);
+        var buffer = Encoding.UTF8.GetBytes(value);
         var location = new Location(0, 0, 0, 0);
 
         // act
@@ -102,10 +102,10 @@ public class FloatValueNodeTests
         var c = new FloatValueNode(3.0);
 
         // act
-        bool ab_result = a.Equals(b);
-        bool aa_result = a.Equals(a);
-        bool ac_result = a.Equals(c);
-        bool anull_result = a.Equals(default);
+        var ab_result = a.Equals(b);
+        var aa_result = a.Equals(a);
+        var ac_result = a.Equals(c);
+        var anull_result = a.Equals(default);
 
         // assert
         Assert.True(ab_result);
@@ -123,10 +123,10 @@ public class FloatValueNodeTests
         var c = new FloatValueNode((float)3.0);
 
         // act
-        bool ab_result = a.Equals(b);
-        bool aa_result = a.Equals(a);
-        bool ac_result = a.Equals(c);
-        bool anull_result = a.Equals(default);
+        var ab_result = a.Equals(b);
+        var aa_result = a.Equals(a);
+        var ac_result = a.Equals(c);
+        var anull_result = a.Equals(default);
 
         // assert
         Assert.True(ab_result);
@@ -144,10 +144,10 @@ public class FloatValueNodeTests
         var c = new FloatValueNode((double)3.0);
 
         // act
-        bool ab_result = a.Equals(b);
-        bool aa_result = a.Equals(a);
-        bool ac_result = a.Equals(c);
-        bool anull_result = a.Equals(default);
+        var ab_result = a.Equals(b);
+        var aa_result = a.Equals(a);
+        var ac_result = a.Equals(c);
+        var anull_result = a.Equals(default);
 
         // assert
         Assert.True(ab_result);
@@ -165,10 +165,10 @@ public class FloatValueNodeTests
         var c = new FloatValueNode((decimal)3.0);
 
         // act
-        bool ab_result = a.Equals(b);
-        bool aa_result = a.Equals(a);
-        bool ac_result = a.Equals(c);
-        bool anull_result = a.Equals(default);
+        var ab_result = a.Equals(b);
+        var aa_result = a.Equals(a);
+        var ac_result = a.Equals(c);
+        var anull_result = a.Equals(default);
 
         // assert
         Assert.True(ab_result);
@@ -187,11 +187,11 @@ public class FloatValueNodeTests
         var d = new StringValueNode("foo");
 
         // act
-        bool ab_result = a.Equals((IValueNode)b);
-        bool aa_result = a.Equals((IValueNode)a);
-        bool ac_result = a.Equals((IValueNode)c);
-        bool ad_result = a.Equals((IValueNode)d);
-        bool anull_result = a.Equals(default(IValueNode));
+        var ab_result = a.Equals((IValueNode)b);
+        var aa_result = a.Equals((IValueNode)a);
+        var ac_result = a.Equals((IValueNode)c);
+        var ad_result = a.Equals((IValueNode)d);
+        var anull_result = a.Equals(default(IValueNode));
 
         // assert
         Assert.True(ab_result);
@@ -212,12 +212,12 @@ public class FloatValueNodeTests
         var e = 1;
 
         // act
-        bool ab_result = a.Equals((object)b);
-        bool aa_result = a.Equals((object)a);
-        bool ac_result = a.Equals((object)c);
-        bool ad_result = a.Equals((object)d);
-        bool ae_result = a.Equals((object)e);
-        bool anull_result = a.Equals(default(object));
+        var ab_result = a.Equals((object)b);
+        var aa_result = a.Equals((object)a);
+        var ac_result = a.Equals((object)c);
+        var ad_result = a.Equals((object)d);
+        var ae_result = a.Equals((object)e);
+        var anull_result = a.Equals(default(object));
 
         // assert
         Assert.True(ab_result);
@@ -237,9 +237,9 @@ public class FloatValueNodeTests
         var c = new FloatValueNode(2.0);
 
         // act
-        int ahash = a.GetHashCode();
-        int bhash = b.GetHashCode();
-        int chash = c.GetHashCode();
+        var ahash = a.GetHashCode();
+        var bhash = b.GetHashCode();
+        var chash = c.GetHashCode();
 
         // assert
         Assert.Equal(ahash, bhash);
@@ -278,5 +278,88 @@ public class FloatValueNodeTests
 
         // assert
         Assert.Equal("2.5", c);
+    }
+
+    [Fact]
+    public void Equals_With_Same_Location()
+    {
+        var a = new FloatValueNode(
+            TestLocations.Location1,
+            1.1);
+        var b = new FloatValueNode(
+            TestLocations.Location1,
+            1.1);
+        var c = new FloatValueNode(
+            TestLocations.Location1,
+            1.2);
+
+        // act
+        var abResult = a.Equals(b);
+        var aaResult = a.Equals(a);
+        var acResult = a.Equals(c);
+        var aNullResult = a.Equals(default);
+
+        // assert
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
+    }
+
+    [Fact]
+    public void Equals_With_Different_Location()
+    {
+        // arrange
+        var a = new FloatValueNode(
+            TestLocations.Location1,
+            1.1);
+        var b = new FloatValueNode(
+            TestLocations.Location2,
+            1.1);
+        var c = new FloatValueNode(
+            TestLocations.Location1,
+            1.2);
+
+        // act
+        var abResult = a.Equals(b);
+        var aaResult = a.Equals(a);
+        var acResult = a.Equals(c);
+        var aNullResult = a.Equals(default);
+
+        // assert
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
+    }
+
+    [Fact]
+    public void GetHashCode_With_Location()
+    {
+        // arrange
+        var a = new FloatValueNode(
+            TestLocations.Location1,
+            1.1);
+        var b = new FloatValueNode(
+            TestLocations.Location2,
+            1.1);
+        var c = new FloatValueNode(
+            TestLocations.Location1,
+            1.2);
+        var d = new FloatValueNode(
+            TestLocations.Location2,
+            1.2);
+
+        // act
+        var aHash = a.GetHashCode();
+        var bHash = b.GetHashCode();
+        var cHash = c.GetHashCode();
+        var dHash = d.GetHashCode();
+
+        // assert
+        Assert.Equal(aHash, bHash);
+        Assert.NotEqual(aHash, cHash);
+        Assert.Equal(cHash, dHash);
+        Assert.NotEqual(aHash, dHash);
     }
 }
