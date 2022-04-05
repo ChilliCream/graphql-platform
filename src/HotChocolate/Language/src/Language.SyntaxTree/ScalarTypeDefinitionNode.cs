@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -6,6 +7,7 @@ namespace HotChocolate.Language;
 public sealed class ScalarTypeDefinitionNode
     : ScalarTypeDefinitionNodeBase
     , ITypeDefinitionNode
+    , IEquatable<ScalarTypeDefinitionNode>
 {
     public ScalarTypeDefinitionNode(
         Location? location,
@@ -86,4 +88,58 @@ public sealed class ScalarTypeDefinitionNode
             Location, Name, Description,
             directives);
     }
+
+    /// <summary>
+    /// Determines whether the specified <see cref="ScalarTypeDefinitionNode"/>
+    /// is equal to the current <see cref="ScalarTypeDefinitionNode"/>.
+    /// </summary>
+    /// <param name="other">
+    /// The <see cref="ScalarTypeDefinitionNode"/> to compare with the current
+    /// <see cref="ScalarTypeDefinitionNode"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <see cref="ScalarTypeDefinitionNode"/> is equal
+    /// to the current <see cref="ScalarTypeDefinitionNode"/>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public bool Equals(ScalarTypeDefinitionNode? other)
+    {
+        return base.Equals(other) && Description.IsEqualTo(other.Description);
+    }
+
+    /// <summary>
+    /// Determines whether the specified <see cref="object"/> is equal to
+    /// the current <see cref="ScalarTypeDefinitionNode"/>.
+    /// </summary>
+    /// <param name="obj">
+    /// The <see cref="object"/> to compare with the current
+    /// <see cref="ScalarTypeDefinitionNode"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <see cref="object"/> is equal to the
+    /// current <see cref="ScalarTypeDefinitionNode"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => Equals(obj as ScalarTypeDefinitionNode);
+
+    /// <summary>
+    /// Serves as a hash function for a <see cref="ScalarTypeDefinitionNode"/>
+    /// object.
+    /// </summary>
+    /// <returns>
+    /// A hash code for this instance that is suitable for use in
+    /// hashing algorithms and data structures such as a hash table.
+    /// </returns>
+    public override int GetHashCode()
+       => HashCode.Combine(base.GetHashCode(), Description?.GetHashCode());
+
+    public static bool operator ==(
+        ScalarTypeDefinitionNode? left,
+        ScalarTypeDefinitionNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(
+        ScalarTypeDefinitionNode? left,
+        ScalarTypeDefinitionNode? right)
+        => !Equals(left, right);
 }

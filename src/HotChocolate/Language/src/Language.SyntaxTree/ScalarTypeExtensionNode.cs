@@ -66,4 +66,55 @@ public sealed class ScalarTypeExtensionNode
         return new ScalarTypeExtensionNode(
             Location, Name, directives);
     }
+
+
+    /// <summary>
+    /// Determines whether the specified <see cref="ScalarTypeExtensionNode"/>
+    /// is equal to the current <see cref="ScalarTypeExtensionNode"/>.
+    /// </summary>
+    /// <param name="other">
+    /// The <see cref="ScalarTypeExtensionNode"/> to compare with the current
+    /// <see cref="ScalarTypeExtensionNode"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <see cref="ScalarTypeExtensionNode"/> is equal
+    /// to the current <see cref="ScalarTypeExtensionNode"/>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public bool Equals(ScalarTypeExtensionNode? other) => base.Equals(other);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="object"/> is equal to
+    /// the current <see cref="ScalarTypeExtensionNode"/>.
+    /// </summary>
+    /// <param name="obj">
+    /// The <see cref="object"/> to compare with the current
+    /// <see cref="ScalarTypeExtensionNode"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <see cref="object"/> is equal to the
+    /// current <see cref="ScalarTypeExtensionNode"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => Equals(obj as ScalarTypeExtensionNode);
+
+    /// <summary>
+    /// Serves as a hash function for a <see cref="ScalarTypeExtensionNode"/>
+    /// object.
+    /// </summary>
+    /// <returns>
+    /// A hash code for this instance that is suitable for use in
+    /// hashing algorithms and data structures such as a hash table.
+    /// </returns>
+    public override int GetHashCode() => base.GetHashCode();
+
+    public static bool operator ==(
+        ScalarTypeExtensionNode? left,
+        ScalarTypeExtensionNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(
+        ScalarTypeExtensionNode? left,
+        ScalarTypeExtensionNode? right)
+        => !Equals(left, right);
 }
