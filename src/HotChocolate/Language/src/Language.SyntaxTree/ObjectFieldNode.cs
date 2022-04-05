@@ -83,7 +83,7 @@ public sealed class ObjectFieldNode
             return true;
         }
 
-        return other.Name.IsEqualTo(Name) && other.Value.IsEqualTo(Value);
+        return other.Name.Equals(Name) && other.Value.Equals(Value);
     }
 
     /// <summary>
@@ -121,13 +121,7 @@ public sealed class ObjectFieldNode
     /// A hash code for this instance that is suitable for use in
     /// hashing algorithms and data structures such as a hash table.
     /// </returns>
-    public override int GetHashCode()
-    {
-        var hashCode = new HashCode();
-        hashCode.Add(Name);
-        hashCode.Add(Value);
-        return hashCode.ToHashCode();
-    }
+    public override int GetHashCode() => HashCode.Combine(Name, Value, Kind);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -135,7 +129,7 @@ public sealed class ObjectFieldNode
     /// <returns>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
-    public override string ToString() => this.Print(true);
+    public override string ToString() => SyntaxPrinter.Print(this, true);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -148,11 +142,11 @@ public sealed class ObjectFieldNode
     /// <returns>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
-    public string ToString(bool indented) => this.Print(indented);
+    public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public ObjectFieldNode WithLocation(Location? location) => new ObjectFieldNode(location, Name, Value);
+    public ObjectFieldNode WithLocation(Location? location) => new(location, Name, Value);
 
-    public ObjectFieldNode WithName(NameNode name) => new ObjectFieldNode(Location, name, Value);
+    public ObjectFieldNode WithName(NameNode name) => new(Location, name, Value);
 
-    public ObjectFieldNode WithValue(IValueNode value) => new ObjectFieldNode(Location, Name, value);
+    public ObjectFieldNode WithValue(IValueNode value) => new(Location, Name, value);
 }
