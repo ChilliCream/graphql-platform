@@ -23,9 +23,12 @@ namespace HotChocolate
         /// A factory that resolves the redis database that
         /// shall be used for persistence.
         /// </param>
+        /// <param name="queryExpiryTimeSpan">
+        /// A timespan after that a query will be removed from the cache.
+        /// </param>
         public static IServiceCollection AddRedisQueryStorage(
             this IServiceCollection services,
-            Func<IServiceProvider, IDatabase> databaseFactory)
+            Func<IServiceProvider, IDatabase> databaseFactory, TimeSpan? queryExpiryTimeSpan = null)
         {
             if (services is null)
             {
@@ -38,7 +41,7 @@ namespace HotChocolate
             }
 
             return services
-                .AddReadOnlyRedisQueryStorage(databaseFactory)
+                .AddReadOnlyRedisQueryStorage(databaseFactory, queryExpiryTimeSpan)
                 .AddSingleton<IWriteStoredQueries>(sp => sp.GetRequiredService<RedisQueryStorage>());
         }
 
