@@ -21,13 +21,13 @@ public sealed class InterfaceTypeDefinitionNode
         Description = description;
     }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.InterfaceTypeDefinition;
+    public override SyntaxKind Kind => SyntaxKind.InterfaceTypeDefinition;
 
     public StringValueNode? Description { get; }
 
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
-        if (Description is { })
+        if (Description is not null)
         {
             yield return Description;
         }
@@ -72,50 +72,23 @@ public sealed class InterfaceTypeDefinitionNode
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     public InterfaceTypeDefinitionNode WithLocation(Location? location)
-    {
-        return new InterfaceTypeDefinitionNode(
-            location, Name, Description,
-            Directives, Interfaces, Fields);
-    }
+        => new(location, Name, Description, Directives, Interfaces, Fields);
 
     public InterfaceTypeDefinitionNode WithName(NameNode name)
-    {
-        return new InterfaceTypeDefinitionNode(
-            Location, name, Description,
-            Directives, Interfaces, Fields);
-    }
+        => new(Location, name, Description, Directives, Interfaces, Fields);
 
-    public InterfaceTypeDefinitionNode WithDescription(
-        StringValueNode? description)
-    {
-        return new InterfaceTypeDefinitionNode(
-            Location, Name, description,
-            Directives, Interfaces, Fields);
-    }
+    public InterfaceTypeDefinitionNode WithDescription(StringValueNode? description)
+        => new(Location, Name, description, Directives, Interfaces, Fields);
 
-    public InterfaceTypeDefinitionNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new InterfaceTypeDefinitionNode(
-            Location, Name, Description,
-            directives, Interfaces, Fields);
-    }
+    public InterfaceTypeDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, Description, directives, Interfaces, Fields);
 
-    public InterfaceTypeDefinitionNode WithFields(
-        IReadOnlyList<FieldDefinitionNode> fields)
-    {
-        return new InterfaceTypeDefinitionNode(
-            Location, Name, Description,
-            Directives, Interfaces, fields);
-    }
+    public InterfaceTypeDefinitionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields)
+        => new(Location, Name, Description, Directives, Interfaces, fields);
 
     public InterfaceTypeDefinitionNode WithInterfaces(
         IReadOnlyList<NamedTypeNode> interfaces)
-    {
-        return new InterfaceTypeDefinitionNode(
-            Location, Name, Description,
-            Directives, interfaces, Fields);
-    }
+        => new(Location, Name, Description, Directives, interfaces, Fields);
 
     /// <summary>
     /// Indicates whether the current object is equal to another object of the same type.
@@ -140,10 +113,10 @@ public sealed class InterfaceTypeDefinitionNode
         }
 
         return base.Equals(other)
-               && Kind == other.Kind
-               && Description.IsEqualTo(other.Description);
+           && Kind == other.Kind
+           && Description.IsEqualTo(other.Description);
     }
-    
+
     /// <summary>
     /// Determines whether the specified object is equal to the current object.
     /// </summary>
@@ -154,10 +127,8 @@ public sealed class InterfaceTypeDefinitionNode
     /// true if the specified object  is equal to the current object; otherwise, false.
     /// </returns>
     public override bool Equals(object? obj)
-    {
-        return ReferenceEquals(this, obj) || obj is InterfaceTypeDefinitionNode other
-            && Equals(other);
-    }
+        => ReferenceEquals(this, obj) ||
+            (obj is InterfaceTypeDefinitionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -166,9 +137,7 @@ public sealed class InterfaceTypeDefinitionNode
     /// A hash code for the current object.
     /// </returns>
     public override int GetHashCode()
-    {
-        return HashCode.Combine(base.GetHashCode(), (int)Kind, Description);
-    }
+        => HashCode.Combine(base.GetHashCode(), Kind, Description);
 
     public static bool operator ==(
         InterfaceTypeDefinitionNode? left,

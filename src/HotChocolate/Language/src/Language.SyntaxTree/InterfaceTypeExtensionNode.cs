@@ -19,7 +19,7 @@ public sealed class InterfaceTypeExtensionNode
     {
     }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.InterfaceTypeExtension;
+    public override SyntaxKind Kind => SyntaxKind.InterfaceTypeExtension;
 
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
@@ -63,37 +63,19 @@ public sealed class InterfaceTypeExtensionNode
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     public InterfaceTypeExtensionNode WithLocation(Location? location)
-    {
-        return new InterfaceTypeExtensionNode(
-            location, Name, Directives, Interfaces, Fields);
-    }
+        => new(location, Name, Directives, Interfaces, Fields);
 
     public InterfaceTypeExtensionNode WithName(NameNode name)
-    {
-        return new InterfaceTypeExtensionNode(
-            Location, name, Directives, Interfaces, Fields);
-    }
+        => new(Location, name, Directives, Interfaces, Fields);
 
-    public InterfaceTypeExtensionNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new InterfaceTypeExtensionNode(
-            Location, Name, directives, Interfaces, Fields);
-    }
+    public InterfaceTypeExtensionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, directives, Interfaces, Fields);
 
-    public InterfaceTypeExtensionNode WithFields(
-        IReadOnlyList<FieldDefinitionNode> fields)
-    {
-        return new InterfaceTypeExtensionNode(
-            Location, Name, Directives, Interfaces, fields);
-    }
+    public InterfaceTypeExtensionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields)
+        => new(Location, Name, Directives, Interfaces, fields);
 
-    public InterfaceTypeExtensionNode WithInterfaces(
-        IReadOnlyList<NamedTypeNode> interfaces)
-    {
-        return new InterfaceTypeExtensionNode(
-            Location, Name, Directives, interfaces, Fields);
-    }
+    public InterfaceTypeExtensionNode WithInterfaces(IReadOnlyList<NamedTypeNode> interfaces)
+        => new(Location, Name, Directives, interfaces, Fields);
 
     /// <summary>
     /// Indicates whether the current object is equal to another object of the same type.
@@ -131,10 +113,8 @@ public sealed class InterfaceTypeExtensionNode
     /// true if the specified object  is equal to the current object; otherwise, false.
     /// </returns>
     public override bool Equals(object? obj)
-    {
-        return ReferenceEquals(this, obj) || obj is InterfaceTypeExtensionNode other
-            && Equals(other);
-    }
+        => ReferenceEquals(this, obj) ||
+            (obj is InterfaceTypeExtensionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -143,9 +123,7 @@ public sealed class InterfaceTypeExtensionNode
     /// A hash code for the current object.
     /// </returns>
     public override int GetHashCode()
-    {
-        return HashCode.Combine(base.GetHashCode(), (int)Kind);
-    }
+        => HashCode.Combine(base.GetHashCode(), Kind);
 
     public static bool operator ==(
         InterfaceTypeExtensionNode? left,

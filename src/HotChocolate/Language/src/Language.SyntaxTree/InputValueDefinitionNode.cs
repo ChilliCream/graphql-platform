@@ -151,7 +151,7 @@ public sealed class InputValueDefinitionNode
     /// The description that shall be used to replace the current description.
     /// </param>
     /// <returns>
-    /// Returns the new node with the new <paramref name="name" />.
+    /// Returns the new node with the new <paramref name="description" />.
     /// </returns>
     public InputValueDefinitionNode WithDescription(StringValueNode? description)
         => new(Location, Name, description, Type, DefaultValue, Directives);

@@ -2,8 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language;
 
-public abstract class InterfaceTypeDefinitionNodeBase
-    : ComplexTypeDefinitionNodeBase
+public abstract class InterfaceTypeDefinitionNodeBase : ComplexTypeDefinitionNodeBase
 {
     protected InterfaceTypeDefinitionNodeBase(
         Location? location,

@@ -136,7 +136,7 @@ public sealed class InputObjectTypeDefinitionNode
     /// The description that shall be used to replace the current description.
     /// </param>
     /// <returns>
-    /// Returns the new node with the new <paramref name="name" />.
+    /// Returns the new node with the new <paramref name="description" />.
     /// </returns>
     public InputObjectTypeDefinitionNode WithDescription(
         StringValueNode? description)
