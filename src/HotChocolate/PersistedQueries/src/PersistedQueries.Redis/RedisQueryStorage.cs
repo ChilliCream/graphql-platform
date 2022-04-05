@@ -17,15 +17,20 @@ namespace HotChocolate.PersistedQueries.Redis
         , IWriteStoredQueries
     {
         private readonly IDatabase _database;
+        private readonly TimeSpan? _queryExpiryTimeSpan;
 
         /// <summary>
         /// Initializes a new instance of the class.
         /// </summary>
         /// <param name="database">The redis database instance.</param>
-        public RedisQueryStorage(IDatabase database)
+        /// <param name="queryExpiryTimeSpan">
+        /// A timespan after that a query will be removed from the cache.
+        /// </param>
+        public RedisQueryStorage(IDatabase database, TimeSpan? queryExpiryTimeSpan = null)
         {
             _database = database
                 ?? throw new ArgumentNullException(nameof(database));
+            _queryExpiryTimeSpan = queryExpiryTimeSpan;
         }
 
         /// <inheritdoc />
@@ -64,7 +69,9 @@ namespace HotChocolate.PersistedQueries.Redis
                 throw new ArgumentNullException(nameof(query));
             }
 
-            return _database.StringSetAsync(queryId, query.AsSpan().ToArray());
+            return _queryExpiryTimeSpan.HasValue
+                ? _database.StringSetAsync(queryId, query.AsSpan().ToArray(), _queryExpiryTimeSpan.Value)
+                : _database.StringSetAsync(queryId, query.AsSpan().ToArray());
         }
     }
 }

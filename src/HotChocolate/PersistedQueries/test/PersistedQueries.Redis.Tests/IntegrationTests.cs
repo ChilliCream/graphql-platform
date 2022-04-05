@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Types;
 using HotChocolate.Execution;
+using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
@@ -55,6 +55,86 @@ namespace HotChocolate.PersistedQueries.Redis
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecutePersistedQuery_After_Expiry()
+        {
+            // arrange
+            var queryId = Guid.NewGuid().ToString("N");
+            var storage = new RedisQueryStorage(_database, TimeSpan.FromMilliseconds(10));
+            await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                    .AddRedisQueryStorage(s => _database)
+                    .UseRequest(n => async c =>
+                    {
+                        await n(c);
+
+                        if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                        {
+                            c.Result = QueryResultBuilder
+                                .FromResult(r)
+                                .SetExtension("persistedDocument", true)
+                                .Create();
+                        }
+                    })
+                    .UsePersistedQueryPipeline()
+                    .BuildRequestExecutorAsync();
+            await Task.Delay(100).ConfigureAwait(false);
+
+            // act
+            var result =
+                (await executor.ExecuteAsync(new QueryRequest(queryId: queryId))) as IQueryResult;
+
+            // assert
+            Assert.Collection(result.Errors, error =>
+            {
+                Assert.Equal(error.Message, "The query request contains no document.");
+                Assert.Equal(error.Code, "HC0015");
+            });
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecutePersistedQuery_Within_Expiry_Timespan()
+        {
+            // arrange
+            var queryId = Guid.NewGuid().ToString("N");
+            var storage = new RedisQueryStorage(_database, TimeSpan.FromMilliseconds(10000));
+            await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                    .AddRedisQueryStorage(s => _database)
+                    .UseRequest(n => async c =>
+                    {
+                        await n(c);
+
+                        if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                        {
+                            c.Result = QueryResultBuilder
+                                .FromResult(r)
+                                .SetExtension("persistedDocument", true)
+                                .Create();
+                        }
+                    })
+                    .UsePersistedQueryPipeline()
+                    .BuildRequestExecutorAsync();
+
+            // act
+            var result =
+                (await executor.ExecuteAsync(new QueryRequest(queryId: queryId))) as IQueryResult;
+
+            // assert
+            Assert.Equal(result.Errors, null);
+            result.MatchSnapshot();
+
         }
 
         [Fact]

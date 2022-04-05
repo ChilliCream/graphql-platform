@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
-using StackExchange.Redis;
 using HotChocolate.Execution;
 using HotChocolate.PersistedQueries.Redis;
+using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 
 namespace HotChocolate
 {
@@ -52,9 +52,12 @@ namespace HotChocolate
         /// A factory that resolves the redis database that
         /// shall be used for persistence.
         /// </param>
+        /// <param name="queryExpiryTimeSpan">
+        /// A timespan after that a query will be removed from the cache.
+        /// </param>
         public static IServiceCollection AddReadOnlyRedisQueryStorage(
             this IServiceCollection services,
-            Func<IServiceProvider, IDatabase> databaseFactory)
+            Func<IServiceProvider, IDatabase> databaseFactory, TimeSpan? queryExpiryTimeSpan = null)
         {
             if (services is null)
             {
@@ -69,7 +72,7 @@ namespace HotChocolate
             return services
                 .RemoveService<IReadStoredQueries>()
                 .RemoveService<IWriteStoredQueries>()
-                .AddSingleton(sp => new RedisQueryStorage(databaseFactory(sp)))
+                .AddSingleton(sp => new RedisQueryStorage(databaseFactory(sp), queryExpiryTimeSpan))
                 .AddSingleton<IReadStoredQueries>(sp => sp.GetRequiredService<RedisQueryStorage>());
         }
 
