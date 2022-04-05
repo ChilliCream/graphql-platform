@@ -26,6 +26,30 @@ public sealed class FieldNode
     , ISelectionNode
     , IEquatable<FieldNode>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="FieldNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the named syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The field name.
+    /// </param>
+    /// <param name="alias">
+    /// The fields alias name used instead if the actual name.
+    /// </param>
+    /// <param name="required">
+    /// Specifies the type nullability of this field.
+    /// </param>
+    /// <param name="directives">
+    /// The field directives.
+    /// </param>
+    /// <param name="arguments">
+    /// The field argument values.
+    /// </param>
+    /// <param name="selectionSet">
+    /// The fields selection set.
+    /// </param>
     public FieldNode(
         Location? location,
         NameNode name,
@@ -118,7 +142,7 @@ public sealed class FieldNode
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Location" /> with <paramref name="location" />.
     /// </summary>
     /// <param name="location">
@@ -131,11 +155,11 @@ public sealed class FieldNode
         => new(location, Name, Alias, Required, Directives, Arguments, SelectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
-    /// <see cref="Name" /> with <paramref name="name" />.
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
     /// </summary>
     /// <param name="name">
-    /// The location that shall be used to replace the current location.
+    /// The name that shall be used to replace the current <see cref="NamedSyntaxNode.Name" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="name" />.
@@ -144,11 +168,11 @@ public sealed class FieldNode
         => new(Location, name, Alias, Required, Directives, Arguments, SelectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Alias" /> with <paramref name="alias" />.
     /// </summary>
     /// <param name="alias">
-    /// The location that shall be used to replace the current location.
+    /// The alias that shall be used to replace the current <see cref="Alias" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="alias" />.
@@ -157,11 +181,12 @@ public sealed class FieldNode
         => new(Location, Name, alias, Required, Directives, Arguments, SelectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
-    /// <see cref="Directives" /> with <paramref name="directives" />.
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Directives" /> with <paramref name="directives" />.
     /// </summary>
     /// <param name="directives">
-    /// The location that shall be used to replace the current location.
+    /// The directives that shall be used to replace the current
+    /// <see cref="NamedSyntaxNode.Directives" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="directives" />.
@@ -170,11 +195,11 @@ public sealed class FieldNode
         => new(Location, Name, Alias, Required, directives, Arguments, SelectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Arguments" /> with <paramref name="arguments" />.
     /// </summary>
     /// <param name="arguments">
-    /// The location that shall be used to replace the current location.
+    /// The arguments that shall be used to replace the current <see cref="Arguments" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="arguments" />.
@@ -183,11 +208,11 @@ public sealed class FieldNode
         => new(Location, Name, Alias, Required, Directives, arguments, SelectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="SelectionSet" /> with <paramref name="selectionSet" />.
     /// </summary>
     /// <param name="selectionSet">
-    /// The location that shall be used to replace the current location.
+    /// The selectionSet that shall be used to replace the current <see cref="SelectionSet" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="selectionSet" />.
@@ -196,11 +221,11 @@ public sealed class FieldNode
         => new(Location, Name, Alias, Required, Directives, Arguments, selectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Required" /> with <paramref name="required" />.
     /// </summary>
     /// <param name="required">
-    /// The location that shall be used to replace the current location.
+    /// The required that shall be used to replace the current <see cref="Required" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="required" />.
