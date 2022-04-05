@@ -61,7 +61,7 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// Initializes a new instance of <see cref="DirectiveNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The name of the directive.
