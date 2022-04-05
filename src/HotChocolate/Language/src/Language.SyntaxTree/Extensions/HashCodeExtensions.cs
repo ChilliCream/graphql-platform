@@ -1,10 +1,10 @@
-
+#if NET6_0_OR_GREATER
 using System;
 using System.Collections.Generic;
-#if NET6_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #else
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #endif
