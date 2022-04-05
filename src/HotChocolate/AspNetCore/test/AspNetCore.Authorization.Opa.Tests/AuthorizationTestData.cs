@@ -23,10 +23,10 @@ public class Claims
 
 public class AuthorizationTestData : IEnumerable<object[]>
 {
-    private readonly string SchemaCode = @"
-            type Query {
+    private readonly string SchemaCode = $@"
+            type Query {{
                 default: String @authorize
-                age: String @authorize(policy: ""graphql/authz/has_age_defined"")
+                age: String @authorize(policy: ""{Policies.HasDefinedAge}"")
                 roles: String @authorize(roles: [""a""])
                 roles_ab: String @authorize(roles: [""a"" ""b""])
                 piped: String
@@ -34,7 +34,7 @@ public class AuthorizationTestData : IEnumerable<object[]>
                     @authorize(policy: ""b"")
                 afterResolver: String
                     @authorize(policy: ""a"" apply: AFTER_RESOLVER)
-            }
+            }}
         ";
 
     private readonly FieldMiddleware _schemaMiddleware = next => context =>
