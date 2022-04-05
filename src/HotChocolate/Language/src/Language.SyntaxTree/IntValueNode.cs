@@ -468,7 +468,7 @@ public sealed class IntValueNode
     /// </returns>
     public override int GetHashCode()
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         var hashCode = new HashCode();
         hashCode.Add(Kind);
         hashCode.AddBytes(AsSpan());

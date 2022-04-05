@@ -10,7 +10,7 @@ internal static class HashCodeExtensions
     public static int GetHashCodeOrDefault<T>(this T? obj)
         => obj is not null ? obj.GetHashCode() : 0;
 
-#if !NETCOREAPP3_1_OR_GREATER
+#if !NET6_0_OR_GREATER
     public static void AddBytes(ref HashCode hashCode, ReadOnlySpan<byte> value)
     {
         ref var pos = ref MemoryMarshal.GetReference(value);
