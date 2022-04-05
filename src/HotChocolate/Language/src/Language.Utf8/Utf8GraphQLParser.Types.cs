@@ -58,7 +58,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="NamedTypeNode" />:
     /// Name
     /// </summary>
-    /// <param name="context">The parser context.</param>
     private NamedTypeNode ParseNamedType()
     {
         TokenInfo start = Start();

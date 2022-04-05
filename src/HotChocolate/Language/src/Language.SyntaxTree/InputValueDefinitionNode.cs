@@ -10,8 +10,7 @@ namespace HotChocolate.Language;
 /// complex structs.
 /// https://graphql.github.io/graphql-spec/June2018/#sec-Input-Objects
 /// </summary>
-public sealed class InputValueDefinitionNode
-    : NamedSyntaxNode
+public sealed class InputValueDefinitionNode : NamedSyntaxNode, IEquatable<InputValueDefinitionNode>
 {
     public InputValueDefinitionNode(
         Location? location,
@@ -27,7 +26,7 @@ public sealed class InputValueDefinitionNode
         DefaultValue = defaultValue;
     }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.InputValueDefinition;
+    public override SyntaxKind Kind => SyntaxKind.InputValueDefinition;
 
     public StringValueNode? Description { get; }
 
@@ -78,47 +77,87 @@ public sealed class InputValueDefinitionNode
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     public InputValueDefinitionNode WithLocation(Location? location)
-    {
-        return new InputValueDefinitionNode(
-            location, Name, Description,
-            Type, DefaultValue, Directives);
-    }
+        => new(location, Name, Description, Type, DefaultValue, Directives);
 
     public InputValueDefinitionNode WithName(NameNode name)
-    {
-        return new InputValueDefinitionNode(
-            Location, name, Description,
-            Type, DefaultValue, Directives);
-    }
+        => new(Location, name, Description, Type, DefaultValue, Directives);
 
-    public InputValueDefinitionNode WithDescription(
-        StringValueNode? description)
-    {
-        return new InputValueDefinitionNode(
-            Location, Name, description,
-            Type, DefaultValue, Directives);
-    }
+    public InputValueDefinitionNode WithDescription(StringValueNode? description)
+        => new(Location, Name, description, Type, DefaultValue, Directives);
 
     public InputValueDefinitionNode WithType(ITypeNode type)
+        => new(Location, Name, Description, type, DefaultValue, Directives);
+
+    public InputValueDefinitionNode WithDefaultValue(IValueNode defaultValue)
+        => new(Location, Name, Description, Type, defaultValue, Directives);
+
+    public InputValueDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, Description, Type, DefaultValue, directives);
+
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// <see langword="true" /> if the current object is equal to the
+    /// <paramref name="other" /> parameter; otherwise, <see langword="false" />.
+    /// </returns>
+    public bool Equals(InputValueDefinitionNode? other)
     {
-        return new InputValueDefinitionNode(
-            Location, Name, Description,
-            type, DefaultValue, Directives);
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return base.Equals(other) &&
+            Equals(Description, other.Description) &&
+            Type.Equals(other.Type) &&
+            Equals(DefaultValue, other.DefaultValue);
     }
 
-    public InputValueDefinitionNode WithDefaultValue(
-        IValueNode defaultValue)
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified object  is equal to the current object;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            obj is InputValueDefinitionNode other &&
+            Equals(other);
+
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
+    public override int GetHashCode()
     {
-        return new InputValueDefinitionNode(
-            Location, Name, Description,
-            Type, defaultValue, Directives);
+        unchecked
+        {
+            var hashCode = base.GetHashCode();
+            hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+            hashCode = (hashCode * 397) ^ Type.GetHashCode();
+            hashCode = (hashCode * 397) ^ (DefaultValue != null ? DefaultValue.GetHashCode() : 0);
+            return hashCode;
+        }
     }
 
-    public InputValueDefinitionNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new InputValueDefinitionNode(
-            Location, Name, Description,
-            Type, DefaultValue, directives);
-    }
+    public static bool operator ==(InputValueDefinitionNode? left, InputValueDefinitionNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(InputValueDefinitionNode? left, InputValueDefinitionNode? right)
+        => !Equals(left, right);
 }
