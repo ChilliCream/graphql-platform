@@ -6,6 +6,7 @@ namespace HotChocolate.Language;
 
 public sealed class SelectionSetNode
     : ISyntaxNode
+    , IEquatable<SelectionSetNode>
 {
     public SelectionSetNode(IReadOnlyList<ISelectionNode> selections)
         : this(null, selections)
@@ -129,5 +130,44 @@ public sealed class SelectionSetNode
 
         return new SelectionSetNode(
             Location, selections);
+    }
+
+    public bool Equals(SelectionSetNode? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Kind == other.Kind
+               && Selections.IsEqualTo(other.Selections);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is SelectionSetNode other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        hashCode.AddNodes(Selections);
+        return hashCode.ToHashCode();
+    }
+
+    public static bool operator ==(SelectionSetNode? left, SelectionSetNode? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(SelectionSetNode? left, SelectionSetNode? right)
+    {
+        return !Equals(left, right);
     }
 }

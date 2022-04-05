@@ -63,7 +63,7 @@ public abstract class InputObjectTypeDefinitionNodeBase
         }
 
         return base.Equals(other)
-               && Fields.Equals(other.Fields);
+               && Fields.IsEqualTo(other.Fields);
     }
 
     /// <summary>
