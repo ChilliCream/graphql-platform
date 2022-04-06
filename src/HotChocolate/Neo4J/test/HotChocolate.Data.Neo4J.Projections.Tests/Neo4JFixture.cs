@@ -9,87 +9,86 @@ using Microsoft.Extensions.DependencyInjection;
 using Neo4j.Driver;
 using Squadron;
 
-namespace HotChocolate.Data.Neo4J.Projections
+namespace HotChocolate.Data.Neo4J.Projections;
+
+public class Neo4JFixture : Neo4jResource<Neo4JConfig>
 {
-    public class Neo4JFixture : Neo4jResource<Neo4JConfig>
+    private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>>
+        _cache = new();
+
+    public Task<IRequestExecutor> GetOrCreateSchema<T>(string cypher)
+        where T : class
     {
-        private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>>
-            _cache = new();
+        (Type, string) key = (typeof(T), cypher);
 
-        public Task<IRequestExecutor> GetOrCreateSchema<T>(string cypher)
-            where T : class
-        {
-            (Type, string) key = (typeof(T), cypher);
+        return _cache.GetOrAdd(
+            key,
+            k => CreateSchema<T>(cypher));
+    }
 
-            return _cache.GetOrAdd(
-                key,
-                k => CreateSchema<T>(cypher));
-        }
+    protected async Task<IRequestExecutor> CreateSchema<TEntity>(string cypher)
+        where TEntity : class
+    {
+        IAsyncSession session = GetAsyncSession();
+        IResultCursor cursor = await session.RunAsync(cypher);
+        await cursor.ConsumeAsync();
 
-        protected async Task<IRequestExecutor> CreateSchema<TEntity>(string cypher)
-            where TEntity : class
-        {
-            IAsyncSession session = GetAsyncSession();
-            IResultCursor cursor = await session.RunAsync(cypher);
-            await cursor.ConsumeAsync();
+        IRequestExecutorBuilder builder = new ServiceCollection().AddGraphQL();
 
-            IRequestExecutorBuilder builder = new ServiceCollection().AddGraphQL();
-
-            return builder
-                .AddNeo4JProjections()
-                .AddNeo4JFiltering()
-                .AddNeo4JSorting()
-                .AddQueryType(
-                    new ObjectType<StubObject<TEntity>>(
-                        c =>
-                        {
-                            c.Name("Query");
-                            ApplyConfigurationToFieldDescriptor(
-                                c.Field(x => x.Root)
-                                    .Resolve(new Neo4JExecutable<TEntity>(GetAsyncSession())));
-                        }))
-                .UseRequest(
-                    next => async context =>
+        return builder
+            .AddNeo4JProjections()
+            .AddNeo4JFiltering()
+            .AddNeo4JSorting()
+            .AddQueryType(
+                new ObjectType<StubObject<TEntity>>(
+                    c =>
                     {
-                        await next(context);
-                        if (context.ContextData.TryGetValue("query", out var queryString))
-                        {
-                            context.Result =
-                                QueryResultBuilder
-                                    .FromResult(context.Result!.ExpectQueryResult())
-                                    .SetContextData("query", queryString)
-                                    .Create();
-                        }
-                    })
-                .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
-                .UseDefaultPipeline()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .Result;
-        }
-
-        private static void ApplyConfigurationToFieldDescriptor(IObjectFieldDescriptor descriptor)
-        {
-            descriptor
-                .Use(
-                    next => async context =>
+                        c.Name("Query");
+                        ApplyConfigurationToFieldDescriptor(
+                            c.Field(x => x.Root)
+                                .Resolve(new Neo4JExecutable<TEntity>(GetAsyncSession())));
+                    }))
+            .UseRequest(
+                next => async context =>
+                {
+                    await next(context);
+                    if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        await next(context);
-                        if (context.Result is IExecutable executable)
-                        {
-                            context.ContextData["query"] = executable.Print();
-                        }
-                    })
-                .UseProjection()
-                .UseFiltering()
-                .UseSorting();
-        }
+                        context.Result =
+                            QueryResultBuilder
+                                .FromResult(context.Result!.ExpectQueryResult())
+                                .SetContextData("query", queryString)
+                                .Create();
+                    }
+                })
+            .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
+            .UseDefaultPipeline()
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequestExecutorAsync()
+            .Result;
+    }
 
-        public class StubObject<T>
-        {
-            public T Root { get; set; }
-        }
+    private static void ApplyConfigurationToFieldDescriptor(IObjectFieldDescriptor descriptor)
+    {
+        descriptor
+            .Use(
+                next => async context =>
+                {
+                    await next(context);
+                    if (context.Result is IExecutable executable)
+                    {
+                        context.ContextData["query"] = executable.Print();
+                    }
+                })
+            .UseProjection()
+            .UseFiltering()
+            .UseSorting();
+    }
+
+    public class StubObject<T>
+    {
+        public T Root { get; set; }
     }
 }

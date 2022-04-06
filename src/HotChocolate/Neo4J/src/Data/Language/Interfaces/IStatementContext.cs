@@ -1,12 +1,11 @@
-﻿namespace HotChocolate.Data.Neo4J.Language
-{
-    /// <summary>
-    /// Context while rendering a statement.
-    /// </summary>
-    public interface IStatementContext<T>
-    {
-        string GetParameterName(Parameter<T> parameter);
+﻿namespace HotChocolate.Data.Neo4J.Language;
 
-        bool IsRenderConstantsAsParameters();
-    }
+/// <summary>
+/// Context while rendering a statement.
+/// </summary>
+public interface IStatementContext<T>
+{
+    string GetParameterName(Parameter<T> parameter);
+
+    bool IsRenderConstantsAsParameters();
 }
