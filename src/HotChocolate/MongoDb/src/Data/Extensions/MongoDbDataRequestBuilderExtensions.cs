@@ -72,8 +72,8 @@ namespace Microsoft.Extensions.DependencyInjection
             builder
                 .BindRuntimeType<ObjectId, StringType>()
                 #pragma warning disable CS8622
-                .AddTypeConverter<ObjectId?, string?>(x => x.ToString())
-                .AddTypeConverter<string?, ObjectId?>(x => new ObjectId(x));
+                .AddTypeConverter<ObjectId, string>(x => x.ToString())
+                .AddTypeConverter<string, ObjectId>(x => new ObjectId(x));
                 #pragma warning restore CS8622
 
         /// <summary>
