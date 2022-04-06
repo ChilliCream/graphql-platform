@@ -59,17 +59,19 @@ public sealed class VariableNode
     /// </returns>
     public bool Equals(VariableNode? other)
     {
-        if (other is null)
+        if (ReferenceEquals(null, other))
         {
             return false;
         }
 
-        if (ReferenceEquals(other, this))
+        if (ReferenceEquals(this, other))
         {
             return true;
         }
 
-        return other.Value.Equals(Value, StringComparison.Ordinal);
+        return Kind == other.Kind
+               && Name.IsEqualTo(other.Name)
+               && Value.Equals(other.Value, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -97,9 +99,9 @@ public sealed class VariableNode
             return true;
         }
 
-        if (other is VariableNode v)
+        if (other is VariableNode o)
         {
-            return Equals(v);
+            return Equals(o);
         }
 
         return false;
@@ -142,11 +144,7 @@ public sealed class VariableNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            return (Kind.GetHashCode() * 397)
-             ^ (Value.GetHashCode() * 97);
-        }
+        return HashCode.Combine(Kind, Name, Value);
     }
 
     /// <summary>

@@ -7,6 +7,7 @@ namespace HotChocolate.Language;
 public sealed class VariableDefinitionNode
     : ISyntaxNode
     , IHasDirectives
+    , IEquatable<VariableDefinitionNode>
 {
     public VariableDefinitionNode(
         Location? location,
@@ -109,4 +110,72 @@ public sealed class VariableDefinitionNode
             Location, Variable, Type,
             DefaultValue, directives);
     }
+
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
+    /// </returns>
+    public bool Equals(VariableDefinitionNode? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Kind == other.Kind
+               && Variable.IsEqualTo(other.Variable)
+               && Type.IsEqualTo(other.Type)
+               && DefaultValue.IsEqualTo(other.DefaultValue)
+               && Directives.IsEqualTo(other.Directives);
+    }
+
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is VariableDefinitionNode other
+            && Equals(other);
+    }
+
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.AddRange(Kind, Variable, Type, DefaultValue);
+        hashCode.AddNodes(Directives);
+        return hashCode.ToHashCode();
+    }
+
+    public static bool operator ==(
+        VariableDefinitionNode? left,
+        VariableDefinitionNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(
+        VariableDefinitionNode? left,
+        VariableDefinitionNode? right)
+        => !Equals(left, right);
 }
