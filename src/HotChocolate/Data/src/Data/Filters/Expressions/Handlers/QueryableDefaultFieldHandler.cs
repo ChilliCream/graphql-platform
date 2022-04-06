@@ -28,7 +28,7 @@ public class QueryableDefaultFieldHandler
         ITypeCompletionContext context,
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition) =>
-        !(fieldDefinition is FilterOperationFieldDefinition) &&
+        fieldDefinition is not FilterOperationFieldDefinition &&
         (fieldDefinition.Member is not null || fieldDefinition.Expression is not null);
 
     public override bool TryHandleEnter(

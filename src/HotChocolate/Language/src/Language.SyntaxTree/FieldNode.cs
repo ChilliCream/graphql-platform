@@ -1,26 +1,55 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
 /// <summary>
-/// A field describes one discrete piece of information available to 
+/// <para>
+/// A field describes one discrete piece of information available to
 /// request within a selection set.
-/// 
-/// Some fields describe complex data or relationships to other data. 
-/// In order to further explore this data, a field may itself contain 
-/// a selection set, allowing for deeply nested requests. 
-/// 
-/// All GraphQL operations must specify their selections down to fields 
+/// </para>
+/// <para>
+/// Some fields describe complex data or relationships to other data.
+/// In order to further explore this data, a field may itself contain
+/// a selection set, allowing for deeply nested requests.
+/// </para>
+/// <para>
+/// All GraphQL operations must specify their selections down to fields
 /// which return scalar values to ensure an unambiguously shaped response.
-/// 
-/// Field : Alias? Name Arguments? Nullability? Directives? SelectionSet?
+/// </para>
+/// <para>Field : Alias? Name Arguments? Nullability? Directives? SelectionSet?</para>
 /// </summary>
 public sealed class FieldNode
     : NamedSyntaxNode
     , ISelectionNode
+    , IEquatable<FieldNode>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="FieldNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The field name.
+    /// </param>
+    /// <param name="alias">
+    /// The fields alias name used instead if the actual name.
+    /// </param>
+    /// <param name="required">
+    /// Specifies the type nullability of this field.
+    /// </param>
+    /// <param name="directives">
+    /// The field directives.
+    /// </param>
+    /// <param name="arguments">
+    /// The field argument values.
+    /// </param>
+    /// <param name="selectionSet">
+    /// The fields selection set.
+    /// </param>
     public FieldNode(
         Location? location,
         NameNode name,
@@ -40,12 +69,25 @@ public sealed class FieldNode
     /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.Field;
 
+    /// <summary>
+    /// By default a field’s response key in the response object will use that field’s name.
+    /// However, you can define a different response key by specifying an alias.
+    /// </summary>
     public NameNode? Alias { get; }
 
+    /// <summary>
+    /// Gets the assigned field argument values.
+    /// </summary>
     public IReadOnlyList<ArgumentNode> Arguments { get; }
 
+    /// <summary>
+    /// Gets the client-side nullability definition.
+    /// </summary>
     public INullabilityNode? Required { get; }
 
+    /// <summary>
+    /// Gets the fields selection set.
+    /// </summary>
     public SelectionSetNode? SelectionSet { get; }
 
     /// <inheritdoc />
@@ -101,7 +143,7 @@ public sealed class FieldNode
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Location" /> with <paramref name="location" />.
     /// </summary>
     /// <param name="location">
@@ -114,11 +156,11 @@ public sealed class FieldNode
         => new(location, Name, Alias, Required, Directives, Arguments, SelectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
-    /// <see cref="Name" /> with <paramref name="name" />.
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
     /// </summary>
     /// <param name="name">
-    /// The location that shall be used to replace the current location.
+    /// The name that shall be used to replace the current <see cref="NamedSyntaxNode.Name" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="name" />.
@@ -127,11 +169,11 @@ public sealed class FieldNode
         => new(Location, name, Alias, Required, Directives, Arguments, SelectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Alias" /> with <paramref name="alias" />.
     /// </summary>
     /// <param name="alias">
-    /// The location that shall be used to replace the current location.
+    /// The alias that shall be used to replace the current <see cref="Alias" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="alias" />.
@@ -140,11 +182,12 @@ public sealed class FieldNode
         => new(Location, Name, alias, Required, Directives, Arguments, SelectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
-    /// <see cref="Directives" /> with <paramref name="directives" />.
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Directives" /> with <paramref name="directives" />.
     /// </summary>
     /// <param name="directives">
-    /// The location that shall be used to replace the current location.
+    /// The directives that shall be used to replace the current
+    /// <see cref="NamedSyntaxNode.Directives" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="directives" />.
@@ -153,11 +196,11 @@ public sealed class FieldNode
         => new(Location, Name, Alias, Required, directives, Arguments, SelectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Arguments" /> with <paramref name="arguments" />.
     /// </summary>
     /// <param name="arguments">
-    /// The location that shall be used to replace the current location.
+    /// The arguments that shall be used to replace the current <see cref="Arguments" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="arguments" />.
@@ -166,11 +209,11 @@ public sealed class FieldNode
         => new(Location, Name, Alias, Required, Directives, arguments, SelectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="SelectionSet" /> with <paramref name="selectionSet" />.
     /// </summary>
     /// <param name="selectionSet">
-    /// The location that shall be used to replace the current location.
+    /// The selectionSet that shall be used to replace the current <see cref="SelectionSet" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="selectionSet" />.
@@ -179,15 +222,98 @@ public sealed class FieldNode
         => new(Location, Name, Alias, Required, Directives, Arguments, selectionSet);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Required" /> with <paramref name="required" />.
     /// </summary>
     /// <param name="required">
-    /// The location that shall be used to replace the current location.
+    /// The required that shall be used to replace the current <see cref="Required" />.
     /// </param>
     /// <returns>
     /// Returns the new node with the new <paramref name="required" />.
     /// </returns>
     public FieldNode WithRequired(INullabilityNode? required)
         => new(Location, Name, Alias, required, Directives, Arguments, SelectionSet);
+
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
+    /// </returns>
+    public bool Equals(FieldNode? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return base.Equals(other)
+            && Alias.IsEqualTo(other.Alias)
+            && Required.IsEqualTo(other.Required)
+            && SelectionSet.IsEqualTo(other.SelectionSet)
+            && Arguments.IsEqualTo(other.Arguments);
+    }
+
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            (obj is FieldNode other && Equals(other));
+
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(base.GetHashCode());
+        hashCode.Add(Kind);
+        hashCode.Add(Alias);
+        hashCode.AddNodes(Arguments);
+        hashCode.Add(Required);
+        hashCode.Add(SelectionSet);
+        return hashCode.ToHashCode();
+    }
+
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(FieldNode? left, FieldNode? right)
+        => Equals(left, right);
+
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
+
+    public static bool operator !=(FieldNode? left, FieldNode? right)
+        => !Equals(left, right);
 }

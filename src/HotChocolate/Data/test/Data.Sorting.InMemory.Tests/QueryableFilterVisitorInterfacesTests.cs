@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using HotChocolate.Types;
 using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
@@ -17,8 +16,7 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 
     private readonly SchemaCache _cache;
 
-    public QueryableFilterVisitorInterfacesTests(
-        SchemaCache cache)
+    public QueryableFilterVisitorInterfacesTests(SchemaCache cache)
     {
         _cache = cache;
     }

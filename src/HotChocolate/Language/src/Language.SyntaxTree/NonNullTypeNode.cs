@@ -19,7 +19,7 @@ public sealed class NonNullTypeNode
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.NonNullType;
+    public SyntaxKind Kind => SyntaxKind.NonNullType;
 
     public Location? Location { get; }
 

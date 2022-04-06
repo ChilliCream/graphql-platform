@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data.Filtering;
+namespace HotChocolate.Data.Filters;
 
 public class QueryableFilteringExtensionsTests
 {

@@ -11,7 +11,12 @@ public class FilterField
     , IFilterField
 {
     internal FilterField(FilterFieldDefinition definition)
-        : base(definition, default)
+        : this(definition, default)
+    {
+    }
+
+    internal FilterField(FilterFieldDefinition definition, int index)
+        : base(definition, index)
     {
         Member = definition.Member;
         Handler = definition.Handler!;

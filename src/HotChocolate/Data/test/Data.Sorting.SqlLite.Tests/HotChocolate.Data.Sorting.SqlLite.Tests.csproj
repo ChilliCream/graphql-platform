@@ -3,6 +3,8 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Sorting.SqlLite.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

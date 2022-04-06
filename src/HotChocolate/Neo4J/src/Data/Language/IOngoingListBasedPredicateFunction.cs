@@ -1,10 +1,9 @@
-namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language;
+
+/// <summary>
+///
+/// </summary>
+public interface IOngoingListBasedPredicateFunction
 {
-    /// <summary>
-    ///
-    /// </summary>
-    public interface IOngoingListBasedPredicateFunction
-    {
-        IOngoingListBasedPredicateFunctionWithList In(Expression list);
-    }
+    IOngoingListBasedPredicateFunctionWithList In(Expression list);
 }

@@ -43,7 +43,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                 IMiddlewareContext context)
             {
                 MongoDbFilterVisitorContext? visitorContext = null;
-                IInputField argument = context.Field.Arguments[argumentName];
+                IInputField argument = context.Selection.Field.Arguments[argumentName];
                 IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
                 if (filter is not NullValueNode && argument.Type is IFilterInputType filterInput)
