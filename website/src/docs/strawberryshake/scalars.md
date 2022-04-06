@@ -99,7 +99,7 @@ _serializer_
 ```csharp
 public class PositiveIntSerializer : ScalarSerializer<int>
 {
-    public PositiveInt()
+    public PositiveIntSerializer()
         : base(
             // the name of the scalar
             "PositiveInt")
@@ -140,13 +140,13 @@ _serializer_
 ```csharp
 public class MyJsonSerializer : ScalarSerializer<JsonElement, object>
 {
-    public JsonSerializer(string typeName = BuiltInScalarNames.Any)
+    public MyJsonSerializer(string typeName = BuiltInScalarNames.Any)
         : base(typeName)
     {
     }
     public override object Parse(JsonElement serializedValue)
     {
-        // hand the serialization of the JsonElement
+        // handle the serialization of the JsonElement
     }
     protected override JsonElement Format(object runtimeValue)
     {
