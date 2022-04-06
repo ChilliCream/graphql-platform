@@ -167,4 +167,10 @@ public sealed class NamedTypeNode
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
+
+    public static bool operator ==(NamedTypeNode? left, NamedTypeNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(NamedTypeNode? left, NamedTypeNode? right)
+        => !Equals(left, right);
 }
