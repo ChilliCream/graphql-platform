@@ -5,7 +5,19 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language;
 
 /// <summary>
-/// 
+/// <para>
+/// Represents a GraphQL object literal.
+/// </para>
+/// <para>
+/// Input object literal values are unordered lists of keyed input values
+/// wrapped in curly-braces { }.
+/// </para>
+/// <para>
+/// The values of an object literal may be any input value literal or
+/// variable (ex. { name: "Hello world", score: 1.0 }).
+/// </para>
+/// <para>We refer to literal representation of input objects as “object literals.”
+/// </para>
 /// </summary>
 public sealed class ObjectValueNode
     : IValueNode<IReadOnlyList<ObjectFieldNode>>
