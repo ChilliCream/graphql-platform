@@ -57,7 +57,7 @@ public sealed class RequiredModifierNode
 
     public bool Equals(RequiredModifierNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
