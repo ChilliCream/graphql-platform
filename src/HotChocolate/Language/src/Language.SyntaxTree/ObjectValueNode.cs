@@ -27,7 +27,6 @@ public sealed class ObjectValueNode
     {
         Location = location;
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
-                 throw new ArgumentNullException(nameof(fields));
     }
 
     public SyntaxKind Kind => SyntaxKind.ObjectValue;
