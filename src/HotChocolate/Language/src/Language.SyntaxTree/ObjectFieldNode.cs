@@ -116,6 +116,7 @@ public sealed class ObjectFieldNode
     /// </summary>
     public IValueNode Value { get; }
 
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
