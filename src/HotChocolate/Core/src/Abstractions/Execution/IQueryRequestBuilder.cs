@@ -62,7 +62,7 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder SetProperties(
         IDictionary<string, object?>? properties);
 
-    /// <inheritdoc cref="InitializeGlobalState" />
+    /// <inheritdoc cref="InitializeGlobalState(Dictionary{string, object})" />
     IQueryRequestBuilder InitializeGlobalState(
         IDictionary<string, object?>? initialState);
 
@@ -70,7 +70,7 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder SetProperties(
         IReadOnlyDictionary<string, object?>? properties);
 
-    /// <inheritdoc cref="InitializeGlobalState" />
+    /// <inheritdoc cref="InitializeGlobalState(Dictionary{string, object})" />
     IQueryRequestBuilder InitializeGlobalState(
         IReadOnlyDictionary<string, object?>? initialState);
 
