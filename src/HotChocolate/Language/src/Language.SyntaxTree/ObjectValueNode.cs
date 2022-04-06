@@ -7,7 +7,7 @@ namespace HotChocolate.Language;
 
 public sealed class ObjectValueNode
     : IValueNode<IReadOnlyList<ObjectFieldNode>>
-        , IEquatable<ObjectValueNode>
+    , IEquatable<ObjectValueNode>
 {
     public ObjectValueNode(
         params ObjectFieldNode[] fields)
