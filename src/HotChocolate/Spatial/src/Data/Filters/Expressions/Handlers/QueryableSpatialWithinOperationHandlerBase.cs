@@ -8,44 +8,42 @@ using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Data.Filters.Spatial.SpatialOperationHandlerHelper;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data.Filters.Spatial;
+
+public abstract class QueryableSpatialWithinOperationHandlerBase
+    : QueryableSpatialBooleanMethodHandler
 {
-    public abstract class QueryableSpatialWithinOperationHandlerBase
-        : QueryableSpatialBooleanMethodHandler
+    private static readonly MethodInfo _within =
+        typeof(Geometry).GetMethod(nameof(Geometry.Within))!;
+
+    public QueryableSpatialWithinOperationHandlerBase(
+        IFilterConvention convention,
+        ITypeInspector inspector,
+        InputParser inputParser)
+        : base(convention, inspector, inputParser, _within)
     {
-        private static readonly MethodInfo _within =
-            typeof(Geometry).GetMethod(nameof(Geometry.Within))!;
+    }
 
-        public QueryableSpatialWithinOperationHandlerBase(
-            IFilterConvention convention,
-            ITypeInspector inspector,
-            InputParser inputParser)
-            : base(convention, inspector, inputParser, _within)
+    protected override bool TryHandleOperation(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        ObjectFieldNode node,
+        [NotNullWhen(true)] out Expression? result)
+    {
+        if (TryGetParameter(field, node.Value, GeometryFieldName, out Geometry g))
         {
-        }
-
-        protected override bool TryHandleOperation(
-            QueryableFilterContext context,
-            IFilterOperationField field,
-            ObjectFieldNode node,
-            [NotNullWhen(true)] out Expression? result)
-        {
-            if (TryGetParameter(field, node.Value, GeometryFieldName, out Geometry g))
+            if (TryGetParameter(field, node.Value, BufferFieldName, out double buffer))
             {
-                if (TryGetParameter(field, node.Value, BufferFieldName, out double buffer))
-                {
-                    result = ExpressionBuilder.Within(
-                        context.GetInstance(),
-                        ExpressionBuilder.Buffer(g, buffer));
-                    return true;
-                }
-
-                result = ExpressionBuilder.Within(context.GetInstance(), g);
+                result = ExpressionBuilder
+                    .Within(context.GetInstance(), ExpressionBuilder.Buffer(g, buffer));
                 return true;
             }
 
-            result = null;
-            return false;
+            result = ExpressionBuilder.Within(context.GetInstance(), g);
+            return true;
         }
+
+        result = null;
+        return false;
     }
 }
