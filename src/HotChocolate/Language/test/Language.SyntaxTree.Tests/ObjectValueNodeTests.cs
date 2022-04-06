@@ -5,100 +5,114 @@ namespace HotChocolate.Language.SyntaxTree;
 public class ObjectValueNodeTests
 {
     [Fact]
-    public void GetHashCode_FieldOrder_DoesNotMatter()
+    public void GetHashCode_FieldOrder_DoesMatter()
     {
         // arrange
-        var objecta = new ObjectValueNode(
+        var objectA = new ObjectValueNode(
             new ObjectFieldNode("a", 123),
             new ObjectFieldNode("b", true),
             new ObjectFieldNode("c", "foo"));
 
-        var objectb = new ObjectValueNode(
+        var objectB = new ObjectValueNode(
             new ObjectFieldNode("b", true),
             new ObjectFieldNode("a", 123),
             new ObjectFieldNode("c", "foo"));
 
-        var objectc = new ObjectValueNode(
+        var objectC = new ObjectValueNode(
             new ObjectFieldNode("c", "foo"),
             new ObjectFieldNode("b", true),
             new ObjectFieldNode("a", 123));
 
+        var objectD = new ObjectValueNode(
+            new ObjectFieldNode("a", 123),
+            new ObjectFieldNode("b", true),
+            new ObjectFieldNode("c", "foo"));
+
         // act
-        int hasha = objecta.GetHashCode();
-        int hashb = objectb.GetHashCode();
-        int hashc = objectc.GetHashCode();
+        var hashA = objectA.GetHashCode();
+        var hashB = objectB.GetHashCode();
+        var hashC = objectC.GetHashCode();
+        var hashD = objectD.GetHashCode();
 
         // assert
-        Assert.Equal(hasha, hashb);
-        Assert.Equal(hashb, hashc);
+        Assert.NotEqual(hashA, hashB);
+        Assert.NotEqual(hashB, hashC);
+        Assert.Equal(hashA, hashD);
     }
 
     [Fact]
     public void GetHashCode_Different_Objects()
     {
         // arrange
-        var objecta = new ObjectValueNode(
+        var objectA = new ObjectValueNode(
             new ObjectFieldNode("a", 123),
             new ObjectFieldNode("b", true),
             new ObjectFieldNode("c", "foo"));
 
-        var objectb = new ObjectValueNode(
-            new ObjectFieldNode("b", true),
+        var objectB = new ObjectValueNode(
             new ObjectFieldNode("a", 123),
+            new ObjectFieldNode("b", true),
             new ObjectFieldNode("c", "abc"));
 
         // act
-        int hasha = objecta.GetHashCode();
-        int hashb = objectb.GetHashCode();
+        var hashA = objectA.GetHashCode();
+        var hashB = objectB.GetHashCode();
 
         // assert
-        Assert.NotEqual(hasha, hashb);
+        Assert.NotEqual(hashA, hashB);
     }
 
     [Fact]
-    public void Equals_FieldOrder_DoesNotMatter()
+    public void Equals_FieldOrder_DoesMatter()
     {
         // arrange
-        var objecta = new ObjectValueNode(
+        var objectA = new ObjectValueNode(
             new ObjectFieldNode("a", 123),
             new ObjectFieldNode("b", true),
             new ObjectFieldNode("c", "foo"));
 
-        var objectb = new ObjectValueNode(
+        var objectB = new ObjectValueNode(
             new ObjectFieldNode("b", true),
             new ObjectFieldNode("a", 123),
             new ObjectFieldNode("c", "foo"));
 
-        var objectc = new ObjectValueNode(
+        var objectC = new ObjectValueNode(
             new ObjectFieldNode("c", "foo"),
             new ObjectFieldNode("b", true),
             new ObjectFieldNode("a", 123));
 
+        var objectD = new ObjectValueNode(
+            new ObjectFieldNode("a", 123),
+            new ObjectFieldNode("b", true),
+            new ObjectFieldNode("c", "foo"));
+
         // act
-        bool resulta = objecta.Equals(objectb);
-        bool resultb = objectb.Equals(objectc);
+        var resultA = objectA.Equals(objectB);
+        var resultB = objectB.Equals(objectC);
+        var resultC = objectA.Equals(objectD);
 
         // assert
-        Assert.True(resulta);
-        Assert.True(resultb);
+        Assert.False(resultA);
+        Assert.False(resultB);
+        Assert.True(resultC);
     }
 
     [Fact]
     public void Equals_Different_Objects()
     {
         // arrange
-        var objecta = new ObjectValueNode(
+        var objectA = new ObjectValueNode(
             new ObjectFieldNode("a", 123),
             new ObjectFieldNode("b", true),
             new ObjectFieldNode("c", "foo"));
 
-        var objectb = new ObjectValueNode(
-            new ObjectFieldNode("b", true),
+        var objectB = new ObjectValueNode(
             new ObjectFieldNode("a", 123),
+            new ObjectFieldNode("b", true),
             new ObjectFieldNode("c", "abc"));
 
         // act
-        bool result = objecta.Equals(objectb);
+        var result = objectA.Equals(objectB);
 
         // assert
         Assert.False(result);
@@ -108,9 +122,15 @@ public class ObjectValueNodeTests
     public void EqualsObjectValueNode_SameLocation()
     {
         // arrange
-        var a = new ObjectValueNode(TestLocations.Location1, new[] { new ObjectFieldNode("a", 1) });
-        var b = new ObjectValueNode(TestLocations.Location1, new[] { new ObjectFieldNode("a", 1) });
-        var c = new ObjectValueNode(TestLocations.Location1, new[] { new ObjectFieldNode("a", 2) });
+        var a = new ObjectValueNode(
+            TestLocations.Location1,
+            new[] { new ObjectFieldNode("a", 1) });
+        var b = new ObjectValueNode(
+            TestLocations.Location1,
+            new[] { new ObjectFieldNode("a", 1) });
+        var c = new ObjectValueNode(
+            TestLocations.Location1,
+            new[] { new ObjectFieldNode("a", 2) });
 
         // act
         var aaResult = a.Equals(a);
@@ -129,9 +149,15 @@ public class ObjectValueNodeTests
     public void EqualsObjectFieldNode_DifferentLocations()
     {
         // arrange
-        var a = new ObjectValueNode(TestLocations.Location1, new[] { new ObjectFieldNode("a", 1) });
-        var b = new ObjectValueNode(TestLocations.Location2, new[] { new ObjectFieldNode("a", 1) });
-        var c = new ObjectValueNode(TestLocations.Location3, new[] { new ObjectFieldNode("a", 2) });
+        var a = new ObjectValueNode(
+            TestLocations.Location1,
+            new[] { new ObjectFieldNode("a", 1) });
+        var b = new ObjectValueNode(
+            TestLocations.Location2,
+            new[] { new ObjectFieldNode("a", 1) });
+        var c = new ObjectValueNode(
+            TestLocations.Location1,
+            new[] { new ObjectFieldNode("a", 2) });
 
         // act
         var aaResult = a.Equals(a);
@@ -150,10 +176,18 @@ public class ObjectValueNodeTests
     public void CompareGetHashCode_WithLocations()
     {
         // arrange
-        var a = new ObjectValueNode(TestLocations.Location1, new[] { new ObjectFieldNode("a", 1) });
-        var b = new ObjectValueNode(TestLocations.Location2, new[] { new ObjectFieldNode("a", 1) });
-        var c = new ObjectValueNode(TestLocations.Location1, new[] { new ObjectFieldNode("a", 2) });
-        var d = new ObjectValueNode(TestLocations.Location2, new[] { new ObjectFieldNode("b", 1) });
+        var a = new ObjectValueNode(
+            TestLocations.Location1,
+            new[] { new ObjectFieldNode("a", 1) });
+        var b = new ObjectValueNode(
+            TestLocations.Location2,
+            new[] { new ObjectFieldNode("a", 1) });
+        var c = new ObjectValueNode(
+            TestLocations.Location1,
+            new[] { new ObjectFieldNode("a", 2) });
+        var d = new ObjectValueNode(
+            TestLocations.Location2,
+            new[] { new ObjectFieldNode("a", 2) });
 
         // act
         var aHash = a.GetHashCode();
@@ -164,7 +198,6 @@ public class ObjectValueNodeTests
         // assert
         Assert.Equal(aHash, bHash);
         Assert.NotEqual(aHash, cHash);
-        Assert.NotEqual(aHash, dHash);
-        Assert.NotEqual(bHash, dHash);
+        Assert.Equal(cHash, dHash);
     }
 }

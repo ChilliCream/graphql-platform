@@ -8,13 +8,21 @@ public class ObjectFieldNodeTests
     public void EqualsObjectFieldNode_SameLocation()
     {
         // arrange
-        var a = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+        var a = new ObjectFieldNode(
+            TestLocations.Location1,
+            new NameNode("a"),
             new IntValueNode(1));
-        var b = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+        var b = new ObjectFieldNode(
+            TestLocations.Location1,
+            new NameNode("a"),
             new IntValueNode(1));
-        var c = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+        var c = new ObjectFieldNode(
+            TestLocations.Location1,
+            new NameNode("a"),
             new IntValueNode(2));
-        var d = new ObjectFieldNode(TestLocations.Location1, new NameNode("d"),
+        var d = new ObjectFieldNode(
+            TestLocations.Location1,
+            new NameNode("d"),
             new IntValueNode(1));
 
         // act
@@ -36,13 +44,21 @@ public class ObjectFieldNodeTests
     public void EqualsObjectFieldNode_DifferentLocations()
     {
         // arrange
-        var a = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+        var a = new ObjectFieldNode(
+            TestLocations.Location1,
+            new NameNode("a"),
             new IntValueNode(1));
-        var b = new ObjectFieldNode(TestLocations.Location2, new NameNode("a"),
+        var b = new ObjectFieldNode(
+            TestLocations.Location2,
+            new NameNode("a"),
             new IntValueNode(1));
-        var c = new ObjectFieldNode(TestLocations.Location3, new NameNode("a"),
+        var c = new ObjectFieldNode(
+            TestLocations.Location3,
+            new NameNode("a"),
             new IntValueNode(2));
-        var d = new ObjectFieldNode(TestLocations.Location3, new NameNode("d"),
+        var d = new ObjectFieldNode(
+            TestLocations.Location3,
+            new NameNode("d"),
             new IntValueNode(1));
 
         // act
@@ -64,15 +80,25 @@ public class ObjectFieldNodeTests
     public void CompareGetHashCode_WithLocation()
     {
         // arrange
-        var a = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+        var a = new ObjectFieldNode(
+            TestLocations.Location1,
+            new NameNode("a"),
             new IntValueNode(1));
-        var b = new ObjectFieldNode(TestLocations.Location2, new NameNode("a"),
+        var b = new ObjectFieldNode(
+            TestLocations.Location2,
+            new NameNode("a"),
             new IntValueNode(1));
-        var c = new ObjectFieldNode(TestLocations.Location1, new NameNode("a"),
+        var c = new ObjectFieldNode(
+            TestLocations.Location1,
+            new NameNode("a"),
             new IntValueNode(2));
-        var d = new ObjectFieldNode(TestLocations.Location2, new NameNode("d"),
+        var d = new ObjectFieldNode(
+            TestLocations.Location2,
+            new NameNode("d"),
             new IntValueNode(1));
-        var e = new ObjectFieldNode(TestLocations.Location3, new NameNode("d"),
+        var e = new ObjectFieldNode(
+            TestLocations.Location3,
+            new NameNode("d"),
             new IntValueNode(1));
 
         // act
@@ -86,7 +112,6 @@ public class ObjectFieldNodeTests
         Assert.Equal(aHash, bHash);
         Assert.NotEqual(aHash, cHash);
         Assert.NotEqual(aHash, dHash);
-
         Assert.NotEqual(cHash, dHash);
         Assert.Equal(dHash, eHash);
     }
