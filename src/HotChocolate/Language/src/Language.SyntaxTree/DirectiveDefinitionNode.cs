@@ -52,10 +52,10 @@ public sealed class DirectiveDefinitionNode
         Locations = locations ?? throw new ArgumentNullException(nameof(locations));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.DirectiveDefinition;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -253,21 +253,35 @@ public sealed class DirectiveDefinitionNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = Name.GetHashCode();
-            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ (Description?.GetHashCode() ?? 0);
-            hashCode = (hashCode * 397) ^ IsRepeatable.GetHashCode();
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Locations);
-            return hashCode;
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        hashCode.Add(Name);
+        hashCode.Add(Description);
+        hashCode.Add(IsRepeatable);
+        hashCode.AddNodes(Arguments);
+        hashCode.AddNodes(Locations);
+        return hashCode.ToHashCode();
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(DirectiveDefinitionNode? left, DirectiveDefinitionNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(DirectiveDefinitionNode? left, DirectiveDefinitionNode? right)
         => !Equals(left, right);
 }

@@ -33,7 +33,7 @@ public sealed class InterfaceTypeDefinitionNode
     /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
-    /// The name of this interface..
+    /// The name of this interface.
     /// </param>
     /// <param name="description">
     /// The description of this interface.

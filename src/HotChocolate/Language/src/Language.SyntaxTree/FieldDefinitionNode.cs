@@ -44,7 +44,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.FieldDefinition;
 
     /// <summary>
@@ -62,7 +62,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
     /// </summary>
     public ITypeNode Type { get; }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         if (Description is not null)
@@ -244,9 +244,25 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
         }
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(FieldDefinitionNode? left, FieldDefinitionNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(FieldDefinitionNode? left, FieldDefinitionNode? right)
         => !Equals(left, right);
 }

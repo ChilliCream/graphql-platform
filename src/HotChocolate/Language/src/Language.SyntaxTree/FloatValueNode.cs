@@ -139,10 +139,10 @@ public sealed class FloatValueNode
         Format = format;
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.FloatValue;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -171,7 +171,7 @@ public sealed class FloatValueNode
 
     object IValueNode.Value => Value;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
     /// <summary>
@@ -505,9 +505,25 @@ public sealed class FloatValueNode
     public FloatValueNode WithValue(ReadOnlySpan<byte> value, FloatFormat format)
         => new(Location, value.ToArray(), format);
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(FloatValueNode? left, FloatValueNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(FloatValueNode? left, FloatValueNode? right)
         => !Equals(left, right);
 }

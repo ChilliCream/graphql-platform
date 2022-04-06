@@ -36,7 +36,7 @@ public sealed class EnumValueDefinitionNode
         Description = description;
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.EnumValueDefinition;
 
     /// <summary>
@@ -44,7 +44,7 @@ public sealed class EnumValueDefinitionNode
     /// </summary>
     public StringValueNode? Description { get; }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         if (Description is not null)
@@ -187,9 +187,26 @@ public sealed class EnumValueDefinitionNode
         }
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(EnumValueDefinitionNode? left, EnumValueDefinitionNode? right)
         => Equals(left, right);
 
+
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(EnumValueDefinitionNode? left, EnumValueDefinitionNode? right)
         => !Equals(left, right);
 }
