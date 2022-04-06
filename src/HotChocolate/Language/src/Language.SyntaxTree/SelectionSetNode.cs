@@ -132,6 +132,16 @@ public sealed class SelectionSetNode
             Location, selections);
     }
 
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
+    /// </returns>
     public bool Equals(SelectionSetNode? other)
     {
         if (ReferenceEquals(null, other))
@@ -148,11 +158,27 @@ public sealed class SelectionSetNode
                && Selections.IsEqualTo(other.Selections);
     }
 
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
     public override bool Equals(object? obj)
     {
-        return ReferenceEquals(this, obj) || obj is SelectionSetNode other && Equals(other);
+        return ReferenceEquals(this, obj) || obj is SelectionSetNode other
+            && Equals(other);
     }
 
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
     public override int GetHashCode()
     {
         var hashCode = new HashCode();
@@ -161,13 +187,13 @@ public sealed class SelectionSetNode
         return hashCode.ToHashCode();
     }
 
-    public static bool operator ==(SelectionSetNode? left, SelectionSetNode? right)
-    {
-        return Equals(left, right);
-    }
+    public static bool operator ==(
+        SelectionSetNode? left,
+        SelectionSetNode? right)
+        => Equals(left, right);
 
-    public static bool operator !=(SelectionSetNode? left, SelectionSetNode? right)
-    {
-        return !Equals(left, right);
-    }
+    public static bool operator !=(
+        SelectionSetNode? left,
+        SelectionSetNode? right)
+        => !Equals(left, right);
 }

@@ -9,6 +9,156 @@ namespace HotChocolate.Language.SyntaxTree;
 public class SelectionSetNodeTests
 {
     [Fact]
+    public void Equals_With_Same_Location()
+    {
+        // arrange
+        var a = new SelectionSetNode(
+            new Location(1, 1, 1, 1),
+            new List<ISelectionNode>(0));
+        var b = new SelectionSetNode(
+            new Location(1, 1, 1, 1),
+            new List<ISelectionNode>(0));
+        var c = new SelectionSetNode(
+            new Location(1, 1, 1, 1),
+            new List<ISelectionNode>
+            {
+                new FieldNode(TestLocations.Location1,
+                    new NameNode("bb"),
+                    new NameNode("bb"),
+                    default,
+                    new List<DirectiveNode>(0),
+                    new List<ArgumentNode>(0),
+                    new SelectionSetNode(
+                        TestLocations.Location1,
+                        new List<ISelectionNode>(0)))
+            });
+
+        // act
+        var abResult = a.Equals(b);
+        var aaResult = a.Equals(a);
+        var acResult = a.Equals(c);
+        var aNullResult = a.Equals(default);
+
+        // assert
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
+    }
+
+    [Fact]
+    public void Equals_With_Different_Location()
+    {
+        // arrange
+        var a = new SelectionSetNode(
+            new Location(1, 1, 1, 1),
+            new List<ISelectionNode>(0));
+        var b = new SelectionSetNode(
+            new Location(2, 2, 2, 2),
+            new List<ISelectionNode>(0));
+        var c = new SelectionSetNode(
+            new Location(3, 3, 3, 3),
+            new List<ISelectionNode>
+            {
+                new FieldNode(TestLocations.Location1,
+                    new NameNode("bb"),
+                    new NameNode("bb"),
+                    default,
+                    new List<DirectiveNode>(0),
+                    new List<ArgumentNode>(0),
+                    new SelectionSetNode(
+                        TestLocations.Location1,
+                        new List<ISelectionNode>(0)))
+            });
+
+        // act
+        var abResult = a.Equals(b);
+        var aaResult = a.Equals(a);
+        var acResult = a.Equals(c);
+        var aNullResult = a.Equals(default);
+
+        // assert
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
+    }
+
+    [Fact]
+    public void GetHashCode_With_Location()
+    {
+        // arrange
+        var a = new SelectionSetNode(
+            new Location(1, 1, 1, 1),
+            new List<ISelectionNode>
+            {
+                new FieldNode(TestLocations.Location1,
+                    new NameNode("aa"),
+                    new NameNode("aa"),
+                    default,
+                    new List<DirectiveNode>(0),
+                    new List<ArgumentNode>(0),
+                    new SelectionSetNode(
+                        TestLocations.Location1,
+                        new List<ISelectionNode>(0)))
+            });
+        var b = new SelectionSetNode(
+            new Location(2, 2, 2, 2),
+            new List<ISelectionNode>
+            {
+                new FieldNode(TestLocations.Location1,
+                    new NameNode("aa"),
+                    new NameNode("aa"),
+                    default,
+                    new List<DirectiveNode>(0),
+                    new List<ArgumentNode>(0),
+                    new SelectionSetNode(
+                        TestLocations.Location1,
+                        new List<ISelectionNode>(0)))
+            });
+        var c = new SelectionSetNode(
+            new Location(1, 1, 1, 1),
+            new List<ISelectionNode>
+            {
+                new FieldNode(TestLocations.Location1,
+                    new NameNode("bb"),
+                    new NameNode("bb"),
+                    default,
+                    new List<DirectiveNode>(0),
+                    new List<ArgumentNode>(0),
+                    new SelectionSetNode(
+                        TestLocations.Location1,
+                        new List<ISelectionNode>(0)))
+            });
+        var d = new SelectionSetNode(
+            new Location(2, 2, 2, 2),
+            new List<ISelectionNode>
+            {
+                new FieldNode(TestLocations.Location1,
+                    new NameNode("bb"),
+                    new NameNode("bb"),
+                    default,
+                    new List<DirectiveNode>(0),
+                    new List<ArgumentNode>(0),
+                    new SelectionSetNode(
+                        TestLocations.Location1,
+                        new List<ISelectionNode>(0)))
+            });
+
+        // act
+        var aHash = a.GetHashCode();
+        var bHash = b.GetHashCode();
+        var cHash = c.GetHashCode();
+        var dHash = d.GetHashCode();
+
+        // assert
+        Assert.Equal(aHash, bHash);
+        Assert.NotEqual(aHash, cHash);
+        Assert.Equal(cHash, dHash);
+        Assert.NotEqual(aHash, dHash);
+    }
+
+    [Fact]
     public void CreateSelectionSet()
     {
         // arrange
