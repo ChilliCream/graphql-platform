@@ -4,17 +4,43 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// <para>
+/// Represents list value syntax.
+/// </para>
+/// <para>
+/// Lists are ordered sequences of values wrapped in square-brackets [ ].
+/// The values of a List literal may be any value literal or variable (ex. [1, 2, 3]).
+/// </para>
+/// <para>
+/// Commas are optional throughout GraphQL so trailing commas are allowed and 
+/// repeated commas do not represent missing values.
+/// </para>
+/// </summary>
 public sealed class ListValueNode
     : IValueNode<IReadOnlyList<IValueNode>>
     , IEquatable<ListValueNode>
 {
-    private int? _hash;
-
+    /// <summary>
+    /// Initializes a new instance of <see cref="ListValueNode"/>.
+    /// </summary>
+    /// <param name="item">
+    /// The item that shall be the only item of this list.
+    /// </param>
     public ListValueNode(IValueNode item)
         : this(default(Location?), item)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ListValueNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="item">
+    /// The item that shall be the only item of this list.
+    /// </param>
     public ListValueNode(Location? location, IValueNode item)
     {
         if (item == null)
@@ -22,24 +48,41 @@ public sealed class ListValueNode
             throw new ArgumentNullException(nameof(item));
         }
 
-        var items = new List<IValueNode>(1);
-        items.Add(item);
-
         Location = location;
-        Items = items.AsReadOnly();
+        Items = new IValueNode[] { item };
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ListValueNode"/>.
+    /// </summary>
+    /// <param name="items">
+    /// The items of this list.
+    /// </param>
     public ListValueNode(
         IReadOnlyList<IValueNode> items)
         : this(null, items)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ListValueNode"/>.
+    /// </summary>
+    /// <param name="items">
+    /// The items of this list.
+    /// </param>
     public ListValueNode(params IValueNode[] items)
         : this(null, items)
     {
     }
-
+    /// <summary>
+    /// Initializes a new instance of <see cref="ListValueNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="items">
+    /// The items of this list.
+    /// </param>
     public ListValueNode(
         Location? location,
         IReadOnlyList<IValueNode> items)
@@ -48,16 +91,22 @@ public sealed class ListValueNode
         Items = items ?? throw new ArgumentNullException(nameof(items));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.ListValue;
+    /// <inheritdoc />
+    public SyntaxKind Kind => SyntaxKind.ListValue;
 
+    /// <inheritdoc />
     public Location? Location { get; }
 
+    /// <summary>
+    /// The items of this list.
+    /// </summary>
     public IReadOnlyList<IValueNode> Items { get; }
 
     IReadOnlyList<IValueNode> IValueNode<IReadOnlyList<IValueNode>>.Value => Items;
 
     object IValueNode.Value => Items;
 
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Items;
 
     /// <summary>
@@ -87,7 +136,7 @@ public sealed class ListValueNode
 
         if (other.Items.Count == Items.Count)
         {
-            for (int i = 0; i < Items.Count; i++)
+            for (var i = 0; i < Items.Count; i++)
             {
                 if (!other.Items[i].Equals(Items[i]))
                 {
@@ -171,20 +220,11 @@ public sealed class ListValueNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            if (_hash == null)
-            {
-                var hash = 0;
-                for (int i = 0; i < Items.Count; i++)
-                {
-                    hash = hash ^ (Items[i].GetHashCode() * 397);
-                }
-                _hash = hash;
-            }
-
-            return _hash.Value;
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        hashCode.AddNodes(Items);
+        hashCode.ToHashCode();
+        return hashCode.ToHashCode();
     }
 
     /// <summary>
@@ -208,13 +248,33 @@ public sealed class ListValueNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public ListValueNode WithLocation(Location? location)
-    {
-        return new ListValueNode(location, Items);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
+    public ListValueNode WithLocation(Location? location) => new(location, Items);
 
-    public ListValueNode WithItems(IReadOnlyList<IValueNode> items)
-    {
-        return new ListValueNode(Location, items);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Items" /> with <paramref name="items" />.
+    /// </summary>
+    /// <param name="items">
+    /// The <paramref name="items" /> that shall be used to replace the current <see cref="Items"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="items" />.
+    /// </returns>
+    public ListValueNode WithItems(IReadOnlyList<IValueNode> items) => new(Location, items);
+
+    public static bool operator ==(ListValueNode? left, ListValueNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(ListValueNode? left, ListValueNode? right)
+        => !Equals(left, right);
 }

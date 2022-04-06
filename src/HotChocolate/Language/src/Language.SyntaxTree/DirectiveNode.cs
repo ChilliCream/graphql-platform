@@ -79,10 +79,10 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
         Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.Directive;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -90,7 +90,7 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// </summary>
     public NameNode Name { get; }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
@@ -213,17 +213,32 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ Name.GetHashCode();
-            return (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        hashCode.Add(Name);
+        hashCode.AddNodes(Arguments);
+        return hashCode.ToHashCode();
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(DirectiveNode? left, DirectiveNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(DirectiveNode? left, DirectiveNode? right)
         => !Equals(left, right);
 }

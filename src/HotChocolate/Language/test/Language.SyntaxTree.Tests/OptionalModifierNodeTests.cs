@@ -4,8 +4,10 @@ namespace HotChocolate.Language.SyntaxTree;
 
 public class OptionalModifierNodeTests
 {
-    private readonly ListNullabilityNode _element1 = new(new Location(1, 1, 1, 1), null);
-    private readonly ListNullabilityNode _element2 = new(new Location(1, 1, 1, 1), null);
+    private readonly ListNullabilityNode _element1 =
+        new(new Location(1, 1, 1, 1), null);
+    private readonly ListNullabilityNode _element2 =
+        new(new Location(1, 1, 1, 1), new OptionalModifierNode(null, null));
 
     [Fact]
     public void Equals_With_Same_Location()

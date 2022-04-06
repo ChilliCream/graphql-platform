@@ -116,21 +116,35 @@ public abstract class ComplexTypeDefinitionNodeBase
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = base.GetHashCode();
-            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Interfaces);
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Fields);
-            return hashCode;
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(base.GetHashCode());
+        hashCode.Add(Kind);
+        hashCode.AddNodes(Interfaces);
+        hashCode.AddNodes(Fields);
+        return hashCode.ToHashCode();
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(
         ComplexTypeDefinitionNodeBase? left,
         ComplexTypeDefinitionNodeBase? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(
         ComplexTypeDefinitionNodeBase? left,
         ComplexTypeDefinitionNodeBase? right)

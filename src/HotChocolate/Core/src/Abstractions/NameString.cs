@@ -149,6 +149,7 @@ public readonly struct NameString
         => !left.Equals(right);
 
     /// <summary>
+    /// Concatenates a <see cref="string"/> with a <see cref="NameString"/>.
     /// </summary>
     /// <param name="left">The left parameter</param>
     /// <param name="right">The right parameter</param>
@@ -160,6 +161,7 @@ public readonly struct NameString
         => string.Concat(left, right.Value);
 
     /// <summary>
+    /// Concatenates a <see cref="NameString"/> with a <see cref="string"/>.
     /// </summary>
     /// <param name="left">The left parameter</param>
     /// <param name="right">The right parameter</param>
