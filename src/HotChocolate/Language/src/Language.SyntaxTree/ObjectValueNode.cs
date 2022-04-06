@@ -1,36 +1,57 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// 
+/// </summary>
 public sealed class ObjectValueNode
     : IValueNode<IReadOnlyList<ObjectFieldNode>>
     , IEquatable<ObjectValueNode>
 {
-    public ObjectValueNode(
-        params ObjectFieldNode[] fields)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectValueNode"/>.
+    /// </summary>
+    /// <param name="fields">
+    /// The assigned field values.
+    /// </param>
+    public ObjectValueNode(params ObjectFieldNode[] fields)
         : this(null, fields)
     {
     }
 
-    public ObjectValueNode(
-        IReadOnlyList<ObjectFieldNode> fields)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectValueNode"/>.
+    /// </summary>
+    /// <param name="fields">
+    /// The assigned field values.
+    /// </param>
+    public ObjectValueNode(IReadOnlyList<ObjectFieldNode> fields)
         : this(null, fields)
     {
     }
 
-    public ObjectValueNode(
-        Location? location,
-        IReadOnlyList<ObjectFieldNode> fields)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectValueNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="fields">
+    /// The assigned field values.
+    /// </param>
+    public ObjectValueNode(Location? location, IReadOnlyList<ObjectFieldNode> fields)
     {
         Location = location;
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
     }
 
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.ObjectValue;
 
+    /// <inheritdoc />
     public Location? Location { get; }
 
     public IReadOnlyList<ObjectFieldNode> Fields { get; }
@@ -39,6 +60,7 @@ public sealed class ObjectValueNode
 
     object IValueNode.Value => Fields;
 
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Fields;
 
     /// <summary>
@@ -166,8 +188,35 @@ public sealed class ObjectValueNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public ObjectValueNode WithLocation(Location? location) => new(location, Fields);
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
+    public ObjectValueNode WithLocation(Location? location)
+        => new(location, Fields);
 
-    public ObjectValueNode WithFields(IReadOnlyList<ObjectFieldNode> fields) =>
-        new(Location, fields);
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
+    public ObjectValueNode WithFields(IReadOnlyList<ObjectFieldNode> fields)
+        => new(Location, fields);
+
+    public static bool operator ==(ObjectValueNode? left, ObjectValueNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(ObjectValueNode? left, ObjectValueNode? right)
+        => !Equals(left, right);
 }
