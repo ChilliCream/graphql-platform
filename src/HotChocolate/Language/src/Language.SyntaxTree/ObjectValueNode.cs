@@ -26,7 +26,7 @@ public sealed class ObjectValueNode
         IReadOnlyList<ObjectFieldNode> fields)
     {
         Location = location;
-        Fields = fields.OrderBy(t => t.Name.Value).ToArray() ??
+        Fields = fields ?? throw new ArgumentNullException(nameof(fields));
                  throw new ArgumentNullException(nameof(fields));
     }
 
