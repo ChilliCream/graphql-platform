@@ -25,15 +25,7 @@ internal class CollectionSegmentType
             throw new ArgumentNullException(nameof(nodeType));
         }
 
-        var objectTypeDescriptor = ObjectTypeDescriptor.New<CollectionSegment>(descriptorContext);
-
-        SyntaxTypeReference connectionSegmentType =
-            TypeReference.Parse(
-                $"[{nodeType}!]",
-                TypeContext.Output,
-                factory: _ => new EdgeType(collectionSegmentName, nodeType));
-
-        Definition = CreateTypeDefinition(withTotalCount, connectionSegmentType);
+        Definition = CreateTypeDefinition(withTotalCount);
 
         if (collectionSegmentName is not null)
         {
@@ -47,11 +39,6 @@ internal class CollectionSegmentType
                     {
                         IType type = c.GetType<IType>(nodeType);
                         var definition = (ObjectTypeDefinition)d;
-
-                        ObjectFieldDefinition nodes = definition.Fields.First(/* ??? */);
-                        nodes.Type = TypeReference.Parse(
-                            $"[{c.GetType<IType>(nodeType).Print()}]",
-                            TypeContext.Output);
                         definition.Name = type.NamedType().Name + "CollectionSegment";
                     },
                     Definition,
@@ -60,59 +47,28 @@ internal class CollectionSegmentType
                     TypeDependencyKind.Named));
         }
 
+        Definition.Configurations.Add(
+            new CompleteConfiguration(
+                (c, d) =>
+                {
+                    var itemTypeName = c.GetType<IType>(nodeType).Print();
+
+                    var definition = (ObjectTypeDefinition)d;
+                    ObjectFieldDefinition nodes = definition.Fields.First(IsItemsField);
+                    nodes.Type = TypeReference.Parse($"[{itemTypeName}]", TypeContext.Output);
+                },
+                Definition,
+                ApplyConfigurationOn.Naming,
+                nodeType,
+                TypeDependencyKind.Named));
+
         Definition.Dependencies.Add(new(nodeType));
-
     }
-
-    /// <summary>
-    /// Initializes <see cref="CollectionSegmentType{T}" />.
-    /// </summary>
-    //public CollectionSegmentType()
-    //{
-    //}
-
-    /// <summary>
-    /// Initializes <see cref="CollectionSegmentType{T}" />.
-    /// </summary>
-    /// <param name="configure">
-    /// A delegate adding more configuration to the type.
-    /// </param>
-    //internal CollectionSegmentType(
-    //    Action<IObjectTypeDescriptor<CollectionSegment>> configure)
-    //    : base(descriptor =>
-    //    {
-    //        ApplyConfig(descriptor);
-    //        configure(descriptor);
-    //    })
-    //{
-    //}
 
     /// <summary>
     /// Gets the item type of this collection segment.
     /// </summary>
     public IOutputType ItemType { get; private set; } = default!;
-
-    //protected override void Configure(IObjectTypeDescriptor<CollectionSegment> descriptor) =>
-    //    ApplyConfig(descriptor);
-
-    //protected static void ApplyConfig(IObjectTypeDescriptor<CollectionSegment> descriptor)
-    //{
-    //    //descriptor
-    //    //    .Name(dependency => $"{dependency.Name}CollectionSegment")
-    //    //    .DependsOn<T>()
-    //    //    .BindFieldsExplicitly();
-
-    //    descriptor
-    //        .Field(i => i.Items)
-    //        .Name("items")
-    //        .Type<ListType<T>>();
-
-    //    descriptor
-    //        .Field(t => t.Info)
-    //        .Name("pageInfo")
-    //        .Description("Information to aid in pagination.")
-    //        .Type<NonNullType<CollectionSegmentInfoType>>();
-    //}
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
@@ -120,7 +76,7 @@ internal class CollectionSegmentType
         IDictionary<string, object?> contextData)
     {
         context.Dependencies.Add(new(
-            context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
+            context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType))));
 
         base.OnBeforeRegisterDependencies(context, definition, contextData);
     }
@@ -135,26 +91,23 @@ internal class CollectionSegmentType
     //        context.TypeInspector.GetTypeRef(typeof(T)));
     //}
 
-    private static ObjectTypeDefinition CreateTypeDefinition(
-        bool withTotalCount,
-        ITypeReference? edgesType = null)
+    private static ObjectTypeDefinition CreateTypeDefinition(bool withTotalCount)
     {
         var definition = new ObjectTypeDefinition(
             default,
-            CollectionSegmentType_PageInfo_Description,
-            typeof(Connection));
+            CollectionSegmentType_Description,
+            typeof(CollectionSegment));
 
         definition.Fields.Add(new(
             Names.PageInfo,
-            ConnectionType_PageInfo_Description,
-            TypeReference.Parse("PageInfo!"),
+            CollectionSegmentType_PageInfo_Description,
+            TypeReference.Parse("CollectionSegmentInfo!"),
             pureResolver: GetPagingInfo));
 
         definition.Fields.Add(new(
-                Names.Nodes,
-                ConnectionType_Nodes_Description,
-                pureResolver: GetNodes)
-            { CustomSettings = { ContextDataKeys.Nodes } });
+            Names.Items,
+            CollectionSegmentType_Items_Description,
+            pureResolver: GetItems) {CustomSettings = {ContextDataKeys.Items}});
 
         if (withTotalCount)
         {
@@ -168,25 +121,27 @@ internal class CollectionSegmentType
     }
 
     private static IPageInfo GetPagingInfo(IPureResolverContext context)
-        => context.Parent<Connection>().Info;
+        => context.Parent<CollectionSegment>().Info;
 
-    private static IEnumerable<object?> GetNodes(IPureResolverContext context)
-        => context.Parent<Connection>().Edges.Select(t => t.Node);
+    private static IEnumerable<object?> GetItems(IPureResolverContext context)
+        => context.Parent<CollectionSegment>().Items;
 
     private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)
-        => await context.Parent<Connection>().GetTotalCountAsync(context.RequestAborted);
+        => await context.Parent<CollectionSegment>().GetTotalCountAsync(context.RequestAborted);
+
+    private static bool IsItemsField(ObjectFieldDefinition field)
+        => field.CustomSettings.Count > 0 &&
+            field.CustomSettings[0].Equals(ContextDataKeys.Items);
 
     internal static class Names
     {
         public const string PageInfo = "pageInfo";
-        public const string Edges = "edges";
-        public const string Nodes = "nodes";
+        public const string Items = "items";
         public const string TotalCount = "totalCount";
     }
+
     private static class ContextDataKeys
     {
-        public const string EdgeType = "HotChocolate_Types_Edge";
-        public const string Edges = "HotChocolate.Types.Connection.Edges";
-        public const string Nodes = "HotChocolate.Types.Connection.Nodes";
+        public const string Items = "HotChocolate.Types.CollectionSegment.Items";
     }
 }

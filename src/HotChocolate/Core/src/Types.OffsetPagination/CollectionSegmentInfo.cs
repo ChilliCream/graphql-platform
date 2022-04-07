@@ -1,13 +1,13 @@
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
-/// Represents the offset paging page info. 
+/// Represents the offset paging page info.
 /// This class provides additional information about the selected page.
 /// </summary>
 public class CollectionSegmentInfo : IPageInfo
 {
     /// <summary>
-    /// Initializes <see cref="CollectionSegmentCountType{T}" />.
+    /// Initializes <see cref="CollectionSegmentInfo" />.
     /// </summary>
     /// <param name="hasNextPage"></param>
     /// <param name="hasPreviousPage"></param>

@@ -91,7 +91,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
     /// </summary>
     public string? ProviderName { get; set; }
 
-    protected override void TryConfigure(
+    protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
         ICustomAttributeProvider element)
