@@ -5,39 +5,38 @@ using HotChocolate.Language;
 using static HotChocolate.Data.Filters.DefaultFilterOperations;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Neo4J.Filtering
+namespace HotChocolate.Data.Neo4J.Filtering;
+
+/// <summary>
+/// This filter operation handler maps a In operation field to Cypher.
+/// </summary>
+public class Neo4JInOperationHandler
+    : Neo4JFilterOperationHandlerBase
 {
-    /// <summary>
-    /// This filter operation handler maps a In operation field to Cypher.
-    /// </summary>
-    public class Neo4JInOperationHandler
-        : Neo4JFilterOperationHandlerBase
+    public Neo4JInOperationHandler(InputParser inputParser)
+        : base(inputParser)
     {
-        public Neo4JInOperationHandler(InputParser inputParser)
-            : base(inputParser)
-        {
-        }
+    }
 
-        /// <inheritdoc />
-        public override bool CanHandle(
-            ITypeCompletionContext context,
-            IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition)
-        {
-            return fieldDefinition is FilterOperationFieldDefinition { Id: In };
-        }
+    /// <inheritdoc />
+    public override bool CanHandle(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition)
+    {
+        return fieldDefinition is FilterOperationFieldDefinition { Id: In };
+    }
 
-        /// <inheritdoc />
-        public override Condition HandleOperation(
-            Neo4JFilterVisitorContext context,
-            IFilterOperationField field,
-            IValueNode value,
-            object? parsedValue)
-        {
-            return context
-                .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath())
-                .In(new PlainStringLiteral(value.ToString()));
-        }
+    /// <inheritdoc />
+    public override Condition HandleOperation(
+        Neo4JFilterVisitorContext context,
+        IFilterOperationField field,
+        IValueNode value,
+        object? parsedValue)
+    {
+        return context
+            .GetNode()
+            .Property(context.GetNeo4JFilterScope().GetPath())
+            .In(new PlainStringLiteral(value.ToString()));
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
@@ -13,7 +12,7 @@ public abstract class NamedSyntaxNode : INamedSyntaxNode, IEquatable<NamedSyntax
     /// Initializes a new instance of <see cref="NamedSyntaxNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The name that this syntax node holds.
@@ -50,7 +49,7 @@ public abstract class NamedSyntaxNode : INamedSyntaxNode, IEquatable<NamedSyntax
     /// <inheritdoc />
     public abstract string ToString(bool indented);
 
-    /// <inheritdoc cref="object" />
+    /// <inheritdoc />
     public abstract override string ToString();
 
     /// <summary>
@@ -75,8 +74,8 @@ public abstract class NamedSyntaxNode : INamedSyntaxNode, IEquatable<NamedSyntax
             return true;
         }
 
-        return Name.Equals(other.Name) &&
-            EqualityHelper.Equals(Directives, other.Directives);
+        return Name.IsEqualTo(other.Name) &&
+            Directives.IsEqualTo(other.Directives);
     }
 
     /// <summary>
@@ -116,11 +115,9 @@ public abstract class NamedSyntaxNode : INamedSyntaxNode, IEquatable<NamedSyntax
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = Name.GetHashCode();
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Directives);
-            return hashCode;
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(Name);
+        hashCode.AddNodes(Directives);
+        return hashCode.ToHashCode();
     }
 }

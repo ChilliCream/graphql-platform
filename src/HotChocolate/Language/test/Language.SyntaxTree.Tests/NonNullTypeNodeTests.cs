@@ -65,7 +65,7 @@ public class NonNullTypeNodeTests
         var location = new Location(1, 1, 1, 1);
 
         // act
-        Action action = () => new NonNullTypeNode(location, null);
+        Action action = () => new NonNullTypeNode(location, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -130,7 +130,7 @@ public class NonNullTypeNodeTests
         var type = new NonNullTypeNode(location, initialType);
 
         // act
-        Action action = () => type.WithType(null);
+        Action action = () => type.WithType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

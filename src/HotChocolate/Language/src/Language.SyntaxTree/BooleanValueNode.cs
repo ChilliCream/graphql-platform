@@ -29,7 +29,7 @@ public sealed class BooleanValueNode
     /// Initializes a new instance of <see cref="BooleanValueNode"/>
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The boolean value.
@@ -42,10 +42,10 @@ public sealed class BooleanValueNode
         Value = value;
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.BooleanValue;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -58,7 +58,7 @@ public sealed class BooleanValueNode
     /// </summary>
     object IValueNode.Value => Value;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
     /// <summary>
@@ -211,4 +211,28 @@ public sealed class BooleanValueNode
     /// Represents the false value for the boolean literal.
     /// </summary>
     public static BooleanValueNode False { get; } = new(false);
+
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(BooleanValueNode? left, BooleanValueNode? right)
+        => Equals(left, right);
+
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
+
+    public static bool operator !=(BooleanValueNode? left, BooleanValueNode? right)
+        => !Equals(left, right);
 }
+

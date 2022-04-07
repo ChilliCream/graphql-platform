@@ -60,7 +60,7 @@ public sealed class IntValueNode
     /// Initializes a new instance of <see cref="IntValueNode"/>
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
@@ -87,7 +87,7 @@ public sealed class IntValueNode
     /// Initializes a new instance of <see cref="IntValueNode"/>
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
@@ -113,7 +113,7 @@ public sealed class IntValueNode
     /// Initializes a new instance of <see cref="IntValueNode"/>
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
@@ -139,7 +139,7 @@ public sealed class IntValueNode
     /// Initializes a new instance of <see cref="IntValueNode"/>
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
@@ -165,7 +165,7 @@ public sealed class IntValueNode
     /// Initializes a new instance of <see cref="IntValueNode"/>
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
@@ -197,7 +197,7 @@ public sealed class IntValueNode
     /// Initializes a new instance of <see cref="IntValueNode"/>
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
@@ -229,7 +229,7 @@ public sealed class IntValueNode
     /// Initializes a new instance of <see cref="IntValueNode"/>
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
@@ -261,7 +261,7 @@ public sealed class IntValueNode
     /// Initializes a new instance of <see cref="IntValueNode"/>
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
@@ -293,7 +293,7 @@ public sealed class IntValueNode
     /// Initializes a new instance of <see cref="IntValueNode"/>
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
@@ -316,10 +316,10 @@ public sealed class IntValueNode
         Location = location;
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.IntValue;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -343,7 +343,7 @@ public sealed class IntValueNode
 
     object? IValueNode.Value => Value;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
     /// <summary>
@@ -468,7 +468,7 @@ public sealed class IntValueNode
     /// </returns>
     public override int GetHashCode()
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         var hashCode = new HashCode();
         hashCode.Add(Kind);
         hashCode.AddBytes(AsSpan());

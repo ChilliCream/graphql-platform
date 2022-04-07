@@ -5,6 +5,9 @@
     <AssemblyName>HotChocolate.Types.MongoDb</AssemblyName>
     <RootNamespace>HotChocolate.Types.MongoDb</RootNamespace>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NeutralLanguage>en</NeutralLanguage>
     <Description>Contains common HotChocolate types for MongoDb</Description>
   </PropertyGroup>
 
