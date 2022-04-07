@@ -1,6 +1,8 @@
 namespace HotChocolate.Language;
 
-public interface INullableTypeNode
-    : ITypeNode
+/// <summary>
+/// Represents nullable types eg. <see cref="ListTypeNode"/> and <see cref="NamedTypeNode"/>.
+/// </summary>
+public interface INullableTypeNode : ITypeNode
 {
 }
