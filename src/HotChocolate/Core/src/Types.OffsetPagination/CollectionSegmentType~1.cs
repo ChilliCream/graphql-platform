@@ -81,16 +81,6 @@ internal class CollectionSegmentType
         base.OnBeforeRegisterDependencies(context, definition, contextData);
     }
 
-    //protected override void OnCompleteType(
-    //    ITypeCompletionContext context,
-    //    ObjectTypeDefinition definition)
-    //{
-    //    base.OnCompleteType(context, definition);
-
-    //    ItemType = context.GetType<IOutputType>(
-    //        context.TypeInspector.GetTypeRef(typeof(T)));
-    //}
-
     private static ObjectTypeDefinition CreateTypeDefinition(bool withTotalCount)
     {
         var definition = new ObjectTypeDefinition(
