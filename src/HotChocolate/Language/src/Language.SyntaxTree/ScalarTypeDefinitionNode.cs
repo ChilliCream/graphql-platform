@@ -14,7 +14,7 @@ namespace HotChocolate.Language;
 /// </para>
 /// </summary>
 public sealed class ScalarTypeDefinitionNode
-    : ScalarTypeDefinitionNodeBase
+    : NamedSyntaxNode
     , ITypeDefinitionNode
     , IEquatable<ScalarTypeDefinitionNode>
 {
