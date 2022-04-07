@@ -51,11 +51,11 @@ internal class CollectionSegmentType
             new CompleteConfiguration(
                 (c, d) =>
                 {
-                    var itemTypeName = c.GetType<IType>(nodeType).Print();
+                    ItemType = c.GetType<IOutputType>(nodeType);
 
                     var definition = (ObjectTypeDefinition)d;
                     ObjectFieldDefinition nodes = definition.Fields.First(IsItemsField);
-                    nodes.Type = TypeReference.Parse($"[{itemTypeName}]", TypeContext.Output);
+                    nodes.Type = TypeReference.Parse($"[{ItemType.Print()}]", TypeContext.Output);
                 },
                 Definition,
                 ApplyConfigurationOn.Naming,
