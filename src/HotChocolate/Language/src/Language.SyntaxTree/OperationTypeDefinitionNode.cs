@@ -4,10 +4,28 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// Represents the operation type definition syntax.
+/// <code>
+/// schema { query: Query }
+/// </code>
+/// </summary>
 public sealed class OperationTypeDefinitionNode
     : ISyntaxNode
     , IEquatable<OperationTypeDefinitionNode>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="OperationTypeDefinitionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="operation">
+    /// The GraphQL operation.
+    /// </param>
+    /// <param name="type">
+    /// The GraphQL type that represents the operation.
+    /// </param>
     public OperationTypeDefinitionNode(
         Location? location,
         OperationType operation,
@@ -24,8 +42,14 @@ public sealed class OperationTypeDefinitionNode
     /// <inheritdoc />
     public Location? Location { get; }
 
+    /// <summary>
+    /// Gets the GraphQL operation.
+    /// </summary>
     public OperationType Operation { get; }
 
+    /// <summary>
+    /// Gets the GraphQL operation type.
+    /// </summary>
     public NamedTypeNode Type { get; }
 
     /// <inheritdoc />
@@ -68,9 +92,29 @@ public sealed class OperationTypeDefinitionNode
     public OperationTypeDefinitionNode WithLocation(Location? location)
         => new(location, Operation, Type);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Operation" /> with <paramref name="operation" />.
+    /// </summary>
+    /// <param name="operation">
+    /// The operation that shall be used to replace the current operation.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="operation" />.
+    /// </returns>
     public OperationTypeDefinitionNode WithOperation(OperationType operation)
         => new(Location, operation, Type);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Type" /> with <paramref name="type" />.
+    /// </summary>
+    /// <param name="type">
+    /// The type that shall be used to replace the current type.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="type" />.
+    /// </returns>
     public OperationTypeDefinitionNode WithType(NamedTypeNode type)
         => new(Location, Operation, type);
 
