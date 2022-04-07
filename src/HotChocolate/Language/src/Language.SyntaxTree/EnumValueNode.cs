@@ -50,7 +50,7 @@ public sealed class EnumValueNode
     /// Initializes a new instance of <see cref="EnumTypeDefinitionNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="value">
     /// The value.
@@ -61,10 +61,10 @@ public sealed class EnumValueNode
         Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.EnumValue;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <inheritdoc cref="IValueNode{T}" />
@@ -73,7 +73,7 @@ public sealed class EnumValueNode
     /// <inheritdoc cref="IValueNode" />
     object IValueNode.Value => Value;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
     /// <summary>
@@ -220,4 +220,27 @@ public sealed class EnumValueNode
     /// </returns>
     public EnumValueNode WithValue(string value)
         => new(Location, value);
+
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(EnumValueNode? left, EnumValueNode? right)
+        => Equals(left, right);
+
+
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
+    public static bool operator !=(EnumValueNode? left, EnumValueNode? right)
+        => !Equals(left, right);
 }

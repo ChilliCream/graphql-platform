@@ -1,13 +1,12 @@
-namespace HotChocolate.Types.Spatial
+namespace HotChocolate.Types.Spatial;
+
+internal class WellKnownFields
 {
-    internal class WellKnownFields
-    {
-        public const string TypeFieldName = "type";
+    public const string TypeFieldName = "type";
 
-        public const string CoordinatesFieldName = "coordinates";
+    public const string CoordinatesFieldName = "coordinates";
 
-        public const string CrsFieldName = "crs";
+    public const string CrsFieldName = "crs";
 
-        public const string BboxFieldName = "bbox";
-    }
+    public const string BboxFieldName = "bbox";
 }

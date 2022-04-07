@@ -16,8 +16,10 @@ public sealed class FragmentSpreadNode
         : base(location, name, directives)
     { }
 
+    /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.FragmentSpread;
 
+    /// <inheritdoc/>
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
@@ -87,8 +89,7 @@ public sealed class FragmentSpreadNode
             return true;
         }
 
-        return base.Equals(other)
-               && Kind == other.Kind;
+        return base.Equals(other);
     }
 
     /// <summary>
@@ -116,11 +117,27 @@ public sealed class FragmentSpreadNode
     public override int GetHashCode()
         => HashCode.Combine(base.GetHashCode(), Kind);
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(
         FragmentSpreadNode? left,
         FragmentSpreadNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(
         FragmentSpreadNode? left,
         FragmentSpreadNode? right)

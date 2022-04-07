@@ -4,13 +4,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Neo4j.Driver;
 using Squadron;
 
-namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst
-{
-    public class Neo4JFixture : Neo4jResource<Neo4JConfig>
-    {
-        private bool _databaseSeeded;
+namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst;
 
-        private string seedCypher = @"
+public class Neo4JFixture : Neo4jResource<Neo4JConfig>
+{
+    private bool _databaseSeeded;
+
+    private string seedCypher = @"
             CREATE (TheMatrix:Movie {Title:'The Matrix', Released:1999, Tagline:'Welcome to the Real World'})
             CREATE (Keanu:Actor {Name:'Keanu Reeves', Born:1964})
             CREATE (Carrie:Actor {Name:'Carrie-Anne Moss', Born:1967})
@@ -52,21 +52,20 @@ namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst
               (JoelS)-[:PRODUCED]->(TheMatrixRevolutions)
         ";
 
-        public async Task<IRequestExecutor> CreateSchema()
-        {
-            IAsyncSession session = GetAsyncSession();
-            IResultCursor cursor = await session.RunAsync(seedCypher);
-            await cursor.ConsumeAsync();
+    public async Task<IRequestExecutor> CreateSchema()
+    {
+        IAsyncSession session = GetAsyncSession();
+        IResultCursor cursor = await session.RunAsync(seedCypher);
+        await cursor.ConsumeAsync();
 
-            return await new ServiceCollection()
-                .AddSingleton(Driver)
-                .AddGraphQL()
-                .AddQueryType()
-                .AddMovieTypes()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
-        }
+        return await new ServiceCollection()
+            .AddSingleton(Driver)
+            .AddGraphQL()
+            .AddQueryType()
+            .AddMovieTypes()
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequestExecutorAsync();
     }
 }

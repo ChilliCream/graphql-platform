@@ -163,7 +163,6 @@ public class BsonTypeTests
     [InlineData("binary")]
     [InlineData("timestamp")]
     [InlineData("dateTime")]
-    [InlineData("string")]
     [InlineData("null")]
     public async Task Output_Should_MatchSnapshot_When_Value(string fieldName)
     {
@@ -262,7 +261,6 @@ public class BsonTypeTests
     public async Task TrySerialize_Should_ReturnNull_When_CalledWithNull()
     {
         // arrange
-        object res = "INVALID";
         BsonType type = (await new ServiceCollection()
             .AddGraphQL()
             .AddBsonType()
@@ -281,7 +279,6 @@ public class BsonTypeTests
     public async Task TrySerialize_Should_ReturnFalse_When_CalledWithNonBsonValue()
     {
         // arrange
-        object res = "INVALID";
         BsonType type = (await new ServiceCollection()
             .AddGraphQL()
             .AddBsonType()
@@ -930,7 +927,7 @@ public class BsonTypeTests
 
     [InlineData("abc", typeof(StringValueNode))]
     [InlineData((short)1, typeof(IntValueNode))]
-    [InlineData((int)1, typeof(IntValueNode))]
+    [InlineData(1, typeof(IntValueNode))]
     [InlineData((long)1, typeof(IntValueNode))]
     [InlineData((float)1, typeof(FloatValueNode))]
     [InlineData((double)1, typeof(FloatValueNode))]

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Processing;
@@ -17,7 +18,7 @@ namespace HotChocolate.Data.MongoDb.Projections
         public override bool TryHandleEnter(
             MongoDbProjectionVisitorContext context,
             ISelection selection,
-            out ISelectionVisitorAction? action)
+            [NotNullWhen(true)]out ISelectionVisitorAction? action)
         {
             IObjectField field = selection.Field;
             context.Path.Push(field.GetName());

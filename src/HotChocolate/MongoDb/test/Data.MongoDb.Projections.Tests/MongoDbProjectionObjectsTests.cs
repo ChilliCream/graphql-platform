@@ -133,9 +133,9 @@ namespace HotChocolate.Data.MongoDb.Projections
 
             public bool BarBool { get; set; }
 
-            public List<BarDeep> ObjectArray { get; set; }
+            public List<BarDeep> ObjectArray { get; set; } = default!;
 
-            public BarDeep NestedObject { get; set; }
+            public BarDeep NestedObject { get; set; } = default!;
         }
 
         public class FooDeep
@@ -171,7 +171,7 @@ namespace HotChocolate.Data.MongoDb.Projections
             [BsonId]
             public Guid Id { get; set; } = Guid.NewGuid();
 
-            public Foo Foo { get; set; }
+            public Foo Foo { get; set; } = default!;
 
             public int Number { get; set; }
         }
@@ -181,7 +181,7 @@ namespace HotChocolate.Data.MongoDb.Projections
             [BsonId]
             public Guid Id { get; set; } = Guid.NewGuid();
 
-            public FooDeep Foo { get; set; }
+            public FooDeep Foo { get; set; } = default!;
         }
 
         public class BarNullableDeep
