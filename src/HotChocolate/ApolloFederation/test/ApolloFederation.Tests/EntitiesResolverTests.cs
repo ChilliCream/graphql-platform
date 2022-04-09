@@ -106,8 +106,11 @@ public class EntitiesResolverTests
 
         var batchScheduler = new ManualBatchScheduler();
         var dataLoader = new FederatedTypeDataLoader(batchScheduler);
-        FederatedTypeDataLoader.Instance = dataLoader;
-        IResolverContext context = CreateResolverContext(schema);
+
+        IResolverContext context = CreateResolverContext(schema, null, mock =>
+        {
+            mock.Setup(c => c.Service<FederatedTypeDataLoader>()).Returns(dataLoader);
+        });
 
         // act
         var representations = new List<Representation>
@@ -120,8 +123,9 @@ public class EntitiesResolverTests
         // assert
         var resultTask =  EntitiesResolver.ResolveAsync(schema, representations, context);
         batchScheduler.Dispatch();
-        await resultTask;
+        var results = await resultTask;
         Assert.Equal(1, dataLoader.TimesCalled);
+        Assert.Equal(3, results.Count);
     }
 
     [Fact]
@@ -250,10 +254,11 @@ public class EntitiesResolverTests
         public string SomeField { get; set; } = default!;
 
         [ReferenceResolver]
-        public static async Task<FederatedType> GetById([LocalState] ObjectValueNode data)
+        public static async Task<FederatedType> GetById([LocalState] ObjectValueNode data, [Service] FederatedTypeDataLoader loader)
         {
             var id = data.Fields.FirstOrDefault(_ => _.Name.Value == "Id")?.Value?.Value?.ToString() ?? string.Empty;
-            return await FederatedTypeDataLoader.Instance.LoadAsync(id);
+
+            return await loader.LoadAsync(id);
         }
     }
 
@@ -261,16 +266,6 @@ public class EntitiesResolverTests
     {
         public int TimesCalled { get; private set; } = 0;
 
-        private static FederatedTypeDataLoader _instance;
-        public static FederatedTypeDataLoader Instance
-        {
-            get => _instance;
-            set
-            {
-                value.TimesCalled = 0;
-                _instance = value;
-            }
-        }
         public FederatedTypeDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions? options = null) : base(batchScheduler, options)
         {
         }
@@ -278,7 +273,7 @@ public class EntitiesResolverTests
         protected override Task<IReadOnlyDictionary<string, FederatedType>> LoadBatchAsync(IReadOnlyList<string> keys, CancellationToken cancellationToken)
         {
             TimesCalled++;
-            var values = Enumerable.Range(1, 2).Select(_ => new FederatedType()
+            var values = Enumerable.Range(1, 3).Select(_ => new FederatedType()
             {
                 Id = _.ToString(),
                 SomeField = $"SomeField-{_}"

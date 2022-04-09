@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Resolvers;
@@ -8,7 +9,8 @@ namespace HotChocolate.ApolloFederation;
 
 public static class TestHelper
 {
-    public static IResolverContext CreateResolverContext(ISchema schema, ObjectType? type = null)
+    public static IResolverContext CreateResolverContext(ISchema schema, ObjectType? type = null,
+        Action<Mock<IResolverContext>>? additionalMockSetup = null)
     {
         var contextData = new Dictionary<string, object?>();
 
@@ -21,6 +23,11 @@ public static class TestHelper
         if (type is not null)
         {
             mock.SetupGet(c => c.ObjectType).Returns(type);
+        }
+
+        if (additionalMockSetup is not null)
+        {
+            additionalMockSetup(mock);
         }
 
         IResolverContext context = mock.Object;
