@@ -120,10 +120,11 @@ public class EntitiesResolverTests
             new("FederatedType", new ObjectValueNode(new ObjectFieldNode("Id", "3")))
         };
 
-        // assert
         var resultTask =  EntitiesResolver.ResolveAsync(schema, representations, context);
         batchScheduler.Dispatch();
         var results = await resultTask;
+
+        // assert
         Assert.Equal(1, dataLoader.TimesCalled);
         Assert.Equal(3, results.Count);
     }
