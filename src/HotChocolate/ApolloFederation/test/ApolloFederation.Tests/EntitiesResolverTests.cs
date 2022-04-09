@@ -107,7 +107,6 @@ public class EntitiesResolverTests
         var batchScheduler = new ManualBatchScheduler();
         var dataLoader = new FederatedTypeDataLoader(batchScheduler);
         FederatedTypeDataLoader.Instance = dataLoader;
-
         IResolverContext context = CreateResolverContext(schema);
 
         // act
