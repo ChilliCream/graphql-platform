@@ -3,10 +3,28 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// The base class for union type and union type extension.
+/// </summary>
 public abstract class UnionTypeDefinitionNodeBase
     : NamedSyntaxNode
-    , IEqualityComparer<UnionTypeDefinitionNodeBase>
+    , IEquatable<UnionTypeDefinitionNodeBase>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="UnionTypeDefinitionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name of the input object.
+    /// </param>
+    /// <param name="directives">
+    /// The directives of this input object.
+    /// </param>
+    /// <param name="types">
+    /// The types of the union type.
+    /// </param>
     protected UnionTypeDefinitionNodeBase(
         Location? location,
         NameNode name,
@@ -17,45 +35,48 @@ public abstract class UnionTypeDefinitionNodeBase
         Types = types ?? throw new ArgumentNullException(nameof(types));
     }
 
+    /// <summary>
+    /// Gets the types of the union type.
+    /// </summary>
     public IReadOnlyList<NamedTypeNode> Types { get; }
 
     /// <summary>
-    /// Indicates whether one object <paramref name="x" /> is equal to another object of the same type <paramref name="y" />.
+    /// Indicates whether the current object is equal to another object of the same type.
     /// </summary>
-    /// <param name="x">
-    /// An initial object to compare.
-    /// </param>
-    /// <param name="y">
-    /// An second object to compare with.
+    /// <param name="other">
+    /// An object to compare with this object.
     /// </param>
     /// <returns>
-    /// true if the parameter <paramref name="x" />is equal to the <paramref name="y" /> parameter;
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
     /// otherwise, false.
     /// </returns>
-    public bool Equals(UnionTypeDefinitionNodeBase? x, UnionTypeDefinitionNodeBase? y)
+    public bool Equals(UnionTypeDefinitionNodeBase? other)
     {
-        if (ReferenceEquals(x, y))
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
         {
             return true;
         }
 
-        if (ReferenceEquals(x, null))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(y, null))
-        {
-            return false;
-        }
-
-        if (x.GetType() != y.GetType())
-        {
-            return false;
-        }
-
-        return x.Types.IsEqualTo(y.Types);
+        return base.Equals(other) && other.Types.IsEqualTo(Types);
     }
+
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            (obj is UnionTypeDefinitionNodeBase other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -63,11 +84,11 @@ public abstract class UnionTypeDefinitionNodeBase
     /// <returns>
     /// A hash code for the current object.
     /// </returns>
-    public int GetHashCode(UnionTypeDefinitionNodeBase obj)
+    public override int GetHashCode()
     {
         var hashCode = new HashCode();
         hashCode.Add(base.GetHashCode());
-        hashCode.AddNodes(obj.Types);
+        hashCode.AddNodes(Types);
         return hashCode.ToHashCode();
     }
 }

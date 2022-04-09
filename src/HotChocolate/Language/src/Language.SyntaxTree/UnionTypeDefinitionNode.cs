@@ -99,11 +99,7 @@ public sealed class UnionTypeDefinitionNode
     /// Returns the new node with the new <paramref name="location" />.
     /// </returns>
     public UnionTypeDefinitionNode WithLocation(Location? location)
-    {
-        return new UnionTypeDefinitionNode(
-            location, Name, Description,
-            Directives, Types);
-    }
+        => new(location, Name, Description, Directives, Types);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -116,11 +112,7 @@ public sealed class UnionTypeDefinitionNode
     /// Returns the new node with the new <paramref name="name" />.
     /// </returns>
     public UnionTypeDefinitionNode WithName(NameNode name)
-    {
-        return new UnionTypeDefinitionNode(
-            Location, name, Description,
-            Directives, Types);
-    }
+        => new(Location, name, Description, Directives, Types);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -132,13 +124,8 @@ public sealed class UnionTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="description" />.
     /// </returns>
-    public UnionTypeDefinitionNode WithDescription(
-        StringValueNode? description)
-    {
-        return new UnionTypeDefinitionNode(
-            Location, Name, description,
-            Directives, Types);
-    }
+    public UnionTypeDefinitionNode WithDescription(StringValueNode? description)
+        => new(Location, Name, description, Directives, Types);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -151,13 +138,8 @@ public sealed class UnionTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="directives" />.
     /// </returns>
-    public UnionTypeDefinitionNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new UnionTypeDefinitionNode(
-            Location, Name, Description,
-            directives, Types);
-    }
+    public UnionTypeDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives) 
+        => new(Location, Name, Description, directives, Types);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -170,13 +152,8 @@ public sealed class UnionTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="types" />.
     /// </returns>
-    public UnionTypeDefinitionNode WithTypes(
-        IReadOnlyList<NamedTypeNode> types)
-    {
-        return new UnionTypeDefinitionNode(
-            Location, Name, Description,
-            Directives, types);
-    }
+    public UnionTypeDefinitionNode WithTypes(IReadOnlyList<NamedTypeNode> types) 
+        => new(Location, Name, Description, Directives, types);
 
     /// <summary>
     /// Indicates whether the current object is equal to another object of the same type.
@@ -214,11 +191,9 @@ public sealed class UnionTypeDefinitionNode
     /// <returns>
     /// true if the specified object  is equal to the current object; otherwise, false.
     /// </returns>
-    public override bool Equals(object? obj)
-    {
-        return ReferenceEquals(this, obj) ||
-            obj is UnionTypeDefinitionNode other && Equals(other);
-    }
+    public override bool Equals(object? obj) 
+        => ReferenceEquals(this, obj) ||
+            (obj is UnionTypeDefinitionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
