@@ -112,7 +112,6 @@ public class EntitiesResolverTests
             mock.Setup(c => c.Service<FederatedTypeDataLoader>()).Returns(dataLoader);
         });
 
-        // act
         var representations = new List<Representation>
         {
             new("FederatedType", new ObjectValueNode(new ObjectFieldNode("Id", "1"))),
@@ -120,6 +119,7 @@ public class EntitiesResolverTests
             new("FederatedType", new ObjectValueNode(new ObjectFieldNode("Id", "3")))
         };
 
+        // act
         var resultTask =  EntitiesResolver.ResolveAsync(schema, representations, context);
         batchScheduler.Dispatch();
         var results = await resultTask;
