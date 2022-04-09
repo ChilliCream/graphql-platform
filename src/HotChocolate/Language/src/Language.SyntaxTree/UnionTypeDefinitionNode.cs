@@ -4,6 +4,13 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// GraphQL Unions represent an object that could be one of a list of
+/// GraphQL Object types, but provides for no guaranteed fields between
+/// those types. They also differ from interfaces in that Object types
+/// declare what interfaces they implement, but are not aware of what
+/// unions contain them.
+/// </summary>
 public sealed class UnionTypeDefinitionNode
     : UnionTypeDefinitionNodeBase
     , ITypeDefinitionNode
@@ -138,7 +145,7 @@ public sealed class UnionTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="directives" />.
     /// </returns>
-    public UnionTypeDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives) 
+    public UnionTypeDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
         => new(Location, Name, Description, directives, Types);
 
     /// <summary>
@@ -152,7 +159,7 @@ public sealed class UnionTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="types" />.
     /// </returns>
-    public UnionTypeDefinitionNode WithTypes(IReadOnlyList<NamedTypeNode> types) 
+    public UnionTypeDefinitionNode WithTypes(IReadOnlyList<NamedTypeNode> types)
         => new(Location, Name, Description, Directives, types);
 
     /// <summary>
@@ -191,7 +198,7 @@ public sealed class UnionTypeDefinitionNode
     /// <returns>
     /// true if the specified object  is equal to the current object; otherwise, false.
     /// </returns>
-    public override bool Equals(object? obj) 
+    public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
             (obj is UnionTypeDefinitionNode other && Equals(other));
 
@@ -215,7 +222,7 @@ public sealed class UnionTypeDefinitionNode
     public static bool operator ==(
         UnionTypeDefinitionNode? left,
         UnionTypeDefinitionNode? right)
-        => object.Equals(left, right);
+        => Equals(left, right);
 
     /// <summary>
     /// The not equal operator.
@@ -228,5 +235,5 @@ public sealed class UnionTypeDefinitionNode
     public static bool operator !=(
         UnionTypeDefinitionNode? left,
         UnionTypeDefinitionNode? right)
-        => !object.Equals(left, right);
+        => !Equals(left, right);
 }
