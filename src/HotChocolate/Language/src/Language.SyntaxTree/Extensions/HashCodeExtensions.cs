@@ -46,17 +46,4 @@ internal static class HashCodeExtensions
             hashCode.Add(nodes[i]);
         }
     }
-
-    public static void AddRange(this ref HashCode hashCode, params object?[] objects)
-    {
-        for (var i = 0; i < objects.Length; i++)
-        {
-            if (objects[i] is null)
-            {
-                continue;
-            }
-
-            hashCode.Add(objects[i]);
-        }
-    }
 }

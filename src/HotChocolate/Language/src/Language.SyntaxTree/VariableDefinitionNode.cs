@@ -17,16 +17,13 @@ public sealed class VariableDefinitionNode
         IReadOnlyList<DirectiveNode> directives)
     {
         Location = location;
-        Variable = variable
-            ?? throw new ArgumentNullException(nameof(variable));
-        Type = type
-            ?? throw new ArgumentNullException(nameof(type));
+        Variable = variable ?? throw new ArgumentNullException(nameof(variable));
+        Type = type ?? throw new ArgumentNullException(nameof(type));
         DefaultValue = defaultValue;
-        Directives = directives
-            ?? throw new ArgumentNullException(nameof(directives));
+        Directives = directives ?? throw new ArgumentNullException(nameof(directives));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.VariableDefinition;
+    public SyntaxKind Kind => SyntaxKind.VariableDefinition;
 
     public Location? Location { get; }
 
@@ -43,7 +40,7 @@ public sealed class VariableDefinitionNode
         yield return Variable;
         yield return Type;
 
-        if (DefaultValue is { })
+        if (DefaultValue is not null)
         {
             yield return DefaultValue;
         }
@@ -76,40 +73,19 @@ public sealed class VariableDefinitionNode
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     public VariableDefinitionNode WithLocation(Location? location)
-    {
-        return new VariableDefinitionNode(
-            location, Variable, Type,
-            DefaultValue, Directives);
-    }
+        => new(location, Variable, Type, DefaultValue, Directives);
 
     public VariableDefinitionNode WithVariable(VariableNode variable)
-    {
-        return new VariableDefinitionNode(
-            Location, variable, Type,
-            DefaultValue, Directives);
-    }
+        => new(Location, variable, Type, DefaultValue, Directives);
 
     public VariableDefinitionNode WithType(ITypeNode type)
-    {
-        return new VariableDefinitionNode(
-            Location, Variable, type,
-            DefaultValue, Directives);
-    }
+        => new(Location, Variable, type, DefaultValue, Directives);
 
     public VariableDefinitionNode WithDefaultValue(IValueNode? defaultValue)
-    {
-        return new VariableDefinitionNode(
-            Location, Variable, Type,
-            defaultValue, Directives);
-    }
+        => new(Location, Variable, Type, defaultValue, Directives);
 
-    public VariableDefinitionNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new VariableDefinitionNode(
-            Location, Variable, Type,
-            DefaultValue, directives);
-    }
+    public VariableDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Variable, Type, DefaultValue, directives);
 
     /// <summary>
     /// Indicates whether the current object is equal to another object of the same type.
@@ -150,10 +126,8 @@ public sealed class VariableDefinitionNode
     /// true if the specified object  is equal to the current object; otherwise, false.
     /// </returns>
     public override bool Equals(object? obj)
-    {
-        return ReferenceEquals(this, obj) || obj is VariableDefinitionNode other
-            && Equals(other);
-    }
+        => ReferenceEquals(this, obj) ||
+            (obj is VariableDefinitionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -164,16 +138,35 @@ public sealed class VariableDefinitionNode
     public override int GetHashCode()
     {
         var hashCode = new HashCode();
-        hashCode.AddRange(Kind, Variable, Type, DefaultValue);
+        hashCode.Add(Kind);
+        hashCode.Add(Variable);
+        hashCode.Add(Type);
+        hashCode.Add(DefaultValue);
         hashCode.AddNodes(Directives);
         return hashCode.ToHashCode();
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(
         VariableDefinitionNode? left,
         VariableDefinitionNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(
         VariableDefinitionNode? left,
         VariableDefinitionNode? right)
