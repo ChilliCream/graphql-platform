@@ -5,26 +5,24 @@ using Xunit;
 
 namespace HotChocolate.Data.Sorting;
 
-public class QueryableSortVisitorStringTests
-    : IClassFixture<SchemaCache>
+public class QueryableSortVisitorStringTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = "testatest" },
-            new Foo { Bar = "testbtest" }
-        };
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { Bar = "testatest" },
-            new FooNullable { Bar = "testbtest" },
-            new FooNullable { Bar = null }
-        };
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
+        new() { Bar = null }
+    };
 
     private readonly SchemaCache _cache;
 
-    public QueryableSortVisitorStringTests(
-        SchemaCache cache)
+    public QueryableSortVisitorStringTests(SchemaCache cache)
     {
         _cache = cache;
     }
@@ -88,21 +86,17 @@ public class QueryableSortVisitorStringTests
         public string? Bar { get; set; }
     }
 
-    public class FooSortType
-        : SortInputType<Foo>
+    public class FooSortType : SortInputType<Foo>
     {
-        protected override void Configure(
-            ISortInputTypeDescriptor<Foo> descriptor)
+        protected override void Configure(ISortInputTypeDescriptor<Foo> descriptor)
         {
             descriptor.Field(t => t.Bar);
         }
     }
 
-    public class FooNullableSortType
-        : SortInputType<FooNullable>
+    public class FooNullableSortType : SortInputType<FooNullable>
     {
-        protected override void Configure(
-            ISortInputTypeDescriptor<FooNullable> descriptor)
+        protected override void Configure(ISortInputTypeDescriptor<FooNullable> descriptor)
         {
             descriptor.Field(t => t.Bar);
         }

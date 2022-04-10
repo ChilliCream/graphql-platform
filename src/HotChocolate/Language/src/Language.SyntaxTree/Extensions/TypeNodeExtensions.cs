@@ -73,7 +73,7 @@ public static class TypeNodeExtensions
         throw new NotSupportedException();
     }
 
-    public static bool IsEqualTo(this ITypeNode x, ITypeNode y)
+    public static bool IsEqualTo(this ITypeNode? x, ITypeNode? y)
     {
         if (x is null)
         {
@@ -82,7 +82,7 @@ public static class TypeNodeExtensions
 
         if (y is null)
         {
-            return x is null;
+            return false;
         }
 
         if (x is NonNullTypeNode nnx)

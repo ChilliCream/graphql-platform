@@ -7,108 +7,107 @@ using Squadron;
 using StackExchange.Redis;
 using Xunit;
 
-namespace HotChocolate.PersistedQueries.Redis
+namespace HotChocolate.PersistedQueries.Redis;
+
+public class ServiceCollectionExtensionsTests
+    : IClassFixture<RedisResource>
 {
-    public class ServiceCollectionExtensionsTests
-        : IClassFixture<RedisResource>
+    private readonly IDatabase _database;
+
+    public ServiceCollectionExtensionsTests(RedisResource redisResource)
     {
-        private IDatabase _database;
+        _database = redisResource.GetConnection().GetDatabase();
+    }
 
-        public ServiceCollectionExtensionsTests(RedisResource redisResource)
-        {
-            _database = redisResource.GetConnection().GetDatabase();
-        }
+    [Fact]
+    public void AddRedisQueryStorage_Services_Is_Null()
+    {
+        // arrange
+        // act
+        void Action()
+            => HotChocolateRedisPersistedQueriesServiceCollectionExtensions
+                .AddRedisQueryStorage(null!, _ => _database);
 
-        [Fact]
-        public void AddRedisQueryStorage_Services_Is_Null()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-                    .AddRedisQueryStorage(null, sp => _database);
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
+    }
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+    [Fact]
+    public void AddRedisQueryStorage_Factory_Is_Null()
+    {
+        // arrange
+        var services = new ServiceCollection();
 
-        [Fact]
-        public void AddRedisQueryStorage_Factory_Is_Null()
-        {
-            // arrange
-            var services = new ServiceCollection();
+        // act
+        void Action()
+            => HotChocolateRedisPersistedQueriesServiceCollectionExtensions
+                .AddRedisQueryStorage(services, null!);
 
-            // act
-            Action action = () =>
-                HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-                    .AddRedisQueryStorage(services, null);
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
+    }
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+    [Fact]
+    public void AddRedisQueryStorage_Services()
+    {
+        // arrange
+        var services = new ServiceCollection();
 
-        [Fact]
-        public void AddRedisQueryStorage_Services()
-        {
-            // arrange
-            var services = new ServiceCollection();
+        // act
+        HotChocolateRedisPersistedQueriesServiceCollectionExtensions
+            .AddRedisQueryStorage(services, _ => _database);
 
-            // act
-            HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-                .AddRedisQueryStorage(services, sp => _database);
-
-            // assert
-            services.ToDictionary(
+        // assert
+        services.ToDictionary(
                 k => k.ServiceType.GetTypeName(),
                 v => v.ImplementationType?.GetTypeName())
-                .OrderBy(t => t.Key)
-                .MatchSnapshot();
-        }
+            .OrderBy(t => t.Key)
+            .MatchSnapshot();
+    }
 
-        [Fact]
-        public void AddReadOnlyRedisQueryStorage_Services_Is_Null()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-                    .AddReadOnlyRedisQueryStorage(null, sp => _database);
+    [Fact]
+    public void AddReadOnlyRedisQueryStorage_Services_Is_Null()
+    {
+        // arrange
+        // act
+        void Action()
+            => HotChocolateRedisPersistedQueriesServiceCollectionExtensions
+                .AddReadOnlyRedisQueryStorage(null!, _ => _database);
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
+    }
 
-        [Fact]
-        public void AddReadOnlyRedisQueryStorage_Factory_Is_Null()
-        {
-            // arrange
-            var services = new ServiceCollection();
+    [Fact]
+    public void AddReadOnlyRedisQueryStorage_Factory_Is_Null()
+    {
+        // arrange
+        var services = new ServiceCollection();
 
-            // act
-            Action action = () =>
-                HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-                    .AddReadOnlyRedisQueryStorage(services, null);
+        // act
+        void Action()
+            => HotChocolateRedisPersistedQueriesServiceCollectionExtensions
+                .AddReadOnlyRedisQueryStorage(services, null!);
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
+    }
 
-        [Fact]
-        public void AddReadOnlyRedisQueryStorage_Services()
-        {
-            // arrange
-            var services = new ServiceCollection();
+    [Fact]
+    public void AddReadOnlyRedisQueryStorage_Services()
+    {
+        // arrange
+        var services = new ServiceCollection();
 
-            // act
-            HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-                .AddReadOnlyRedisQueryStorage(services, sp => _database);
+        // act
+        HotChocolateRedisPersistedQueriesServiceCollectionExtensions
+            .AddReadOnlyRedisQueryStorage(services, _ => _database);
 
-            // assert
-            services.ToDictionary(
+        // assert
+        services.ToDictionary(
                 k => k.ServiceType.GetTypeName(),
                 v => v.ImplementationType?.GetTypeName())
-                .OrderBy(t => t.Key)
-                .MatchSnapshot();
-        }
+            .OrderBy(t => t.Key)
+            .MatchSnapshot();
     }
 }

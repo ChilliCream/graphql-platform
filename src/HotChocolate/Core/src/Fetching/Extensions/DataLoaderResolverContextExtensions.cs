@@ -14,10 +14,54 @@ namespace HotChocolate.Types;
 
 public static class DataLoaderResolverContextExtensions
 {
+    /// <summary>
+    /// This utility methods creates a new <see cref="GreenDonut.BatchDataLoader{TKey,TValue}" />
+    /// with the provided <paramref name="fetch"/> logic and invoked the
+    /// <see cref="IDataLoader{TKey,TValue}.LoadAsync(TKey,CancellationToken)"/> with
+    /// the specified <paramref name="key"/>.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic.
+    /// </param>
+    /// <param name="key">
+    /// The key to fetch.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <returns>
+    /// Returns the value for the requested key.
+    /// </returns>
+    public static Task<TValue> BatchAsync<TKey, TValue>(
+        this IResolverContext context,
+        FetchBatch<TKey, TValue> fetch,
+        TKey key,
+        string? dataLoaderName = null)
+        where TKey : notnull
+        => BatchDataLoader(context, fetch, dataLoaderName).LoadAsync(key, context.RequestAborted);
+
+    /// <summary>
+    /// Creates a new BatchDataLoader with the specified <paramref name="fetch"/> logic.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <returns>
+    /// Returns the DataLoader.
+    /// </returns>
     public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
         this IResolverContext context,
         FetchBatch<TKey, TValue> fetch,
-        string? key = null)
+        string? dataLoaderName = null)
         where TKey : notnull
     {
         if (context is null)
@@ -34,36 +78,96 @@ public static class DataLoaderResolverContextExtensions
         IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchBatchDataLoader<TKey, TValue> Loader()
             => new(
+                dataLoaderName ?? "default",
                 fetch,
                 services.GetRequiredService<IBatchScheduler>(),
                 services.GetRequiredService<DataLoaderOptions>());
 
-        return key is null
+        return dataLoaderName is null
             ? reg.GetOrRegister(Loader)
-            : reg.GetOrRegister(key, Loader);
+            : reg.GetOrRegister(dataLoaderName, Loader);
     }
 
+    /// <summary>
+    /// Creates a new batch DataLoader with the specified <paramref name="fetch"/> logic.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic.
+    /// </param>
+    /// <returns>
+    /// Returns the DataLoader.
+    /// </returns>
     [Obsolete]
     public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
         this IResolverContext context,
-        string key,
+        string dataLoaderName,
         FetchBatch<TKey, TValue> fetch)
         where TKey : notnull
     {
-        if (string.IsNullOrEmpty(key))
+        if (string.IsNullOrEmpty(dataLoaderName))
         {
             throw new ArgumentException(
                 DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(key));
+                nameof(dataLoaderName));
         }
 
-        return BatchDataLoader(context, fetch, key);
+        return BatchDataLoader(context, fetch, dataLoaderName);
     }
 
+    /// <summary>
+    /// This utility methods creates a new <see cref="GroupedDataLoader{TKey,TValue}" />
+    /// with the provided <paramref name="fetch"/> logic and invoked the
+    /// <see cref="IDataLoader{TKey,TValue}.LoadAsync(TKey,CancellationToken)"/> with
+    /// the specified <paramref name="key"/>.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic for a GroupDataLoader.
+    /// </param>
+    /// <param name="key">
+    /// The key to fetch.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <returns>
+    /// Returns the value for the requested key.
+    /// </returns>
+    public static Task<TValue[]> GroupAsync<TKey, TValue>(
+        this IResolverContext context,
+        FetchGroup<TKey, TValue> fetch,
+        TKey key,
+        string? dataLoaderName = null)
+        where TKey : notnull
+        => GroupDataLoader(context, fetch, dataLoaderName).LoadAsync(key, context.RequestAborted);
+
+    /// <summary>
+    /// Creates a new GroupDataLoader with the specified <paramref name="fetch"/> logic.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic for the GroupDataLoader.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <returns>
+    /// Returns the DataLoader.
+    /// </returns>
     public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
         this IResolverContext context,
         FetchGroup<TKey, TValue> fetch,
-        string? key = null)
+        string? dataLoaderName = null)
         where TKey : notnull
     {
         if (context is null)
@@ -80,35 +184,80 @@ public static class DataLoaderResolverContextExtensions
         IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchGroupedDataLoader<TKey, TValue> Loader()
             => new(
+                dataLoaderName ?? "default",
                 fetch,
                 services.GetRequiredService<IBatchScheduler>(),
                 services.GetRequiredService<DataLoaderOptions>());
 
-        return key is null
+        return dataLoaderName is null
             ? reg.GetOrRegister(Loader)
-            : reg.GetOrRegister(key, Loader);
+            : reg.GetOrRegister(dataLoaderName, Loader);
     }
 
+    /// <summary>
+    /// Creates a new GroupDataLoader with the specified <paramref name="fetch"/> logic.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <param name="fetch">
+    /// The batch fetch logic for the GroupDataLoader.
+    /// </param>
+    /// <returns>
+    /// Returns the DataLoader.
+    /// </returns>
     [Obsolete]
     public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
         this IResolverContext context,
-        string key,
+        string dataLoaderName,
         FetchGroup<TKey, TValue> fetch)
         where TKey : notnull
     {
-        if (string.IsNullOrEmpty(key))
+        if (string.IsNullOrEmpty(dataLoaderName))
         {
             throw new ArgumentException(
                 DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(key));
+                nameof(dataLoaderName));
         }
 
-        return GroupDataLoader(context, fetch, key);
+        return GroupDataLoader(context, fetch, dataLoaderName);
     }
+
+    /// <summary>
+    /// This utility methods creates a new <see cref="GreenDonut.CacheDataLoader{TKey,TValue}" />
+    /// with the provided <paramref name="fetch"/> logic and invoked the
+    /// <see cref="IDataLoader{TKey,TValue}.LoadAsync(TKey,CancellationToken)"/> with
+    /// the specified <paramref name="key"/>.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fetch">
+    /// The fetch logic for a CacheDataLoader.
+    /// </param>
+    /// <param name="key">
+    /// The key to fetch.
+    /// </param>
+    /// <param name="dataLoaderName">
+    /// The optional DataLoader name.
+    /// </param>
+    /// <returns>
+    /// Returns the value for the requested key.
+    /// </returns>
+    public static Task<TValue> CacheAsync<TKey, TValue>(
+        this IResolverContext context,
+        FetchCache<TKey, TValue> fetch,
+        TKey key,
+        string? dataLoaderName = null)
+        where TKey : notnull
+        => CacheDataLoader(context, fetch, dataLoaderName).LoadAsync(key, context.RequestAborted);
 
     public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
         this IResolverContext context,
-        FetchCacheCt<TKey, TValue> fetch,
+        FetchCache<TKey, TValue> fetch,
         string? key = null)
         where TKey : notnull
     {
@@ -125,7 +274,10 @@ public static class DataLoaderResolverContextExtensions
         IServiceProvider services = context.Services;
         IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchCacheDataLoader<TKey, TValue> Loader()
-            => new(fetch, services.GetRequiredService<DataLoaderOptions>());
+            => new(
+                key ?? "default",
+                fetch,
+                services.GetRequiredService<DataLoaderOptions>());
 
         return key is null
             ? reg.GetOrRegister(Loader)
@@ -136,7 +288,7 @@ public static class DataLoaderResolverContextExtensions
     public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
         this IResolverContext context,
         string key,
-        FetchCacheCt<TKey, TValue> fetch)
+        FetchCache<TKey, TValue> fetch)
         where TKey : notnull
     {
         if (string.IsNullOrEmpty(key))
@@ -148,6 +300,12 @@ public static class DataLoaderResolverContextExtensions
 
         return CacheDataLoader(context, fetch, key);
     }
+
+    public static Task<TValue> CacheAsync<TValue>(
+        this IResolverContext context,
+        Func<CancellationToken, Task<TValue>> fetch,
+        string? dataLoaderName = null)
+        => FetchOnceAsync(context, fetch, dataLoaderName);
 
     public static Task<TValue> FetchOnceAsync<TValue>(
         this IResolverContext context,

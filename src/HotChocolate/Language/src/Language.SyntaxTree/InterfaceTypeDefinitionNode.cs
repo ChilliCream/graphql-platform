@@ -1,12 +1,52 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// <para>
+/// GraphQL interfaces represent a list of named fields and their arguments.
+/// GraphQL objects and interfaces can then implement these interfaces which requires
+/// that the implementing type will define all fields defined by those interfaces.
+///</para>
+/// <para>
+/// Fields on a GraphQL interface have the same rules as fields on a GraphQL object;
+/// their type can be Scalar, Object, Enum, Interface, or Union, or any wrapping type
+/// whose base type is one of those five.
+/// </para>
+/// <code>
+/// interface NamedEntity {
+///   name: String
+/// }
+/// </code>
+/// </summary>
 public sealed class InterfaceTypeDefinitionNode
-    : InterfaceTypeDefinitionNodeBase
+    : ComplexTypeDefinitionNodeBase
     , ITypeDefinitionNode
+    , IEquatable<InterfaceTypeDefinitionNode>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="InterfaceTypeDefinitionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name of this interface.
+    /// </param>
+    /// <param name="description">
+    /// The description of this interface.
+    /// </param>
+    /// <param name="directives">
+    /// The applied directives of this interface.
+    /// </param>
+    /// <param name="interfaces">
+    /// The interfaces implemented by this interface.
+    /// </param>
+    /// <param name="fields">
+    /// The fields of this interface.
+    /// </param>
     public InterfaceTypeDefinitionNode(
         Location? location,
         NameNode name,
@@ -19,13 +59,18 @@ public sealed class InterfaceTypeDefinitionNode
         Description = description;
     }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.InterfaceTypeDefinition;
+    /// <inheritdoc />
+    public override SyntaxKind Kind => SyntaxKind.InterfaceTypeDefinition;
 
+    /// <summary>
+    /// Gets the interface description.
+    /// </summary>
     public StringValueNode? Description { get; }
 
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
-        if (Description is { })
+        if (Description is not null)
         {
             yield return Description;
         }
@@ -69,49 +114,143 @@ public sealed class InterfaceTypeDefinitionNode
     /// </returns>
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public InterfaceTypeDefinitionNode WithLocation(Location? location)
-    {
-        return new InterfaceTypeDefinitionNode(
-            location, Name, Description,
-            Directives, Interfaces, Fields);
-    }
+        => new(location, Name, Description, Directives, Interfaces, Fields);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">
+    /// The name that shall be used to replace the current <see cref="NamedSyntaxNode.Name" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="name" />.
+    /// </returns>
     public InterfaceTypeDefinitionNode WithName(NameNode name)
-    {
-        return new InterfaceTypeDefinitionNode(
-            Location, name, Description,
-            Directives, Interfaces, Fields);
-    }
+        => new(Location, name, Description, Directives, Interfaces, Fields);
 
-    public InterfaceTypeDefinitionNode WithDescription(
-        StringValueNode? description)
-    {
-        return new InterfaceTypeDefinitionNode(
-            Location, Name, description,
-            Directives, Interfaces, Fields);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Description" /> with <paramref name="description" />.
+    /// </summary>
+    /// <param name="description">
+    /// The description that shall be used to replace the current description.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="description" />.
+    /// </returns>
+    public InterfaceTypeDefinitionNode WithDescription(StringValueNode? description)
+        => new(Location, Name, description, Directives, Interfaces, Fields);
 
-    public InterfaceTypeDefinitionNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new InterfaceTypeDefinitionNode(
-            Location, Name, Description,
-            directives, Interfaces, Fields);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Directives" /> with <paramref name="directives" />.
+    /// </summary>
+    /// <param name="directives">
+    /// The directives that shall be used to replace the current
+    /// <see cref="NamedSyntaxNode.Directives" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="directives" />.
+    /// </returns>
+    public InterfaceTypeDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, Description, directives, Interfaces, Fields);
 
-    public InterfaceTypeDefinitionNode WithFields(
-        IReadOnlyList<FieldDefinitionNode> fields)
-    {
-        return new InterfaceTypeDefinitionNode(
-            Location, Name, Description,
-            Directives, Interfaces, fields);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="InputObjectTypeDefinitionNodeBase.Fields" /> with <paramref name="fields" />.
+    /// </summary>
+    /// <param name="fields">
+    /// The fields that shall be used to replace the current
+    /// <see cref="InputObjectTypeDefinitionNodeBase.Fields" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="fields" />.
+    /// </returns>
+    public InterfaceTypeDefinitionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields)
+        => new(Location, Name, Description, Directives, Interfaces, fields);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="ComplexTypeDefinitionNodeBase.Interfaces" /> with <paramref name="interfaces" />.
+    /// </summary>
+    /// <param name="interfaces">
+    /// The <paramref name="interfaces"/> that shall be used to replace the current
+    /// <see cref="ComplexTypeDefinitionNodeBase.Fields" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="interfaces" />.
+    /// </returns>
     public InterfaceTypeDefinitionNode WithInterfaces(
         IReadOnlyList<NamedTypeNode> interfaces)
+        => new(Location, Name, Description, Directives, interfaces, Fields);
+
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
+    /// </returns>
+    public bool Equals(InterfaceTypeDefinitionNode? other)
     {
-        return new InterfaceTypeDefinitionNode(
-            Location, Name, Description,
-            Directives, interfaces, Fields);
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return base.Equals(other) &&
+            Description.IsEqualTo(other.Description);
     }
+
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            (obj is InterfaceTypeDefinitionNode other && Equals(other));
+
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), Kind, Description);
+
+    public static bool operator ==(
+        InterfaceTypeDefinitionNode? left,
+        InterfaceTypeDefinitionNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(
+        InterfaceTypeDefinitionNode? left,
+        InterfaceTypeDefinitionNode? right)
+        => !Equals(left, right);
 }

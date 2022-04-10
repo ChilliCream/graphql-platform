@@ -507,7 +507,7 @@ public partial class AddSchemaExtensionRewriter
             }
 
             if (!alreadyDeclared.Add(directive.Name.Value)
-                && directiveDefinition.IsUnique)
+                && !directiveDefinition.IsRepeatable)
             {
                 throw new SchemaMergeException(
                     typeDefinition, typeExtension,

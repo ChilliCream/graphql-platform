@@ -5,6 +5,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -49,8 +50,14 @@ public static class HotChocolateDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddFiltering(
         this IRequestExecutorBuilder builder,
         Action<IFilterConventionDescriptor> configure,
-        string? name = null) =>
-        builder.ConfigureSchema(s => s.AddFiltering(configure, name));
+        string? name = null)
+    {
+        builder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new FilterContextParameterExpressionBuilder());
+
+        return builder
+            .ConfigureSchema(s => s.AddFiltering(configure, name));
+    }
 
     /// <summary>
     /// Adds filtering support.
@@ -70,8 +77,13 @@ public static class HotChocolateDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddFiltering<TConvention>(
         this IRequestExecutorBuilder builder,
         string? name = null)
-        where TConvention : class, IFilterConvention =>
-        builder.ConfigureSchema(s => s.AddFiltering<TConvention>(name));
+        where TConvention : class, IFilterConvention
+    {
+        builder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new FilterContextParameterExpressionBuilder());
+
+        return builder.ConfigureSchema(s => s.AddFiltering<TConvention>(name));
+    }
 
     /// <summary>
     /// Adds sorting support.
@@ -87,8 +99,12 @@ public static class HotChocolateDataRequestBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddSorting(
         this IRequestExecutorBuilder builder,
-        string? name = null) =>
-        builder.ConfigureSchema(s => s.AddSorting(name));
+        string? name = null)
+    {
+        builder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new SortingContextParameterExpressionBuilder());
+        return builder.ConfigureSchema(s => s.AddSorting(name));
+    }
 
     /// <summary>
     /// Adds sorting support.
@@ -108,8 +124,12 @@ public static class HotChocolateDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddSorting(
         this IRequestExecutorBuilder builder,
         Action<ISortConventionDescriptor> configure,
-        string? name = null) =>
-        builder.ConfigureSchema(s => s.AddSorting(configure, name));
+        string? name = null)
+    {
+        builder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new SortingContextParameterExpressionBuilder());
+        return builder.ConfigureSchema(s => s.AddSorting(configure, name));
+    }
 
     /// <summary>
     /// Adds sorting support.
@@ -129,8 +149,12 @@ public static class HotChocolateDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddSorting<TConvention>(
         this IRequestExecutorBuilder builder,
         string? name = null)
-        where TConvention : class, ISortConvention =>
-        builder.ConfigureSchema(s => s.AddSorting<TConvention>(name));
+        where TConvention : class, ISortConvention
+    {
+        builder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new SortingContextParameterExpressionBuilder());
+        return builder.ConfigureSchema(s => s.AddSorting<TConvention>(name));
+    }
 
     /// <summary>
     /// Adds projections support.

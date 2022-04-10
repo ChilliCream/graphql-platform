@@ -353,7 +353,7 @@ public class BsonType : ScalarType
                 {
                     if (TryDeserialize(element.Value, out elementValue))
                     {
-                        result[element.Key] = (BsonValue)elementValue;
+                        result[element.Key] = (BsonValue?)elementValue;
                     }
                     else
                     {
@@ -367,12 +367,12 @@ public class BsonType : ScalarType
 
             case IList list:
             {
-                var result = new BsonValue[list.Count];
+                var result = new BsonValue?[list.Count];
                 for (var i = 0; i < list.Count; i++)
                 {
                     if (TryDeserialize(list[i], out elementValue))
                     {
-                        result[i] = (BsonValue)elementValue;
+                        result[i] = (BsonValue?)elementValue;
                     }
                     else
                     {

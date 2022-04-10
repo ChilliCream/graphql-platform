@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
                 c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
             serviceCollection.AddStarWarsTypeNameOnUnionsClient();
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsTypeNameOnUnionsClient client = 
+            StarWarsTypeNameOnUnionsClient client =
                 services.GetRequiredService<StarWarsTypeNameOnUnionsClient>();
 
            // act

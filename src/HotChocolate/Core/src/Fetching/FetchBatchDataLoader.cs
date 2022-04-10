@@ -15,13 +15,17 @@ internal sealed class FetchBatchDataLoader<TKey, TValue>
     private readonly FetchBatch<TKey, TValue> _fetch;
 
     public FetchBatchDataLoader(
+        string key,
         FetchBatch<TKey, TValue> fetch,
         IBatchScheduler batchScheduler,
         DataLoaderOptions options)
         : base(batchScheduler, options)
     {
         _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
+        CacheKeyType = $"{GetCacheKeyType(GetType())}-{key}";
     }
+
+    protected override string CacheKeyType { get; }
 
     protected override Task<IReadOnlyDictionary<TKey, TValue>> LoadBatchAsync(
         IReadOnlyList<TKey> keys,
