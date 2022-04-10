@@ -61,7 +61,7 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// Initializes a new instance of <see cref="DirectiveNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The name of the directive.
@@ -79,10 +79,10 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
         Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.Directive;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -90,7 +90,7 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// </summary>
     public NameNode Name { get; }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
@@ -178,7 +178,7 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// </returns>
     public bool Equals(DirectiveNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -203,8 +203,7 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is DirectiveNode other &&
-            Equals(other);
+            (obj is DirectiveNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -214,17 +213,32 @@ public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = Name.GetHashCode();
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
-            return hashCode;
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        hashCode.Add(Name);
+        hashCode.AddNodes(Arguments);
+        return hashCode.ToHashCode();
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(DirectiveNode? left, DirectiveNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(DirectiveNode? left, DirectiveNode? right)
         => !Equals(left, right);
 }

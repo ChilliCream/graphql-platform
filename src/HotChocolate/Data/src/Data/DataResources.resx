@@ -315,4 +315,7 @@ Make sure to call `.Field(x => x.Bar, descriptor => descriptor.Field(x => x.SubF
   <data name="Sorting_DefinitionForTypeNotFound" xml:space="preserve">
     <value>There was an issue creating the type of the field {0} in type {1}. The type definiton of {2} was not found. Make sure you only customize fields of type SortInputType!</value>
   </data>
+  <data name="SelectionContext_NoTypeForAbstractFieldProvided" xml:space="preserve">
+    <value>The type {0} is an abstract type. You need to provide a type for a selection of a interface or union. Possible types are: {1}</value>
+  </data>
 </root>

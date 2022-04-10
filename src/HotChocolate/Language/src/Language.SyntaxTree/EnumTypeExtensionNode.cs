@@ -19,7 +19,7 @@ public sealed class EnumTypeExtensionNode
     /// Initializes a new instance of <see cref="EnumTypeExtensionNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The name that this syntax node holds.
@@ -39,10 +39,10 @@ public sealed class EnumTypeExtensionNode
     {
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.EnumTypeExtension;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
@@ -155,8 +155,7 @@ public sealed class EnumTypeExtensionNode
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is EnumTypeExtensionNode other &&
-            Equals(other);
+            (obj is EnumTypeExtensionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -164,11 +163,28 @@ public sealed class EnumTypeExtensionNode
     /// <returns>
     /// A hash code for the current object.
     /// </returns>
-    public override int GetHashCode() => base.GetHashCode();
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), Kind);
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(EnumTypeExtensionNode? left, EnumTypeExtensionNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(EnumTypeExtensionNode? left, EnumTypeExtensionNode? right)
         => !Equals(left, right);
 }

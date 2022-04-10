@@ -39,14 +39,13 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
         IReadOnlyList<IDefinitionNode> definitions)
     {
         Location = location;
-        Definitions = definitions ??
-            throw new ArgumentNullException(nameof(definitions));
+        Definitions = definitions ?? throw new ArgumentNullException(nameof(definitions));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.Document;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -54,7 +53,7 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     /// </summary>
     public IReadOnlyList<IDefinitionNode> Definitions { get; }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Definitions;
 
     /// <summary>
@@ -89,8 +88,8 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     /// Returns a new instance that has all the characteristics of this
     /// documents but with a different location.
     /// </returns>
-    public DocumentNode WithLocation(Location? location) =>
-        new(location, Definitions);
+    public DocumentNode WithLocation(Location? location)
+        => new(location, Definitions);
 
     /// <summary>
     /// Creates a new instance that has all the characteristics of this
@@ -103,9 +102,8 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     /// Returns a new instance that has all the characteristics of this
     /// documents but with a different definitions.
     /// </returns>
-    public DocumentNode WithDefinitions(
-        IReadOnlyList<IDefinitionNode> definitions) =>
-        new(Location, definitions);
+    public DocumentNode WithDefinitions(IReadOnlyList<IDefinitionNode> definitions)
+        => new(Location, definitions);
 
     /// <summary>
     /// Indicates whether the current object is equal to another object of the same type.
@@ -119,7 +117,7 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     /// </returns>
     public bool Equals(DocumentNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -143,8 +141,7 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is DocumentNode other &&
-            Equals(other);
+            (obj is DocumentNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -154,15 +151,31 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            return Definitions.GetHashCode();
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        hashCode.AddNodes(Definitions);
+        return hashCode.ToHashCode();
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(DocumentNode? left, DocumentNode? right)
         => Equals(left, right);
-
+        
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(DocumentNode? left, DocumentNode? right)
         => !Equals(left, right);
 

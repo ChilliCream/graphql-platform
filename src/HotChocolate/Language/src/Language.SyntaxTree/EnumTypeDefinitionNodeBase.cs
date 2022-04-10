@@ -4,6 +4,9 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// The base class for enum type definitions.
+/// </summary>
 public abstract class EnumTypeDefinitionNodeBase
     : NamedSyntaxNode
     , IEquatable<EnumTypeDefinitionNodeBase>
@@ -13,7 +16,7 @@ public abstract class EnumTypeDefinitionNodeBase
     /// <see cref="EnumTypeDefinitionNodeBase"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The enum type name.
@@ -51,7 +54,7 @@ public abstract class EnumTypeDefinitionNodeBase
     /// </returns>
     public bool Equals(EnumTypeDefinitionNodeBase? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -76,7 +79,7 @@ public abstract class EnumTypeDefinitionNodeBase
     /// </returns>
     public override bool Equals(object? obj)
     {
-        if (ReferenceEquals(null, obj))
+        if (obj is null)
         {
             return false;
         }
@@ -102,18 +105,33 @@ public abstract class EnumTypeDefinitionNodeBase
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            return (base.GetHashCode() * 397) ^
-                EqualityHelper.GetHashCode(Values);
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(base.GetHashCode());
+        hashCode.AddNodes(Values);
+        return hashCode.ToHashCode();
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(
         EnumTypeDefinitionNodeBase? left,
         EnumTypeDefinitionNodeBase? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(
         EnumTypeDefinitionNodeBase? left,
         EnumTypeDefinitionNodeBase? right)

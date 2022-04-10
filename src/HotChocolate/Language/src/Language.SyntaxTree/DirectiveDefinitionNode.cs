@@ -19,7 +19,7 @@ public sealed class DirectiveDefinitionNode
     /// Initializes a new instance of <see cref="DirectiveDefinitionNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The name that this syntax node holds.
@@ -52,10 +52,10 @@ public sealed class DirectiveDefinitionNode
         Locations = locations ?? throw new ArgumentNullException(nameof(locations));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.DirectiveDefinition;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -215,7 +215,7 @@ public sealed class DirectiveDefinitionNode
     /// </returns>
     public bool Equals(DirectiveDefinitionNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -243,8 +243,7 @@ public sealed class DirectiveDefinitionNode
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is DirectiveDefinitionNode other &&
-            Equals(other);
+            (obj is DirectiveDefinitionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -254,20 +253,35 @@ public sealed class DirectiveDefinitionNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = Name.GetHashCode();
-            hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
-            hashCode = (hashCode * 397) ^ IsRepeatable.GetHashCode();
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Locations);
-            return hashCode;
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(Kind);
+        hashCode.Add(Name);
+        hashCode.Add(Description);
+        hashCode.Add(IsRepeatable);
+        hashCode.AddNodes(Arguments);
+        hashCode.AddNodes(Locations);
+        return hashCode.ToHashCode();
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(DirectiveDefinitionNode? left, DirectiveDefinitionNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(DirectiveDefinitionNode? left, DirectiveDefinitionNode? right)
         => !Equals(left, right);
 }

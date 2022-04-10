@@ -69,7 +69,7 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
     /// Initializes a new instance of <see cref="ArgumentNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The argument name.
@@ -84,10 +84,10 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
         Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.Argument;
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public Location? Location { get; }
 
     /// <summary>
@@ -179,7 +179,7 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
     /// </returns>
     public bool Equals(ArgumentNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -204,8 +204,7 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is ArgumentNode other &&
-            Equals(other);
+            (obj is ArgumentNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -213,20 +212,27 @@ public sealed class ArgumentNode : ISyntaxNode, IEquatable<ArgumentNode>
     /// <returns>
     /// A hash code for the current object.
     /// </returns>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hashCode = Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ Name.GetHashCode();
-            hashCode = (hashCode * 397) ^ Value.GetHashCode();
-            return hashCode;
-        }
-    }
+    public override int GetHashCode() => HashCode.Combine(Kind, Name, Value);
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(ArgumentNode? left, ArgumentNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(ArgumentNode? left, ArgumentNode? right)
         => !Equals(left, right);
 }

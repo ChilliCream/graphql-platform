@@ -1,3 +1,5 @@
+#pragma warning disable CS1591
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +13,8 @@ public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
 
     static DirectiveLocation()
     {
-        _cache = GetAll().ToDictionary(t => t._value);
+        _cache = GetAll().ToDictionary(t => t.Value);
     }
-
-    private readonly string _value;
 
     private DirectiveLocation(string value)
     {
@@ -25,14 +25,14 @@ public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
                 nameof(value));
         }
 
-        _value = value;
+        Value = value;
     }
 
-    public string Value => _value;
+    public string Value { get; }
 
     public bool Equals(DirectiveLocation? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -42,12 +42,12 @@ public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
             return true;
         }
 
-        return other._value.Equals(_value, StringComparison.Ordinal);
+        return other.Value.Equals(Value, StringComparison.Ordinal);
     }
 
     public override bool Equals(object? obj)
     {
-        if (ReferenceEquals(null, obj))
+        if (obj is null)
         {
             return false;
         }
@@ -64,11 +64,11 @@ public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
     {
         unchecked
         {
-            return 17 * _value.GetHashCode();
+            return 17 * Value.GetHashCode();
         }
     }
 
-    public override string ToString() => _value;
+    public override string ToString() => Value;
 
     public static DirectiveLocation Query { get; } = new("QUERY");
 

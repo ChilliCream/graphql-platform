@@ -13,7 +13,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
     /// Initializes a new instance of <see cref="FieldDefinitionNode"/>.
     /// </summary>
     /// <param name="location">
-    /// The location of the named syntax node within the original source text.
+    /// The location of the syntax node within the original source text.
     /// </param>
     /// <param name="name">
     /// The name that this syntax node holds.
@@ -44,7 +44,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.FieldDefinition;
 
     /// <summary>
@@ -62,7 +62,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
     /// </summary>
     public ITypeNode Type { get; }
 
-    /// <inheritdoc cref="ISyntaxNode" />
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         if (Description is not null)
@@ -196,7 +196,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
     /// </returns>
     public bool Equals(FieldDefinitionNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -223,8 +223,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
     /// </returns>
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
-            obj is FieldDefinitionNode other &&
-            Equals(other);
+            (obj is FieldDefinitionNode other && Equals(other));
 
     /// <summary>
     /// Serves as the default hash function.
@@ -237,16 +236,33 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
         unchecked
         {
             var hashCode = base.GetHashCode();
-            hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
+            hashCode = (hashCode * 397) ^ ((Description?.GetHashCode()) ?? 0);
             hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
             hashCode = (hashCode * 397) ^ Type.GetHashCode();
             return hashCode;
         }
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(FieldDefinitionNode? left, FieldDefinitionNode? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(FieldDefinitionNode? left, FieldDefinitionNode? right)
         => !Equals(left, right);
 }

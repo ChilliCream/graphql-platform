@@ -74,5 +74,17 @@ namespace HotChocolate.Language.Properties {
                 return ResourceManager.GetString("EnumValueNode_ValueIsEmpty", resourceCulture);
             }
         }
+        
+        internal static string FloatValueNode_ValueEmpty {
+            get {
+                return ResourceManager.GetString("FloatValueNode_ValueEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string IntValueNode_ValueCannotBeEmpty {
+            get {
+                return ResourceManager.GetString("IntValueNode_ValueCannotBeEmpty", resourceCulture);
+            }
+        }
     }
 }

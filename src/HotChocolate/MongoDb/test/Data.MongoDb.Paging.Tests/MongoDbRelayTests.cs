@@ -23,7 +23,9 @@ namespace HotChocolate.Data.MongoDb.Paging
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddType<FooType>()
+                #pragma warning disable CS8622
                 .AddTypeConverter<ObjectId, string>(x => x.ToString())
+                #pragma warning restore CS8622
                 .BuildRequestExecutorAsync();
 
             IExecutionResult result = await executor
@@ -47,9 +49,11 @@ namespace HotChocolate.Data.MongoDb.Paging
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddType<FooType>()
+                #pragma warning disable CS8622
                 .AddTypeConverter<ObjectId, string>(x => x.ToString())
                 .AddTypeConverter<string, ObjectId>(x => ObjectId.Parse(x.ToString()))
-                .EnableRelaySupport()
+                #pragma warning restore CS8622
+                .AddGlobalObjectIdentification()
                 .BuildRequestExecutorAsync();
 
             IExecutionResult result = await executor
@@ -74,7 +78,7 @@ namespace HotChocolate.Data.MongoDb.Paging
             {
                 descriptor.ImplementsNode()
                     .IdField(x => x.Id)
-                    .ResolveNode((_, objectId) => Task.FromResult(new Foo { Id = objectId }));
+                    .ResolveNode((_, objectId) => Task.FromResult<Foo?>(new Foo { Id = objectId }));
             }
         }
 
