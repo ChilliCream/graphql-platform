@@ -7,17 +7,21 @@ using static GreenDonut.Errors;
 namespace GreenDonut;
 
 /// <summary>
+/// <para>
 /// A <c>DataLoader</c> creates a public API for loading data from a
 /// particular data back-end with unique keys such as the `id` column of a
 /// SQL table or document name in a MongoDB database, given a batch loading
 /// function. -- facebook
-///
+/// </para>
+/// <para>
 /// Each <c>DataLoader</c> instance contains a unique memoized cache. Use
 /// caution when used in long-lived applications or those which serve many
 /// users with different access permissions and consider creating a new
 /// instance per web request. -- facebook
-///
+/// </para>
+/// <para>
 /// This is an abstraction for all kind of <c>DataLoaders</c>.
+/// </para>
 /// </summary>
 /// <typeparam name="TKey">A key type.</typeparam>
 /// <typeparam name="TValue">A value type.</typeparam>
@@ -318,8 +322,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         Batch<TKey> newBatch = BatchPool<TKey>.Shared.Get();
         TaskCompletionSource<TValue> newPromise = newBatch.GetOrCreatePromise<TValue>(key);
-        _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
+        // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
+        _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
         return newPromise;
     }
 

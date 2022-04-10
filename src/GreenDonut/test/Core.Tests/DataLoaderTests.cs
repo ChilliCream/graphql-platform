@@ -198,10 +198,7 @@ public class DataLoaderTests
             .CreateFetch<string, string>("Bar");
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
-        var keys = new[]
-        {
-                "Foo"
-            };
+        var keys = new[] { "Foo" };
 
         // act
         Task<IReadOnlyList<string>> loadResult = loader.LoadAsync(keys);
@@ -309,7 +306,10 @@ public class DataLoaderTests
         // arrange
         var repository = new Dictionary<string, string>
             {
-                { "Foo", "Bar" }, { "Bar", null }, { "Baz", "Foo" }, { "Qux", null }
+                { "Foo", "Bar" },
+                { "Bar", null },
+                { "Baz", "Foo" },
+                { "Qux", null }
             };
 
         ValueTask Fetch(
@@ -358,7 +358,9 @@ public class DataLoaderTests
 
         var repository = new Dictionary<string, string>
             {
-                { "Foo", "Bar" }, { "Bar", "Baz" }, { "Baz", "Foo" }
+                { "Foo", "Bar" },
+                { "Bar", "Baz" },
+                { "Baz", "Foo" }
             };
 
         ValueTask Fetch(
@@ -381,13 +383,7 @@ public class DataLoaderTests
 
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(Fetch, batchScheduler);
-        var requestKeys = new[]
-        {
-                "Foo",
-                "Bar",
-                "Baz",
-                "Qux"
-            };
+        var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux" };
 
         // act
         Task Verify() => loader.LoadAsync(requestKeys);
@@ -411,13 +407,7 @@ public class DataLoaderTests
         var expectedException = new Exception("Foo");
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(Fetch, batchScheduler);
-        var requestKeys = new[]
-        {
-                "Foo",
-                "Bar",
-                "Baz",
-                "Qux"
-            };
+        var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux" };
 
         ValueTask Fetch(
             IReadOnlyList<string> keys,
@@ -745,10 +735,7 @@ public class DataLoaderTests
         FetchDataDelegate<string, string> fetch = CreateFetch<string, string>("Bar");
         var batchScheduler = new ManualBatchScheduler();
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
-        var keys = new object[]
-        {
-                "Foo"
-        };
+        var keys = new object[] { "Foo" };
 
         // act
         Task<IReadOnlyList<object>> loadResult = loader.LoadAsync(keys);
@@ -952,7 +939,6 @@ public class DataLoaderTests
         // assert
         Assert.Equal(1, cache.Usage);
     }
-
 
     [Fact(DisplayName = "ITaskCacheObserver.OnNext should receive all values after init")]
     public async Task ObservableDataLoader_ReceivesValues()
