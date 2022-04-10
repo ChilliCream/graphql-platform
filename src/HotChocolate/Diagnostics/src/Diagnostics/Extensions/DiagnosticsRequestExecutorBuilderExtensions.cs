@@ -78,6 +78,12 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
                     sp.GetRequiredService<InternalActivityEnricher>(),
                 sp.GetRequiredService<InstrumentationOptions>()));
 
+        builder.AddDiagnosticEventListener(
+            sp => new ActivityDataLoaderDiagnosticListener(
+                sp.GetService<ActivityEnricher>() ??
+                    sp.GetRequiredService<InternalActivityEnricher>(),
+                sp.GetRequiredService<InstrumentationOptions>()));
+
         return builder;
     }
 

@@ -15,6 +15,9 @@ internal static class HttpContextExtensions
     public static GraphQLToolOptions? GetGraphQLToolOptions(this HttpContext context)
         => GetGraphQLServerOptions(context)?.Tool;
 
+    public static GraphQLSocketOptions? GetGraphQLSocketOptions(this HttpContext context)
+        => GetGraphQLServerOptions(context)?.Sockets;
+
     public static GraphQLEndpointOptions? GetGraphQLEndpointOptions(this HttpContext context)
         => context.GetEndpoint()?.Metadata.GetMetadata<GraphQLEndpointOptions>() ??
            (context.Items.TryGetValue(nameof(GraphQLEndpointOptions), out var o) &&

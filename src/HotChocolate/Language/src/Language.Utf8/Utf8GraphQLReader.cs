@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -239,7 +238,59 @@ ReadNameToken_Next:
         }
         else
         {
-            _kind = code.PunctuatorKind();
+            switch (code)
+            {
+                case GraphQLConstants.Bang:
+                    _kind = TokenKind.Bang;
+                    break;
+                case GraphQLConstants.Dollar:
+                    _kind = TokenKind.Dollar;
+                    break;
+                case GraphQLConstants.Ampersand:
+                    _kind = TokenKind.Ampersand;
+                    break;
+                case GraphQLConstants.LeftParenthesis:
+                    _kind = TokenKind.LeftParenthesis;
+                    break;
+                case GraphQLConstants.RightParenthesis:
+                    _kind = TokenKind.RightParenthesis;
+                    break;
+                case GraphQLConstants.Dot:
+                    _kind = TokenKind.Dot;
+                    break;
+                case GraphQLConstants.Colon:
+                    _kind = TokenKind.Colon;
+                    break;
+                case GraphQLConstants.Equal:
+                    _kind = TokenKind.Equal;
+                    break;
+                case GraphQLConstants.QuestionMark:
+                    _kind = TokenKind.QuestionMark;
+                    break;
+                case GraphQLConstants.At:
+                    _kind = TokenKind.At;
+                    break;
+                case GraphQLConstants.LeftBracket:
+                    _kind = TokenKind.LeftBracket;
+                    break;
+                case GraphQLConstants.RightBracket:
+                    _kind = TokenKind.RightBracket;
+                    break;
+                case GraphQLConstants.LeftBrace:
+                    _kind = TokenKind.LeftBrace;
+                    break;
+                case GraphQLConstants.Pipe:
+                    _kind = TokenKind.Pipe;
+                    break;
+                case GraphQLConstants.RightBrace:
+                    _kind = TokenKind.RightBrace;
+                    break;
+                default:
+                    // we should never get to this point since we first check
+                    // if code is a punctuator.
+                    throw new InvalidOperationException(
+                        Utf8GraphQLReader_ReadPunctuatorToken_InvalidState);
+            }
         }
     }
 
@@ -646,7 +697,7 @@ ReadNameToken_Next:
     /// Sets the state to a new line.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void NewLine()
+    private void NewLine()
     {
         _line++;
         _lineStart = _position;
@@ -660,7 +711,7 @@ ReadNameToken_Next:
     /// The number of lines to skip.
     /// </param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void NewLine(int lines)
+    private void NewLine(int lines)
     {
         if (lines < 1)
         {
@@ -679,14 +730,14 @@ ReadNameToken_Next:
     /// Updates the column index.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void UpdateColumn() => _column = 1 + _position - _lineStart;
+    private void UpdateColumn() => _column = 1 + _position - _lineStart;
 
     /// <summary>
     /// Checks if the lexer source pointer has reached
     /// the end of the GraphQL source text.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsEndOfStream() => _position >= _length;
+    private bool IsEndOfStream() => _position >= _length;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsEndOfStream(int position) => position >= _length;

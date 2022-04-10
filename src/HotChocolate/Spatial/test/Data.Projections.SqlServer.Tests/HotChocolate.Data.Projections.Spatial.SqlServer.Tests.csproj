@@ -3,6 +3,9 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Projections.Spatial.SqlServer</AssemblyName>
     <RootNamespace>HotChocolate.Data.Projections</RootNamespace>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>

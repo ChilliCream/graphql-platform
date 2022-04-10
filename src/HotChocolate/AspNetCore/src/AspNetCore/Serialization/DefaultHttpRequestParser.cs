@@ -186,7 +186,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
         var requestParser = new Utf8GraphQLParser(graphQLData, _parserOptions);
 
-        string queryHash = _documentHashProvider.ComputeHash(graphQLData);
+        var queryHash = _documentHashProvider.ComputeHash(graphQLData);
         DocumentNode document = requestParser.Parse();
 
         return new[] { new GraphQLRequest(document, queryHash) };

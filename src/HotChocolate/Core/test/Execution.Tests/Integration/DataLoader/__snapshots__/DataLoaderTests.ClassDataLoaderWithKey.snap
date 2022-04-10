@@ -1,5 +1,6 @@
 ﻿[
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
@@ -19,6 +20,7 @@
     "HasNext": null
   },
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
@@ -36,6 +38,7 @@
     "HasNext": null
   },
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {

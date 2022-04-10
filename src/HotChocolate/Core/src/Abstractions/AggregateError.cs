@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Properties;
@@ -9,16 +10,33 @@ namespace HotChocolate;
 /// </summary>
 public class AggregateError : Error
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="AggregateError"/>.
+    /// </summary>
+    /// <param name="errors">
+    /// The errors.
+    /// </param>
     public AggregateError(IEnumerable<IError> errors)
         : base(AbstractionResources.AggregateError_Message)
     {
+        if (errors is null)
+        {
+            throw new ArgumentNullException(nameof(errors));
+        }
+
         Errors = errors.ToArray();
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AggregateError"/>.
+    /// </summary>
+    /// <param name="errors">
+    /// The errors.
+    /// </param>
     public AggregateError(params IError[] errors)
         : base(AbstractionResources.AggregateError_Message)
     {
-        Errors = errors.ToArray();
+        Errors = errors ?? throw new ArgumentNullException(nameof(errors));
     }
 
     /// <summary>

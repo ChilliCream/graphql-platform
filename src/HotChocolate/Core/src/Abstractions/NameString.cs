@@ -41,27 +41,15 @@ public readonly struct NameString
     /// <summary>
     /// <c>true</c> if the name is not empty
     /// </summary>
-    public bool HasValue
-    {
-        get
-        {
-            return !IsEmpty;
-        }
-    }
+    public bool HasValue => !IsEmpty;
 
-    public bool IsEmpty
-    {
-        get => string.IsNullOrEmpty(Value);
-    }
+    public bool IsEmpty => string.IsNullOrEmpty(Value);
 
     /// <summary>
     /// Provides the name string.
     /// </summary>
     /// <returns>The name string value</returns>
-    public override string ToString()
-    {
-        return Value;
-    }
+    public override string ToString() => Value;
 
     /// <summary>
     /// Appends a <see cref="NameString"/> to this
@@ -70,9 +58,7 @@ public readonly struct NameString
     /// </summary>
     /// <returns>The combined <see cref="NameString"/>.</returns>
     public NameString Add(NameString other)
-    {
-        return new(Value + other.Value);
-    }
+        => new(Value + other.Value);
 
     /// <summary>
     /// Compares this <see cref="NameString"/> value to another value
@@ -88,13 +74,7 @@ public readonly struct NameString
     /// <c>true</c> if both <see cref="NameString"/> values are equal.
     /// </returns>
     public bool Equals(NameString other, StringComparison comparisonType)
-    {
-        if (!HasValue && !other.HasValue)
-        {
-            return true;
-        }
-        return string.Equals(Value, other.Value, comparisonType);
-    }
+        => (!HasValue && !other.HasValue) || string.Equals(Value, other.Value, comparisonType);
 
     /// <summary>
     /// Compares this <see cref="NameString"/> value to another value using
@@ -128,10 +108,13 @@ public readonly struct NameString
         return obj is NameString n && Equals(n);
     }
 
+#if NET5_0_OR_GREATER
     public int CompareTo(NameString other)
-    {
-        return string.Compare(Value, other.Value, StringComparison.Ordinal);
-    }
+        => string.CompareOrdinal(Value, other.Value);
+#else
+    public int CompareTo(NameString other)
+        => string.Compare(Value, other.Value, StringComparison.Ordinal);
+#endif
 
     /// <summary>
     /// Serves as a hash function for a <see cref="NameString"/> object.
@@ -141,9 +124,7 @@ public readonly struct NameString
     /// algorithms and data structures such as a hash table.
     /// </returns>
     public override int GetHashCode()
-    {
-        return (HasValue ? StringComparer.Ordinal.GetHashCode(Value) : 0);
-    }
+        => HasValue ? StringComparer.Ordinal.GetHashCode(Value) : 0;
 
     /// <summary>
     /// Operator call through to Equals
@@ -154,9 +135,7 @@ public readonly struct NameString
     /// <c>true</c> if both <see cref="NameString"/> values are equal.
     /// </returns>
     public static bool operator ==(NameString left, NameString right)
-    {
-        return left.Equals(right);
-    }
+        => left.Equals(right);
 
     /// <summary>
     /// Operator call through to Equals
@@ -167,35 +146,31 @@ public readonly struct NameString
     /// <c>true</c> if both <see cref="NameString"/> values are not equal.
     /// </returns>
     public static bool operator !=(NameString left, NameString right)
-    {
-        return !left.Equals(right);
-    }
+        => !left.Equals(right);
 
     /// <summary>
+    /// Concatenates a <see cref="string"/> with a <see cref="NameString"/>.
     /// </summary>
     /// <param name="left">The left parameter</param>
     /// <param name="right">The right parameter</param>
     /// <returns>The ToString combination of both values</returns>
     public static string operator +(string left, NameString right)
-    {
         // This overload exists to prevent the implicit string<->NameString
         // converter from trying to call the NameString+NameString operator
         // for things that are not name strings.
-        return string.Concat(left, right.ToString());
-    }
+        => string.Concat(left, right.Value);
 
     /// <summary>
+    /// Concatenates a <see cref="NameString"/> with a <see cref="string"/>.
     /// </summary>
     /// <param name="left">The left parameter</param>
     /// <param name="right">The right parameter</param>
     /// <returns>The ToString combination of both values</returns>
     public static string operator +(NameString left, string right)
-    {
         // This overload exists to prevent the implicit string<->NameString
         // converter from trying to call the NameString+NameString operator
         // for things that are not name strings.
-        return string.Concat(left.ToString(), right);
-    }
+        => string.Concat(left.Value, right);
 
     /// <summary>
     /// Operator call through to Add
@@ -206,9 +181,7 @@ public readonly struct NameString
     /// The <see cref="NameString"/> combination of both values
     /// </returns>
     public static NameString operator +(NameString left, NameString right)
-    {
-        return left.Add(right);
-    }
+        => left.Add(right);
 
     /// <summary>
     /// Implicitly creates a new <see cref="NameString"/> from

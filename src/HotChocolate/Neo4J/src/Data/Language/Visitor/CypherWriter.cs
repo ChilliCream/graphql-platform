@@ -2,66 +2,65 @@
 using System.Text;
 using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language;
+
+/// <summary>
+/// Responsible for abstracting the logic of building cypher query text.
+/// </summary>
+internal sealed class CypherWriter : IDisposable
 {
-    /// <summary>
-    /// Responsible for abstracting the logic of building cypher query text.
-    /// </summary>
-    internal sealed class CypherWriter : IDisposable
+    private bool _isDisposed;
+
+    private static readonly ObjectPoolProvider _objectPoolProvider =
+        new DefaultObjectPoolProvider();
+
+    private static readonly ObjectPool<StringBuilder> _stringBuilderPool =
+        _objectPoolProvider.CreateStringBuilderPool();
+
+    private readonly StringBuilder _builder;
+
+    public CypherWriter()
     {
-        private bool _isDisposed;
+        _builder = _stringBuilderPool.Get();
+    }
 
-        private static readonly ObjectPoolProvider _objectPoolProvider =
-            new DefaultObjectPoolProvider();
+    /// <summary>
+    /// Appends text.
+    /// /// </summary>
+    /// <param name="text">The text.</param>
+    public void Write(string text)
+    {
+        _builder.Append(text);
+    }
 
-        private static readonly ObjectPool<StringBuilder> _stringBuilderPool =
-            _objectPoolProvider.CreateStringBuilderPool();
+    public string Print()
+    {
+        return _builder.ToString();
+    }
 
-        private readonly StringBuilder _builder;
+    /// <summary>
+    /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
-        public CypherWriter()
+    // The bulk of the clean-up code is implemented in Dispose(bool)
+    private void Dispose(bool disposing)
+    {
+        if (_isDisposed)
         {
-            _builder = _stringBuilderPool.Get();
+            return;
         }
 
-        /// <summary>
-        /// Appends text.
-        /// /// </summary>
-        /// <param name="text">The text.</param>
-        public void Write(string text)
+        if (disposing)
         {
-            _builder.Append(text);
+            // free managed resources
+            _stringBuilderPool.Return(_builder);
         }
 
-        public string Print()
-        {
-            return _builder.ToString();
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        // The bulk of the clean-up code is implemented in Dispose(bool)
-        private void Dispose(bool disposing)
-        {
-            if (_isDisposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                // free managed resources
-                _stringBuilderPool.Return(_builder);
-            }
-
-            _isDisposed = true;
-        }
+        _isDisposed = true;
     }
 }

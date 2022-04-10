@@ -276,7 +276,7 @@ namespace HotChocolate.ConferencePlanner
             return new ResolverScope(((RequestScope)context.ContextData[nameof(RequestScope)]!), (ISelection)context.Selection);
         }
 
-        private class RequestScope : IDisposable
+        private sealed class RequestScope : IDisposable
         {
             private readonly Stopwatch _stopwatch;
             private readonly System.Collections.Concurrent.ConcurrentDictionary<FieldCoordinate, int> _ = new();
@@ -326,7 +326,7 @@ namespace HotChocolate.ConferencePlanner
             }
         }
 
-        private class BatchScope : IDisposable
+        private sealed class BatchScope : IDisposable
         {
             private RequestScope _requestScope;
 
@@ -342,7 +342,7 @@ namespace HotChocolate.ConferencePlanner
             }
         }
 
-        private class ResolverScope : IDisposable
+        private sealed class ResolverScope : IDisposable
         {
             private RequestScope _requestScope;
             private ISelection _selection;

@@ -34,7 +34,7 @@ public ref partial struct Utf8GraphQLParser
     {
         TokenInfo start = Start();
 
-        bool ofDirective = SkipAt();
+        var ofDirective = SkipAt();
         NameNode name = ParseName();
         NameNode? memberName = null;
         NameNode? argumentName = null;

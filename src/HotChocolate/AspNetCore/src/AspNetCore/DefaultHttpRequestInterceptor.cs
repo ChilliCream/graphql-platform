@@ -12,18 +12,18 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
         CancellationToken cancellationToken)
     {
         requestBuilder.TrySetServices(context.RequestServices);
-        requestBuilder.TryAddProperty(nameof(HttpContext), context);
-        requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
-        requestBuilder.TryAddProperty(nameof(CancellationToken), context.RequestAborted);
+        requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
+        requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), context.User);
+        requestBuilder.TryAddGlobalState(nameof(CancellationToken), context.RequestAborted);
 
         if (context.IsTracingEnabled())
         {
-            requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
+            requestBuilder.TryAddGlobalState(WellKnownContextData.EnableTracing, true);
         }
 
         if (context.IncludeQueryPlan())
         {
-            requestBuilder.TryAddProperty(WellKnownContextData.IncludeQueryPlan, true);
+            requestBuilder.TryAddGlobalState(WellKnownContextData.IncludeQueryPlan, true);
         }
 
         return default;

@@ -53,7 +53,8 @@ public interface IResolverContext : IPureResolverContext
     /// <summary>
     /// Gets the current execution path.
     /// </summary>
-    Path Path { get; }
+    // note: this needs to stay here for compatibility reasons.
+    new Path Path { get; }
 
     /// <summary>
     /// Indicates that the context has errors. To report new errors use <see cref="ReportError(IError)"/>

@@ -3,7 +3,7 @@ namespace HotChocolate.AspNetCore;
 /// <summary>
 /// Represents the GraphQL HTTP options.
 /// </summary>
-public class GraphQLHttpOptions
+public sealed class GraphQLHttpOptions
 {
     /// <summary>
     /// Gets or sets which GraphQL options are allowed on GET requests.

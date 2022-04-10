@@ -29,7 +29,7 @@ public ref partial struct Utf8GraphQLParser
     /// Defines if only constant values are allowed;
     /// otherwise, variables are allowed.
     /// </param>
-    internal IValueNode ParseValueLiteral(bool isConstant)
+    private IValueNode ParseValueLiteral(bool isConstant)
     {
         if (_reader.Kind == TokenKind.LeftBracket)
         {
@@ -65,7 +65,7 @@ public ref partial struct Utf8GraphQLParser
         TokenInfo start = Start();
 
         var isBlock = _reader.Kind == TokenKind.BlockString;
-        string value = ExpectString();
+        var value = ExpectString();
         Location? location = CreateLocation(in start);
 
         return new StringValueNode(location, value, isBlock);
@@ -127,7 +127,6 @@ public ref partial struct Utf8GraphQLParser
     /// Defines if only constant values are allowed;
     /// otherwise, variables are allowed.
     /// </param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ObjectValueNode ParseObject(bool isConstant)
     {
         TokenInfo start = Start();
@@ -148,7 +147,13 @@ public ref partial struct Utf8GraphQLParser
 
         while (_reader.Kind != TokenKind.RightBrace)
         {
-            fields.Add(ParseObjectField(isConstant));
+            TokenInfo fieldStart = Start();
+            NameNode name = ParseName();
+            ExpectColon();
+            IValueNode value = ParseValueLiteral(isConstant);
+            Location? fieldLocation = CreateLocation(in fieldStart);
+
+            fields.Add(new ObjectFieldNode(fieldLocation, name, value));
         }
 
         // skip closing token
@@ -160,27 +165,6 @@ public ref partial struct Utf8GraphQLParser
         (
             location,
             fields
-        );
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ObjectFieldNode ParseObjectField(bool isConstant)
-    {
-        TokenInfo start = Start();
-
-        NameNode name = ParseName();
-
-        ExpectColon();
-
-        IValueNode value = ParseValueLiteral(isConstant);
-
-        Location? location = CreateLocation(in start);
-
-        return new ObjectFieldNode
-        (
-            location,
-            name,
-            value
         );
     }
 
@@ -260,7 +244,7 @@ public ref partial struct Utf8GraphQLParser
             return NullValueNode.Default;
         }
 
-        ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+        var value = _reader.GetString();
         MoveNext();
         location = CreateLocation(in start);
 

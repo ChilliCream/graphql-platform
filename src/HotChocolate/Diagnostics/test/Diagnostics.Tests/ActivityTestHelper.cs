@@ -82,7 +82,7 @@ public static class ActivityTestHelper
         data["event"] = activity.Events.Select(t => new { t.Name, t.Tags });
     }
 
-    private class Session : IDisposable
+    private sealed class Session : IDisposable
     {
         private readonly Activity _activity;
         private readonly ActivityListener _listener;

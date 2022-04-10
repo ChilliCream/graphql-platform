@@ -97,7 +97,7 @@ namespace HotChocolate.Execution.Instrumentation
             result.ToJson().MatchSnapshot();
         }
 
-        private class TestTimestampProvider : ITimestampProvider
+        private sealed class TestTimestampProvider : ITimestampProvider
         {
             private DateTime _utcNow = new DateTime(2010, 10, 10, 12, 00, 00);
             private long _nowInNanoseconds = 10;

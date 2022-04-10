@@ -12,25 +12,39 @@ namespace HotChocolate.Types.NodaTime;
 /// </summary>
 public class OffsetTimeType : StringToStructBaseType<OffsetTime>
 {
+    private readonly IPattern<OffsetTime>[] _allowedPatterns;
+    private readonly IPattern<OffsetTime> _serializationPattern;
+
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetTimeType"/>.
     /// </summary>
-    public OffsetTimeType() : base("OffsetTime")
+    public OffsetTimeType() : this(OffsetTimePattern.GeneralIso)
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="OffsetTimeType"/>.
+    /// </summary>
+    public OffsetTimeType(params IPattern<OffsetTime>[] allowedPatterns) : base("OffsetTime")
+    {
+        if (allowedPatterns.Length == 0)
+        {
+            throw ThrowHelper.PatternCannotBeEmpty(this);
+        }
+
+        _allowedPatterns = allowedPatterns;
+        _serializationPattern = _allowedPatterns[0];
         Description = NodaTimeResources.OffsetTimeType_Description;
     }
 
     /// <inheritdoc />
     protected override string Serialize(OffsetTime runtimeValue)
-        => OffsetTimePattern.GeneralIso
-            .WithCulture(CultureInfo.InvariantCulture)
+        => _serializationPattern
             .Format(runtimeValue);
 
     /// <inheritdoc />
     protected override bool TryDeserialize(
         string resultValue,
         [NotNullWhen(true)] out OffsetTime? runtimeValue)
-        => OffsetTimePattern.GeneralIso
-            .WithCulture(CultureInfo.InvariantCulture)
-            .TryParse(resultValue, out runtimeValue);
+        => _allowedPatterns.TryParse(resultValue, out runtimeValue);
 }

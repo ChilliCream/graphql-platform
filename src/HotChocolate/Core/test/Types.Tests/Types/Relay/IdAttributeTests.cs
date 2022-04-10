@@ -493,7 +493,7 @@ namespace HotChocolate.Types.Relay
             private static void AddInterceptingSerializer(ArgumentDefinition definition) =>
                 definition.Formatters.Insert(0, new InterceptingFormatter());
 
-            private class InterceptingFormatter : IInputValueFormatter
+            private sealed class InterceptingFormatter : IInputValueFormatter
             {
                 public object? OnAfterDeserialize(object? runtimeValue) =>
                     runtimeValue is IEnumerable<string> list

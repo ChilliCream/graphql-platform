@@ -3,17 +3,19 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Execution.Serialization;
 using static HotChocolate.AspNetCore.ErrorHelper;
+using static HotChocolate.Execution.ExecutionResultKind;
 
 namespace HotChocolate.AspNetCore.Serialization;
 
 public class DefaultHttpResultSerializer : IHttpResultSerializer
 {
-    private readonly JsonQueryResultSerializer _jsonSerializer;
-    private readonly JsonArrayResponseStreamSerializer _jsonArraySerializer;
-    private readonly MultiPartResponseStreamSerializer _multiPartSerializer;
+    private readonly JsonQueryResultFormatter _jsonFormatter;
 
-    private readonly HttpResultSerialization _batchSerialization;
-    private readonly HttpResultSerialization _deferSerialization;
+    private readonly string _deferContentType;
+    private readonly IResponseStreamFormatter _deferFormatter;
+
+    private readonly string _batchContentType;
+    private readonly IResponseStreamFormatter _batchFormatter;
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResultSerializer" />.
@@ -40,12 +42,31 @@ public class DefaultHttpResultSerializer : IHttpResultSerializer
         bool indented = false,
         JavaScriptEncoder? encoder = null)
     {
-        _batchSerialization = batchSerialization;
-        _deferSerialization = deferSerialization;
+        _jsonFormatter = new JsonQueryResultFormatter(indented, encoder);
+        var jsonArrayFormatter = new JsonArrayResponseStreamFormatter(_jsonFormatter);
+        var multiPartFormatter = new MultiPartResponseStreamFormatter(_jsonFormatter);
 
-        _jsonSerializer = new(indented, encoder);
-        _jsonArraySerializer = new(_jsonSerializer);
-        _multiPartSerializer = new(_jsonSerializer);
+        if (deferSerialization is HttpResultSerialization.JsonArray)
+        {
+            _deferContentType = ContentType.Json;
+            _deferFormatter = jsonArrayFormatter;
+        }
+        else
+        {
+            _deferContentType = ContentType.MultiPart;
+            _deferFormatter = multiPartFormatter;
+        }
+
+        if (batchSerialization is HttpResultSerialization.JsonArray)
+        {
+            _batchContentType = ContentType.Json;
+            _batchFormatter = jsonArrayFormatter;
+        }
+        else
+        {
+            _batchContentType = ContentType.MultiPart;
+            _batchFormatter = multiPartFormatter;
+        }
     }
 
     public virtual string GetContentType(IExecutionResult result)
@@ -55,38 +76,26 @@ public class DefaultHttpResultSerializer : IHttpResultSerializer
             throw new ArgumentNullException(nameof(result));
         }
 
-        switch (result)
+        return result.Kind switch
         {
-            case QueryResult:
-                return ContentType.Json;
-
-            case DeferredQueryResult:
-                return _deferSerialization == HttpResultSerialization.JsonArray
-                    ? ContentType.Json
-                    : ContentType.MultiPart;
-
-            case BatchQueryResult:
-                return _batchSerialization == HttpResultSerialization.JsonArray
-                    ? ContentType.Json
-                    : ContentType.MultiPart;
-
-            default:
-                return ContentType.Json;
-        }
+            SingleResult => ContentType.Json,
+            DeferredResult => _deferContentType,
+            BatchResult => _batchContentType,
+            _ => ContentType.Json
+        };
     }
 
-    public virtual HttpStatusCode GetStatusCode(IExecutionResult result)
+    public HttpStatusCode GetStatusCode(IExecutionResult result)
     {
         return result switch
         {
             QueryResult queryResult => GetStatusCode(queryResult),
-            DeferredQueryResult => HttpStatusCode.OK,
-            BatchQueryResult => HttpStatusCode.OK,
+            ResponseStream streamResult => GetStatusCode(streamResult),
             _ => HttpStatusCode.InternalServerError
         };
     }
 
-    private HttpStatusCode GetStatusCode(IQueryResult result)
+    protected virtual HttpStatusCode GetStatusCode(IQueryResult result)
     {
         if (result.Data is not null)
         {
@@ -117,6 +126,9 @@ public class DefaultHttpResultSerializer : IHttpResultSerializer
         return HttpStatusCode.InternalServerError;
     }
 
+    protected virtual HttpStatusCode GetStatusCode(ResponseStream responseStream)
+        => HttpStatusCode.OK;
+
     public virtual async ValueTask SerializeAsync(
         IExecutionResult result,
         Stream stream,
@@ -125,41 +137,22 @@ public class DefaultHttpResultSerializer : IHttpResultSerializer
         switch (result)
         {
             case IQueryResult queryResult:
-                await _jsonSerializer
-                    .SerializeAsync(queryResult, stream, cancellationToken)
-                    .ConfigureAwait(false);
+                await _jsonFormatter.FormatAsync(queryResult, stream, cancellationToken);
                 break;
 
-            case DeferredQueryResult deferredResult
-                when _deferSerialization == HttpResultSerialization.JsonArray:
-                await _jsonArraySerializer
-                    .SerializeAsync(deferredResult, stream, cancellationToken)
-                    .ConfigureAwait(false);
+            case IResponseStream { Kind: DeferredResult } streamResult:
+                await _deferFormatter.FormatAsync(streamResult, stream, cancellationToken);
                 break;
 
-            case DeferredQueryResult deferredResult:
-                await _multiPartSerializer
-                    .SerializeAsync(deferredResult, stream, cancellationToken)
-                    .ConfigureAwait(false);
-                break;
-
-            case BatchQueryResult batchResult
-                when _batchSerialization == HttpResultSerialization.JsonArray:
-                await _jsonArraySerializer
-                    .SerializeAsync(batchResult, stream, cancellationToken)
-                    .ConfigureAwait(false);
-                break;
-
-            case BatchQueryResult batchResult:
-                await _multiPartSerializer
-                    .SerializeAsync(batchResult, stream, cancellationToken)
-                    .ConfigureAwait(false);
+            case IResponseStream { Kind: BatchResult } streamResult:
+                await _batchFormatter.FormatAsync(streamResult, stream, cancellationToken);
                 break;
 
             default:
-                await _jsonSerializer
-                    .SerializeAsync(ResponseTypeNotSupported(), stream, cancellationToken)
-                    .ConfigureAwait(false);
+                await _jsonFormatter.FormatAsync(
+                    ResponseTypeNotSupported(),
+                    stream,
+                    cancellationToken);
                 break;
         }
     }

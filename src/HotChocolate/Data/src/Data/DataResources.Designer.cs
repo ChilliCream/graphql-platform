@@ -543,6 +543,18 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string QueryableSorting_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableSorting_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableSortProvider_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableSortProvider_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+        
         internal static string QueryableSorting_NoMemberDeclared {
             get {
                 return ResourceManager.GetString("QueryableSorting_NoMemberDeclared", resourceCulture);
@@ -570,6 +582,12 @@ namespace HotChocolate.Data {
         internal static string GlobalIdInputValueFormatter_IdsHaveInvalidFormat {
             get {
                 return ResourceManager.GetString("GlobalIdInputValueFormatter_IdsHaveInvalidFormat", resourceCulture);
+            }
+        }
+        
+        internal static string SelectionContext_NoTypeForAbstractFieldProvided {
+            get {
+                return ResourceManager.GetString("SelectionContext_NoTypeForAbstractFieldProvided", resourceCulture);
             }
         }
     }

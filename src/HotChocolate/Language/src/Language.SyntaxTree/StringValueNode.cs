@@ -8,7 +8,6 @@ namespace HotChocolate.Language;
 
 /// <summary>
 /// Represents a string value literal.
-///
 /// http://facebook.github.io/graphql/June2018/#sec-String-Value
 /// </summary>
 public sealed class StringValueNode
@@ -54,6 +53,15 @@ public sealed class StringValueNode
         Block = block;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the
+    /// <see cref="StringValueNode"/> class.
+    /// </summary>
+    /// <param name="location">The source location.</param>
+    /// <param name="value">The string value.</param>
+    /// <param name="block">
+    /// If set to <c>true</c> this instance represents a block string.
+    /// </param>
     public StringValueNode(
         Location? location,
         ReadOnlyMemory<byte> value,
@@ -64,8 +72,10 @@ public sealed class StringValueNode
         Block = block;
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.StringValue;
+    /// <inheritdoc cref="ISyntaxNode"/>
+    public SyntaxKind Kind => SyntaxKind.StringValue;
 
+    /// <inheritdoc cref="ISyntaxNode"/>
     public Location? Location { get; }
 
     public unsafe string Value
@@ -96,6 +106,7 @@ public sealed class StringValueNode
     /// </value>
     public bool Block { get; }
 
+    /// <inheritdoc cref="ISyntaxNode"/>
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
     /// <summary>
@@ -123,7 +134,8 @@ public sealed class StringValueNode
             return true;
         }
 
-        return other.Value.Equals(Value, StringComparison.Ordinal);
+        return Block == other.Block &&
+            Value.Equals(other.Value, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -224,6 +236,9 @@ public sealed class StringValueNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Gets a readonly span to access the string value memory.
+    /// </summary>
     public ReadOnlySpan<byte> AsSpan()
     {
         if (_memory.IsEmpty)
@@ -233,12 +248,18 @@ public sealed class StringValueNode
         return _memory.Span;
     }
 
-    public StringValueNode WithLocation(Location? location) =>
-        new(location, Value, Block);
+    public StringValueNode WithLocation(Location? location)
+        => new(location, Value, Block);
 
-    public StringValueNode WithValue(string value) =>
-        new(Location, value, false);
+    public StringValueNode WithValue(string value)
+        => new(Location, value, false);
 
-    public StringValueNode WithValue(string value, bool block) =>
-        new(Location, value, block);
+    public StringValueNode WithValue(string value, bool block)
+        => new(Location, value, block);
+
+    public static bool operator ==(StringValueNode? left, StringValueNode? right)
+        => Equals(left, right);
+
+    public static bool operator !=(StringValueNode? left, StringValueNode? right)
+        => !Equals(left, right);
 }

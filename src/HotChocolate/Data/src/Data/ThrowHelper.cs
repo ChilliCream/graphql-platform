@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Data.Filters;
@@ -475,6 +476,30 @@ internal static class ThrowHelper
             field.Name,
             field.Type.Print()));
 
+    public static InvalidOperationException QueryableSorting_ExpressionParameterInvalid(
+        Type type,
+        ISortField field) =>
+        new(string.Format(
+            CultureInfo.CurrentCulture,
+            DataResources.QueryableSorting_ExpressionParameterInvalid,
+            type.FullName,
+            field.DeclaringType.Print(),
+            field.Name,
+            field.Type.Print()));
+
+    public static SchemaException QueryableSortProvider_ExpressionParameterInvalid(
+        ITypeSystemObject type,
+        ISortInputTypeDefinition typeDefinition,
+        ISortFieldDefinition field) =>
+        new(SchemaErrorBuilder
+            .New()
+            .SetMessage(
+                DataResources.QueryableSortProvider_ExpressionParameterInvalid,
+                typeDefinition.EntityType?.FullName,
+                field.Name)
+            .SetTypeSystemObject(type)
+            .Build());
+
     public static InvalidOperationException QueryableSorting_NoMemberDeclared(ISortField field) =>
         new(string.Format(
             CultureInfo.CurrentCulture,
@@ -507,4 +532,13 @@ internal static class ThrowHelper
                 "The IDs `{0}` have an invalid format.",
                 string.Join(", ", ids))
             .Build());
+
+    public static InvalidOperationException SelectionContext_NoTypeForAbstractFieldProvided(
+        INamedType type,
+        IEnumerable<ObjectType> possibleTypes) =>
+        new(string.Format(
+            CultureInfo.CurrentCulture,
+            DataResources.SelectionContext_NoTypeForAbstractFieldProvided,
+            type.NamedType().Name,
+            string.Join(",", possibleTypes.Select(x => x.NamedType().Name))));
 }

@@ -42,9 +42,7 @@ public static partial class SchemaBuilderExtensions
                 nameof(filePath));
         }
 
-        return builder.AddDocument(sp =>
-            Utf8GraphQLParser.Parse(
-                File.ReadAllBytes(filePath)));
+        return builder.AddDocument(_ => Utf8GraphQLParser.Parse(File.ReadAllBytes(filePath)));
     }
 
     public static ISchemaBuilder AddDocument(
@@ -61,6 +59,6 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(document));
         }
 
-        return builder.AddDocument(sp => document);
+        return builder.AddDocument(_ => document);
     }
 }

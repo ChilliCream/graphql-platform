@@ -153,11 +153,11 @@ internal static class DirectiveCollectionExtensions
         return null;
     }
 
-    private static DirectiveNode? GetDeferDirective(
+    internal static DirectiveNode? GetDeferDirective(
         this IReadOnlyList<DirectiveNode> directives) =>
         GetDirective(directives, WellKnownDirectives.Defer);
 
-    private static DirectiveNode? GetStreamDirective(
+    internal static DirectiveNode? GetStreamDirective(
         this IReadOnlyList<DirectiveNode> directives) =>
         GetDirective(directives, WellKnownDirectives.Stream);
 

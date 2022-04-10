@@ -25,8 +25,8 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             combined = combinator switch
             {
-                FilterCombinator.And => CombineWithAnd(context, operations),
-                FilterCombinator.Or => CombineWithOr(context, operations),
+                FilterCombinator.And => CombineWithAnd(operations),
+                FilterCombinator.Or => CombineWithOr(operations),
                 _ => throw ThrowHelper
                     .Filtering_MongoDbCombinator_InvalidCombinator(this, combinator)
             };
@@ -35,10 +35,9 @@ namespace HotChocolate.Data.MongoDb.Filters
         }
 
         private static MongoDbFilterDefinition CombineWithAnd(
-            MongoDbFilterVisitorContext context,
             Queue<MongoDbFilterDefinition> operations)
         {
-            if (operations.Count < 0)
+            if (operations.Count == 0)
             {
                 throw new InvalidOperationException();
             }
@@ -47,10 +46,9 @@ namespace HotChocolate.Data.MongoDb.Filters
         }
 
         private static MongoDbFilterDefinition CombineWithOr(
-            MongoDbFilterVisitorContext context,
             Queue<MongoDbFilterDefinition> operations)
         {
-            if (operations.Count < 0)
+            if (operations.Count == 0)
             {
                 throw new InvalidOperationException();
             }

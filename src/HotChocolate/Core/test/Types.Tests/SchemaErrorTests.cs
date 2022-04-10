@@ -151,7 +151,7 @@ namespace HotChocolate
                 ex => Assert.IsType<SchemaException>(ex));
         }
 
-        private class ErrorInterceptor : SchemaInterceptor
+        private sealed class ErrorInterceptor : SchemaInterceptor
         {
             public List<Exception> Exceptions { get; } = new List<Exception>();
 

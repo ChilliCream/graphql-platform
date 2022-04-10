@@ -1,32 +1,31 @@
 using System;
 using StrawberryShake.Properties;
 
-namespace StrawberryShake
+namespace StrawberryShake;
+
+public readonly struct Location
 {
-    public readonly struct Location
+    public Location(int line, int column)
     {
-        public Location(int line, int column)
+        if (line < 1)
         {
-            if (line < 1)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(line), line,
-                    Resources.Location_Location_Line_OutOfRange);
-            }
-
-            if (column < 1)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(column), column,
-                    Resources.Location_Location_Column_OutOfRange);
-            }
-
-            Line = line;
-            Column = column;
+            throw new ArgumentOutOfRangeException(
+                nameof(line), line,
+                Resources.Location_Location_Line_OutOfRange);
         }
 
-        public int Line { get; }
+        if (column < 1)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(column), column,
+                Resources.Location_Location_Column_OutOfRange);
+        }
 
-        public int Column { get; }
+        Line = line;
+        Column = column;
     }
+
+    public int Line { get; }
+
+    public int Column { get; }
 }

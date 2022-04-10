@@ -1,23 +1,16 @@
 ﻿{
-  "data": {
-    "me": {
-      "id": 1,
-      "alias1": "Ada Lovelace",
-      "alias2": [
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
         {
-          "alias3": "Love it!",
-          "alias4": {
-            "upc": 1
-          }
-        },
-        {
-          "alias3": "Too expensive.",
-          "alias4": {
-            "upc": 2
-          }
+          "line": 2,
+          "column": 21
         }
+      ],
+      "path": [
+        "me"
       ]
-    },
-    "local": "I am local."
-  }
+    }
+  ]
 }

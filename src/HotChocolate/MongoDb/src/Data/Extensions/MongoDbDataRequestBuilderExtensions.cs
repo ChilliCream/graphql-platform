@@ -71,8 +71,10 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             builder
                 .BindRuntimeType<ObjectId, StringType>()
+                #pragma warning disable CS8622
                 .AddTypeConverter<ObjectId, string>(x => x.ToString())
                 .AddTypeConverter<string, ObjectId>(x => new ObjectId(x));
+                #pragma warning restore CS8622
 
         /// <summary>
         /// Adds the MongoDB cursor and offset paging providers.

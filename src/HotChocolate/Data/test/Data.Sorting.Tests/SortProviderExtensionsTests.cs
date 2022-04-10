@@ -66,12 +66,12 @@ public class SortProviderExtensionsTests
             x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
     }
 
-    private class MockFieldHandler : QueryableDefaultSortFieldHandler
+    private sealed class MockFieldHandler : QueryableDefaultSortFieldHandler
     {
 
     }
 
-    private class MockProviderExtensions
+    private sealed class MockProviderExtensions
         : SortProviderExtensions<QueryableSortContext>
     {
         public MockProviderExtensions(
@@ -81,7 +81,7 @@ public class SortProviderExtensionsTests
         }
     }
 
-    private class MockProvider : SortProvider<QueryableSortContext>
+    private sealed class MockProvider : SortProvider<QueryableSortContext>
     {
         public SortProviderDefinition? DefinitionAccessor => base.Definition;
 

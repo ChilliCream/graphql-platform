@@ -5,6 +5,7 @@ namespace HotChocolate.Execution.Processing;
 internal sealed class ResultMemoryOwner : IResultMemoryOwner
 {
     private readonly ResultPool _resultPool;
+    private bool _disposed;
 
     public ResultMemoryOwner(ResultPool resultPool)
     {
@@ -21,8 +22,12 @@ internal sealed class ResultMemoryOwner : IResultMemoryOwner
 
     public void Dispose()
     {
-        _resultPool.Return(ResultMaps);
-        _resultPool.Return(ResultMapLists);
-        _resultPool.Return(ResultLists);
+        if (!_disposed)
+        {
+            _resultPool.Return(ResultMaps);
+            _resultPool.Return(ResultMapLists);
+            _resultPool.Return(ResultLists);
+            _disposed = true;
+        }
     }
 }

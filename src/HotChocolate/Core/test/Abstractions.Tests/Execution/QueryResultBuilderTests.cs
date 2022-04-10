@@ -30,5 +30,35 @@ namespace HotChocolate.Execution
             // assert
             builder.Create().MatchSnapshot();
         }
+
+        [Fact]
+        public void ExpectQueryResult()
+        {
+            // arrange
+            IExecutionResult result = QueryResultBuilder.New()
+                .SetData(new Dictionary<string, object> { { "a", "b" } })
+                .Create();
+
+            // act
+            IQueryResult queryResult = result.ExpectQueryResult();
+
+            // assert
+            Assert.NotNull(queryResult);
+        }
+
+        [Fact]
+        public void ExpectResponseStream()
+        {
+            // arrange
+            IExecutionResult result = QueryResultBuilder.New()
+                .SetData(new Dictionary<string, object> { { "a", "b" } })
+                .Create();
+
+            // act
+            void Fail() => result.ExpectResponseStream();
+
+            // assert
+            Assert.Throws<ArgumentException>(Fail);
+        }
     }
 }

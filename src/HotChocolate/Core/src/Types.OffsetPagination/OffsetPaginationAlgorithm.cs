@@ -104,7 +104,7 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
     private static ValueTask<int> GetTotalCountAssert(CancellationToken _) =>
         throw new InvalidOperationException();
 
-    private class SkipLastCollection<T> : IReadOnlyList<T>
+    private sealed class SkipLastCollection<T> : IReadOnlyList<T>
     {
         private readonly IReadOnlyList<T> _items;
         private readonly bool _skipLast;

@@ -31,7 +31,7 @@ public class AuthorizationHandlerTests
                 QueryRequestBuilder
                     .New()
                     .SetQuery("{ bar }")
-                    .AddProperty("auth", result)
+                    .AddGlobalState("auth", result)
                     .Create())
             .MatchSnapshotAsync();
     }

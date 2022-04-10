@@ -55,12 +55,12 @@ internal static class InternalServiceCollectionExtensions
 
     internal static IServiceCollection TryAddResolverTaskPool(
         this IServiceCollection services,
-        int maximumRetained = 256)
+        int maximumRetained = 128)
     {
         services.TryAddSingleton<ObjectPool<ResolverTask>>(
             _ => new ExecutionTaskPool<ResolverTask>(
                 new ResolverTaskPoolPolicy(),
-                maximumRetained / 2));
+                maximumRetained));
 
         return services;
     }
@@ -68,7 +68,7 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddOperationContextPool(
         this IServiceCollection services)
     {
-        services.TryAddSingleton<ObjectPool<OperationContext>>(sp =>
+        services.TryAddSingleton(sp =>
         {
             ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new OperationContextPooledObjectPolicy(
@@ -229,7 +229,7 @@ internal static class InternalServiceCollectionExtensions
         return services;
     }
 
-    private class OperationContextPooledObjectPolicy : PooledObjectPolicy<OperationContext>
+    private sealed class OperationContextPooledObjectPolicy : PooledObjectPolicy<OperationContext>
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly ResultPool _resultPool;

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.Diagnostics.Scopes;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
-using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
@@ -316,7 +316,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         activity.SetStatus(Status.Ok);
         activity.SetStatus(ActivityStatusCode.Ok);
 
-        context.SetLocalValue(ResolverActivity, activity);
+        context.SetLocalState(ResolverActivity, activity);
 
         return activity!;
     }
@@ -335,3 +335,4 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         }
     }
 }
+

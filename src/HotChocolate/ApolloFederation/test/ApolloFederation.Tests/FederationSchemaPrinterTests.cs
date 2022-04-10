@@ -1,5 +1,7 @@
 using System;
+using System.Reflection;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -250,6 +252,19 @@ public class FederationSchemaPrinterTests
                 .Field("foo")
                 .Resolve("bar")
                 .Directive("custom");
+
+            descriptor
+                .Field("deprecated1")
+                .Resolve("abc")
+                .Deprecated("deprecated")
+                .Type<EnumType<EnumWithDeprecatedValue>>();
+
+            descriptor
+                .Field("deprecated2")
+                .Resolve("abc")
+                .Deprecated("deprecated")
+                .Directive("custom")
+                .Type<EnumType<EnumWithDeprecatedValue>>();
         }
     }
 
@@ -266,7 +281,8 @@ public class FederationSchemaPrinterTests
         {
             descriptor
                 .Name("custom")
-                .Location(DirectiveLocation.FieldDefinition);
+                .Location(DirectiveLocation.FieldDefinition)
+                .Location(DirectiveLocation.EnumValue);
 
             if (_isPublic)
             {
@@ -275,6 +291,32 @@ public class FederationSchemaPrinterTests
             else
             {
                 descriptor.Internal();
+            }
+        }
+    }
+
+    public enum EnumWithDeprecatedValue
+    {
+        [Obsolete]
+        Deprecated1,
+
+        [CustomDirective]
+        [Obsolete]
+        Deprecated2,
+
+        Active
+    }
+
+    public class CustomDirectiveAttribute : DescriptorAttribute
+    {
+        protected override void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element)
+        {
+            if (descriptor is EnumValueDescriptor enumValue)
+            {
+                enumValue.Directive("custom");
             }
         }
     }

@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Interceptors;
 internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
-    private readonly HashSet<Type> _allInterfaceRuntimeTypes = new();
+    private readonly Dictionary<Type, TypeInfo> _allInterfaceRuntimeTypes = new();
     private readonly HashSet<Type> _interfaceRuntimeTypes = new();
     private readonly HashSet<NameString> _completed = new();
     private readonly HashSet<NameString> _completedFields = new();
@@ -43,7 +43,12 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
                 rt != typeof(object) &&
                 t.Definition is InterfaceTypeDefinition))
         {
-            _allInterfaceRuntimeTypes.Add(interfaceTypeInfo.Definition.RuntimeType);
+            if (!_allInterfaceRuntimeTypes.ContainsKey(interfaceTypeInfo.Definition.RuntimeType))
+            {
+                _allInterfaceRuntimeTypes.Add(
+                    interfaceTypeInfo.Definition.RuntimeType,
+                    interfaceTypeInfo);
+            }
         }
 
         // we now will use the runtime types to infer interface usage ...
@@ -53,22 +58,22 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
             TryInferInterfaceFromRuntimeType(
                 GetRuntimeType(typeInfo),
-                _allInterfaceRuntimeTypes,
+                _allInterfaceRuntimeTypes.Keys,
                 _interfaceRuntimeTypes);
 
             if (_interfaceRuntimeTypes.Count > 0)
             {
                 // if we detect that this type implements an interface,
                 // we will register it as a dependency.
-                foreach (TypeDependency? typeDependency in _interfaceRuntimeTypes.Select(
-                    t => new TypeDependency(
-                        TypeReference.Create(
-                            typeInfo.Context.TypeInspector.GetType(t),
-                            TypeContext.Output),
-                        TypeDependencyKind.Completed)))
+                foreach (Type interfaceRuntimeType in _interfaceRuntimeTypes)
                 {
-                    typeInfo.Context.Dependencies.Add(typeDependency);
-                    typeInfo.Definition.Interfaces.Add(typeDependency.TypeReference);
+                    TypeInfo interfaceTypeInfo = _allInterfaceRuntimeTypes[interfaceRuntimeType];
+                    var interfaceTypeDependency = new TypeDependency(
+                        interfaceTypeInfo.Context.TypeReference, 
+                        TypeDependencyKind.Completed); 
+
+                    typeInfo.Context.Dependencies.Add(interfaceTypeDependency);
+                    typeInfo.Definition.Interfaces.Add(interfaceTypeDependency.TypeReference);
                 }
             }
         }

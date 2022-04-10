@@ -13,7 +13,7 @@ public ref partial struct Utf8GraphQLRequestParser
         {
             case TokenKind.String:
                 {
-                    string value = _reader.GetString();
+                    var value = _reader.GetString();
                     _reader.MoveNext();
                     return value;
                 }
@@ -63,7 +63,7 @@ public ref partial struct Utf8GraphQLRequestParser
                             TokenPrinter.Print(in _reader));
                     }
 
-                    string name = _reader.GetString();
+                    var name = _reader.GetString();
                     _reader.MoveNext();
                     _reader.Expect(TokenKind.Colon);
                     IValueNode value = ParseValueSyntax();
@@ -74,6 +74,30 @@ public ref partial struct Utf8GraphQLRequestParser
                 _reader.Expect(TokenKind.RightBrace);
 
                 return obj;
+
+            case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
+                _reader.MoveNext();
+                return null;
+
+            default:
+                throw ThrowHelper.ExpectedObjectOrNull(_reader);
+        }
+    }
+
+    private IReadOnlyList<object?>? ParseBatchResponse()
+    {
+        switch (_reader.Kind)
+        {
+            case TokenKind.LeftBracket:
+                var list = new List<object?>();
+                _reader.Expect(TokenKind.LeftBracket);
+
+                while (_reader.Kind != TokenKind.RightBracket)
+                {
+                    list.Add(ParseResponse());
+                }
+
+                return list;
 
             case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
                 _reader.MoveNext();
@@ -104,10 +128,10 @@ public ref partial struct Utf8GraphQLRequestParser
                             TokenPrinter.Print(in _reader));
                     }
 
-                    string name = _reader.GetString();
+                    var name = _reader.GetString();
                     _reader.MoveNext();
                     _reader.Expect(TokenKind.Colon);
-                    object value = ParseResponseValue();
+                    var value = ParseResponseValue();
                     obj.Add(name, value);
                 }
 

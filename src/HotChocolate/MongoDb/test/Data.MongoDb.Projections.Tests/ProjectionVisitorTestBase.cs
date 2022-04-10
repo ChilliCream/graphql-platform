@@ -64,12 +64,11 @@ namespace HotChocolate.Data.MongoDb.Projections
                     next => async context =>
                     {
                         await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out var queryString))
+                        if (context.ContextData.TryGetValue("query", out var queryString))
                         {
                             context.Result =
                                 QueryResultBuilder
-                                    .FromResult(result)
+                                    .FromResult(context.Result!.ExpectQueryResult())
                                     .SetContextData("query", queryString)
                                     .Create();
                         }
@@ -115,7 +114,7 @@ namespace HotChocolate.Data.MongoDb.Projections
 
         public class StubObject<T>
         {
-            public T Root { get; set; }
+            public T Root { get; set; } = default!;
         }
     }
 }

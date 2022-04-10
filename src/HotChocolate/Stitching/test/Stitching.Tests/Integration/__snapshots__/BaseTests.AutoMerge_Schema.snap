@@ -1,6 +1,7 @@
 ﻿schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
 interface Contract @source(name: "Contract", schema: "contract") {
@@ -106,13 +107,17 @@ type Query {
   consultant(id: ID!): Consultant @delegate(schema: "customer")
   customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "customer")
   customerByKind(kind: CustomerKind!): Customer @delegate(schema: "customer")
-  allCustomers: [Customer] @delegate(schema: "customer")
+  allCustomers: [Customer!]! @delegate(schema: "customer")
 }
 
 type SomeOtherContract implements Node & Contract @source(name: "SomeOtherContract", schema: "contract") {
   id: ID!
   customerId: ID!
   expiryDate: DateTime!
+}
+
+type Subscription {
+  onCustomerChanged: Customer @delegate(schema: "customer")
 }
 
 union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "customer") = Customer | Consultant

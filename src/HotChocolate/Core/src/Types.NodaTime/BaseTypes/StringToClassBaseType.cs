@@ -21,7 +21,7 @@ public abstract class StringToClassBaseType<TRuntimeType>
     /// <param name="name">
     /// The name of the scalar.
     /// </param>
-    public StringToClassBaseType(string name)
+    protected StringToClassBaseType(string name)
         : base(name, BindingBehavior.Implicit)
     {
     }
@@ -115,7 +115,7 @@ public abstract class StringToClassBaseType<TRuntimeType>
         return false;
     }
 
-    // <summary>
+    /// <summary>
     /// Tries to deserializes the value from the output format to the .net
     /// runtime representation.
     /// </summary>

@@ -6,18 +6,15 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;
 
-[AttributeUsage(
-    AttributeTargets.Parameter | AttributeTargets.Property,
-    Inherited = true,
-    AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property)]
 public sealed class DefaultValueAttribute : DescriptorAttribute
 {
-    public DefaultValueAttribute(object value)
+    public DefaultValueAttribute(object? value)
     {
         Value = value;
     }
 
-    public object Value { get; }
+    public object? Value { get; }
 
     protected internal override void TryConfigure(
         IDescriptorContext context,

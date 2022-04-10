@@ -23,13 +23,13 @@ public static class ScopedServiceObjectFieldDescriptorExtensions
 
             try
             {
-                context.SetLocalValue(scopedServiceName, scopedService);
+                context.SetLocalState(scopedServiceName, scopedService);
                 await next(context).ConfigureAwait(false);
                 ;
             }
             finally
             {
-                context.RemoveLocalValue(scopedServiceName);
+                context.RemoveLocalState(scopedServiceName);
 
                 dispose?.Invoke(services, scopedService);
 

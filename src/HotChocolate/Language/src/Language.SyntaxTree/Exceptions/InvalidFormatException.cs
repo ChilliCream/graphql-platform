@@ -4,8 +4,7 @@ using System.Runtime.Serialization;
 namespace HotChocolate.Language;
 
 [Serializable]
-public class InvalidFormatException
-    : LanguageException
+public class InvalidFormatException : LanguageException
 {
     public InvalidFormatException() { }
     public InvalidFormatException(string message)

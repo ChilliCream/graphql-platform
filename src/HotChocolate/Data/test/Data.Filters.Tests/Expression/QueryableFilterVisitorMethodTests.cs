@@ -81,7 +81,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         Assert.False(funcFalse(b));
     }
 
-    private class QueryableSimpleMethodTest
+    private sealed class QueryableSimpleMethodTest
         : QueryableDefaultFieldHandler
     {
         private static readonly MethodInfo Method = typeof(Foo).GetMethod(nameof(Foo.Simple))!;
@@ -130,7 +130,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         }
     }
 
-    private class QueryableComplexMethodTest : QueryableDefaultFieldHandler
+    private sealed class QueryableComplexMethodTest : QueryableDefaultFieldHandler
     {
         private static readonly MethodInfo _method =
             typeof(Foo).GetMethod(nameof(Foo.Complex))!;
@@ -220,7 +220,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         public string Complex(string parameter) => parameter;
     }
 
-    private class FooFilterInput
+    private sealed class FooFilterInput
         : FilterInputType<Foo>
     {
         protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
@@ -231,7 +231,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         }
     }
 
-    private class TestComplexFilterInputType : StringOperationFilterInputType
+    private sealed class TestComplexFilterInputType : StringOperationFilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
