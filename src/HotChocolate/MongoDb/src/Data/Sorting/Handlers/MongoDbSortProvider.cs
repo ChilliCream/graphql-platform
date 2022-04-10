@@ -28,7 +28,7 @@ namespace HotChocolate.Data.MongoDb.Sorting
         /// The visitor thar will traverse a incoming query and execute the sorting handlers
         /// </summary>
         protected virtual SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition>
-            Visitor { get; } = new SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition>();
+            Visitor { get; } = new();
 
         /// <inheritdoc />
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
@@ -39,8 +39,7 @@ namespace HotChocolate.Data.MongoDb.Sorting
                 FieldDelegate next,
                 IMiddlewareContext context)
             {
-                MongoDbSortVisitorContext? visitorContext = null;
-                IInputField argument = context.Field.Arguments[argumentName];
+                IInputField argument = context.Selection.Field.Arguments[argumentName];
                 IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
                 if (filter is not NullValueNode &&
@@ -48,7 +47,7 @@ namespace HotChocolate.Data.MongoDb.Sorting
                     listType.ElementType is NonNullType nn &&
                     nn.NamedType() is SortInputType sortInputType)
                 {
-                    visitorContext = new MongoDbSortVisitorContext(sortInputType);
+                    var visitorContext = new MongoDbSortVisitorContext(sortInputType);
 
                     Visitor.Visit(filter, visitorContext);
 

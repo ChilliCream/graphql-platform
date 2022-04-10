@@ -97,7 +97,7 @@ public sealed partial class SyntaxSerializer
     }
 
     private void VisitInterfaceTypeDefinitionBase(
-        InterfaceTypeDefinitionNodeBase node,
+        ComplexTypeDefinitionNodeBase node,
         ISyntaxWriter writer)
     {
         writer.Write(Keywords.Interface);
@@ -110,7 +110,7 @@ public sealed partial class SyntaxSerializer
             writer.Write(Keywords.Implements);
             writer.WriteSpace();
             writer.WriteMany(node.Interfaces,
-                (n, w) => writer.WriteNamedType(n),
+                (n, _) => writer.WriteNamedType(n),
                 " & ");
         }
 
@@ -284,7 +284,7 @@ public sealed partial class SyntaxSerializer
     }
 
     private void VisitScalarTypeDefinitionBase(
-        ScalarTypeDefinitionNodeBase node,
+        NamedSyntaxNode node,
         ISyntaxWriter writer)
     {
         writer.Write(Keywords.Scalar);

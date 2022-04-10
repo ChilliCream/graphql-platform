@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Fetching;
 
-public delegate Task<TValue> FetchCacheCt<in TKey, TValue>(
+public delegate Task<TValue> FetchCache<in TKey, TValue>(
     TKey key,
     CancellationToken cancellationToken)
     where TKey : notnull;

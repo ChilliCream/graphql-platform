@@ -304,4 +304,7 @@ Make sure to call e.g. `.Field(x => x.Example).AllowEq())` on the field, to whit
   <data name="Filtering_DefinitionForTypeNotFound" xml:space="preserve">
     <value>There was an issue creating the type of the field {0} in type {1}. The type definiton of {2} was not found. Make sure you only call `AllowXYZ` on fields with a type that is either a FilterOperationInputType or a FilterInputType!</value>
   </data>
+  <data name="SelectionContext_NoTypeForAbstractFieldProvided" xml:space="preserve">
+    <value>The type {0} is an abstract type. You need to provide a type for a selection of a interface or union. Possible types are: {1}</value>
+  </data>
 </root>

@@ -1,36 +1,35 @@
 using NetTopologySuite.Geometries;
-using static HotChocolate.Types.Spatial.WellKnownFields;
 using static HotChocolate.Types.Spatial.Properties.Resources;
+using static HotChocolate.Types.Spatial.WellKnownFields;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
-namespace HotChocolate.Types.Spatial
+namespace HotChocolate.Types.Spatial;
+
+public sealed class GeoJsonMultiPolygonInputType : GeoJsonInputType<MultiPolygon>
 {
-    public sealed class GeoJsonMultiPolygonInputType : GeoJsonInputType<MultiPolygon>
+    public GeoJsonMultiPolygonInputType() : base(GeoJsonGeometryType.MultiPolygon)
     {
-        public GeoJsonMultiPolygonInputType() : base(GeoJsonGeometryType.MultiPolygon)
-        {
-        }
+    }
 
-        protected override void Configure(IInputObjectTypeDescriptor<MultiPolygon> descriptor)
-        {
-            descriptor
-                .Name(MultiPolygonInputName)
-                .BindFieldsExplicitly();
+    protected override void Configure(IInputObjectTypeDescriptor<MultiPolygon> descriptor)
+    {
+        descriptor
+            .Name(MultiPolygonInputName)
+            .BindFieldsExplicitly();
 
-            descriptor
-                .Field(TypeFieldName)
-                .Type<GeoJsonGeometryEnumType>()
-                .Description(GeoJson_Field_Type_Description);
+        descriptor
+            .Field(TypeFieldName)
+            .Type<GeoJsonGeometryEnumType>()
+            .Description(GeoJson_Field_Type_Description);
 
-            descriptor
-                .Field(CoordinatesFieldName)
-                .Type<GeoJsonCoordinatesType>()
-                .Description(GeoJson_Field_Coordinates_Description_MultiPolygon);
+        descriptor
+            .Field(CoordinatesFieldName)
+            .Type<GeoJsonCoordinatesType>()
+            .Description(GeoJson_Field_Coordinates_Description_MultiPolygon);
 
-            descriptor
-                .Field(CrsFieldName)
-                .Type<IntType>()
-                .Description(GeoJson_Field_Crs_Description);
-        }
+        descriptor
+            .Field(CrsFieldName)
+            .Type<IntType>()
+            .Description(GeoJson_Field_Crs_Description);
     }
 }
