@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -6,7 +7,26 @@ namespace HotChocolate.Language;
 public sealed class ObjectTypeExtensionNode
     : ObjectTypeDefinitionNodeBase
     , ITypeExtensionNode
+    , IEquatable<ObjectTypeExtensionNode>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectTypeExtensionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name that this syntax node holds.
+    /// </param>
+    /// <param name="directives">
+    /// The directives that are annotated to this syntax node.
+    /// </param>
+    /// <param name="interfaces">
+    /// The interfaces that this type implements.
+    /// </param>
+    /// <param name="fields">
+    /// The fields that this type exposes.
+    /// </param>
     public ObjectTypeExtensionNode(
         Location? location,
         NameNode name,
@@ -14,10 +34,13 @@ public sealed class ObjectTypeExtensionNode
         IReadOnlyList<NamedTypeNode> interfaces,
         IReadOnlyList<FieldDefinitionNode> fields)
         : base(location, name, directives, interfaces, fields)
-    { }
+    {
+    }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.ObjectTypeExtension;
+    /// <inheritdoc />
+    public override SyntaxKind Kind => SyntaxKind.ObjectTypeExtension;
 
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
@@ -59,41 +82,79 @@ public sealed class ObjectTypeExtensionNode
     /// </returns>
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public ObjectTypeExtensionNode WithLocation(Location? location)
-    {
-        return new ObjectTypeExtensionNode(
-            location, Name, Directives,
-            Interfaces, Fields);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location"/> with <paramref name="location"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location"/>
+    /// </returns>
+    public ObjectTypeExtensionNode WithLocation(Location? location) =>
+        new(location, Name, Directives, Interfaces, Fields);
 
-    public ObjectTypeExtensionNode WithName(NameNode name)
-    {
-        return new ObjectTypeExtensionNode(
-            Location, name, Directives,
-            Interfaces, Fields);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NameNode"/> with <paramref name="name"/>
+    /// </summary>
+    /// <param name="name">
+    /// The name that shall be used to replace the current name.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="name"/>
+    /// </returns>
+    public ObjectTypeExtensionNode WithName(NameNode name) =>
+        new(Location, name, Directives, Interfaces, Fields);
 
-    public ObjectTypeExtensionNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new ObjectTypeExtensionNode(
-            Location, Name, directives,
-            Interfaces, Fields);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="IReadOnlyList&lt;DirectiveNode&gt;"/> with <paramref name="directives"/>
+    /// </summary>
+    /// <param name="directives">
+    /// The directives that shall be used to replace the current directives.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="directives"/>
+    /// </returns>
+    public ObjectTypeExtensionNode WithDirectives(IReadOnlyList<DirectiveNode> directives) =>
+        new(Location, Name, directives, Interfaces, Fields);
 
-    public ObjectTypeExtensionNode WithInterfaces(
-        IReadOnlyList<NamedTypeNode> interfaces)
-    {
-        return new ObjectTypeExtensionNode(
-            Location, Name, Directives,
-            interfaces, Fields);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="IReadOnlyList&lt;NamedTypeNode&gt;"/> with <paramref name="interfaces"/>
+    /// </summary>
+    /// <param name="interfaces">
+    /// The interfaces that shall be used to replace the current interfaces.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="interfaces"/>
+    /// </returns>
+    public ObjectTypeExtensionNode WithInterfaces(IReadOnlyList<NamedTypeNode> interfaces) =>
+        new(Location, Name, Directives, interfaces, Fields);
 
-    public ObjectTypeExtensionNode WithFields(
-        IReadOnlyList<FieldDefinitionNode> fields)
-    {
-        return new ObjectTypeExtensionNode(
-            Location, Name, Directives,
-            Interfaces, fields);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="IReadOnlyList&lt;FieldDefinitionNode&gt;"/> with <paramref name="fields"/>
+    /// </summary>
+    /// <param name="fields">
+    /// The fields that shall be used to replace the current fields.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="fields"/>
+    /// </returns>
+    public ObjectTypeExtensionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields) =>
+        new(Location, Name, Directives, Interfaces, fields);
+
+    /// <inheritdoc />
+    public bool Equals(ObjectTypeExtensionNode? other) => base.Equals(other);
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj) => ReferenceEquals(this, obj) ||
+                                                obj is ObjectTypeExtensionNode other &&
+                                                Equals(other);
+
+    /// <inheritdoc />
+    public override int GetHashCode() => base.GetHashCode();
 }
