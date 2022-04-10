@@ -46,7 +46,7 @@ public class Connection<T> : Connection
     public Connection(
         IReadOnlyCollection<Edge<T>> edges,
         ConnectionPageInfo info,
-        int? totalCount = null)
+        int totalCount = 0)
         : base(edges, info, totalCount)
     {
         Edges = edges;

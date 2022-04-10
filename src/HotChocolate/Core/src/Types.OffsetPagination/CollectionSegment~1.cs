@@ -47,7 +47,7 @@ public class CollectionSegment<T> : CollectionSegment
     public CollectionSegment(
         IReadOnlyCollection<T> items,
         CollectionSegmentInfo info,
-        int? totalCount = null)
+        int totalCount = 0)
         : base(new CollectionWrapper(items), info, totalCount)
     {
         Items = items;

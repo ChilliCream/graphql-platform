@@ -10,8 +10,7 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 public class Connection : IPage
 {
-    private readonly Func<CancellationToken, ValueTask<int>>? _getTotalCount;
-    private readonly int? _totalCount;
+    private readonly Func<CancellationToken, ValueTask<int>> _getTotalCount;
 
     /// <summary>
     /// Initializes <see cref="Connection" />.
@@ -53,9 +52,9 @@ public class Connection : IPage
     public Connection(
         IReadOnlyCollection<IEdge> edges,
         ConnectionPageInfo info,
-        int? totalCount = null)
+        int totalCount = 0)
     {
-        _totalCount = totalCount;
+        _getTotalCount = _ => new(totalCount);
         Edges = edges ??
             throw new ArgumentNullException(nameof(edges));
         Info = info ??
@@ -91,6 +90,6 @@ public class Connection : IPage
     /// <returns>
     /// The total count of the data set / collection.
     /// </returns>
-    public async ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken) =>
-        _totalCount ?? await _getTotalCount(cancellationToken);
+    public ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken) =>
+        _getTotalCount(cancellationToken);
 }

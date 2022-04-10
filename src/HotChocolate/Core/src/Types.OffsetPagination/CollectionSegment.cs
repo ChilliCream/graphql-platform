@@ -10,8 +10,7 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 public class CollectionSegment : IPage
 {
-    private readonly Func<CancellationToken, ValueTask<int>>? _getTotalCount;
-    private readonly int? _totalCount;
+    private readonly Func<CancellationToken, ValueTask<int>> _getTotalCount;
 
     /// <summary>
     /// Initializes <see cref="CollectionSegment" />.
@@ -53,9 +52,9 @@ public class CollectionSegment : IPage
     public CollectionSegment(
         IReadOnlyCollection<object> items,
         CollectionSegmentInfo info,
-        int? totalCount = null)
+        int totalCount = 0)
     {
-        _totalCount = totalCount;
+        _getTotalCount = _ => new(totalCount);
         Items = items ??
             throw new ArgumentNullException(nameof(items));
         Info = info ??
@@ -86,6 +85,6 @@ public class CollectionSegment : IPage
     /// <returns>
     /// The total count of the data set / collection.
     /// </returns>
-    public async ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken) =>
-        _totalCount ?? await _getTotalCount(cancellationToken);
+    public ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken) =>
+        _getTotalCount(cancellationToken);
 }
