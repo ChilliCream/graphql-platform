@@ -10,7 +10,8 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 public class CollectionSegment : IPage
 {
-    private readonly Func<CancellationToken, ValueTask<int>> _getTotalCount;
+    private readonly Func<CancellationToken, ValueTask<int>>? _getTotalCount;
+    private readonly int? _totalCount;
 
     /// <summary>
     /// Initializes <see cref="CollectionSegment" />.
@@ -38,6 +39,30 @@ public class CollectionSegment : IPage
     }
 
     /// <summary>
+    /// Initializes <see cref="CollectionSegment" />.
+    /// </summary>
+    /// <param name="items">
+    /// The items that belong to this page.
+    /// </param>
+    /// <param name="info">
+    /// Additional information about this page.
+    /// </param>
+    /// <param name="totalCount">
+    /// The total count of the data set / collection that is being paged.
+    /// </param>
+    public CollectionSegment(
+        IReadOnlyCollection<object> items,
+        CollectionSegmentInfo info,
+        int? totalCount = null)
+    {
+        _totalCount = totalCount;
+        Items = items ??
+            throw new ArgumentNullException(nameof(items));
+        Info = info ??
+            throw new ArgumentNullException(nameof(info));
+    }
+
+    /// <summary>
     /// The items that belong to this page.
     /// </summary>
     public IReadOnlyCollection<object> Items { get; }
@@ -45,7 +70,12 @@ public class CollectionSegment : IPage
     /// <summary>
     /// Gets more information about this page.
     /// </summary>
-    public IPageInfo Info { get; }
+    public CollectionSegmentInfo Info { get; }
+
+    /// <summary>
+    /// Gets more information about this page.
+    /// </summary>
+    IPageInfo IPage.Info => Info;
 
     /// <summary>
     /// Requests the total count of the data set / collection that is being paged.
@@ -56,7 +86,6 @@ public class CollectionSegment : IPage
     /// <returns>
     /// The total count of the data set / collection.
     /// </returns>
-    public ValueTask<int> GetTotalCountAsync(
-        CancellationToken cancellationToken) =>
-        _getTotalCount(cancellationToken);
+    public async ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken) =>
+        _totalCount ?? await _getTotalCount(cancellationToken);
 }

@@ -71,10 +71,11 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
 
         items = new SkipLastCollection<TEntity>(items, skipLast: hasNextPage);
 
-        return new CollectionSegment<TEntity>(
-            items,
-            pageInfo,
-            getTotalCount);
+        if (totalCount is null)
+        {
+            return new CollectionSegment<TEntity>( items, pageInfo, getTotalCount);
+        }
+        return new CollectionSegment<TEntity>( items, pageInfo, totalCount);
     }
 
     /// <summary>

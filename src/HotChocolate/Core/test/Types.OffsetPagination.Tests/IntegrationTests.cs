@@ -81,7 +81,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
+                    .SetPagingOptions(new PagingOptions {RequirePagingBoundaries = true})
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -109,7 +109,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
+                    .SetPagingOptions(new PagingOptions {RequirePagingBoundaries = true})
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -272,7 +272,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2 })
+                    .SetPagingOptions(new PagingOptions {DefaultPageSize = 2})
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -300,7 +300,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
+                    .SetPagingOptions(new PagingOptions {DefaultPageSize = 50})
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -328,7 +328,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2 })
+                    .SetPagingOptions(new PagingOptions {DefaultPageSize = 2})
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -620,6 +620,32 @@ namespace HotChocolate.Types.Pagination
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task TotalCountWithCustomCollectionSegment()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<CustomCollectionSegmentQuery>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            const string query = @"
+            {
+                foos {
+                    totalCount
+                }
+            }
+            ";
+
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -637,11 +663,7 @@ namespace HotChocolate.Types.Pagination
                     .Field(t => t.Foos())
                     .Name("nestedObjectList")
                     .UseOffsetPaging(
-                        options: new PagingOptions
-                        {
-                            MaxPageSize = 2,
-                            IncludeTotalCount = true
-                        });
+                        options: new PagingOptions {MaxPageSize = 2, IncludeTotalCount = true});
             }
         }
 
@@ -653,11 +675,7 @@ namespace HotChocolate.Types.Pagination
                     .Field(t => t.FoosExecutable())
                     .Name("fooExecutable")
                     .UseOffsetPaging(
-                        options: new PagingOptions
-                        {
-                            MaxPageSize = 2,
-                            IncludeTotalCount = true
-                        });
+                        options: new PagingOptions {MaxPageSize = 2, IncludeTotalCount = true});
             }
         }
 
@@ -665,27 +683,16 @@ namespace HotChocolate.Types.Pagination
         {
             public string[] Letters => new[]
             {
-                "a",
-                "b",
-                "c",
-                "d",
-                "e",
-                "f",
-                "g",
-                "h",
-                "i",
-                "j",
-                "k",
-                "l"
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
             };
 
             public List<List<Foo>> Foos() => new List<List<Foo>>
             {
-                new List<Foo> { new Foo { Bar = "a" } },
-                new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
-                new List<Foo> { new Foo { Bar = "d" } },
-                new List<Foo> { new Foo { Bar = "e" } },
-                new List<Foo> { new Foo { Bar = "f" } }
+                new List<Foo> {new Foo {Bar = "a"}},
+                new List<Foo> {new Foo {Bar = "b"}, new Foo {Bar = "c"}},
+                new List<Foo> {new Foo {Bar = "d"}},
+                new List<Foo> {new Foo {Bar = "e"}},
+                new List<Foo> {new Foo {Bar = "f"}}
             };
         }
 
@@ -693,12 +700,12 @@ namespace HotChocolate.Types.Pagination
         {
             public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(new List<Foo>
             {
-                  new Foo { Bar = "a" },
-                  new Foo { Bar = "b" },
-                  new Foo { Bar = "c" } ,
-                  new Foo { Bar = "d" },
-                  new Foo { Bar = "e" },
-                  new Foo { Bar = "f" }
+                new Foo {Bar = "a"},
+                new Foo {Bar = "b"},
+                new Foo {Bar = "c"},
+                new Foo {Bar = "d"},
+                new Foo {Bar = "e"},
+                new Foo {Bar = "f"}
             }.AsQueryable());
         }
 
@@ -714,7 +721,7 @@ namespace HotChocolate.Types.Pagination
                 int? skip,
                 int? take,
                 CancellationToken cancellationToken)
-                => await new[] { "a", "b", "c", "d" }
+                => await new[] {"a", "b", "c", "d"}
                     .AsQueryable()
                     .ApplyOffsetPaginationAsync(skip, take, cancellationToken);
         }
@@ -724,18 +731,7 @@ namespace HotChocolate.Types.Pagination
             [UseOffsetPaging]
             public string[] Letters => new[]
             {
-                "a",
-                "b",
-                "c",
-                "d",
-                "e",
-                "f",
-                "g",
-                "h",
-                "i",
-                "j",
-                "k",
-                "l"
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
             };
 
             [UseOffsetPaging(typeof(NonNullType<StringType>))]
@@ -747,11 +743,11 @@ namespace HotChocolate.Types.Pagination
                 IncludeTotalCount = true)]
             public List<List<Foo>> Foos() => new List<List<Foo>>
             {
-                new List<Foo> { new Foo { Bar = "a" } },
-                new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
-                new List<Foo> { new Foo { Bar = "d" } },
-                new List<Foo> { new Foo { Bar = "e" } },
-                new List<Foo> { new Foo { Bar = "f" } }
+                new List<Foo> {new Foo {Bar = "a"}},
+                new List<Foo> {new Foo {Bar = "b"}, new Foo {Bar = "c"}},
+                new List<Foo> {new Foo {Bar = "d"}},
+                new List<Foo> {new Foo {Bar = "e"}},
+                new List<Foo> {new Foo {Bar = "f"}}
             };
         }
 
@@ -776,7 +772,7 @@ namespace HotChocolate.Types.Pagination
             _source = source;
         }
 
-        public object Source =>_source;
+        public object Source => _source;
 
         public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
@@ -797,5 +793,12 @@ namespace HotChocolate.Types.Pagination
         {
             return _source.ToString()!;
         }
+    }
+
+    public class CustomCollectionSegmentQuery
+    {
+        [UseOffsetPaging(IncludeTotalCount = true)]
+        public CollectionSegment<string> GetFoos(int? first, string? after)
+            => new(new[] {"asd", "asd2"}, new CollectionSegmentInfo(false, false), 2);
     }
 }

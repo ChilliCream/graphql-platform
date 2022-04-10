@@ -57,9 +57,10 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
         }
 
         var maxElementCount = int.MaxValue;
-        Func<CancellationToken, ValueTask<int>> executeCount = totalCount is null ?
+        var capturedTotalCount = totalCount;
+        Func<CancellationToken, ValueTask<int>> executeCount = capturedTotalCount is null ?
             ct => CountAsync(query, ct)
-            : _ => new ValueTask<int>(totalCount.Value);
+            : _ => new ValueTask<int>(capturedTotalCount.Value);
 
         // We only need the maximal element count if no `before` counter is set and no `first`
         // argument is provided.
@@ -68,9 +69,9 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             var count = await executeCount(cancellationToken);
             maxElementCount = count;
 
-            // in case we already know the total count, we override the countAsync parameter
-            // so that we do not have to fetch the count twice
-            executeCount = _ => new ValueTask<int>(count);
+            // in case we already know the total count, we set the totalCount parameter
+            // so that we do not have have to fetch the count twice
+            totalCount = count;
         }
 
         CursorPagingRange range = SliceRange(arguments, maxElementCount);
@@ -108,7 +109,9 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
         ConnectionPageInfo pageInfo =
             CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, selectedEdges);
 
-        return new Connection<TEntity>(selectedEdges, pageInfo, executeCount);
+        return totalCount is not null
+            ? new Connection<TEntity>(selectedEdges, pageInfo, totalCount)
+            : new Connection<TEntity>(selectedEdges, pageInfo, executeCount);
     }
 
     /// <summary>
