@@ -13,21 +13,6 @@ input BarFilterInput {
   fooNullable: FooFilterInput
 }
 
-input ComparableInt16OperationFilterInput {
-  eq: Short
-  neq: Short
-  in: [Short!]
-  nin: [Short!]
-  gt: Short
-  ngt: Short
-  gte: Short
-  ngte: Short
-  lt: Short
-  nlt: Short
-  lte: Short
-  nlte: Short
-}
-
 input ExplicitFilterInput {
   and: [ExplicitFilterInput!]
   or: [ExplicitFilterInput!]
@@ -37,7 +22,22 @@ input ExplicitFilterInput {
 input FooFilterInput {
   and: [FooFilterInput!]
   or: [FooFilterInput!]
-  barShort: ComparableInt16OperationFilterInput
+  barShort: ShortOperationFilterInput
+}
+
+input ShortOperationFilterInput {
+  eq: Short
+  neq: Short
+  in: [Short]
+  nin: [Short]
+  gt: Short
+  ngt: Short
+  gte: Short
+  ngte: Short
+  lt: Short
+  nlt: Short
+  lte: Short
+  nlte: Short
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."

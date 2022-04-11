@@ -63,7 +63,7 @@ type Publisher {
 input Foo_AuthorFilterInput {
   and: [Foo_AuthorFilterInput!]
   or: [Foo_AuthorFilterInput!]
-  id: Foo_ComparableInt32OperationFilterInput
+  id: Foo_IntOperationFilterInput
   name: Foo_StringOperationFilterInput
   books: Foo_ListFilterInputTypeOfBookFilterInput
   publishers: Foo_ListFilterInputTypeOfPublisherFilterInput
@@ -77,8 +77,8 @@ input Foo_AuthorSortInput {
 input Foo_BookFilterInput {
   and: [Foo_BookFilterInput!]
   or: [Foo_BookFilterInput!]
-  id: Foo_ComparableInt32OperationFilterInput
-  authorId: Foo_ComparableInt32OperationFilterInput
+  id: Foo_IntOperationFilterInput
+  authorId: Foo_IntOperationFilterInput
   title: Foo_StringOperationFilterInput
   author: Foo_AuthorFilterInput
   publisher: Foo_PublisherFilterInput
@@ -92,11 +92,11 @@ input Foo_BookSortInput {
   publisher: Foo_PublisherSortInput
 }
 
-input Foo_ComparableInt32OperationFilterInput {
+input Foo_IntOperationFilterInput {
   eq: Int
   neq: Int
-  in: [Int!]
-  nin: [Int!]
+  in: [Int]
+  nin: [Int]
   gt: Int
   ngt: Int
   gte: Int
@@ -131,7 +131,7 @@ input Foo_ListFilterInputTypeOfPublisherFilterInput {
 input Foo_PublisherFilterInput {
   and: [Foo_PublisherFilterInput!]
   or: [Foo_PublisherFilterInput!]
-  id: Foo_ComparableInt32OperationFilterInput
+  id: Foo_IntOperationFilterInput
   name: Foo_StringOperationFilterInput
   address: Foo_StringOperationFilterInput
   zipcode: Foo_StringOperationFilterInput
