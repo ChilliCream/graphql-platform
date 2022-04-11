@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
@@ -24,6 +24,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Stitching.Types\HotChocolate.Stitching.Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Attempt1\__snapshots__\" />
   </ItemGroup>
 
 </Project>

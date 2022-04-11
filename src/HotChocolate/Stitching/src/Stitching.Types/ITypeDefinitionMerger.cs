@@ -1,3 +1,5 @@
+using HotChocolate.Types.Descriptors.Definitions;
+
 namespace HotChocolate.Stitching.Types;
 
 /// <summary>

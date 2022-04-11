@@ -1,0 +1,8 @@
+﻿type Test implements TestInterface {
+  foo: Test! @rename(test: 2) @rename(test: 1)
+  id: String! @rename
+}
+
+type Test2 {
+  test: Test!
+}
