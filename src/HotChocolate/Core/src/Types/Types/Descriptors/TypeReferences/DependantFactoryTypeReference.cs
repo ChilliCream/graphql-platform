@@ -116,4 +116,19 @@ public sealed class DependantFactoryTypeReference
     /// <inheritdoc />
     public override string ToString()
         => $"{Context}: {Name}->{Dependency}";
+
+    public DependantFactoryTypeReference With(
+        Optional<NameString> name = default,
+        Optional<ITypeReference> dependency = default,
+        Optional<Func<IDescriptorContext, TypeSystemObjectBase>> factory = default,
+        Optional<TypeContext> context = default,
+        Optional<string?> scope = default)
+    {
+        return new DependantFactoryTypeReference(
+            name.HasValue ? name.Value! : Name,
+            dependency.HasValue ? dependency.Value! : Dependency,
+            factory.HasValue ? factory.Value! : Factory,
+            context.HasValue ? context.Value! : Context,
+            scope.HasValue ? scope.Value! : Scope);
+    }
 }

@@ -20,4 +20,22 @@ public abstract class FilterTestBase
 
         return builder.Create();
     }
+
+    public ISchema CreateSchemaWithFilter<T>(
+        Action<IFilterInputTypeDescriptor<T>> configure,
+        Action<ISchemaBuilder>? configureSchema = null)
+    {
+        ISchemaBuilder builder = SchemaBuilder.New()
+            .AddFiltering()
+            .ModifyOptions(x => x.RemoveUnreachableTypes = true)
+            .AddQueryType(c =>
+                c.Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .UseFiltering(configure)
+                    .Resolve("bar"));
+        configureSchema?.Invoke(builder);
+
+        return builder.Create();
+    }
 }

@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Sorting;
@@ -17,4 +20,52 @@ public class SortFieldDefinition
     public Expression? Expression { get; set; }
 
     internal ISortMetadata? Metadata { get; set; }
+
+    public Func<IDescriptorContext, string?, SortInputTypeDefinition>? CreateFieldTypeDefinition
+    {
+        get;
+        set;
+    }
+
+    internal void CopyTo(SortFieldDefinition target)
+    {
+        base.CopyTo(target);
+
+        target.Member = Member;
+        target.Handler = Handler;
+        target.Expression = Expression;
+        target.Metadata = Metadata;
+        target.Scope = Scope;
+        target.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
+    }
+
+    internal void MergeInto(SortFieldDefinition target)
+    {
+        base.MergeInto(target);
+
+        if (Member is not null)
+        {
+            target.Member = Member;
+        }
+        if (Handler is not null)
+        {
+            target.Handler = Handler;
+        }
+        if (Scope is not null)
+        {
+            target.Scope = Scope;
+        }
+        if (Expression is not null)
+        {
+            target.Expression = Expression;
+        }
+        if (Metadata is not null)
+        {
+            target.Metadata = Metadata;
+        }
+        if (CreateFieldTypeDefinition is not null)
+        {
+            target.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
+        }
+    }
 }
