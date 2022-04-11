@@ -2,7 +2,10 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 using MongoDB.Bson.Serialization.Attributes;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Squadron;
 using Xunit;
 
@@ -938,6 +941,54 @@ namespace HotChocolate.Data.MongoDb.Filters
                     .Create());
 
             res3.MatchDocumentSnapshot("13andNull");
+        }
+
+        [Fact]
+        public void Create_Implicit_Operation()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(
+                    t => t
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("foo")
+                        .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+                .AddMongoDbFiltering(compatabilityMode: true)
+                .Create();
+
+            // assert
+#if NET6_0_OR_GREATER
+            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NET6"));
+#else
+            schema.ToString().MatchSnapshot();
+#endif
+        }
+
+        [Fact]
+        public void Create_Implicit_Operation_Normalized()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(
+                    t => t
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("foo")
+                        .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+                .AddMongoDbFiltering()
+                .Create();
+
+            // assert
+#if NET6_0_OR_GREATER
+            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NET6"));
+#else
+            schema.ToString().MatchSnapshot();
+#endif
         }
 
         public class Foo
