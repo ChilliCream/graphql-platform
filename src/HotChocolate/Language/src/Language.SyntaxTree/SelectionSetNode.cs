@@ -58,40 +58,27 @@ public sealed class SelectionSetNode
     }
 
     public SelectionSetNode WithSelections(
-        IReadOnlyList<ISelectionNode> selections)
+        IReadOnlyList<ISelectionNode> selections!!)
     {
-        if (selections == null)
-        {
-            throw new ArgumentNullException(nameof(selections));
-        }
-
         return new SelectionSetNode(
             Location, selections);
     }
 
     public SelectionSetNode AddSelection(
-        ISelectionNode selection)
+        ISelectionNode selection!!)
     {
-        if (selection == null)
+        var selections = new List<ISelectionNode>(Selections)
         {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        var selections = new List<ISelectionNode>(Selections);
-        selections.Add(selection);
+            selection
+        };
 
         return new SelectionSetNode(
             Location, selections);
     }
 
     public SelectionSetNode AddSelections(
-        params ISelectionNode[] selection)
+        params ISelectionNode[] selection!!)
     {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
         var selections = new List<ISelectionNode>(Selections);
         selections.AddRange(selection);
 
@@ -100,13 +87,8 @@ public sealed class SelectionSetNode
     }
 
     public SelectionSetNode RemoveSelection(
-        ISelectionNode selection)
+        ISelectionNode selection!!)
     {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
         var selections = new List<ISelectionNode>(Selections);
         selections.Remove(selection);
 
@@ -115,13 +97,8 @@ public sealed class SelectionSetNode
     }
 
     public SelectionSetNode RemoveSelections(
-        params ISelectionNode[] selection)
+        params ISelectionNode[] selection!!)
     {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
         var selections = new List<ISelectionNode>(Selections);
         foreach (ISelectionNode node in selection)
         {
@@ -134,7 +111,7 @@ public sealed class SelectionSetNode
 
     public bool Equals(SelectionSetNode? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }

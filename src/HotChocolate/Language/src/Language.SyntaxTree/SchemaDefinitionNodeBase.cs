@@ -8,14 +8,12 @@ public abstract class SchemaDefinitionNodeBase
 {
     protected SchemaDefinitionNodeBase(
         Location? location,
-        IReadOnlyList<DirectiveNode> directives,
-        IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
+        IReadOnlyList<DirectiveNode> directives!!,
+        IReadOnlyList<OperationTypeDefinitionNode> operationTypes!!)
     {
         Location = location;
-        Directives = directives
-            ?? throw new ArgumentNullException(nameof(directives));
-        OperationTypes = operationTypes
-            ?? throw new ArgumentNullException(nameof(operationTypes));
+        Directives = directives;
+        OperationTypes = operationTypes;
     }
 
     public abstract SyntaxKind Kind { get; }
