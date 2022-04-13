@@ -25,8 +25,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </returns>
         public static IRequestExecutorBuilder AddMongoDbFiltering(
             this IRequestExecutorBuilder builder,
-            string? name = null) =>
-            builder.ConfigureSchema(s => s.AddMongoDbFiltering(name));
+            string? name = null,
+            bool compatabilityMode = false) =>
+            builder.ConfigureSchema(s => s.AddMongoDbFiltering(name, compatabilityMode));
 
         /// <summary>
         /// Adds sorting support.
@@ -72,8 +73,8 @@ namespace Microsoft.Extensions.DependencyInjection
             builder
                 .BindRuntimeType<ObjectId, StringType>()
                 #pragma warning disable CS8622
-                .AddTypeConverter<ObjectId?, string?>(x => x.ToString())
-                .AddTypeConverter<string?, ObjectId?>(x => new ObjectId(x));
+                .AddTypeConverter<ObjectId, string>(x => x.ToString())
+                .AddTypeConverter<string, ObjectId>(x => new ObjectId(x));
                 #pragma warning restore CS8622
 
         /// <summary>

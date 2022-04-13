@@ -490,7 +490,15 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         IExecutionResult res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    "{ root(where: { barShort: { in: [ null, \"Rm9vCnMxNA==\"]}}){ barShort}}")
+                    @"{
+                            root(where: {
+                                barShort: {
+                                    in: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
+                                }
+                            }){
+                                barShort
+                            }
+                        }")
                 .Create());
 
         res2.MatchSnapshot("13and14");

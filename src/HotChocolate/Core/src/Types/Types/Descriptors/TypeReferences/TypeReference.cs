@@ -135,9 +135,6 @@ public abstract class TypeReference : ITypeReference
                 scope);
         }
 
-        return new ExtendedTypeReference(
-            type,
-            context,
-            scope);
+        return new ExtendedTypeReference(type, context, scope);
     }
 }

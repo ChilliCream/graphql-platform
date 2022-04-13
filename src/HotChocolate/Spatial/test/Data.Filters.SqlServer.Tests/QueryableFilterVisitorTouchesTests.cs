@@ -5,55 +5,55 @@ using NetTopologySuite.Geometries;
 using Squadron;
 using Xunit;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data.Filters.Spatial;
+
+public class QueryableFilterVisitorTouchesTests
+    : SchemaCache
+    , IClassFixture<PostgreSqlResource<PostgisConfig>>
 {
-    public class QueryableFilterVisitorTouchesTests
-        : SchemaCache
-        , IClassFixture<PostgreSqlResource<PostgisConfig>>
-    {
-        private static readonly Polygon _truePolygon =
-            new Polygon(new LinearRing(new[]
-            {
+    private static readonly Polygon _truePolygon =
+        new Polygon(new LinearRing(new[]
+        {
                 new Coordinate(140, 120),
                 new Coordinate(160, 20),
                 new Coordinate(20, 20),
                 new Coordinate(20, 120),
                 new Coordinate(140, 120)
-            }));
+        }));
 
-        private static readonly Polygon _falsePolygon =
-            new Polygon(new LinearRing(new[]
-            {
+    private static readonly Polygon _falsePolygon =
+        new Polygon(new LinearRing(new[]
+        {
                 new Coordinate(1000, 1000),
                 new Coordinate(100000, 1000),
                 new Coordinate(100000, 100000),
                 new Coordinate(1000, 100000),
                 new Coordinate(1000, 1000),
-            }));
+        }));
 
-        private static readonly Foo[] _fooEntities =
-        {
+    private static readonly Foo[] _fooEntities =
+    {
             new Foo { Id = 1, Bar = _truePolygon },
             new Foo { Id = 2, Bar = _falsePolygon }
         };
 
-        public QueryableFilterVisitorTouchesTests(PostgreSqlResource<PostgisConfig> resource)
-            : base(resource)
-        {
-        }
+    public QueryableFilterVisitorTouchesTests(PostgreSqlResource<PostgisConfig> resource)
+        : base(resource)
+    {
+    }
 
-        [Fact]
-        public async Task Create_Touches_Query()
-        {
-            // arrange
-            IRequestExecutor tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+    [Fact]
+    public async Task Create_Touches_Query()
+    {
+        // arrange
+        IRequestExecutor tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
                             root(where: {
                                 bar: {
                                     touches: {
@@ -75,14 +75,14 @@ namespace HotChocolate.Data.Filters.Spatial
                                 id
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot("true");
+        res1.MatchSqlSnapshot("true");
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+        IExecutionResult res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
                             root(where: {
                                 bar: {
                                     ntouches: {
@@ -104,21 +104,20 @@ namespace HotChocolate.Data.Filters.Spatial
                                 id
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res2.MatchSqlSnapshot("false");
-        }
+        res2.MatchSqlSnapshot("false");
+    }
 
-        public class Foo
-        {
-            public int Id { get; set; }
+    public class Foo
+    {
+        public int Id { get; set; }
 
-            public Polygon Bar { get; set; } = null!;
-        }
+        public Polygon Bar { get; set; } = null!;
+    }
 
-        public class FooFilterType
-            : FilterInputType<Foo>
-        {
-        }
+    public class FooFilterType
+        : FilterInputType<Foo>
+    {
     }
 }
