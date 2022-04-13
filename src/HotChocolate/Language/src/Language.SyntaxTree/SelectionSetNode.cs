@@ -60,6 +60,11 @@ public sealed class SelectionSetNode
     public SelectionSetNode WithSelections(
         IReadOnlyList<ISelectionNode> selections)
     {
+        if (selections == null)
+        {
+            throw new ArgumentNullException(nameof(selections));
+        }
+        
         return new SelectionSetNode(
             Location, selections);
     }
