@@ -58,7 +58,7 @@ public sealed class SelectionSetNode
     }
 
     public SelectionSetNode WithSelections(
-        IReadOnlyList<ISelectionNode> selections!!)
+        IReadOnlyList<ISelectionNode> selections)
     {
         return new SelectionSetNode(
             Location, selections);
