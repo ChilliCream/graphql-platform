@@ -1,26 +1,22 @@
+using System;
 using System.Collections.Generic;
 using Xunit;
 
-namespace HotChocolate.Language.SyntaxTree.Tests;
+namespace HotChocolate.Language.SyntaxTree;
 
 public class ScalarTypeExtensionNodeTests
 {
+    private readonly NameNode _name1 = new("name1");
+    private readonly NameNode _name2 = new("name2");
+    private readonly IReadOnlyList<DirectiveNode> _directives = Array.Empty<DirectiveNode>();
+
     [Fact]
     public void Equals_With_Same_Location()
     {
         // arrange
-        var a = new ScalarTypeExtensionNode(
-            new Location(1, 1, 1, 1),
-            new NameNode("aa"),
-            new List<DirectiveNode>(0));
-        var b = new ScalarTypeExtensionNode(
-            new Location(1, 1, 1, 1),
-            new NameNode("aa"),
-            new List<DirectiveNode>(0));
-        var c = new ScalarTypeExtensionNode(
-            new Location(1, 1, 1, 1),
-            new NameNode("aa"),
-            new List<DirectiveNode> { new("bb") });
+        var a = new ScalarTypeExtensionNode(TestLocations.Location1, _name1, _directives);
+        var b = new ScalarTypeExtensionNode(TestLocations.Location1, _name1, _directives);
+        var c = new ScalarTypeExtensionNode(TestLocations.Location1, _name2, _directives);
 
         // act
         var abResult = a.Equals(b);
@@ -39,18 +35,9 @@ public class ScalarTypeExtensionNodeTests
     public void Equals_With_Different_Location()
     {
         // arrange
-        var a = new ScalarTypeExtensionNode(
-            new Location(1, 1, 1, 1),
-            new NameNode("aa"),
-            new List<DirectiveNode>(0));
-        var b = new ScalarTypeExtensionNode(
-            new Location(2, 2, 2, 2),
-            new NameNode("aa"),
-            new List<DirectiveNode>(0));
-        var c = new ScalarTypeExtensionNode(
-            new Location(3, 3, 3, 3),
-            new NameNode("aa"),
-            new List<DirectiveNode> { new("bb") });
+        var a = new ScalarTypeExtensionNode(TestLocations.Location1, _name1, _directives);
+        var b = new ScalarTypeExtensionNode(TestLocations.Location2, _name1, _directives);
+        var c = new ScalarTypeExtensionNode(TestLocations.Location3, _name2, _directives);
 
         // act
         var abResult = a.Equals(b);
@@ -69,22 +56,10 @@ public class ScalarTypeExtensionNodeTests
     public void GetHashCode_With_Location()
     {
         // arrange
-        var a = new ScalarTypeExtensionNode(
-            new Location(1, 1, 1, 1),
-            new NameNode("aa"),
-            new List<DirectiveNode>(0));
-        var b = new ScalarTypeExtensionNode(
-            new Location(2, 2, 2, 2),
-            new NameNode("aa"),
-            new List<DirectiveNode>(0));
-        var c = new ScalarTypeExtensionNode(
-            new Location(1, 1, 1, 1),
-            new NameNode("aa"),
-            new List<DirectiveNode> { new("bb") });
-        var d = new ScalarTypeExtensionNode(
-            new Location(2, 2, 2, 2),
-            new NameNode("aa"),
-            new List<DirectiveNode> { new("bb") });
+        var a = new ScalarTypeExtensionNode(TestLocations.Location1, _name1, _directives);
+        var b = new ScalarTypeExtensionNode(TestLocations.Location2, _name1, _directives);
+        var c = new ScalarTypeExtensionNode(TestLocations.Location1, _name2, _directives);
+        var d = new ScalarTypeExtensionNode(TestLocations.Location2, _name2, _directives);
 
         // act
         var aHash = a.GetHashCode();

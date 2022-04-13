@@ -109,11 +109,27 @@ public abstract class InputObjectTypeDefinitionNodeBase
         return hashCode.ToHashCode();
     }
 
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
     public static bool operator ==(
         InputObjectTypeDefinitionNodeBase? left,
         InputObjectTypeDefinitionNodeBase? right)
         => Equals(left, right);
 
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
     public static bool operator !=(
         InputObjectTypeDefinitionNodeBase? left,
         InputObjectTypeDefinitionNodeBase? right)
