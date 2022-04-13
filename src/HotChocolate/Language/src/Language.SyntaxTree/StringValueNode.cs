@@ -45,11 +45,11 @@ public sealed class StringValueNode
     /// </exception>
     public StringValueNode(
         Location? location,
-        string value!!,
+        string value,
         bool block)
     {
         Location = location;
-        _value = value;
+        _value = value ?? throw new ArgumentNullException(nameof(value));
         Block = block;
     }
 

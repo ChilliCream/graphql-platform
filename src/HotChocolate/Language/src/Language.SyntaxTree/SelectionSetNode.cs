@@ -65,8 +65,13 @@ public sealed class SelectionSetNode
     }
 
     public SelectionSetNode AddSelection(
-        ISelectionNode selection!!)
+        ISelectionNode selection)
     {
+        if (selection == null)
+        {
+            throw new ArgumentNullException(nameof(selection));
+        }
+
         var selections = new List<ISelectionNode>(Selections)
         {
             selection
@@ -77,8 +82,13 @@ public sealed class SelectionSetNode
     }
 
     public SelectionSetNode AddSelections(
-        params ISelectionNode[] selection!!)
+        params ISelectionNode[] selection)
     {
+        if (selection == null)
+        {
+            throw new ArgumentNullException(nameof(selection));
+        }
+
         var selections = new List<ISelectionNode>(Selections);
         selections.AddRange(selection);
 
@@ -87,8 +97,13 @@ public sealed class SelectionSetNode
     }
 
     public SelectionSetNode RemoveSelection(
-        ISelectionNode selection!!)
+        ISelectionNode selection)
     {
+        if (selection == null)
+        {
+            throw new ArgumentNullException(nameof(selection));
+        }
+
         var selections = new List<ISelectionNode>(Selections);
         selections.Remove(selection);
 
@@ -97,8 +112,13 @@ public sealed class SelectionSetNode
     }
 
     public SelectionSetNode RemoveSelections(
-        params ISelectionNode[] selection!!)
+        params ISelectionNode[] selection)
     {
+        if (selection == null)
+        {
+            throw new ArgumentNullException(nameof(selection));
+        }
+
         var selections = new List<ISelectionNode>(Selections);
         foreach (ISelectionNode node in selection)
         {

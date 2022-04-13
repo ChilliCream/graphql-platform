@@ -8,9 +8,14 @@ public abstract class SchemaDefinitionNodeBase
 {
     protected SchemaDefinitionNodeBase(
         Location? location,
-        IReadOnlyList<DirectiveNode> directives!!,
-        IReadOnlyList<OperationTypeDefinitionNode> operationTypes!!)
+        IReadOnlyList<DirectiveNode> directives,
+        IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
     {
+        Directives = directives
+            ?? throw new ArgumentNullException(nameof(directives));
+        OperationTypes = operationTypes
+            ?? throw new ArgumentNullException(nameof(operationTypes));
+
         Location = location;
         Directives = directives;
         OperationTypes = operationTypes;
