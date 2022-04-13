@@ -64,7 +64,6 @@ public sealed class SelectionSetNode
         {
             throw new ArgumentNullException(nameof(selections));
         }
-        
         return new SelectionSetNode(
             Location, selections);
     }
