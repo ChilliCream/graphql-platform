@@ -100,6 +100,24 @@ public partial class CypherVisitor
             case ClauseKind.ListComprehension:
                 EnterVisitable((ListComprehension)visitable);
                 break;
+            case ClauseKind.Create:
+                EnterVisitable((Create)visitable);
+                break;
+            case ClauseKind.Set:
+                EnterVisitable((Set)visitable);
+                break;
+            case ClauseKind.Merge:
+                EnterVisitable((Merge)visitable);
+                break;
+            case ClauseKind.MergeAction:
+                EnterVisitable((MergeAction)visitable);
+                break;
+            case ClauseKind.Delete:
+                EnterVisitable((Delete)visitable);
+                break;
+            case ClauseKind.Remove:
+                EnterVisitable((Remove)visitable);
+                break;
             case ClauseKind.MapProjection:
             case ClauseKind.Expression:
             case ClauseKind.Visitable:
@@ -118,9 +136,7 @@ public partial class CypherVisitor
             case ClauseKind.OptionalMatch:
             case ClauseKind.Unwind:
             case ClauseKind.YieldItems:
-            case ClauseKind.Set:
             case ClauseKind.Foreach:
-            case ClauseKind.Merge:
             case ClauseKind.Union:
             case ClauseKind.Use:
             case ClauseKind.LoadCsv:

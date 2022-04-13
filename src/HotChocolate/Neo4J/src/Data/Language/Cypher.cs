@@ -14,6 +14,8 @@ namespace HotChocolate.Data.Neo4J.Language;
 /// </summary>
 public static class Cypher
 {
+
+
     /// <summary>
     /// Create a new Node representation with at least one label, the "primary" label. This is
     /// required. All other labels

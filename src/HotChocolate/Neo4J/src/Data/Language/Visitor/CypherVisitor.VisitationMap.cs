@@ -4,6 +4,35 @@ namespace HotChocolate.Data.Neo4J.Language;
 
 public partial class CypherVisitor
 {
+    private void EnterVisitable(Create _) => _writer.Write("CREATE ");
+    private void LeaveVisitable(Create _) => _writer.Write(" ");
+    private void EnterVisitable(Merge _) => _writer.Write("MERGE ");
+    private void LeaveVisitable(Merge merge)
+    {
+        if (!merge.HasEvents())
+        {
+            _writer.Write(" ");
+        }
+    }
+    private void EnterVisitable(MergeAction mergeAction)
+    {
+        switch (mergeAction.Type)
+        {
+            case MergeAction.MergeActionType.OnCreate:
+                _writer.Write("ON CREATE");
+                break;
+            case MergeAction.MergeActionType.OnMatch:
+                _writer.Write("ON MATCH");
+                break;
+        }
+        _writer.Write(" ");
+    }
+    private void EnterVisitable(Set _) => _writer.Write("SET ");
+    private void LeaveVisitable(Set _) => _writer.Write(" ");
+    private void EnterVisitable(Delete _) => _writer.Write("DELETE ");
+    private void LeaveVisitable(Delete _) => _writer.Write(" ");
+    private void EnterVisitable(Remove _) => _writer.Write("REMOVE ");
+    private void LeaveVisitable(Remove _) => _writer.Write(" ");
     private void EnterVisitable(Match match)
     {
         if (match.IsOptional)

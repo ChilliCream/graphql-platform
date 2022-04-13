@@ -53,6 +53,15 @@ public partial class CypherVisitor
             case ClauseKind.ListComprehension:
                 LeaveVisitable((ListComprehension)visitable);
                 break;
+            case ClauseKind.Create:
+                LeaveVisitable((Create)visitable);
+                break;
+            case ClauseKind.Merge:
+                LeaveVisitable((Merge)visitable);
+                break;
+            case ClauseKind.Set:
+                LeaveVisitable((Set)visitable);
+                break;
             case ClauseKind.AliasedExpression:
             case ClauseKind.SortDirection:
             case ClauseKind.Expression:
@@ -85,9 +94,7 @@ public partial class CypherVisitor
             case ClauseKind.OrderBy:
             case ClauseKind.Skip:
             case ClauseKind.Limit:
-            case ClauseKind.Set:
             case ClauseKind.Foreach:
-            case ClauseKind.Merge:
             case ClauseKind.Union:
             case ClauseKind.Use:
             case ClauseKind.LoadCsv:
