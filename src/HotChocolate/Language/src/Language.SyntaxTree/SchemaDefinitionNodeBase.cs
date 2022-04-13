@@ -11,14 +11,11 @@ public abstract class SchemaDefinitionNodeBase
         IReadOnlyList<DirectiveNode> directives,
         IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
     {
+        Location = location;
         Directives = directives
             ?? throw new ArgumentNullException(nameof(directives));
         OperationTypes = operationTypes
             ?? throw new ArgumentNullException(nameof(operationTypes));
-
-        Location = location;
-        Directives = directives;
-        OperationTypes = operationTypes;
     }
 
     public abstract SyntaxKind Kind { get; }
