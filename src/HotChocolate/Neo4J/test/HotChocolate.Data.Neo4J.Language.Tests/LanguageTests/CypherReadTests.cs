@@ -3,7 +3,7 @@ using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Language;
 
-public class CypherTests
+public class CypherReadTests
 {
     private static readonly Node _bikeNode = Cypher.Node("Bike").Named("b");
     private static readonly Node _userNode = Cypher.Node("User").Named("u");
