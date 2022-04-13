@@ -11,7 +11,9 @@ internal static class NameHelpers
         {
             throw new ArgumentNullException(nameof(s));
         }
+
         s = s.Trim();
+        
         if (s.Length < 1)
         {
             throw new ArgumentException("Provided string was empty.", nameof(s));
