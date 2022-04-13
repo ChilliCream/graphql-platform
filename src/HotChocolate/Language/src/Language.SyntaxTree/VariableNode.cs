@@ -169,7 +169,7 @@ public sealed class VariableNode
     /// </returns>
     public override int GetHashCode()
     {
-        return HashCode.Combine(Kind, Name, Value);
+        return HashCode.Combine(Kind, Name);
     }
 
     /// <summary>
