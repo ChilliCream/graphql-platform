@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types;
 
-internal interface IOperationProvider
+public interface IOperationProvider
 {
     ICollection<ISchemaNodeOperation> GetOperations(ISyntaxNode source);
 }

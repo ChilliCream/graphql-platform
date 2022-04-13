@@ -8,11 +8,23 @@ namespace HotChocolate.Stitching.Types;
 public readonly struct SchemaCoordinate2 : ISchemaCoordinate2
 {
     public ISchemaCoordinate2? Parent { get; }
+    public SyntaxKind Kind { get; }
     public NameNode? Name { get; }
+    public bool IsMatch(ISchemaCoordinate2 other)
+    {
+        return Kind == other.Kind
+               && Equals(Name, other.Name);
+    }
 
-    internal SchemaCoordinate2(SchemaCoordinate2 parent, NameNode? nodeName = default)
+    internal SchemaCoordinate2(SyntaxKind kind, NameNode? nodeName = default)
+        : this(default, kind, nodeName)
+    {
+    }
+
+    internal SchemaCoordinate2(ISchemaCoordinate2? parent, SyntaxKind kind, NameNode? nodeName = default)
     {
         Parent = parent;
+        Kind = kind;
         Name = nodeName;
     }
 

@@ -1,6 +1,6 @@
-﻿type Test implements TestInterface {
-  foo: Test! @rename(test: 2) @rename(test: 1)
-  id: String! @rename
+type Test {
+  id_renamed: String! @_hc_source(coordinate: "id")
+  foo_renamed: Test2! @_hc_source(coordinate: "foo")
 }
 
 type Test2 {

@@ -4,11 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Types;
 
-/// <summary>
-/// A type definition holds the type definition syntax as well as metadata about the type.
-/// </summary>
-internal interface ITypeDefinition<TDefinition> : ISchemaNode<TDefinition>
-    where TDefinition : IDefinitionNode
+internal interface ITypeDefinition
 {
     /// <summary>
     /// Gets the name of the type.
@@ -25,4 +21,14 @@ internal interface ITypeDefinition<TDefinition> : ISchemaNode<TDefinition>
     /// Defines if the specified definition is a type extension.
     /// </summary>
     bool IsExtension { get; }
+
+    void RewriteField(FieldDefinitionNode definition, FieldDefinitionNode node);
+}
+
+/// <summary>
+/// A type definition holds the type definition syntax as well as metadata about the type.
+/// </summary>
+internal interface ITypeDefinition<TDefinition> : ITypeDefinition, ISchemaNode<TDefinition>
+    where TDefinition : IDefinitionNode
+{
 }

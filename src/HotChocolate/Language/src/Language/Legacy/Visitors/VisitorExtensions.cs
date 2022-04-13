@@ -7,6 +7,15 @@ public static partial class VisitorExtensions
 {
     private static readonly VisitationMap _defaultVisitationMap = new();
 
+    private static bool DefaultEnterFunc(Type type, out SyntaxNodeVisitorProvider.IntVisitorFn? visitor)
+    {
+        return SyntaxNodeVisitorProvider.GetEnterVisitor(type, out visitor);
+    }
+    private static bool DefaultLeaveFunc(Type type, out SyntaxNodeVisitorProvider.IntVisitorFn? visitor)
+    {
+        return SyntaxNodeVisitorProvider.GetLeaveVisitor(type, out visitor);
+    }
+
     public static void Accept<T>(
         this ISyntaxNode node,
         VisitorFn<T> enter,
@@ -74,6 +83,50 @@ public static partial class VisitorExtensions
         IVisitationMap visitationMap,
         Func<ISyntaxNode, VisitorAction>? defaultAction)
     {
+        Accept(node,
+            visitor,
+            visitationMap,
+            defaultAction,
+            DefaultEnterFunc,
+            DefaultLeaveFunc);
+    }
+
+    public static void Accept(
+        this ISyntaxNode node,
+        ISyntaxNodeVisitor visitor,
+        VisitorConfiguration visitorConfiguration)
+    {
+        Accept(node,
+            visitor,
+            _defaultVisitationMap,
+            default,
+            visitorConfiguration.Enter,
+            visitorConfiguration.Leave);
+    }
+
+    public static void Accept(
+        this ISyntaxNode node,
+        ISyntaxNodeVisitor visitor,
+        IVisitationMap visitationMap,
+        Func<ISyntaxNode, VisitorAction>? defaultAction,
+        VisitorConfiguration visitorConfiguration)
+    {
+        Accept(node,
+            visitor,
+            visitationMap,
+            defaultAction,
+            visitorConfiguration.Enter,
+            visitorConfiguration.Leave);
+    }
+
+    private static void Accept(
+        this ISyntaxNode node,
+        ISyntaxNodeVisitor visitor,
+        IVisitationMap visitationMap,
+        Func<ISyntaxNode, VisitorAction>? defaultAction,
+        VisitorFn enterFn,
+        VisitorFn leaveFn)
+    {
         if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
@@ -126,7 +179,8 @@ public static partial class VisitorExtensions
                     current.Node,
                     parent.Node,
                     path,
-                    ancestorNodes);
+                    ancestorNodes,
+                    leaveFn);
 
                 if (action == VisitorAction.Default)
                 {
@@ -165,7 +219,8 @@ public static partial class VisitorExtensions
                     current.Node,
                     parent.Node,
                     path,
-                    ancestorNodes);
+                    ancestorNodes,
+                    enterFn);
 
                 if (action == VisitorAction.Default)
                 {
@@ -211,9 +266,11 @@ public static partial class VisitorExtensions
         ISyntaxNode node,
         ISyntaxNode parent,
         IReadOnlyList<object> path,
-        IReadOnlyList<ISyntaxNode> ancestors)
+        IReadOnlyList<ISyntaxNode> ancestors,
+        VisitorFn? enterFn = default)
     {
-        if (_enterVisitors.TryGetValue(node.GetType(), out IntVisitorFn? v))
+        enterFn ??= DefaultEnterFunc;
+        if (enterFn.Invoke(node.GetType(), out SyntaxNodeVisitorProvider.IntVisitorFn? v))
         {
             return v.Invoke(visitor, node, parent, path, ancestors);
         }
@@ -225,19 +282,30 @@ public static partial class VisitorExtensions
         ISyntaxNode node,
         ISyntaxNode parent,
         IReadOnlyList<object> path,
-        IReadOnlyList<ISyntaxNode> ancestors)
+        IReadOnlyList<ISyntaxNode> ancestors,
+        VisitorFn? leaveFn = default)
     {
-        if (_leaveVisitors.TryGetValue(node.GetType(), out IntVisitorFn? v))
+        leaveFn ??= DefaultLeaveFunc;
+        if (leaveFn.Invoke(node.GetType(), out SyntaxNodeVisitorProvider.IntVisitorFn? v))
         {
             return v.Invoke(visitor, node, parent, path, ancestors);
         }
         return VisitorAction.Default;
     }
 
-    private delegate VisitorAction IntVisitorFn(
-        ISyntaxNodeVisitor visitor,
-        ISyntaxNode node,
-        ISyntaxNode parent,
-        IReadOnlyList<object> path,
-        IReadOnlyList<ISyntaxNode> ancestors);
+    public delegate bool VisitorFn(
+        Type visitorType,
+        out SyntaxNodeVisitorProvider.IntVisitorFn? visitor);
+
+    public readonly struct VisitorConfiguration
+    {
+        public readonly VisitorFn Enter;
+        public readonly VisitorFn Leave;
+
+        public VisitorConfiguration(VisitorFn enter, VisitorFn leave)
+        {
+            Enter = enter;
+            Leave = leave;
+        }
+    }
 }

@@ -5,16 +5,16 @@ namespace HotChocolate.Stitching.Types;
 
 internal static class OperationsExtensions
 {
-    public static void Apply<TDefinition>(
+    public static void Apply(
         this IEnumerable<ISchemaNodeOperation> operations,
         ISyntaxNode source,
-        ISchemaNode<TDefinition> target,
+        ISchemaNode target,
         OperationContext context)
-        where TDefinition : ISyntaxNode
     {
         foreach (ISchemaNodeOperation operation in operations)
         {
-            target.Definition = (TDefinition)operation.Apply(source, target.Definition, context);
+            ISyntaxNode definition = operation.Apply(source, target.Definition, context);
+            target.RewriteDefinition(definition);
         }
     }
 

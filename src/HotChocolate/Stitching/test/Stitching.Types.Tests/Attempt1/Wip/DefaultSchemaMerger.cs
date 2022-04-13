@@ -16,7 +16,7 @@ public class DefaultSchemaMerger : ISchemaMerger
     public ISchemaDocument Merge(IEnumerable<ISchemaDocument> schemas)
     {
         var schemaDocument = new DocumentNode(new List<IDefinitionNode>());
-        var documentDefinition = new DocumentDefinition();
+        var documentDefinition = new DocumentDefinition(schemaDocument);
         foreach (ISchemaDocument schema in schemas)
         {
             MergeInto(schema, documentDefinition);

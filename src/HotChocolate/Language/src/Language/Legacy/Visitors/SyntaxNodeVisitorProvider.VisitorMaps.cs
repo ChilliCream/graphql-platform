@@ -3,13 +3,23 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language;
 
-public static partial class VisitorExtensions
+public static class SyntaxNodeVisitorProvider
 {
     private static readonly Dictionary<Type, IntVisitorFn> _enterVisitors =
         CreateEnterVisitors();
 
     private static readonly Dictionary<Type, IntVisitorFn> _leaveVisitors =
         CreateLeaveVisitors();
+
+    public static bool GetEnterVisitor(Type nodeType, out IntVisitorFn? visitor)
+    {
+        return _enterVisitors.TryGetValue(nodeType, out visitor);
+    }
+
+    public static bool GetLeaveVisitor(Type nodeType, out IntVisitorFn? visitor)
+    {
+        return _leaveVisitors.TryGetValue(nodeType, out visitor);
+    }
 
     private static Dictionary<Type, IntVisitorFn> CreateEnterVisitors()
     {
@@ -119,8 +129,8 @@ public static partial class VisitorExtensions
     }
 
     private static void AddLeaveVisitor<T>(
-       IDictionary<Type, IntVisitorFn> dict)
-       where T : ISyntaxNode
+        IDictionary<Type, IntVisitorFn> dict)
+        where T : ISyntaxNode
     {
         dict.Add(typeof(T), CreateVisitor<T>(false));
     }
@@ -137,6 +147,7 @@ public static partial class VisitorExtensions
                     return typedVisitor.Enter(
                         (T)node, parent, path, ancestors);
                 }
+
                 return VisitorAction.Default;
             };
         }
@@ -149,8 +160,16 @@ public static partial class VisitorExtensions
                     return typedVisitor.Leave(
                         (T)node, parent, path, ancestors);
                 }
+
                 return VisitorAction.Default;
             };
         }
     }
+
+    public delegate VisitorAction IntVisitorFn(
+        ISyntaxNodeVisitor visitor,
+        ISyntaxNode node,
+        ISyntaxNode parent,
+        IReadOnlyList<object> path,
+        IReadOnlyList<ISyntaxNode> ancestors);
 }

@@ -1,126 +1,48 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types;
 
 internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
 {
-    private readonly DocumentDefinition _target;
-    private readonly IOperationProvider _operationProvider;
-    private readonly CoordinateProvider _coordinateProvider = new();
+    private readonly CoordinateProvider _provider;
 
-    public DefaultSyntaxNodeVisitor(DocumentDefinition target, IOperationProvider operationProvider)
+    public DefaultSyntaxNodeVisitor(CoordinateProvider provider)
         : base(VisitorAction.Continue)
     {
-        _target = target;
-        _operationProvider = operationProvider;
+        _provider = provider;
     }
 
-    public override VisitorAction Enter(DocumentNode node, ISyntaxNode parent, IReadOnlyList<object> path, IReadOnlyList<ISyntaxNode> ancestors)
+    private readonly IList<ISchemaNodeRewriteOperation> _rewriters =
+        new List<ISchemaNodeRewriteOperation>() { new RenameOperation() };
+
+    private readonly IList<(ISchemaCoordinate2 Coordinate, ISchemaNodeRewriteOperation Operation)>
+        _operations =
+            new List<(ISchemaCoordinate2 Coordinate, ISchemaNodeRewriteOperation Operation)>();
+
+    public IReadOnlyList<(ISchemaCoordinate2 Coordinate, ISchemaNodeRewriteOperation Operation)>
+        RewriteOperations => new ReadOnlyCollection<(ISchemaCoordinate2 Coordinate, ISchemaNodeRewriteOperation Operation)>(_operations);
+
+    public override VisitorAction Enter(DirectiveNode node, ISyntaxNode parent, IReadOnlyList<object> path, IReadOnlyList<ISyntaxNode> ancestors)
     {
-        // TODO: Move this to a base enter/leave construct for all node types - similar to path.
-        ISchemaCoordinate2 _ = _coordinateProvider.Add(node);
-
-        return base.Enter(node, parent, path, ancestors);
-    }
-
-    public override VisitorAction Leave(DocumentNode node, ISyntaxNode parent, IReadOnlyList<object> path, IReadOnlyList<ISyntaxNode> ancestors)
-    {
-        // TODO: Move this to a base enter/leave construct for all node types - similar to path.
-        _coordinateProvider.Remove();
-        return base.Leave(node, parent, path, ancestors);
-    }
-
-    public override VisitorAction Enter(ObjectTypeDefinitionNode node, ISyntaxNode parent, IReadOnlyList<object> path, IReadOnlyList<ISyntaxNode> ancestors)
-    {
-        ISchemaCoordinate2 nodeCoordinate = _coordinateProvider.Add(node);
-
-        // TODO: Look at better factory approach for creating new Definition nodes
-        ObjectTypeDefinition destination = GetOrAdd(nodeCoordinate,
-            () =>
-            {
-                var definition = new ObjectTypeDefinition(
-                    new ObjectTypeDefinitionNode(default,
-                        node.Name,
-                        node.Description,
-                        node.Directives,
-                        node.Interfaces,
-                        node.Fields));
-
-                _target.Add(definition);
-
-                return definition;
-            });
-
-
-        // Apply the Schema operation rules for this node type.
-        destination.Apply(node, _operationProvider);
-        return base.Enter(node, parent, path, ancestors);
-    }
-
-    public override VisitorAction Leave(ObjectTypeDefinitionNode node, ISyntaxNode parent, IReadOnlyList<object> path,
-        IReadOnlyList<ISyntaxNode> ancestors)
-    {
-        _coordinateProvider.Remove();
-        return base.Leave(node, parent, path, ancestors);
-    }
-
-    public override VisitorAction Enter(ObjectTypeExtensionNode node, ISyntaxNode parent, IReadOnlyList<object> path, IReadOnlyList<ISyntaxNode> ancestors)
-    {
-        ISchemaCoordinate2 nodeCoordinate = _coordinateProvider.Add(node);
-
-        ObjectTypeDefinition schemaNode = GetOrAdd(nodeCoordinate,
-            () =>
-            {
-                var definition = new ObjectTypeDefinition(
-                    new ObjectTypeDefinitionNode(default,
-                        node.Name,
-                        default,
-                        node.Directives,
-                        node.Interfaces,
-                        node.Fields));
-
-                _target.Add(definition);
-
-                return definition;
-            });
-
-        // Apply the Schema operation rules for this node type.
-        schemaNode.Apply(node, _operationProvider);
-        return base.Enter(node, parent, path, ancestors);
-    }
-
-    public override VisitorAction Leave(ObjectTypeExtensionNode node, ISyntaxNode parent, IReadOnlyList<object> path,
-        IReadOnlyList<ISyntaxNode> ancestors)
-    {
-        _coordinateProvider.Remove();
-        return base.Leave(node, parent, path, ancestors);
-    }
-
-    private TDefinition GetOrAdd<TDefinition>(ISchemaCoordinate2 coordinate, Func<TDefinition> destinationFactory)
-        where TDefinition : ISchemaNode
-    {
-        if (_coordinateProvider.TryGet(coordinate, out ISchemaNode? destination)
-            && destination is TDefinition typedDestination)
+        ISchemaCoordinate2? nodeCoordinate = _provider.Get(node);
+        if (nodeCoordinate?.Parent == null)
         {
-            return typedDestination;
+            return base.Enter(node, parent, path, ancestors);
         }
 
-        typedDestination = destinationFactory();
-        _coordinateProvider.Associate(coordinate, typedDestination);
-        return typedDestination;
-    }
-
-    private TDefinition? Get<TDefinition>(SchemaCoordinate2 coordinate)
-        where TDefinition : ISchemaNode
-    {
-        if (_coordinateProvider.TryGet(coordinate, out ISchemaNode? destination)
-            && destination is TDefinition typedDefinition)
+        foreach (ISchemaNodeRewriteOperation rewriter in _rewriters)
         {
-            return typedDefinition;
+            if (!nodeCoordinate.IsMatch(rewriter.Match))
+            {
+                continue;
+            }
+
+            _operations.Add((nodeCoordinate.Parent, rewriter));
         }
 
-        return default;
+        return base.Enter(node, parent, path, ancestors);
     }
 }

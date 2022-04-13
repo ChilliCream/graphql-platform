@@ -1,6 +1,6 @@
 namespace HotChocolate.Stitching.Types;
 
-internal class OperationContext
+public class OperationContext
 {
     public IOperationProvider OperationProvider { get; }
 

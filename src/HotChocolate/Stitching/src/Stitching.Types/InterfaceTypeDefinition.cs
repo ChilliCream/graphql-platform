@@ -6,11 +6,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Types;
 
-internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitionNode>
+internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDefinitionNode>
 {
     private readonly DocumentDefinition _parentDefinition;
 
-    public ObjectTypeDefinition(DocumentDefinition parentDefinition, ObjectTypeDefinitionNode definition)
+    public InterfaceTypeDefinition(DocumentDefinition parentDefinition, InterfaceTypeDefinitionNode definition)
     {
         _parentDefinition = parentDefinition ?? throw new ArgumentNullException(nameof(parentDefinition));
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
@@ -22,9 +22,9 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
 
     public bool IsExtension => false;
 
-    public ObjectTypeDefinitionNode Definition { get; set; }
+    public InterfaceTypeDefinitionNode Definition { get; set; }
 
-    public void RewriteDefinition(ObjectTypeDefinitionNode node)
+    public void RewriteDefinition(InterfaceTypeDefinitionNode node)
     {
         _parentDefinition.RewriteDefinition(Definition, node);
 
@@ -36,7 +36,6 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
         IReadOnlyList<FieldDefinitionNode> updatedFields = Definition.Fields
             .AddOrReplace(replacement, x => x.Name.Equals(original.Name));
 
-        ObjectTypeDefinitionNode definition = Definition.WithFields(updatedFields);
-        RewriteDefinition(definition);
+        RewriteDefinition(Definition.WithFields(updatedFields));
     }
 }

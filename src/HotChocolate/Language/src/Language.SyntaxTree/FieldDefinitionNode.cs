@@ -7,7 +7,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// Represents a filed definition of an interface- or object-type.
 /// </summary>
-public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefinitionNode>
+public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefinitionNode>, IHasWithDirectives<FieldDefinitionNode>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="FieldDefinitionNode"/>.

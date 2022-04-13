@@ -26,6 +26,7 @@ public sealed class ObjectTypeDefinitionNode
     : ComplexTypeDefinitionNodeBase
     , ITypeDefinitionNode
     , IEquatable<ObjectTypeDefinitionNode>
+    , IHasWithDirectives<ObjectTypeDefinitionNode>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinitionNode"/>.

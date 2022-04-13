@@ -7,7 +7,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// Represents an applied directive.
 /// </summary>
-public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>
+public sealed class DirectiveNode : ISyntaxNode, IEquatable<DirectiveNode>, IHasName
 {
     /// <summary>
     /// Initializes a new instance of <see cref="DirectiveNode"/>.

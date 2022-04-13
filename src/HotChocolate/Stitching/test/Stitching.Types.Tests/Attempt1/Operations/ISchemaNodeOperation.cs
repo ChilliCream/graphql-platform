@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types;
 
-internal interface ISchemaNodeOperation
+public interface ISchemaNodeOperation
 {
     ISyntaxNode Apply(ISyntaxNode source, ISyntaxNode target, OperationContext operationContext);
 }
@@ -26,4 +26,21 @@ internal interface ISchemaNodeOperation<in TSourceDefinition, TTargetDefinition>
     }
 
     TTargetDefinition Apply(TSourceDefinition source, TTargetDefinition target, OperationContext context);
+}
+
+internal interface ISchemaNodeRewriteOperation
+{
+    ISchemaCoordinate2 Match { get; }
+    ISyntaxNode Apply(ISyntaxNode node, ISchemaCoordinate2 coordinate, OperationContext context);
+}
+
+internal interface ISchemaNodeRewriteOperation<TDefinition> : ISchemaNodeRewriteOperation
+    where TDefinition : ISyntaxNode
+{
+    ISyntaxNode ISchemaNodeRewriteOperation.Apply(ISyntaxNode node, ISchemaCoordinate2 coordinate, OperationContext context)
+    {
+        return Apply((TDefinition)node, coordinate, context);
+    }
+
+    TDefinition Apply(TDefinition source, ISchemaCoordinate2 coordinate, OperationContext context);
 }
