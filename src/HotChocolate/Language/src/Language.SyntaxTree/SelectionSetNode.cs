@@ -131,7 +131,7 @@ public sealed class SelectionSetNode
 
     public bool Equals(SelectionSetNode? other)
     {
-        if (other is null)
+        if (ReferenceEquals(null, other))
         {
             return false;
         }
