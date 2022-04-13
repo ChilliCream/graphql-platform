@@ -11,11 +11,18 @@ input BooleanOperationFilterInput {
   neq: Boolean
 }
 
-input ComparableDoubleOperationFilterInput {
+input DimensionOperationFilterInput {
+  eq: Dimension
+  neq: Dimension
+  in: [Dimension!]
+  nin: [Dimension!]
+}
+
+input FloatOperationFilterInput {
   eq: Float
   neq: Float
-  in: [Float!]
-  nin: [Float!]
+  in: [Float]
+  nin: [Float]
   gt: Float
   ngt: Float
   gte: Float
@@ -24,28 +31,6 @@ input ComparableDoubleOperationFilterInput {
   nlt: Float
   lte: Float
   nlte: Float
-}
-
-input ComparableInt32OperationFilterInput {
-  eq: Int
-  neq: Int
-  in: [Int!]
-  nin: [Int!]
-  gt: Int
-  ngt: Int
-  gte: Int
-  ngte: Int
-  lt: Int
-  nlt: Int
-  lte: Int
-  nlte: Int
-}
-
-input DimensionOperationFilterInput {
-  eq: Dimension
-  neq: Dimension
-  in: [Dimension!]
-  nin: [Dimension!]
 }
 
 input GeometryContainsOperationFilterInput {
@@ -73,7 +58,7 @@ input GeometryDistanceOperationFilterInput {
 input GeometryFilterInput {
   and: [GeometryFilterInput!]
   or: [GeometryFilterInput!]
-  area: ComparableDoubleOperationFilterInput
+  area: FloatOperationFilterInput
   boundary: GeometryFilterInput
   centroid: PointFilterInput
   dimension: DimensionOperationFilterInput
@@ -82,11 +67,11 @@ input GeometryFilterInput {
   interiorPoint: PointFilterInput
   isSimple: BooleanOperationFilterInput
   isValid: BooleanOperationFilterInput
-  length: ComparableDoubleOperationFilterInput
-  numPoints: ComparableInt32OperationFilterInput
+  length: FloatOperationFilterInput
+  numPoints: IntOperationFilterInput
   ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
-  srid: ComparableInt32OperationFilterInput
+  srid: IntOperationFilterInput
   contains: GeometryContainsOperationFilterInput
   ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
@@ -120,6 +105,21 @@ input GeometryWithinOperationFilterInput {
   buffer: Float
 }
 
+input IntOperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int]
+  nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
 input OgcGeometryTypeOperationFilterInput {
   eq: OgcGeometryType
   neq: OgcGeometryType
@@ -130,11 +130,11 @@ input OgcGeometryTypeOperationFilterInput {
 input PointFilterInput {
   and: [PointFilterInput!]
   or: [PointFilterInput!]
-  m: ComparableDoubleOperationFilterInput
-  x: ComparableDoubleOperationFilterInput
-  y: ComparableDoubleOperationFilterInput
-  z: ComparableDoubleOperationFilterInput
-  area: ComparableDoubleOperationFilterInput
+  m: FloatOperationFilterInput
+  x: FloatOperationFilterInput
+  y: FloatOperationFilterInput
+  z: FloatOperationFilterInput
+  area: FloatOperationFilterInput
   boundary: GeometryFilterInput
   centroid: PointFilterInput
   dimension: DimensionOperationFilterInput
@@ -143,11 +143,11 @@ input PointFilterInput {
   interiorPoint: PointFilterInput
   isSimple: BooleanOperationFilterInput
   isValid: BooleanOperationFilterInput
-  length: ComparableDoubleOperationFilterInput
-  numPoints: ComparableInt32OperationFilterInput
+  length: FloatOperationFilterInput
+  numPoints: IntOperationFilterInput
   ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
-  srid: ComparableInt32OperationFilterInput
+  srid: IntOperationFilterInput
   contains: GeometryContainsOperationFilterInput
   ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
@@ -164,7 +164,7 @@ input PointFilterInput {
 input PolygonFilterInput {
   and: [PolygonFilterInput!]
   or: [PolygonFilterInput!]
-  area: ComparableDoubleOperationFilterInput
+  area: FloatOperationFilterInput
   boundary: GeometryFilterInput
   centroid: PointFilterInput
   dimension: DimensionOperationFilterInput
@@ -173,11 +173,11 @@ input PolygonFilterInput {
   interiorPoint: PointFilterInput
   isSimple: BooleanOperationFilterInput
   isValid: BooleanOperationFilterInput
-  length: ComparableDoubleOperationFilterInput
-  numPoints: ComparableInt32OperationFilterInput
+  length: FloatOperationFilterInput
+  numPoints: IntOperationFilterInput
   ogcGeometryType: OgcGeometryTypeOperationFilterInput
   pointOnSurface: PointFilterInput
-  srid: ComparableInt32OperationFilterInput
+  srid: IntOperationFilterInput
   contains: GeometryContainsOperationFilterInput
   ncontains: GeometryContainsOperationFilterInput
   distance: GeometryDistanceOperationFilterInput
