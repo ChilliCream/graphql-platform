@@ -77,8 +77,7 @@ public sealed class SelectionSetNode
             throw new ArgumentNullException(nameof(selection));
         }
 
-        var selections = new List<ISelectionNode>(Selections);
-        selections.Add(selection);
+        var selections = new List<ISelectionNode>(Selections) { selection };
 
         return new SelectionSetNode(
             Location, selections);
