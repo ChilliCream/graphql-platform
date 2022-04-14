@@ -54,7 +54,7 @@ public sealed class SchemaExtensionNode
     public SchemaExtensionNode WithLocation(Location? location)
     {
         return new SchemaExtensionNode(
-            Location, Directives, OperationTypes);
+            location, Directives, OperationTypes);
     }
 
     public SchemaExtensionNode WithDirectives(

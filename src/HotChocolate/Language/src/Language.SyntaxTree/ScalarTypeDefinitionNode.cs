@@ -7,7 +7,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// <para>Represents the scalar definition syntax.</para>
 /// <para>
-/// Scalar types represent primitive leaf values in a GraphQL type system. 
+/// Scalar types represent primitive leaf values in a GraphQL type system.
 /// GraphQL responses take the form of a hierarchical tree;
 /// the leaves of this tree are typically GraphQL Scalar types
 /// (but may also be Enum types or null values).
@@ -182,7 +182,7 @@ public sealed class ScalarTypeDefinitionNode
     /// hashing algorithms and data structures such as a hash table.
     /// </returns>
     public override int GetHashCode()
-       => HashCode.Combine(base.GetHashCode(), Kind, Description?.GetHashCode());
+       => HashCode.Combine(base.GetHashCode(), Kind, Description);
 
     /// <summary>
     /// The equal operator.
