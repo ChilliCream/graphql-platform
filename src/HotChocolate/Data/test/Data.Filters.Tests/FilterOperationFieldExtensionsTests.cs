@@ -155,6 +155,6 @@ public class FilterOperationFieldExtensionTests
 
     public class Bar
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = default!;
     }
 }
