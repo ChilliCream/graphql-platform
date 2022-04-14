@@ -172,6 +172,40 @@ public class QueryableFilterVisitorListTests
     }
 
     [Fact]
+    public async Task Create_ArrayAllObjectStringEqual_Expression_CustomAllow()
+    {
+        // arrange
+        IRequestExecutor? tester =
+            _cache.CreateSchema<Foo, FooCustomAllowsFilterInput>(_fooEntities);
+
+        // act
+        // assert
+        IExecutionResult? res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
+                .Create());
+
+        res1.MatchSqlSnapshot("a");
+
+        IExecutionResult? res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
+                .Create());
+
+        res2.MatchSqlSnapshot("d");
+
+        IExecutionResult? res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
+                .Create());
+
+        res3.MatchSqlSnapshot("null");
+    }
+
+    [Fact]
     public async Task Create_ArrayAnyObjectStringEqual_Expression()
     {
         // arrange
@@ -230,6 +264,21 @@ public class QueryableFilterVisitorListTests
             IFilterInputTypeDescriptor<Foo> descriptor)
         {
             descriptor.Field(t => t.FooNested);
+        }
+    }
+
+    public class FooCustomAllowsFilterInput
+        : FilterInputType<Foo>
+    {
+        protected override void Configure(
+            IFilterInputTypeDescriptor<Foo> descriptor)
+        {
+            descriptor.Field(t => t.FooNested, descriptor =>
+            {
+                descriptor.AllowAll(descriptor => descriptor.Field(y => y.Bar).AllowEquals());
+                descriptor.AllowSome(descriptor => descriptor.Field(y => y.Bar).AllowEquals());
+                descriptor.AllowNone(descriptor => descriptor.Field(y => y.Bar).AllowEquals());
+            });
         }
     }
 

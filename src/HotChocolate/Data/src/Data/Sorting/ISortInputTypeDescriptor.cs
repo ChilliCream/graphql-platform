@@ -39,6 +39,18 @@ public interface ISortInputTypeDescriptor
     ISortFieldDescriptor Field(NameString name);
 
     /// <summary>
+    /// Defines a <see cref="SortField" /> with the specified name and also
+    /// configures the type of the field
+    /// </summary>
+    /// <param name="name">
+    /// The name of the field.
+    /// </param>
+    /// <param name="configure">The configuration of the type of the field</param>
+    ISortFieldDescriptor Field(
+        NameString name,
+        Action<ISortInputTypeDescriptor> configure);
+
+    /// <summary>
     /// Ignore the specified property.
     /// </summary>
     /// <param name="name">

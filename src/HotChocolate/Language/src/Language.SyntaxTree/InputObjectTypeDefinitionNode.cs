@@ -228,7 +228,6 @@ public sealed class InputObjectTypeDefinitionNode
     /// <returns>
     /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
     /// </returns>
-
     public static bool operator ==(
         InputObjectTypeDefinitionNode? left,
         InputObjectTypeDefinitionNode? right)

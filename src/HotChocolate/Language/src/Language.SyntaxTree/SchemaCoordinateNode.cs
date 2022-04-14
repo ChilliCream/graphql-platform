@@ -32,7 +32,9 @@ namespace HotChocolate.Language;
 /// documentation, or as lookup keys in usage frequency tracking.
 /// </remarks>
 /// </summary>
-public sealed class SchemaCoordinateNode : ISyntaxNode
+public sealed class SchemaCoordinateNode
+    : ISyntaxNode
+    , IEquatable<SchemaCoordinateNode>
 {
     /// <summary>
     /// Creates a new instance of <see cref="SchemaCoordinateNode"/>
@@ -188,4 +190,82 @@ public sealed class SchemaCoordinateNode : ISyntaxNode
     /// </returns>
     public SchemaCoordinateNode WithArgumentName(NameNode? argumentName)
         => new(Location, OfDirective, Name, MemberName, argumentName);
+
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
+    /// </returns>
+    public bool Equals(SchemaCoordinateNode? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return OfDirective == other.OfDirective
+               && Name.IsEqualTo(other.Name)
+               && MemberName.IsEqualTo(other.MemberName)
+               && ArgumentName.IsEqualTo(other.ArgumentName);
+    }
+
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is SchemaCoordinateNode other
+            && Equals(other);
+    }
+
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
+    public override int GetHashCode()
+        => HashCode.Combine(Kind, OfDirective, Name, MemberName, ArgumentName);
+
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(
+        SchemaCoordinateNode? left,
+        SchemaCoordinateNode? right)
+        => Equals(left, right);
+
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
+    public static bool operator !=(
+        SchemaCoordinateNode? left,
+        SchemaCoordinateNode? right)
+        => !Equals(left, right);
 }

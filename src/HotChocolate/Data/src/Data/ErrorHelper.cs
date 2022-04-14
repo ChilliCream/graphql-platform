@@ -15,9 +15,15 @@ internal static class ErrorHelper
     public static IError CreateNonNullError<T>(
         IFilterField field,
         IValueNode value,
-        IFilterVisitorContext<T> context)
+        IFilterVisitorContext<T> context,
+        bool isMemberInvalid = false)
     {
         IFilterInputType filterType = context.Types.OfType<IFilterInputType>().First();
+
+        INullabilityNode nullability =
+            isMemberInvalid && field.Type.IsListType()
+            ? new ListNullabilityNode(null, new RequiredModifierNode(null, null))
+            : new RequiredModifierNode(null, null);
 
         return ErrorBuilder.New()
             .SetMessage(
@@ -26,7 +32,7 @@ internal static class ErrorHelper
                 filterType.Print())
             .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
-            .SetExtension("expectedType", new NonNullType(field.Type).Print())
+            .SetExtension("expectedType", field.Type.RewriteNullability(nullability).Print())
             .SetExtension("filterType", filterType.Print())
             .Build();
     }
@@ -106,5 +112,21 @@ internal static class ErrorHelper
             .SetMessage(DataResources.ProjectionVisitor_NodeFieldWasNotFound,
                 pageType.Name)
             .SetCode(ErrorCodes.Data.NodeFieldWasNotFound)
+            .Build();
+
+    public static ISchemaError Filtering_InlineFilterTypeHadNoFields(
+        FilterInputTypeDefinition typeDefinition,
+        ITypeSystemObject type,
+        FilterFieldDefinition fieldDefinition,
+        INamedType parentType) =>
+        SchemaErrorBuilder
+            .New()
+            .SetMessage(
+                DataResources.Filtering_InlineFilterTypeHadNoFields,
+                typeDefinition.Name.Value,
+                fieldDefinition.Name.Value,
+                parentType.Name)
+            .SetCode(ErrorCodes.Data.InlineFilterTypeNoFields)
+            .SetTypeSystemObject(type)
             .Build();
 }

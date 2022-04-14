@@ -5,7 +5,7 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language;
 
 public sealed class ObjectTypeExtensionNode
-    : ObjectTypeDefinitionNodeBase
+    : ComplexTypeDefinitionNodeBase
     , ITypeExtensionNode
     , IEquatable<ObjectTypeExtensionNode>
 {

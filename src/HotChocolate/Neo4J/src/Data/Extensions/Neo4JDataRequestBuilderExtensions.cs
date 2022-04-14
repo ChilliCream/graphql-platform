@@ -24,8 +24,9 @@ public static class Neo4JDataRequestBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddNeo4JFiltering(
         this IRequestExecutorBuilder builder,
-        string? name = null) =>
-        builder.ConfigureSchema(s => s.AddNeo4JFiltering(name));
+        string? name = null,
+        bool compatabilityMode = false) =>
+        builder.ConfigureSchema(s => s.AddNeo4JFiltering(name, compatabilityMode));
 
     /// <summary>
     /// Adds sorting support for Neo4j.
