@@ -4,6 +4,11 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// Object type extensions are used to represent a type which has been extended
+/// from some original type. For example, this might be used to represent local data,
+/// or by a GraphQL service which is itself an extension of another GraphQL service.
+/// </summary>
 public sealed class ObjectTypeExtensionNode
     : ComplexTypeDefinitionNodeBase
     , ITypeExtensionNode
@@ -92,8 +97,8 @@ public sealed class ObjectTypeExtensionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="location"/>
     /// </returns>
-    public ObjectTypeExtensionNode WithLocation(Location? location) =>
-        new(location, Name, Directives, Interfaces, Fields);
+    public ObjectTypeExtensionNode WithLocation(Location? location)
+        => new(location, Name, Directives, Interfaces, Fields);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -105,12 +110,12 @@ public sealed class ObjectTypeExtensionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="name"/>
     /// </returns>
-    public ObjectTypeExtensionNode WithName(NameNode name) =>
-        new(Location, name, Directives, Interfaces, Fields);
+    public ObjectTypeExtensionNode WithName(NameNode name)
+        => new(Location, name, Directives, Interfaces, Fields);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
-    /// <see cref="IReadOnlyList&lt;DirectiveNode&gt;"/> with <paramref name="directives"/>
+    /// <see cref="NamedSyntaxNode.Directives"/> with <paramref name="directives"/>
     /// </summary>
     /// <param name="directives">
     /// The directives that shall be used to replace the current directives.
@@ -118,12 +123,12 @@ public sealed class ObjectTypeExtensionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="directives"/>
     /// </returns>
-    public ObjectTypeExtensionNode WithDirectives(IReadOnlyList<DirectiveNode> directives) =>
-        new(Location, Name, directives, Interfaces, Fields);
+    public ObjectTypeExtensionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, directives, Interfaces, Fields);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
-    /// <see cref="IReadOnlyList&lt;NamedTypeNode&gt;"/> with <paramref name="interfaces"/>
+    /// <see cref="ComplexTypeDefinitionNodeBase.Interfaces"/> with <paramref name="interfaces"/>
     /// </summary>
     /// <param name="interfaces">
     /// The interfaces that shall be used to replace the current interfaces.
@@ -131,12 +136,12 @@ public sealed class ObjectTypeExtensionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="interfaces"/>
     /// </returns>
-    public ObjectTypeExtensionNode WithInterfaces(IReadOnlyList<NamedTypeNode> interfaces) =>
-        new(Location, Name, Directives, interfaces, Fields);
+    public ObjectTypeExtensionNode WithInterfaces(IReadOnlyList<NamedTypeNode> interfaces)
+        => new(Location, Name, Directives, interfaces, Fields);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
-    /// <see cref="IReadOnlyList&lt;FieldDefinitionNode&gt;"/> with <paramref name="fields"/>
+    /// <see cref="ComplexTypeDefinitionNodeBase.Fields"/> with <paramref name="fields"/>
     /// </summary>
     /// <param name="fields">
     /// The fields that shall be used to replace the current fields.
@@ -144,17 +149,40 @@ public sealed class ObjectTypeExtensionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="fields"/>
     /// </returns>
-    public ObjectTypeExtensionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields) =>
-        new(Location, Name, Directives, Interfaces, fields);
+    public ObjectTypeExtensionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields)
+        => new(Location, Name, Directives, Interfaces, fields);
 
     /// <inheritdoc />
     public bool Equals(ObjectTypeExtensionNode? other) => base.Equals(other);
 
     /// <inheritdoc />
-    public override bool Equals(object? obj) => ReferenceEquals(this, obj) ||
-                                                obj is ObjectTypeExtensionNode other &&
-                                                Equals(other);
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            (obj is ObjectTypeExtensionNode other && Equals(other));
 
     /// <inheritdoc />
-    public override int GetHashCode() => base.GetHashCode();
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), Kind);
+
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(ObjectTypeExtensionNode? left, ObjectTypeExtensionNode? right)
+        => Equals(left, right);
+
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
+    public static bool operator !=(ObjectTypeExtensionNode? left, ObjectTypeExtensionNode? right)
+        => !Equals(left, right);
 }

@@ -7,7 +7,6 @@ public class ObjectTypeExtensionNodeTests
 {
     [Fact]
     public void Equals_With_Same_Location()
-
     {
         // arrange
         var a = new ObjectTypeExtensionNode(
@@ -15,22 +14,19 @@ public class ObjectTypeExtensionNodeTests
             new NameNode("aa"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var b = new ObjectTypeExtensionNode(
             TestLocations.Location1,
             new NameNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var c = new ObjectTypeExtensionNode(
             TestLocations.Location1,
             new NameNode("aa"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
 
         // act
         var aaResult = a.Equals(a);
@@ -54,22 +50,19 @@ public class ObjectTypeExtensionNodeTests
             new NameNode("aa"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var b = new ObjectTypeExtensionNode(
             TestLocations.Location2,
             new NameNode("aa"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var c = new ObjectTypeExtensionNode(
             TestLocations.Location3,
             new NameNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
 
         // act
         var aaResult = a.Equals(a);
@@ -91,29 +84,25 @@ public class ObjectTypeExtensionNodeTests
             new NameNode("aa"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var b = new ObjectTypeExtensionNode(
             TestLocations.Location2,
             new NameNode("aa"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var c = new ObjectTypeExtensionNode(
             TestLocations.Location1,
             new NameNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var d = new ObjectTypeExtensionNode(
             TestLocations.Location2,
-            new NameNode("cc"),
+            new NameNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
 
         // act
         var aHash = a.GetHashCode();
@@ -124,7 +113,7 @@ public class ObjectTypeExtensionNodeTests
         // assert
         Assert.Equal(aHash, bHash);
         Assert.NotEqual(aHash, cHash);
-        Assert.NotEqual(cHash, dHash);
+        Assert.Equal(cHash, dHash);
         Assert.NotEqual(aHash, dHash);
     }
 }

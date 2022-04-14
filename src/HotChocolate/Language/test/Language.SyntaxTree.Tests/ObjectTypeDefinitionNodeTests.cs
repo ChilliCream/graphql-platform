@@ -112,8 +112,7 @@ public class ObjectTypeDefinitionNodeTests
             new StringValueNode("cc"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
 
         // act
         var aHash = a.GetHashCode();
