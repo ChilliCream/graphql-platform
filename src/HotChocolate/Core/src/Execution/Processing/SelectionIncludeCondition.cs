@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using static HotChocolate.Execution.ThrowHelper;
+using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -73,8 +74,8 @@ public sealed class SelectionIncludeCondition
         throw FieldVisibility_ValueNotSupported(value);
     }
 
-    public bool Equals(IValueNode? skip, IValueNode? include) 
-        => Equals(skip, Skip) && Equals(include, Include);
+    public bool Equals(IValueNode? skip, IValueNode? include)
+        => Default.Equals(skip, Skip) && Default.Equals(include, Include);
 
     public bool Equals(SelectionIncludeCondition visibility)
     {

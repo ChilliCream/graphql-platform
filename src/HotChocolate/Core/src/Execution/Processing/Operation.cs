@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -9,7 +8,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class Operation : IPreparedOperation
 {
-    private readonly IReadOnlyDictionary<SelectionSetNode, SelectionVariants> _selectionSets;
+    private readonly Dictionary<SelectionSetNode, SelectionVariants> _selectionSets;
 
     public Operation(
         string id,

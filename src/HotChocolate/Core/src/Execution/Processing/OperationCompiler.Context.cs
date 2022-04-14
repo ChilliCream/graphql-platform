@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -228,28 +230,17 @@ public sealed partial class OperationCompiler
 
         public ISelectionNode Spread { get; }
 
-        public bool Equals(SelectionReference other)
-        {
-            return Path.Equals(other.Path) && Spread.Equals(other.Selection);
-        }
+        public bool Equals(SpreadReference other)
+            => Path.Equals(other.Path) && Spread.Equals(other.Spread);
 
         public override bool Equals(object? obj)
-        {
-            return obj is SelectionReference other && Equals(other);
-        }
+            => obj is SpreadReference other && Equals(other);
 
         public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (Path.GetHashCode() * 397) ^ Spread.GetHashCode();
-            }
-        }
+            => HashCode.Combine(Path, ByReference.GetHashCode(Spread));
 
         public override string ToString()
-        {
-            return $"{Path}:{Spread.ToString()}";
-        }
+            => $"{Path}:{Spread.ToString()}";
     }
 
     public readonly struct SelectionReference
@@ -265,22 +256,15 @@ public sealed partial class OperationCompiler
         public ISelectionNode Selection { get; }
 
         public bool Equals(SelectionReference other)
-        {
-            return Path.Equals(other.Path) && Selection.Equals(other.Selection);
-        }
+            => Path.Equals(other.Path) &&
+                ByReference.Equals(Selection, other.Selection);
 
         public override bool Equals(object? obj)
-        {
-            return obj is SelectionReference other && Equals(other);
-        }
+            => obj is SelectionReference other &&
+                Equals(other);
 
         public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (Path.GetHashCode() * 397) ^ Selection.GetHashCode();
-            }
-        }
+            => HashCode.Combine(Path, ByReference.GetHashCode(Selection));
 
         public override string ToString()
         {
@@ -293,31 +277,21 @@ public sealed partial class OperationCompiler
         private readonly string? _path;
 
         private SelectionPath(string path)
-        {
-            _path = path;
-        }
+            => _path = path;
 
-        public SelectionPath Append(string segment) =>
-            new(_path is null ? "/" + segment : _path + "/" + segment);
+        public SelectionPath Append(string segment)
+            => new(_path is null ? "/" + segment : _path + "/" + segment);
 
         public bool Equals(SelectionPath other)
-        {
-            return _path == other._path;
-        }
+            => _path == other._path;
 
         public override bool Equals(object? obj)
-        {
-            return obj is SelectionPath other && Equals(other);
-        }
+            => obj is SelectionPath other && Equals(other);
 
         public override int GetHashCode()
-        {
-            return _path != null ? _path.GetHashCode() : 0;
-        }
+            => HashCode.Combine(_path);
 
         public override string ToString()
-        {
-            return _path ?? "/";
-        }
+            => _path ?? "/";
     }
 }

@@ -7,8 +7,44 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Execution.ThrowHelper;
+using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Execution.Processing;
+
+internal sealed class OperationCompiler2
+{
+    private readonly ISchema _schema;
+    private readonly ObjectType _rootType;
+    private readonly FragmentCollection _fragments;
+    private readonly InputParser _parser;
+    private readonly IEnumerable<ISelectionOptimizer>? _optimizers;
+    private readonly string _operationId;
+    private readonly DocumentNode _document;
+    private readonly OperationDefinitionNode _operation;
+    private int _nextSelectionId;
+    private int _nextFragmentId;
+
+    public OperationCompiler2(
+        ISchema schema,
+        ObjectType rootType,
+        InputParser parser,
+        IEnumerable<ISelectionOptimizer>? optimizers,
+        string operationId,
+        DocumentNode document,
+        OperationDefinitionNode operation)
+    {
+        _schema = schema;
+        _rootType = rootType;
+        _parser = parser;
+        _optimizers = optimizers;
+        _operationId = operationId;
+        _document = document;
+        _operation = operation;
+        _fragments = new FragmentCollection(schema, document);
+    }
+
+    private int NextId() => _nextSelectionId++;
+}
 
 public sealed partial class OperationCompiler
 {
@@ -72,7 +108,7 @@ public sealed partial class OperationCompiler
 
         var fragments = new FragmentCollection(schema, document);
         var compiler = new OperationCompiler(schema, fragments, inputParser);
-        var selectionSetLookup = new Dictionary<SelectionSetNode, SelectionVariants>();
+        var selectionSetLookup = new Dictionary<SelectionSetNode, SelectionVariants>(ByReference);
         var backlog = new Stack<CompilerContext>();
 
         // creates and enqueues the root compiler context.

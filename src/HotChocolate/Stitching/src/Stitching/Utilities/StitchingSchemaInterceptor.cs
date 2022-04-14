@@ -12,6 +12,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using static HotChocolate.Language.SyntaxKind;
 using static HotChocolate.Stitching.DirectiveFieldNames;
 using IHasName = HotChocolate.Types.IHasName;
 
@@ -138,18 +139,21 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
     {
         var externalFieldLookup = new Dictionary<NameString, ISet<NameString>>();
 
-        foreach (ObjectTypeDefinitionNodeBase objectType in
-            document.Definitions.OfType<ObjectTypeDefinitionNodeBase>())
+        foreach (IDefinitionNode definitionNode in document.Definitions)
         {
-            if (!externalFieldLookup.TryGetValue(
-                objectType.Name.Value,
-                out ISet<NameString>? externalFields))
+            if (definitionNode.Kind is ObjectTypeDefinition or SyntaxKind.ObjectTypeExtension &&
+                definitionNode is ComplexTypeDefinitionNodeBase objectType)
             {
-                externalFields = new HashSet<NameString>();
-                externalFieldLookup.Add(objectType.Name.Value, externalFields);
-            }
+                if (!externalFieldLookup.TryGetValue(
+                    objectType.Name.Value,
+                    out ISet<NameString>? externalFields))
+                {
+                    externalFields = new HashSet<NameString>();
+                    externalFieldLookup.Add(objectType.Name.Value, externalFields);
+                }
 
-            MarkExternalFields(objectType.Fields, externalFields);
+                MarkExternalFields(objectType.Fields, externalFields);
+            }
         }
 
         schemaBuilder.AddExternalFieldLookup(externalFieldLookup);
