@@ -4,7 +4,7 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language;
 
 public sealed class ObjectTypeExtensionNode
-    : ObjectTypeDefinitionNodeBase
+    : ComplexTypeDefinitionNodeBase
     , ITypeExtensionNode
 {
     public ObjectTypeExtensionNode(
@@ -16,7 +16,7 @@ public sealed class ObjectTypeExtensionNode
         : base(location, name, directives, interfaces, fields)
     { }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.ObjectTypeExtension;
+    public override SyntaxKind Kind => SyntaxKind.ObjectTypeExtension;
 
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
