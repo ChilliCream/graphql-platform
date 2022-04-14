@@ -4,8 +4,26 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// <para>
+/// GraphQL operations are hierarchical and composed, describing a tree of information.
+/// While Scalar types describe the leaf values of these hierarchical operations,
+/// Objects describe the intermediate levels.
+/// </para>
+/// <para>
+/// GraphQL Objects represent a list of named fields, each of which yield a value
+/// of a specific type. Object values should be serialized as ordered maps,
+/// where the selected field names (or aliases) are the keys and the result
+/// of evaluating the field is the value, ordered by the order in which they
+/// appear in the selection set.
+/// </para>
+/// <para>
+/// All fields defined within an Object type must not have a name which begins with
+/// "__" (two underscores), as this is used exclusively by GraphQL’s introspection system.
+/// </para>
+/// </summary>
 public sealed class ObjectTypeDefinitionNode
-    : ObjectTypeDefinitionNodeBase
+    : ComplexTypeDefinitionNodeBase
     , ITypeDefinitionNode
     , IEquatable<ObjectTypeDefinitionNode>
 {
@@ -107,8 +125,8 @@ public sealed class ObjectTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="location"/>
     /// </returns>
-    public ObjectTypeDefinitionNode WithLocation(Location? location) =>
-        new(location, Name, Description, Directives, Interfaces, Fields);
+    public ObjectTypeDefinitionNode WithLocation(Location? location)
+        => new(location, Name, Description, Directives, Interfaces, Fields);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -120,8 +138,8 @@ public sealed class ObjectTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="name"/>
     /// </returns>
-    public ObjectTypeDefinitionNode WithName(NameNode name) =>
-        new(Location, name, Description, Directives, Interfaces, Fields);
+    public ObjectTypeDefinitionNode WithName(NameNode name)
+        => new(Location, name, Description, Directives, Interfaces, Fields);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -133,8 +151,8 @@ public sealed class ObjectTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="description"/>
     /// </returns>
-    public ObjectTypeDefinitionNode WithDescription(StringValueNode? description) =>
-        new(Location, Name, description, Directives, Interfaces, Fields);
+    public ObjectTypeDefinitionNode WithDescription(StringValueNode? description)
+        => new(Location, Name, description, Directives, Interfaces, Fields);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -146,8 +164,8 @@ public sealed class ObjectTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="directives"/>
     /// </returns>
-    public ObjectTypeDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives) =>
-        new(Location, Name, Description, directives, Interfaces, Fields);
+    public ObjectTypeDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, Description, directives, Interfaces, Fields);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -159,8 +177,8 @@ public sealed class ObjectTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="interfaces"/>
     /// </returns>
-    public ObjectTypeDefinitionNode WithInterfaces(IReadOnlyList<NamedTypeNode> interfaces) =>
-        new(Location, Name, Description, Directives, interfaces, Fields);
+    public ObjectTypeDefinitionNode WithInterfaces(IReadOnlyList<NamedTypeNode> interfaces)
+        => new(Location, Name, Description, Directives, interfaces, Fields);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -172,8 +190,8 @@ public sealed class ObjectTypeDefinitionNode
     /// <returns>
     /// Returns the new node with the new <paramref name="fields"/>
     /// </returns>
-    public ObjectTypeDefinitionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields) =>
-        new(Location, Name, Description, Directives, Interfaces, fields);
+    public ObjectTypeDefinitionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields)
+        => new(Location, Name, Description, Directives, Interfaces, fields);
 
     /// <inheritdoc/>
     public bool Equals(ObjectTypeDefinitionNode? other)
@@ -192,10 +210,33 @@ public sealed class ObjectTypeDefinitionNode
     }
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj) => ReferenceEquals(this, obj) ||
-                                                obj is ObjectTypeDefinitionNode other &&
-                                                Equals(other);
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+            (obj is ObjectTypeDefinitionNode other && Equals(other));
 
     /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Description);
+    public override int GetHashCode()
+        => HashCode.Combine(base.GetHashCode(), Kind, Description);
+
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(ObjectTypeDefinitionNode? left, ObjectTypeDefinitionNode? right)
+        => Equals(left, right);
+
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
+    public static bool operator !=(ObjectTypeDefinitionNode? left, ObjectTypeDefinitionNode? right)
+        => !Equals(left, right);
 }
