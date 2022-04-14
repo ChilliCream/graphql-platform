@@ -111,7 +111,7 @@ public sealed class OptionalModifierNode
     /// hashing algorithms and data structures such as a hash table.
     /// </returns>
     public override int GetHashCode()
-       => HashCode.Combine(Kind, Element?.GetHashCode());
+       => HashCode.Combine(Kind, Element);
 
     public static bool operator ==(
         OptionalModifierNode? left,
