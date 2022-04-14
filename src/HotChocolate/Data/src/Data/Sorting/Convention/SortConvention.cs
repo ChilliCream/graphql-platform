@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Data.Utilities;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -129,10 +130,20 @@ public class SortConvention
         base.Complete(context);
     }
 
-
     /// <inheritdoc />
     public virtual NameString GetTypeName(Type runtimeType) =>
         _namingConventions.GetTypeName(runtimeType, TypeKind.Object) + _typePostFix;
+
+    public NameString GetTypeName(ISortInputType parentType, SortFieldDefinition fieldDefinition)
+    {
+        string parentName = parentType.Name;
+        if (parentName.EndsWith(_typePostFix, StringComparison.Ordinal))
+        {
+            parentName = parentName.Remove(parentName.Length - _typePostFix.Length);
+        }
+
+        return parentName + NameHelpers.UppercaseFirstLetter(fieldDefinition.Name) + _typePostFix;
+    }
 
     /// <inheritdoc />
     public virtual string? GetTypeDescription(Type runtimeType) =>

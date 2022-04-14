@@ -63,7 +63,7 @@ public sealed class SchemaDefinitionNode
     public SchemaDefinitionNode WithLocation(Location? location)
     {
         return new SchemaDefinitionNode(
-            Location, Description, Directives, OperationTypes);
+            location, Description, Directives, OperationTypes);
     }
 
     public SchemaDefinitionNode WithDirectives(

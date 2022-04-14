@@ -243,7 +243,7 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    DataResources.SortInterceptor_NoFieldHandlerFoundForField,
+                        DataResources.SortInterceptor_NoFieldHandlerFoundForField,
                     field.Name,
                     type.Name)
                 .Build());
@@ -338,6 +338,28 @@ internal static class ThrowHelper
                 .SetPath(context.Path)
                 .SetExtension("fieldName", context.Selection.Field.Name)
                 .SetExtension("typeName", context.Selection.Type.NamedType().Name)
+                .Build());
+
+    public static SchemaException Sorting_DefinitionForTypeNotFound(
+        string fieldName,
+        string typeName,
+        string originalType) =>
+        new(SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.Sorting_DefinitionForTypeNotFound,
+                    fieldName,
+                    typeName,
+                    originalType)
+                .Build());
+
+    public static SchemaException Sorting_FieldHadNoType(
+        string fieldName,
+        string typeName) =>
+        new(SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.Sorting_FieldHadNoType,
+                    fieldName,
+                    typeName)
                 .Build());
 
     public static SchemaException ProjectionProvider_NoHandlersConfigured(

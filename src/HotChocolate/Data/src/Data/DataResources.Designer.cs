@@ -603,6 +603,24 @@ namespace HotChocolate.Data {
             }
         }
 
+        internal static string Sorting_DefinitionForTypeNotFound {
+            get {
+                return ResourceManager.GetString("Sorting_DefinitionForTypeNotFound", resourceCulture);
+            }
+        }
+
+        internal static string Sorting_FieldHadNoType {
+            get {
+                return ResourceManager.GetString("Sorting_FieldHadNoType", resourceCulture);
+            }
+        }
+
+        internal static string Sorting_InlineFilterTypeHadNoFields {
+            get {
+                return ResourceManager.GetString("Sorting_InlineFilterTypeHadNoFields", resourceCulture);
+            }
+        }
+
         internal static string SelectionContext_NoTypeForAbstractFieldProvided {
             get {
                 return ResourceManager.GetString("SelectionContext_NoTypeForAbstractFieldProvided", resourceCulture);

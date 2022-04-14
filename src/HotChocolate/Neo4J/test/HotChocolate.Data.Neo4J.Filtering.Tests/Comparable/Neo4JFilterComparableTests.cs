@@ -2,6 +2,9 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using HotChocolate.Types;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Filtering;
@@ -17,13 +20,13 @@ public class Neo4JFilterComparableTests
     }
 
     private readonly string _fooEntitiesCypher =
-        @"CREATE (:Foo {BarShort: 12}), (:Foo {BarShort: 14}), (:Foo {BarShort: 13})";
+        "CREATE (:Foo {BarShort: 12}), (:Foo {BarShort: 14}), (:Foo {BarShort: 13})";
     private readonly string _fooNullableEntitiesCypher =
         @"CREATE
-                (:FooNullable {BarShort: 12}),
-                (:FooNullable {BarShort: NULL}),
-                (:FooNullable {BarShort: 14}),
-                (:FooNullable {BarShort: 13})";
+            (:FooNullable {BarShort: 12}),
+            (:FooNullable {BarShort: NULL}),
+            (:FooNullable {BarShort: 14}),
+            (:FooNullable {BarShort: 13})";
 
     public class Foo
     {
@@ -947,5 +950,53 @@ public class Neo4JFilterComparableTests
         res1.MatchDocumentSnapshot("12and13");
         res2.MatchDocumentSnapshot("13and14");
         res3.MatchDocumentSnapshot("13andNull");
+    }
+
+    [Fact]
+    public void Create_Implicit_Operation()
+    {
+        // arrange
+        // act
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType(
+                t => t
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo")
+                    .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+            .AddNeo4JFiltering(compatabilityMode: true)
+            .Create();
+
+        // assert
+#if NET6_0_OR_GREATER
+        schema.ToString().MatchSnapshot(new SnapshotNameExtension("NET6"));
+#else
+            schema.ToString().MatchSnapshot();
+#endif
+    }
+
+    [Fact]
+    public void Create_Implicit_Operation_Normalized()
+    {
+        // arrange
+        // act
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType(
+                t => t
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo")
+                    .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+            .AddNeo4JFiltering()
+            .Create();
+
+        // assert
+#if NET6_0_OR_GREATER
+        schema.ToString().MatchSnapshot(new SnapshotNameExtension("NET6"));
+#else
+            schema.ToString().MatchSnapshot();
+#endif
     }
 }

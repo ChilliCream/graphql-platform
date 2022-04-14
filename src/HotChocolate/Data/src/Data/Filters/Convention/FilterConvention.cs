@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Data.Utilities;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -222,7 +223,7 @@ public class FilterConvention
             parentName = parentName.Remove(parentName.Length - operationInputTypePostFix.Length);
         }
 
-        return parentName + UppercaseFirstLetter(fieldDefinition.Name) + _inputPostFix;
+        return parentName + NameHelpers.UppercaseFirstLetter(fieldDefinition.Name) + _inputPostFix;
     }
 
     /// <inheritdoc />
