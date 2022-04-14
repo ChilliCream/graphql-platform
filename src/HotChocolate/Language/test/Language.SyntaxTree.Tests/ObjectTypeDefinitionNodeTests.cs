@@ -15,24 +15,21 @@ public class ObjectTypeDefinitionNodeTests
             new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var b = new ObjectTypeDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
             new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var c = new ObjectTypeDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
             new StringValueNode("cc"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
 
         // act
         var aaResult = a.Equals(a);
@@ -57,24 +54,21 @@ public class ObjectTypeDefinitionNodeTests
             new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var b = new ObjectTypeDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
             new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var c = new ObjectTypeDefinitionNode(
             TestLocations.Location3,
             new NameNode("aa"),
             new StringValueNode("cc"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
 
         // act
         var aaResult = a.Equals(a);
@@ -97,24 +91,21 @@ public class ObjectTypeDefinitionNodeTests
             new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var b = new ObjectTypeDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
             new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var c = new ObjectTypeDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
             new StringValueNode("cc"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
-            new List<FieldDefinitionNode>(0)
-        );
+            new List<FieldDefinitionNode>(0));
         var d = new ObjectTypeDefinitionNode(
             TestLocations.Location2,
             new NameNode("aa"),
