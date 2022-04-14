@@ -48,7 +48,7 @@ public sealed partial class SyntaxSerializer
     }
 
     private void VisitObjectTypeDefinitionBase(
-        ObjectTypeDefinitionNodeBase node,
+        ComplexTypeDefinitionNodeBase node,
         ISyntaxWriter writer)
     {
         writer.Write(Keywords.Type);
@@ -60,9 +60,7 @@ public sealed partial class SyntaxSerializer
             writer.WriteSpace();
             writer.Write(Keywords.Implements);
             writer.WriteSpace();
-            writer.WriteMany(node.Interfaces,
-                (n, w) => writer.WriteNamedType(n),
-                " & ");
+            writer.WriteMany(node.Interfaces, (n, _) => writer.WriteNamedType(n), " & ");
         }
 
         WriteDirectives(node.Directives, writer);
@@ -159,9 +157,7 @@ public sealed partial class SyntaxSerializer
         writer.Write('=');
         writer.WriteSpace();
 
-        writer.WriteMany(node.Types,
-            (n, w) => writer.WriteNamedType(n),
-            " | ");
+        writer.WriteMany(node.Types, (n, _) => writer.WriteNamedType(n), " | ");
     }
 
     private void VisitEnumTypeDefinition(
@@ -376,9 +372,7 @@ public sealed partial class SyntaxSerializer
         writer.Write(Keywords.On);
         writer.WriteSpace();
 
-        writer.WriteMany(node.Locations,
-            (n, w) => writer.WriteName(n),
-            " | ");
+        writer.WriteMany(node.Locations, (n, _) => writer.WriteName(n), " | ");
     }
 
     private void VisitArgumentValueDefinition(

@@ -39,6 +39,7 @@ internal sealed class TypeTrimmer
                 directiveType.Name.Equals(WellKnownDirectives.Deprecated))
             {
                 _touched.Add(directiveType);
+                VisitDirective(directiveType);
             }
         }
 
