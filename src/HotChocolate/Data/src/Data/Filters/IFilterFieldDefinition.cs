@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -16,4 +17,10 @@ public interface IFilterFieldDefinition
     IFilterFieldHandler? Handler { get; }
 
     Expression? Expression { get; }
+    
+    string? Scope { get; }
+
+    List<int> AllowedOperations { get; }
+
+    bool HasAllowedOperations { get; }
 }

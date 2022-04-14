@@ -73,7 +73,7 @@ public abstract class FilterProvider<TContext>
     }
 
     /// <inheritdoc />
-    protected override void Complete(IConventionContext context)
+    protected internal override void Complete(IConventionContext context)
     {
         if (Definition!.Handlers.Count == 0)
         {
