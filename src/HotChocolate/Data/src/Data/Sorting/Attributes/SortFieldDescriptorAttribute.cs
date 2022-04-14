@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Sorting;
 public abstract class SortFieldDescriptorAttribute
     : DescriptorAttribute
 {
-    protected sealed override void TryConfigure(
+    protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
         ICustomAttributeProvider element)

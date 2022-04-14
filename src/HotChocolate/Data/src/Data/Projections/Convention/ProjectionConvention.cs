@@ -54,7 +54,7 @@ public class ProjectionConvention
     {
     }
 
-    protected override void Complete(IConventionContext context)
+    protected internal override void Complete(IConventionContext context)
     {
         if (Definition?.Provider is null)
         {
