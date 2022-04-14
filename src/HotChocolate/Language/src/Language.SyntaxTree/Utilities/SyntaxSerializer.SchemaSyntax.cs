@@ -284,7 +284,7 @@ public sealed partial class SyntaxSerializer
     }
 
     private void VisitScalarTypeDefinitionBase(
-        ScalarTypeDefinitionNodeBase node,
+        NamedSyntaxNode node,
         ISyntaxWriter writer)
     {
         writer.Write(Keywords.Scalar);

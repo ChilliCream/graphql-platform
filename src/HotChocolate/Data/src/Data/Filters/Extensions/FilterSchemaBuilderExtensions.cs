@@ -23,8 +23,9 @@ public static class FilterSchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddFiltering(
         this ISchemaBuilder builder,
-        string? name = null) =>
-        AddFiltering(builder, x => x.AddDefaults(), name);
+        string? name = null,
+        bool compatabilityMode = false) =>
+        AddFiltering(builder, x => x.AddDefaults(compatabilityMode), name);
 
     /// <summary>
     /// Adds filtering support.
