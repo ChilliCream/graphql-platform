@@ -15,6 +15,19 @@ public static class Neo4JFilterConventionDescriptorExtensions
         descriptor.AddDefaultNeo4JOperations().BindDefaultNeo4JTypes().UseNeo4JProvider();
 
     /// <summary>
+    /// Initializes the default configuration for Neo4j on the convention by adding operations
+    /// </summary>
+    /// <param name="descriptor">The descriptor where the handlers are registered</param>
+    /// <returns>The descriptor that was passed in as a parameter</returns>
+    public static IFilterConventionDescriptor AddNeo4JDefaults(
+        this IFilterConventionDescriptor descriptor,
+        bool compatabilityMode) =>
+        descriptor
+            .AddDefaultNeo4JOperations()
+            .BindDefaultNeo4JTypes(compatabilityMode)
+            .UseNeo4JProvider();
+
+    /// <summary>
     /// Adds default operations for Neo4j to the descriptor
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
@@ -68,43 +81,81 @@ public static class Neo4JFilterConventionDescriptorExtensions
     /// Throws in case the argument <paramref name="descriptor"/> is null
     /// </exception>
     public static IFilterConventionDescriptor BindDefaultNeo4JTypes(
-        this IFilterConventionDescriptor descriptor)
+        this IFilterConventionDescriptor descriptor,
+        bool compatabilityMode = false)
     {
         if (descriptor is null)
         {
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        descriptor
-            .BindRuntimeType<string, StringOperationFilterInputType>()
-            .BindRuntimeType<bool, BooleanOperationFilterInputType>()
-            .BindRuntimeType<byte, ComparableOperationFilterInputType<byte>>()
-            .BindRuntimeType<short, ComparableOperationFilterInputType<short>>()
-            .BindRuntimeType<int, ComparableOperationFilterInputType<int>>()
-            .BindRuntimeType<long, ComparableOperationFilterInputType<long>>()
-            .BindRuntimeType<float, ComparableOperationFilterInputType<float>>()
-            .BindRuntimeType<double, ComparableOperationFilterInputType<double>>()
-            .BindRuntimeType<decimal, ComparableOperationFilterInputType<decimal>>()
-            .BindRuntimeType<Guid, ComparableOperationFilterInputType<Guid>>()
-            .BindRuntimeType<DateTime, ComparableOperationFilterInputType<DateTime>>()
-            .BindRuntimeType<DateTimeOffset, ComparableOperationFilterInputType<DateTimeOffset>
-            >()
-            .BindRuntimeType<TimeSpan, ComparableOperationFilterInputType<TimeSpan>>()
-            .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
-            .BindRuntimeType<byte?, ComparableOperationFilterInputType<byte?>>()
-            .BindRuntimeType<short?, ComparableOperationFilterInputType<short?>>()
-            .BindRuntimeType<int?, ComparableOperationFilterInputType<int?>>()
-            .BindRuntimeType<long?, ComparableOperationFilterInputType<long?>>()
-            .BindRuntimeType<float?, ComparableOperationFilterInputType<float?>>()
-            .BindRuntimeType<double?, ComparableOperationFilterInputType<double?>>()
-            .BindRuntimeType<decimal?, ComparableOperationFilterInputType<decimal?>>()
-            .BindRuntimeType<Guid?, ComparableOperationFilterInputType<Guid?>>()
-            .BindRuntimeType<DateTime?, ComparableOperationFilterInputType<DateTime?>>()
-            .BindRuntimeType<DateTimeOffset?,
-                ComparableOperationFilterInputType<DateTimeOffset?>>()
-            .BindRuntimeType<TimeSpan?, ComparableOperationFilterInputType<TimeSpan?>>();
-
-        return descriptor;
+        if (compatabilityMode)
+        {
+            return descriptor
+                .BindRuntimeType<string, StringOperationFilterInputType>()
+                .BindRuntimeType<bool, BooleanOperationFilterInputType>()
+                .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
+                .BindComparableType<byte>()
+                .BindComparableType<short>()
+                .BindComparableType<int>()
+                .BindComparableType<long>()
+                .BindComparableType<float>()
+                .BindComparableType<double>()
+                .BindComparableType<decimal>()
+                .BindComparableType<sbyte>()
+                .BindComparableType<ushort>()
+                .BindComparableType<uint>()
+                .BindComparableType<ulong>()
+                .BindComparableType<Guid>()
+                .BindComparableType<DateTime>()
+                .BindComparableType<DateTimeOffset>()
+#if NET6_0_OR_GREATER
+                .BindComparableType<DateOnly>()
+                .BindComparableType<TimeOnly>()
+#endif
+                .BindComparableType<TimeSpan>()
+                .BindRuntimeType<Uri, ComparableOperationFilterInputType<Uri>>()
+                .BindRuntimeType<Uri?, ComparableOperationFilterInputType<Uri?>>();
+        }
+        else
+        {
+            return descriptor
+                .BindRuntimeType<string, StringOperationFilterInputType>()
+                .BindRuntimeType<bool, BooleanOperationFilterInputType>()
+                .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
+                .BindRuntimeType<byte, ByteOperationFilterInputType>()
+                .BindRuntimeType<byte?, ByteOperationFilterInputType>()
+                .BindRuntimeType<sbyte, ByteOperationFilterInputType>()
+                .BindRuntimeType<sbyte?, ByteOperationFilterInputType>()
+                .BindRuntimeType<short, ShortOperationFilterInputType>()
+                .BindRuntimeType<short?, ShortOperationFilterInputType>()
+                .BindRuntimeType<int, IntOperationFilterInputType>()
+                .BindRuntimeType<int?, IntOperationFilterInputType>()
+                .BindRuntimeType<long, LongOperationFilterInputType>()
+                .BindRuntimeType<long?, LongOperationFilterInputType>()
+                .BindRuntimeType<float, FloatOperationFilterInputType>()
+                .BindRuntimeType<float?, FloatOperationFilterInputType>()
+                .BindRuntimeType<double, FloatOperationFilterInputType>()
+                .BindRuntimeType<double?, FloatOperationFilterInputType>()
+                .BindRuntimeType<decimal, DecimalOperationFilterInputType>()
+                .BindRuntimeType<decimal?, DecimalOperationFilterInputType>()
+                .BindRuntimeType<Guid, UuidOperationFilterInputType>()
+                .BindRuntimeType<Guid?, UuidOperationFilterInputType>()
+                .BindRuntimeType<DateTime, DateTimeOperationFilterInputType>()
+                .BindRuntimeType<DateTime?, DateTimeOperationFilterInputType>()
+                .BindRuntimeType<DateTimeOffset, DateTimeOperationFilterInputType>()
+                .BindRuntimeType<DateTimeOffset?, DateTimeOperationFilterInputType>()
+#if NET6_0_OR_GREATER
+                .BindRuntimeType<DateOnly, DateOperationFilterInputType>()
+                .BindRuntimeType<DateOnly?, DateOperationFilterInputType>()
+                .BindRuntimeType<TimeOnly, TimeSpanOperationFilterInputType>()
+                .BindRuntimeType<TimeOnly?, TimeSpanOperationFilterInputType>()
+#endif
+                .BindRuntimeType<TimeSpan, TimeSpanOperationFilterInputType>()
+                .BindRuntimeType<TimeSpan?, TimeSpanOperationFilterInputType>()
+                .BindRuntimeType<Uri, UrlOperationFilterInputType>()
+                .BindRuntimeType<Uri?, UrlOperationFilterInputType>();
+        }
     }
 
     /// <summary>
@@ -155,5 +206,14 @@ public static class Neo4JFilterConventionDescriptorExtensions
         descriptor.AddFieldHandler<Neo4JDefaultFieldHandler>();
 
         return descriptor;
+    }
+
+    private static IFilterConventionDescriptor BindComparableType<T>(
+        this IFilterConventionDescriptor descriptor)
+        where T : struct
+    {
+        return descriptor
+            .BindRuntimeType<T, ComparableOperationFilterInputType<T>>()
+            .BindRuntimeType<T?, ComparableOperationFilterInputType<T?>>();
     }
 }

@@ -25,6 +25,14 @@ You can now install Banana Cake Pop using the [Windows Package Manager](https://
 ```powershell
 winget install banana-cake-pop
 ```
+
+## Scoop
+[Scoop](https://scoop.sh/) is a package manager that supports Windows 7 / 10 / 11.
+```powershell
+scoop bucket add extras
+scoop install banana-cake-pop
+```
+
 ## Installer
 - [Download Windows Installer](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-preview.31-win-x64.exe)
 

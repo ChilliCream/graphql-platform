@@ -65,21 +65,21 @@ public static class ErrorCodes
 
         /// <summary>
         /// The Oneof Input Objects `{0}` require that exactly one field must be supplied and that
-        /// field must not be `null`. Oneof Input Objects are a special variant of Input Objects 
+        /// field must not be `null`. Oneof Input Objects are a special variant of Input Objects
         /// where the type system asserts that exactly one of the fields must be set and non-null.
         /// </summary>
         public const string OneOfNoFieldSet = "HC0054";
 
         /// <summary>
-        /// More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects 
-        /// are a special variant of Input Objects where the type system asserts that exactly 
+        /// More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects
+        /// are a special variant of Input Objects where the type system asserts that exactly
         /// one of the fields must be set and non-null.
         /// </summary>
         public const string OneOfMoreThanOneFieldSet = "HC0055";
 
         /// <summary>
-        /// `null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects 
-        /// are a special variant of Input Objects where the type system asserts that exactly 
+        /// `null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects
+        /// are a special variant of Input Objects where the type system asserts that exactly
         /// one of the fields must be set and non-null.
         /// </summary>
         public const string OneOfFieldIsNull = "HC0056";
@@ -257,6 +257,11 @@ public static class ErrorCodes
         /// Type does not contain a valid node field. Only `items` and `nodes` are supported
         /// </summary>
         public const string NodeFieldWasNotFound = "HC0028";
+
+        /// <summary>
+        /// Inline filtering type does not defined any fields.
+        /// </summary>
+        public const string InlineFilterTypeNoFields = "HC0062";
     }
 
     /// <summary>
