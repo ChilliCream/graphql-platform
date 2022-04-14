@@ -3,30 +3,27 @@ using Xunit;
 
 namespace HotChocolate.Language.SyntaxTree;
 
-public class ObjectTypeDefinitionNodeTests
+public class ObjectTypeExtensionNodeTests
 {
     [Fact]
     public void Equals_With_Same_Location()
     {
         // arrange
-        var a = new ObjectTypeDefinitionNode(
+        var a = new ObjectTypeExtensionNode(
             TestLocations.Location1,
             new NameNode("aa"),
-            new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
-        var b = new ObjectTypeDefinitionNode(
+        var b = new ObjectTypeExtensionNode(
             TestLocations.Location1,
-            new NameNode("aa"),
-            new StringValueNode("bb"),
+            new NameNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
-        var c = new ObjectTypeDefinitionNode(
+        var c = new ObjectTypeExtensionNode(
             TestLocations.Location1,
             new NameNode("aa"),
-            new StringValueNode("cc"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
@@ -39,8 +36,8 @@ public class ObjectTypeDefinitionNodeTests
 
         // assert
         Assert.True(aaResult);
-        Assert.True(abResult);
-        Assert.False(acResult);
+        Assert.False(abResult);
+        Assert.True(acResult);
         Assert.False(aNullResult);
     }
 
@@ -48,24 +45,21 @@ public class ObjectTypeDefinitionNodeTests
     public void Equals_With_Different_Location()
     {
         // arrange
-        var a = new ObjectTypeDefinitionNode(
+        var a = new ObjectTypeExtensionNode(
             TestLocations.Location1,
             new NameNode("aa"),
-            new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
-        var b = new ObjectTypeDefinitionNode(
+        var b = new ObjectTypeExtensionNode(
             TestLocations.Location2,
             new NameNode("aa"),
-            new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
-        var c = new ObjectTypeDefinitionNode(
+        var c = new ObjectTypeExtensionNode(
             TestLocations.Location3,
-            new NameNode("aa"),
-            new StringValueNode("cc"),
+            new NameNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
@@ -85,31 +79,27 @@ public class ObjectTypeDefinitionNodeTests
     public void GetHashCode_With_Location()
     {
         // arrange
-        var a = new ObjectTypeDefinitionNode(
+        var a = new ObjectTypeExtensionNode(
             TestLocations.Location1,
             new NameNode("aa"),
-            new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
-        var b = new ObjectTypeDefinitionNode(
+        var b = new ObjectTypeExtensionNode(
             TestLocations.Location2,
             new NameNode("aa"),
-            new StringValueNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
-        var c = new ObjectTypeDefinitionNode(
+        var c = new ObjectTypeExtensionNode(
             TestLocations.Location1,
-            new NameNode("aa"),
-            new StringValueNode("cc"),
+            new NameNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
-        var d = new ObjectTypeDefinitionNode(
+        var d = new ObjectTypeExtensionNode(
             TestLocations.Location2,
-            new NameNode("aa"),
-            new StringValueNode("cc"),
+            new NameNode("bb"),
             new List<DirectiveNode>(0),
             new List<NamedTypeNode>(0),
             new List<FieldDefinitionNode>(0));
