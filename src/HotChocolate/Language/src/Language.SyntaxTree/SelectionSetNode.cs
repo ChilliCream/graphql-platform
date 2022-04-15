@@ -4,30 +4,51 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// Represents the selection set syntax.
+/// </summary>
 public sealed class SelectionSetNode
     : ISyntaxNode
     , IEquatable<SelectionSetNode>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="SchemaDefinitionNode"/>
+    /// </summary>
+    /// <param name="selections">
+    /// The selections.
+    /// </param>
     public SelectionSetNode(IReadOnlyList<ISelectionNode> selections)
         : this(null, selections)
     {
     }
 
-    public SelectionSetNode(
-        Location? location,
-        IReadOnlyList<ISelectionNode> selections)
+    /// <summary>
+    /// Initializes a new instance of <see cref="SchemaDefinitionNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="selections">
+    /// The selections.
+    /// </param>
+    public SelectionSetNode(Location? location, IReadOnlyList<ISelectionNode> selections)
     {
         Location = location;
-        Selections = selections
-            ?? throw new ArgumentNullException(nameof(selections));
+        Selections = selections ?? throw new ArgumentNullException(nameof(selections));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.SelectionSet;
+    /// <inheritdoc />
+    public SyntaxKind Kind => SyntaxKind.SelectionSet;
 
+    /// <inheritdoc />
     public Location? Location { get; }
 
+    /// <summary>
+    /// Gets the selections.
+    /// </summary>
     public IReadOnlyList<ISelectionNode> Selections { get; }
 
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Selections;
 
     /// <summary>
@@ -52,86 +73,22 @@ public sealed class SelectionSetNode
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     public SelectionSetNode WithLocation(Location? location)
-    {
-        return new SelectionSetNode(
-            location, Selections);
-    }
+        => new(location, Selections);
 
     public SelectionSetNode WithSelections(
         IReadOnlyList<ISelectionNode> selections)
-    {
-        if (selections == null)
-        {
-            throw new ArgumentNullException(nameof(selections));
-        }
+        => new(Location, selections);
 
-        return new SelectionSetNode(
-            Location, selections);
-    }
-
-    public SelectionSetNode AddSelection(
-        ISelectionNode selection)
-    {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        var selections = new List<ISelectionNode>(Selections);
-        selections.Add(selection);
-
-        return new SelectionSetNode(
-            Location, selections);
-    }
-
-    public SelectionSetNode AddSelections(
-        params ISelectionNode[] selection)
-    {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        var selections = new List<ISelectionNode>(Selections);
-        selections.AddRange(selection);
-
-        return new SelectionSetNode(
-            Location, selections);
-    }
-
-    public SelectionSetNode RemoveSelection(
-        ISelectionNode selection)
-    {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        var selections = new List<ISelectionNode>(Selections);
-        selections.Remove(selection);
-
-        return new SelectionSetNode(
-            Location, selections);
-    }
-
-    public SelectionSetNode RemoveSelections(
-        params ISelectionNode[] selection)
-    {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        var selections = new List<ISelectionNode>(Selections);
-        foreach (ISelectionNode node in selection)
-        {
-            selections.Remove(node);
-        }
-
-        return new SelectionSetNode(
-            Location, selections);
-    }
-
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    /// <param name="other">
+    /// An object to compare with this object.
+    /// </param>
+    /// <returns>
+    /// true if the current object is equal to the <paramref name="other" /> parameter;
+    /// otherwise, false.
+    /// </returns>
     public bool Equals(SelectionSetNode? other)
     {
         if (ReferenceEquals(null, other))
@@ -144,15 +101,30 @@ public sealed class SelectionSetNode
             return true;
         }
 
-        return Kind == other.Kind
-               && Selections.IsEqualTo(other.Selections);
+        return Selections.IsEqualTo(other.Selections);
     }
 
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="obj">
+    /// The object to compare with the current object.
+    /// </param>
+    /// <returns>
+    /// true if the specified object  is equal to the current object; otherwise, false.
+    /// </returns>
     public override bool Equals(object? obj)
     {
-        return ReferenceEquals(this, obj) || obj is SelectionSetNode other && Equals(other);
+        return ReferenceEquals(this, obj) ||
+            (obj is SelectionSetNode other && Equals(other));
     }
 
+    /// <summary>
+    /// Serves as the default hash function.
+    /// </summary>
+    /// <returns>
+    /// A hash code for the current object.
+    /// </returns>
     public override int GetHashCode()
     {
         var hashCode = new HashCode();
@@ -161,13 +133,29 @@ public sealed class SelectionSetNode
         return hashCode.ToHashCode();
     }
 
-    public static bool operator ==(SelectionSetNode? left, SelectionSetNode? right)
-    {
-        return Equals(left, right);
-    }
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(
+        SelectionSetNode? left,
+        SelectionSetNode? right)
+        => Equals(left, right);
 
-    public static bool operator !=(SelectionSetNode? left, SelectionSetNode? right)
-    {
-        return !Equals(left, right);
-    }
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
+    public static bool operator !=(
+        SelectionSetNode? left,
+        SelectionSetNode? right)
+        => !Equals(left, right);
 }

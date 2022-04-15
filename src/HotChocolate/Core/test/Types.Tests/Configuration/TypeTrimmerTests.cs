@@ -222,7 +222,42 @@ namespace HotChocolate.Configuration
                     .Resolve("test"))
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("_abc")
-                    .Location(DirectiveLocation.Object| DirectiveLocation.Query)))
+                    .Location(DirectiveLocation.Object | DirectiveLocation.Query)))
+                .AddType<FloatType>()
+                .ModifyOptions(o => o.RemoveUnreachableTypes = true)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        private void Executable_Directives_Should_Be_Visited()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("abc")
+                    .Field("field")
+                    .Type(new NamedTypeNode("def"))
+                    .Resolve("test"))
+                .AddInterfaceType(c => c
+                    .Name("def")
+                    .Field("field")
+                    .Type<StringType>())
+                .AddObjectType(c => c
+                    .Name("ghi")
+                    .Implements(new NamedTypeNode("def"))
+                    .Field("field")
+                    .Type<StringType>()
+                    .Resolve("test"))
+                .AddType(new UuidType('D'))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("_abc")
+                    .Location(DirectiveLocation.Object | DirectiveLocation.Query)
+                    .Argument("arg")
+                    .Type<UuidType>()))
                 .AddType<FloatType>()
                 .ModifyOptions(o => o.RemoveUnreachableTypes = true)
                 .Create();

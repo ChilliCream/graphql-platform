@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -11,6 +12,7 @@ namespace HotChocolate.Language;
 public sealed class ScalarTypeExtensionNode
     : NamedSyntaxNode
     , ITypeExtensionNode
+    , IEquatable<ScalarTypeExtensionNode>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ScalarTypeExtensionNode"/>.

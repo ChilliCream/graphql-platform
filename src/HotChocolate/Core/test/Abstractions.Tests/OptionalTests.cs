@@ -168,5 +168,26 @@ namespace HotChocolate
             // assert
             Assert.True(result);
         }
+
+        [Fact]
+        public void Optional_From_Value_Equals()
+        {
+            Optional<int> a = 1;
+            Optional<int> b = Optional<int>.From(a);
+
+            Assert.True(a.HasValue);
+            Assert.True(b.HasValue);
+            Assert.Equal(a.Value, b.Value);
+        }
+
+        [Fact]
+        public void Optional_From_Struct_Is_Not_Set()
+        {
+            var emptyOptional = new Optional<int?>();
+            var fromEmptyOptional = Optional<int>.From(emptyOptional);
+
+            Assert.False(fromEmptyOptional.HasValue);
+            Assert.True(fromEmptyOptional.IsEmpty);
+        }
     }
 }
