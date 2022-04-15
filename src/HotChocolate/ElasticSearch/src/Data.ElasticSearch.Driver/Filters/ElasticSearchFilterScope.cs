@@ -7,6 +7,12 @@ namespace HotChocolate.Data.ElasticSearch.Filters
     public class ElasticSearchFilterScope
         : FilterScope<ISearchOperation >
     {
+        public ElasticSearchFilterScope()
+        {
+            // TODO this needs to be solved nicer
+            Path.Push("document");
+
+        }
         /// <summary>
         /// The path from the root to the current position in the input object
         /// </summary>

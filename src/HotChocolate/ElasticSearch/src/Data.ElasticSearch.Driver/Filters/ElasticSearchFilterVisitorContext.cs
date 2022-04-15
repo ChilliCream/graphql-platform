@@ -6,11 +6,14 @@ namespace HotChocolate.Data.ElasticSearch.Filters;
 
 /// <inheritdoc />
 public class ElasticSearchFilterVisitorContext
-    : FilterVisitorContext<ISearchOperation >
+    : FilterVisitorContext<ISearchOperation>
 {
-    public ElasticSearchFilterVisitorContext(IFilterInputType initialType)
+    public ElasticSearchFilterVisitorContext(
+        IFilterInputType initialType,
+        IAbstractElasticClient elasticClient)
         : base(initialType)
     {
+        ElasticClient = elasticClient;
         RuntimeTypes = new Stack<IExtendedType>();
         RuntimeTypes.Push(initialType.EntityType);
     }
@@ -22,4 +25,6 @@ public class ElasticSearchFilterVisitorContext
 
     /// <inheritdoc />
     public override FilterScope<ISearchOperation> CreateScope() => new ElasticSearchFilterScope();
+
+    public IAbstractElasticClient ElasticClient { get; }
 }

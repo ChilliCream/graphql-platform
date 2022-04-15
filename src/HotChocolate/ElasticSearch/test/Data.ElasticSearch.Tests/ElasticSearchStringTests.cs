@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
-using Elasticsearch.Net;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
@@ -18,29 +14,61 @@ using Xunit;
 
 namespace HotChocolate.Data.ElasticSearch;
 
-public class ElasticSearchStringTests
-    : IClassFixture<ElasticsearchResource<CustomElasticsearchDefaultOptions>>
+public class TestBase
 {
-    private ElasticsearchResource<CustomElasticsearchDefaultOptions> _resource;
-
-    private readonly IReadOnlyList<Foo> _data = new[]
+    public TestBase(ElasticsearchResource resource)
     {
-        new Foo {Bar = "A"}, new Foo {Bar = "B"}, new Foo {Bar = "C"}
-    };
+        Resource = resource;
 
-    private readonly ElasticClient _client;
-
-    public ElasticSearchStringTests(ElasticsearchResource<CustomElasticsearchDefaultOptions> resource)
-    {
-        _resource = resource;
-
-        Uri uri = new Uri($"http://{resource.Instance.Address}:{resource.Instance.HostPort}");
+        Uri uri = new($"http://{resource.Instance.Address}:{resource.Instance.HostPort}");
         var connectionSettings = new ConnectionSettings(uri);
         connectionSettings.EnableDebugMode();
         connectionSettings.DisableDirectStreaming();
-        connectionSettings.DefaultIndex($"{Guid.NewGuid():N}");
+        connectionSettings.DefaultIndex(DefaultIndexName);
 
-        _client = new ElasticClient(connectionSettings);
+        Client = new ElasticClient(connectionSettings);
+    }
+
+    protected ElasticsearchResource Resource { get; }
+
+    protected ElasticClient Client { get; }
+
+    protected string DefaultIndexName { get; }= $"{Guid.NewGuid():N}";
+
+    protected async Task SetupMapping<T>()
+    where T : class
+    {
+        await Client.Indices
+            .CreateAsync(DefaultIndexName, c => c.Map(x => x.AutoMap<T>()));
+
+    }
+    protected async Task IndexDocuments<T>(IEnumerable<T> data)
+        where T : class, IHasId
+    {
+        await SetupMapping<T>();
+        foreach (T element in data)
+        {
+            await Client.IndexDocumentAsync(new IndexRequest<T>(element));
+        }
+    }
+}
+
+public interface IHasId
+{
+    public string Id { get; }
+}
+
+public class ElasticSearchStringTests : TestBase, IClassFixture<ElasticsearchResource>
+{
+    private readonly IReadOnlyList<Foo> _data = new[]
+    {
+        new Foo {Id = "A", Bar = "A"},
+        new Foo {Id = "B", Bar = "B"},
+        new Foo {Id = "C", Bar = "C"}
+    };
+
+    public ElasticSearchStringTests(ElasticsearchResource resource) : base(resource)
+    {
     }
 
     public class TestOperationType : StringOperationFilterInputType
@@ -51,27 +79,28 @@ public class ElasticSearchStringTests
         }
     }
 
-    private async Task SetupElastic()
+    public class FooFilterType : FilterInputType<Foo>
     {
-        foreach (Foo element in _data)
+        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
         {
-            await _client.IndexAsync(new IndexRequest<Foo>(element));
+            descriptor.Field(x => x.Bar).Type<TestOperationType>();
+            descriptor.Field(x => x.Id).Type<TestOperationType>();
         }
     }
 
     [Fact]
     public async Task ElasticSearch_SingleField()
     {
-        await SetupElastic();
+        await IndexDocuments(_data);
 
         IRequestExecutor executorAsync = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x
                 .Name("Query")
                 .Field("test")
-                .UseFiltering<Foo>(x => x.Field(x => x.Bar).Type<TestOperationType>())
-                .UseTestReport()
-                .ResolveTestData(_client, _data))
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
 
@@ -84,85 +113,213 @@ public class ElasticSearchStringTests
         ";
 
         IExecutionResult result = await executorAsync.ExecuteAsync(query);
-        result.ToJson().MatchSnapshot();
+        result.MatchQuerySnapshot();
+    }
+
+    public class Foo : IHasId
+    {
+        public string Bar { get; set; } = string.Empty;
+
+        public string Id { get; set; } = string.Empty;
     }
 }
 
-public static class TestExtensions
+public class IntegrationTests : TestBase, IClassFixture<ElasticsearchResource>
 {
-    public static IObjectFieldDescriptor ResolveTestData<T>(
-        this IObjectFieldDescriptor field,
-        IElasticClient client,
-        IEnumerable<T> data)
-        => field
-            .Type<ListType<ObjectType<Foo>>>()
-            .Resolve(context =>
-            {
-                SearchRequest<Foo> searchRequest = context.CreateSearchRequest<Foo>()!;
-                /*
-                ISearchResponse<Foo> result =
-                    await client.SearchAsync<Foo>(searchRequest);
-                */
-                return new Foo[0];
-            });
-
-    public static ValueTask<IRequestExecutor> BuildTestExecutorAsync(
-        this IRequestExecutorBuilder builder) =>
-        builder
-            .UseRequest(
-                next => async context =>
-                {
-                    await next(context);
-                    if (context.ContextData.TryGetValue(nameof(SearchRequest), out var queryString))
-                    {
-                        context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
-                                .SetExtension(nameof(SearchRequest), queryString)
-                                .Create();
-                    }
-                })
-            .UseDefaultPipeline()
-            .Services
-            .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
-
-    public static IObjectFieldDescriptor UseTestReport(this IObjectFieldDescriptor descriptor) =>
-        descriptor.Use(next => async context =>
-        {
-            await next(context);
-            MemoryStream stream = new();
-            SerializableData<SearchRequest> data = new(context.CreateSearchRequest()!);
-            data.Write(stream, new ConnectionSettings(new InMemoryConnection()));
-            context.ContextData[nameof(SearchRequest)] = Encoding.UTF8.GetString(stream.ToArray());
-        });
-}
-
-public class Foo
-{
-    public string Bar { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Default Elasticsearch resource options
-/// </summary>
-public class CustomElasticsearchDefaultOptions : ElasticsearchDefaultOptions
-{
-    /// <summary>
-    /// Configure resource options
-    /// </summary>
-    /// <param name="builder"></param>
-    public override void Configure(ContainerResourceBuilder builder)
+    private readonly IReadOnlyList<Foo> _data = new[]
     {
-        base.Configure(builder);
-        var name = "elastic";
-        builder
-            .Name(name)
-            .Image("docker.elastic.co/elasticsearch/elasticsearch:7.16.3")
-            .InternalPort(9200)
-            .WaitTimeout(120)
-            .AddEnvironmentVariable("discovery.type=single-node")
-            .AddEnvironmentVariable($"cluster.name={name}");
+        new Foo {Id = "A", Bar = "A", Qux = "A", Baz = new Baz() {Bar = "A", Qux = "A",}},
+        new Foo {Id = "B", Bar = "B", Qux = "B", Baz = new Baz() {Bar = "B", Qux = "B",}},
+        new Foo {Id = "C", Bar = "C", Qux = "C", Baz = new Baz() {Bar = "C", Qux = "C",}}
+    };
+
+    public IntegrationTests(ElasticsearchResource resource) : base(resource)
+    {
+    }
+
+    public class TestOperationType : StringOperationFilterInputType
+    {
+        protected override void Configure(IFilterInputTypeDescriptor descriptor)
+        {
+            descriptor.Operation(DefaultFilterOperations.Equals).Type<StringType>();
+        }
+    }
+
+    public class FooFilterType : FilterInputType<Foo>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
+        {
+            descriptor.Field(x => x.Bar).Type<TestOperationType>();
+            descriptor.Field(x => x.Id).Type<TestOperationType>();
+            descriptor.Field(x => x.Qux).Type<TestOperationType>();
+            descriptor.Field(x => x.Baz).Type<BazFilterType>();
+        }
+    }
+
+    public class BazFilterType : FilterInputType<Baz>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Baz> descriptor)
+        {
+            descriptor.Field(x => x.Bar).Type<TestOperationType>();
+            descriptor.Field(x => x.Qux).Type<TestOperationType>();
+        }
+    }
+
+    [Fact]
+    public async Task ElasticSearch_SingleField()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: {bar: { eq: ""A"" }}) {
+                bar
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_MultipleField()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: {qux: { eq: ""A"" }, bar: { eq: ""A"" }}) {
+                bar
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_AndField()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: {bar: {and:[{ eq: ""B"" },{ eq: ""A"" }]}}) {
+                bar
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_OrField()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: {bar: {or:[{ eq: ""B"" },{ eq: ""A"" }]}}) {
+                bar
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_DeepField()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { baz :{ bar: { eq: ""A"" }}}) {
+                bar
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    public class Foo : IHasId
+    {
+        public string Bar { get; set; } = string.Empty;
+
+        public string Qux { get; set; } = string.Empty;
+
+        public Baz? Baz { get; set; }
+
+        public string Id { get; set; } = string.Empty;
+    }
+
+    public class Baz
+    {
+        public string Bar { get; set; } = string.Empty;
+
+        public string Qux { get; set; } = string.Empty;
     }
 }

@@ -12,7 +12,10 @@ public static class ElasticSearchFilterConventionDescriptorExtensions
     /// <returns>The <paramref name="descriptor"/></returns>
     public static IFilterConventionDescriptor AddElasticSearchDefaults(
         this IFilterConventionDescriptor descriptor) =>
-        descriptor.AddDefaultElasticSearchOperations().BindDefaultElasticSearchTypes().UseElasticSearchProvider();
+        descriptor
+            .AddDefaultElasticSearchOperations()
+            .BindDefaultElasticSearchTypes()
+            .UseElasticSearchProvider();
 
     /// <summary>
     /// Adds default operations for ElasticSearch to the descriptor

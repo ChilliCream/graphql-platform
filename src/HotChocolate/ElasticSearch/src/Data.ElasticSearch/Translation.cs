@@ -1,29 +1,76 @@
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Data.ElasticSearch.Filters;
+using HotChocolate.Data.Filters;
 using HotChocolate.Resolvers;
 using Nest;
 
 namespace HotChocolate.Data.ElasticSearch;
 
+internal class ElasticSearchClient : IAbstractElasticClient
+{
+    private readonly IElasticClient _client;
+
+    public ElasticSearchClient(IElasticClient client)
+    {
+        _client = client;
+    }
+
+    public string GetName(IFilterField field)
+    {
+        // TODO add field override
+        // TODO add expression
+        if (field.Member is PropertyInfo propertyInfo)
+        {
+            return _client.Infer.Field(new Field(propertyInfo));
+        }
+
+        string fieldName = field.Name;
+
+        if (field.Member is { } p)
+        {
+            fieldName = p.Name;
+        }
+
+        return fieldName;
+    }
+
+    public static ElasticSearchClient From(IElasticClient client) => new(client);
+}
+
 public static class ElasticSearchResolverContextExtensions
 {
-    public static SearchRequest? CreateSearchRequest(this IResolverContext context)
+    public static SearchRequest? CreateSearchRequest(
+        this IElasticClient client,
+        IResolverContext context)
     {
-        if (context.LocalContextData.TryGetValue(nameof(QueryDefinition), out object? value) &&
-            value is QueryDefinition queryDefinition)
+        if (context.LocalContextData.TryGetValue(nameof(IElasticQueryFactory), out object? value) &&
+            value is IElasticQueryFactory translator)
         {
-            return new SearchRequest() {Query = CreateQuery(queryDefinition)};
+            QueryDefinition? queryDefinition =
+                translator.Create(context, ElasticSearchClient.From(client));
+            if (queryDefinition is not null)
+            {
+                return new SearchRequest() {Query = CreateQuery(queryDefinition)};
+            }
         }
 
         return null;
     }
 
-    public static SearchRequest<T>? CreateSearchRequest<T>(this IResolverContext context)
+    public static SearchRequest<T>? CreateSearchRequest<T>(
+        this IElasticClient client,
+        IResolverContext context)
     {
-        if (context.LocalContextData.TryGetValue(nameof(QueryDefinition), out object? value) &&
-            value is QueryDefinition queryDefinition)
+        if (context.LocalContextData.TryGetValue(nameof(IElasticQueryFactory), out object? value) &&
+            value is IElasticQueryFactory translator)
         {
-            return new SearchRequest<T>() {Query = CreateQuery(queryDefinition)};
+            QueryDefinition? queryDefinition =
+                translator.Create(context, ElasticSearchClient.From(client));
+            if (queryDefinition is not null)
+            {
+                return new SearchRequest<T>() {Query = CreateQuery(queryDefinition)};
+            }
         }
 
         return null;

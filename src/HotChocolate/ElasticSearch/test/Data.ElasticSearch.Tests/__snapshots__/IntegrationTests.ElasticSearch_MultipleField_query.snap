@@ -1,0 +1,1 @@
+﻿{"query":{"bool":{"must":[{"bool":{"must":[{"match":{"Qux":{"query":"A"}}}]}},{"bool":{"must":[{"match":{"Bar":{"query":"A"}}}]}}]}}}
