@@ -94,6 +94,6 @@ public class OperationTypeDefinitionNodeTests
         // assert
         Assert.Equal(aHash, bHash);
         Assert.NotEqual(aHash, cHash);
-        Assert.Equal(cHash, dHash);
+        Assert.NotEqual(cHash, dHash);
     }
 }
