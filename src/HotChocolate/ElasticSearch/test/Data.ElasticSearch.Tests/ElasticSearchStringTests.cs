@@ -11,13 +11,14 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 using Nest;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.ElasticSearch;
 
-public class IntegrationTests
+public class ElasticSearchStringTests
     : IClassFixture<ElasticsearchResource<CustomElasticsearchDefaultOptions>>
 {
     private ElasticsearchResource<CustomElasticsearchDefaultOptions> _resource;
@@ -29,7 +30,7 @@ public class IntegrationTests
 
     private readonly ElasticClient _client;
 
-    public IntegrationTests(ElasticsearchResource<CustomElasticsearchDefaultOptions> resource)
+    public ElasticSearchStringTests(ElasticsearchResource<CustomElasticsearchDefaultOptions> resource)
     {
         _resource = resource;
 
@@ -59,7 +60,7 @@ public class IntegrationTests
     }
 
     [Fact]
-    public async Task Test()
+    public async Task ElasticSearch_SingleField()
     {
         await SetupElastic();
 
@@ -70,14 +71,7 @@ public class IntegrationTests
                 .Field("test")
                 .UseFiltering<Foo>(x => x.Field(x => x.Bar).Type<TestOperationType>())
                 .UseTestReport()
-                .Type<ListType<ObjectType<Foo>>>()
-                .Resolve(async context =>
-                {
-                    SearchRequest<Foo> searchRequest = context.CreateSearchRequest<Foo>()!;
-                    ISearchResponse<Foo> result =
-                        await _client.SearchAsync<Foo>(searchRequest);
-                    return new Foo[0];
-                }))
+                .ResolveTestData(_client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
 
@@ -90,13 +84,28 @@ public class IntegrationTests
         ";
 
         IExecutionResult result = await executorAsync.ExecuteAsync(query);
-
         result.ToJson().MatchSnapshot();
     }
 }
 
 public static class TestExtensions
 {
+    public static IObjectFieldDescriptor ResolveTestData<T>(
+        this IObjectFieldDescriptor field,
+        IElasticClient client,
+        IEnumerable<T> data)
+        => field
+            .Type<ListType<ObjectType<Foo>>>()
+            .Resolve(context =>
+            {
+                SearchRequest<Foo> searchRequest = context.CreateSearchRequest<Foo>()!;
+                /*
+                ISearchResponse<Foo> result =
+                    await client.SearchAsync<Foo>(searchRequest);
+                */
+                return new Foo[0];
+            });
+
     public static ValueTask<IRequestExecutor> BuildTestExecutorAsync(
         this IRequestExecutorBuilder builder) =>
         builder
@@ -104,12 +113,12 @@ public static class TestExtensions
                 next => async context =>
                 {
                     await next(context);
-                    if (context.ContextData.TryGetValue("sql", out var queryString))
+                    if (context.ContextData.TryGetValue(nameof(SearchRequest), out var queryString))
                     {
                         context.Result =
                             QueryResultBuilder
                                 .FromResult(context.Result!.ExpectQueryResult())
-                                .SetContextData("sql", queryString)
+                                .SetExtension(nameof(SearchRequest), queryString)
                                 .Create();
                     }
                 })
