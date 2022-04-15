@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Types;
 
-internal interface ITypeDefinition
+internal interface ITypeDefinition : ISchemaNode
 {
     /// <summary>
     /// Gets the name of the type.

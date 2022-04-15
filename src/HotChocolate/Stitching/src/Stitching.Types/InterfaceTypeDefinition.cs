@@ -10,10 +10,11 @@ internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDef
 {
     private readonly DocumentDefinition _parentDefinition;
 
-    public InterfaceTypeDefinition(DocumentDefinition parentDefinition, InterfaceTypeDefinitionNode definition)
+    public InterfaceTypeDefinition(Func<ISchemaNode, ISchemaCoordinate2> coordinateFactory, DocumentDefinition parentDefinition, InterfaceTypeDefinitionNode definition)
     {
         _parentDefinition = parentDefinition ?? throw new ArgumentNullException(nameof(parentDefinition));
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Coordinate = coordinateFactory.Invoke(this);
     }
 
     public string Name => Definition.Name.Value;
@@ -23,6 +24,9 @@ internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDef
     public bool IsExtension => false;
 
     public InterfaceTypeDefinitionNode Definition { get; set; }
+
+    public ISchemaNode? Parent => _parentDefinition;
+    public ISchemaCoordinate2 Coordinate { get; }
 
     public void RewriteDefinition(InterfaceTypeDefinitionNode node)
     {

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types;
@@ -8,41 +7,96 @@ namespace HotChocolate.Stitching.Types;
 internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
 {
     private readonly CoordinateProvider _provider;
+    private readonly SchemaNodeFactory _schemaNodeFactory;
+    private readonly DefaultOperationProvider _operationProvider;
 
-    public DefaultSyntaxNodeVisitor(CoordinateProvider provider)
+    public DefaultSyntaxNodeVisitor(
+        CoordinateProvider provider,
+        SchemaNodeFactory schemaNodeFactory,
+        DefaultOperationProvider operationProvider)
         : base(VisitorAction.Continue)
     {
         _provider = provider;
+        _schemaNodeFactory = schemaNodeFactory;
+        _operationProvider = operationProvider;
+
+        _visitorConfiguration = new VisitorExtensions.VisitorConfiguration(Enter, Leave);
     }
 
-    private readonly IList<ISchemaNodeRewriteOperation> _rewriters =
-        new List<ISchemaNodeRewriteOperation>() { new RenameOperation() };
+    private readonly VisitorExtensions.VisitorConfiguration _visitorConfiguration;
 
-    private readonly IList<(ISchemaCoordinate2 Coordinate, ISchemaNodeRewriteOperation Operation)>
-        _operations =
-            new List<(ISchemaCoordinate2 Coordinate, ISchemaNodeRewriteOperation Operation)>();
-
-    public IReadOnlyList<(ISchemaCoordinate2 Coordinate, ISchemaNodeRewriteOperation Operation)>
-        RewriteOperations => new ReadOnlyCollection<(ISchemaCoordinate2 Coordinate, ISchemaNodeRewriteOperation Operation)>(_operations);
-
-    public override VisitorAction Enter(DirectiveNode node, ISyntaxNode parent, IReadOnlyList<object> path, IReadOnlyList<ISyntaxNode> ancestors)
+    public void Accept(DocumentNode source)
     {
-        ISchemaCoordinate2? nodeCoordinate = _provider.Get(node);
-        if (nodeCoordinate?.Parent == null)
+        source.Accept(this, _visitorConfiguration);
+    }
+
+    private readonly Stack<ISchemaCoordinate2> _coordinates = new();
+
+    private bool Enter(Type type, out SyntaxNodeVisitorProvider.IntVisitorFn? fn)
+    {
+        fn = default;
+        var baseVisitor =
+            SyntaxNodeVisitorProvider.GetEnterVisitor(type, out SyntaxNodeVisitorProvider.IntVisitorFn? enterFn)
+            && enterFn is not null;
+
+        if (!baseVisitor)
         {
-            return base.Enter(node, parent, path, ancestors);
+            return false;
         }
 
-        foreach (ISchemaNodeRewriteOperation rewriter in _rewriters)
+        fn = (nodeVisitor, node, parent, path, ancestors) =>
         {
-            if (!nodeCoordinate.IsMatch(rewriter.Match))
+            var added = _schemaNodeFactory.TryAddOrGet(parent, node, out ISchemaNode schemaNode);
+            if (added)
             {
-                continue;
+                schemaNode.RewriteDefinition(schemaNode.Definition);
+
+                if (schemaNode?.Definition is IHasName nameNode &&
+                    nameNode.Name.Value == "Test")
+                {
+
+                }
+            }
+            else
+            {
+                if (schemaNode?.Definition is IHasName nameNode &&
+                    nameNode.Name.Value == "Test")
+                {
+
+                }
+
+                schemaNode?.Apply(node, _operationProvider);
             }
 
-            _operations.Add((nodeCoordinate.Parent, rewriter));
+            if (schemaNode is not null)
+            {
+                _coordinates.Push(schemaNode.Coordinate);
+            }
+
+            return enterFn!.Invoke(nodeVisitor, node, parent, path, ancestors);
+        };
+
+        return true;
+    }
+
+    private bool Leave(Type type, out SyntaxNodeVisitorProvider.IntVisitorFn? fn)
+    {
+        fn = default;
+        var baseVisitor =
+            SyntaxNodeVisitorProvider.GetLeaveVisitor(type, out SyntaxNodeVisitorProvider.IntVisitorFn? leaveFn)
+            && leaveFn is not null;
+
+        if (!baseVisitor)
+        {
+            return false;
         }
 
-        return base.Enter(node, parent, path, ancestors);
+        fn = (nodeVisitor, node, parent, path, ancestors) =>
+        {
+            _coordinates.Pop();
+            return leaveFn!.Invoke(nodeVisitor, node, parent, path, ancestors);
+        };
+
+        return true;
     }
 }

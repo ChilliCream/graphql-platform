@@ -25,6 +25,7 @@ public sealed class InterfaceTypeDefinitionNode
     : ComplexTypeDefinitionNodeBase
     , ITypeDefinitionNode
     , IEquatable<InterfaceTypeDefinitionNode>
+    , IHasWithDirectives<InterfaceTypeDefinitionNode>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="InterfaceTypeDefinitionNode"/>.

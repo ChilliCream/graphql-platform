@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
@@ -12,8 +13,14 @@ public class BasicDocumentMergeTests
     [Fact]
     public void Test()
     {
-        DocumentNode source1 = Utf8GraphQLParser.Parse(@"
+        DocumentNode source = Utf8GraphQLParser.Parse(@"
             interface TestInterface {
+              foo: Test2!
+            }
+        ");
+
+        DocumentNode source1 = Utf8GraphQLParser.Parse(@"
+            interface TestInterface @rename(name: ""TestInterface_renamed"") {
               foo: Test2!
             }
 
@@ -26,7 +33,6 @@ public class BasicDocumentMergeTests
         DocumentNode source2 = Utf8GraphQLParser.Parse(@"
             type Test @rename(name: ""test_renamed"") {
               id: String! @rename(name: ""id_renamed"")
-              foo: String!
             }
 
             type Test2 {
@@ -39,107 +45,22 @@ public class BasicDocumentMergeTests
         CoordinateProvider coordinateProvider = new CoordinateProvider();
         FactoryContext factoryContext = new FactoryContext(coordinateProvider);
         SchemaNodeFactory schemaNodeFactory = new SchemaNodeFactory(factoryContext);
-        DefaultSyntaxNodeVisitor visitor = new DefaultSyntaxNodeVisitor(coordinateProvider);
+        DefaultSyntaxNodeVisitor visitor = new DefaultSyntaxNodeVisitor(coordinateProvider, schemaNodeFactory, operationProvider);
 
         var documentNode = new DocumentNode(new List<IDefinitionNode>(0));
-        var documentDefinition = new DocumentDefinition(documentNode);
-        ISchemaCoordinate2 documentNodeCoordinate = coordinateProvider.Add(documentNode);
-        coordinateProvider.Associate(documentNodeCoordinate, documentDefinition);
+        var documentDefinition = new DocumentDefinition(coordinateProvider.Add, documentNode);
 
-        bool Enter(Type type, out SyntaxNodeVisitorProvider.IntVisitorFn? fn)
-        {
-            fn = default;
-            var baseVisitor =
-                SyntaxNodeVisitorProvider.GetEnterVisitor(type, out SyntaxNodeVisitorProvider.IntVisitorFn? enterFn)
-                && enterFn is not null;
+        //visitor.Accept(source);
+        visitor.Accept(source1);
+        visitor.Accept(source2);
 
-            if (!baseVisitor)
-            {
-                return false;
-            }
-
-            fn = (nodeVisitor, node, parent, path, ancestors) =>
-            {
-                if (node is DocumentNode)
-                {
-                    return enterFn!.Invoke(nodeVisitor, node, parent, path, ancestors);
-                }
-
-                ISchemaCoordinate2 coordinate = coordinateProvider.Add(node);
-                if (!coordinateProvider.TryGet(coordinate, out ISchemaNode? existingNode))
-                {
-                    existingNode = schemaNodeFactory.Create(node);
-                }
-
-                if (existingNode is not null)
-                {
-                    existingNode.RewriteDefinition(existingNode.Definition);
-                    coordinateProvider.Associate(coordinate, existingNode);
-                    existingNode.Apply(node, operationProvider);
-                }
-
-                return enterFn!.Invoke(nodeVisitor, node, parent, path, ancestors);
-            };
-
-            return true;
-        }
-
-        bool Leave(Type type, out SyntaxNodeVisitorProvider.IntVisitorFn? fn)
-        {
-            fn = default;
-            var baseVisitor =
-                SyntaxNodeVisitorProvider.GetLeaveVisitor(type, out SyntaxNodeVisitorProvider.IntVisitorFn? leaveFn)
-                && leaveFn is not null;
-
-            if (!baseVisitor)
-            {
-                return false;
-            }
-
-            fn = (nodeVisitor, node, parent, path, ancestors) =>
-            {
-                if (node is DocumentNode)
-                {
-                    return leaveFn!.Invoke(nodeVisitor, node, parent, path, ancestors);
-                }
-
-                coordinateProvider.Remove();
-                return leaveFn!.Invoke(nodeVisitor, node, parent, path, ancestors);
-            };
-
-            return true;
-        }
-
-        var visitorConfiguration = new VisitorExtensions.VisitorConfiguration(Enter, Leave);
-        source1.Accept(visitor, visitorConfiguration);
-        source2.Accept(visitor, visitorConfiguration);
-
-        var context = new OperationContext(operationProvider);
-        foreach (var operation in visitor.RewriteOperations)
-        {
-            if (!coordinateProvider.TryGet(operation.Coordinate, out ISchemaNode? targetNode))
-            {
-                continue;
-            }
-
-            ISyntaxNode result = operation.Operation.Apply(targetNode.Definition, operation.Coordinate, context);
-            ISchemaCoordinate2? coordinate = operation.Coordinate;
-
-            while (coordinate is not null)
-            {
-                if (!coordinateProvider.TryGet(coordinate, out ISchemaNode? schemaNode))
-                {
-                    coordinate = coordinate.Parent;
-                    continue;
-                }
-
-                schemaNode.RewriteDefinition(result);
-                break;
-            }
-        }
+        var operations = new List<ISchemaNodeRewriteOperation> { new RenameOperation() };
+        var schemaOperations = new SchemaOperations(operations, coordinateProvider);
+        schemaOperations.Apply(documentDefinition);
 
         ISchemaNode renderedSchema = coordinateProvider.Root;
         var schema = renderedSchema.Definition.Print();
+
         schema.MatchSnapshot();
 
         //var serviceReference = new HttpService("Test", "https://localhost", new[] { new AllowBatchingFeature() });
@@ -152,21 +73,61 @@ public class BasicDocumentMergeTests
     }
 }
 
+internal class SchemaOperations
+{
+    private readonly List<ISchemaNodeRewriteOperation> _operations;
+    private readonly ISchemaCoordinate2Provider _coordinateProvider;
+
+    public SchemaOperations(List<ISchemaNodeRewriteOperation> operations, ISchemaCoordinate2Provider coordinateProvider)
+    {
+        _operations = operations;
+        _coordinateProvider = coordinateProvider;
+    }
+
+    public void Apply(DocumentDefinition documentDefinition)
+    {
+        IEnumerable<ISchemaNode?> nodes = documentDefinition
+            .DescendentNodes(_coordinateProvider);
+
+        foreach (ISchemaNode? node in nodes)
+        {
+            if (node.Definition is DirectiveNode)
+            {
+
+            }
+            foreach (ISchemaNodeRewriteOperation operation in _operations)
+            {
+                if (!operation.CanHandle(node))
+                {
+                    continue;
+                }
+
+                operation.Handle(node);
+            }
+        }
+    }
+}
+
 internal class FactoryContext
 {
-    private readonly CoordinateProvider _coordinateProvider;
+    public CoordinateProvider Provider { get; }
 
     public FactoryContext(CoordinateProvider coordinateProvider)
     {
-        _coordinateProvider = coordinateProvider;
+        Provider = coordinateProvider;
+    }
+
+    public ISchemaCoordinate2 CreateCoordinate(ISchemaNode node)
+    {
+        return Provider.Add(node);
     }
 
     public T? GetParent<T>(ISyntaxNode node)
     {
-        ISchemaCoordinate2 coordinate = _coordinateProvider.Get(node) ?? throw new InvalidOperationException();
+        ISchemaCoordinate2 coordinate = Provider.Get(node) ?? throw new InvalidOperationException();
 
         if (coordinate.Parent is null
-            || !_coordinateProvider.TryGet(coordinate.Parent, out ISchemaNode? parentDefinition)
+            || !Provider.TryGet(coordinate.Parent, out ISchemaNode? parentDefinition)
             || parentDefinition is not T typedParent)
         {
             return default;
@@ -180,13 +141,22 @@ internal class SchemaNodeFactory
 {
     private readonly FactoryContext _context;
 
-    private readonly Dictionary<Type, Func<FactoryContext, object, ISchemaNode>> _factories = new()
+    private readonly Dictionary<Type, Func<FactoryContext, ISchemaNode?, ISyntaxNode, ISchemaNode>?> _factories = new()
     {
         {
+            typeof(DocumentNode), FactoryBuilder<DocumentNode, DocumentDefinition>(
+                (ctx, _, node) =>
+                    new DocumentDefinition(
+                        ctx.CreateCoordinate,
+                        new DocumentNode(default,
+                            node.Definitions)))
+        },
+        {
             typeof(ObjectTypeDefinitionNode), FactoryBuilder<ObjectTypeDefinitionNode, ObjectTypeDefinition>(
-                (ctx, node) =>
+                (ctx, parent, node) =>
                     new ObjectTypeDefinition(
-                        ctx.GetParent<DocumentDefinition>(node)!,
+                        ctx.CreateCoordinate,
+                        (DocumentDefinition)parent!,
                         new ObjectTypeDefinitionNode(default,
                             node.Name,
                             default,
@@ -196,9 +166,10 @@ internal class SchemaNodeFactory
         },
         {
             typeof(ObjectTypeExtensionNode), FactoryBuilder<ObjectTypeExtensionNode, ObjectTypeDefinition>(
-                (ctx, node) =>
+                (ctx, parent, node) =>
                     new ObjectTypeDefinition(
-                        ctx.GetParent<DocumentDefinition>(node)!,
+                        ctx.CreateCoordinate,
+                        (DocumentDefinition)parent!,
                         new ObjectTypeDefinitionNode(default,
                             node.Name,
                             default,
@@ -208,9 +179,10 @@ internal class SchemaNodeFactory
         },
         {
             typeof(InterfaceTypeDefinitionNode), FactoryBuilder<InterfaceTypeDefinitionNode, InterfaceTypeDefinition>(
-                (ctx, node) =>
+                (ctx, parent, node) =>
                     new InterfaceTypeDefinition(
-                        ctx.GetParent<DocumentDefinition>(node)!,
+                        ctx.CreateCoordinate,
+                        (DocumentDefinition)parent!,
                         new InterfaceTypeDefinitionNode(default,
                             node.Name,
                             default,
@@ -219,15 +191,17 @@ internal class SchemaNodeFactory
                             node.Fields)))
         },
         {
-            typeof(FieldDefinitionNode), FactoryBuilder<FieldDefinitionNode, FieldDefinition>((ctx, node) =>
-                new FieldDefinition(
-                    ctx.GetParent<ITypeDefinition>(node)!,
-                    new FieldDefinitionNode(default,
-                        node.Name,
-                        default,
-                        node.Arguments,
-                        node.Type,
-                        node.Directives)))
+            typeof(FieldDefinitionNode), FactoryBuilder<FieldDefinitionNode, FieldDefinition>(
+                (ctx, parent, node) =>
+                    new FieldDefinition(
+                        ctx.CreateCoordinate,
+                        (ITypeDefinition)parent!,
+                        new FieldDefinitionNode(default,
+                            node.Name,
+                            default,
+                            node.Arguments,
+                            node.Type,
+                            node.Directives)))
         },
     };
 
@@ -236,21 +210,53 @@ internal class SchemaNodeFactory
         _context = context;
     }
 
-    public ISchemaNode? Create<TNode>(TNode node)
+    public ISchemaNode Create<TNode>(TNode node)
         where TNode : ISyntaxNode
     {
-         if (!_factories.TryGetValue(node.GetType(), out Func<FactoryContext, object, ISchemaNode>? factory))
-         {
-             return default;
-         }
-
-         return factory.Invoke(_context, node);
+        return AddOrGet(default, node);
     }
 
-    private static Func<FactoryContext, object, ISchemaNode> FactoryBuilder<TNode, TDefinition>(Func<FactoryContext, TNode, TDefinition> builder)
+    public bool TryAddOrGet(ISyntaxNode? parent, ISyntaxNode node, out ISchemaNode schemaNode)
+    {
+        if (parent is null)
+        {
+            schemaNode = AddOrGet(default, node);
+            return true;
+        }
+
+        if (!_context.Provider.TryGet(parent, out ISchemaNode? parentNode))
+        {
+            throw new InvalidOperationException();
+        }
+
+        schemaNode = AddOrGet(parentNode, node);
+        return true;
+    }
+
+    public ISchemaNode AddOrGet(ISchemaNode? parent, ISyntaxNode node)
+    {
+        ISchemaCoordinate2 coordinate = _context.Provider.CalculateCoordinate(parent, node);
+
+        if (_context.Provider.TryGet(coordinate, out ISchemaNode? existingNode))
+        {
+            return existingNode;
+        }
+
+        Type nodeType = node.GetType();
+        if (!_factories.TryGetValue(nodeType, out Func<FactoryContext, ISchemaNode?, ISyntaxNode, ISchemaNode>? factory) || factory is null)
+        {
+            Type genericNodeType = typeof(SchemaNode<>).MakeGenericType(nodeType);
+            return (ISchemaNode)Activator.CreateInstance(genericNodeType, _context.CreateCoordinate, parent, node)!;
+        }
+
+        return factory.Invoke(_context, parent, node);
+    }
+
+    private static Func<FactoryContext, ISchemaNode?, ISyntaxNode, ISchemaNode> FactoryBuilder<TNode, TDefinition>(
+        Func<FactoryContext, ISchemaNode?, TNode, TDefinition> builder)
         where TNode : ISyntaxNode
         where TDefinition : ISchemaNode
     {
-        return (ctx, source) => builder.Invoke(ctx, (TNode) source);
+        return (ctx, parent, source) => builder.Invoke(ctx, parent, (TNode) source);
     }
 }

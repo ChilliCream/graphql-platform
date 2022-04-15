@@ -30,17 +30,6 @@ internal interface ISchemaNodeOperation<in TSourceDefinition, TTargetDefinition>
 
 internal interface ISchemaNodeRewriteOperation
 {
-    ISchemaCoordinate2 Match { get; }
-    ISyntaxNode Apply(ISyntaxNode node, ISchemaCoordinate2 coordinate, OperationContext context);
-}
-
-internal interface ISchemaNodeRewriteOperation<TDefinition> : ISchemaNodeRewriteOperation
-    where TDefinition : ISyntaxNode
-{
-    ISyntaxNode ISchemaNodeRewriteOperation.Apply(ISyntaxNode node, ISchemaCoordinate2 coordinate, OperationContext context)
-    {
-        return Apply((TDefinition)node, coordinate, context);
-    }
-
-    TDefinition Apply(TDefinition source, ISchemaCoordinate2 coordinate, OperationContext context);
+    bool CanHandle(ISchemaNode node);
+    void Handle(ISchemaNode node);
 }

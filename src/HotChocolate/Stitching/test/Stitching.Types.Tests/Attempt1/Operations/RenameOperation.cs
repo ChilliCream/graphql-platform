@@ -4,33 +4,87 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types;
 
-internal sealed class RenameOperation : ISchemaNodeRewriteOperation<INamedSyntaxNode>
+internal sealed class RenameOperation : ISchemaNodeRewriteOperation
 {
-    public INamedSyntaxNode Apply(INamedSyntaxNode source, ISchemaCoordinate2 coordinate, OperationContext context)
+    public bool CanHandle(ISchemaNode node)
     {
-        RenameDirective? renameDirective = source.Directives
-            .Where(RenameDirective.CanHandle)
-            .Select(directive => new RenameDirective(directive))
-            .FirstOrDefault();
-
-        var sourceDirective = new SourceDirective(coordinate);
-
-        switch (source)
-        {
-            case ObjectTypeDefinitionNode objectTypeDefinitionNode when renameDirective?.NewName is not null:
-                return objectTypeDefinitionNode
-                    .WithName(renameDirective.NewName)
-                    .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);
-            case FieldDefinitionNode fieldDefinitionNode when renameDirective?.NewName is not null:
-                return fieldDefinitionNode
-                    .WithName(renameDirective.NewName)
-                    .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);
-        }
-
-        throw new NotSupportedException();
+        return node.Definition is DirectiveNode directiveNode
+               && RenameDirective.CanHandle(directiveNode);
     }
 
-    public ISchemaCoordinate2 Match { get; } = new SchemaCoordinate2(SyntaxKind.Directive, new NameNode("rename"));
+    public void Handle(ISchemaNode node)
+    {
+        ISchemaCoordinate2Provider coordinateProvider = node.Coordinate.Provider;
+        var directiveNode = node.Definition as DirectiveNode;
+        var renameDirective = new RenameDirective(directiveNode!);
+
+        ISchemaNode? parent = node.Parent;
+        var sourceDirective = new SourceDirective(node.Parent.Coordinate);
+
+        ISyntaxNode replacement;
+        switch (parent.Definition)
+        {
+            case InterfaceTypeDefinitionNode interfaceTypeDefinitionNode when renameDirective?.NewName is not null:
+                replacement = interfaceTypeDefinitionNode
+                    .WithName(renameDirective.NewName)
+                    .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);
+
+                parent.RewriteDefinition(replacement);
+                break;
+
+            case ObjectTypeDefinitionNode objectTypeDefinitionNode when renameDirective?.NewName is not null:
+                replacement = objectTypeDefinitionNode
+                    .WithName(renameDirective.NewName)
+                    .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);
+
+                parent.RewriteDefinition(replacement);
+                break;
+
+            case FieldDefinitionNode fieldDefinitionNode when renameDirective?.NewName is not null:
+                replacement = fieldDefinitionNode
+                    .WithName(renameDirective.NewName)
+                    .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);
+
+                parent.RewriteDefinition(replacement);
+                break;
+        }
+
+        DocumentDefinition documentDefinition = node.GetAncestors()
+            .OfType<DocumentDefinition>()
+            .Last();
+
+        var typeReferenceNodes = documentDefinition
+            .DescendentNodes(coordinateProvider)
+            .Where(x => x.Definition is ITypeNode typeNode && typeNode.IsEqualTo(new NamedTypeNode("Test")))
+            .ToList();
+
+        foreach (ISchemaNode? typeReferenceNode in typeReferenceNodes)
+        {
+            ISchemaNode schemaNode = typeReferenceNode.GetAncestors()
+                .OfType<FieldDefinition>()
+                .First();
+
+            ISchemaNodeInfo<ITypeNode> rewrittenNode = TypeNodeRewriteHelper.Rewrite(
+                typeReferenceNode,
+                new NamedTypeNode("Test_Renamed"));
+
+            switch (schemaNode)
+            {
+                case FieldDefinition fieldDefinition:
+                    FieldDefinitionNode fieldNode = fieldDefinition.Definition;
+                    fieldDefinition.RewriteDefinition(new FieldDefinitionNode(default, fieldNode.Name,
+                        fieldNode.Description,
+                        fieldNode.Arguments,
+                        rewrittenNode.Definition,
+                        fieldNode.Directives));
+
+                    break;
+
+                default:
+                    continue;
+            }
+        }
+    }
 }
 
 internal class SourceDirective

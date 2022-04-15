@@ -5,50 +5,132 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types;
 
-internal class CoordinateProvider
+internal class CoordinateProvider : ISchemaCoordinate2Provider
 {
-    private readonly Stack<ISchemaCoordinate2> _coordinates = new();
     private readonly Dictionary<object, ISchemaNode> _coordinateToDestinationLookup = new();
-    private readonly Dictionary<ISyntaxNode, ISchemaCoordinate2> _nodeToCoordinateLookup = new();
+    private readonly Dictionary<ISchemaNode, ISchemaCoordinate2> _nodeToCoordinateLookup = new();
+    private readonly Dictionary<ISyntaxNode, ISchemaCoordinate2> _syntaxNodeToCoordinateLookup = new();
 
     public ISchemaNode Root => _coordinateToDestinationLookup.Values.First();
 
-    public ISchemaCoordinate2 Add(ISyntaxNode node)
+    public ISchemaCoordinate2 CalculateCoordinate(ISchemaNode node)
     {
-        NameNode? name = default;
-        if (node is IHasName namedSyntaxNode)
+        return CalculateCoordinate(node.Parent, node.Definition);
+    }
+
+    public ISchemaCoordinate2 CalculateCoordinate(ISchemaNode? parent, ISyntaxNode node)
+    {
+        NameNode? name = node switch
         {
-            name = namedSyntaxNode.Name;
-        }
+            IHasName namedSyntaxNode => namedSyntaxNode.Name,
+            DocumentNode => SchemaCoordinatePrinter.Root,
+            _ => default
+        };
 
-        _coordinates.TryPeek(out ISchemaCoordinate2? parent);
-        var coordinate = new SchemaCoordinate2(parent, node.Kind, name);
+        TryGet(parent, out ISchemaCoordinate2? parentCoordinate);
+        var coordinate = new SchemaCoordinate2(this,
+            parentCoordinate,
+            node.Kind,
+            name);
 
-        _nodeToCoordinateLookup[node] = coordinate;
-        _coordinates.Push(coordinate);
         return coordinate;
     }
 
-    public bool TryGet(ISchemaCoordinate2 coordinate, [NotNullWhen(true)] out ISchemaNode? schemaNode)
+    public ISchemaCoordinate2 Add(ISchemaNode node)
     {
+        ISchemaCoordinate2 coordinate = CalculateCoordinate(node);
+        Associate(coordinate, node);
+
+        return coordinate;
+    }
+
+    public bool TryGet(ISchemaNode? node, [NotNullWhen(true)] out ISchemaCoordinate2? coordinate)
+    {
+        if (node is null)
+        {
+            coordinate = default;
+            return false;
+        }
+
+        return _nodeToCoordinateLookup.TryGetValue(node, out coordinate);
+    }
+
+    public bool TryGet(ISyntaxNode? node, [NotNullWhen(true)] out ISchemaNode? schemaNode)
+    {
+        if (node is null)
+        {
+            schemaNode = default;
+            return false;
+        }
+
+        if (!TryGet(node, out ISchemaCoordinate2? coordinate))
+        {
+            schemaNode = default;
+            return false;
+        }
+
         return _coordinateToDestinationLookup.TryGetValue(coordinate, out schemaNode);
+    }
+
+    public ISchemaCoordinate2? Get(ISchemaNode node)
+    {
+        return !TryGet(node, out ISchemaCoordinate2? coordinate)
+            ? default
+            : coordinate;
+    }
+
+    public bool TryGet(ISyntaxNode? node, [NotNullWhen(true)] out ISchemaCoordinate2? coordinate)
+    {
+        if (node is null)
+        {
+            coordinate = default;
+            return false;
+        }
+
+        if (node.Kind == SyntaxKind.Document)
+        {
+            coordinate = Root.Coordinate;
+            return true;
+        }
+
+        return _syntaxNodeToCoordinateLookup.TryGetValue(node, out coordinate);
     }
 
     public ISchemaCoordinate2? Get(ISyntaxNode node)
     {
-        return _nodeToCoordinateLookup.TryGetValue(node, out ISchemaCoordinate2? coordinate)
-            ? coordinate
-            : default;
+        return !TryGet(node, out ISchemaCoordinate2? coordinate)
+            ? default
+            : coordinate;
+    }
+
+    public ISchemaNode? Get(ISchemaCoordinate2? coordinate)
+    {
+        if (coordinate is null)
+        {
+            return default;
+        }
+
+        return !TryGet(coordinate, out ISchemaNode? schemaNode)
+            ? default
+            : schemaNode;
+    }
+
+    public bool TryGet(ISchemaCoordinate2? coordinate, [NotNullWhen(true)] out ISchemaNode? schemaNode)
+    {
+        if (coordinate is null)
+        {
+            schemaNode = default;
+            return false;
+        }
+
+        return _coordinateToDestinationLookup.TryGetValue(coordinate, out schemaNode);
     }
 
     public void Associate<TDefinition>(ISchemaCoordinate2 coordinate, TDefinition typedDestination)
         where TDefinition : ISchemaNode
     {
+        _nodeToCoordinateLookup[typedDestination] = coordinate;
+        _syntaxNodeToCoordinateLookup[typedDestination.Definition] = coordinate;
         _coordinateToDestinationLookup[coordinate] = typedDestination;
-    }
-
-    public void Remove()
-    {
-        _coordinates.TryPop(out _);
     }
 }
