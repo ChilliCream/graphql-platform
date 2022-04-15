@@ -1,0 +1,10 @@
+﻿DbSet<Book>()
+    .Select(book => new BookDto{ 
+        Title = book.Title, 
+        Author = new AuthorDto{ 
+            Id = book.Author.Id, 
+            Name = book.Author.Name 
+        }
+         
+    }
+    )

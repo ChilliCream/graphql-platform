@@ -88,7 +88,10 @@ public class QueryableProjectionFieldHandler
 
         parentScope.Level
             .Peek()
-            .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
+            .Enqueue(Expression.Bind(field.Member,
+                context.DisableNullChecks
+                    ? memberInit
+                    : NotNullAndAlso(nestedProperty, memberInit)));
 
         action = SelectionVisitor.Continue;
         return true;

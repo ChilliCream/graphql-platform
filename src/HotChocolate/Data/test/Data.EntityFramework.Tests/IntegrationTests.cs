@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Data.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -14,12 +16,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     private readonly DbSet<Author> _authors;
     private readonly DbSet<SingleOrDefaultAuthor> _singleOrDefaultAuthors;
     private readonly DbSet<ZeroAuthor> _zeroAuthors;
+    private readonly DbSet<Book> _books;
 
     public IntegrationTests(AuthorFixture authorFixture)
     {
         _authors = authorFixture.Context.Authors;
         _zeroAuthors = authorFixture.Context.ZeroAuthors;
         _singleOrDefaultAuthors = authorFixture.Context.SingleOrDefaultAuthors;
+        _books = authorFixture.Context.Books;
     }
 
     [Fact]
@@ -461,5 +465,77 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // assert
         result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ProjectCorrectly_When_Select()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddEntityFrameworkProjections()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("test")
+                    .Type<ObjectType<BookDto>>()
+                    .Resolve(_ => _books.AsQueryable()
+                        .Select(book =>
+                            new BookDto
+                            {
+                                Title = book.Title,
+                                Author = new AuthorDto
+                                {
+                                    Id = book.Author!.Id,
+                                    Name = book.Author.Name
+                                }
+                            })
+                    )
+                    .UseFirstOrDefault()
+                    .UseProjection()
+                    .UseFiltering()
+                    .UseSqlLogging()
+                    .UseSorting())
+            .UseSqlLogging()
+            .BuildRequestExecutorAsync();
+
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
+                {
+                    test {
+                        title
+                        author {
+                            id
+                        }
+                    }
+                }
+                ");
+
+        // assert
+        result.MatchSqlSnapshot();
+    }
+
+    public class BookDto
+    {
+        public int Id { get; set; }
+
+        public int AuthorId { get; set; }
+
+        public string? Title { get; set; }
+
+        public virtual AuthorDto? Author { get; set; }
+    }
+
+    public class AuthorDto
+    {
+        public int Id { get; set; }
+
+        public string? Name { get; set; }
+
+        public virtual ICollection<BookDto> Books { get; set; } =
+            new List<BookDto>();
     }
 }

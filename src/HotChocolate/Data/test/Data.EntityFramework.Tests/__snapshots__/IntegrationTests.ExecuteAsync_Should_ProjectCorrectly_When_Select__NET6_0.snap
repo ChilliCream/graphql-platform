@@ -1,0 +1,10 @@
+﻿{
+  "data": {
+    "test": {
+      "title": "Foo1",
+      "author": {
+        "id": 1
+      }
+    }
+  }
+}

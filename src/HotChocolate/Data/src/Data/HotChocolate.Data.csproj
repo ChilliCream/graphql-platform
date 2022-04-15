@@ -20,6 +20,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Data.Sorting.InMemory.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Sorting.SqlLite.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.EntityFramework" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,3 @@
+﻿SELECT "b"."Title", "a"."Id", "a"."Name"
+FROM "Books" AS "b"
+INNER JOIN "Authors" AS "a" ON "b"."AuthorId" = "a"."Id"

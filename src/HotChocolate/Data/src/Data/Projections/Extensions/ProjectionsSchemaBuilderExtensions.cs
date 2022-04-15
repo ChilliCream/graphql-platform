@@ -5,12 +5,12 @@ using HotChocolate.Data.Projections;
 namespace HotChocolate;
 
 /// <summary>
-/// Provides filtering extensions for the <see cref="ISchemaBuilder"/>.
+/// Provides projection extensions for the <see cref="ISchemaBuilder"/>.
 /// </summary>
 public static class ProjectionsSchemaBuilderExtensions
 {
     /// <summary>
-    /// Adds filtering support.
+    /// Adds projection support.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="ISchemaBuilder"/>.
@@ -23,7 +23,7 @@ public static class ProjectionsSchemaBuilderExtensions
         AddProjections(builder, x => x.AddDefaults());
 
     /// <summary>
-    /// Adds filtering support.
+    /// Adds projection support.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="ISchemaBuilder"/>.
@@ -48,7 +48,7 @@ public static class ProjectionsSchemaBuilderExtensions
                 name);
 
     /// <summary>
-    /// Adds filtering support.
+    /// Adds projection support.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="ISchemaBuilder"/>.
