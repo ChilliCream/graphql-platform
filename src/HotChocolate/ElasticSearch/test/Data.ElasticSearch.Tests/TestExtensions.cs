@@ -28,7 +28,7 @@ public static class TestExtensions
         this IObjectFieldDescriptor field,
         IElasticClient client,
         IEnumerable<T> data)
-        where T : class, IHasId
+        where T : class
         => field
             .Type<ListType<ObjectType<T>>>()
             .Resolve(async context =>

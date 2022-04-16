@@ -20,21 +20,23 @@ internal class ElasticSearchClient : IAbstractElasticClient
     /// <inheritdoc />
     public string GetName(IFilterField field)
     {
-        // TODO add field override
-        // TODO add expression
+        IElasticFilterMetadata metadata = field.GetElasticMetadata();
+        if (metadata.Name is { })
+        {
+            return metadata.Name;
+        }
+
         if (field.Member is PropertyInfo propertyInfo)
         {
             return _client.Infer.Field(new Field(propertyInfo));
         }
 
-        string fieldName = field.Name;
-
-        if (field.Member is { } p)
+        if (field.Member is {Name: { } memberName})
         {
-            fieldName = p.Name;
+            return memberName;
         }
 
-        return fieldName;
+        return field.Name;
     }
 
     /// <summary>

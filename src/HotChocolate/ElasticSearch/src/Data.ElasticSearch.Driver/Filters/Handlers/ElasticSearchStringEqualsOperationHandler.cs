@@ -36,9 +36,11 @@ public class ElasticSearchStringEqualsOperationHandler
             throw ThrowHelper.Filtering_OnlyStringValuesAllowed(field);
         }
 
+        IElasticFilterMetadata metadata = field.GetElasticMetadata();
+
         return new MatchOperation(
             context.GetElasticSearchFilterScope().GetPath(),
-            ElasticSearchOperationKind.Filter,
+            metadata.Kind,
             val);
     }
 }

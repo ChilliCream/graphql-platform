@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -45,6 +46,22 @@ public class ElasticSearchFilterProvider
                     new ElasticQueryFactory(this, argumentName));
             await next(context).ConfigureAwait(false);
         }
+    }
+
+    public override IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition)
+    {
+        if (!fieldDefinition.ContextData
+                .TryGetValue(nameof(ElasticFilterMetadata), out object? metadata))
+        {
+            return null;
+        }
+
+        fieldDefinition.ContextData.Remove(nameof(ElasticFilterMetadata));
+
+        return metadata as ElasticFilterMetadata;
     }
 
     private class ElasticQueryFactory : IElasticQueryFactory
