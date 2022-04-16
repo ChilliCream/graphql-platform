@@ -5,8 +5,8 @@ using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Projections.Relationship;
 
+[Collection("Database")]
 public class Neo4JRelationshipProjectionTests
-    : IClassFixture<Neo4JFixture>
 {
     private readonly Neo4JFixture _fixture;
 
@@ -16,10 +16,10 @@ public class Neo4JRelationshipProjectionTests
     }
 
     private readonly string _fooEntitiesCypher = @"
-            CREATE (:Foo {BarBool: true, BarString: 'a', BarInt: 1, BarDouble: 1.5})-[:RELATED_TO]->(:Bar {Name: 'b', Number: 2})<-[:RELATED_FROM]-(:Baz {Name: 'c', Number: 3})
+            CREATE (:FooRel {BarBool: true, BarString: 'a', BarInt: 1, BarDouble: 1.5})-[:RELATED_TO]->(:Bar {Name: 'b', Number: 2})<-[:RELATED_FROM]-(:Baz {Name: 'c', Number: 3})
         ";
 
-    public class Foo
+    public class FooRel
     {
         public bool BarBool { get; set; }
 
@@ -54,7 +54,7 @@ public class Neo4JRelationshipProjectionTests
     public async Task OneRelationshipReturnOneProperty()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
+        IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooRel>(_fooEntitiesCypher);
 
         // act
         IExecutionResult res1 = await tester.ExecuteAsync(
@@ -82,7 +82,7 @@ public class Neo4JRelationshipProjectionTests
     public async Task TwoRelationshipReturnOneProperty()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
+        IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooRel>(_fooEntitiesCypher);
 
         // act
 
