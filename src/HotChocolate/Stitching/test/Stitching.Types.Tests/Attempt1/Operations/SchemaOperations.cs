@@ -17,7 +17,6 @@ internal class SchemaOperations
     {
         foreach (ISchemaNodeRewriteOperation operation in _operations)
         {
-            _schemaDatabase.Reindex(documentDefinition);
             IEnumerable<ISchemaNode> nodes = documentDefinition
                 .DescendentNodes(_schemaDatabase);
 

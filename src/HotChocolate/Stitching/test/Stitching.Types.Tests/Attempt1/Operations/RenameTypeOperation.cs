@@ -80,8 +80,6 @@ internal sealed class RenameTypeOperation : ISchemaNodeRewriteOperation
             .OfType<DocumentDefinition>()
             .Last();
 
-        schemaDatabase.Reindex(documentDefinition);
-
         IEnumerable<ISchemaNode> descendentNodes = documentDefinition
             .DescendentNodes(schemaDatabase)
             .ToList();
