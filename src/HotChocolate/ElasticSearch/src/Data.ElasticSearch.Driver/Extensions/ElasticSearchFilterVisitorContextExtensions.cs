@@ -4,6 +4,9 @@ using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data.ElasticSearch;
 
+/// <summary>
+/// Provides extensions for <see cref="ElasticSearchFilterVisitorContext"/>
+/// </summary>
 public static class ElasticSearchFilterVisitorContextExtensions
 {
     /// <summary>
@@ -13,7 +16,7 @@ public static class ElasticSearchFilterVisitorContextExtensions
     /// <returns>The current scope</returns>
     public static ElasticSearchFilterScope GetElasticSearchFilterScope(
         this ElasticSearchFilterVisitorContext context) =>
-        (ElasticSearchFilterScope )context.GetScope();
+        (ElasticSearchFilterScope)context.GetScope();
 
     /// <summary>
     /// Tries to build the query based on the items that are stored on the scope

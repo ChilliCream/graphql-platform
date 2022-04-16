@@ -12,13 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj"/>
-    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj"/>
-    <ProjectReference Include="..\Data.ElasticSearch.Driver\HotChocolate.Data.ElasticSearch.Driver.csproj"/>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\Data.ElasticSearch.Driver\HotChocolate.Data.ElasticSearch.Driver.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NEST" Version="7.17.1"/>
+    <PackageReference Include="NEST" Version="7.17.1" />
   </ItemGroup>
 
 </Project>

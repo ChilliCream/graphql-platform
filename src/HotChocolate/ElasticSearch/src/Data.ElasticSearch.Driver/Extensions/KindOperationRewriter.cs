@@ -2,6 +2,10 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
+/// <summary>
+/// This rewriter rewrites an operation and splits <see cref="ElasticSearchOperationKind.Filter"/>
+/// and <see cref="ElasticSearchOperationKind.Query"/> into "must" and "should"
+/// </summary>
 internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation>
 {
     private readonly ElasticSearchOperationKind _kind;

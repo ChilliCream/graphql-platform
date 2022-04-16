@@ -8,6 +8,9 @@ namespace HotChocolate.Data.ElasticSearch.Filters;
 public class ElasticSearchFilterVisitorContext
     : FilterVisitorContext<ISearchOperation>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="ElasticSearchFilterVisitorContext"/>
+    /// </summary>
     public ElasticSearchFilterVisitorContext(
         IFilterInputType initialType,
         IAbstractElasticClient elasticClient)
@@ -26,5 +29,8 @@ public class ElasticSearchFilterVisitorContext
     /// <inheritdoc />
     public override FilterScope<ISearchOperation> CreateScope() => new ElasticSearchFilterScope();
 
+    /// <summary>
+    /// The client that is used to execute the query
+    /// </summary>
     public IAbstractElasticClient ElasticClient { get; }
 }

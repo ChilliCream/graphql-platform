@@ -7,39 +7,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
-public interface IAbstractElasticClient
-{
-    string GetName(IFilterField field);
-}
-
-public interface IElasticQueryFactory
-{
-    QueryDefinition? Create( IResolverContext context, IAbstractElasticClient client);
-}
-
-internal class ElasticQueryFactory : IElasticQueryFactory
-{
-
-    private readonly CreateElasticQuery _createElasticQuery;
-
-    public ElasticQueryFactory(CreateElasticQuery createElasticQuery)
-    {
-        _createElasticQuery = createElasticQuery;
-    }
-
-    public QueryDefinition? Create(
-        IResolverContext context,
-        IAbstractElasticClient client)
-        => _createElasticQuery(context, client);
-}
-
-internal delegate QueryDefinition? CreateElasticQuery(
-    IResolverContext context,
-    IAbstractElasticClient client);
-
 /// <summary>
-/// A <see cref="FilterProvider{TContext}"/> translates a incoming query to a
-/// <see cref="FilterDefinition{T}"/>
+/// A <see cref="FilterProvider{TContext}"/> translates a incoming query to a filter definition
 /// </summary>
 public class ElasticSearchFilterProvider
     : FilterProvider<ElasticSearchFilterVisitorContext>
@@ -72,23 +41,38 @@ public class ElasticSearchFilterProvider
             IMiddlewareContext context)
         {
             context.LocalContextData =
-                context.LocalContextData.SetItem(nameof(IElasticQueryFactory), new ElasticQueryFactory(CreateQuery));
+                context.LocalContextData.SetItem(nameof(IElasticQueryFactory),
+                    new ElasticQueryFactory(this, argumentName));
             await next(context).ConfigureAwait(false);
         }
+    }
 
-        QueryDefinition? CreateQuery(
+    private class ElasticQueryFactory : IElasticQueryFactory
+    {
+        private readonly ElasticSearchFilterProvider _provider;
+        private readonly string _argumentName;
+
+        public ElasticQueryFactory(
+            ElasticSearchFilterProvider provider,
+            string argumentName)
+        {
+            _provider = provider;
+            _argumentName = argumentName;
+        }
+
+        public QueryDefinition? Create(
             IResolverContext context,
             IAbstractElasticClient client)
         {
             ElasticSearchFilterVisitorContext? visitorContext = null;
-            IInputField argument = context.Selection.Field.Arguments[argumentName];
-            IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
+            IInputField argument = context.Selection.Field.Arguments[_argumentName];
+            IValueNode filter = context.ArgumentLiteral<IValueNode>(_argumentName);
 
             if (filter is not NullValueNode && argument.Type is IFilterInputType filterInput)
             {
                 visitorContext = new ElasticSearchFilterVisitorContext(filterInput, client);
 
-                Visitor.Visit(filter, visitorContext);
+                _provider.Visitor.Visit(filter, visitorContext);
 
                 if (!visitorContext.TryCreateQuery(out QueryDefinition? whereQuery) ||
                     visitorContext.Errors.Count > 0)
@@ -104,8 +88,5 @@ public class ElasticSearchFilterProvider
 
             return null;
         }
-
     }
-
 }
-

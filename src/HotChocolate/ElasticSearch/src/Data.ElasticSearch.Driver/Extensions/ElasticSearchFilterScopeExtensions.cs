@@ -4,11 +4,20 @@ using System.Linq;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
+/// <summary>
+/// Provides extension for <see cref="ElasticSearchFilterScope"/>
+/// </summary>
 public static class ElasticSearchFilterScopeExtensions
 {
+    /// <summary>
+    /// Returns the currently selected path of this scope
+    /// </summary>
     public static string GetPath(this ElasticSearchFilterScope scope) =>
         string.Join(".", scope.Path.Reverse());
 
+    /// <summary>
+    /// Builds a <see cref="QueryDefinition"/> from the state aggregated in the scope
+    /// </summary>
     public static bool TryCreateQuery(
         this ElasticSearchFilterScope scope,
         [NotNullWhen(true)] out QueryDefinition? query)
