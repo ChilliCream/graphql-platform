@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.ElasticSearch.Filters;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.ElasticSearch
 {
@@ -33,5 +34,12 @@ namespace HotChocolate.Data.ElasticSearch
                 ElasticSearchResources.Filtering_ElasticSearchCombinator_InvalidCombinator,
                 combinator.GetType(),
                 operation.ToString()));
+
+        public static InvalidOperationException Filtering_OnlyStringValuesAllowed(
+            IFilterField field) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                ElasticSearchResources.Filtering_OnlyStringValuesAllowed,
+                field.Coordinate.ToString()));
     }
 }

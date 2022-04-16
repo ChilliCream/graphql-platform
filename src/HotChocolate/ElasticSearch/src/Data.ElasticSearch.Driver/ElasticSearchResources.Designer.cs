@@ -9,32 +9,32 @@
 
 namespace HotChocolate.Data.ElasticSearch {
     using System;
-
-
+    
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ElasticSearchResources {
-
+        
         private static System.Resources.ResourceManager resourceMan;
-
+        
         private static System.Globalization.CultureInfo resourceCulture;
-
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal ElasticSearchResources() {
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Data.ElasticSearch.ElasticSearchResources", typeof(ElasticSearchResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Data.ElasticSearch.Driver.ElasticSearchResources", typeof(ElasticSearchResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
             }
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,34 +44,40 @@ namespace HotChocolate.Data.ElasticSearch {
                 resourceCulture = value;
             }
         }
-
+        
         internal static string ErrorHelper_Filtering_CreateNonNullError {
             get {
                 return ResourceManager.GetString("ErrorHelper_Filtering_CreateNonNullError", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_Sorting_CreateNonNullError {
             get {
                 return ResourceManager.GetString("ErrorHelper_Sorting_CreateNonNullError", resourceCulture);
             }
         }
-
+        
         internal static string Paging_SourceIsNotSupported {
             get {
                 return ResourceManager.GetString("Paging_SourceIsNotSupported", resourceCulture);
             }
         }
-
+        
         internal static string Filtering_ElasticSearchCombinator_QueueEmpty {
             get {
                 return ResourceManager.GetString("Filtering_ElasticSearchCombinator_QueueEmpty", resourceCulture);
             }
         }
-
+        
         internal static string Filtering_ElasticSearchCombinator_InvalidCombinator {
             get {
                 return ResourceManager.GetString("Filtering_ElasticSearchCombinator_InvalidCombinator", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_OnlyStringValuesAllowed {
+            get {
+                return ResourceManager.GetString("Filtering_OnlyStringValuesAllowed", resourceCulture);
             }
         }
     }

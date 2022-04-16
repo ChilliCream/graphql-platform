@@ -33,8 +33,7 @@ public class ElasticSearchStringEqualsOperationHandler
     {
         if (parsedValue is not string val)
         {
-            // TODO better execption "Only string values allowed"
-            throw new Exception();
+            throw ThrowHelper.Filtering_OnlyStringValuesAllowed(field);
         }
 
         return new MatchOperation(
