@@ -142,9 +142,9 @@ internal class SchemaDatabase : ISchemaDatabase
 
         foreach (SyntaxNodeReference nodeReference in childSyntaxNodes)
         {
-            if (!TryGet(nodeReference.Parent.Node, nodeReference.Node, out ISchemaNode? existingNode))
+            if (!TryGet(nodeReference.Parent?.Node, nodeReference.Node, out ISchemaNode? existingNode))
             {
-                ISchemaNode newNode = CreateSchemaNode(nodeReference.Parent.Node, nodeReference.Node);
+                ISchemaNode newNode = CreateSchemaNode(nodeReference.Parent?.Node, nodeReference.Node);
                 existingNode = newNode;
             }
 

@@ -17,7 +17,7 @@ internal class SourceDirective
 
     public DirectiveNode Node { get; }
 
-    private string CalculateOriginalSources(ISchemaNode? schemaNode)
+    private static string CalculateOriginalSources(ISchemaNode? schemaNode)
     {
         var coordinates = new Stack<ISchemaCoordinate2>();
 

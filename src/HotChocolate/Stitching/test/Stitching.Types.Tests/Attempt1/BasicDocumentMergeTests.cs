@@ -45,7 +45,7 @@ public class BasicDocumentMergeTests
         DefaultOperationProvider operationProvider = new DefaultOperationProvider();
         SchemaNodeFactory schemaNodeFactory = new SchemaNodeFactory();
         SchemaDatabase schemaDatabase = new SchemaDatabase(schemaNodeFactory);
-        DefaultSyntaxNodeVisitor visitor = new DefaultSyntaxNodeVisitor(schemaDatabase, schemaNodeFactory, operationProvider);
+        DefaultSyntaxNodeVisitor visitor = new DefaultSyntaxNodeVisitor(schemaDatabase, operationProvider);
 
         var documentNode = new DocumentNode(new List<IDefinitionNode>(0));
         var documentDefinition = new DocumentDefinition(schemaDatabase.Add, documentNode);

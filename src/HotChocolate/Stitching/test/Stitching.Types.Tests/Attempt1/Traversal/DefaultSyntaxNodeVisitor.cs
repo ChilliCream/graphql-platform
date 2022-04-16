@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Types.Attempt1.Coordinates;
 using HotChocolate.Stitching.Types.Attempt1.Operations;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Traversal;
@@ -9,17 +8,14 @@ namespace HotChocolate.Stitching.Types.Attempt1.Traversal;
 internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
 {
     private readonly ISchemaDatabase _schemaDatabase;
-    private readonly SchemaNodeFactory _schemaNodeFactory;
     private readonly DefaultOperationProvider _operationProvider;
 
     public DefaultSyntaxNodeVisitor(
         ISchemaDatabase schemaDatabase,
-        SchemaNodeFactory schemaNodeFactory,
         DefaultOperationProvider operationProvider)
         : base(VisitorAction.Continue)
     {
         _schemaDatabase = schemaDatabase;
-        _schemaNodeFactory = schemaNodeFactory;
         _operationProvider = operationProvider;
 
         _visitorConfiguration = new VisitorExtensions.VisitorConfiguration(Enter, Leave);

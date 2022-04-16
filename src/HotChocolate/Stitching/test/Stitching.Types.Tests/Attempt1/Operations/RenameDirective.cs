@@ -6,6 +6,8 @@ namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 internal sealed class RenameDirective
 {
+    private static readonly NameNode _renameNode = new("rename");
+
     public DirectiveNode Node { get; }
     public NameNode NewName { get; }
 
@@ -15,9 +17,13 @@ internal sealed class RenameDirective
         NewName = CalculateNewName(node);
     }
 
-    private NameNode CalculateNewName(DirectiveNode node)
+    private static NameNode CalculateNewName(DirectiveNode node)
     {
-        var nameArgument = Node.Arguments.FirstOrDefault(x => x.Name.Value.Equals("name"))?.Value.Value;
+        var nameArgument = node.Arguments
+            .FirstOrDefault(x => x.Name.Value.Equals("name"))?
+            .Value
+            .Value;
+
         if (nameArgument is not string stringArgument || string.IsNullOrEmpty(stringArgument))
         {
             throw new InvalidOperationException();
@@ -28,6 +34,7 @@ internal sealed class RenameDirective
 
     public static bool CanHandle(DirectiveNode directiveNode)
     {
-        return directiveNode.Name.Equals(new NameNode("rename"));
+        return directiveNode.Name
+            .IsEqualTo(_renameNode);
     }
 }
