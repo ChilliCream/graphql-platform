@@ -198,7 +198,7 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode
     /// </returns>
     public bool Equals(FieldDefinitionNode? other)
     {
-        if (other is null)
+        if (ReferenceEquals(null, other))
         {
             return false;
         }
@@ -208,10 +208,10 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode
             return true;
         }
 
-        return base.Equals(other) &&
-            Equals(Description, other.Description) &&
-            EqualityHelper.Equals(Arguments, other.Arguments) &&
-            Type.Equals(other.Type);
+        return base.Equals(other)
+               && Description.IsEqualTo(other.Description)
+               && Arguments.IsEqualTo(other.Arguments)
+               && Type.IsEqualTo(other.Type);
     }
 
     /// <summary>
@@ -235,15 +235,13 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            var hashCode = base.GetHashCode();
-            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ ((Description?.GetHashCode()) ?? 0);
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
-            hashCode = (hashCode * 397) ^ Type.GetHashCode();
-            return hashCode;
-        }
+        var hashCode = new HashCode();
+        hashCode.Add(base.GetHashCode());
+        hashCode.Add(Kind);
+        hashCode.Add(Description);
+        hashCode.Add(Type);
+        hashCode.AddNodes(Arguments);
+        return hashCode.ToHashCode();
     }
 
     /// <summary>

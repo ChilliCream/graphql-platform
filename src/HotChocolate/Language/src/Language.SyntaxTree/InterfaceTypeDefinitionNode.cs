@@ -219,8 +219,8 @@ public sealed class InterfaceTypeDefinitionNode
             return true;
         }
 
-        return base.Equals(other) &&
-            Description.IsEqualTo(other.Description);
+        return base.Equals(other)
+               && Description.IsEqualTo(other.Description);
     }
 
     /// <summary>

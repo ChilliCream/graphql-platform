@@ -1,5 +1,5 @@
 interface TestInterface_renamed @_hc_source(coordinate: "TestInterface") {
-  foo_renamed: test2_renamed!
+  foo_renamed: test2_renamed! @_hc_source(coordinate: "TestInterface.foo")
 }
 
 type test_renamed implements TestInterface_renamed @_hc_source(coordinate: "Test") {

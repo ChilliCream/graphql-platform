@@ -10,6 +10,7 @@ namespace HotChocolate.Language;
 public abstract class ComplexTypeDefinitionNodeBase
     : NamedSyntaxNode
     , IEquatable<ComplexTypeDefinitionNodeBase>
+    , IHasInterfaces
 {
     /// <summary>
     /// Initializes a new instance of

@@ -17,7 +17,7 @@ internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDef
         Coordinate = coordinateFactory.Invoke(this);
     }
 
-    public string Name => Definition.Name.Value;
+    public NameNode Name => Definition.Name;
 
     public TypeKind Kind => TypeKind.Object;
 
@@ -31,6 +31,12 @@ internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDef
 
     public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
     {
+        switch (replacement)
+        {
+            case InterfaceTypeDefinitionNode interfaceTypeDefinitionNode:
+                return RewriteDefinition(interfaceTypeDefinitionNode);
+        }
+
         return this;
     }
 

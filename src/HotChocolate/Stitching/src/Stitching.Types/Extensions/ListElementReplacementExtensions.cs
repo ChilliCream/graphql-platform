@@ -12,7 +12,7 @@ public static class ListElementReplacementExtensions
         var updatedList = list.Select(element => filter(element) ? replacement : element)
             .ToList();
 
-        var exists = updatedList.Any(x => ReferenceEquals(x, replacement) || x.Equals(replacement));
+        var exists = updatedList.Any(x => ReferenceEquals(replacement, x));
         if (exists)
         {
             return updatedList;

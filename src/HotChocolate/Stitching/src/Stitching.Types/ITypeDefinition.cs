@@ -9,7 +9,7 @@ internal interface ITypeDefinition : ISchemaNode
     /// <summary>
     /// Gets the name of the type.
     /// </summary>
-    string Name { get; }
+    NameNode Name { get; }
 
     /// <summary>
     /// Specifies the type kind this definition represents.

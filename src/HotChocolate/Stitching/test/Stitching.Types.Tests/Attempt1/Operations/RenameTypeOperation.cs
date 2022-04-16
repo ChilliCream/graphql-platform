@@ -6,12 +6,12 @@ using HotChocolate.Stitching.Types.Attempt1.Helpers;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
-internal sealed class RenameOperation : ISchemaNodeRewriteOperation
+internal sealed class RenameTypeOperation : ISchemaNodeRewriteOperation
 {
     public bool CanHandle(ISchemaNode node)
     {
         return node.Definition is DirectiveNode directiveNode
-               && node.Parent?.Definition is IHasName
+               && node.Parent?.Definition is ITypeDefinitionNode
                && RenameDirective.CanHandle(directiveNode);
     }
 
@@ -45,32 +45,26 @@ internal sealed class RenameOperation : ISchemaNodeRewriteOperation
         SourceDirective sourceDirective,
         ISchemaDatabase nodeDatabase)
     {
-        ISyntaxNode? replacement;
         switch (parent.Definition)
         {
             case InterfaceTypeDefinitionNode interfaceTypeDefinitionNode when renameDirective.NewName is not null:
-                replacement = interfaceTypeDefinitionNode
+                InterfaceTypeDefinitionNode interfaceReplacement = interfaceTypeDefinitionNode
                     .WithName(renameDirective.NewName)
                     .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);
 
-                parent.RewriteDefinition(replacement);
+                parent.RewriteDefinition(interfaceReplacement);
                 break;
 
             case ObjectTypeDefinitionNode objectTypeDefinitionNode when renameDirective?.NewName is not null:
-                replacement = objectTypeDefinitionNode
+                ObjectTypeDefinitionNode objectTypeReplacement = objectTypeDefinitionNode
                     .WithName(renameDirective.NewName)
                     .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);
 
-                parent.RewriteDefinition(replacement);
+                parent.RewriteDefinition(objectTypeReplacement);
                 break;
 
-            case FieldDefinitionNode fieldDefinitionNode when renameDirective?.NewName is not null:
-                replacement = fieldDefinitionNode
-                    .WithName(renameDirective.NewName)
-                    .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);
-
-                parent.RewriteDefinition(replacement);
-                break;
+            default:
+                throw new NotSupportedException();
         }
 
         nodeDatabase.Reindex(parent);
@@ -85,6 +79,8 @@ internal sealed class RenameOperation : ISchemaNodeRewriteOperation
         DocumentDefinition documentDefinition = node.GetAncestors()
             .OfType<DocumentDefinition>()
             .Last();
+
+        schemaDatabase.Reindex(documentDefinition);
 
         IEnumerable<ISchemaNode> descendentNodes = documentDefinition
             .DescendentNodes(schemaDatabase)

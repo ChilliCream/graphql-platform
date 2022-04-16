@@ -16,7 +16,7 @@ internal class FieldDefinition : ISchemaNode<FieldDefinitionNode>
         Coordinate = coordinateFactory.Invoke(this);
     }
 
-    public string Name => Definition.Name.Value;
+    public NameNode Name => Definition.Name;
 
     public MemberKind Kind => MemberKind.Field;
 
@@ -30,6 +30,12 @@ internal class FieldDefinition : ISchemaNode<FieldDefinitionNode>
 
     public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
     {
+        switch (replacement)
+        {
+            case FieldDefinitionNode fieldDefinitionNode:
+                return RewriteDefinition(fieldDefinitionNode);
+        }
+
         return this;
     }
 

@@ -1,27 +1,27 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 internal class SchemaOperations
 {
     private readonly List<ISchemaNodeRewriteOperation> _operations;
-    private readonly ISchemaDatabase _coordinateProvider;
+    private readonly ISchemaDatabase _schemaDatabase;
 
-    public SchemaOperations(List<ISchemaNodeRewriteOperation> operations, ISchemaDatabase coordinateProvider)
+    public SchemaOperations(List<ISchemaNodeRewriteOperation> operations, ISchemaDatabase schemaDatabase)
     {
         _operations = operations;
-        _coordinateProvider = coordinateProvider;
+        _schemaDatabase = schemaDatabase;
     }
 
     public void Apply(DocumentDefinition documentDefinition)
     {
-        IEnumerable<ISchemaNode> nodes = documentDefinition
-            .DescendentNodes(_coordinateProvider);
-
-        foreach (ISchemaNode node in nodes)
+        foreach (ISchemaNodeRewriteOperation operation in _operations)
         {
-            foreach (ISchemaNodeRewriteOperation operation in _operations)
+            _schemaDatabase.Reindex(documentDefinition);
+            IEnumerable<ISchemaNode> nodes = documentDefinition
+                .DescendentNodes(_schemaDatabase);
+
+            foreach (ISchemaNode node in nodes)
             {
                 if (!operation.CanHandle(node))
                 {

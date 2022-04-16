@@ -13,8 +13,7 @@ internal class SchemaNodeFactory
                 (coordinateFactory, _, node) =>
                     new DocumentDefinition(
                         coordinateFactory,
-                        new DocumentNode(default,
-                            node.Definitions)))
+                        node))
         },
         {
             typeof(ObjectTypeDefinitionNode), FactoryBuilder<ObjectTypeDefinitionNode, ObjectTypeDefinition>(
@@ -22,12 +21,7 @@ internal class SchemaNodeFactory
                     new ObjectTypeDefinition(
                         coordinateFactory,
                         (DocumentDefinition)parent!,
-                        new ObjectTypeDefinitionNode(default,
-                            node.Name,
-                            default,
-                            node.Directives,
-                            node.Interfaces,
-                            node.Fields)))
+                        node))
         },
         {
             typeof(ObjectTypeExtensionNode), FactoryBuilder<ObjectTypeExtensionNode, ObjectTypeDefinition>(
@@ -48,12 +42,7 @@ internal class SchemaNodeFactory
                     new InterfaceTypeDefinition(
                         coordinateFactory,
                         (DocumentDefinition)parent!,
-                        new InterfaceTypeDefinitionNode(default,
-                            node.Name,
-                            default,
-                            node.Directives,
-                            node.Interfaces,
-                            node.Fields)))
+                        node))
         },
         {
             typeof(FieldDefinitionNode), FactoryBuilder<FieldDefinitionNode, FieldDefinition>(
@@ -61,12 +50,7 @@ internal class SchemaNodeFactory
                     new FieldDefinition(
                         coordinateFactory,
                         (ITypeDefinition)parent!,
-                        new FieldDefinitionNode(default,
-                            node.Name,
-                            default,
-                            node.Arguments,
-                            node.Type,
-                            node.Directives)))
+                        node))
         },
     };
 

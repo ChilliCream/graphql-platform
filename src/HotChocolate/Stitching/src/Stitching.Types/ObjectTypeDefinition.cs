@@ -17,7 +17,7 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
         Coordinate = coordinateFactory.Invoke(this);
     }
 
-    public string Name => Definition.Name.Value;
+    public NameNode Name => Definition.Name;
 
     public TypeKind Kind => TypeKind.Object;
 
@@ -26,7 +26,21 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
     public ObjectTypeDefinitionNode Definition { get; set; }
 
     public ISchemaNode? Parent => _parentDefinition;
+
     public ISchemaCoordinate2? Coordinate { get; }
+
+    public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
+    {
+        switch (replacement)
+        {
+            case ObjectTypeDefinitionNode objectTypeDefinitionNode:
+                return RewriteDefinition(objectTypeDefinitionNode);
+            case { } when this.IsInterfaceNode(original):
+                return ReplaceInterface(original.Definition, replacement);
+        }
+
+        return this;
+    }
 
     public ISchemaNode RewriteDefinition(ObjectTypeDefinitionNode node)
     {
@@ -37,20 +51,10 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
         return this;
     }
 
-    public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
-    {
-        if (this.IsInterfaceNode(original))
-        {
-            return ReplaceInterface(original.Definition, replacement);
-        }
-
-        return this;
-    }
-
     public ISchemaNode RewriteField(FieldDefinitionNode original, FieldDefinitionNode replacement)
     {
         IReadOnlyList<FieldDefinitionNode> updatedFields = Definition.Fields
-            .AddOrReplace(replacement, x => x.Name.Equals(original.Name));
+            .AddOrReplace(replacement, x => x.Equals(original));
 
         ObjectTypeDefinitionNode definition = Definition.WithFields(updatedFields);
         RewriteDefinition(definition);

@@ -22,11 +22,11 @@ public class BasicDocumentMergeTests
 
         DocumentNode source1 = Utf8GraphQLParser.Parse(@"
             interface TestInterface @rename(name: ""TestInterface_renamed"") {
-              foo: Test2!
+              foo: Test2! @rename(name: ""foo_renamed"")
             }
 
             extend type Test implements TestInterface {
-              foo: Test2! @rename(name: ""foo_renamed"")
+              foo: Test2!
             }
             ",
             ParserOptions.NoLocation);
@@ -49,12 +49,15 @@ public class BasicDocumentMergeTests
 
         var documentNode = new DocumentNode(new List<IDefinitionNode>(0));
         var documentDefinition = new DocumentDefinition(schemaDatabase.Add, documentNode);
+        schemaDatabase.Reindex(documentDefinition);
 
         //visitor.Accept(source);
         visitor.Accept(source1);
         visitor.Accept(source2);
 
-        var operations = new List<ISchemaNodeRewriteOperation> { new RenameOperation() };
+        var operations =
+            new List<ISchemaNodeRewriteOperation> { new RenameTypeOperation(), new RenameFieldOperation() };
+
         var schemaOperations = new SchemaOperations(operations, schemaDatabase);
         schemaOperations.Apply(documentDefinition);
 

@@ -25,24 +25,23 @@ internal static class NodeExtensions
 
     public static IEnumerable<SyntaxNodeReference> DescendentSyntaxNodes(this ISchemaNode root)
     {
-        var nodes = new Stack<ISyntaxNode>();
-        nodes.Push(root.Definition);
-
-        SyntaxNodeReference? parentReference = default;
+        var nodes = new Stack<SyntaxNodeReference>();
+        var rootReference = new SyntaxNodeReference(default, root.Definition);
+        nodes.Push(rootReference);
 
         while (nodes.Any())
         {
-            ISyntaxNode node = nodes.Pop();
+            SyntaxNodeReference node = nodes.Pop();
 
-            parentReference = new SyntaxNodeReference(parentReference, node);
-            yield return (SyntaxNodeReference) parentReference;
+            yield return node;
 
-            IEnumerable<ISyntaxNode> children = node.GetNodes();
+            IEnumerable<ISyntaxNode> children = node.Node.GetNodes();
             foreach (ISyntaxNode child in children)
             {
-                yield return new SyntaxNodeReference(parentReference, child);
+                var childReference = new SyntaxNodeReference(node, child);
+                nodes.Push(childReference);
 
-                nodes.Push(child);
+                yield return childReference;
             }
         }
     }

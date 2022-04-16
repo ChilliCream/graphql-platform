@@ -24,8 +24,6 @@ internal class SchemaDatabase : ISchemaDatabase
     public ISchemaCoordinate2 Add(ISchemaNode node)
     {
         ISchemaCoordinate2 coordinate = CalculateCoordinate(node);
-        InnerReindex(node);
-
         return coordinate;
     }
 
@@ -146,8 +144,8 @@ internal class SchemaDatabase : ISchemaDatabase
         {
             if (!TryGet(nodeReference.Parent.Node, nodeReference.Node, out ISchemaNode? existingNode))
             {
-                ISchemaNode node = CreateSchemaNode(nodeReference.Parent.Node, nodeReference.Node);
-                existingNode = node;
+                ISchemaNode newNode = CreateSchemaNode(nodeReference.Parent.Node, nodeReference.Node);
+                existingNode = newNode;
             }
 
             Reindex(existingNode);
@@ -192,9 +190,9 @@ internal class SchemaDatabase : ISchemaDatabase
             }
         }
 
-        if (_schemaNodeFactory.Create(parentSchemaNode, node, Add, out ISchemaNode nodeSchemaNode))
+        if (!_schemaNodeFactory.Create(parentSchemaNode, node, Add, out ISchemaNode nodeSchemaNode))
         {
-            nodeSchemaNode.RewriteDefinition(nodeSchemaNode.Definition);
+            throw new InvalidOperationException();
         }
 
         return nodeSchemaNode;

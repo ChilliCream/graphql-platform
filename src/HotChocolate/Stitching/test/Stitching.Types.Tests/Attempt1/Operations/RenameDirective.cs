@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using HotChocolate.Language;
 
@@ -6,7 +7,7 @@ namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 internal sealed class RenameDirective
 {
     public DirectiveNode Node { get; }
-    public NameNode? NewName { get; }
+    public NameNode NewName { get; }
 
     public RenameDirective(DirectiveNode node)
     {
@@ -14,12 +15,12 @@ internal sealed class RenameDirective
         NewName = CalculateNewName(node);
     }
 
-    private NameNode? CalculateNewName(DirectiveNode node)
+    private NameNode CalculateNewName(DirectiveNode node)
     {
         var nameArgument = Node.Arguments.FirstOrDefault(x => x.Name.Value.Equals("name"))?.Value.Value;
         if (nameArgument is not string stringArgument || string.IsNullOrEmpty(stringArgument))
         {
-            return default;
+            throw new InvalidOperationException();
         }
 
         return new NameNode(stringArgument);

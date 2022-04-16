@@ -8,17 +8,17 @@ namespace HotChocolate.Stitching.Types.Attempt1.Traversal;
 
 internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
 {
-    private readonly ISchemaDatabase _provider;
+    private readonly ISchemaDatabase _schemaDatabase;
     private readonly SchemaNodeFactory _schemaNodeFactory;
     private readonly DefaultOperationProvider _operationProvider;
 
     public DefaultSyntaxNodeVisitor(
-        ISchemaDatabase provider,
+        ISchemaDatabase schemaDatabase,
         SchemaNodeFactory schemaNodeFactory,
         DefaultOperationProvider operationProvider)
         : base(VisitorAction.Continue)
     {
-        _provider = provider;
+        _schemaDatabase = schemaDatabase;
         _schemaNodeFactory = schemaNodeFactory;
         _operationProvider = operationProvider;
 
@@ -53,10 +53,11 @@ internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
                 return VisitorAction.Skip;
             }
 
-            var existingNode = _provider.TryGet(parent, node, out ISchemaNode? schemaNode);
+            var existingNode = _schemaDatabase.TryGet(parent, node, out ISchemaNode? schemaNode);
             if (!existingNode)
             {
-                schemaNode = _provider.Reindex(parent, node);
+                schemaNode = _schemaDatabase.Reindex(parent, node);
+                schemaNode.RewriteDefinition(schemaNode, schemaNode.Definition);
             }
             else
             {
