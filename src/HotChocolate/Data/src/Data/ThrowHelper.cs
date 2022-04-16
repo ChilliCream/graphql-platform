@@ -83,6 +83,28 @@ internal static class ThrowHelper
                 .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
+    public static SchemaException Filtering_DefinitionForTypeNotFound(
+        string fieldName,
+        string typeName,
+        string originalType) =>
+        new(SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.Filtering_DefinitionForTypeNotFound,
+                    fieldName,
+                    typeName,
+                    originalType)
+                .Build());
+
+    public static SchemaException Filtering_FieldHadNoType(
+        string fieldName,
+        string typeName) =>
+        new(SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.Filtering_FieldHadNoType,
+                    fieldName,
+                    typeName)
+                .Build());
+
     public static SchemaException Filtering_TypeMissmatch(
         IResolverContext context,
         Type expectedType,
@@ -221,7 +243,7 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    DataResources.SortInterceptor_NoFieldHandlerFoundForField,
+                        DataResources.SortInterceptor_NoFieldHandlerFoundForField,
                     field.Name,
                     type.Name)
                 .Build());
@@ -318,6 +340,28 @@ internal static class ThrowHelper
                 .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
+    public static SchemaException Sorting_DefinitionForTypeNotFound(
+        string fieldName,
+        string typeName,
+        string originalType) =>
+        new(SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.Sorting_DefinitionForTypeNotFound,
+                    fieldName,
+                    typeName,
+                    originalType)
+                .Build());
+
+    public static SchemaException Sorting_FieldHadNoType(
+        string fieldName,
+        string typeName) =>
+        new(SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.Sorting_FieldHadNoType,
+                    fieldName,
+                    typeName)
+                .Build());
+
     public static SchemaException ProjectionProvider_NoHandlersConfigured(
         IProjectionProvider projectionConvention) =>
         new SchemaException(
@@ -404,6 +448,30 @@ internal static class ThrowHelper
             field.DeclaringType.Print(),
             field.Name,
             field.Type.Print()));
+
+    public static InvalidOperationException QueryableFiltering_ExpressionParameterInvalid(
+        Type type,
+        IFilterField field) =>
+        new(string.Format(
+            CultureInfo.CurrentCulture,
+            DataResources.QueryableFiltering_ExpressionParameterInvalid,
+            type.FullName,
+            field.DeclaringType.Print(),
+            field.Name,
+            field.Type.Print()));
+
+    public static SchemaException QueryableFilterProvider_ExpressionParameterInvalid(
+        ITypeSystemObject type,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition field) =>
+        new(SchemaErrorBuilder
+                .New()
+                .SetMessage(
+                    DataResources.QueryableFilterProvider_ExpressionParameterInvalid,
+                    typeDefinition.EntityType?.FullName,
+                    field.Name)
+                .SetTypeSystemObject(type)
+                .Build());
 
     public static InvalidOperationException QueryableFiltering_NoMemberDeclared(IFilterField field)
         =>

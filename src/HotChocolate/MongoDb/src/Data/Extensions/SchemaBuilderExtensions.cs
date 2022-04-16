@@ -20,8 +20,9 @@ namespace HotChocolate.Data.MongoDb
         /// </returns>
         public static ISchemaBuilder AddMongoDbFiltering(
             this ISchemaBuilder builder,
-            string? name = null) =>
-            builder.AddFiltering(x => x.AddMongoDbDefaults(), name);
+            string? name = null,
+            bool compatabilityMode = false) =>
+            builder.AddFiltering(x => x.AddMongoDbDefaults(compatabilityMode), name);
 
         /// <summary>
         /// Adds sorting support.

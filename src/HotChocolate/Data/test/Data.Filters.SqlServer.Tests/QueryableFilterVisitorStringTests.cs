@@ -51,6 +51,37 @@ public class QueryableFilterVisitorStringTests
     }
 
     [Fact]
+    public async Task Create_StringEqual_Expression_CustomAllows()
+    {
+        // arrange
+        IRequestExecutor? tester =
+            _cache.CreateSchema<Foo, FooCustomAllowsFilterInput>(_fooEntities);
+
+        // act
+        // assert
+        IExecutionResult? res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
+                .Create());
+
+        res1.MatchSqlSnapshot("testatest");
+
+        IExecutionResult? res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
+                .Create());
+
+        res2.MatchSqlSnapshot("testbtest");
+
+        IExecutionResult? res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
+                .Create());
+
+        res3.MatchSqlSnapshot("null");
+    }
+
+    [Fact]
     public async Task Create_StringNotEqual_Expression()
     {
         // arrange
@@ -665,6 +696,15 @@ public class QueryableFilterVisitorStringTests
             IFilterInputTypeDescriptor<FooNullable> descriptor)
         {
             descriptor.Field(t => t.Bar);
+        }
+    }
+
+    public class FooCustomAllowsFilterInput : FilterInputType<Foo>
+    {
+        protected override void Configure(
+            IFilterInputTypeDescriptor<Foo> descriptor)
+        {
+            descriptor.Field(t => t.Bar).AllowEquals();
         }
     }
 }

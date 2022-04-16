@@ -23,8 +23,9 @@ public static class Neo4JSchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddNeo4JFiltering(
         this ISchemaBuilder builder,
-        string? name = null) =>
-        builder.AddFiltering(x => x.AddNeo4JDefaults(), name);
+        string? name = null,
+        bool compatabilityMode = false) =>
+        builder.AddFiltering(x => x.AddNeo4JDefaults(compatabilityMode), name);
 
     /// <summary>
     /// Adds sorting support for Neo4j.

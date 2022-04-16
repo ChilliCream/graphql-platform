@@ -72,7 +72,7 @@ type Query {
 input AuthorFilterInput {
   and: [AuthorFilterInput!]
   or: [AuthorFilterInput!]
-  id: ComparableInt32OperationFilterInput
+  id: IntOperationFilterInput
   name: StringOperationFilterInput
   books: ListFilterInputTypeOfBookFilterInput
   publishers: ListFilterInputTypeOfPublisherFilterInput
@@ -86,8 +86,8 @@ input AuthorSortInput {
 input BookFilterInput {
   and: [BookFilterInput!]
   or: [BookFilterInput!]
-  id: ComparableInt32OperationFilterInput
-  authorId: ComparableInt32OperationFilterInput
+  id: IntOperationFilterInput
+  authorId: IntOperationFilterInput
   title: StringOperationFilterInput
   author: AuthorFilterInput
   publisher: PublisherFilterInput
@@ -101,11 +101,11 @@ input BookSortInput {
   publisher: PublisherSortInput
 }
 
-input ComparableInt32OperationFilterInput {
+input IntOperationFilterInput {
   eq: Int
   neq: Int
-  in: [Int!]
-  nin: [Int!]
+  in: [Int]
+  nin: [Int]
   gt: Int
   ngt: Int
   gte: Int
@@ -140,7 +140,7 @@ input ListFilterInputTypeOfPublisherFilterInput {
 input PublisherFilterInput {
   and: [PublisherFilterInput!]
   or: [PublisherFilterInput!]
-  id: ComparableInt32OperationFilterInput
+  id: IntOperationFilterInput
   name: StringOperationFilterInput
   address: StringOperationFilterInput
   zipcode: StringOperationFilterInput
