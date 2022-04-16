@@ -1,30 +1,54 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Types.Attempt1.Helpers;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 internal sealed class RenameOperation : ISchemaNodeRewriteOperation
 {
     public bool CanHandle(ISchemaNode node)
     {
         return node.Definition is DirectiveNode directiveNode
+               && node.Parent?.Definition is IHasName
                && RenameDirective.CanHandle(directiveNode);
     }
 
     public void Handle(ISchemaNode node)
     {
-        ISchemaCoordinate2Provider coordinateProvider = node.Coordinate.Provider;
+        ISchemaNode? parent = node.Parent;
+        if (parent?.Definition is not IHasName hasName)
+        {
+            throw new InvalidOperationException("Parent must be a named syntax node");
+        }
+
+        ISchemaDatabase database = node.Coordinate.Database;
         var directiveNode = node.Definition as DirectiveNode;
         var renameDirective = new RenameDirective(directiveNode!);
+        var sourceDirective = new SourceDirective(parent);
 
-        ISchemaNode? parent = node.Parent;
-        var sourceDirective = new SourceDirective(node.Parent.Coordinate);
+        RenameNode(parent,
+            renameDirective,
+            sourceDirective,
+            database);
 
-        ISyntaxNode replacement;
+        RenameNodeReferences(node,
+            database,
+            hasName.Name,
+            renameDirective.NewName!);
+    }
+
+    private static void RenameNode(
+        ISchemaNode parent,
+        RenameDirective renameDirective,
+        SourceDirective sourceDirective,
+        ISchemaDatabase nodeDatabase)
+    {
+        ISyntaxNode? replacement;
         switch (parent.Definition)
         {
-            case InterfaceTypeDefinitionNode interfaceTypeDefinitionNode when renameDirective?.NewName is not null:
+            case InterfaceTypeDefinitionNode interfaceTypeDefinitionNode when renameDirective.NewName is not null:
                 replacement = interfaceTypeDefinitionNode
                     .WithName(renameDirective.NewName)
                     .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);
@@ -49,81 +73,55 @@ internal sealed class RenameOperation : ISchemaNodeRewriteOperation
                 break;
         }
 
+        nodeDatabase.Reindex(parent);
+    }
+
+    private static void RenameNodeReferences(
+        ISchemaNode node,
+        ISchemaDatabase schemaDatabase,
+        NameNode sourceName,
+        NameNode newName)
+    {
         DocumentDefinition documentDefinition = node.GetAncestors()
             .OfType<DocumentDefinition>()
             .Last();
 
-        var typeReferenceNodes = documentDefinition
-            .DescendentNodes(coordinateProvider)
-            .Where(x => x.Definition is ITypeNode typeNode && typeNode.IsEqualTo(new NamedTypeNode("Test")))
+        IEnumerable<ISchemaNode> descendentNodes = documentDefinition
+            .DescendentNodes(schemaDatabase)
+            .ToList();
+
+        var typeReferenceNodes = descendentNodes
+            .Where(x => x.Definition is NamedTypeNode typeNode && sourceName.Equals(typeNode.Name))
             .ToList();
 
         foreach (ISchemaNode? typeReferenceNode in typeReferenceNodes)
         {
             ISchemaNode schemaNode = typeReferenceNode.GetAncestors()
-                .OfType<FieldDefinition>()
-                .First();
+                .First(x => x.Definition is not ITypeNode);
 
             ISchemaNodeInfo<ITypeNode> rewrittenNode = TypeNodeRewriteHelper.Rewrite(
                 typeReferenceNode,
-                new NamedTypeNode("Test_Renamed"));
+                new NamedTypeNode(newName));
 
+            ISchemaNode? referencedTypeReplacement = default;
             switch (schemaNode)
             {
-                case FieldDefinition fieldDefinition:
-                    FieldDefinitionNode fieldNode = fieldDefinition.Definition;
-                    fieldDefinition.RewriteDefinition(new FieldDefinitionNode(default, fieldNode.Name,
-                        fieldNode.Description,
-                        fieldNode.Arguments,
-                        rewrittenNode.Definition,
-                        fieldNode.Directives));
+                case ObjectTypeDefinition objectTypeDefinition:
+                    referencedTypeReplacement = objectTypeDefinition
+                        .RewriteDefinition(typeReferenceNode, rewrittenNode.Definition);
 
                     break;
 
-                default:
-                    continue;
+                case FieldDefinition fieldDefinition:
+                    referencedTypeReplacement = fieldDefinition
+                        .RewriteDefinition(fieldDefinition.Definition.WithType(rewrittenNode.Definition));
+                    break;
             }
-        }
-    }
-}
 
-internal class SourceDirective
-{
-    public ISchemaCoordinate2 Coordinate { get; }
-
-    public SourceDirective(ISchemaCoordinate2 coordinate)
-    {
-        Coordinate = coordinate;
-        Node = new DirectiveNode("_hc_source",
-            new ArgumentNode("coordinate", SchemaCoordinatePrinter.Print(coordinate)));
-    }
-
-    public DirectiveNode Node { get; }
-}
-
-internal sealed class RenameDirective
-{
-    public DirectiveNode Node { get; }
-    public NameNode? NewName
-    {
-        get
-        {
-            var nameArgument = Node.Arguments.FirstOrDefault(x => x.Name.Value.Equals("name"))?.Value.Value;
-            if (nameArgument is not string stringArgument || string.IsNullOrEmpty(stringArgument))
+            if (referencedTypeReplacement is not null)
             {
-                return default;
+                schemaDatabase.Reindex(referencedTypeReplacement.Parent ?? referencedTypeReplacement);
             }
-            return new NameNode(stringArgument);
         }
-    }
-
-    public RenameDirective(DirectiveNode node)
-    {
-        Node = node;
-    }
-
-    public static bool CanHandle(DirectiveNode directiveNode)
-    {
-        return directiveNode.Name.Equals(new NameNode("rename"));
     }
 }

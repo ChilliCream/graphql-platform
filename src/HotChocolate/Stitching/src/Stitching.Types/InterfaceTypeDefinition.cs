@@ -10,7 +10,7 @@ internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDef
 {
     private readonly DocumentDefinition _parentDefinition;
 
-    public InterfaceTypeDefinition(Func<ISchemaNode, ISchemaCoordinate2> coordinateFactory, DocumentDefinition parentDefinition, InterfaceTypeDefinitionNode definition)
+    public InterfaceTypeDefinition(CoordinateFactory coordinateFactory, DocumentDefinition parentDefinition, InterfaceTypeDefinitionNode definition)
     {
         _parentDefinition = parentDefinition ?? throw new ArgumentNullException(nameof(parentDefinition));
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
@@ -26,20 +26,30 @@ internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDef
     public InterfaceTypeDefinitionNode Definition { get; set; }
 
     public ISchemaNode? Parent => _parentDefinition;
-    public ISchemaCoordinate2 Coordinate { get; }
 
-    public void RewriteDefinition(InterfaceTypeDefinitionNode node)
+    public ISchemaCoordinate2? Coordinate { get; }
+
+    public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
+    {
+        return this;
+    }
+
+    public ISchemaNode RewriteDefinition(InterfaceTypeDefinitionNode node)
     {
         _parentDefinition.RewriteDefinition(Definition, node);
 
         Definition = node;
+
+        return this;
     }
 
-    public void RewriteField(FieldDefinitionNode original, FieldDefinitionNode replacement)
+    public ISchemaNode RewriteField(FieldDefinitionNode original, FieldDefinitionNode replacement)
     {
         IReadOnlyList<FieldDefinitionNode> updatedFields = Definition.Fields
             .AddOrReplace(replacement, x => x.Name.Equals(original.Name));
 
         RewriteDefinition(Definition.WithFields(updatedFields));
+
+        return this;
     }
 }

@@ -1,7 +1,7 @@
 using HotChocolate.Language;
-using HotChocolate.Stitching.Types.Helpers;
+using HotChocolate.Stitching.Types.Attempt1.Helpers;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 internal class MergeObjectTypeExtensionsDefinitionOperation : ISchemaNodeOperation<ObjectTypeExtensionNode, ObjectTypeDefinitionNode>
 {

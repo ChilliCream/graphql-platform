@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Types.Attempt1.Coordinates;
+using HotChocolate.Stitching.Types.Attempt1.Operations;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Attempt1.Traversal;
 
 internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
 {
-    private readonly CoordinateProvider _provider;
+    private readonly ISchemaDatabase _provider;
     private readonly SchemaNodeFactory _schemaNodeFactory;
     private readonly DefaultOperationProvider _operationProvider;
 
     public DefaultSyntaxNodeVisitor(
-        CoordinateProvider provider,
+        ISchemaDatabase provider,
         SchemaNodeFactory schemaNodeFactory,
         DefaultOperationProvider operationProvider)
         : base(VisitorAction.Continue)
@@ -46,32 +48,22 @@ internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
 
         fn = (nodeVisitor, node, parent, path, ancestors) =>
         {
-            var added = _schemaNodeFactory.TryAddOrGet(parent, node, out ISchemaNode schemaNode);
-            if (added)
+            if (ancestors.Count > 1)
             {
-                schemaNode.RewriteDefinition(schemaNode.Definition);
+                return VisitorAction.Skip;
+            }
 
-                if (schemaNode?.Definition is IHasName nameNode &&
-                    nameNode.Name.Value == "Test")
-                {
-
-                }
+            var existingNode = _provider.TryGet(parent, node, out ISchemaNode? schemaNode);
+            if (!existingNode)
+            {
+                schemaNode = _provider.Reindex(parent, node);
             }
             else
             {
-                if (schemaNode?.Definition is IHasName nameNode &&
-                    nameNode.Name.Value == "Test")
-                {
-
-                }
-
-                schemaNode?.Apply(node, _operationProvider);
+                schemaNode.Apply(node, _operationProvider);
             }
 
-            if (schemaNode is not null)
-            {
-                _coordinates.Push(schemaNode.Coordinate);
-            }
+            _coordinates.Push(schemaNode.Coordinate);
 
             return enterFn!.Invoke(nodeVisitor, node, parent, path, ancestors);
         };
@@ -93,7 +85,13 @@ internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
 
         fn = (nodeVisitor, node, parent, path, ancestors) =>
         {
+            if (ancestors.Count > 1)
+            {
+                return VisitorAction.Skip;
+            }
+
             _coordinates.Pop();
+
             return leaveFn!.Invoke(nodeVisitor, node, parent, path, ancestors);
         };
 

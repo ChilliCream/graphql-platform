@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 public interface ISchemaNodeOperation
 {

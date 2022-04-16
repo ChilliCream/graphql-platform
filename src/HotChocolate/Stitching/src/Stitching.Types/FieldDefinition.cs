@@ -8,7 +8,7 @@ internal class FieldDefinition : ISchemaNode<FieldDefinitionNode>
 {
     private readonly ITypeDefinition _typeDefinition;
 
-    public FieldDefinition(Func<ISchemaNode, ISchemaCoordinate2> coordinateFactory, ITypeDefinition typeDefinition, FieldDefinitionNode definition)
+    public FieldDefinition(CoordinateFactory coordinateFactory, ITypeDefinition typeDefinition, FieldDefinitionNode definition)
     {
         _typeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
 
@@ -25,12 +25,20 @@ internal class FieldDefinition : ISchemaNode<FieldDefinitionNode>
     public FieldDefinitionNode Definition { get; private set; }
 
     public ISchemaNode? Parent => _typeDefinition;
+
     public ISchemaCoordinate2 Coordinate { get; }
 
-    public void RewriteDefinition(FieldDefinitionNode node)
+    public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
+    {
+        return this;
+    }
+
+    public ISchemaNode RewriteDefinition(FieldDefinitionNode node)
     {
         _typeDefinition.RewriteField(Definition, node);
 
         Definition = node;
+
+        return this;
     }
 }

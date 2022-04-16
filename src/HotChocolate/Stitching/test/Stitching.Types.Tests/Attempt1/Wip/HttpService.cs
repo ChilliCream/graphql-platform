@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Attempt1.Wip;
 
 public class HttpService : IServiceReference
 {

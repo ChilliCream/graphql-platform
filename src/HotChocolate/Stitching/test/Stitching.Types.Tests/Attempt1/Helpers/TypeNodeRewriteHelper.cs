@@ -1,19 +1,14 @@
 using System;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Attempt1.Helpers;
 
 internal class TypeNodeRewriteHelper
 {
-    public static ISchemaNodeInfo<ITypeNode> Rewrite<T>(ISchemaNode? schemaNode, T node)
+    public static ISchemaNodeInfo<ITypeNode> Rewrite<T>(ISchemaNode schemaNode, T node)
         where T : ISyntaxNode
     {
-        if (schemaNode is null)
-        {
-            throw new ArgumentNullException(nameof(schemaNode));
-        }
-
-        Func<ISchemaNode, ISchemaCoordinate2> coordinateFactory = schemaNode.Coordinate.Provider.Add;
+        CoordinateFactory coordinateFactory = schemaNode.Coordinate.Database.Add;
         ISchemaNode? currentNode = new SchemaNode<T>(coordinateFactory, schemaNode.Parent, node);
 
         while (currentNode.Parent?.Definition is ITypeNode parentTypeNode)

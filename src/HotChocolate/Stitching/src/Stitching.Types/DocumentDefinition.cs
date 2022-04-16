@@ -7,7 +7,7 @@ namespace HotChocolate.Stitching.Types;
 
 internal sealed class DocumentDefinition : ISchemaNode<DocumentNode>
 {
-    public DocumentDefinition(Func<ISchemaNode, ISchemaCoordinate2> coordinateFactory, DocumentNode documentNode)
+    public DocumentDefinition(CoordinateFactory coordinateFactory, DocumentNode documentNode)
     {
         Definition = documentNode;
         Coordinate = coordinateFactory.Invoke(this);
@@ -17,25 +17,26 @@ internal sealed class DocumentDefinition : ISchemaNode<DocumentNode>
     public ISchemaNode? Parent => default;
     public ISchemaCoordinate2 Coordinate { get; }
 
-    public void Add(IDefinitionNode definition)
+    public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
     {
-        Definition = Definition
-            .WithDefinitions(new [] { definition });
+        return this;
     }
 
-    public void RewriteDefinition(DocumentNode node)
+    public ISchemaNode RewriteDefinition(DocumentNode node)
     {
         Definition = node;
+
+        return this;
     }
 
-    public void RewriteDefinition(IDefinitionNode original, IDefinitionNode node)
+    public ISchemaNode RewriteDefinition(IDefinitionNode original, IDefinitionNode node)
     {
         IReadOnlyList<IDefinitionNode> updatedDefinitions = Definition
             .Definitions
             .AddOrReplace(node,
-                x => ReferenceEquals(x, original) || x.Equals(original));
+                x => x.Equals(original));
 
-        RewriteDefinition(Definition
+        return RewriteDefinition(Definition
             .WithDefinitions(updatedDefinitions));
     }
 }

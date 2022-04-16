@@ -2,12 +2,12 @@ using System;
 using System.Diagnostics;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Attempt1.Coordinates;
 
 [DebuggerDisplay(@"SchemaCoordinate2: {SchemaCoordinatePrinter.Print(this)}")]
 internal readonly struct SchemaCoordinate2 : ISchemaCoordinate2
 {
-    public ISchemaCoordinate2Provider Provider { get; }
+    public ISchemaDatabase Database { get; }
     public ISchemaCoordinate2? Parent { get; }
     public SyntaxKind Kind { get; }
     public NameNode? Name { get; }
@@ -18,15 +18,15 @@ internal readonly struct SchemaCoordinate2 : ISchemaCoordinate2
                && Equals(Name, other.Name);
     }
 
-    internal SchemaCoordinate2(ISchemaCoordinate2Provider provider, SyntaxKind kind, NameNode? nodeName = default)
+    internal SchemaCoordinate2(ISchemaDatabase provider, SyntaxKind kind, NameNode? nodeName = default)
         : this(provider, default, kind, nodeName)
     {
     }
 
-    internal SchemaCoordinate2(ISchemaCoordinate2Provider provider, ISchemaCoordinate2? parent, SyntaxKind kind,
+    internal SchemaCoordinate2(ISchemaDatabase provider, ISchemaCoordinate2? parent, SyntaxKind kind,
         NameNode? nodeName = default)
     {
-        Provider = provider;
+        Database = provider;
         Parent = parent;
         Kind = kind;
         Name = nodeName;
@@ -39,9 +39,9 @@ internal readonly struct SchemaCoordinate2 : ISchemaCoordinate2
 
     public bool Equals(SchemaCoordinate2 other)
     {
-        return Equals(Kind, other.Kind)
-               && (Name?.Equals(other.Name) ?? true)
-               && (Parent?.Equals(other.Parent) ?? true);
+        return Kind.IsEqualTo(other.Kind)
+               && Name.IsEqualTo(other.Name)
+               && Parent.IsEqualTo(other.Parent);
     }
 
     public override bool Equals(object? obj)

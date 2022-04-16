@@ -1,12 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Attempt1.Coordinates;
 
 internal class SchemaCoordinatePrinter
 {
-    public static readonly NameNode Root = new("Root");
-
     public static string Print(ISchemaCoordinate2? coordinate)
     {
         var coordinates = new Stack<ISchemaCoordinate2>();
@@ -18,15 +17,18 @@ internal class SchemaCoordinatePrinter
                 break;
             }
 
-            if (Root.Equals(coordinate.Name))
-            {
-                break;
-            }
-
             coordinates.Push(coordinate);
             coordinate = coordinate.Parent;
         }
 
-        return string.Join(".", coordinates);
+        return Print(coordinates);
+    }
+
+    public static string Print(IEnumerable<ISchemaCoordinate2> coordinates)
+    {
+        IEnumerable<ISchemaCoordinate2> filteredCoordinates = coordinates
+            .Where(x => x.Kind != SyntaxKind.Document);
+
+        return string.Join(".", filteredCoordinates);
     }
 }

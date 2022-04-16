@@ -10,7 +10,7 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
 {
     private readonly DocumentDefinition _parentDefinition;
 
-    public ObjectTypeDefinition(Func<ISchemaNode, ISchemaCoordinate2> coordinateFactory, DocumentDefinition parentDefinition, ObjectTypeDefinitionNode definition)
+    public ObjectTypeDefinition(CoordinateFactory coordinateFactory, DocumentDefinition parentDefinition, ObjectTypeDefinitionNode definition)
     {
         _parentDefinition = parentDefinition ?? throw new ArgumentNullException(nameof(parentDefinition));
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
@@ -26,21 +26,51 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
     public ObjectTypeDefinitionNode Definition { get; set; }
 
     public ISchemaNode? Parent => _parentDefinition;
-    public ISchemaCoordinate2 Coordinate { get; }
+    public ISchemaCoordinate2? Coordinate { get; }
 
-    public void RewriteDefinition(ObjectTypeDefinitionNode node)
+    public ISchemaNode RewriteDefinition(ObjectTypeDefinitionNode node)
     {
         _parentDefinition.RewriteDefinition(Definition, node);
 
         Definition = node;
+
+        return this;
     }
 
-    public void RewriteField(FieldDefinitionNode original, FieldDefinitionNode replacement)
+    public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
+    {
+        if (this.IsInterfaceNode(original))
+        {
+            return ReplaceInterface(original.Definition, replacement);
+        }
+
+        return this;
+    }
+
+    public ISchemaNode RewriteField(FieldDefinitionNode original, FieldDefinitionNode replacement)
     {
         IReadOnlyList<FieldDefinitionNode> updatedFields = Definition.Fields
             .AddOrReplace(replacement, x => x.Name.Equals(original.Name));
 
         ObjectTypeDefinitionNode definition = Definition.WithFields(updatedFields);
         RewriteDefinition(definition);
+
+        return this;
+    }
+
+    public ObjectTypeDefinition ReplaceInterface(ISyntaxNode original, ISyntaxNode replacement)
+    {
+        if (original is not NamedTypeNode originalNamedTypeNode || replacement is not NamedTypeNode namedTypeNode)
+        {
+            throw new InvalidOperationException($"Must be a {nameof(NamedTypeNode)}");
+        }
+
+        IReadOnlyList<NamedTypeNode> updatedInterfaces = Definition.Interfaces
+            .AddOrReplace(namedTypeNode,
+                x => x.Equals(originalNamedTypeNode));
+
+        ObjectTypeDefinitionNode definition = Definition.WithInterfaces(updatedInterfaces);
+        RewriteDefinition(definition);
+        return this;
     }
 }

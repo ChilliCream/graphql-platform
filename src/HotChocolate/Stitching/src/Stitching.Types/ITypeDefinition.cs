@@ -22,7 +22,7 @@ internal interface ITypeDefinition : ISchemaNode
     /// </summary>
     bool IsExtension { get; }
 
-    void RewriteField(FieldDefinitionNode definition, FieldDefinitionNode node);
+    ISchemaNode RewriteField(FieldDefinitionNode definition, FieldDefinitionNode node);
 }
 
 /// <summary>

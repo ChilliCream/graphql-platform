@@ -1,4 +1,6 @@
-namespace HotChocolate.Stitching.Types;
+using HotChocolate.Stitching.Types.Attempt1.Wip;
+
+namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 public class OperationContext
 {

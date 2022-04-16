@@ -1,12 +1,12 @@
 interface TestInterface_renamed @_hc_source(coordinate: "TestInterface") {
-  foo: Test2!
+  foo_renamed: test2_renamed!
 }
 
-type Test_Renamed implements TestInterface @_hc_source(coordinate: "Test") {
-  foo_renamed: Test2! @_hc_source(coordinate: "Test.foo")
+type test_renamed implements TestInterface_renamed @_hc_source(coordinate: "Test") {
+  foo_renamed: test2_renamed! @_hc_source(coordinate: "Test.foo")
   id_renamed: String! @_hc_source(coordinate: "Test.id")
 }
 
-type Test2 {
-  test: Test_Renamed!
+type test2_renamed @_hc_source(coordinate: "Test2") {
+  test: test_renamed!
 }

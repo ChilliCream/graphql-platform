@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Attempt1;
 
 public static class DirectiveExtensions
 {
@@ -29,7 +29,8 @@ public static class DirectiveExtensions
 
         IEnumerable<DirectiveNode> modifiedDirectives = obj.Directives
             .Where(x => !remove.Contains(x))
-            .Concat(add);
+            .Concat(add)
+            .Distinct();
 
         return obj.WithDirectives(modifiedDirectives.ToList());
     }

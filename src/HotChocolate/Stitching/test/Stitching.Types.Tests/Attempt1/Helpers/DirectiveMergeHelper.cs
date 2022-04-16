@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Types.Attempt1.Operations;
 
-namespace HotChocolate.Stitching.Types.Helpers;
+namespace HotChocolate.Stitching.Types.Attempt1.Helpers;
 
 internal static class DirectiveMergeHelper
 {
