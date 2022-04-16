@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
@@ -33,23 +34,29 @@ public class TestBase
 
     protected ElasticClient Client { get; }
 
-    protected string DefaultIndexName { get; }= $"{Guid.NewGuid():N}";
+    protected string DefaultIndexName { get; } = $"{Guid.NewGuid():N}";
 
     protected async Task SetupMapping<T>()
     where T : class
     {
         await Client.Indices
             .CreateAsync(DefaultIndexName, c => c.Map(x => x.AutoMap<T>()));
+    }
 
+    protected async Task ClearData()
+    {
+        await Client.Indices.DeleteAsync(Indices.AllIndices);
     }
     protected async Task IndexDocuments<T>(IEnumerable<T> data)
         where T : class, IHasId
     {
+        await ClearData();
         await SetupMapping<T>();
         foreach (T element in data)
         {
-            await Client.IndexDocumentAsync(new IndexRequest<T>(element));
+            await Client.IndexDocumentAsync(element);
         }
+        await Client.Indices.RefreshAsync(Indices.AllIndices);
     }
 }
 
@@ -58,7 +65,8 @@ public interface IHasId
     public string Id { get; }
 }
 
-public class ElasticSearchStringTests : TestBase, IClassFixture<ElasticsearchResource>
+[Collection("Elastic Tests")]
+public class ElasticSearchStringTests : TestBase
 {
     private readonly IReadOnlyList<Foo> _data = new[]
     {
@@ -124,7 +132,16 @@ public class ElasticSearchStringTests : TestBase, IClassFixture<ElasticsearchRes
     }
 }
 
-public class IntegrationTests : TestBase, IClassFixture<ElasticsearchResource>
+[CollectionDefinition("Elastic Tests")]
+public class ElasticSearchFixture : ICollectionFixture<ElasticsearchResource>
+{
+    // This class has no code, and is never created. Its purpose is simply
+    // to be the place to apply [CollectionDefinition] and all the
+    // ICollectionFixture<> interfaces.
+}
+
+[Collection("Elastic Tests")]
+public class IntegrationTests : TestBase
 {
     private readonly IReadOnlyList<Foo> _data = new[]
     {
@@ -239,7 +256,7 @@ public class IntegrationTests : TestBase, IClassFixture<ElasticsearchResource>
 
         const string query = @"
         {
-            test(where: {bar: {and:[{ eq: ""B"" },{ eq: ""A"" }]}}) {
+            test(where: {and: [{bar: { eq: ""B"" }},{qux: { eq: ""B"" }}]}) {
                 bar
             }
         }

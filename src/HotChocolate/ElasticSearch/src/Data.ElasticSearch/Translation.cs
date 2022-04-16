@@ -76,6 +76,25 @@ public static class ElasticSearchResolverContextExtensions
         return null;
     }
 
+    public static SearchDescriptor<T>? CreateSearchDescriptor<T>(
+        this IElasticClient client,
+        IResolverContext context)
+        where T : class
+    {
+        if (context.LocalContextData.TryGetValue(nameof(IElasticQueryFactory), out object? value) &&
+            value is IElasticQueryFactory translator)
+        {
+            QueryDefinition? queryDefinition =
+                translator.Create(context, ElasticSearchClient.From(client));
+            if (queryDefinition is not null)
+            {
+                return new SearchDescriptor<T>().Query(_ => CreateQuery(queryDefinition));
+            }
+        }
+
+        return null;
+    }
+
     private static QueryContainer CreateQuery(QueryDefinition definition)
     {
         if (definition.Query.Count == 1 &&

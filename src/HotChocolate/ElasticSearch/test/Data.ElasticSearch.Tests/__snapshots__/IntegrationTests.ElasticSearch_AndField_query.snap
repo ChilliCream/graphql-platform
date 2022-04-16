@@ -1,1 +1,1 @@
-﻿{"query":{"bool":{"must":[{"bool":{"must":[{"bool":{"must":[{"match":{"Bar":{"query":"B"}}}]}},{"bool":{"must":[{"match":{"Bar":{"query":"A"}}}]}}]}}]}}}
+﻿{"query":{"bool":{"must":[{"bool":{"must":[{"bool":{"must":[{"match":{"bar":{"query":"B"}}}]}}]}},{"bool":{"must":[{"bool":{"must":[{"match":{"qux":{"query":"A"}}}]}}]}}]}}}

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Elasticsearch.Net;
@@ -27,16 +28,19 @@ public static class TestExtensions
         this IObjectFieldDescriptor field,
         IElasticClient client,
         IEnumerable<T> data)
+        where T : class, IHasId
         => field
-            .Type<ListType<ObjectType<Foo>>>()
+            .Type<ListType<ObjectType<T>>>()
             .Resolve(async context =>
             {
-                SearchRequest<Foo> searchRequest = client.CreateSearchRequest<Foo>(context)!;
+                SearchDescriptor<T> searchRequest = client.CreateSearchDescriptor<T>(context)!;
+                searchRequest.Explain();
 
-                ISearchResponse<Foo> result =
-                    await client.SearchAsync<Foo>(searchRequest);
+                ISearchResponse<T> result =
+                    await client.SearchAsync<T>(searchRequest);
 
-                return result.Documents;
+                var ids = result.Hits.Select(x => x.Source.Id).ToHashSet();
+                return data.Where(x => ids.Contains(x.Id)).ToArray();
             });
 
     public static ValueTask<IRequestExecutor> BuildTestExecutorAsync(
