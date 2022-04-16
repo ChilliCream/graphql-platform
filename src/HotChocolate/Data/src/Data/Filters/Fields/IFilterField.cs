@@ -16,4 +16,6 @@ public interface IFilterField : IInputField
     new IExtendedType? RuntimeType { get; }
 
     IFilterFieldHandler Handler { get; }
+
+    IFilterMetadata? Metadata { get; }
 }
