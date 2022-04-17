@@ -2,15 +2,15 @@
   query: Query
 }
 
-type Foo {
+type FooString {
   bar: String!
 }
 
 type Query {
-  root(order: [FooSortInput!]): [Foo]
+  root(order: [FooStringSortInput!]): [FooString]
 }
 
-input FooSortInput {
+input FooStringSortInput {
   bar: SortEnumType
 }
 

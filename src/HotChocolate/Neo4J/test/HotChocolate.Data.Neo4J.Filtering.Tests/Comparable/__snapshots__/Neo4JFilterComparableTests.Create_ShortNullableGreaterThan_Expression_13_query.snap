@@ -1,1 +1,1 @@
-﻿MATCH (fooNullable:FooNullable) WHERE fooNullable.BarShort > 13 RETURN fooNullable {.BarShort}
+﻿MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort > 13 RETURN fooCompNullable {.BarShort}
