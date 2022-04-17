@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Data.ElasticSearch.Filters;
 using HotChocolate.Resolvers;
 using Nest;
@@ -23,10 +22,10 @@ public static class ElasticSearchResolverContextExtensions
             return null;
         }
 
-        QueryDefinition? queryDefinition = factory.Create(context, ElasticSearchClient.From(client));
+        BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
 
-        return queryDefinition is not null
-            ? new SearchRequest {Query = CreateQuery(queryDefinition)}
+        return operation is not null
+            ? new SearchRequest {Query = CreateQuery(operation)}
             : null;
     }
 
@@ -43,10 +42,10 @@ public static class ElasticSearchResolverContextExtensions
             return null;
         }
 
-        QueryDefinition? queryDefinition = factory.Create(context, ElasticSearchClient.From(client));
+        BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
 
-        return queryDefinition is not null
-            ? new SearchRequest<T> {Query = CreateQuery(queryDefinition)}
+        return operation is not null
+            ? new SearchRequest<T> {Query = CreateQuery(operation)}
             : null;
     }
 
@@ -64,10 +63,10 @@ public static class ElasticSearchResolverContextExtensions
             return null;
         }
 
-        QueryDefinition? queryDefinition = factory.Create(context, ElasticSearchClient.From(client));
+        BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
 
-        return queryDefinition is not null
-            ? new SearchDescriptor<T>().Query(_ => CreateQuery(queryDefinition))
+        return operation is not null
+            ? new SearchDescriptor<T>().Query(_ => CreateQuery(operation))
             : null;
     }
 
@@ -86,29 +85,6 @@ public static class ElasticSearchResolverContextExtensions
         return false;
     }
 
-    private static QueryContainer CreateQuery(QueryDefinition definition)
-    {
-        if (definition.Query.Count == 1 &&
-            definition.Filter.Count == 0 &&
-            definition.Query[0] is BoolOperation &&
-            ElasticSearchOperationRewriter.Instance
-                .Rewrite(definition.Query[0]) is QueryBase reduced)
-        {
-            return new QueryContainer(reduced);
-        }
-
-        return new BoolQuery()
-        {
-            Must = definition.Query
-                .Select(ElasticSearchOperationRewriter.Instance.Rewrite)
-                .OfType<QueryBase>()
-                .Select(x => new QueryContainer(x))
-                .ToArray(),
-            Filter = definition.Filter
-                .Select(ElasticSearchOperationRewriter.Instance.Rewrite)
-                .OfType<QueryBase>()
-                .Select(x => new QueryContainer(x))
-                .ToArray(),
-        };
-    }
+    private static QueryContainer CreateQuery(ISearchOperation definition)
+        => new((QueryBase)ElasticSearchOperationRewriter.Instance.Rewrite(definition));
 }

@@ -21,12 +21,13 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         List<ISearchOperation>? must = null;
         List<ISearchOperation>? should = null;
         List<ISearchOperation>? mustNot = null;
+        List<ISearchOperation>? filter = null;
 
         foreach (ISearchOperation mustOperation in operation.Must)
         {
             if (Rewrite(mustOperation) is { } rewritten)
             {
-                if (rewritten is BoolOperation {Should.Count: 0} boolOperation)
+                if (rewritten is BoolOperation {Should.Count: 0, Filter.Count: 0} boolOperation)
                 {
                     if (boolOperation.Must.Count > 0)
                     {
@@ -56,6 +57,7 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
                     {
                         Must.Count: 0,
                         MustNot.Count: 0,
+                        Filter.Count: 0,
                         Should.Count: > 0
                     } boolOperation)
                 {
@@ -74,7 +76,7 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         {
             if (Rewrite(mustOperation) is { } rewritten)
             {
-                if (rewritten is BoolOperation {Should.Count: 0} boolOperation)
+                if (rewritten is BoolOperation {Should.Count: 0, Filter.Count: 0} boolOperation)
                 {
                     if (boolOperation.MustNot.Count > 0)
                     {
@@ -96,9 +98,36 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
             }
         }
 
-        if (must is null && mustNot is null && should is null)
+        foreach (ISearchOperation mustOperation in operation.Filter)
+        {
+            if (Rewrite(mustOperation) is { } rewritten)
+            {
+                if (rewritten is BoolOperation {
+                        Must.Count: 0,
+                        MustNot.Count: 0,
+                        Filter.Count: > 0,
+                        Should.Count:  0
+                    } op)
+                {
+                    filter ??= new List<ISearchOperation>();
+                    filter.AddRange(op.Filter);
+                }
+                else
+                {
+                    filter ??= new List<ISearchOperation>();
+                    filter.Add(rewritten);
+                }
+            }
+        }
+
+        if (must is null && mustNot is null && should is null && filter is null)
         {
             return null;
+        }
+
+        if (must is {Count:1} && mustNot is null && should is null && filter is null)
+        {
+            return must[0];
         }
 
         static IReadOnlyList<ISearchOperation> EnsureNotNull(
@@ -108,7 +137,8 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         return new BoolOperation(
             EnsureNotNull(must),
             EnsureNotNull(should),
-            EnsureNotNull(mustNot));
+            EnsureNotNull(mustNot),
+            EnsureNotNull(filter));
     }
 
     protected override ISearchOperation? Rewrite(MatchOperation operation)

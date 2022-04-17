@@ -39,10 +39,7 @@ public class ElasticSearchFilterCombinator
             throw new InvalidOperationException();
         }
 
-        return new BoolOperation(
-            operations.ToArray(),
-            Array.Empty<ISearchOperation>(),
-            Array.Empty<ISearchOperation>());
+        return BoolOperation.Create(must: operations.ToArray());
     }
 
     private static ISearchOperation CombineWithOr(Queue<ISearchOperation> operations)
@@ -52,9 +49,6 @@ public class ElasticSearchFilterCombinator
             throw new InvalidOperationException();
         }
 
-        return new BoolOperation(
-            Array.Empty<ISearchOperation>(),
-            operations.ToArray(),
-            Array.Empty<ISearchOperation>());
+        return BoolOperation.Create(should: operations.ToArray());
     }
 }

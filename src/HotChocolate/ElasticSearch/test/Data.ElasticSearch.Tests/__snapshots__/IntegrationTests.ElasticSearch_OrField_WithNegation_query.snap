@@ -4,34 +4,22 @@
       "filter": [
         {
           "bool": {
-            "must": [
+            "should": [
+              {
+                "match": {
+                  "bar": {
+                    "query": "B"
+                  }
+                }
+              },
               {
                 "bool": {
-                  "should": [
+                  "must_not": [
                     {
-                      "bool": {
-                        "must": [
-                          {
-                            "match": {
-                              "bar": {
-                                "query": "B"
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "bool": {
-                        "must_not": [
-                          {
-                            "match": {
-                              "bar": {
-                                "query": "X"
-                              }
-                            }
-                          }
-                        ]
+                      "match": {
+                        "bar": {
+                          "query": "X"
+                        }
                       }
                     }
                   ]

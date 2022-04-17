@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using static HotChocolate.Data.ElasticSearch.BoolOperation;
 using static HotChocolate.Data.ElasticSearch.Filters.KindOperationRewriter;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
@@ -17,11 +19,11 @@ public static class ElasticSearchFilterScopeExtensions
         string.Join(".", scope.Path.Reverse());
 
     /// <summary>
-    /// Builds a <see cref="QueryDefinition"/> from the state aggregated in the scope
+    /// Builds a <see cref="BoolOperation"/> from the state aggregated in the scope
     /// </summary>
     public static bool TryCreateQuery(
         this ElasticSearchFilterScope scope,
-        [NotNullWhen(true)] out QueryDefinition? query)
+        [NotNullWhen(true)] out BoolOperation? query)
     {
         query = null;
 
@@ -35,19 +37,15 @@ public static class ElasticSearchFilterScopeExtensions
             return false;
         }
 
-        ISearchOperation[] queries = Array.Empty<ISearchOperation>();
-        ISearchOperation[] filters = Array.Empty<ISearchOperation>();
-        if (Query.Rewrite(operation) is BoolOperation {IsEmpty: false} rewrittenQuery)
+        query = (Query.Rewrite(operation), Filter.Rewrite(operation)) switch
         {
-            queries = new ISearchOperation[] {rewrittenQuery};
-        }
+            (BoolOperation q, null) => q,
+            ({ } q, { } f) => Create(must: new[] {q}, filter: new[] {f}),
+            ({ } q, null) => Create(must: new[] {q}, filter: Array.Empty<ISearchOperation>()),
+            (null, { } f) => Create(must: Array.Empty<ISearchOperation>(), filter: new[] {f}),
+            _ => null
+        };
 
-        if (Filter.Rewrite(operation) is BoolOperation {IsEmpty: false} rewrittenFilter)
-        {
-            filters = new ISearchOperation[] {rewrittenFilter};
-        }
-
-        query = new QueryDefinition(queries, filters);
-        return true;
+        return query is not null;
     }
 }

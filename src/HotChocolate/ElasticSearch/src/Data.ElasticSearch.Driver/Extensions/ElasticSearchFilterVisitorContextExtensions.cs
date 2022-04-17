@@ -26,7 +26,7 @@ public static class ElasticSearchFilterVisitorContextExtensions
     /// <returns>True in case the query has been build successfully, otherwise false</returns>
     public static bool TryCreateQuery(
         this ElasticSearchFilterVisitorContext context,
-        [NotNullWhen(true)] out QueryDefinition? query)
+        [NotNullWhen(true)] out BoolOperation? query)
     {
         return context.GetElasticSearchFilterScope().TryCreateQuery(out query);
     }

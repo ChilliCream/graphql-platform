@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Data.ElasticSearch.Filters;
 using Nest;
@@ -12,21 +14,44 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     /// <inheritdoc />
     protected override IQuery Rewrite(BoolOperation operation)
     {
-        return new BoolQuery
+        IEnumerable<QueryContainer> should = Array.Empty<QueryContainer>();
+        IEnumerable<QueryContainer> must = Array.Empty<QueryContainer>();
+        IEnumerable<QueryContainer> mustNot = Array.Empty<QueryContainer>();
+        IEnumerable<QueryContainer> filter = Array.Empty<QueryContainer>();
+
+        if (operation.Should.Count > 0)
         {
-            Should = operation.Should
+            should = operation.Should
                 .Select(Rewrite)
                 .OfType<QueryBase>()
-                .Select(x => new QueryContainer(x)),
-            Must = operation.Must
+                .Select(x => new QueryContainer(x));
+        }
+
+        if (operation.Must.Count > 0)
+        {
+            must = operation.Must
                 .Select(Rewrite)
                 .OfType<QueryBase>()
-                .Select(x => new QueryContainer(x)),
-            MustNot = operation.MustNot
+                .Select(x => new QueryContainer(x));
+        }
+
+        if (operation.MustNot.Count > 0)
+        {
+            mustNot = operation.MustNot
                 .Select(Rewrite)
                 .OfType<QueryBase>()
-                .Select(x => new QueryContainer(x)),
-        };
+                .Select(x => new QueryContainer(x));
+        }
+
+        if (operation.Filter.Count > 0)
+        {
+            filter = operation.Filter
+                .Select(Rewrite)
+                .OfType<QueryBase>()
+                .Select(x => new QueryContainer(x));
+        }
+
+        return new BoolQuery {Should = should, Must = must, MustNot = mustNot, Filter = filter};
     }
 
     /// <inheritdoc />

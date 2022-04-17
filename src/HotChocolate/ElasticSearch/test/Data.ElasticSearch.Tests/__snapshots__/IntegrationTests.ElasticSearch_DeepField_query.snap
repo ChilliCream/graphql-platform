@@ -3,16 +3,10 @@
     "bool": {
       "filter": [
         {
-          "bool": {
-            "must": [
-              {
-                "match": {
-                  "baz.bar": {
-                    "query": "A"
-                  }
-                }
-              }
-            ]
+          "match": {
+            "baz.bar": {
+              "query": "A"
+            }
           }
         }
       ]

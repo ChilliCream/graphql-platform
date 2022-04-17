@@ -77,7 +77,7 @@ public class ElasticSearchFilterProvider
             _argumentName = argumentName;
         }
 
-        public QueryDefinition? Create(
+        public BoolOperation? Create(
             IResolverContext context,
             IAbstractElasticClient client)
         {
@@ -91,7 +91,7 @@ public class ElasticSearchFilterProvider
 
                 _provider.Visitor.Visit(filter, visitorContext);
 
-                if (!visitorContext.TryCreateQuery(out QueryDefinition? whereQuery) ||
+                if (!visitorContext.TryCreateQuery(out BoolOperation? whereQuery) ||
                     visitorContext.Errors.Count > 0)
                 {
                     foreach (IError error in visitorContext.Errors)
