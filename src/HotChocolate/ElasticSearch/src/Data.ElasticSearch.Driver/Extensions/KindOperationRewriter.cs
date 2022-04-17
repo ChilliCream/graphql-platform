@@ -6,7 +6,7 @@ namespace HotChocolate.Data.ElasticSearch.Filters;
 /// This rewriter rewrites an operation and splits <see cref="ElasticSearchOperationKind.Filter"/>
 /// and <see cref="ElasticSearchOperationKind.Query"/> into "must" and "should"
 /// </summary>
-internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation>
+internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?>
 {
     private readonly ElasticSearchOperationKind _kind;
 
@@ -15,54 +15,75 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation>
         _kind = kind;
     }
 
-    protected override ISearchOperation Rewrite(BoolOperation operation)
+    protected override ISearchOperation? Rewrite(BoolOperation operation)
     {
-        if (operation.Must.Count == 1 &&
-            operation.Should.Count == 0 &&
-            operation.Must[0] is BoolOperation)
+        List<ISearchOperation> must = new();
+        List<ISearchOperation> should = new();
+        List<ISearchOperation> mustNot = new();
+
+        foreach (ISearchOperation mustOperation in operation.Must)
         {
-            return operation.Must[0];
-        }
-
-        return new BoolOperation(
-            FilterOperations(operation.Must),
-            FilterOperations(operation.Should));
-    }
-
-    protected override ISearchOperation Rewrite(MatchOperation operation) => operation;
-
-    protected override ISearchOperation Rewrite(RangeOperation operation) => operation;
-
-    protected override ISearchOperation Rewrite(TermOperation operation) => operation;
-
-    private IReadOnlyList<ISearchOperation> FilterOperations(
-        IReadOnlyList<ISearchOperation> operations)
-    {
-        if (operations.Count == 0)
-        {
-            return operations;
-        }
-
-        List<ISearchOperation> filteredOperations = new();
-
-        foreach (var operation in operations)
-        {
-            if (operation is ILeafSearchOperation leaf)
+            if (Rewrite(mustOperation) is { } rewritten)
             {
-                if (leaf.Kind == _kind)
+                if (rewritten is BoolOperation {Should.Count: 0} boolOperation)
                 {
-                    filteredOperations.Add(Rewrite(operation));
+                    must.AddRange(boolOperation.Must);
+                    mustNot.AddRange(boolOperation.MustNot);
+                }
+                else
+                {
+                    must.Add(rewritten);
                 }
             }
-            else
+        }
+
+        foreach (ISearchOperation mustOperation in operation.Should)
+        {
+            if (Rewrite(mustOperation) is { } rewritten)
             {
-                filteredOperations.Add(Rewrite(operation));
+                if (rewritten is BoolOperation {Must.Count: 0, MustNot.Count: 0} boolOperation)
+                {
+                    should.AddRange(boolOperation.Should);
+                }
+                else
+                {
+                    should.Add(rewritten);
+                }
             }
         }
 
-        return filteredOperations;
+        foreach (ISearchOperation mustOperation in operation.MustNot)
+        {
+            if (Rewrite(mustOperation) is { } rewritten)
+            {
+                if (rewritten is BoolOperation {Should.Count: 0} boolOperation)
+                {
+                    must.AddRange(boolOperation.MustNot);
+                    mustNot.AddRange(boolOperation.Must);
+                }
+                else
+                {
+                    mustNot.Add(rewritten);
+                }
+            }
+        }
+
+        if (must.Count == 0 && mustNot.Count == 0 && should.Count == 0)
+        {
+            return null;
+        }
+
+        return new BoolOperation(must, should, mustNot);
     }
 
+    protected override ISearchOperation? Rewrite(MatchOperation operation)
+        => operation.Kind == _kind ? operation : null;
+
+    protected override ISearchOperation? Rewrite(RangeOperation operation)
+        => operation.Kind == _kind ? operation : null;
+
+    protected override ISearchOperation? Rewrite(TermOperation operation)
+        => operation.Kind == _kind ? operation : null;
 
     public static KindOperationRewriter Filter { get; } = new(ElasticSearchOperationKind.Filter);
 

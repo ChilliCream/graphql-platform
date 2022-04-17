@@ -22,6 +22,10 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
                 .Select(Rewrite)
                 .OfType<QueryBase>()
                 .Select(x => new QueryContainer(x)),
+            MustNot = operation.MustNot
+                .Select(Rewrite)
+                .OfType<QueryBase>()
+                .Select(x => new QueryContainer(x)),
         };
     }
 

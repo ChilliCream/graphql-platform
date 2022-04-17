@@ -39,8 +39,7 @@ public static class TestExtensions
                 ISearchResponse<T> result =
                     await client.SearchAsync<T>(searchRequest);
 
-                var ids = result.Hits.Select(x => x.Source.Id).ToHashSet();
-                return data.Where(x => ids.Contains(x.Id)).ToArray();
+                return result.Hits.Select(x => x.Source);
             });
 
     public static ValueTask<IRequestExecutor> BuildTestExecutorAsync(

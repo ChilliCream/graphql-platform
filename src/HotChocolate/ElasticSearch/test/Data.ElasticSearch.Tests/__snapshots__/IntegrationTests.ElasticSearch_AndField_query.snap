@@ -1,1 +1,1 @@
-﻿{"query":{"bool":{"filter":[{"bool":{"must":[{"bool":{"must":[{"bool":{"must":[{"match":{"bar":{"query":"B"}}}]}}]}},{"bool":{"must":[{"bool":{"must":[{"match":{"qux":{"query":"B"}}}]}}]}}]}}],"must":[{"bool":{"must":[{"bool":{"must":[{"bool":{"must":[{"match":{"bar":{"query":"B"}}}]}}]}},{"bool":{"must":[{"bool":{"must":[{"match":{"qux":{"query":"B"}}}]}}]}}]}}]}}}
+﻿{"query":{"bool":{"filter":[{"bool":{"must":[{"match":{"bar":{"query":"B"}}},{"match":{"qux":{"query":"B"}}}]}}]}}}
