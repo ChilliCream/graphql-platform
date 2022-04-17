@@ -1,5 +1,5 @@
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Data.ElasticSearch;
+using HotChocolate.Execution.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

@@ -24,7 +24,7 @@ public class ElasticSearchListSomeOperationHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
         => context.Type is IListFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.Some};
+            fieldDefinition is FilterOperationFieldDefinition { Id: DefaultFilterOperations.Some };
 
     /// <inheritdoc />
     public override bool TryHandleEnter(

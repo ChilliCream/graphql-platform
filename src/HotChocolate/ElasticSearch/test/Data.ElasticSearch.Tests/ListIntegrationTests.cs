@@ -74,15 +74,6 @@ public class ListIntegrationTests : TestBase
         }
     }
 
-    public class BazFilterType : FilterInputType<Baz>
-    {
-        protected override void Configure(IFilterInputTypeDescriptor<Baz> descriptor)
-        {
-            descriptor.Field(x => x.Bar).Type<TestOperationType>();
-            descriptor.Field(x => x.Qux).Type<TestOperationType>();
-        }
-    }
-
     [Fact]
     public async Task ElasticSearch_Scalar_Some()
     {

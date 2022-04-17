@@ -27,7 +27,7 @@ public class ElasticSearchFilterConvention : FilterConvention
         if (runtimeType.IsArrayOrList)
         {
             if (runtimeType.ElementType is { } &&
-                base.GetFieldType(runtimeType.ElementType.Source) is {} elementType)
+                base.GetFieldType(runtimeType.ElementType.Source) is { } elementType)
             {
                 return _typeInspector.GetTypeRef(
                     typeof(ArrayFilterInputType<>).MakeGenericType(elementType.Type.Source),

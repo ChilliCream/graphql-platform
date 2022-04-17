@@ -34,9 +34,9 @@ public static class ElasticSearchFilterScopeExtensions
         query = (Query.Rewrite(operation), Filter.Rewrite(operation)) switch
         {
             (BoolOperation q, null) => q,
-            ({ } q, { } f) => Create(must: new[] {q}, filter: new[] {f}),
-            ({ } q, null) => Create(must: new[] {q}, filter: Array.Empty<ISearchOperation>()),
-            (null, { } f) => Create(must: Array.Empty<ISearchOperation>(), filter: new[] {f}),
+            ({ } q, { } f) => Create(must: new[] { q }, filter: new[] { f }),
+            ({ } q, null) => Create(must: new[] { q }, filter: Array.Empty<ISearchOperation>()),
+            (null, { } f) => Create(must: Array.Empty<ISearchOperation>(), filter: new[] { f }),
             _ => null
         };
 

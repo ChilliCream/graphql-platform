@@ -21,5 +21,5 @@ public static class ElasticSearchSchemaBuilderExtensions
     public static ISchemaBuilder AddElasticSearchFiltering(
         this ISchemaBuilder builder,
         string? name = null) =>
-        builder.AddFiltering(new ElasticSearchFilterConvention() ,name);
+        builder.AddFiltering(new ElasticSearchFilterConvention(), name);
 }

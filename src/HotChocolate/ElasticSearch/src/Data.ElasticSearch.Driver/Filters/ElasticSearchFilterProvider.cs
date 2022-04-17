@@ -30,7 +30,8 @@ public class ElasticSearchFilterProvider
     /// The visitor that is used to traverse the incoming selection set an execute handlers
     /// </summary>
     protected virtual FilterVisitor<ElasticSearchFilterVisitorContext, ISearchOperation>
-        Visitor { get; } = new(new ElasticSearchFilterCombinator());
+        Visitor
+    { get; } = new(new ElasticSearchFilterCombinator());
 
     /// <inheritdoc />
     public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)

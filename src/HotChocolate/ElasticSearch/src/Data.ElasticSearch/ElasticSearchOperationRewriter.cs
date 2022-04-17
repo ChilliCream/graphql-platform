@@ -51,13 +51,13 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
                 .Select(x => new QueryContainer(x));
         }
 
-        return new BoolQuery {Should = should, Must = must, MustNot = mustNot, Filter = filter};
+        return new BoolQuery { Should = should, Must = must, MustNot = mustNot, Filter = filter };
     }
 
     /// <inheritdoc />
     protected override IQuery Rewrite(MatchOperation operation)
     {
-        return new MatchQuery {Field = operation.Path, Query = operation.Value};
+        return new MatchQuery { Field = operation.Path, Query = operation.Value };
     }
 
     /// <inheritdoc />
@@ -74,7 +74,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
 
     /// <inheritdoc />
     protected override IQuery Rewrite(ExistsOperation operation)
-        => new ExistsQuery {Field = operation.Field};
+        => new ExistsQuery { Field = operation.Field };
 
     /// <summary>
     /// The instance of the rewriter

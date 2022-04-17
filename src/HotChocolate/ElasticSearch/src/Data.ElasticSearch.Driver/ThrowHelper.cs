@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
-using HotChocolate.Data.Filters;
 using HotChocolate.Data.ElasticSearch.Filters;
+using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data.ElasticSearch;
 

@@ -25,7 +25,7 @@ public static class ElasticSearchResolverContextExtensions
         BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
 
         return operation is not null
-            ? new SearchRequest {Query = CreateQuery(operation)}
+            ? new SearchRequest { Query = CreateQuery(operation) }
             : null;
     }
 
@@ -45,7 +45,7 @@ public static class ElasticSearchResolverContextExtensions
         BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
 
         return operation is not null
-            ? new SearchRequest<T> {Query = CreateQuery(operation)}
+            ? new SearchRequest<T> { Query = CreateQuery(operation) }
             : null;
     }
 

@@ -25,7 +25,7 @@ public class ElasticSearchListAnyOperationHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
         => context.Type is IListFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.Any};
+            fieldDefinition is FilterOperationFieldDefinition { Id: DefaultFilterOperations.Any };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
@@ -50,6 +50,6 @@ public class ElasticSearchListAnyOperationHandler
             return operation;
         }
 
-        return BoolOperation.Create(mustNot: new[] {operation});
+        return BoolOperation.Create(mustNot: new[] { operation });
     }
 }

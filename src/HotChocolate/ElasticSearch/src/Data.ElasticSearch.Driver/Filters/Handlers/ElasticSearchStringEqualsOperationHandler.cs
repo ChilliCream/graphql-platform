@@ -25,7 +25,7 @@ public class ElasticSearchStringEqualsOperationHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
         => context.Type is StringOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.Equals};
+            fieldDefinition is FilterOperationFieldDefinition { Id: DefaultFilterOperations.Equals };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(

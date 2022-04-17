@@ -78,7 +78,7 @@ public static class TestExtensions
             data.Write(stream, new ConnectionSettings(new InMemoryConnection()));
             stream.Position = 0;
             JsonDocument deserialized = await JsonDocument.ParseAsync(stream);
-            JsonSerializerOptions options = new() {WriteIndented = true};
+            JsonSerializerOptions options = new() { WriteIndented = true };
             context.ContextData[nameof(SearchRequest)] =
                 JsonSerializer.Serialize(deserialized, options);
         });

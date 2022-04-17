@@ -31,7 +31,7 @@ internal class ElasticSearchClient : IAbstractElasticClient
             return _client.Infer.Field(new Field(propertyInfo));
         }
 
-        if (field.Member is {Name: { } memberName})
+        if (field.Member is { Name: { } memberName })
         {
             return memberName;
         }

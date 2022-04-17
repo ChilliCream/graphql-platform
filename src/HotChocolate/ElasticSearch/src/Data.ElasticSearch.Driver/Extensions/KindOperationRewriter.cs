@@ -31,7 +31,7 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         {
             if (Rewrite(mustOperation) is { } rewritten)
             {
-                if (rewritten is BoolOperation {Should.Count: 0, Filter.Count: 0} boolOperation)
+                if (rewritten is BoolOperation { Should.Count: 0, Filter.Count: 0 } boolOperation)
                 {
                     if (boolOperation.Must.Count > 0)
                     {
@@ -80,7 +80,7 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         {
             if (Rewrite(mustOperation) is { } rewritten)
             {
-                if (rewritten is BoolOperation {Should.Count: 0, Filter.Count: 0} boolOperation)
+                if (rewritten is BoolOperation { Should.Count: 0, Filter.Count: 0 } boolOperation)
                 {
                     if (boolOperation.MustNot.Count > 0)
                     {
@@ -130,7 +130,7 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
             return null;
         }
 
-        if (must is {Count: 1} && mustNot is null && should is null && filter is null)
+        if (must is { Count: 1 } && mustNot is null && should is null && filter is null)
         {
             return must[0];
         }
