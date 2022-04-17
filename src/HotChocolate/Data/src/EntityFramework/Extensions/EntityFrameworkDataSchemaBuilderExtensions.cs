@@ -1,8 +1,8 @@
-using System;
-using HotChocolate.Data.Projections;
-
 namespace HotChocolate.Data.Extensions;
 
+/// <summary>
+/// Provides extensions for <see cref="ISchemaBuilder"/> for projections
+/// </summary>
 public static class EntityFrameworkDataSchemaBuilderExtensions
 {
     /// <summary>

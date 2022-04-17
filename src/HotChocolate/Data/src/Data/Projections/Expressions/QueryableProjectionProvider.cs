@@ -8,22 +8,36 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
+/// <summary>
+/// Applies the projection based on <paramref name="input"/> to the <paramref name="context"/>
+/// </summary>
 public delegate object? ApplyProjection(IResolverContext context, object? input);
 
+/// <summary>
+/// A <see cref="QueryableProjectionProvider"/> translates a incoming query to
+/// a IQueryable optimized
+/// </summary>
 public class QueryableProjectionProvider : ProjectionProvider
 {
     public static readonly string ContextApplyProjectionKey = nameof(ApplyProjection);
     public const string SkipProjectionKey = "SkipProjection";
 
+    /// <summary>
+    /// Creates a new instance of <see cref="QueryableProjectionProvider"/>
+    /// </summary>
     public QueryableProjectionProvider()
     {
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="QueryableProjectionProvider"/>
+    /// </summary>
     public QueryableProjectionProvider(Action<IProjectionProviderDescriptor> configure)
         : base(configure)
     {
     }
 
+    /// <inheritdoc />
     public override FieldMiddleware CreateExecutor<TEntityType>()
     {
         ApplyProjection applyProjection = CreateApplicatorAsync<TEntityType>();
@@ -44,6 +58,9 @@ public class QueryableProjectionProvider : ProjectionProvider
         }
     }
 
+    /// <summary>
+    /// Creates the delegate that applies the projection to a context based on the input
+    /// </summary>
     protected virtual ApplyProjection CreateApplicatorAsync<TEntityType>()
     {
         return (context, input) =>

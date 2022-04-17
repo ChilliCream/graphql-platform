@@ -8,18 +8,29 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace HotChocolate.Data.Extensions;
 
+/// <summary>
+/// A <see cref="EntityFrameworkQueryableProjectionProvider"/> translates a incoming query to
+/// a IQueryable optimized for Entity Framework
+/// </summary>
 public class EntityFrameworkQueryableProjectionProvider : QueryableProjectionProvider
 {
-
+    /// <summary>
+    /// Creates a new instance of <see cref="EntityFrameworkQueryableProjectionProvider"/>
+    /// </summary>
     public EntityFrameworkQueryableProjectionProvider()
     {
     }
 
-    public EntityFrameworkQueryableProjectionProvider(Action<IProjectionProviderDescriptor> configure)
+    /// <summary>
+    /// Creates a new instance of <see cref="EntityFrameworkQueryableProjectionProvider"/>
+    /// </summary>
+    public EntityFrameworkQueryableProjectionProvider(
+        Action<IProjectionProviderDescriptor> configure)
         : base(configure)
     {
     }
 
+    /// <inheritdoc />
     protected override ApplyProjection CreateApplicatorAsync<TEntityType>()
     {
         return (context, input) =>

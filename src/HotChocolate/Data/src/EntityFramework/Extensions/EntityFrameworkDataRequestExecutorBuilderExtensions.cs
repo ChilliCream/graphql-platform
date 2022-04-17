@@ -3,6 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Extensions;
 
+/// <summary>
+/// Provides extensions for <see cref="IRequestExecutorBuilder"/> for projections
+/// </summary>
 public static class EntityFrameworkDataRequestExecutorBuilderExtensions
 {
     /// <summary>
