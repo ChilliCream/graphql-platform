@@ -11,34 +11,47 @@ using Xunit;
 namespace HotChocolate.Data.ElasticSearch;
 
 [Collection("Elastic Tests")]
-public class IntegrationTests : TestBase
+public class ListIntegrationTests : TestBase
 {
     private readonly IReadOnlyList<Foo> _data = new[]
     {
         new Foo
         {
-            Id = "A",
             Bar = "A",
-            Qux = "A",
-            Baz = new Baz {Bar = "A", Qux = "A",}
+            ScalarList = {"A1", "A2", "A3"},
+            ObjectList =
+            {
+                new Baz {Bar = "A1", Qux = "A1"},
+                new Baz {Bar = "A2", Qux = "A2"},
+                new Baz {Bar = "A3", Qux = "A3"}
+            }
         },
         new Foo
         {
-            Id = "B",
             Bar = "B",
-            Qux = "B",
-            Baz = new Baz {Bar = "B", Qux = "B",}
+            ScalarList = {"B1", "B2", "B3"},
+            ObjectList =
+            {
+                new Baz {Bar = "B1", Qux = "B1"},
+                new Baz {Bar = "B2", Qux = "B2"},
+                new Baz {Bar = "B3", Qux = "B3"}
+            }
         },
         new Foo
         {
-            Id = "C",
             Bar = "C",
-            Qux = "C",
-            Baz = new Baz {Bar = "C", Qux = "C",}
-        }
+            ScalarList = {"C1", "C2", "C3"},
+            ObjectList =
+            {
+                new Baz {Bar = "C1", Qux = "C1"},
+                new Baz {Bar = "C2", Qux = "C2"},
+                new Baz {Bar = "C3", Qux = "C3"}
+            }
+        },
+        new Foo {Bar = "A"},
     };
 
-    public IntegrationTests(ElasticsearchResource resource) : base(resource)
+    public ListIntegrationTests(ElasticsearchResource resource) : base(resource)
     {
     }
 
@@ -57,9 +70,7 @@ public class IntegrationTests : TestBase
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Bar).Type<TestOperationType>();
-            descriptor.Field(x => x.Id).Type<TestOperationType>();
-            descriptor.Field(x => x.Qux).Type<TestOperationType>();
-            descriptor.Field(x => x.Baz).Type<BazFilterType>();
+            descriptor.Field(x => x.ScalarList).Type<ArrayFilterInputType<TestOperationType>>();
         }
     }
 
@@ -73,7 +84,7 @@ public class IntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_SingleField()
+    public async Task ElasticSearch_Scalar_Some()
     {
         await IndexDocuments(_data);
 
@@ -90,8 +101,12 @@ public class IntegrationTests : TestBase
 
         const string query = @"
         {
-            test(where: {bar: { eq: ""A"" }}) {
+            test(where: {scalarList: { some: { eq: ""A1"" }}}) {
                 bar
+                scalarList
+                objectList {
+                    bar qux
+                }
             }
         }
         ";
@@ -101,7 +116,7 @@ public class IntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_SingleNegatedField()
+    public async Task ElasticSearch_Scalar_Some_Negated()
     {
         await IndexDocuments(_data);
 
@@ -118,8 +133,12 @@ public class IntegrationTests : TestBase
 
         const string query = @"
         {
-            test(where: {bar: { neq: ""A"" }}) {
+            test(where: {scalarList: { some: { neq: ""A1"" }}}) {
                 bar
+                scalarList
+                objectList {
+                    bar qux
+                }
             }
         }
         ";
@@ -129,7 +148,7 @@ public class IntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_MultipleField()
+    public async Task ElasticSearch_Scalar_None()
     {
         await IndexDocuments(_data);
 
@@ -146,8 +165,12 @@ public class IntegrationTests : TestBase
 
         const string query = @"
         {
-            test(where: {qux: { eq: ""A"" }, bar: { eq: ""A"" }}) {
+            test(where: {scalarList: { none: { eq: ""A1"" }}}) {
                 bar
+                scalarList
+                objectList {
+                    bar qux
+                }
             }
         }
         ";
@@ -157,7 +180,7 @@ public class IntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_MultipleField_OneNegated()
+    public async Task ElasticSearch_Scalar_None_Negate()
     {
         await IndexDocuments(_data);
 
@@ -174,8 +197,12 @@ public class IntegrationTests : TestBase
 
         const string query = @"
         {
-            test(where: {qux: { eq: ""A"" }, bar: { neq: ""B"" }}) {
+            test(where: {scalarList: { none: { neq: ""A1"" }}}) {
                 bar
+                scalarList
+                objectList {
+                    bar qux
+                }
             }
         }
         ";
@@ -185,7 +212,7 @@ public class IntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_AndField()
+    public async Task ElasticSearch_Scalar_Any_True()
     {
         await IndexDocuments(_data);
 
@@ -202,8 +229,12 @@ public class IntegrationTests : TestBase
 
         const string query = @"
         {
-            test(where: {and: [{bar: { eq: ""B"" }},{qux: { eq: ""B"" }}]}) {
+            test(where: {scalarList: { any: true}}) {
                 bar
+                scalarList
+                objectList {
+                    bar qux
+                }
             }
         }
         ";
@@ -213,7 +244,7 @@ public class IntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_AndField_WithNegation()
+    public async Task ElasticSearch_Scalar_Any_False()
     {
         await IndexDocuments(_data);
 
@@ -230,120 +261,12 @@ public class IntegrationTests : TestBase
 
         const string query = @"
         {
-            test(where: {and: [{bar: { eq: ""B"" }},{qux: { neq: ""A"" }}]}) {
+            test(where: {scalarList: { any: false}}) {
                 bar
-            }
-        }
-        ";
-
-        IExecutionResult result = await executorAsync.ExecuteAsync(query);
-        result.MatchQuerySnapshot();
-    }
-
-    [Fact]
-    public async Task ElasticSearch_OrField()
-    {
-        await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
-
-        const string query = @"
-        {
-            test(where: {bar: {or:[{ eq: ""B"" },{ eq: ""A"" }]}}) {
-                bar
-            }
-        }
-        ";
-
-        IExecutionResult result = await executorAsync.ExecuteAsync(query);
-        result.MatchQuerySnapshot();
-    }
-
-    [Fact]
-    public async Task ElasticSearch_OrField_WithNegation()
-    {
-        await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
-
-        const string query = @"
-        {
-            test(where: {bar: {or:[{ eq: ""B"" },{ neq: ""X"" }]}}) {
-                bar
-            }
-        }
-        ";
-
-        IExecutionResult result = await executorAsync.ExecuteAsync(query);
-        result.MatchQuerySnapshot();
-    }
-
-    [Fact]
-    public async Task ElasticSearch_DeepField()
-    {
-        await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
-
-        const string query = @"
-        {
-            test(where: { baz :{ bar: { eq: ""A"" }}}) {
-                bar
-            }
-        }
-        ";
-
-        IExecutionResult result = await executorAsync.ExecuteAsync(query);
-        result.MatchQuerySnapshot();
-    }
-
-    [Fact]
-    public async Task ElasticSearch_DeepNegatedField()
-    {
-        await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
-
-        const string query = @"
-        {
-            test(where: { baz :{ bar: { neq: ""A"" }}}) {
-                bar
+                scalarList
+                objectList {
+                    bar qux
+                }
             }
         }
         ";
@@ -356,11 +279,9 @@ public class IntegrationTests : TestBase
     {
         public string Bar { get; set; } = string.Empty;
 
-        public string Qux { get; set; } = string.Empty;
+        public List<string> ScalarList { get; set; } = new();
 
-        public Baz? Baz { get; set; }
-
-        public string Id { get; set; } = string.Empty;
+        public List<Baz> ObjectList { get; set; } = new();
     }
 
     public class Baz

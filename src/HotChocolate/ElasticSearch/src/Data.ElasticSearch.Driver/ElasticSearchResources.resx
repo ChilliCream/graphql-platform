@@ -38,7 +38,7 @@
   <data name="Filtering_ElasticSearchCombinator_InvalidCombinator" xml:space="preserve">
     <value>ElasticSearchCombinator {0} could not combine expression. {1} is a invalid combinator</value>
   </data>
-  <data name="Filtering_OnlyStringValuesAllowed" xml:space="preserve">
-    <value>Could not translate query. Only string values are allowed for field {0}</value>
+  <data name="Filtering_WrongValueProvided" xml:space="preserve">
+    <value>Could not translate query. Only values of type {0} are allowed for field {1}</value>
   </data>
 </root>

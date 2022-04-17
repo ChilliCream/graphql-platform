@@ -6,15 +6,15 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
 /// <summary>
-/// This filter operation handler maps a Equals operation field to a <see cref="ISearchOperation"/>
+/// This filter operation handler maps a Any operation field to a <see cref="ISearchOperation"/>
 /// </summary>
-public class ElasticSearchStringEqualsOperationHandler
+public class ElasticSearchListAnyOperationHandler
     : ElasticSearchOperationHandlerBase
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="ElasticSearchStringEqualsOperationHandler"/>
+    /// Initializes a new instance of <see cref="ElasticSearchListAnyOperationHandler"/>
     /// </summary>
-    public ElasticSearchStringEqualsOperationHandler(InputParser inputParser)
+    public ElasticSearchListAnyOperationHandler(InputParser inputParser)
         : base(inputParser)
     {
     }
@@ -24,8 +24,8 @@ public class ElasticSearchStringEqualsOperationHandler
         ITypeCompletionContext context,
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
-        => context.Type is StringOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.Equals};
+        => context.Type is IListFilterInputType &&
+            fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.Any};
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
@@ -34,16 +34,22 @@ public class ElasticSearchStringEqualsOperationHandler
         IValueNode value,
         object? parsedValue)
     {
-        if (parsedValue is not string val)
+        if (parsedValue is not bool val)
         {
             throw ThrowHelper.Filtering_WrongValueProvided(field);
         }
 
         IElasticFilterMetadata metadata = field.GetElasticMetadata();
 
-        return new MatchOperation(
-            context.GetPath(),
-            metadata.Kind,
-            val);
+
+        ExistsOperation operation =
+            new(context.GetPath(), metadata.Kind);
+
+        if (val)
+        {
+            return operation;
+        }
+
+        return BoolOperation.Create(mustNot: new[] {operation});
     }
 }

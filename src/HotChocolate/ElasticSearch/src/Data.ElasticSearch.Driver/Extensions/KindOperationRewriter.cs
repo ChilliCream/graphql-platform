@@ -11,11 +11,15 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
 {
     private readonly ElasticSearchOperationKind _kind;
 
+    /// <summary>
+    /// Creates a new instance of <see cref="KindOperationRewriter"/>
+    /// </summary>
     private KindOperationRewriter(ElasticSearchOperationKind kind)
     {
         _kind = kind;
     }
 
+    /// <inheritdoc />
     protected override ISearchOperation? Rewrite(BoolOperation operation)
     {
         List<ISearchOperation>? must = null;
@@ -102,11 +106,12 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         {
             if (Rewrite(mustOperation) is { } rewritten)
             {
-                if (rewritten is BoolOperation {
+                if (rewritten is BoolOperation
+                    {
                         Must.Count: 0,
                         MustNot.Count: 0,
                         Filter.Count: > 0,
-                        Should.Count:  0
+                        Should.Count: 0
                     } op)
                 {
                     filter ??= new List<ISearchOperation>();
@@ -125,7 +130,7 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
             return null;
         }
 
-        if (must is {Count:1} && mustNot is null && should is null && filter is null)
+        if (must is {Count: 1} && mustNot is null && should is null && filter is null)
         {
             return must[0];
         }
@@ -141,16 +146,34 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
             EnsureNotNull(filter));
     }
 
+    /// <inheritdoc />
     protected override ISearchOperation? Rewrite(MatchOperation operation)
-        => operation.Kind == _kind ? operation : null;
+        => RewriteLeaf(operation);
 
+    /// <inheritdoc />
     protected override ISearchOperation? Rewrite(RangeOperation operation)
-        => operation.Kind == _kind ? operation : null;
+        => RewriteLeaf(operation);
 
+    /// <inheritdoc />
     protected override ISearchOperation? Rewrite(TermOperation operation)
+        => RewriteLeaf(operation);
+
+    /// <inheritdoc />
+    protected override ISearchOperation? Rewrite(ExistsOperation operation)
+        => RewriteLeaf(operation);
+
+    private ISearchOperation? RewriteLeaf(ILeafSearchOperation operation)
         => operation.Kind == _kind ? operation : null;
 
+    /// <summary>
+    /// Rewrites the operations and removes all operations that are not
+    /// <see cref="ElasticSearchOperationKind.Filter"/>
+    /// </summary>
     public static KindOperationRewriter Filter { get; } = new(ElasticSearchOperationKind.Filter);
 
+    /// <summary>
+    /// Rewrites the operations and removes all operations that are not
+    /// <see cref="ElasticSearchOperationKind.Query"/>
+    /// </summary>
     public static KindOperationRewriter Query { get; } = new(ElasticSearchOperationKind.Query);
 }

@@ -38,7 +38,6 @@ public static class ElasticSearchFilterConventionDescriptorExtensions
 
         descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
         descriptor.Operation(DefaultFilterOperations.NotEquals).Name("neq");
-        /*
         descriptor.Operation(DefaultFilterOperations.GreaterThan).Name("gt");
         descriptor.Operation(DefaultFilterOperations.NotGreaterThan).Name("ngt");
         descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals).Name("gte");
@@ -60,7 +59,6 @@ public static class ElasticSearchFilterConventionDescriptorExtensions
         descriptor.Operation(DefaultFilterOperations.Some).Name("some");
         descriptor.Operation(DefaultFilterOperations.Any).Name("any");
         descriptor.Operation(DefaultFilterOperations.Data).Name("data");
-        */
         descriptor.Operation(DefaultFilterOperations.And).Name("and");
         descriptor.Operation(DefaultFilterOperations.Or).Name("or");
 
@@ -165,11 +163,10 @@ public static class ElasticSearchFilterConventionDescriptorExtensions
         descriptor.AddFieldHandler<ElasticSearchStringContainsHandler>();
         descriptor.AddFieldHandler<ElasticSearchStringNotContainsHandler>();
 
-        descriptor.AddFieldHandler<ElasticSearchListAllOperationHandler>();
+        */
         descriptor.AddFieldHandler<ElasticSearchListAnyOperationHandler>();
         descriptor.AddFieldHandler<ElasticSearchListNoneOperationHandler>();
         descriptor.AddFieldHandler<ElasticSearchListSomeOperationHandler>();
-        */
 
         descriptor.AddFieldHandler<ElasticSearchDefaultFieldHandler>();
 

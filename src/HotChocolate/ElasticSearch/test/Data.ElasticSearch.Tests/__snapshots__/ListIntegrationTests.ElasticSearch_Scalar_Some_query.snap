@@ -1,0 +1,15 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "match": {
+            "scalarList": {
+              "query": "A1"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -7,10 +7,9 @@ using HotChocolate.Language.Visitors;
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
 /// <summary>
-/// The default handler for all <see cref="FilterField"/> for the
-/// <see cref="ElasticSearchFilterProvider"/>
+/// This filter operation handler maps a None operation field to a <see cref="ISearchOperation"/>
 /// </summary>
-public class ElasticSearchDefaultFieldHandler
+public class ElasticSearchListNoneOperationHandler
     : FilterFieldHandler<ElasticSearchFilterVisitorContext, ISearchOperation>
 {
     /// <summary>
@@ -23,8 +22,9 @@ public class ElasticSearchDefaultFieldHandler
     public override bool CanHandle(
         ITypeCompletionContext context,
         IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition) =>
-        !(fieldDefinition is FilterOperationFieldDefinition);
+        IFilterFieldDefinition fieldDefinition)
+        => context.Type is IListFilterInputType &&
+            fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.None};
 
     /// <inheritdoc />
     public override bool TryHandleEnter(
@@ -47,7 +47,7 @@ public class ElasticSearchDefaultFieldHandler
             return false;
         }
 
-        context.Path.Push(context.ElasticClient.GetName(field));
+        context.Scopes.Push(context.CreateScope());
         context.RuntimeTypes.Push(field.RuntimeType);
         action = SyntaxVisitor.Continue;
         return true;
@@ -60,8 +60,10 @@ public class ElasticSearchDefaultFieldHandler
         ObjectFieldNode node,
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
+        var scope = (ElasticSearchFilterScope)context.Scopes.Pop();
         context.RuntimeTypes.Pop();
-        context.Path.Pop();
+
+        context.GetLevel().Enqueue(BoolOperation.Create(mustNot: scope.Level.Peek().ToArray()));
 
         action = SyntaxVisitor.Continue;
         return true;

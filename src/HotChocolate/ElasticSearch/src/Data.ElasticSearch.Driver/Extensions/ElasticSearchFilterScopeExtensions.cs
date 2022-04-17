@@ -13,12 +13,6 @@ namespace HotChocolate.Data.ElasticSearch.Filters;
 public static class ElasticSearchFilterScopeExtensions
 {
     /// <summary>
-    /// Returns the currently selected path of this scope
-    /// </summary>
-    public static string GetPath(this ElasticSearchFilterScope scope) =>
-        string.Join(".", scope.Path.Reverse());
-
-    /// <summary>
     /// Builds a <see cref="BoolOperation"/> from the state aggregated in the scope
     /// </summary>
     public static bool TryCreateQuery(

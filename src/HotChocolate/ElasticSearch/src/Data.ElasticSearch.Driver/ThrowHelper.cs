@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.ElasticSearch.Filters;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.ElasticSearch;
 
@@ -35,9 +34,10 @@ internal static class ThrowHelper
             combinator.GetType(),
             operation.ToString()));
 
-    public static InvalidOperationException Filtering_OnlyStringValuesAllowed(IFilterField field) =>
+    public static InvalidOperationException Filtering_WrongValueProvided(IFilterField field) =>
         new(string.Format(
             CultureInfo.CurrentCulture,
-            ElasticSearchResources.Filtering_OnlyStringValuesAllowed,
+            ElasticSearchResources.Filtering_WrongValueProvided,
+            field.Type.RuntimeType.Name,
             field.Coordinate.ToString()));
 }

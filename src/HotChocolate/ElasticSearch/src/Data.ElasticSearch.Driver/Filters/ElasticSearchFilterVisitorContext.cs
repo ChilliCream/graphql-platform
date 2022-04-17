@@ -33,4 +33,9 @@ public class ElasticSearchFilterVisitorContext
     /// The client that is used to execute the query
     /// </summary>
     public IAbstractElasticClient ElasticClient { get; }
+
+    /// <summary>
+    /// The path from the root to the current position in the input object
+    /// </summary>
+    public Stack<string> Path { get; } = new();
 }

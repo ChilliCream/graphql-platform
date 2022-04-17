@@ -72,6 +72,10 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
         throw new System.NotImplementedException();
     }
 
+    /// <inheritdoc />
+    protected override IQuery Rewrite(ExistsOperation operation)
+        => new ExistsQuery {Field = operation.Field};
+
     /// <summary>
     /// The instance of the rewriter
     /// </summary>

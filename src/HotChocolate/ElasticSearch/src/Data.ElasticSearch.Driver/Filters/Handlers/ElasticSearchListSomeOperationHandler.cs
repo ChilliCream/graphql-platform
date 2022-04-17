@@ -7,10 +7,9 @@ using HotChocolate.Language.Visitors;
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
 /// <summary>
-/// The default handler for all <see cref="FilterField"/> for the
-/// <see cref="ElasticSearchFilterProvider"/>
+/// This filter operation handler maps a Some operation field to a <see cref="ISearchOperation"/>
 /// </summary>
-public class ElasticSearchDefaultFieldHandler
+public class ElasticSearchListSomeOperationHandler
     : FilterFieldHandler<ElasticSearchFilterVisitorContext, ISearchOperation>
 {
     /// <summary>
@@ -23,8 +22,9 @@ public class ElasticSearchDefaultFieldHandler
     public override bool CanHandle(
         ITypeCompletionContext context,
         IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition) =>
-        !(fieldDefinition is FilterOperationFieldDefinition);
+        IFilterFieldDefinition fieldDefinition)
+        => context.Type is IListFilterInputType &&
+            fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.Some};
 
     /// <inheritdoc />
     public override bool TryHandleEnter(
@@ -47,7 +47,6 @@ public class ElasticSearchDefaultFieldHandler
             return false;
         }
 
-        context.Path.Push(context.ElasticClient.GetName(field));
         context.RuntimeTypes.Push(field.RuntimeType);
         action = SyntaxVisitor.Continue;
         return true;
@@ -61,7 +60,6 @@ public class ElasticSearchDefaultFieldHandler
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
         context.RuntimeTypes.Pop();
-        context.Path.Pop();
 
         action = SyntaxVisitor.Continue;
         return true;

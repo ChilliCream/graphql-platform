@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using HotChocolate.Data.ElasticSearch.Filters;
 using HotChocolate.Data.Filters;
 
@@ -17,6 +18,13 @@ public static class ElasticSearchFilterVisitorContextExtensions
     public static ElasticSearchFilterScope GetElasticSearchFilterScope(
         this ElasticSearchFilterVisitorContext context) =>
         (ElasticSearchFilterScope)context.GetScope();
+
+    /// <summary>
+    /// Returns the currently selected path of this context
+    /// </summary>
+    public static string GetPath(this ElasticSearchFilterVisitorContext context) =>
+        string.Join(".", context.Path.Reverse());
+
 
     /// <summary>
     /// Tries to build the query based on the items that are stored on the scope

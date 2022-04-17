@@ -75,9 +75,9 @@ namespace HotChocolate.Data.ElasticSearch {
             }
         }
         
-        internal static string Filtering_OnlyStringValuesAllowed {
+        internal static string Filtering_WrongValueProvided {
             get {
-                return ResourceManager.GetString("Filtering_OnlyStringValuesAllowed", resourceCulture);
+                return ResourceManager.GetString("Filtering_WrongValueProvided", resourceCulture);
             }
         }
     }
