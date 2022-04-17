@@ -8,3 +8,9 @@
          
     }
     )
+    .Select(_s1 => new BookDto{ 
+        Title = _s1.Title, 
+        Author = new AuthorDto{ Id = _s1.Author.Id }
+         
+    }
+    )

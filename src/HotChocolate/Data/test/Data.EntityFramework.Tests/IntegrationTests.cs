@@ -494,9 +494,9 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                             })
                     )
                     .UseFirstOrDefault()
+                    .UseSqlLogging()
                     .UseProjection()
                     .UseFiltering()
-                    .UseSqlLogging()
                     .UseSorting())
             .UseSqlLogging()
             .BuildRequestExecutorAsync();
