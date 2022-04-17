@@ -449,6 +449,30 @@ internal static class ThrowHelper
             field.Name,
             field.Type.Print()));
 
+    public static InvalidOperationException QueryableFiltering_ExpressionParameterInvalid(
+        Type type,
+        IFilterField field) =>
+        new(string.Format(
+            CultureInfo.CurrentCulture,
+            DataResources.QueryableFiltering_ExpressionParameterInvalid,
+            type.FullName,
+            field.DeclaringType.Print(),
+            field.Name,
+            field.Type.Print()));
+
+    public static SchemaException QueryableFilterProvider_ExpressionParameterInvalid(
+        ITypeSystemObject type,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition field) =>
+        new(SchemaErrorBuilder
+                .New()
+                .SetMessage(
+                    DataResources.QueryableFilterProvider_ExpressionParameterInvalid,
+                    typeDefinition.EntityType?.FullName,
+                    field.Name)
+                .SetTypeSystemObject(type)
+                .Build());
+
     public static InvalidOperationException QueryableFiltering_NoMemberDeclared(IFilterField field)
         =>
             new(string.Format(

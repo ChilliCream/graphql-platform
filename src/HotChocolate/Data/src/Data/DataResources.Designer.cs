@@ -489,6 +489,18 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string QueryableFiltering_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableFiltering_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+
+        internal static string QueryableFilterProvider_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableFilterProvider_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+
         internal static string QueryableFiltering_NoMemberDeclared {
             get {
                 return ResourceManager.GetString("QueryableFiltering_NoMemberDeclared", resourceCulture);

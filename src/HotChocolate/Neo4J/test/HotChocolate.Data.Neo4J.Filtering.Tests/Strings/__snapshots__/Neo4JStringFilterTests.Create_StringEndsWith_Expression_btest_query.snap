@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE foo.Bar ENDS WITH 'btest' RETURN foo {.Bar}
+﻿MATCH (fooString:FooString) WHERE fooString.Bar ENDS WITH 'btest' RETURN fooString {.Bar}
