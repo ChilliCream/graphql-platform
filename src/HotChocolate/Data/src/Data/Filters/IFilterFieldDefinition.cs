@@ -17,8 +17,6 @@ public interface IFilterFieldDefinition
     IFilterFieldHandler? Handler { get; }
 
     Expression? Expression { get; }
-    
-    string? Scope { get; }
 
     List<int> AllowedOperations { get; }
 
