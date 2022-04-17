@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -11,31 +11,31 @@ internal static class InterfaceMergeHelper
     public static TDefinition MergeInterfaces<TOperation, TDefinition>(
         this TOperation _,
         TDefinition source,
-        TDefinition target,
-        Func<IReadOnlyList<NamedTypeNode>, TDefinition> action)
+        TDefinition target)
         where TOperation : ISchemaNodeOperation<TDefinition>
-        where TDefinition : ComplexTypeDefinitionNodeBase, ISyntaxNode
+        where TDefinition : ComplexTypeDefinitionNodeBase, IHasWithInterfaces<TDefinition>, ISyntaxNode
     {
-        IEnumerable<NamedTypeNode> interfaces = target.Interfaces
+        IReadOnlyList<NamedTypeNode> interfaces = target.Interfaces
             .Concat(source.Interfaces)
-            .Distinct();
+            .Distinct()
+            .ToList();
 
-        return action.Invoke(interfaces.ToList());
+        return target.WithInterfaces(interfaces);
     }
 
     public static TTargetDefinition MergeInterfaces<TOperation, TSourceDefinition, TTargetDefinition>(
         this TOperation _,
         TSourceDefinition source,
-        TTargetDefinition target,
-        Func<IReadOnlyList<NamedTypeNode>, TTargetDefinition> action)
+        TTargetDefinition target)
         where TOperation : ISchemaNodeOperation<TSourceDefinition, TTargetDefinition>
         where TSourceDefinition : ComplexTypeDefinitionNodeBase, ISyntaxNode
-        where TTargetDefinition : ComplexTypeDefinitionNodeBase, ISyntaxNode
+        where TTargetDefinition : ComplexTypeDefinitionNodeBase, IHasWithInterfaces<TTargetDefinition>, ISyntaxNode
     {
-        IEnumerable<NamedTypeNode> interfaces = target.Interfaces
+        IReadOnlyList<NamedTypeNode> interfaces = target.Interfaces
             .Concat(source.Interfaces)
-            .Distinct();
+            .Distinct()
+            .ToList();
 
-        return action.Invoke(interfaces.ToList());
+        return target.WithInterfaces(interfaces);
     }
 }

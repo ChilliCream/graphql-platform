@@ -7,9 +7,9 @@ internal class MergeObjectTypeExtensionsDefinitionOperation : ISchemaNodeOperati
 {
     public ObjectTypeDefinitionNode Apply(ObjectTypeExtensionNode source, ObjectTypeDefinitionNode target, OperationContext context)
     {
-        target = this.MergeInterfaces(source, target, target.WithInterfaces);
-        target = this.MergeDirectives(source, target, target.WithDirectives);
-        target = this.MergeFields(source, target, context, target.WithFields);
+        target = this.MergeInterfaces(source, target);
+        target = this.MergeDirectives(source, target);
+        target = this.MergeFields(source, target, context);
         return target;
     }
 }

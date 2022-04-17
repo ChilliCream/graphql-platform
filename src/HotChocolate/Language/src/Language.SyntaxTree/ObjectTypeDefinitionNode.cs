@@ -27,6 +27,8 @@ public sealed class ObjectTypeDefinitionNode
     , ITypeDefinitionNode
     , IEquatable<ObjectTypeDefinitionNode>
     , IHasWithDirectives<ObjectTypeDefinitionNode>
+    , IHasWithInterfaces<ObjectTypeDefinitionNode>
+    , IHasWithFields<ObjectTypeDefinitionNode>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinitionNode"/>.

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
@@ -6,14 +7,22 @@ using HotChocolate.Stitching.Types.Attempt1.Operations;
 using HotChocolate.Stitching.Types.Attempt1.Traversal;
 using Snapshooter.Xunit;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HotChocolate.Stitching.Types.Attempt1;
 
 public class BasicDocumentMergeTests
 {
+    private readonly ITestOutputHelper _helper;
+
+    public BasicDocumentMergeTests(ITestOutputHelper helper)
+    {
+        _helper = helper;
+    }
     [Fact]
     public void Test()
     {
+        var totalAllocatedBytes = GC.GetTotalAllocatedBytes();
         DocumentNode source = Utf8GraphQLParser.Parse(@"
             interface TestInterface {
               foo: Test2!
@@ -43,8 +52,7 @@ public class BasicDocumentMergeTests
             ParserOptions.NoLocation);
 
         DefaultOperationProvider operationProvider = new DefaultOperationProvider();
-        SchemaNodeFactory schemaNodeFactory = new SchemaNodeFactory();
-        SchemaDatabase schemaDatabase = new SchemaDatabase(schemaNodeFactory);
+        SchemaDatabase schemaDatabase = new SchemaDatabase();
         DefaultSyntaxNodeVisitor visitor = new DefaultSyntaxNodeVisitor(schemaDatabase, operationProvider);
 
         var documentNode = new DocumentNode(new List<IDefinitionNode>(0));
@@ -63,6 +71,8 @@ public class BasicDocumentMergeTests
 
         ISchemaNode renderedSchema = schemaDatabase.Root;
         var schema = renderedSchema.Definition.Print();
+        var totalAllocatedBytes2 = GC.GetTotalAllocatedBytes();
+        _helper.WriteLine($"{totalAllocatedBytes2 - totalAllocatedBytes}");
 
         schema.MatchSnapshot();
 

@@ -11,32 +11,31 @@ internal static class DirectiveMergeHelper
     public static TDefinition MergeDirectives<TOperation, TDefinition>(
         this TOperation _,
         TDefinition source,
-        TDefinition target,
-        Func<IReadOnlyList<DirectiveNode>, TDefinition> action)
+        TDefinition target)
         where TOperation : ISchemaNodeOperation<TDefinition>
-        where TDefinition : IHasDirectives, ISyntaxNode
+        where TDefinition : IHasDirectives, IHasWithDirectives<TDefinition>, ISyntaxNode
     {
-        IEnumerable<DirectiveNode> directives = target.Directives
+        IReadOnlyList<DirectiveNode> directives = target.Directives
             .Concat(source.Directives)
-            .Distinct();
+            .Distinct()
+            .ToList();
 
-        return action.Invoke(directives.ToList());
+        return target.WithDirectives(directives);
     }
 
     public static TTargetDefinition MergeDirectives<TOperation, TSourceDefinition, TTargetDefinition>(
         this TOperation _,
         TSourceDefinition source,
-        TTargetDefinition target,
-        Func<IReadOnlyList<DirectiveNode>, TTargetDefinition> action)
+        TTargetDefinition target)
         where TOperation : ISchemaNodeOperation<TSourceDefinition, TTargetDefinition>
         where TSourceDefinition : IHasDirectives, ISyntaxNode
-        where TTargetDefinition : IHasDirectives, ISyntaxNode
+        where TTargetDefinition : IHasDirectives, IHasWithDirectives<TTargetDefinition>, ISyntaxNode
     {
-        IEnumerable<DirectiveNode> directives = target.Directives
+        IReadOnlyList<DirectiveNode> directives = target.Directives
             .Concat(source.Directives)
-            .Distinct();
+            .Distinct()
+            .ToList();
 
-        return action.Invoke(directives.ToList());
+        return target.WithDirectives(directives);
     }
-
 }

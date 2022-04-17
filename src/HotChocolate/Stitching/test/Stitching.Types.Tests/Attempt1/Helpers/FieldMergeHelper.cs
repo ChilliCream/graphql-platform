@@ -12,10 +12,9 @@ internal static class FieldMergeHelper
         this TOperation _,
         TDefinition source,
         TDefinition target,
-        OperationContext context,
-        Func<IReadOnlyList<FieldDefinitionNode>, TDefinition> action)
+        OperationContext context)
         where TOperation : ISchemaNodeOperation<TDefinition>
-        where TDefinition : ComplexTypeDefinitionNodeBase
+        where TDefinition : ComplexTypeDefinitionNodeBase, IHasWithFields<TDefinition>
     {
         var fields = target.Fields
             .Concat(source.Fields)
@@ -23,18 +22,17 @@ internal static class FieldMergeHelper
             .ToDictionary(x => x.Key,
                 x => x.ToList());
 
-        return MergeFields(context, action, fields);
+        return MergeFields(target, context, fields);
     }
 
     public static TTargetDefinition MergeFields<TOperation, TSourceDefinition, TTargetDefinition>(
         this TOperation _,
         TSourceDefinition source,
         TTargetDefinition target,
-        OperationContext context,
-        Func<IReadOnlyList<FieldDefinitionNode>, TTargetDefinition> action)
+        OperationContext context)
         where TOperation : ISchemaNodeOperation<TSourceDefinition, TTargetDefinition>
         where TSourceDefinition : ComplexTypeDefinitionNodeBase
-        where TTargetDefinition : ComplexTypeDefinitionNodeBase
+        where TTargetDefinition : ComplexTypeDefinitionNodeBase, IHasWithFields<TTargetDefinition>
     {
         var fields = target.Fields
             .Concat(source.Fields)
@@ -42,13 +40,14 @@ internal static class FieldMergeHelper
             .ToDictionary(x => x.Key,
                 x => x.ToList());
 
-        return MergeFields(context, action, fields);
+        return MergeFields(target, context, fields);
     }
 
     private static TDefinition MergeFields<TDefinition>(
+        TDefinition target,
         OperationContext context,
-        Func<IReadOnlyList<FieldDefinitionNode>, TDefinition> action,
         Dictionary<NameNode, List<FieldDefinitionNode>> fields)
+        where TDefinition : IHasWithFields<TDefinition>
     {
         var updatedFields = new List<FieldDefinitionNode>();
         foreach (List<FieldDefinitionNode> group in fields.Values)
@@ -64,6 +63,6 @@ internal static class FieldMergeHelper
             updatedFields.Add(targetField);
         }
 
-        return action.Invoke(updatedFields);
+        return target.WithFields(updatedFields);
     }
 }

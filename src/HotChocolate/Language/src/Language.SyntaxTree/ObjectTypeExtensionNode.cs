@@ -13,6 +13,9 @@ public sealed class ObjectTypeExtensionNode
     : ComplexTypeDefinitionNodeBase
     , ITypeExtensionNode
     , IEquatable<ObjectTypeExtensionNode>
+    , IHasWithDirectives<ObjectTypeExtensionNode>
+    , IHasWithInterfaces<ObjectTypeExtensionNode>
+    , IHasWithFields<ObjectTypeExtensionNode>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeExtensionNode"/>.

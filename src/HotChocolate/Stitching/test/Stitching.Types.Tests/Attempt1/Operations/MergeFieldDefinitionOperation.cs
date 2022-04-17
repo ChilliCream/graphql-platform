@@ -7,7 +7,7 @@ internal class MergeFieldDefinitionOperation : ISchemaNodeOperation<FieldDefinit
 {
     public FieldDefinitionNode Apply(FieldDefinitionNode source, FieldDefinitionNode target, OperationContext context)
     {
-        target = this.MergeDirectives(source, target, target.WithDirectives);
+        target = this.MergeDirectives(source, target);
         return target;
     }
 }

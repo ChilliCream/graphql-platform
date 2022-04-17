@@ -4,9 +4,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types;
 
-internal class SchemaNodeFactory
+internal static class SchemaNodeFactory
 {
-    private readonly Dictionary<Type, Func<CoordinateFactory, ISchemaNode?, ISyntaxNode, ISchemaNode>?> _factories = new()
+    private static readonly Dictionary<Type, Func<CoordinateFactory, ISchemaNode?, ISyntaxNode, ISchemaNode>?> _factories = new()
     {
         {
             typeof(DocumentNode), FactoryBuilder<DocumentNode, DocumentDefinition>(
@@ -54,7 +54,7 @@ internal class SchemaNodeFactory
         },
     };
 
-    public bool Create(ISchemaNode? parent, ISyntaxNode node, CoordinateFactory coordinateFactory, out ISchemaNode schemaNode)
+    public static bool Create(ISchemaNode? parent, ISyntaxNode node, CoordinateFactory coordinateFactory, out ISchemaNode schemaNode)
     {
         Type nodeType = node.GetType();
 

@@ -9,17 +9,11 @@ namespace HotChocolate.Stitching.Types.Attempt1.Coordinates;
 
 internal class SchemaDatabase : ISchemaDatabase
 {
-    private readonly SchemaNodeFactory _schemaNodeFactory;
     private readonly Dictionary<ISchemaCoordinate2, ISchemaNode> _coordinateToSchemaNodeLookup = new();
     private readonly Dictionary<ISchemaNode, ISchemaCoordinate2> _nodeToCoordinateLookup = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<ISyntaxNode, ISchemaCoordinate2> _syntaxNodeToCoordinateLookup = new(ReferenceEqualityComparer.Instance);
 
     public ISchemaNode Root => _coordinateToSchemaNodeLookup.Values.First();
-
-    public SchemaDatabase(SchemaNodeFactory schemaNodeFactory)
-    {
-        _schemaNodeFactory = schemaNodeFactory;
-    }
 
     public ISchemaCoordinate2 Add(ISchemaNode node)
     {
@@ -190,7 +184,7 @@ internal class SchemaDatabase : ISchemaDatabase
             }
         }
 
-        if (!_schemaNodeFactory.Create(parentSchemaNode, node, Add, out ISchemaNode nodeSchemaNode))
+        if (!SchemaNodeFactory.Create(parentSchemaNode, node, Add, out ISchemaNode nodeSchemaNode))
         {
             throw new InvalidOperationException();
         }
