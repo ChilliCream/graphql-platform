@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE NOT (foo.BarShort > 13) RETURN foo {.BarShort}
+﻿MATCH (fooComp:FooComp) WHERE NOT (fooComp.BarShort > 13) RETURN fooComp {.BarShort}
