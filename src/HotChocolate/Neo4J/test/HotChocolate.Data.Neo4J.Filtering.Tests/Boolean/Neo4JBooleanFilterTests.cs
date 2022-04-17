@@ -5,8 +5,8 @@ using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Filtering;
 
+[Collection("Database")]
 public class Neo4JBooleanFilterTests
-    : IClassFixture<Neo4JFixture>
 {
     private readonly Neo4JFixture _fixture;
 
@@ -16,30 +16,30 @@ public class Neo4JBooleanFilterTests
     }
 
     private readonly string _fooEntitiesCypher =
-        @"CREATE (:Foo {Bar: true}), (:Foo {Bar: false})";
+        @"CREATE (:FooBool {Bar: true}), (:FooBool {Bar: false})";
     private readonly string _fooEntitiesNullableCypher =
         @"CREATE
-                (:FooNullable {Bar: true}),
-                (:FooNullable {Bar: false}),
-                (:FooNullable {Bar: NULL})";
+                (:FooBoolNullable {Bar: true}),
+                (:FooBoolNullable {Bar: false}),
+                (:FooBoolNullable {Bar: NULL})";
 
-    public class Foo
+    public class FooBool
     {
         public bool Bar { get; set; }
     }
 
-    public class FooNullable
+    public class FooBoolNullable
     {
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterType
-        : FilterInputType<Foo>
+    public class FooBoolFilterType
+        : FilterInputType<FooBool>
     {
     }
 
-    public class FooNullableFilterType
-        : FilterInputType<FooNullable>
+    public class FooBoolNullableFilterType
+        : FilterInputType<FooBoolNullable>
     {
     }
 
@@ -48,7 +48,7 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         IRequestExecutor tester =
-            await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+            await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { eq: true}}){ bar }}";
@@ -73,7 +73,7 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         IRequestExecutor tester =
-            await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+            await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
 
         // act
         const string query1 =
@@ -92,7 +92,7 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         IRequestExecutor tester =
-            await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+            await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
 
         // act
         const string query1 =
@@ -111,7 +111,7 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         IRequestExecutor tester =
-            await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+            await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { neq: true}}){ bar}}";
@@ -136,7 +136,7 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         IRequestExecutor tester =
-            await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(
+            await _fixture.GetOrCreateSchema<FooBoolNullable, FooBoolNullableFilterType>(
                 _fooEntitiesNullableCypher);
 
         // act
@@ -169,7 +169,7 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         IRequestExecutor tester =
-            await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(
+            await _fixture.GetOrCreateSchema<FooBoolNullable, FooBoolNullableFilterType>(
                 _fooEntitiesNullableCypher);
 
         // act

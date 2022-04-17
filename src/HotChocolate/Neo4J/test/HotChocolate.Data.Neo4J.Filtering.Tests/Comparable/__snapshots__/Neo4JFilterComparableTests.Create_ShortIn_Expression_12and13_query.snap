@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE foo.BarShort IN [ 12, 13 ] RETURN foo {.BarShort}
+﻿MATCH (fooComp:FooComp) WHERE fooComp.BarShort IN [ 12, 13 ] RETURN fooComp {.BarShort}
