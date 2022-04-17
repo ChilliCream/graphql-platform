@@ -12,7 +12,11 @@ namespace HotChocolate.Data.ElasticSearch.Filters;
 public class ElasticSearchStringEqualsOperationHandler
     : ElasticSearchOperationHandlerBase
 {
-    public ElasticSearchStringEqualsOperationHandler(InputParser inputParser) : base(inputParser)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ElasticSearchStringEqualsOperationHandler"/>
+    /// </summary>
+    public ElasticSearchStringEqualsOperationHandler(InputParser inputParser)
+        : base(inputParser)
     {
     }
 

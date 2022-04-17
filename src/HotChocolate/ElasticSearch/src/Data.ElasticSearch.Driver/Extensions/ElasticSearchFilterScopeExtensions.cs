@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using static HotChocolate.Data.ElasticSearch.Filters.KindOperationRewriter;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
@@ -36,14 +37,12 @@ public static class ElasticSearchFilterScopeExtensions
 
         ISearchOperation[] queries = Array.Empty<ISearchOperation>();
         ISearchOperation[] filters = Array.Empty<ISearchOperation>();
-        if (KindOperationRewriter.Query.Rewrite(operation) is BoolOperation rewrittenQuery &&
-            rewrittenQuery is {Must.Count: > 0} or {Should.Count: > 0})
+        if (Query.Rewrite(operation) is BoolOperation {IsEmpty: false} rewrittenQuery)
         {
             queries = new ISearchOperation[] {rewrittenQuery};
         }
 
-        if (KindOperationRewriter.Filter.Rewrite(operation) is BoolOperation rewrittenFilter &&
-            rewrittenFilter is {Must.Count: > 0} or {Should.Count: > 0})
+        if (Filter.Rewrite(operation) is BoolOperation {IsEmpty: false} rewrittenFilter)
         {
             filters = new ISearchOperation[] {rewrittenFilter};
         }

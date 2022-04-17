@@ -19,4 +19,6 @@ public class BoolOperation : ISearchOperation
     public IReadOnlyList<ISearchOperation> Should { get; }
 
     public IReadOnlyList<ISearchOperation> MustNot { get; }
+
+    public bool IsEmpty => Must.Count == 0 && Should.Count == 0 && MustNot.Count == 0;
 }

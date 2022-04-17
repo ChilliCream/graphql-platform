@@ -37,8 +37,8 @@ public static class ElasticSearchFilterConventionDescriptorExtensions
         }
 
         descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
-        /*
         descriptor.Operation(DefaultFilterOperations.NotEquals).Name("neq");
+        /*
         descriptor.Operation(DefaultFilterOperations.GreaterThan).Name("gt");
         descriptor.Operation(DefaultFilterOperations.NotGreaterThan).Name("ngt");
         descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals).Name("gte");
@@ -142,9 +142,9 @@ public static class ElasticSearchFilterConventionDescriptorExtensions
         this IFilterProviderDescriptor<ElasticSearchFilterVisitorContext> descriptor)
     {
         descriptor.AddFieldHandler<ElasticSearchStringEqualsOperationHandler>();
+        descriptor.AddFieldHandler<ElasticSearchStringNotEqualsOperationHandler>();
 
         /*
-        descriptor.AddFieldHandler<ElasticSearchNotEqualsOperationHandler>();
 
         descriptor.AddFieldHandler<ElasticSearchInOperationHandler>();
         descriptor.AddFieldHandler<ElasticSearchNotInOperationHandler>();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
@@ -17,9 +18,9 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
 
     protected override ISearchOperation? Rewrite(BoolOperation operation)
     {
-        List<ISearchOperation> must = new();
-        List<ISearchOperation> should = new();
-        List<ISearchOperation> mustNot = new();
+        List<ISearchOperation>? must = null;
+        List<ISearchOperation>? should = null;
+        List<ISearchOperation>? mustNot = null;
 
         foreach (ISearchOperation mustOperation in operation.Must)
         {
@@ -27,11 +28,21 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
             {
                 if (rewritten is BoolOperation {Should.Count: 0} boolOperation)
                 {
-                    must.AddRange(boolOperation.Must);
-                    mustNot.AddRange(boolOperation.MustNot);
+                    if (boolOperation.Must.Count > 0)
+                    {
+                        must ??= new List<ISearchOperation>();
+                        must.AddRange(boolOperation.Must);
+                    }
+
+                    if (boolOperation.MustNot.Count > 0)
+                    {
+                        mustNot ??= new List<ISearchOperation>();
+                        mustNot.AddRange(boolOperation.MustNot);
+                    }
                 }
                 else
                 {
+                    must ??= new List<ISearchOperation>();
                     must.Add(rewritten);
                 }
             }
@@ -41,12 +52,19 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         {
             if (Rewrite(mustOperation) is { } rewritten)
             {
-                if (rewritten is BoolOperation {Must.Count: 0, MustNot.Count: 0} boolOperation)
+                if (rewritten is BoolOperation
+                    {
+                        Must.Count: 0,
+                        MustNot.Count: 0,
+                        Should.Count: > 0
+                    } boolOperation)
                 {
+                    should ??= new List<ISearchOperation>();
                     should.AddRange(boolOperation.Should);
                 }
                 else
                 {
+                    should ??= new List<ISearchOperation>();
                     should.Add(rewritten);
                 }
             }
@@ -58,22 +76,39 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
             {
                 if (rewritten is BoolOperation {Should.Count: 0} boolOperation)
                 {
-                    must.AddRange(boolOperation.MustNot);
-                    mustNot.AddRange(boolOperation.Must);
+                    if (boolOperation.MustNot.Count > 0)
+                    {
+                        must ??= new List<ISearchOperation>();
+                        must.AddRange(boolOperation.MustNot);
+                    }
+
+                    if (boolOperation.Must.Count > 0)
+                    {
+                        mustNot ??= new List<ISearchOperation>();
+                        mustNot.AddRange(boolOperation.Must);
+                    }
                 }
                 else
                 {
+                    mustNot ??= new List<ISearchOperation>();
                     mustNot.Add(rewritten);
                 }
             }
         }
 
-        if (must.Count == 0 && mustNot.Count == 0 && should.Count == 0)
+        if (must is null && mustNot is null && should is null)
         {
             return null;
         }
 
-        return new BoolOperation(must, should, mustNot);
+        static IReadOnlyList<ISearchOperation> EnsureNotNull(
+            IReadOnlyList<ISearchOperation>? operations)
+            => operations ?? Array.Empty<ISearchOperation>();
+
+        return new BoolOperation(
+            EnsureNotNull(must),
+            EnsureNotNull(should),
+            EnsureNotNull(mustNot));
     }
 
     protected override ISearchOperation? Rewrite(MatchOperation operation)
