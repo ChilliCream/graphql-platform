@@ -1,1 +1,46 @@
-﻿{"query":{"bool":{"filter":[{"bool":{"must":[{"bool":{"should":[{"bool":{"must":[{"match":{"bar":{"query":"B"}}}]}},{"bool":{"must_not":[{"match":{"bar":{"query":"X"}}}]}}]}}]}}]}}}
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must": [
+              {
+                "bool": {
+                  "should": [
+                    {
+                      "bool": {
+                        "must": [
+                          {
+                            "match": {
+                              "bar": {
+                                "query": "B"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "bool": {
+                        "must_not": [
+                          {
+                            "match": {
+                              "bar": {
+                                "query": "X"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,1 +1,21 @@
-﻿{"query":{"bool":{"filter":[{"bool":{"must_not":[{"match":{"baz.bar":{"query":"A"}}}]}}]}}}
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must_not": [
+              {
+                "match": {
+                  "baz.bar": {
+                    "query": "A"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

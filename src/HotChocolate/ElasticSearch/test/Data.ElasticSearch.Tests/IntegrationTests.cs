@@ -109,6 +109,34 @@ public class IntegrationTests : TestBase
     }
 
     [Fact]
+    public async Task ElasticSearch_MultipleField()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: {qux: { eq: ""A"" }, bar: { eq: ""A"" }}) {
+                bar
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
     public async Task ElasticSearch_MultipleField_OneNegated()
     {
         await IndexDocuments(_data);

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Elasticsearch.Net;
 using HotChocolate.Execution;
@@ -74,6 +76,10 @@ public static class TestExtensions
             MemoryStream stream = new();
             SerializableData<SearchRequest> data = new(client.CreateSearchRequest(context)!);
             data.Write(stream, new ConnectionSettings(new InMemoryConnection()));
-            context.ContextData[nameof(SearchRequest)] = Encoding.UTF8.GetString(stream.ToArray());
+            stream.Position = 0;
+            JsonDocument deserialized = await JsonDocument.ParseAsync(stream);
+            JsonSerializerOptions options = new() {WriteIndented = true};
+            context.ContextData[nameof(SearchRequest)] =
+                JsonSerializer.Serialize(deserialized, options);
         });
 }

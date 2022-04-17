@@ -1,1 +1,28 @@
-﻿{"query":{"bool":{"filter":[{"bool":{"must":[{"match":{"qux":{"query":"A"}}},{"match":{"bar":{"query":"A"}}}]}}]}}}
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must": [
+              {
+                "match": {
+                  "qux": {
+                    "query": "A"
+                  }
+                }
+              },
+              {
+                "match": {
+                  "bar": {
+                    "query": "A"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
