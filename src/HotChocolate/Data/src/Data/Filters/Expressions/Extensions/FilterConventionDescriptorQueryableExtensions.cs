@@ -47,6 +47,7 @@ public static class FilterConventionDescriptorQueryableExtensions
         descriptor.AddFieldHandler<QueryableStringInHandler>();
         descriptor.AddFieldHandler<QueryableStringNotInHandler>();
         descriptor.AddFieldHandler<QueryableStringContainsHandler>();
+        descriptor.AddFieldHandler<QueryableStringCaseInsensitiveContainsHandler>();
         descriptor.AddFieldHandler<QueryableStringNotContainsHandler>();
 
         descriptor.AddFieldHandler<QueryableEnumEqualsHandler>();

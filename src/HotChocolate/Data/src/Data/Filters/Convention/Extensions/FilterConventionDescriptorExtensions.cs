@@ -58,6 +58,7 @@ public static class FilterConventionDescriptorExtensions
         descriptor.Operation(DefaultFilterOperations.LowerThanOrEquals).Name("lte");
         descriptor.Operation(DefaultFilterOperations.NotLowerThanOrEquals).Name("nlte");
         descriptor.Operation(DefaultFilterOperations.Contains).Name("contains");
+        descriptor.Operation(DefaultFilterOperations.CaseInsensitiveContains).Name("icontains");
         descriptor.Operation(DefaultFilterOperations.NotContains).Name("ncontains");
         descriptor.Operation(DefaultFilterOperations.In).Name("in");
         descriptor.Operation(DefaultFilterOperations.NotIn).Name("nin");
