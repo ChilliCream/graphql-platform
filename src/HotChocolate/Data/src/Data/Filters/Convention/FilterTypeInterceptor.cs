@@ -204,8 +204,12 @@ public class FilterTypeInterceptor
                         out IFilterFieldHandler? handler))
                     {
                         filterFieldDefinition.Handler = handler;
-                    }
-                    else
+                    } 
+
+                    filterFieldDefinition.Metadata =
+                        convention.CreateMetaData(completionContext, def, filterFieldDefinition);
+
+                    if (filterFieldDefinition.Handler is null)
                     {
                         throw ThrowHelper
                             .FilterInterceptor_NoHandlerFoundForField(def, filterFieldDefinition);

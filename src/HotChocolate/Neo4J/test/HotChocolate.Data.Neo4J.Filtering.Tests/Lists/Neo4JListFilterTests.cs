@@ -6,8 +6,8 @@ using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Filtering.Lists;
 
+[Collection("Database")]
 public class Neo4JListFilterTests
-    : IClassFixture<Neo4JFixture>
 {
     private readonly Neo4JFixture _fixture;
 

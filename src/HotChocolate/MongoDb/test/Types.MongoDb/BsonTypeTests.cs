@@ -322,7 +322,7 @@ public class BsonTypeTests
                 .Name("Query")
                 .Field("foo")
                 .Type<BsonType>()
-                .Resolve(_ => new BsonArray(){ new BsonDocument() }))
+                .Resolve(_ => new BsonArray() { new BsonDocument() }))
             .Create();
 
         IRequestExecutor executor = schema.MakeExecutable();
@@ -1255,7 +1255,8 @@ public class BsonTypeTests
             ["Null"] = BsonNull.Value,
             ["Nested"] = new BsonDocument()
             {
-                ["Int32"] = new BsonInt32(42), ["Int64"] = new BsonInt64(42),
+                ["Int32"] = new BsonInt32(42),
+                ["Int64"] = new BsonInt64(42),
             }
         };
     }
