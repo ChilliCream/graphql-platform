@@ -72,10 +72,7 @@ public sealed class SelectionSetNode
             throw new ArgumentNullException(nameof(selection));
         }
 
-        var selections = new List<ISelectionNode>(Selections)
-        {
-            selection
-        };
+        var selections = new List<ISelectionNode>(Selections) { selection };
 
         return new SelectionSetNode(
             Location, selections);
