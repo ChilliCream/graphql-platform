@@ -191,7 +191,7 @@ public class DefaultNamingConventions
         }
 
         var allUpper = true;
-        var lengthMinusOne = name.Length - 1;
+        var lastValidIndexMinusOne = name.Length - 1;
 
         for (var i = 0; i < name.Length; i++)
         {
@@ -199,7 +199,7 @@ public class DefaultNamingConventions
 
             if (i > 0 && char.IsUpper(c) &&
                 (!char.IsUpper(name[i - 1]) ||
-                    (i < lengthMinusOne && char.IsLower(name[i + 1]))))
+                    (i < lastValidIndexMinusOne && char.IsLower(name[i + 1]))))
             {
                 underscores++;
             }
@@ -240,7 +240,7 @@ public class DefaultNamingConventions
                 if (!lastWasUnderline &&
                     char.IsUpper(name[i]) &&
                     (!char.IsUpper(name[i - 1]) ||
-                        (i < lengthMinusOne && char.IsLower(name[i + 1]))))
+                        (i < lastValidIndexMinusOne && char.IsLower(name[i + 1]))))
                 {
                     buffer[p++] = '_';
                 }
@@ -341,17 +341,43 @@ public class DefaultNamingConventions
                 nameof(fieldName));
         }
 
-        if(fieldName.Length < 2)
-            return fieldName.ToLowerInvariant();
+        var lastValidIndex = fieldName.Length - 1;
 
-        var lastUpperCaseIndex = 0;
-
-        for (var i = 0; i < fieldName.Length; i++)
+        if (lastValidIndex + 1 <= 3)
         {
-            if (char.IsUpper(fieldName[i]))
-                lastUpperCaseIndex = i;
+            return fieldName.ToLowerInvariant();
         }
 
-        return fieldName[..lastUpperCaseIndex].ToLowerInvariant() + fieldName[lastUpperCaseIndex..];
+        var lastUpperCaseIndex = lastValidIndex;
+
+        fieldName = fieldName.Substring(0, lastValidIndex) +
+            char.ToLowerInvariant(fieldName[lastValidIndex]);
+
+        for (var i = lastValidIndex; i >= 1; i--)
+        {
+            if (char.IsUpper(fieldName[i]) &&
+                char.IsLower(fieldName[i + 1]) &&
+                IsNotLastUpperCaseIndex(ref i, ref lastUpperCaseIndex))
+            {
+
+                fieldName =
+                    fieldName.Substring(0, i + 1) +
+                    fieldName.Substring(i + 1, lastUpperCaseIndex - i - 1).ToLowerInvariant() +
+                    fieldName.Substring(lastUpperCaseIndex);
+
+                lastUpperCaseIndex = i;
+            }
+
+        }
+
+        fieldName =
+    fieldName.Substring(0, lastUpperCaseIndex).ToLowerInvariant() +
+    fieldName.Substring(lastUpperCaseIndex);
+        return fieldName;
+    }
+
+    private bool IsNotLastUpperCaseIndex(ref int currentIterator, ref int uppercaseIndex)
+    {
+        return currentIterator != uppercaseIndex && currentIterator + 1 != uppercaseIndex;
     }
 }
