@@ -33,7 +33,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddGraphQLFunction(
         this IServiceCollection services,
-        int maxAllowedRequestSize = 20 * 1000 * 1000,
+        int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
         if (services is null)
@@ -44,8 +44,15 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         IRequestExecutorBuilder executorBuilder =
             services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);
 
+        //Register AzFunc Custom Binding Extensions for In-Process Functions.
+        //NOTE: This does not work for Isolated Process due to (but is not harmful at all of isolated process; it just remains dormant):
+        //  1) Bindings always execute in-process and values must be marshaled between the Host Process & the Isolated Process Worker!
+        //  2) Currently only String values are supported (obviously due to above complexities).
+        //More Info. here (using Blob binding docs):
+        //  https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-input?tabs=isolated-process%2Cextensionv5&pivots=programming-language-csharp#usage
         services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
+            ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>()
+        );
 
         //Add the Request Executor Dependency...
         services.AddAzureFunctionsGraphQLRequestExecutorDependency(apiRoute);
@@ -71,8 +78,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             IFileProvider fileProvider = CreateFileProvider();
             var options = new GraphQLServerOptions();
 
-            foreach (Action<GraphQLServerOptions> configure in
-                     sp.GetServices<Action<GraphQLServerOptions>>())
+            foreach (Action<GraphQLServerOptions> configure in sp.GetServices<Action<GraphQLServerOptions>>())
             {
                 configure(options);
             }

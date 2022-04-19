@@ -26,7 +26,7 @@ public static class HotChocolateFunctionsHostBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddGraphQLFunction(
         this IFunctionsHostBuilder builder,
-        int maxAllowedRequestSize = 20 * 1000 * 1000,
+        int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
         if (builder is null)

@@ -48,6 +48,7 @@ namespace HotChocolate.AzureFunctions.IsolatedProcess
             return httpContextShim;
         }
 
+        // ReSharper disable once InconsistentNaming
         protected virtual HttpContext BuildGraphQLHttpContext(
             string requestHttpMethod,
             Uri requestUri,
