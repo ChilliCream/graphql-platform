@@ -1,0 +1,3 @@
+﻿SELECT "b"."Title", "n"."Id"
+FROM "BookNoAuthors" AS "b"
+LEFT JOIN "NoAuthor" AS "n" ON "b"."AuthorId" = "n"."Id"

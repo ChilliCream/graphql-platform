@@ -1,0 +1,23 @@
+﻿{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 3,
+          "column": 21
+        }
+      ],
+      "path": [
+        "test"
+      ],
+      "extensions": {
+        "message": "Nullable object must have a value.",
+        "stackTrace": "   at System.Nullable\u00601.get_Value()\n   at lambda_method278(Closure , QueryContext , DbDataReader , ResultContext , SingleQueryResultCoordinator )\n   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable\u00601.AsyncEnumerator.MoveNextAsync()\n   at HotChocolate.Data.Projections.FirstOrDefaultMiddleware\u00601.InvokeAsync(IMiddlewareContext context) in /Users/pascalsenn/kot/hotchocolate/src/HotChocolate/Data/src/Data/Projections/FirstOrDefaultMiddleware~1.cs:line 35\n   at HotChocolate.Data.Projections.FirstOrDefaultMiddleware\u00601.InvokeAsync(IMiddlewareContext context) in /Users/pascalsenn/kot/hotchocolate/src/HotChocolate/Data/src/Data/Projections/FirstOrDefaultMiddleware~1.cs:line 44\n   at HotChocolate.Utilities.MiddlewareCompiler\u00601.ExpressionHelper.AwaitTaskHelper(Task task) in /Users/pascalsenn/kot/hotchocolate/src/HotChocolate/Utilities/src/Utilities/MiddlewareCompiler.cs:line 167\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/pascalsenn/kot/hotchocolate/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 95\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/pascalsenn/kot/hotchocolate/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 73"
+      }
+    }
+  ],
+  "data": {
+    "test": null
+  }
+}

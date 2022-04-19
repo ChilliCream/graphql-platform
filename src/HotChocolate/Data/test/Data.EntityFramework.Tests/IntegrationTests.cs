@@ -17,6 +17,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     private readonly DbSet<SingleOrDefaultAuthor> _singleOrDefaultAuthors;
     private readonly DbSet<ZeroAuthor> _zeroAuthors;
     private readonly DbSet<Book> _books;
+    private readonly DbSet<BookNoAuthor> _bookNoAuthors;
 
     public IntegrationTests(AuthorFixture authorFixture)
     {
@@ -24,6 +25,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         _zeroAuthors = authorFixture.Context.ZeroAuthors;
         _singleOrDefaultAuthors = authorFixture.Context.SingleOrDefaultAuthors;
         _books = authorFixture.Context.Books;
+        _bookNoAuthors = authorFixture.Context.BookNoAuthors;
     }
 
     [Fact]
@@ -500,6 +502,79 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseSorting())
             .UseSqlLogging()
             .BuildRequestExecutorAsync();
+
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
+                {
+                    test {
+                        title
+                        author {
+                            id
+                        }
+                    }
+                }
+                ");
+
+        // assert
+        result.MatchSqlSnapshot();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ProjectCorrectly_When_SelectButNoAuthor()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddEntityFrameworkProjections()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("test")
+                    .Type<ObjectType<BookDto>>()
+                    .Resolve(_ => _bookNoAuthors.AsQueryable()
+                        .Select(book =>
+                            new BookDto
+                            {
+                                Title = book.Title,
+                                Author = new AuthorDto
+                                {
+                                    Id = book.Author!.Id,
+                                    Name = book.Author.Name
+                                }
+                            })
+                    )
+                    .UseFirstOrDefault()
+                    .UseSqlLogging()
+                    .UseProjection()
+                    .UseFiltering()
+                    .UseSorting())
+            .UseSqlLogging()
+            .BuildRequestExecutorAsync();
+
+        // Works
+        var r0 = _bookNoAuthors.AsQueryable().ToList();
+        //Fails
+        var r1 = _bookNoAuthors.AsQueryable()
+            .Select(b => new BookDto
+                {
+                    Title = b.Title,
+                    Author = b.Author == null ? new AuthorDto {Id = b.Author!.Id, Name = b.Author.Name} : null
+                }
+            ).ToList();
+        // Fails
+        var r2 = _bookNoAuthors.AsQueryable()
+            .Select(b => new BookDto
+                {
+                    Title = b.Title,
+                    Author = new AuthorDto {Id = b.Author!.Id, Name = b.Author.Name}
+                }
+            )
+            .Select(_s1
+                => new BookDto {Title = _s1.Title, Author = new AuthorDto {Id = _s1.Author!.Id}}
+            ).ToList();
 
         // act
         IExecutionResult result = await executor.ExecuteAsync(

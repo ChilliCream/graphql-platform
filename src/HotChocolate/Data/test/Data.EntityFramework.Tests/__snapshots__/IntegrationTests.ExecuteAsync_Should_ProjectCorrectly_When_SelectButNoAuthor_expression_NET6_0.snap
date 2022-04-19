@@ -1,0 +1,16 @@
+﻿DbSet<BookNoAuthor>()
+    .Select(book => new BookDto{ 
+        Title = book.Title, 
+        Author = new AuthorDto{ 
+            Id = book.Author.Id, 
+            Name = book.Author.Name 
+        }
+         
+    }
+    )
+    .Select(_s1 => new BookDto{ 
+        Title = _s1.Title, 
+        Author = new AuthorDto{ Id = _s1.Author.Id }
+         
+    }
+    )

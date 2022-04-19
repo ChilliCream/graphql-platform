@@ -11,42 +11,52 @@ public class AuthorFixture : IDisposable
 
     private static readonly Author[] _authors =
     {
-        new Author
-        {
-            Id = 1, Name = "Foo", Books = { new Book { Id = 1, Title = "Foo1" } }
-        },
-        new Author
-        {
-            Id = 2, Name = "Bar", Books = { new Book { Id = 2, Title = "Bar1" } }
-        },
-        new Author { Id = 3, Name = "Baz", Books = { new Book { Id = 3, Title = "Baz1" } } }
+        new Author {Id = 1, Name = "Foo", Books = {new Book {Id = 1, Title = "Foo1"}}},
+        new Author {Id = 2, Name = "Bar", Books = {new Book {Id = 2, Title = "Bar1"}}},
+        new Author {Id = 3, Name = "Baz", Books = {new Book {Id = 3, Title = "Baz1"}}}
     };
 
     private static readonly SingleOrDefaultAuthor[] _singleOrDefaultAuthors =
     {
-        new SingleOrDefaultAuthor { Id = 1, Name = "Foo" }
+        new SingleOrDefaultAuthor {Id = 1, Name = "Foo"}
+    };
+
+    private static readonly BookNoAuthor[] _bookNoAuthors =
+    {
+        new() {Id = 1, Title = "Foo1"},
+        new() {Id = 2, Title = "Foo2"},
+        new() {Id = 3, Title = "Foo3"},
     };
 
     public AuthorFixture()
     {
-        _fileName = Guid.NewGuid().ToString("N") + ".db";
-        BookContext context = new ServiceCollection()
-            .AddDbContext<BookContext>(
-                b => b.UseSqlite("Data Source=" + _fileName))
-            .AddGraphQL()
-            .AddFiltering()
-            .AddSorting()
-            .AddProjections()
-            .AddQueryType<Query>()
-            .Services
-            .BuildServiceProvider()
-            .GetRequiredService<BookContext>();
-        context.Database.EnsureCreated();
-        context.Authors.AddRange(_authors);
-        context.SaveChanges();
-        context.SingleOrDefaultAuthors.AddRange(_singleOrDefaultAuthors);
-        context.SaveChanges();
-        Context = context;
+        try
+        {
+            _fileName = Guid.NewGuid().ToString("N") + ".db";
+            BookContext context = new ServiceCollection()
+                .AddDbContext<BookContext>(
+                    b => b.UseSqlite("Data Source=" + _fileName))
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<Query>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequiredService<BookContext>();
+            context.Database.EnsureCreated();
+            context.Authors.AddRange(_authors);
+            context.BookNoAuthors.AddRange(_bookNoAuthors);
+            context.SaveChanges();
+            context.SingleOrDefaultAuthors.AddRange(_singleOrDefaultAuthors);
+            context.SaveChanges();
+            Context = context;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
     }
 
     public BookContext Context;
