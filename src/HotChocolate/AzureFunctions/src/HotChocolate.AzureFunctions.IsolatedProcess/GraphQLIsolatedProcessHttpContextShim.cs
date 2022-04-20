@@ -9,14 +9,14 @@ namespace HotChocolate.AzureFunctions.IsolatedProcess
 {
     public class GraphQLIsolatedProcessHttpContextShim : IDisposable, IAsyncDisposable
     {
-        //Must keep the Reference so we can safely Dispose!
-        protected HttpContext? HttpContextShim { get; set; }
-
         public HttpRequestData IsolatedProcessHttpRequestData { get; protected set; }
 
         public string ContentType { get; protected set; }
 
-        protected bool IsDisposed { get; set; } = false;
+        //Must keep the Reference so we can safely Dispose!
+        protected virtual HttpContext? HttpContextShim { get; set; }
+
+        protected virtual bool IsDisposed { get; set; } = false;
 
         public GraphQLIsolatedProcessHttpContextShim(HttpRequestData httpRequestData)
         {
@@ -28,17 +28,20 @@ namespace HotChocolate.AzureFunctions.IsolatedProcess
         /// Create an HttpContext (AspNetCore compatible) that can be provided to the AzureFunctionsProxy for GraphQL execution.
         /// All pertinent data from the HttpRequestData provided by the Azure Functions Isolated Process will be marshalled
         /// into the HttpContext for HotChocolate to consume.
+        /// NOTE: This is done as an explicit method (and not in the Constructor) due to the need for Async process to read the incoming Request Content/Stream.
         /// </summary>
         /// <returns></returns>
         public virtual async Task<HttpContext> CreateGraphQLHttpContextAsync()
         {
             HttpRequestData httpRequestData = IsolatedProcessHttpRequestData;
 
+            var requestBody = await httpRequestData.ReadAsStringAsync().ConfigureAwait(false);
+
             HttpContext httpContextShim = BuildGraphQLHttpContext(
                 requestHttpMethod: httpRequestData.Method,
                 requestUri: httpRequestData.Url,
                 requestHeadersCollection: httpRequestData.Headers,
-                requestBody: await httpRequestData.ReadAsStringAsync().ConfigureAwait(false),
+                requestBody: requestBody,
                 requestBodyContentType: httpRequestData.GetContentType(),
                 claimsIdentities: httpRequestData.Identities
             );
@@ -103,7 +106,9 @@ namespace HotChocolate.AzureFunctions.IsolatedProcess
         public async Task<HttpResponseData> CreateHttpResponseDataAsync()
         {
             var graphqlResponseBytes = ReadResponseBytes();
-            HttpContext? httpContext = HttpContextShim ?? throw new ArgumentNullException(nameof(HttpContextShim), "The HttpContext has not been initialized correctly.");
+
+            HttpContext? httpContext = HttpContextShim
+                ?? throw new NullReferenceException("The HttpContext has not been initialized correctly.");
 
             var httpStatusCode = (HttpStatusCode)httpContext.Response.StatusCode;
 

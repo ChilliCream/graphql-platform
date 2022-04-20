@@ -37,9 +37,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
         if (services is null)
-        {
             throw new ArgumentNullException(nameof(services));
-        }
 
         IRequestExecutorBuilder executorBuilder =
             services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);

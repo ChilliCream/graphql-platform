@@ -15,6 +15,7 @@ public static class GraphQLRequestExecutorExtensions
             throw new ArgumentNullException(nameof(httpRequestData));
         
         //Adapt the Isolated Process HttpRequestData to the HttpContext needed by HotChocolate and execute the Pipeline...
+        //NOTE: This must be disposed of properly to ensure our request/response resources are managed efficiently.
         await using var httpContextShim = new GraphQLIsolatedProcessHttpContextShim(httpRequestData);
 
         //Marshall the HttpContext into the DefaultGraphQLRequestExecutor (which will handle pre & post processing as needed)...

@@ -13,6 +13,9 @@ public static class HotChocolateAzFuncIsolatedProcessHostBuilderExtensions
     /// <param name="hostBuilder">
     /// The <see cref="IFunctionsHostBuilder"/>.
     /// </param>
+    /// <param name="graphqlConfigureFunc">
+    /// The GraphQL Configuration function that will be invoked, for chained configuration, when the Host is built.
+    /// </param>
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
@@ -20,7 +23,7 @@ public static class HotChocolateAzFuncIsolatedProcessHostBuilderExtensions
     /// The API route that was used in the GraphQL Azure Function.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// Returns the <see cref="IHostBuilder"/> so that host configuration can be chained.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// The <see cref="IServiceCollection"/> is <c>null</c>.
