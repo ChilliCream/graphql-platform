@@ -2,49 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
+using HotChocolate.Data.Projections;
+using HotChocolate.Data.Projections.Expressions;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
-namespace HotChocolate.Data.Projections.Expressions;
+namespace HotChocolate.Data.Extensions;
 
-public delegate object? ApplyProjection(IResolverContext context, object? input);
-
-public class QueryableProjectionProvider : ProjectionProvider
+/// <summary>
+/// A <see cref="EntityFrameworkQueryableProjectionProvider"/> translates a incoming query to
+/// a IQueryable optimized for Entity Framework
+/// </summary>
+public class EntityFrameworkQueryableProjectionProvider : QueryableProjectionProvider
 {
-    public static readonly string ContextApplyProjectionKey = nameof(ApplyProjection);
-    public const string SkipProjectionKey = "SkipProjection";
-
-    public QueryableProjectionProvider()
+    /// <summary>
+    /// Creates a new instance of <see cref="EntityFrameworkQueryableProjectionProvider"/>
+    /// </summary>
+    public EntityFrameworkQueryableProjectionProvider()
     {
     }
 
-    public QueryableProjectionProvider(Action<IProjectionProviderDescriptor> configure)
+    /// <summary>
+    /// Creates a new instance of <see cref="EntityFrameworkQueryableProjectionProvider"/>
+    /// </summary>
+    public EntityFrameworkQueryableProjectionProvider(
+        Action<IProjectionProviderDescriptor> configure)
         : base(configure)
     {
     }
 
-    public override FieldMiddleware CreateExecutor<TEntityType>()
-    {
-        ApplyProjection applyProjection = CreateApplicatorAsync<TEntityType>();
-
-        return next => context => ExecuteAsync(next, context);
-
-        async ValueTask ExecuteAsync(
-            FieldDelegate next,
-            IMiddlewareContext context)
-        {
-            context.LocalContextData =
-                context.LocalContextData.SetItem(ContextApplyProjectionKey, applyProjection);
-
-            // first we let the pipeline run and produce a result.
-            await next(context).ConfigureAwait(false);
-
-            context.Result = applyProjection(context, context.Result);
-        }
-    }
-
-    protected virtual ApplyProjection CreateApplicatorAsync<TEntityType>()
+    /// <inheritdoc />
+    protected override ApplyProjection CreateApplicatorAsync<TEntityType>()
     {
         return (context, input) =>
         {
@@ -67,11 +54,12 @@ public class QueryableProjectionProvider : ProjectionProvider
                 return input;
             }
 
-            var visitorContext = new QueryableProjectionContext(
+            var visitorContext =
+                new QueryableProjectionContext(
                     context,
                     context.ObjectType,
                     context.Selection.Type.UnwrapRuntimeType(),
-                    false);
+                    input is EntityQueryable<TEntityType>);
             var visitor = new QueryableProjectionVisitor();
             visitor.Visit(visitorContext);
 

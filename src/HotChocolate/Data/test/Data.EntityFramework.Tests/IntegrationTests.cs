@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Data.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -476,7 +477,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
-            .AddProjections()
+            .AddEntityFrameworkProjections()
             .AddType<AuthorDto.Type>()
             .AddQueryType(
                 x => x
@@ -528,7 +529,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
-            .AddProjections()
+            .AddEntityFrameworkProjections()
             .AddType<AuthorDto.Type>()
             .AddQueryType(
                 x => x

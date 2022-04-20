@@ -19,18 +19,13 @@ internal static class ProjectionExpressionBuilder
         return Expression.MemberInit(ctor, expressions);
     }
 
-    public static Expression NotNull(Expression expression)
-    {
-        return Expression.NotEqual(expression, _null);
-    }
-
     public static Expression NotNullAndAlso(Expression property, MemberInfo[]? propertyKeys, Expression condition)
     {
         Expression conditionTest;
 
-        if(propertyKeys == null)
+        if (propertyKeys == null)
         {
-            conditionTest = NotNull(property);
+            conditionTest = Expression.NotEqual(property, _null);
         }
         else
         {

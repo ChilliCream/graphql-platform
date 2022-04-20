@@ -87,7 +87,7 @@ public class QueryableProjectionFieldHandler
         }
 
         MemberInfo[]? keyMembers = null;
-        if (field.Type is IObjectType objectType)
+        if(context.UseKeysForNullCheck && field.Type is IObjectType objectType)
             keyMembers = objectType.KeyMembers;
 
         parentScope.Level
