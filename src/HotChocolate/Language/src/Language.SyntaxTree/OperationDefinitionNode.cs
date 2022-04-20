@@ -216,7 +216,7 @@ public sealed class OperationDefinitionNode
             return true;
         }
 
-        return Equals(Location, other.Location) && Name.IsEqualTo(other.Name) &&
+        return Name.IsEqualTo(other.Name) &&
                Operation == other.Operation &&
                EqualityHelper.Equals(VariableDefinitions, other.VariableDefinitions) &&
                EqualityHelper.Equals(Directives, Directives) &&
@@ -224,20 +224,43 @@ public sealed class OperationDefinitionNode
     }
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj) => ReferenceEquals(this, obj) ||
-                                                obj is OperationDefinitionNode other &&
-                                                Equals(other);
+    public override bool Equals(object? obj)
+        => ReferenceEquals(this, obj) ||
+           obj is OperationDefinitionNode other &&
+           Equals(other);
 
     /// <inheritdoc/>
     public override int GetHashCode()
     {
         var hashCode = new HashCode();
-        hashCode.Add(Location);
         hashCode.Add(Name);
+        hashCode.Add((int) Operation);
         hashCode.AddNodes(VariableDefinitions);
         hashCode.AddNodes(Directives);
         hashCode.Add(SelectionSet);
 
         return hashCode.ToHashCode();
     }
+
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(OperationDefinitionNode? left, OperationDefinitionNode? right)
+        => Equals(left, right);
+
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
+    public static bool operator !=(OperationDefinitionNode? left, OperationDefinitionNode? right)
+        => !Equals(left, right);
 }
