@@ -45,7 +45,7 @@ public interface IObjectTypeDescriptor<TRuntimeType>
     /// Defines key members for this type
     /// </summary>
     /// <param name="keyExpressions">Key expressions that uniquely identify this type</param>
-    IObjectTypeDescriptor<TRuntimeType> HasKeys<TKey>(params Expression<Func<TRuntimeType, TKey>>[] keyExpressions);
+    IObjectTypeDescriptor<TRuntimeType> HasKeys(params Expression<Func<TRuntimeType, object>>[] keyExpressions);
 
     /// <summary>
     /// Defines the field binding behavior.

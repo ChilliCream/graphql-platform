@@ -114,10 +114,12 @@ public abstract class ObjectTypeDescriptorBase<T>
 
     public IObjectTypeDescriptor<T> HasKey<TKey>(Expression<Func<T, TKey>> keyExpression)
     {
-        return HasKeys(keyExpression);
+        base.HasKeys(keyExpression);
+
+        return this;
     }
 
-    public IObjectTypeDescriptor<T> HasKeys<TKey>(params Expression<Func<T, TKey>>[] keyExpressions)
+    public IObjectTypeDescriptor<T> HasKeys(params Expression<Func<T, object>>[] keyExpressions)
     {
         base.HasKeys(keyExpressions);
 
