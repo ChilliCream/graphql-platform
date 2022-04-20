@@ -86,12 +86,13 @@ public class QueryableProjectionFieldHandler
             return true;
         }
 
+        MemberInfo[]? keyMembers = null;
+        if (field.Type is IObjectType objectType)
+            keyMembers = objectType.KeyMembers;
+
         parentScope.Level
             .Peek()
-            .Enqueue(Expression.Bind(field.Member,
-                context.DisableNullChecks
-                    ? memberInit
-                    : NotNullAndAlso(nestedProperty, memberInit)));
+            .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, keyMembers, memberInit)));
 
         action = SelectionVisitor.Continue;
         return true;

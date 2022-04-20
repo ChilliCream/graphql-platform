@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Data.Extensions;
 using HotChocolate.Execution;
@@ -476,6 +477,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddFiltering()
             .AddSorting()
             .AddEntityFrameworkProjections()
+            .AddType<AuthorDto.Type>()
             .AddQueryType(
                 x => x
                     .Name("Query")
@@ -537,5 +539,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         public virtual ICollection<BookDto> Books { get; set; } =
             new List<BookDto>();
+
+        internal class Type : ObjectType<AuthorDto>
+        {
+            protected override void Configure(IObjectTypeDescriptor<AuthorDto> descriptor)
+            {
+                descriptor.HasKey(x => x.Id);
+            }
+        }
     }
 }

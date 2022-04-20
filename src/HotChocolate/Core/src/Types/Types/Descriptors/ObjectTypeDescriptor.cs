@@ -116,6 +116,12 @@ public class ObjectTypeDescriptor
         return this;
     }
 
+    public IObjectTypeDescriptor HasKeys(params LambdaExpression[] keyExpressionLambdas)
+    {
+        Definition.KeyMembers = keyExpressionLambdas.Select(lambda => ((MemberExpression)lambda.Body).Member).ToArray();
+        return this;
+    }
+
     public IObjectTypeDescriptor Description(string? value)
     {
         Definition.Description = value;

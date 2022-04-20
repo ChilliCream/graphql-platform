@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -81,6 +83,8 @@ public partial class ObjectType
     /// Gets the field that this type exposes.
     /// </summary>
     public FieldCollection<ObjectField> Fields { get; private set; } = default!;
+
+    public MemberInfo[]? KeyMembers => _keyMembers;
 
     IFieldCollection<IObjectField> IObjectType.Fields => Fields;
 

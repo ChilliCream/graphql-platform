@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
@@ -18,6 +19,7 @@ public partial class ObjectType
     private InterfaceType[] _implements = Array.Empty<InterfaceType>();
     private Action<IObjectTypeDescriptor>? _configure;
     private IsOfType? _isOfType;
+    private MemberInfo[]? _keyMembers;
 
     protected override ObjectTypeDefinition CreateDefinition(
         ITypeDiscoveryContext context)
@@ -58,6 +60,7 @@ public partial class ObjectType
 
         if (ValidateFields(context, definition))
         {
+            _keyMembers = definition.KeyMembers;
             _isOfType = definition.IsOfType;
             SyntaxNode = definition.SyntaxNode;
             Fields = OnCompleteFields(context, definition);

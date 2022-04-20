@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 
@@ -77,6 +78,11 @@ public class ObjectTypeDefinition
     /// Defines if this type definition represents a object type extension.
     /// </summary>
     public bool IsExtension { get; set; }
+
+    /// <summary>
+    /// Array of member infos that uniquely identify an object.
+    /// </summary>
+    public MemberInfo[]? KeyMembers { get; set; }
 
     /// <summary>
     /// Gets the interfaces that this object type implements.

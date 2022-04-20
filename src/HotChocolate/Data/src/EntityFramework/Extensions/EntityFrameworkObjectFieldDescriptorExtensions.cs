@@ -110,7 +110,7 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
 
         if (TryExtractEntityType(definition.ResultType, out Type? entityType))
         {
-            Type middleware = typeof(ToListMiddleware<>).MakeGenericType(entityType);
+            Type middleware = typeof(ToListMiddleware<>).MakeGenericType(entityType!);
             var index = definition.MiddlewareDefinitions.IndexOf(placeholderMiddleware);
             definition.MiddlewareDefinitions[index] =
                 new(Create(middleware), key: WellKnownMiddleware.ToList);
@@ -130,7 +130,7 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
 
     private static bool TryExtractEntityType(
         Type resultType,
-        [NotNullWhen(true)] out Type? entityType)
+        out Type? entityType)
     {
         if (!resultType.IsGenericType)
         {

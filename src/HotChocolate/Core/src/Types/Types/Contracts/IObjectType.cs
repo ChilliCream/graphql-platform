@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using System.Reflection;
 
 #nullable enable
 
@@ -35,4 +36,9 @@ public interface IObjectType : IComplexOutputType
     /// otherwise, <c>false</c>.
     /// </returns>
     bool IsInstanceOfType(IResolverContext context, object resolverResult);
+
+    /// <summary>
+    /// Gets the member infos that uniquely identify an object.
+    /// </summary>
+    MemberInfo[]? KeyMembers { get; }
 }
