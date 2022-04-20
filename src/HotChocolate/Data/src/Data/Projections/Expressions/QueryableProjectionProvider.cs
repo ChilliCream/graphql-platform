@@ -67,12 +67,10 @@ public class QueryableProjectionProvider : ProjectionProvider
                 return input;
             }
 
-            var visitorContext =
-                new QueryableProjectionContext(
+            var visitorContext = new QueryableProjectionContext(
                     context,
                     context.ObjectType,
-                    context.Selection.Type.UnwrapRuntimeType(),
-                    false);
+                    context.Selection.Type.UnwrapRuntimeType());
             var visitor = new QueryableProjectionVisitor();
             visitor.Visit(visitorContext);
 
