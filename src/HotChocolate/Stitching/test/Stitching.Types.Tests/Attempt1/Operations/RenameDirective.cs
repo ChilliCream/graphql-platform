@@ -24,7 +24,7 @@ internal sealed class RenameDirective
             .Value
             .Value;
 
-        if (nameArgument is not string stringArgument || string.IsNullOrEmpty(stringArgument))
+        if (nameArgument is not string {Length: > 0} stringArgument)
         {
             throw new InvalidOperationException();
         }
