@@ -12,6 +12,8 @@ public class BookContext : DbContext
 
     public DbSet<Author> Authors { get; set; } = default!;
 
+    public DbSet<BookNoAuthor> BookNoAuthors { get; set; } = default!;
+
     public DbSet<SingleOrDefaultAuthor> SingleOrDefaultAuthors { get; set; } = default!;
 
     public DbSet<ZeroAuthor> ZeroAuthors { get; set; } = default!;
@@ -19,6 +21,11 @@ public class BookContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Author>()
+            .HasMany(t => t.Books)
+            .WithOne(t => t.Author!)
+            .HasForeignKey(t => t.AuthorId);
+
+        modelBuilder.Entity<NoAuthor>()
             .HasMany(t => t.Books)
             .WithOne(t => t.Author!)
             .HasForeignKey(t => t.AuthorId);

@@ -27,6 +27,13 @@ public class AuthorFixture : IDisposable
         new SingleOrDefaultAuthor { Id = 1, Name = "Foo" }
     };
 
+        private static readonly BookNoAuthor[] _bookNoAuthors =
+    {
+        new() {Id = 1, Title = "Foo1"},
+        new() {Id = 2, Title = "Foo2"},
+        new() {Id = 3, Title = "Foo3"},
+    };
+
     public AuthorFixture()
     {
         _fileName = Guid.NewGuid().ToString("N") + ".db";
@@ -45,6 +52,7 @@ public class AuthorFixture : IDisposable
         context.Authors.AddRange(_authors);
         context.SaveChanges();
         context.SingleOrDefaultAuthors.AddRange(_singleOrDefaultAuthors);
+        context.BookNoAuthors.AddRange(_bookNoAuthors);
         context.SaveChanges();
         Context = context;
     }
