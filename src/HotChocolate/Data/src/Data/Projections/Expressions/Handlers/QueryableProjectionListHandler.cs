@@ -7,8 +7,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
 
-public class QueryableProjectionListHandler
-    : QueryableProjectionHandlerBase
+public class QueryableProjectionListHandler<TContext> : QueryableProjectionHandlerBase<TContext>
+    where TContext : QueryableProjectionContext
 {
     public override bool CanHandle(ISelection selection) =>
         selection.Field.Member is { } &&
@@ -16,8 +16,8 @@ public class QueryableProjectionListHandler
         selection.Type is NonNullType nonNullType &&
         nonNullType.InnerType() is ListType;
 
-    public override QueryableProjectionContext OnBeforeEnter(
-        QueryableProjectionContext context,
+    public override TContext OnBeforeEnter(
+        TContext context,
         ISelection selection)
     {
         IObjectField field = selection.Field;
@@ -32,7 +32,7 @@ public class QueryableProjectionListHandler
     }
 
     public override bool TryHandleEnter(
-        QueryableProjectionContext context,
+        TContext context,
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
@@ -58,7 +58,7 @@ public class QueryableProjectionListHandler
     }
 
     public override bool TryHandleLeave(
-        QueryableProjectionContext context,
+        TContext context,
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {

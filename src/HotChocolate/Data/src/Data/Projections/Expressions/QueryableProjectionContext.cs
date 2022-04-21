@@ -14,16 +14,4 @@ public class QueryableProjectionContext : ProjectionVisitorContext<Expression>
         : base(context, initialType, new QueryableProjectionScope(runtimeType, "_s1"))
     {
     }
-
-    public QueryableProjectionContext(
-        IResolverContext context,
-        IOutputType initialType,
-        Type runtimeType,
-        bool useKeysForNullCheck)
-    : this(context, initialType, runtimeType)
-    {
-        UseKeysForNullCheck = useKeysForNullCheck;
-    }
-
-    public bool UseKeysForNullCheck { get; }
 }

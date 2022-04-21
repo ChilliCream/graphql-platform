@@ -8,15 +8,15 @@ using static HotChocolate.Data.Projections.Expressions.ProjectionExpressionBuild
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
 
-public class QueryableProjectionFieldHandler
-    : QueryableProjectionHandlerBase
+public class QueryableProjectionObjectHandler<TContext> : QueryableProjectionHandlerBase<TContext>
+    where TContext : QueryableProjectionContext
 {
     public override bool CanHandle(ISelection selection) =>
         selection.Field.Member is { } &&
         selection.SelectionSet is not null;
 
     public override bool TryHandleEnter(
-        QueryableProjectionContext context,
+        TContext context,
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
@@ -47,7 +47,7 @@ public class QueryableProjectionFieldHandler
     }
 
     public override bool TryHandleLeave(
-        QueryableProjectionContext context,
+        TContext context,
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
@@ -86,15 +86,18 @@ public class QueryableProjectionFieldHandler
             return true;
         }
 
-        MemberInfo[]? keyMembers = null;
-        if(context.UseKeysForNullCheck && field.Type is IObjectType objectType)
-            keyMembers = objectType.KeyMembers;
+        var memberBinding = ConstructMemberAssignment(context, field, nestedProperty, memberInit);
 
         parentScope.Level
             .Peek()
-            .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, keyMembers, memberInit)));
+            .Enqueue(memberBinding);
 
         action = SelectionVisitor.Continue;
         return true;
+    }
+
+    protected virtual MemberAssignment ConstructMemberAssignment(TContext context, IObjectField field, Expression nestedProperty, Expression memberInit)
+    {
+        return Expression.Bind(field.Member!, NotNullAndAlso(nestedProperty, memberInit));
     }
 }

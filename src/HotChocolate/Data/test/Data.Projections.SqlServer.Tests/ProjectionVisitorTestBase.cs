@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Data.Projections.Expressions;
+using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -53,7 +54,13 @@ public class ProjectionVisitorTestBase
         Type? schemaType = null)
         where TEntity : class
     {
-        provider ??= new QueryableProjectionProvider(x => x.AddDefaults());
+        provider ??= new QueryableProjectionProvider(x => x.AddDefaults
+                <
+                    QueryableProjectionScalarHandler<QueryableProjectionContext>,
+                    QueryableProjectionListHandler<QueryableProjectionContext>,
+                    QueryableProjectionObjectHandler<QueryableProjectionContext>
+                >());
+
         var convention = new ProjectionConvention(x => x.Provider(provider));
 
         Func<IResolverContext, IQueryable<TEntity>> resolver =

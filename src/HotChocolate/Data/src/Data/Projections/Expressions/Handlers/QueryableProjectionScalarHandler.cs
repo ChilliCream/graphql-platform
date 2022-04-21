@@ -7,15 +7,15 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
 
-public class QueryableProjectionScalarHandler
-    : QueryableProjectionHandlerBase
+public class QueryableProjectionScalarHandler<TContext>: QueryableProjectionHandlerBase<TContext>
+    where TContext : QueryableProjectionContext
 {
     public override bool CanHandle(ISelection selection) =>
         selection.Field.Member is { } &&
         selection.SelectionSet is null;
 
     public override bool TryHandleEnter(
-        QueryableProjectionContext context,
+        TContext context,
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
@@ -30,7 +30,7 @@ public class QueryableProjectionScalarHandler
     }
 
     public override bool TryHandleLeave(
-        QueryableProjectionContext context,
+        TContext context,
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {

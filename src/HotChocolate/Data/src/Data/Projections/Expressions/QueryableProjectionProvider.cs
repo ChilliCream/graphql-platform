@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
@@ -44,7 +43,7 @@ public class QueryableProjectionProvider : ProjectionProvider
         }
     }
 
-    protected virtual ApplyProjection CreateApplicatorAsync<TEntityType>()
+    private ApplyProjection CreateApplicatorAsync<TEntityType>()
     {
         return (context, input) =>
         {
@@ -67,16 +66,7 @@ public class QueryableProjectionProvider : ProjectionProvider
                 return input;
             }
 
-            var visitorContext = new QueryableProjectionContext(
-                    context,
-                    context.ObjectType,
-                    context.Selection.Type.UnwrapRuntimeType(),
-                    false);
-            var visitor = new QueryableProjectionVisitor();
-            visitor.Visit(visitorContext);
-
-            Expression<Func<TEntityType, TEntityType>> projection =
-                visitorContext.Project<TEntityType>();
+            var projection = ConstructProjection<TEntityType>(context, input);
 
             input = input switch
             {
@@ -89,5 +79,18 @@ public class QueryableProjectionProvider : ProjectionProvider
 
             return input;
         };
+    }
+
+    protected virtual Expression<Func<TEntityType, TEntityType>> ConstructProjection<TEntityType>(IResolverContext context, object? input)
+    {
+        var visitorContext = new QueryableProjectionContext(
+            context,
+            context.ObjectType,
+            context.Selection.Type.UnwrapRuntimeType());
+
+        var visitor = new QueryableProjectionVisitor();
+        visitor.Visit(visitorContext);
+
+        return visitorContext.Project<TEntityType>();
     }
 }

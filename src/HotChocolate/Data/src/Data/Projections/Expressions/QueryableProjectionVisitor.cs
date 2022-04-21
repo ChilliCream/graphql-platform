@@ -7,14 +7,14 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
-public class QueryableProjectionVisitor
-    : ProjectionVisitor<QueryableProjectionContext>
+public class QueryableProjectionVisitor<TContext> : ProjectionVisitor<TContext>
+    where TContext : QueryableProjectionContext
 {
     protected override ISelectionVisitorAction VisitObjectType(
         IOutputField field,
         ObjectType objectType,
         SelectionSetNode? selectionSet,
-        QueryableProjectionContext context)
+        TContext context)
     {
         var isAbstractType = field.Type.NamedType().IsAbstractType();
         if (isAbstractType && context.TryGetQueryableScope(out QueryableProjectionScope? scope))
@@ -43,5 +43,9 @@ public class QueryableProjectionVisitor
         return base.VisitObjectType(field, objectType, selectionSet, context);
     }
 
+}
+
+public class QueryableProjectionVisitor : QueryableProjectionVisitor<QueryableProjectionContext>
+{
     public static readonly QueryableProjectionVisitor Default = new();
 }

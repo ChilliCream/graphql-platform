@@ -3,11 +3,11 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
 
-public abstract class QueryableProjectionHandlerBase
-    : ProjectionFieldHandler<QueryableProjectionContext>
+public abstract class QueryableProjectionHandlerBase<TContext> : ProjectionFieldHandler<TContext>
+    where TContext : QueryableProjectionContext
 {
     public override bool TryHandleEnter(
-        QueryableProjectionContext context,
+        TContext context,
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
@@ -16,7 +16,7 @@ public abstract class QueryableProjectionHandlerBase
     }
 
     public override bool TryHandleLeave(
-        QueryableProjectionContext context,
+        TContext context,
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {

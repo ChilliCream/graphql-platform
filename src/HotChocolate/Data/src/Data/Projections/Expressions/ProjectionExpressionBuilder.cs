@@ -1,12 +1,10 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
-internal static class ProjectionExpressionBuilder
+public static class ProjectionExpressionBuilder
 {
     private static readonly ConstantExpression _null =
         Expression.Constant(null, typeof(object));
@@ -19,36 +17,15 @@ internal static class ProjectionExpressionBuilder
         return Expression.MemberInit(ctor, expressions);
     }
 
-    public static Expression NotNullAndAlso(Expression property, MemberInfo[]? propertyKeys, Expression condition)
+    public static Expression NotNull(Expression expression)
     {
-        Expression conditionTest;
+        return Expression.NotEqual(expression, _null);
+    }
 
-        if (propertyKeys == null)
-        {
-            conditionTest = Expression.NotEqual(property, _null);
-        }
-        else
-        {
-            conditionTest = propertyKeys.Aggregate(
-                (Expression)Expression.Constant(true),
-                (condition, member) =>
-                {
-                    Expression memberAccess = Expression.MakeMemberAccess(property, member);
-                    var memberType = memberAccess.Type;
-
-                    if (Nullable.GetUnderlyingType(memberType) == null)
-                    {
-                        memberType = typeof(Nullable<>).MakeGenericType(memberAccess.Type);
-
-                        memberAccess = Expression.Convert(memberAccess, memberType);
-                    }
-
-                    return Expression.AndAlso(condition, Expression.NotEqual(memberAccess, Expression.Constant(null, memberType)));
-                });
-        }
-
+    public static Expression NotNullAndAlso(Expression property, Expression condition)
+    {
         return Expression.Condition(
-            conditionTest,
+            NotNull(property),
             condition,
             Expression.Default(property.Type));
     }
