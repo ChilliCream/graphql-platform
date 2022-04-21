@@ -1,11 +1,10 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate.AzureFunctions.IsolatedProcess.Extensions;
+using HotChocolate.AzureFunctions.IsolatedProcess;
 using HotChocolate.Types;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
-using HotChocolate.AzureFunctions.Tests.Helpers;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
@@ -15,7 +14,7 @@ namespace HotChocolate.AzureFunctions.Tests;
 public class IsolatedProcessEndToEndTests
 {
     [Fact]
-    public async Task AzFuncInProcess_EndToEndTestAsync()
+    public async Task AzFuncIsolatedProcess_EndToEndTestAsync()
     {
         var hostBuilder = new MockIsolatedProcessHostBuilder();
 
@@ -29,17 +28,19 @@ public class IsolatedProcessEndToEndTests
         //The executor should resolve without error as a Required service...
         IGraphQLRequestExecutor requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
 
-        HttpContext httpContext = TestHttpContextHelper.NewGraphQLHttpContext(@"
+        //Build an HttpRequestData that is valid for the Isolated Process to execute with...
+        HttpRequestData httpRequestData = TestHttpRequestDataHelper.NewGraphQLHttpRequestData(host.Services, @"
             query {
                 person
             }
         ");
 
         //Execute Query Test for end-to-end validation...
-        await requestExecutor.ExecuteAsync(httpContext.Request);
+        //NOTE: This uses the new Az Func Isolated Process extension to execute via HttpRequestData...
+        HttpResponseData httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
 
         //Read, Parse & Validate the response...
-        var resultContent = await httpContext.ReadResponseContentAsync();
+        var resultContent = await httpResponseData.ReadResponseContentAsync().ConfigureAwait(false);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
         dynamic json = JObject.Parse(resultContent!);

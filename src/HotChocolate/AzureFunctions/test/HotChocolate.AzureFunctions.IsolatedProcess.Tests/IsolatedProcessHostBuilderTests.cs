@@ -11,7 +11,7 @@ namespace HotChocolate.AzureFunctions.Tests;
 public class IsolatedProcessHostBuilderTests
 {
     [Fact]
-    public void AzFuncInProcess_HostBuilderSetupWithPortableConfigMatchingIsolatedProcess()
+    public void AzFuncIsolatedProcess_HostBuilderSetupWithPortableConfigMatchingIsolatedProcess()
     {
         var hostBuilder = new MockIsolatedProcessHostBuilder();
 

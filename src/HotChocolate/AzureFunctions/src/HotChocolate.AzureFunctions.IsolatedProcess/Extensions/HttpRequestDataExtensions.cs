@@ -1,3 +1,4 @@
+using HotChocolate.AzureFunctions.IsolatedProcess.Extensions;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Net.Http.Headers;
 
@@ -11,6 +12,11 @@ public static class HttpRequestDataExtensions
             ? contentTypeHeaders.FirstOrDefault()
             : defaultValue;
 
-        return contentType ?? GraphQLAzureFunctionsConstants.DefaultJsonContentType;
+        return contentType ?? defaultValue;
+    }
+
+    public static async Task<string?> ReadResponseContentAsync(this HttpResponseData httpResponseData)
+    {
+        return await httpResponseData.Body.ReadStreamAsStringAsync().ConfigureAwait(false);
     }
 }

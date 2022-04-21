@@ -12,7 +12,7 @@ public class TestHttpContextHelper
         GraphQLAzureFunctionsConstants.DefaultGraphQLRoute
     );
 
-    public static HttpContext NewGraphQLHttpContext(string? graphqlQuery)
+    public static HttpContext NewGraphQLHttpContext(string graphqlQuery)
         => new HttpContextBuilder().CreateHttpContext(HttpMethods.Post, DefaultAzFuncGraphQLUri, requestBody: CreateGraphQLRequestBody(graphqlQuery));
 
     public static string CreateGraphQLRequestBody(string graphQLQuery)

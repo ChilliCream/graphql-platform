@@ -2,105 +2,103 @@ using System.Net;
 using HotChocolate.AzureFunctions.IsolatedProcess.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Primitives;
 
-namespace HotChocolate.AzureFunctions.IsolatedProcess
+namespace HotChocolate.AzureFunctions.IsolatedProcess;
+
+public class HttpContextShim : IDisposable, IAsyncDisposable
 {
-    public class HttpContextShim : IDisposable, IAsyncDisposable
+    protected HttpRequestData? IsolatedProcessHttpRequestData { get; set; }
+
+    //Must keep the Reference so we can safely Dispose!
+    public HttpContext HttpContext { get; protected set; }
+
+    protected virtual bool IsDisposed { get; set; } = false;
+
+    public HttpContextShim(HttpContext httpContext)
     {
-        protected HttpRequestData? IsolatedProcessHttpRequestData { get; set; }
+        HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
+        IsolatedProcessHttpRequestData = null;
+    }
 
-        //Must keep the Reference so we can safely Dispose!
-        public HttpContext HttpContext { get; protected set; }
+    public HttpContextShim(HttpContext httpContext, HttpRequestData? httpRequestData)
+    {
+        HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
+        IsolatedProcessHttpRequestData = httpRequestData ?? throw new ArgumentNullException(nameof(httpRequestData));
+    }
 
-        protected virtual bool IsDisposed { get; set; } = false;
+    /// <summary>
+    /// Factory method to Create an HttpContext that is AspNetCore compatible.
+    /// All pertinent data from the HttpRequestData provided by the Azure Functions Isolated Process will be marshalled
+    /// into the HttpContext for HotChocolate to consume.
+    /// NOTE: This is done as Factory method (and not in the Constructor) to support optimized Async reading of incoming Request Content/Stream.
+    /// </summary>
+    /// <returns></returns>
+    public static async Task<HttpContextShim> CreateHttpContextAsync(HttpRequestData httpRequestData)
+    {
+        if (httpRequestData == null)
+            throw new ArgumentNullException(nameof(httpRequestData));
 
-        public HttpContextShim(HttpContext httpContext)
-        {
-            HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-            IsolatedProcessHttpRequestData = null;
-        }
+        var requestBody = await httpRequestData.ReadAsStringAsync().ConfigureAwait(false);
 
-        public HttpContextShim(HttpContext httpContext, HttpRequestData? httpRequestData)
-        {
-            HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-            IsolatedProcessHttpRequestData = httpRequestData ?? throw new ArgumentNullException(nameof(httpRequestData));
-        }
+        HttpContext httpContext = new HttpContextBuilder().CreateHttpContext(
+            requestHttpMethod: httpRequestData.Method,
+            requestUri: httpRequestData.Url,
+            requestBody: requestBody,
+            requestBodyContentType: httpRequestData.GetContentType(),
+            requestHeaders: httpRequestData.Headers,
+            claimsIdentities: httpRequestData.Identities
+        );
 
-        /// <summary>
-        /// Factory method to Create an HttpContext that is AspNetCore compatible.
-        /// All pertinent data from the HttpRequestData provided by the Azure Functions Isolated Process will be marshalled
-        /// into the HttpContext for HotChocolate to consume.
-        /// NOTE: This is done as Factory method (and not in the Constructor) to support optimized Async reading of incoming Request Content/Stream.
-        /// </summary>
-        /// <returns></returns>
-        public static async Task<HttpContextShim> CreateHttpContextAsync(HttpRequestData httpRequestData)
-        {
-            if (httpRequestData == null)
-                throw new ArgumentNullException(nameof(httpRequestData));
+        //Ensure we track the HttpContext internally for cleanup when disposed!
+        return new HttpContextShim(httpContext, httpRequestData);
+    }
 
-            var requestBody = await httpRequestData.ReadAsStringAsync().ConfigureAwait(false);
+    /// <summary>
+    /// Create an HttpResponseData containing the proxied response content results; marshalled back from the HttpContext.
+    /// </summary>
+    /// <returns></returns>
+    public async Task<HttpResponseData> CreateHttpResponseDataAsync()
+    {
+        HttpContext httpContext = HttpContext
+            ?? throw new NullReferenceException("The HttpContext has not been initialized correctly.");
 
-            HttpContext httpContext = new HttpContextBuilder().CreateHttpContext(
-                requestHttpMethod: httpRequestData.Method,
-                requestUri: httpRequestData.Url,
-                requestBody: requestBody,
-                requestBodyContentType: httpRequestData.GetContentType(),
-                requestHeaders: httpRequestData.Headers,
-                claimsIdentities: httpRequestData.Identities
-            );
+        HttpRequestData httpRequestData = IsolatedProcessHttpRequestData
+            ?? throw new NullReferenceException("The HttpRequestData has not been initialized correctly.");
 
-            //Ensure we track the HttpContext internally for cleanup when disposed!
-            return new HttpContextShim(httpContext);
-        }
+        var httpStatusCode = (HttpStatusCode)httpContext.Response.StatusCode;
 
-        /// <summary>
-        /// Create an HttpResponseData containing the proxied response content results; marshalled back from the HttpContext.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<HttpResponseData> CreateHttpResponseDataAsync()
-        {
-            HttpContext httpContext = HttpContext
-                ?? throw new NullReferenceException("The HttpContext has not been initialized correctly.");
+        //Initialize the Http Response...
+        HttpResponseData httpResponseData = httpRequestData.CreateResponse(httpStatusCode);
 
-            HttpRequestData httpRequestData = IsolatedProcessHttpRequestData
-                ?? throw new NullReferenceException("The HttpRequestData has not been initialized correctly.");
+        //Marshall over all Headers from the HttpContext...
+        //Note: This should also handle Cookies since Cookies are stored as a Header value....
+        IHeaderDictionary responseHeaders = httpContext.Response.Headers;
+        if (responseHeaders.Any())
+            foreach ((var key, StringValues value) in responseHeaders)
+                httpResponseData.Headers.TryAddWithoutValidation(key, value.Select(sv => sv.ToString()));
 
-            var httpStatusCode = (HttpStatusCode)httpContext.Response.StatusCode;
+        //Marshall the original response Bytes from HotChocolate...
+        //Note: This enables full support for GraphQL Json results/errors, binary downloads, SDL, & BCP binary data.
+        var responseBytes = await httpContext.ReadResponseBytesAsync().ConfigureAwait(false);
+        if (responseBytes != null)
+            await httpResponseData.WriteBytesAsync(responseBytes).ConfigureAwait(false);
 
-            //Initialize the Http Response...
-            HttpResponseData response = httpRequestData.CreateResponse(httpStatusCode);
+        return httpResponseData;
+    }
 
-            //Marshall over all Headers from the HttpContext...
-            //Note: This should also handle Cookies (not tested)....
-            IHeaderDictionary? responseHeaders = httpContext.Response?.Headers;
-            if (responseHeaders?.Any() == true)
-                foreach (var header in responseHeaders)
-                    response.Headers.Add(header.Key, header.Value.Select(sv => sv.ToString()));
+    public virtual ValueTask DisposeAsync()
+    {
+        if(!IsDisposed) Dispose();
+        return ValueTask.CompletedTask;
+    }
 
-            //Marshall the original response Bytes from HotChocolate...
-            //Note: This enables full support for GraphQL Json results/errors, binary downloads, SDL, & BCP binary data.
-            var responseBytes = await httpContext.ReadResponseBytesAsync();
-            if (responseBytes != null)
-                await response.WriteBytesAsync(responseBytes).ConfigureAwait(false);
+    public virtual void Dispose()
+    {
+        if (IsDisposed) return;
 
-            return response;
-        }
+        HttpContext.DisposeSafely();
 
-        public virtual ValueTask DisposeAsync()
-        {
-            if(!IsDisposed) Dispose();
-            return ValueTask.CompletedTask;
-        }
-
-        public virtual void Dispose()
-        {
-            if (IsDisposed) return;
-
-            HttpContext?.Request?.Body?.Dispose();
-            HttpContext?.Response?.Body?.Dispose();
-            HttpContext = null;
-
-            GC.SuppressFinalize(this);
-        }
+        GC.SuppressFinalize(this);
     }
 }

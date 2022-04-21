@@ -16,30 +16,53 @@ public static class HttpContextExtensions
             default:
                 await using (var memoryStream = new MemoryStream())
                 {
-                    await responseStream.CopyToAsync(memoryStream);
+                    await responseStream.CopyToAsync(memoryStream).ConfigureAwait(false);
                     return memoryStream.ToArray();
                 }
         }
     }
 
-    public static async Task<string?> ReadResponseContentAsync(this HttpContext httpContext)
+    public static async Task<string?> ReadStreamAsStringAsync(this Stream responseStream)
     {
         string? responseContent = null;
+        var originalPosition = responseStream.Position;
 
-        Stream? responseStream = httpContext?.Response?.Body;
-        if (responseStream != null)
-        {
-            var originalPosition = responseStream.Position;
-            if (responseStream.CanSeek)
-                responseStream.Seek(0, SeekOrigin.Begin);
+        if (responseStream.CanSeek)
+            responseStream.Seek(0, SeekOrigin.Begin);
 
-            using (var responseReader = new StreamReader(responseStream))
-                responseContent = await responseReader.ReadToEndAsync();
+        using (var responseReader = new StreamReader(responseStream))
+            responseContent = await responseReader.ReadToEndAsync().ConfigureAwait(false);
 
-            if (responseStream.CanSeek)
-                responseStream.Seek(originalPosition, SeekOrigin.Begin);
-        }
+        if (responseStream.CanSeek)
+            responseStream.Seek(originalPosition, SeekOrigin.Begin);
 
         return responseContent;
+    }
+
+    public static async Task<string?> ReadResponseContentAsync(this HttpContext httpContext)
+    {
+        Stream? responseStream = httpContext?.Response?.Body;
+        return responseStream != null
+            ? await responseStream.ReadStreamAsStringAsync().ConfigureAwait(false)
+            : null;
+    }
+
+    public static Uri GetAbsoluteUri(this HttpRequest httpRequest)
+    {
+        var urlBuilder = new UriBuilder(httpRequest.Scheme, httpRequest.Host.Host);
+
+        if (httpRequest.Host.Port != null)
+            urlBuilder.Port = (int)httpRequest.Host.Port;
+
+        urlBuilder.Path = httpRequest.Path.Value;
+        urlBuilder.Query = httpRequest.QueryString.Value;
+
+        return urlBuilder.Uri;
+    }
+
+    public static void DisposeSafely(this HttpContext httpContext)
+    {
+        httpContext?.Request?.Body?.Dispose();
+        httpContext?.Response?.Body?.Dispose();
     }
 }
