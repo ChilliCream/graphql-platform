@@ -1,26 +1,47 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// Represent a GraphQL variable syntax.
+/// </summary>
 public sealed class VariableNode
     : IValueNode<string>
     , IEquatable<VariableNode>
 {
-    private ReadOnlyMemory<byte> _memory;
-
+    /// <summary>
+    /// Initializes a new instance of <see cref="VariableNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the input object.
+    /// </param>
     public VariableNode(string name)
         : this(null, new NameNode(name))
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="VariableNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the input object.
+    /// </param>
     public VariableNode(NameNode name)
         : this(null, name)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="VariableNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name of the input object.
+    /// </param>
     public VariableNode(
         Location? location,
         NameNode name)
@@ -29,16 +50,22 @@ public sealed class VariableNode
         Name = name ?? throw new ArgumentNullException(nameof(name));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.Variable;
+    /// <inheritdoc />
+    public SyntaxKind Kind => SyntaxKind.Variable;
 
+    /// <inheritdoc />
     public Location? Location { get; }
 
+    /// <summary>
+    /// Gets the variable name.
+    /// </summary>
     public NameNode Name { get; }
 
-    public string Value => Name.Value;
+    string IValueNode<string>.Value => Name.Value;
 
-    object IValueNode.Value => Value;
+    object IValueNode.Value => Name.Value;
 
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
@@ -59,17 +86,17 @@ public sealed class VariableNode
     /// </returns>
     public bool Equals(VariableNode? other)
     {
-        if (other is null)
+        if (ReferenceEquals(null, other))
         {
             return false;
         }
 
-        if (ReferenceEquals(other, this))
+        if (ReferenceEquals(this, other))
         {
             return true;
         }
 
-        return other.Value.Equals(Value, StringComparison.Ordinal);
+        return Name.Equals(other.Name);
     }
 
     /// <summary>
@@ -97,9 +124,9 @@ public sealed class VariableNode
             return true;
         }
 
-        if (other is VariableNode v)
+        if (other is VariableNode o)
         {
-            return Equals(v);
+            return Equals(o);
         }
 
         return false;
@@ -142,11 +169,7 @@ public sealed class VariableNode
     /// </returns>
     public override int GetHashCode()
     {
-        unchecked
-        {
-            return (Kind.GetHashCode() * 397)
-             ^ (Value.GetHashCode() * 97);
-        }
+        return HashCode.Combine(Kind, Name);
     }
 
     /// <summary>
@@ -170,22 +193,53 @@ public sealed class VariableNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public ReadOnlySpan<byte> AsSpan()
-    {
-        if (_memory.IsEmpty)
-        {
-            _memory = Encoding.UTF8.GetBytes(Value);
-        }
-        return _memory.Span;
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
+    public VariableNode WithLocation(Location? location) => new(location, Name);
 
-    public VariableNode WithLocation(Location? location)
-    {
-        return new VariableNode(location, Name);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">
+    /// The name that shall be used to replace the current <see cref="NamedSyntaxNode.Name" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="name" />.
+    /// </returns>
+    public VariableNode WithName(NameNode name) => new(Location, name);
 
-    public VariableNode WithName(NameNode name)
-    {
-        return new VariableNode(Location, name);
-    }
+    /// <summary>
+    /// The equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
+    /// </returns>
+    public static bool operator ==(
+        VariableNode? left,
+        VariableNode? right)
+        => Equals(left, right);
+
+    /// <summary>
+    /// The not equal operator.
+    /// </summary>
+    /// <param name="left">The left parameter</param>
+    /// <param name="right">The right parameter</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
+    /// </returns>
+    public static bool operator !=(
+        VariableNode? left,
+        VariableNode? right)
+        => !Equals(left, right);
 }

@@ -129,7 +129,8 @@ namespace HotChocolate.Execution.Benchmarks
             IRequestExecutor executor,
             IReadOnlyQueryRequest request)
         {
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            IQueryResult result = (await executor.ExecuteAsync(request)).ExpectQueryResult();
+            
 
             if (result.Errors is { Count: > 0 })
             {

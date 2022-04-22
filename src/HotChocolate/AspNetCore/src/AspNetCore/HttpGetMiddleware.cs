@@ -125,7 +125,7 @@ HANDLE_RESULT:
 
         try
         {
-            // if cancellation is requested we will not try to attempt to write the result to the 
+            // if cancellation is requested we will not try to attempt to write the result to the
             // response stream.
             if (context.RequestAborted.IsCancellationRequested)
             {
@@ -155,7 +155,10 @@ HANDLE_RESULT:
                 await asyncDisposable.DisposeAsync();
             }
 
-            result?.Dispose();
+            if (result is not null)
+            {
+                await result.DisposeAsync();
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Snapshooter.Xunit;
+using HotChocolate.Tests;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -25,7 +25,7 @@ namespace HotChocolate.Execution
                     "{ test testProp }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -57,7 +57,7 @@ namespace HotChocolate.Execution
                     "{ foo(bar: { baz: \"hello\"}) }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -84,7 +84,7 @@ namespace HotChocolate.Execution
                     "{ enumValue }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -111,7 +111,7 @@ namespace HotChocolate.Execution
                     "{ setEnumValue(value:BAZ_BAR) }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -143,7 +143,7 @@ namespace HotChocolate.Execution
                     "{ enumInInputObject(payload: { value:BAZ } ) }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 

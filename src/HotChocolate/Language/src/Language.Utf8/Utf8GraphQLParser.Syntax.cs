@@ -11,6 +11,27 @@ public ref partial struct Utf8GraphQLParser
         /// <summary>
         /// Parses a GraphQL field selection string e.g. field(arg: "abc")
         /// </summary>
+        public static FieldDefinitionNode ParseFieldDefinition(
+            string sourceText) =>
+            Parse(sourceText, parser => parser.ParseFieldDefinition());
+
+        /// <summary>
+        /// Parses a GraphQL field selection string e.g. field(arg: "abc")
+        /// </summary>
+        public static FieldDefinitionNode ParseFieldDefinition(
+            ReadOnlySpan<byte> sourceText) =>
+            Parse(sourceText, parser => parser.ParseFieldDefinition());
+
+        /// <summary>
+        /// Parses a GraphQL field selection string e.g. field(arg: "abc")
+        /// </summary>
+        public static FieldDefinitionNode ParseFieldDefinition(
+            Utf8GraphQLReader reader) =>
+            new Utf8GraphQLParser(reader).ParseFieldDefinition();
+
+        /// <summary>
+        /// Parses a GraphQL field selection string e.g. field(arg: "abc")
+        /// </summary>
         public static FieldNode ParseField(
             string sourceText) =>
             Parse(

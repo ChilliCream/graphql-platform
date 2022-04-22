@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE foo.BarShort > 14 RETURN foo {.BarShort}
+﻿MATCH (fooComp:FooComp) WHERE fooComp.BarShort > 14 RETURN fooComp {.BarShort}

@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
 using Snapshooter.Xunit;
@@ -383,9 +382,9 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         TestServer server = CreateStarWarsServer();
 
         var query = @"
-                query ($upload: Upload!) {
-                    objectUpload(input: { file: $upload })
-                }";
+            query ($upload: Upload!) {
+                objectUpload(input: { file: $upload })
+            }";
 
         var request = JsonConvert.SerializeObject(
             new ClientQueryRequest
@@ -418,7 +417,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         TestServer server = CreateStarWarsServer();
 
         var query = @"
-                query ($input: [[InputWithFileInput!]]) {
+                query ($input: [[InputWithFileInput!]!]!) {
                     listUpload(input: $input)
                 }";
 
@@ -479,7 +478,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         var count = 1024 * 1024 * 129;
         var buffer = new byte[count];
 
-        for (int i = 0; i < buffer.Length; i++)
+        for (var i = 0; i < buffer.Length; i++)
         {
             buffer[i] = 0xFF;
         }

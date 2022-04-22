@@ -826,6 +826,10 @@
             "title": "Introduction"
           },
           {
+            "path": "install",
+            "title": "Installation"
+          },
+          {
             "path": "getting-started",
             "title": "Getting Started"
           },

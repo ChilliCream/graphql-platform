@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -138,6 +139,21 @@ public static class JsonObjectTypeExtensions
                 def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetBytesFromBase64();
                 return;
             case ScalarNames.Date:
+                def.PureResolver = ctx =>
+                {
+                    var value = ctx.GetProperty(propertyName)?.GetString();
+
+                    if (value is null)
+                    {
+                        return null;
+                    }
+
+                    return DateTime.Parse(
+                        value,
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeUniversal);
+                };
+                return;
             case ScalarNames.DateTime:
                 def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetDateTimeOffset();
                 return;

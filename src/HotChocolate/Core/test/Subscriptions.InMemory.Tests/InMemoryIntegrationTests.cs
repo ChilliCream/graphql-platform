@@ -32,7 +32,7 @@ namespace HotChocolate.Subscriptions.InMemory
             var cts = new CancellationTokenSource(10000);
 
             // act
-            var result = (ISubscriptionResult)await executor.ExecuteAsync(
+            var result = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { onMessage }",
                 cts.Token);
 

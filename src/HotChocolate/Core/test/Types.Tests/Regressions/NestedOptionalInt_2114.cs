@@ -37,7 +37,7 @@ namespace HotChocolate.Regressions
             IExecutionResult result = await executor.ExecuteAsync(Query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             Verify(input);
         }
 
@@ -91,7 +91,7 @@ namespace HotChocolate.Regressions
                 });
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             Verify(input);
         }
 

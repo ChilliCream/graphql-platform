@@ -14,6 +14,7 @@ stages:
       vmImage: "ubuntu-20.04"
     jobs:
       - job: TestGreenDonut
+        displayName: src/GreenDonut
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -25,6 +26,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateAnalyzers
+        displayName: src/HotChocolate/Analyzers
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -36,6 +38,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateApolloFederation
+        displayName: src/HotChocolate/ApolloFederation
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -47,6 +50,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateAspNetCore
+        displayName: src/HotChocolate/AspNetCore
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -58,6 +62,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateAzureFunctions
+        displayName: src/HotChocolate/AzureFunctions
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -69,6 +74,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateCodeGeneration
+        displayName: src/HotChocolate/CodeGeneration
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -80,6 +86,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateCore
+        displayName: src/HotChocolate/Core
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -91,6 +98,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateData
+        displayName: src/HotChocolate/Data
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -102,6 +110,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateDiagnostics
+        displayName: src/HotChocolate/Diagnostics
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -113,6 +122,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateFilters
+        displayName: src/HotChocolate/Filters
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -124,6 +134,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateLanguage
+        displayName: src/HotChocolate/Language
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -135,6 +146,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateMongoDb
+        displayName: src/HotChocolate/MongoDb
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -146,6 +158,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateNeo4J
+        displayName: src/HotChocolate/Neo4J
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -157,6 +170,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolatePersistedQueries
+        displayName: src/HotChocolate/PersistedQueries
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -168,6 +182,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateSpatial
+        displayName: src/HotChocolate/Spatial
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -179,6 +194,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateStitching
+        displayName: src/HotChocolate/Stitching
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -190,6 +206,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateUtilities
+        displayName: src/HotChocolate/Utilities
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -201,6 +218,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestStrawberryShakeClient
+        displayName: src/StrawberryShake/Client
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -212,6 +230,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestStrawberryShakeCodeGeneration
+        displayName: src/StrawberryShake/CodeGeneration
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -223,6 +242,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestStrawberryShakeSourceGenerator
+        displayName: src/StrawberryShake/SourceGenerator
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
@@ -234,6 +254,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestStrawberryShakeTooling
+        displayName: src/StrawberryShake/Tooling
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"

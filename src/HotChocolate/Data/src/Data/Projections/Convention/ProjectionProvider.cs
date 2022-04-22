@@ -81,7 +81,7 @@ public abstract class ProjectionProvider
         Complete(context);
     }
 
-    protected override void Complete(IConventionContext context)
+    protected internal override void Complete(IConventionContext context)
     {
         if (Definition!.Handlers.Count == 0)
         {
