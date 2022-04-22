@@ -1,0 +1,55 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "StrawberryShake.Resources/0.0.0": {
+        "dependencies": {
+          "Microsoft.SourceLink.GitHub": "1.1.0"
+        },
+        "runtime": {
+          "StrawberryShake.Resources.dll": {}
+        }
+      },
+      "Microsoft.Build.Tasks.Git/1.1.0": {},
+      "Microsoft.SourceLink.Common/1.1.0": {},
+      "Microsoft.SourceLink.GitHub/1.1.0": {
+        "dependencies": {
+          "Microsoft.Build.Tasks.Git": "1.1.0",
+          "Microsoft.SourceLink.Common": "1.1.0"
+        }
+      }
+    }
+  },
+  "libraries": {
+    "StrawberryShake.Resources/0.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Build.Tasks.Git/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-DD84CsvKf+hfDBbYXIvBXeY7JGfbtoIMMjlPGVaKIp6aWoIdL5EJbWvk+skGkM7/Weezj3q1a89nTPAcGlGcpw==",
+      "path": "microsoft.build.tasks.git/1.1.0",
+      "hashPath": "microsoft.build.tasks.git.1.1.0.nupkg.sha512"
+    },
+    "Microsoft.SourceLink.Common/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-TyGnSaCanfxunClp2af9jpXY127q7g5tiOv0XN/JGcalyKwYusYp06BUGSmCopg/GhmJJSiR/9PS0suXHCGxtw==",
+      "path": "microsoft.sourcelink.common/1.1.0",
+      "hashPath": "microsoft.sourcelink.common.1.1.0.nupkg.sha512"
+    },
+    "Microsoft.SourceLink.GitHub/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-DD/LF81k5ODHCfPnBCds97N6KKSS1X1NiDcJYUUpiTu5mmuPktZplhYFrAPQPktMBKvNMdwFrwJ7Fqa3tyTIuA==",
+      "path": "microsoft.sourcelink.github/1.1.0",
+      "hashPath": "microsoft.sourcelink.github.1.1.0.nupkg.sha512"
+    }
+  }
+}
