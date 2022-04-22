@@ -74,7 +74,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             {
                 if (NodeResolver is not null)
                 {
-                    MethodInfo? method = NodeResolverType.GetMethod(NodeResolver);
+                    MethodInfo? method = NodeResolverType.GetMethod(NodeResolver, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
 
                     if (method is null)
                     {
@@ -92,7 +92,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
             else if (NodeResolver is not null)
             {
-                MethodInfo? method = type.GetMethod(NodeResolver);
+                MethodInfo? method = type.GetMethod(NodeResolver, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
 
                 if (method is null)
                 {

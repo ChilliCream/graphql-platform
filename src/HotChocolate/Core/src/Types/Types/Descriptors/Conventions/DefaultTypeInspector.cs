@@ -278,7 +278,7 @@ public class DefaultTypeInspector
         if (resolverType is null)
         {
             return nodeType
-                .GetMembers(BindingFlags.Static | BindingFlags.Public)
+                .GetMembers(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy)
                 .OfType<MethodInfo>()
                 .FirstOrDefault(m => IsPossibleNodeResolver(m, nodeType));
         }
@@ -287,7 +287,7 @@ public class DefaultTypeInspector
         // include the type name and can be an instance method.
         // first we will check for static load methods.
         MethodInfo? method = resolverType
-            .GetMembers(BindingFlags.Static | BindingFlags.Public)
+            .GetMembers(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy)
             .OfType<MethodInfo>()
             .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
 
