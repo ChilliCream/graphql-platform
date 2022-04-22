@@ -204,4 +204,10 @@
   <data name="ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate" xml:space="preserve">
     <value>A directive cannot contain a member name.</value>
   </data>
+  <data name="ExecutionResultExtensions_ExpectResponseStream_NotResponseStream" xml:space="preserve">
+    <value>The specified result is expected to be a IResponseStream.</value>
+  </data>
+  <data name="ExecutionResultExtensions_ExpectQueryResult_NotQueryResult" xml:space="preserve">
+    <value>The specified result is expected to be a IQueryResult.</value>
+  </data>
 </root>
