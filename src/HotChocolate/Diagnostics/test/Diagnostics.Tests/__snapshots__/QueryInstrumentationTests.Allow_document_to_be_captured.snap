@@ -111,6 +111,10 @@
                   "Value": "/sayHello"
                 },
                 {
+                  "Key": "graphql.selection.hierarchy",
+                  "Value": "/sayHello"
+                },
+                {
                   "Key": "graphql.selection.field.name",
                   "Value": "sayHello"
                 },

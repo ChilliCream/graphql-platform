@@ -90,7 +90,7 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
                 contextData.ContainsKey(WellKnownContextData.EnableTracing)));
     }
 
-    private class RequestScope : IDisposable
+    private sealed class RequestScope : IDisposable
     {
         private readonly IRequestContext _context;
         private readonly DateTime _startTime;
@@ -117,7 +117,7 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
                 DateTime endTime = _timestampProvider.UtcNow();
                 _builder.SetRequestDuration(endTime - _startTime);
 
-                if (_context.Result is IReadOnlyQueryResult queryResult)
+                if (_context.Result is IQueryResult queryResult)
                 {
                     _context.Result = QueryResultBuilder.FromResult(queryResult)
                         .AddExtension(_extensionKey, _builder.Build())
@@ -128,7 +128,7 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
         }
     }
 
-    private class ParseDocumentScope : IDisposable
+    private sealed class ParseDocumentScope : IDisposable
     {
         private readonly ApolloTracingResultBuilder _builder;
         private readonly ITimestampProvider _timestampProvider;
@@ -156,7 +156,7 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
         }
     }
 
-    private class ValidateDocumentScope : IDisposable
+    private sealed class ValidateDocumentScope : IDisposable
     {
         private readonly ApolloTracingResultBuilder _builder;
         private readonly ITimestampProvider _timestampProvider;
@@ -184,7 +184,7 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
         }
     }
 
-    private class ResolveFieldValueScope : IDisposable
+    private sealed class ResolveFieldValueScope : IDisposable
     {
         private readonly IMiddlewareContext _context;
         private readonly ApolloTracingResultBuilder _builder;

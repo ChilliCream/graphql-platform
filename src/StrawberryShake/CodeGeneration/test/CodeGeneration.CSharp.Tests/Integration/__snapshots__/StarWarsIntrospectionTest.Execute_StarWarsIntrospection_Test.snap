@@ -70,7 +70,18 @@
             {
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "Scalar",
+                    "Name": "Boolean",
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "NonNull",
                 "Name": null,
@@ -388,7 +399,18 @@
             {
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "Scalar",
+                    "Name": "Boolean",
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "NonNull",
                 "Name": null,
@@ -510,6 +532,34 @@
             {
               "Name": "defaultValue",
               "Description": "A GraphQL-formatted string representing the default value for this input value.",
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "String",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "isDeprecated",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "deprecationReason",
+              "Description": null,
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
@@ -784,7 +834,18 @@
             {
               "Name": "inputFields",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "Scalar",
+                    "Name": "Boolean",
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "Kind": "List",
                 "Name": null,
@@ -2396,7 +2457,26 @@
               "__typename": "__Field",
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": "Boolean",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -2898,7 +2978,26 @@
               "__typename": "__Field",
               "Name": "args",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": "Boolean",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -3128,6 +3227,57 @@
               "__typename": "__Field",
               "Name": "defaultValue",
               "Description": "A GraphQL-formatted string representing the default value for this input value.",
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "isDeprecated",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "deprecationReason",
+              "Description": null,
               "Args": [],
               "Type": {
                 "__typename": "__Type",
@@ -3648,7 +3798,26 @@
               "__typename": "__Field",
               "Name": "inputFields",
               "Description": null,
-              "Args": [],
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "includeDeprecated",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": "Boolean",
+                    "Kind": "Scalar",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": null
+                  },
+                  "DefaultValue": "false"
+                }
+              ],
               "Type": {
                 "__typename": "__Type",
                 "Name": null,

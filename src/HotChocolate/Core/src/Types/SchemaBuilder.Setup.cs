@@ -126,11 +126,14 @@ public partial class SchemaBuilder
             IDescriptorContext context)
         {
             var types = new List<ITypeReference>();
+            var documents = new List<DocumentNode>();
+            context.ContextData[WellKnownContextData.SchemaDocuments] = documents; 
 
             foreach (LoadSchemaDocument fetchSchema in builder._documents)
             {
                 DocumentNode schemaDocument = fetchSchema(context.Services);
                 schemaDocument = schemaDocument.RemoveBuiltInTypes();
+                documents.Add(schemaDocument);
 
                 var visitorContext = new SchemaSyntaxVisitorContext(context);
                 var visitor = new SchemaSyntaxVisitor();

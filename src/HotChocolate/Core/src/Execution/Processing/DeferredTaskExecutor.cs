@@ -6,10 +6,14 @@ namespace HotChocolate.Execution.Processing;
 
 internal class DeferredTaskExecutor : IAsyncEnumerable<IQueryResult>
 {
+    private readonly IQueryResult _initialResult;
     private readonly IOperationContextOwner _operationContextOwner;
 
-    public DeferredTaskExecutor(IOperationContextOwner operationContextOwner)
+    public DeferredTaskExecutor(
+        IQueryResult initialResult,
+        IOperationContextOwner operationContextOwner)
     {
+        _initialResult = initialResult;
         _operationContextOwner = operationContextOwner ??
             throw new ArgumentNullException(nameof(operationContextOwner));
     }
@@ -19,6 +23,8 @@ internal class DeferredTaskExecutor : IAsyncEnumerable<IQueryResult>
     {
         try
         {
+            yield return _initialResult;
+
             IOperationContext context = _operationContextOwner.OperationContext;
 
             while (context.Scheduler.DeferredWork.TryTake(
@@ -56,6 +62,7 @@ internal class DeferredTaskExecutor : IAsyncEnumerable<IQueryResult>
         }
         finally
         {
+            await _initialResult.DisposeAsync();
             _operationContextOwner.Dispose();
         }
     }

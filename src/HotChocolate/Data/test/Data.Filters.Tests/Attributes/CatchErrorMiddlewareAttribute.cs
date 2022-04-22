@@ -3,7 +3,7 @@ using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Data.Filtering;
+namespace HotChocolate.Data.Filters;
 
 public class CatchErrorMiddlewareAttribute : ObjectFieldDescriptorAttribute
 {

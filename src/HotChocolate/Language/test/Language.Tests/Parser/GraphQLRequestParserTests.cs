@@ -744,20 +744,20 @@ public class GraphQLRequestParserTests
         public IReadOnlyDictionary<string, object> Extensions { get; set; }
     }
 
-    private class CustomGraphQLRequestDto
+    private sealed class CustomGraphQLRequestDto
         : GraphQLRequestDto
     {
         public string CustomProperty { get; set; }
     }
 
-    private class RelayGraphQLRequestDto
+    private sealed class RelayGraphQLRequestDto
         : GraphQLRequestDto
     {
         [JsonProperty("id")]
         public new string Id { get; set; }
     }
 
-    private class DocumentCache : IDocumentCache
+    private sealed class DocumentCache : IDocumentCache
     {
         private readonly Dictionary<string, DocumentNode> _cache = new();
 

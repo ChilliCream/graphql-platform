@@ -272,7 +272,7 @@ namespace HotChocolate.Configuration
             public string Baz { get; }
         }
 
-        private class TypeRegInterceptor : TypeInterceptor
+        private sealed class TypeRegInterceptor : TypeInterceptor
         {
             private readonly IType _watch;
 
@@ -304,7 +304,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private class InjectTypes : TypeInterceptor
+        private sealed class InjectTypes : TypeInterceptor
         {
             private readonly List<ITypeReference> _typeReferences;
 

@@ -23,7 +23,7 @@ namespace HotChocolate.Types
                 .ExecuteRequestAsync("{ a: scoped b: scoped }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(result.ExpectQueryResult().Errors);
             IQueryResult queryResult = Assert.IsAssignableFrom<IQueryResult>(result);
             Assert.NotEqual(queryResult.Data!["a"], queryResult.Data!["b"]);
         }

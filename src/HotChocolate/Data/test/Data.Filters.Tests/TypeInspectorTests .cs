@@ -63,7 +63,7 @@ public class TypeInspectorTests
         Assert.True(typeArgument!.IsSchemaType);
     }
 
-    private class NonGenericType : FilterInputType
+    private sealed class NonGenericType : FilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
@@ -71,11 +71,11 @@ public class TypeInspectorTests
         }
     }
 
-    private class GenericType : FilterInputType<Foo>
+    private sealed class GenericType : FilterInputType<Foo>
     {
     }
 
-    private class Foo
+    private sealed class Foo
     {
         public string? Test { get; set; }
     }

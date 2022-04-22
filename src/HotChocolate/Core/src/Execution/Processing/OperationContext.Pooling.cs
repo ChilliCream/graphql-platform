@@ -60,7 +60,7 @@ internal sealed partial class OperationContext
     {
         if (_isInitialized)
         {
-            if (_cleanupActions.Count > 0)
+            if (!_cleanupActions.IsEmpty)
             {
                 while (_cleanupActions.TryTake(out Action? clean))
                 {

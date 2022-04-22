@@ -25,7 +25,7 @@ public sealed class NamePathSegment : Path
     /// <inheritdoc />
     public override string Print()
     {
-        string parent = Parent is null ? string.Empty : Parent.Print();
+        var parent = Parent is null ? string.Empty : Parent.Print();
         return $"{parent}/{Name}";
     }
 

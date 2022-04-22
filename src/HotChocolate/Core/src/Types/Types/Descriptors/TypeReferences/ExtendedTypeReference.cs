@@ -90,7 +90,7 @@ public sealed class ExtendedTypeReference
 
     public override string ToString()
     {
-        return $"{Context}: {Type.ToString()}";
+        return $"{Context}: {Type}";
     }
 
     public ExtendedTypeReference WithType(IExtendedType type)

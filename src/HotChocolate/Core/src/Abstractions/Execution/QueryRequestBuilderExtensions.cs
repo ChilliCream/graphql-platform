@@ -12,7 +12,7 @@ public static class QueryRequestBuilderExtensions
     /// </summary>
     public static IQueryRequestBuilder AllowIntrospection(
         this IQueryRequestBuilder builder) =>
-        builder.SetProperty(WellKnownContextData.IntrospectionAllowed, null);
+        builder.SetGlobalState(WellKnownContextData.IntrospectionAllowed, null);
 
     /// <summary>
     /// Sets the error message for when the introspection is not allowed.
@@ -26,7 +26,7 @@ public static class QueryRequestBuilderExtensions
             throw new ArgumentNullException(nameof(message));
         }
 
-        return builder.SetProperty(WellKnownContextData.IntrospectionMessage, message);
+        return builder.SetGlobalState(WellKnownContextData.IntrospectionMessage, message);
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ public static class QueryRequestBuilderExtensions
             throw new ArgumentNullException(nameof(messageFactory));
         }
 
-        return builder.SetProperty(WellKnownContextData.IntrospectionMessage, messageFactory);
+        return builder.SetGlobalState(WellKnownContextData.IntrospectionMessage, messageFactory);
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public static class QueryRequestBuilderExtensions
     /// </summary>
     public static IQueryRequestBuilder SkipComplexityAnalysis(
         this IQueryRequestBuilder builder) =>
-        builder.SetProperty(WellKnownContextData.SkipComplexityAnalysis, null);
+        builder.SetGlobalState(WellKnownContextData.SkipComplexityAnalysis, null);
 
     /// <summary>
     /// Set allowed complexity for this request and override the global allowed complexity.
@@ -57,7 +57,85 @@ public static class QueryRequestBuilderExtensions
     public static IQueryRequestBuilder SetMaximumAllowedComplexity(
         this IQueryRequestBuilder builder,
         int maximumAllowedComplexity) =>
-        builder.SetProperty(
+        builder.SetGlobalState(
             WellKnownContextData.MaximumAllowedComplexity,
             maximumAllowedComplexity);
+
+    /// <summary>
+    /// Registers a cleanup task for execution resources with the <see cref="IQueryResultBuilder"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IQueryResultBuilder"/>.
+    /// </param>
+    /// <param name="clean">
+    /// A cleanup task that will be executed when this result is disposed.
+    /// </param>
+    public static void RegisterForCleanup(this IQueryResultBuilder builder, Action clean)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (clean is null)
+        {
+            throw new ArgumentNullException(nameof(clean));
+        }
+
+        builder.RegisterForCleanup(() =>
+        {
+            clean();
+            return default;
+        });
+    }
+
+    /// <summary>
+    /// Registers a cleanup task for execution resources with the <see cref="IQueryResultBuilder"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IQueryResultBuilder"/>.
+    /// </param>
+    /// <param name="disposable">
+    /// The resource that needs to be disposed.
+    /// </param>
+    public static void RegisterForCleanup(this IQueryResultBuilder builder, IDisposable disposable)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (disposable is null)
+        {
+            throw new ArgumentNullException(nameof(disposable));
+        }
+
+        builder.RegisterForCleanup(disposable.Dispose);
+    }
+
+    /// <summary>
+    /// Registers a cleanup task for execution resources with the <see cref="IQueryResultBuilder"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IExecutionResult"/>.
+    /// </param>
+    /// <param name="disposable">
+    /// The resource that needs to be disposed.
+    /// </param>
+    public static void RegisterForCleanup(
+        this IQueryResultBuilder builder,
+        IAsyncDisposable disposable)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (disposable is null)
+        {
+            throw new ArgumentNullException(nameof(disposable));
+        }
+
+        builder.RegisterForCleanup(disposable.DisposeAsync);
+    }
 }

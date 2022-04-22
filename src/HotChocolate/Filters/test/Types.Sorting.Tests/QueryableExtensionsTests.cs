@@ -96,7 +96,7 @@ namespace HotChocolate.Types.Sorting
             Assert.Equal(source.ThenByDescending(s => s.Bar), sorted);
         }
 
-        private class Foo
+        private sealed class Foo
         {
             public string Bar { get; set; }
         }

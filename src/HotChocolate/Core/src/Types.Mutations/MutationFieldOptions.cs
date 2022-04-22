@@ -85,5 +85,5 @@ public struct MutationFieldOptions
     /// Overrides a the global <see cref="MutationConventionOptions.ApplyToAllMutations" />
     /// setting on a specific mutation.
     /// </summary>
-    public bool Disable { get; set; } = false;
+    public bool Disable { get; set; }
 }

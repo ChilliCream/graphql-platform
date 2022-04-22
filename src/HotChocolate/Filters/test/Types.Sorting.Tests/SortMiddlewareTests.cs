@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Sorting
             result.MatchSnapshot(scenarioName);
         }
 
-        private class Foo
+        private sealed class Foo
         {
             public string Bar { get; set; }
         }

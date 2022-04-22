@@ -3,25 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
+using HotChocolate.Stitching.SchemaBuilding;
+using HotChocolate.Stitching.SchemaBuilding.Handlers;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Stitching.Merge.Handlers
-{
-    public class DirectiveTypeMergeHandlerTests
-    {
-        [Fact]
-        public void Merge_SimpleIdenticalDirectives_TypeMerges()
-        {
-            // arrange
-            DocumentNode schema_a =
-                Utf8GraphQLParser.Parse(
-                    "directive @test(arg: String) on OBJECT");
-            DocumentNode schema_b =
-                Utf8GraphQLParser.Parse(
-                    "directive @test(arg: String) on OBJECT");
+namespace HotChocolate.Stitching.Merge.Handlers;
 
-            var types = new List<IDirectiveTypeInfo>
+public class DirectiveTypeMergeHandlerTests
+{
+    [Fact]
+    public void Merge_SimpleIdenticalDirectives_TypeMerges()
+    {
+        // arrange
+        DocumentNode schema_a =
+            Utf8GraphQLParser.Parse(
+                "directive @test(arg: String) on OBJECT");
+        DocumentNode schema_b =
+            Utf8GraphQLParser.Parse(
+                "directive @test(arg: String) on OBJECT");
+
+        var types = new List<IDirectiveTypeInfo>
             {
                 new DirectiveTypeInfo(schema_a.Definitions
                     .OfType<DirectiveDefinitionNode>().First(),
@@ -31,29 +33,29 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     new SchemaInfo("Schema_B", schema_b)),
             };
 
-            var context = new SchemaMergeContext();
+        var context = new SchemaMergeContext();
 
-            // act
-            var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
-            typeMerger.Merge(context, types);
+        // act
+        var typeMerger = new DirectiveTypeMergeHandler();
+        typeMerger.Merge(context, types);
 
-            // assert
-            context
-                .CreateSchema()
-                .Print()
-                .MatchSnapshot();
-        }
+        // assert
+        context
+            .CreateSchema()
+            .Print()
+            .MatchSnapshot();
+    }
 
-        [Fact]
-        public void Merge_DifferentArguments_ThrowsException()
-        {
-            // arrange
-            DocumentNode schema_a =
-                Utf8GraphQLParser.Parse("directive @test(arg: Int) on OBJECT");
-            DocumentNode schema_b =
-                Utf8GraphQLParser.Parse("directive @test(arg: String) on OBJECT");
+    [Fact]
+    public void Merge_DifferentArguments_ThrowsException()
+    {
+        // arrange
+        DocumentNode schema_a =
+            Utf8GraphQLParser.Parse("directive @test(arg: Int) on OBJECT");
+        DocumentNode schema_b =
+            Utf8GraphQLParser.Parse("directive @test(arg: String) on OBJECT");
 
-            var types = new List<IDirectiveTypeInfo>
+        var types = new List<IDirectiveTypeInfo>
             {
                 new DirectiveTypeInfo(schema_a.Definitions
                     .OfType<DirectiveDefinitionNode>().First(),
@@ -63,27 +65,27 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     new SchemaInfo("Schema_B", schema_b))
             };
 
-            var context = new SchemaMergeContext();
+        var context = new SchemaMergeContext();
 
-            // act
-            var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        // act
+        var typeMerger = new DirectiveTypeMergeHandler();
 
-            Assert.Throws<InvalidOperationException>(
-                () => typeMerger.Merge(context, types));
-        }
+        Assert.Throws<InvalidOperationException>(
+            () => typeMerger.Merge(context, types));
+    }
 
-        [Fact]
-        public void Merge_DifferentLocations_ThrowsException()
-        {
-            // arrange
-            DocumentNode schema_a =
-                Utf8GraphQLParser.Parse(
-                    "directive @test(arg: String) on OBJECT | INTERFACE");
-            DocumentNode schema_b =
-                Utf8GraphQLParser.Parse(
-                    "directive @test(arg: String) on OBJECT");
+    [Fact]
+    public void Merge_DifferentLocations_ThrowsException()
+    {
+        // arrange
+        DocumentNode schema_a =
+            Utf8GraphQLParser.Parse(
+                "directive @test(arg: String) on OBJECT | INTERFACE");
+        DocumentNode schema_b =
+            Utf8GraphQLParser.Parse(
+                "directive @test(arg: String) on OBJECT");
 
-            var types = new List<IDirectiveTypeInfo>
+        var types = new List<IDirectiveTypeInfo>
             {
                 new DirectiveTypeInfo(schema_a.Definitions
                     .OfType<DirectiveDefinitionNode>().First(),
@@ -93,27 +95,27 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     new SchemaInfo("Schema_B", schema_b))
             };
 
-            var context = new SchemaMergeContext();
+        var context = new SchemaMergeContext();
 
-            // act
-            var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        // act
+        var typeMerger = new DirectiveTypeMergeHandler();
 
-            Assert.Throws<InvalidOperationException>(
-                () => typeMerger.Merge(context, types));
-        }
+        Assert.Throws<InvalidOperationException>(
+            () => typeMerger.Merge(context, types));
+    }
 
-        [Fact]
-        public void Merge_DifferentRepeatable_ThrowsException()
-        {
-            // arrange
-            DocumentNode schema_a =
-                Utf8GraphQLParser.Parse(
-                    "directive @test(arg: String) repeatable on OBJECT");
-            DocumentNode schema_b =
-                Utf8GraphQLParser.Parse(
-                    "directive @test(arg: String) on OBJECT");
+    [Fact]
+    public void Merge_DifferentRepeatable_ThrowsException()
+    {
+        // arrange
+        DocumentNode schema_a =
+            Utf8GraphQLParser.Parse(
+                "directive @test(arg: String) repeatable on OBJECT");
+        DocumentNode schema_b =
+            Utf8GraphQLParser.Parse(
+                "directive @test(arg: String) on OBJECT");
 
-            var types = new List<IDirectiveTypeInfo>
+        var types = new List<IDirectiveTypeInfo>
             {
                 new DirectiveTypeInfo(schema_a.Definitions
                     .OfType<DirectiveDefinitionNode>().First(),
@@ -123,30 +125,30 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     new SchemaInfo("Schema_B", schema_b))
             };
 
-            var context = new SchemaMergeContext();
+        var context = new SchemaMergeContext();
 
-            // act
-            var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
+        // act
+        var typeMerger = new DirectiveTypeMergeHandler();
 
-            Assert.Throws<InvalidOperationException>(
-                () => typeMerger.Merge(context, types));
-        }
+        Assert.Throws<InvalidOperationException>(
+            () => typeMerger.Merge(context, types));
+    }
 
-        [Fact]
-        public void Merge_ThreeDirectivessWhereTwoAreIdentical_TwoTypesAfterMerge()
-        {
-            // arrange
-            DocumentNode schema_a =
-                Utf8GraphQLParser.Parse(
-                    "directive @test(arg: String) on OBJECT");
-            DocumentNode schema_b =
-                Utf8GraphQLParser.Parse(
-                    "directive @test1(arg: String) on OBJECT");
-            DocumentNode schema_c =
-                Utf8GraphQLParser.Parse(
-                    "directive @test(arg: String) on OBJECT");
+    [Fact]
+    public void Merge_ThreeDirectivessWhereTwoAreIdentical_TwoTypesAfterMerge()
+    {
+        // arrange
+        DocumentNode schema_a =
+            Utf8GraphQLParser.Parse(
+                "directive @test(arg: String) on OBJECT");
+        DocumentNode schema_b =
+            Utf8GraphQLParser.Parse(
+                "directive @test1(arg: String) on OBJECT");
+        DocumentNode schema_c =
+            Utf8GraphQLParser.Parse(
+                "directive @test(arg: String) on OBJECT");
 
-            var types = new List<IDirectiveTypeInfo>
+        var types = new List<IDirectiveTypeInfo>
             {
                 new DirectiveTypeInfo(schema_a.Definitions
                     .OfType<DirectiveDefinitionNode>().First(),
@@ -159,17 +161,16 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     new SchemaInfo("Schema_C", schema_c))
             };
 
-            var context = new SchemaMergeContext();
+        var context = new SchemaMergeContext();
 
-            // act
-            var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
-            typeMerger.Merge(context, types);
+        // act
+        var typeMerger = new DirectiveTypeMergeHandler();
+        typeMerger.Merge(context, types);
 
-            // assert
-            context
-                .CreateSchema()
-                .Print()
-                .MatchSnapshot();
-        }
+        // assert
+        context
+            .CreateSchema()
+            .Print()
+            .MatchSnapshot();
     }
 }

@@ -3,27 +3,26 @@ using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb.Filters
+namespace HotChocolate.Data.MongoDb.Filters;
+
+public static class MongoDbFilterScopeExtensions
 {
-    public static class MongoDbFilterScopeExtensions
+    public static string GetPath(this MongoDbFilterScope scope) =>
+        string.Join(".", scope.Path.Reverse());
+
+    public static bool TryCreateQuery(
+        this MongoDbFilterScope scope,
+        [NotNullWhen(true)] out MongoDbFilterDefinition? query)
     {
-        public static string GetPath(this MongoDbFilterScope scope) =>
-            string.Join(".", scope.Path.Reverse());
+        query = null;
 
-        public static bool TryCreateQuery(
-            this MongoDbFilterScope scope,
-            [NotNullWhen(true)] out MongoDbFilterDefinition? query)
+        if (scope.Level.Peek().Count == 0)
         {
-            query = null;
-
-            if (scope.Level.Peek().Count == 0)
-            {
-                return false;
-            }
-
-            query = new AndFilterDefinition(scope.Level.Peek().ToArray());
-
-            return true;
+            return false;
         }
+
+        query = new AndFilterDefinition(scope.Level.Peek().ToArray());
+
+        return true;
     }
 }

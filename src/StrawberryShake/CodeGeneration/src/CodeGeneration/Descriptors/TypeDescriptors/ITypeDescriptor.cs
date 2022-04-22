@@ -1,10 +1,9 @@
-namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
+namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+
+public interface ITypeDescriptor : ICodeDescriptor
 {
-    public interface ITypeDescriptor : ICodeDescriptor
-    {
-        /// <summary>
-        /// Gets the type kind.
-        /// </summary>
-        public TypeKind Kind { get; }
-    }
+    /// <summary>
+    /// Gets the type kind.
+    /// </summary>
+    public TypeKind Kind { get; }
 }

@@ -98,7 +98,6 @@ public abstract class QueryableListOperationHandlerBase
             context.GetLevel().Enqueue(expression);
         }
 
-
         action = SyntaxVisitor.Continue;
         return true;
     }

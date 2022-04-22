@@ -2,55 +2,55 @@ using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp;
+
+public class NoStoreStarWarsGeneratorTests
 {
-    public class NoStoreStarWarsGeneratorTests
+    [Fact]
+    public void Interface_With_Default_Names()
     {
-        [Fact]
-        public void Interface_With_Default_Names()
-        {
-            AssertStarWarsResult(
-                new AssertSettings { NoStore = true },
-                @"query GetHero {
+        AssertStarWarsResult(
+            new AssertSettings { NoStore = true },
+            @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         name
                         appearsIn
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void Operation_With_Leaf_Argument()
-        {
-            AssertStarWarsResult(
-                new AssertSettings { NoStore = true },
-                @"query GetHero($episode: Episode) {
+    [Fact]
+    public void Operation_With_Leaf_Argument()
+    {
+        AssertStarWarsResult(
+            new AssertSettings { NoStore = true },
+            @"query GetHero($episode: Episode) {
                     hero(episode: $episode) {
                         name
                         appearsIn
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void Operation_With_Type_Argument()
-        {
-            AssertStarWarsResult(
-                new AssertSettings { NoStore = true },
-                @"mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
+    [Fact]
+    public void Operation_With_Type_Argument()
+    {
+        AssertStarWarsResult(
+            new AssertSettings { NoStore = true },
+            @"mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
                     createReview(episode: $episode, review: $review) {
                         stars
                         commentary
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void Interface_With_Fragment_Definition_Two_Models()
-        {
-            AssertStarWarsResult(
-                new AssertSettings { NoStore = true },
-                @"query GetHero {
+    [Fact]
+    public void Interface_With_Fragment_Definition_Two_Models()
+    {
+        AssertStarWarsResult(
+            new AssertSettings { NoStore = true },
+            @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         ... Hero
                     }
@@ -74,44 +74,44 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 fragment Droid on Droid {
                     primaryFunction
                 }");
-        }
+    }
 
-        [Fact]
-        public void Subscription_With_Default_Names()
-        {
-            AssertStarWarsResult(
-                new AssertSettings { NoStore = true },
-                @"subscription OnReviewSub {
+    [Fact]
+    public void Subscription_With_Default_Names()
+    {
+        AssertStarWarsResult(
+            new AssertSettings { NoStore = true },
+            @"subscription OnReviewSub {
                     onReview(episode: NEW_HOPE) {
                         stars
                         commentary
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void Generate_StarWarsIntegrationTest()
-        {
-            AssertStarWarsResult(
-                new AssertSettings { NoStore = true },
-                FileResource.Open("QueryWithSubscription.graphql"));
-        }
+    [Fact]
+    public void Generate_StarWarsIntegrationTest()
+    {
+        AssertStarWarsResult(
+            new AssertSettings { NoStore = true },
+            FileResource.Open("QueryWithSubscription.graphql"));
+    }
 
-        [Fact]
-        public void StarWarsTypeNameOnUnions() =>
-            AssertStarWarsResult(
-                new AssertSettings { NoStore = true },
-                @"query SearchHero {
+    [Fact]
+    public void StarWarsTypeNameOnUnions() =>
+        AssertStarWarsResult(
+            new AssertSettings { NoStore = true },
+            @"query SearchHero {
                     search(text: ""l"") {
                         __typename
                     }
                 }");
 
-        [Fact]
-        public void StarWarsUnionList() =>
-            AssertStarWarsResult(
-                new AssertSettings { NoStore = true },
-                @"query SearchHero {
+    [Fact]
+    public void StarWarsUnionList() =>
+        AssertStarWarsResult(
+            new AssertSettings { NoStore = true },
+            @"query SearchHero {
                     search(text: ""l"") {
                         ... on Human {
                             name
@@ -121,5 +121,4 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         }
                     }
                 }");
-    }
 }

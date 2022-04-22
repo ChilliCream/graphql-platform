@@ -42,4 +42,6 @@ public interface IFilterOperationFieldDescriptor
     IFilterOperationFieldDescriptor Directive(
         NameString name,
         params ArgumentNode[] arguments);
+
+    IFilterOperationFieldDescriptor AllowOperation(int operation);
 }

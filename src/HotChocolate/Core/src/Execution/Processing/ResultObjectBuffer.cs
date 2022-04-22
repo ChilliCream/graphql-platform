@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
@@ -25,6 +24,7 @@ internal sealed class ResultObjectBuffer<T> where T : class
         {
             return obj;
         }
+
         throw new InvalidOperationException("Buffer is used up.");
     }
 

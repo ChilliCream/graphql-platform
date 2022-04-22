@@ -6,12 +6,20 @@
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NeutralLanguage>en</NeutralLanguage>
     <Description>Contains ready to use extensions for data management in HotChocolate. This includes filtering, projections and sorting</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.InMemory.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.SqlLite.Tests" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,11 +30,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.InMemory.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.SqlServer.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="DataResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>DataResources.resx</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
   </ItemGroup>
 
   <ItemGroup>

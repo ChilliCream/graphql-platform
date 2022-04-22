@@ -4,19 +4,19 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using Xunit;
 
-namespace HotChocolate.Data.Neo4J.Filtering.Lists
+namespace HotChocolate.Data.Neo4J.Filtering.Lists;
+
+[Collection("Database")]
+public class Neo4JListFilterTests
 {
-    public class Neo4JListFilterTests
-        : IClassFixture<Neo4JFixture>
+    private readonly Neo4JFixture _fixture;
+
+    public Neo4JListFilterTests(Neo4JFixture fixture)
     {
-        private readonly Neo4JFixture _fixture;
+        _fixture = fixture;
+    }
 
-        public Neo4JListFilterTests(Neo4JFixture fixture)
-        {
-            _fixture = fixture;
-        }
-
-        private readonly string _fooEntitiesCypher = @"
+    private readonly string _fooEntitiesCypher = @"
             CREATE (a:Foo {BarString: 'a'})-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
                     (a)-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
                     (a)-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
@@ -34,43 +34,43 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
                     (e)-[:RELATED_FOO]->(:FooNested {Bar: 'b'})
         ";
 
-        public class Foo
-        {
-            public string BarString { get; set; }
+    public class Foo
+    {
+        public string BarString { get; set; }
 
-            [Neo4JRelationship("RELATED_FOO")]
-            public List<FooNested> FooNested { get; set; }
-        }
+        [Neo4JRelationship("RELATED_FOO")]
+        public List<FooNested> FooNested { get; set; }
+    }
 
-        public class FooNested
-        {
-            public string? Bar { get; set; }
+    public class FooNested
+    {
+        public string? Bar { get; set; }
 
-            [Neo4JRelationship("RELATED_BAR")]
-            public List<BarNested> BarNested { get; set; }
-        }
+        [Neo4JRelationship("RELATED_BAR")]
+        public List<BarNested> BarNested { get; set; }
+    }
 
-        public class BarNested
-        {
-            public string? Foo { get; set; }
-        }
+    public class BarNested
+    {
+        public string? Foo { get; set; }
+    }
 
-        public class FooFilterType
-            : FilterInputType<Foo>
-        {
-        }
+    public class FooFilterType
+        : FilterInputType<Foo>
+    {
+    }
 
-        [Fact]
-        public async Task Create_ArrayAllObjectStringEqual_Expression()
-        {
-            // arrange
-            IRequestExecutor tester =
-                await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+    [Fact]
+    public async Task Create_ArrayAllObjectStringEqual_Expression()
+    {
+        // arrange
+        IRequestExecutor tester =
+            await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
-            // act
-            // assert
-            const string query1 =
-                @"{
+        // act
+        // assert
+        const string query1 =
+            @"{
                     root(where: {
                         barString: {
                             eq: ""a""
@@ -91,12 +91,11 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
                     }
                 }";
 
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(query1)
-                    .Create());
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(query1)
+                .Create());
 
-            res1.MatchDocumentSnapshot("all");
-        }
+        res1.MatchDocumentSnapshot("all");
     }
 }

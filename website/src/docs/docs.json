@@ -189,6 +189,10 @@
                 "title": "Endpoints"
               },
               {
+                "path": "dependency-injection",
+                "title": "Dependency Injection"
+              },
+              {
                 "path": "interceptors",
                 "title": "Interceptors"
               },
@@ -303,10 +307,6 @@
               {
                 "path": "apollo-federation",
                 "title": "Apollo Federation"
-              },
-              {
-                "path": "dependency-injection",
-                "title": "Dependency Injection"
               },
               {
                 "path": "executable",
@@ -824,6 +824,10 @@
           {
             "path": "index",
             "title": "Introduction"
+          },
+          {
+            "path": "install",
+            "title": "Installation"
           },
           {
             "path": "getting-started",

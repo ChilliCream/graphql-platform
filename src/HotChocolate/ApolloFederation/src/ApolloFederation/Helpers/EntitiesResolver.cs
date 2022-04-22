@@ -24,8 +24,8 @@ internal static class EntitiesResolver
                 objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
                 value is FieldResolverDelegate resolver)
             {
-                context.SetLocalValue(TypeField, objectType);
-                context.SetLocalValue(DataField, representation.Data);
+                context.SetLocalState(TypeField, objectType);
+                context.SetLocalState(DataField, representation.Data);
 
                 var entity = await resolver.Invoke(context).ConfigureAwait(false);
 

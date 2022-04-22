@@ -6,12 +6,7 @@ public readonly ref struct GraphQLSocketMessage
 {
     public GraphQLSocketMessage(string type, string? id, ReadOnlySpan<byte> payload)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        Type = type;
+        Type = type ?? throw new ArgumentNullException(nameof(type));
         Id = id;
         Payload = payload;
     }

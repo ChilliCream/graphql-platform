@@ -34,7 +34,7 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
             return AuthorizeResult.NotAuthenticated;
         }
 
-        if (IsInAnyRole(principal, directive.Roles))
+        if (IsInAnyRole(principal!, directive.Roles))
         {
             if (NeedsPolicyValidation(directive))
             {
@@ -93,11 +93,9 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
     }
 
     private static bool NeedsPolicyValidation(AuthorizeDirective directive)
-    {
-        return directive.Roles == null
-               || directive.Roles.Count == 0
-               || !string.IsNullOrEmpty(directive.Policy);
-    }
+        => directive.Roles == null
+           || directive.Roles.Count == 0
+           || !string.IsNullOrEmpty(directive.Policy);
 
     private static async Task<AuthorizeResult> AuthorizeWithPolicyAsync(
         IMiddlewareContext context,

@@ -109,7 +109,7 @@ namespace HotChocolate.Types.Descriptors
             Assert.NotNull(context.TypeInspector);
         }
 
-        private class Convention : Descriptors.Convention
+        private sealed class Convention : Descriptors.Convention
         {
             public static Convention Default { get; } = new Convention();
         }

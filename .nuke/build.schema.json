@@ -62,6 +62,14 @@
             "VSCode"
           ]
         },
+        "MyGetApiKey": {
+          "type": "string",
+          "description": "MyGet Api Key"
+        },
+        "MyGetSource": {
+          "type": "string",
+          "description": "NuGet Source for Packages"
+        },
         "NoLogo": {
           "type": "boolean",
           "description": "Disables displaying the NUKE logo"
@@ -115,7 +123,28 @@
               "Restore",
               "Sonar",
               "SonarPr",
-              "Test"
+              "Test",
+              "TestGreenDonut",
+              "TestHotChocolateAnalyzers",
+              "TestHotChocolateApolloFederation",
+              "TestHotChocolateAspNetCore",
+              "TestHotChocolateAzureFunctions",
+              "TestHotChocolateCodeGeneration",
+              "TestHotChocolateCore",
+              "TestHotChocolateData",
+              "TestHotChocolateDiagnostics",
+              "TestHotChocolateFilters",
+              "TestHotChocolateLanguage",
+              "TestHotChocolateMongoDb",
+              "TestHotChocolateNeo4J",
+              "TestHotChocolatePersistedQueries",
+              "TestHotChocolateSpatial",
+              "TestHotChocolateStitching",
+              "TestHotChocolateUtilities",
+              "TestStrawberryShakeClient",
+              "TestStrawberryShakeCodeGeneration",
+              "TestStrawberryShakeSourceGenerator",
+              "TestStrawberryShakeTooling"
             ]
           }
         },
@@ -147,7 +176,28 @@
               "Restore",
               "Sonar",
               "SonarPr",
-              "Test"
+              "Test",
+              "TestGreenDonut",
+              "TestHotChocolateAnalyzers",
+              "TestHotChocolateApolloFederation",
+              "TestHotChocolateAspNetCore",
+              "TestHotChocolateAzureFunctions",
+              "TestHotChocolateCodeGeneration",
+              "TestHotChocolateCore",
+              "TestHotChocolateData",
+              "TestHotChocolateDiagnostics",
+              "TestHotChocolateFilters",
+              "TestHotChocolateLanguage",
+              "TestHotChocolateMongoDb",
+              "TestHotChocolateNeo4J",
+              "TestHotChocolatePersistedQueries",
+              "TestHotChocolateSpatial",
+              "TestHotChocolateStitching",
+              "TestHotChocolateUtilities",
+              "TestStrawberryShakeClient",
+              "TestStrawberryShakeCodeGeneration",
+              "TestStrawberryShakeSourceGenerator",
+              "TestStrawberryShakeTooling"
             ]
           }
         },

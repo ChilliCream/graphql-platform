@@ -170,7 +170,7 @@ internal static class RequestClassMiddlewareFactory
             Expression.Constant(options)));
     }
 
-    private class SchemaNameParameterHandler : IParameterHandler
+    private sealed class SchemaNameParameterHandler : IParameterHandler
     {
         private readonly Expression _schemaName;
 

@@ -99,19 +99,12 @@ public abstract class Path : IEquatable<Path>
     public abstract bool Equals(Path? other);
 
     public sealed override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(obj, null))
+        => obj switch
         {
-            return false;
-        }
-
-        if (obj is Path p)
-        {
-            return Equals(p);
-        }
-
-        return false;
-    }
+            null => false,
+            Path p => Equals(p),
+            _ => false
+        };
 
     /// <summary>
     /// Serves as the default hash function.

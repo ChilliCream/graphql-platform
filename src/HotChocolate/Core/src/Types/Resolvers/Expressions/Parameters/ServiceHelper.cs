@@ -27,7 +27,7 @@ internal static class ServiceHelper
         Type serviceType)
         => _usePooledService
             .MakeGenericMethod(serviceType)
-            .Invoke(null, new object?[] {definition});
+            .Invoke(null, new object?[] { definition });
 
     internal static void UsePooledService<TService>(
         ObjectFieldDefinition definition)
@@ -49,7 +49,7 @@ internal static class ServiceHelper
 
                     try
                     {
-                        context.SetLocalValue(scopedServiceName, service);
+                        context.SetLocalState(scopedServiceName, service);
                         await next(context).ConfigureAwait(false);
                     }
                     finally
@@ -68,7 +68,7 @@ internal static class ServiceHelper
         Type serviceType)
         => _useResolverService
             .MakeGenericMethod(serviceType)
-            .Invoke(null, new object?[] {definition});
+            .Invoke(null, new object?[] { definition });
 
     private static void UseResolverServiceInternal<TService>(
         ObjectFieldDefinition definition)
@@ -87,7 +87,7 @@ internal static class ServiceHelper
                 next => async context =>
                 {
                     using IServiceScope scope = context.Services.CreateScope();
-                    context.SetLocalValue(WellKnownContextData.ResolverServiceScope, scope);
+                    context.SetLocalState(WellKnownContextData.ResolverServiceScope, scope);
                     await next(context).ConfigureAwait(false);
                 },
                 isRepeatable: false,
@@ -102,7 +102,7 @@ internal static class ServiceHelper
         FieldMiddlewareDefinition serviceMiddleware =
             new(next => async context =>
                 {
-                    IServiceScope? scope = context.GetLocalValue<IServiceScope>(
+                    IServiceScope? scope = context.GetLocalStateOrDefault<IServiceScope>(
                         WellKnownContextData.ResolverServiceScope);
 
                     if (scope is null)
@@ -112,7 +112,7 @@ internal static class ServiceHelper
                     }
 
                     TService service = scope.ServiceProvider.GetRequiredService<TService>();
-                    context.SetLocalValue(scopedServiceName, service);
+                    context.SetLocalState(scopedServiceName, service);
                     await next(context).ConfigureAwait(false);
                 },
                 isRepeatable: true,

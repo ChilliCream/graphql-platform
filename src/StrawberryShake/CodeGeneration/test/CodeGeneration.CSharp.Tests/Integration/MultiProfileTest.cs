@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake.Transport.WebSockets;
 using Xunit;
 

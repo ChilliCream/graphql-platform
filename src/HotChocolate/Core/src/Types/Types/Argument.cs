@@ -36,6 +36,9 @@ public class Argument : FieldBase<ArgumentDefinition>, IInputField
         {
             Formatter = new AggregateInputValueFormatter(formatters);
         }
+
+        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
+        DeprecationReason = definition.DeprecationReason;
     }
 
     /// <summary>
@@ -51,6 +54,12 @@ public class Argument : FieldBase<ArgumentDefinition>, IInputField
 
     /// <inheritdoc />
     public IInputType Type { get; private set; } = default!;
+
+    /// <inheritdoc />
+    public bool IsDeprecated { get; }
+
+    /// <inheritdoc />
+    public string? DeprecationReason { get; }
 
     /// <inheritdoc />
     public override Type RuntimeType => _runtimeType;

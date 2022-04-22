@@ -3,6 +3,9 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.MongoDb.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>

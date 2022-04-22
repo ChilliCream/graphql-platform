@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static HotChocolate.Types.Analyzers.WellKnownAttributes;
 using static HotChocolate.Types.Analyzers.WellKnownTypes;
 using static HotChocolate.Types.Analyzers.WellKnownFileNames;
@@ -14,9 +13,6 @@ namespace HotChocolate.Types.Analyzers;
 [Generator]
 public class TypeModuleGenerator : IIncrementalGenerator
 {
-    private static readonly AttributeTargetSpecifierSyntax assemblyTarget =
-        AttributeTargetSpecifier(Token(SyntaxKind.AssemblyKeyword));
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         IncrementalValuesProvider<ModuleOrType> modulesAndTypes =
@@ -55,23 +51,36 @@ public class TypeModuleGenerator : IIncrementalGenerator
                 {
                     foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
                     {
-                        ISymbol? symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
-                        IMethodSymbol? attributeSymbol = symbol as IMethodSymbol;
-                        if (attributeSymbol is null)
+                        var symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
+                        if (symbol is not IMethodSymbol attributeSymbol)
                         {
                             continue;
                         }
 
-                        INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
-                        string fullName = attributeContainingTypeSymbol.ToDisplayString();
+                        var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+                        var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                        if (TypeAttributes.Contains(fullName))
+                        if (ExtendObjectTypeAttribute.Equals(fullName, StringComparison.Ordinal))
                         {
                             var model = context.SemanticModel.GetDeclaredSymbol(possibleType);
 
                             if (model is ITypeSymbol type)
                             {
-                                return ModuleOrType.Type(type.ToDisplayString());
+                                return ModuleOrType.Type(
+                                    type.ToDisplayString(),
+                                    TypeKind.TypeExtension);
+                            }
+
+                        }
+                        else if (TypeAttributes.Contains(fullName))
+                        {
+                            var model = context.SemanticModel.GetDeclaredSymbol(possibleType);
+
+                            if (model is ITypeSymbol type)
+                            {
+                                return ModuleOrType.Type(
+                                    type.ToDisplayString(),
+                                    TypeKind.Type);
                             }
                         }
                     }
@@ -81,25 +90,54 @@ public class TypeModuleGenerator : IIncrementalGenerator
             if (possibleType.BaseList is not null && possibleType.BaseList.Types.Count > 0)
             {
                 var model = context.SemanticModel.GetDeclaredSymbol(possibleType);
-                if (model is ITypeSymbol type)
+                if (model is { IsAbstract: false } type)
                 {
-                    ITypeSymbol? current = type.BaseType;
+                    var typeDisplayString = type.ToDisplayString();
+                    var processing = new Queue<INamedTypeSymbol>();
+                    processing.Enqueue(type);
+
+                    var current = type.BaseType;
+
                     while (current is not null)
                     {
-                        string displayString = current.ToDisplayString();
+                        processing.Enqueue(current);
+
+                        var displayString = current.ToDisplayString();
 
                         if (displayString.Equals(SystemObject, StringComparison.Ordinal))
                         {
                             break;
                         }
 
-                        if (BaseTypes.Contains(displayString))
+                        if (TypeClass.Contains(displayString))
                         {
-                            return ModuleOrType.Type(type.ToDisplayString());
+                            return ModuleOrType.Type(typeDisplayString, TypeKind.Type);
+                        }
+                        else if (TypeExtensionClass.Contains(displayString))
+                        {
+                            return ModuleOrType.Type(typeDisplayString, TypeKind.TypeExtension);
                         }
 
                         current = current.BaseType;
                     }
+
+                    while (processing.Count > 0)
+                    {
+                        current = processing.Dequeue();
+
+                        var displayString = current.ToDisplayString();
+
+                        if (displayString.Equals(DataLoader, StringComparison.Ordinal))
+                        {
+                            return ModuleOrType.Type(typeDisplayString, TypeKind.DataLoader);
+                        }
+
+                        foreach (var interfaceType in current.Interfaces)
+                        {
+                            processing.Enqueue(interfaceType);
+                        }
+                    }
+
                 }
             }
         }
@@ -107,22 +145,29 @@ public class TypeModuleGenerator : IIncrementalGenerator
         {
             foreach (AttributeSyntax attributeSyntax in attributeList.Attributes)
             {
-                ISymbol? symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
-                IMethodSymbol? attributeSymbol = symbol as IMethodSymbol;
-                if (attributeSymbol is null)
+                var symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
+                if (symbol is not IMethodSymbol attributeSymbol)
                 {
                     continue;
                 }
 
                 INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
-                string fullName = attributeContainingTypeSymbol.ToDisplayString();
+                var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (fullName.Equals(ModuleName, StringComparison.Ordinal))
+                if (fullName.Equals(ModuleAttribute, StringComparison.Ordinal) &&
+                    attributeSyntax.ArgumentList is { Arguments.Count: > 0 })
                 {
-                    if (attributeSyntax.ArgumentList?.Arguments.SingleOrDefault() is { } argument)
+                    var nameExpr = attributeSyntax.ArgumentList.Arguments[0].Expression;
+                    var name = context.SemanticModel.GetConstantValue(nameExpr).ToString();
+
+                    var features = (int)ModuleOptions.Default;
+                    if (attributeSyntax.ArgumentList.Arguments.Count > 1)
                     {
-                        return ModuleOrType.Module(argument.ToString().Trim('\"'));
+                        var featuresExpr = attributeSyntax.ArgumentList.Arguments[1].Expression;
+                        features = (int)context.SemanticModel.GetConstantValue(featuresExpr).Value!;
                     }
+
+                    return ModuleOrType.Module(name, (ModuleOptions)features);
                 }
             }
         }
@@ -143,14 +188,14 @@ public class TypeModuleGenerator : IIncrementalGenerator
         {
             module = ModuleOrType.Module(
                 compilation.AssemblyName?.Split('.').Last() + "Types" ??
-                "AssemblyTypes");
+                "AssemblyTypes",
+                ModuleOptions.Default);
         }
 
         var code = new StringBuilder();
 
         code.AppendLine("using System;");
         code.AppendLine("using HotChocolate.Execution.Configuration;");
-        code.AppendLine();
 
         if (!modulesAndTypes.IsDefaultOrEmpty && modulesAndTypes.Any(t => t.TypeName is not null))
         {
@@ -164,7 +209,29 @@ public class TypeModuleGenerator : IIncrementalGenerator
 
             foreach (var type in modulesAndTypes.Where(t => t.TypeName is not null).Distinct())
             {
-                code.AppendLine($"{indent}{indent}{indent}builder.AddTypeExtension<{type.TypeName}>();");
+                switch (type.TypeKind)
+                {
+                    case TypeKind.Type:
+                        if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes)
+                        {
+                            code.AppendLine($"{indent}{indent}{indent}builder.AddType<{type.TypeName}>();");
+                        }
+                        break;
+
+                    case TypeKind.TypeExtension:
+                        if ((module.Options & ModuleOptions.RegisterTypes) == ModuleOptions.RegisterTypes)
+                        {
+                            code.AppendLine($"{indent}{indent}{indent}builder.AddTypeExtension<{type.TypeName}>();");
+                        }
+                        break;
+
+                    case TypeKind.DataLoader:
+                        if ((module.Options & ModuleOptions.RegisterDataLoader) == ModuleOptions.RegisterDataLoader)
+                        {
+                            code.AppendLine($"{indent}{indent}{indent}builder.AddDataLoader<{type.TypeName}>();");
+                        }
+                        break;
+                }
             }
             code.AppendLine($"{indent}{indent}{indent}return builder;");
             code.AppendLine($"{indent}{indent}}}");
@@ -179,10 +246,16 @@ public class TypeModuleGenerator : IIncrementalGenerator
     {
         private readonly bool _isInit;
 
-        private ModuleOrType(string? typeName, string? moduleName)
+        private ModuleOrType(
+            string? typeName,
+            TypeKind typeKind,
+            string? moduleName,
+            ModuleOptions options)
         {
             TypeName = typeName;
+            TypeKind = typeKind;
             ModuleName = moduleName;
+            Options = options;
             _isInit = true;
         }
 
@@ -190,12 +263,55 @@ public class TypeModuleGenerator : IIncrementalGenerator
 
         public string? TypeName { get; }
 
+        public TypeKind TypeKind { get; }
+
         public string? ModuleName { get; }
 
-        public static ModuleOrType Type(string typeName)
-            => new(typeName, null);
+        public ModuleOptions Options { get; }
 
-        public static ModuleOrType Module(string moduleName)
-            => new(null, moduleName);
+        public override bool Equals(object obj)
+            => obj is ModuleOrType m && Equals(m);
+
+        public bool Equals(ModuleOrType other)
+            => IsEmpty == other.IsEmpty &&
+                TypeKind == other.TypeKind &&
+                Options == other.Options &&
+                string.Equals(TypeName, other.TypeName, StringComparison.Ordinal) &&
+                string.Equals(ModuleName, other.ModuleName, StringComparison.Ordinal);
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = _isInit.GetHashCode();
+                hashCode = (hashCode * 397) ^ (TypeName != null ? TypeName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (int) TypeKind;
+                hashCode = (hashCode * 397) ^ (ModuleName != null ? ModuleName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (int) Options;
+                return hashCode;
+            }
+        }
+
+        public static ModuleOrType Type(string name, TypeKind kind)
+            => new(name, kind, null, ModuleOptions.Default);
+
+        public static ModuleOrType Module(string name, ModuleOptions options)
+            => new(null, TypeKind.Unknown, name, options);
+    }
+
+    private enum TypeKind
+    {
+        Unknown = 0,
+        Type,
+        TypeExtension,
+        DataLoader
+    }
+
+    [Flags]
+    public enum ModuleOptions
+    {
+        Default = RegisterDataLoader | RegisterTypes,
+        RegisterTypes = 1,
+        RegisterDataLoader = 2
     }
 }

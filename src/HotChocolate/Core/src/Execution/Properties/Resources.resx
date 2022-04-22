@@ -276,4 +276,7 @@
   <data name="ThrowHelper_ResolverContext_CannotCastParent" xml:space="preserve">
     <value>The resolver parent type of field `{0}` is `{1}` but the resolver requested the type `{2}`. The resolver was unable to cast the parent type to the requested type.</value>
   </data>
+  <data name="ExecutionResultExtensions_OnlyQueryResults" xml:space="preserve">
+    <value>Only query results are supported.</value>
+  </data>
 </root>
