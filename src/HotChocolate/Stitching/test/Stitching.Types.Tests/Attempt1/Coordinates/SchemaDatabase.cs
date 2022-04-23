@@ -21,6 +21,56 @@ internal class SchemaDatabase : ISchemaDatabase
         return coordinate;
     }
 
+    private ISchemaCoordinate2 CalculateCoordinate(ISchemaNode? parent, ISyntaxNode node)
+    {
+        TryGet(parent, out ISchemaCoordinate2? parentCoordinate);
+        return CalculateCoordinate(parentCoordinate, node);
+    }
+
+    private ISchemaCoordinate2 CalculateCoordinate(ISyntaxNode? parent, ISyntaxNode node)
+    {
+        ISchemaNode? parentSchemaNode = default;
+
+        if (parent is not null)
+        {
+            if (!TryGetExact(parent, out ISchemaCoordinate2? parentCoordinate))
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (!TryGet(parentCoordinate, out parentSchemaNode))
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
+        return CalculateCoordinate(parentSchemaNode, node);
+    }
+
+    public ISchemaCoordinate2 CalculateCoordinate(ISchemaCoordinate2? parentCoordinate, ISyntaxNode node)
+    {
+        ISchemaCoordinate2 coordinate = node switch
+        {
+            DocumentNode => CreateCoordinate(default, node, new NameNode("Root")),
+            NameNode nameNode => CreateCoordinate(parentCoordinate, node, nameNode),
+            ArgumentNode argumentNode => CreateCoordinate(parentCoordinate, node, argumentNode.Name),
+            IValueNode valueNode => CreateCoordinate(parentCoordinate, node, new NameNode($"{valueNode.Kind:G}")),
+            IHasName namedSyntaxNode => CreateCoordinate(parentCoordinate, node, namedSyntaxNode.Name),
+            ITypeNode typeNode => CreateCoordinate(parentCoordinate, node, new NameNode($"{typeNode.Kind:G}")),
+            _ => throw new NotImplementedException()
+        };
+
+        return coordinate;
+    }
+
+    private static SchemaCoordinate2 CreateCoordinate(ISchemaCoordinate2? parentCoordinate, ISyntaxNode node, NameNode name)
+    {
+        return new SchemaCoordinate2(
+            parentCoordinate,
+            node.Kind,
+            name);
+    }
+
     public bool TryGet(ISchemaNode? node, [NotNullWhen(true)] out ISchemaCoordinate2? coordinate)
     {
         if (node is null)
@@ -148,32 +198,12 @@ internal class SchemaDatabase : ISchemaDatabase
         return schemaNode;
     }
 
-    private ISchemaCoordinate2 CalculateCoordinate(ISyntaxNode? parent, ISyntaxNode node)
-    {
-        ISchemaNode? parentSchemaNode = default;
-
-        if (parent is not null)
-        {
-            if (!TryGetExact(parent, out ISchemaCoordinate2? parentCoordinate))
-            {
-                throw new InvalidOperationException();
-            }
-
-            if (!TryGet(parentCoordinate, out parentSchemaNode))
-            {
-                throw new InvalidOperationException();
-            }
-        }
-
-        return CalculateCoordinate(parentSchemaNode, node);
-    }
-
     public ISchemaCoordinate2 CalculateCoordinate(ISchemaNode node)
     {
         return CalculateCoordinate(node.Parent, node.Definition);
     }
 
-    private ISchemaNode CreateSchemaNode(ISyntaxNode? parent, ISyntaxNode node)
+    public ISchemaNode CreateSchemaNode(ISyntaxNode? parent, ISyntaxNode node)
     {
         ISchemaNode? parentSchemaNode = default;
         if (parent is not null)
@@ -184,12 +214,7 @@ internal class SchemaDatabase : ISchemaDatabase
             }
         }
 
-        if (!SchemaNodeFactory.Create(parentSchemaNode, node, Add, out ISchemaNode nodeSchemaNode))
-        {
-            throw new InvalidOperationException();
-        }
-
-        return nodeSchemaNode;
+        return SchemaNodeFactory.Create<ISchemaNode>(this, parentSchemaNode, node);
     }
 
     private void InnerReindex<TDefinition>(TDefinition typedDestination)
@@ -213,35 +238,5 @@ internal class SchemaDatabase : ISchemaDatabase
     {
         _syntaxNodeToCoordinateLookup[source] = coordinate
                                                 ?? throw new ArgumentNullException(nameof(coordinate));
-    }
-
-    private ISchemaCoordinate2 CalculateCoordinate(ISchemaNode? parent, ISyntaxNode node)
-    {
-        TryGet(parent, out ISchemaCoordinate2? parentCoordinate);
-        return CalculateCoordinate(parentCoordinate, node);
-    }
-
-    private ISchemaCoordinate2 CalculateCoordinate(ISchemaCoordinate2? parentCoordinate, ISyntaxNode node)
-    {
-        ISchemaCoordinate2 coordinate = node switch
-        {
-            DocumentNode => CreateCoordinate(default, node, new NameNode("Root")),
-            NameNode nameNode => CreateCoordinate(parentCoordinate, node, nameNode),
-            ArgumentNode argumentNode => CreateCoordinate(parentCoordinate, node, argumentNode.Name),
-            IValueNode valueNode => CreateCoordinate(parentCoordinate, node, new NameNode($"{valueNode.Kind:G}")),
-            IHasName namedSyntaxNode => CreateCoordinate(parentCoordinate, node, namedSyntaxNode.Name),
-            ITypeNode typeNode => CreateCoordinate(parentCoordinate, node, new NameNode($"{typeNode.Kind:G}")),
-            _ => throw new NotImplementedException()
-        };
-
-        return coordinate;
-    }
-
-    private SchemaCoordinate2 CreateCoordinate(ISchemaCoordinate2? parentCoordinate, ISyntaxNode node, NameNode name)
-    {
-        return new SchemaCoordinate2(this,
-            parentCoordinate,
-            node.Kind,
-            name);
     }
 }

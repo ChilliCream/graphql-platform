@@ -8,17 +8,18 @@ namespace HotChocolate.Stitching.Types;
 internal class SchemaNode<TNode> : ISchemaNode<TNode>
     where TNode : ISyntaxNode
 {
-    public SchemaNode(CoordinateFactory coordinateFactory, TNode node)
-        : this(coordinateFactory, default, node)
+    public SchemaNode(ISchemaCoordinate2 coordinate,
+        TNode node)
+        : this(default, coordinate, node)
     {
         Definition = node;
     }
 
-    public SchemaNode(CoordinateFactory coordinateFactory, ISchemaNode? parent, TNode node)
+    public SchemaNode(ISchemaNode? parent, ISchemaCoordinate2 coordinate, TNode node)
     {
         Parent = parent;
         Definition = node;
-        Coordinate = coordinateFactory.Invoke(this);
+        Coordinate = coordinate;
     }
 
     public TNode Definition { get; private set; }

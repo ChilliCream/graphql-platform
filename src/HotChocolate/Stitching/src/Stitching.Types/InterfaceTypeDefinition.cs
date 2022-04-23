@@ -10,11 +10,14 @@ internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDef
 {
     private readonly DocumentDefinition _parentDefinition;
 
-    public InterfaceTypeDefinition(CoordinateFactory coordinateFactory, DocumentDefinition parentDefinition, InterfaceTypeDefinitionNode definition)
+    public InterfaceTypeDefinition(
+        ISchemaCoordinate2 coordinate,
+        DocumentDefinition parentDefinition,
+        InterfaceTypeDefinitionNode definition)
     {
         _parentDefinition = parentDefinition ?? throw new ArgumentNullException(nameof(parentDefinition));
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-        Coordinate = coordinateFactory.Invoke(this);
+        Coordinate = coordinate;
     }
 
     public NameNode Name => Definition.Name;

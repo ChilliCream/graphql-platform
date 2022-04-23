@@ -8,14 +8,14 @@ namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 internal sealed class RenameTypeOperation : ISchemaNodeRewriteOperation
 {
-    public bool CanHandle(ISchemaNode node)
+    public bool CanHandle(ISchemaNode node, RewriteOperationContext context)
     {
         return node.Definition is DirectiveNode directiveNode
                && node.Parent?.Definition is ITypeDefinitionNode
                && RenameDirective.CanHandle(directiveNode);
     }
 
-    public void Handle(ISchemaNode node)
+    public void Handle(ISchemaNode node, RewriteOperationContext context)
     {
         ISchemaNode? parent = node.Parent;
         if (parent?.Definition is not IHasName hasName)
@@ -23,7 +23,7 @@ internal sealed class RenameTypeOperation : ISchemaNodeRewriteOperation
             throw new InvalidOperationException("Parent must be a named syntax node");
         }
 
-        ISchemaDatabase database = node.Coordinate.Database;
+        ISchemaDatabase database = context.Database;
         var directiveNode = node.Definition as DirectiveNode;
         var renameDirective = new RenameDirective(directiveNode!);
         var sourceDirective = new SourceDirective(parent);
@@ -47,7 +47,7 @@ internal sealed class RenameTypeOperation : ISchemaNodeRewriteOperation
     {
         switch (parent.Definition)
         {
-            case InterfaceTypeDefinitionNode interfaceTypeDefinitionNode when renameDirective.NewName is not null:
+            case InterfaceTypeDefinitionNode interfaceTypeDefinitionNode:
                 InterfaceTypeDefinitionNode interfaceReplacement = interfaceTypeDefinitionNode
                     .WithName(renameDirective.NewName)
                     .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);
@@ -55,7 +55,7 @@ internal sealed class RenameTypeOperation : ISchemaNodeRewriteOperation
                 parent.RewriteDefinition(interfaceReplacement);
                 break;
 
-            case ObjectTypeDefinitionNode objectTypeDefinitionNode when renameDirective?.NewName is not null:
+            case ObjectTypeDefinitionNode objectTypeDefinitionNode:
                 ObjectTypeDefinitionNode objectTypeReplacement = objectTypeDefinitionNode
                     .WithName(renameDirective.NewName)
                     .ModifyDirectives(add: sourceDirective.Node, remove: renameDirective.Node);

@@ -8,12 +8,16 @@ internal class FieldDefinition : ISchemaNode<FieldDefinitionNode>
 {
     private readonly ITypeDefinition _typeDefinition;
 
-    public FieldDefinition(CoordinateFactory coordinateFactory, ITypeDefinition typeDefinition, FieldDefinitionNode definition)
+    public FieldDefinition(
+        ISchemaCoordinate2 coordinate,
+        ITypeDefinition typeDefinition,
+        FieldDefinitionNode definition)
     {
-        _typeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
+        _typeDefinition = typeDefinition
+                          ?? throw new ArgumentNullException(nameof(typeDefinition));
 
         Definition = definition;
-        Coordinate = coordinateFactory.Invoke(this);
+        Coordinate = coordinate;
     }
 
     public NameNode Name => Definition.Name;
@@ -24,7 +28,7 @@ internal class FieldDefinition : ISchemaNode<FieldDefinitionNode>
 
     public FieldDefinitionNode Definition { get; private set; }
 
-    public ISchemaNode? Parent => _typeDefinition;
+    public ISchemaNode Parent => _typeDefinition;
 
     public ISchemaCoordinate2 Coordinate { get; }
 

@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types;
 
-internal interface ISchemaDatabase
+public interface ISchemaDatabase
 {
     ISchemaNode Root { get; }
     ISchemaCoordinate2 Add(ISchemaNode node);
@@ -20,4 +20,5 @@ internal interface ISchemaDatabase
     bool TryGetExact(ISyntaxNode? node, [NotNullWhen(true)] out ISchemaNode? schemaNode);
     bool TryGet(ISchemaCoordinate2? coordinate, [NotNullWhen(true)] out ISchemaNode? schemaNode);
     bool TryGet(ISyntaxNode? parent, ISyntaxNode node, [NotNullWhen(true)] out ISchemaNode? existingNode);
+    ISchemaCoordinate2 CalculateCoordinate(ISchemaCoordinate2? parentCoordinate, ISyntaxNode node);
 }

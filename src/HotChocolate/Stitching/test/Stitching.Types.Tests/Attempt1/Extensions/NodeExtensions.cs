@@ -29,7 +29,7 @@ internal static class NodeExtensions
         var rootReference = new SyntaxNodeReference(default, root.Definition);
         nodes.Push(rootReference);
 
-        while (nodes.Any())
+        while (nodes.Count != 0)
         {
             SyntaxNodeReference node = nodes.Pop();
 

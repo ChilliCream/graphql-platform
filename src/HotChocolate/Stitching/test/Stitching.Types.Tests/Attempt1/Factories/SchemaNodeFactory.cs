@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Types.Attempt1.Coordinates;
 
 namespace HotChocolate.Stitching.Types;
 
@@ -10,16 +11,16 @@ internal static class SchemaNodeFactory
     {
         {
             typeof(DocumentNode), FactoryBuilder<DocumentNode, DocumentDefinition>(
-                (coordinateFactory, _, node) =>
+                (coordinateFactory, parent, node) =>
                     new DocumentDefinition(
-                        coordinateFactory,
+                        coordinateFactory.Invoke(parent?.Coordinate, node),
                         node))
         },
         {
             typeof(ObjectTypeDefinitionNode), FactoryBuilder<ObjectTypeDefinitionNode, ObjectTypeDefinition>(
                 (coordinateFactory, parent, node) =>
                     new ObjectTypeDefinition(
-                        coordinateFactory,
+                        coordinateFactory.Invoke(parent?.Coordinate, node),
                         (DocumentDefinition)parent!,
                         node))
         },
@@ -27,7 +28,7 @@ internal static class SchemaNodeFactory
             typeof(ObjectTypeExtensionNode), FactoryBuilder<ObjectTypeExtensionNode, ObjectTypeDefinition>(
                 (coordinateFactory, parent, node) =>
                     new ObjectTypeDefinition(
-                        coordinateFactory,
+                        coordinateFactory.Invoke(parent?.Coordinate, node),
                         (DocumentDefinition)parent!,
                         new ObjectTypeDefinitionNode(default,
                             node.Name,
@@ -40,7 +41,7 @@ internal static class SchemaNodeFactory
             typeof(InterfaceTypeDefinitionNode), FactoryBuilder<InterfaceTypeDefinitionNode, InterfaceTypeDefinition>(
                 (coordinateFactory, parent, node) =>
                     new InterfaceTypeDefinition(
-                        coordinateFactory,
+                        coordinateFactory.Invoke(parent?.Coordinate, node),
                         (DocumentDefinition)parent!,
                         node))
         },
@@ -48,27 +49,33 @@ internal static class SchemaNodeFactory
             typeof(FieldDefinitionNode), FactoryBuilder<FieldDefinitionNode, FieldDefinition>(
                 (coordinateFactory, parent, node) =>
                     new FieldDefinition(
-                        coordinateFactory,
+                        coordinateFactory.Invoke(parent?.Coordinate, node),
                         (ITypeDefinition)parent!,
                         node))
         },
     };
 
-    public static bool Create(ISchemaNode? parent, ISyntaxNode node, CoordinateFactory coordinateFactory, out ISchemaNode schemaNode)
+    public static DocumentDefinition CreateDocument(SchemaDatabase database, DocumentNode node)
+    {
+        return Create<DocumentDefinition>(database, default, node);
+    }
+
+    public static TDefinition Create<TDefinition>(
+        ISchemaDatabase database,
+        ISchemaNode? parent,
+        ISyntaxNode node)
+        where TDefinition : ISchemaNode
     {
         Type nodeType = node.GetType();
 
         if (!_factories.TryGetValue(nodeType, out Func<CoordinateFactory, ISchemaNode?, ISyntaxNode, ISchemaNode>? factory) || factory is null)
         {
             Type genericNodeType = typeof(SchemaNode<>).MakeGenericType(nodeType);
-            schemaNode = (ISchemaNode)Activator.CreateInstance(genericNodeType, coordinateFactory, parent, node)!;
-        }
-        else
-        {
-            schemaNode = factory.Invoke(coordinateFactory, parent, node);
+            ISchemaCoordinate2 coordinate = database.CalculateCoordinate(parent?.Coordinate, node);
+            return (TDefinition)Activator.CreateInstance(genericNodeType, parent, coordinate, node)!;
         }
 
-        return true;
+        return (TDefinition)factory.Invoke(database.CalculateCoordinate, parent, node);
     }
 
     private static Func<CoordinateFactory, ISchemaNode?, ISyntaxNode, ISchemaNode> FactoryBuilder<TNode, TDefinition>(

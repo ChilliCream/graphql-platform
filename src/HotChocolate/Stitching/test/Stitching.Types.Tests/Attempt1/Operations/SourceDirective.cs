@@ -40,7 +40,6 @@ internal class SourceDirective
                         .First(x => x.Name.IsEqualTo(new NameNode("coordinate")));
 
                     coordinate = new SchemaCoordinate2(
-                        coordinate.Database,
                         coordinate.Kind,
                         new NameNode($"{source.Value.Value}"));
 

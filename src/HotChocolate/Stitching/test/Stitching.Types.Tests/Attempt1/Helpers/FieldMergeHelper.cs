@@ -12,7 +12,7 @@ internal static class FieldMergeHelper
         this TOperation _,
         TDefinition source,
         TDefinition target,
-        OperationContext context)
+        MergeOperationContext context)
         where TOperation : ISchemaNodeOperation<TDefinition>
         where TDefinition : ComplexTypeDefinitionNodeBase, IHasWithFields<TDefinition>
     {
@@ -29,7 +29,7 @@ internal static class FieldMergeHelper
         this TOperation _,
         TSourceDefinition source,
         TTargetDefinition target,
-        OperationContext context)
+        MergeOperationContext context)
         where TOperation : ISchemaNodeOperation<TSourceDefinition, TTargetDefinition>
         where TSourceDefinition : ComplexTypeDefinitionNodeBase
         where TTargetDefinition : ComplexTypeDefinitionNodeBase, IHasWithFields<TTargetDefinition>
@@ -45,7 +45,7 @@ internal static class FieldMergeHelper
 
     private static TDefinition MergeFields<TDefinition>(
         TDefinition target,
-        OperationContext context,
+        MergeOperationContext context,
         Dictionary<NameNode, List<FieldDefinitionNode>> fields)
         where TDefinition : IHasWithFields<TDefinition>
     {
@@ -56,7 +56,9 @@ internal static class FieldMergeHelper
             IEnumerable<FieldDefinitionNode> remaining = group.Skip(1);
             foreach (FieldDefinitionNode field in remaining)
             {
-                ICollection<ISchemaNodeOperation> operations = context.OperationProvider.GetOperations(field);
+                ICollection<IMergeSchemaNodeOperation> operations = context.OperationProvider
+                    .GetOperations(field);
+
                 targetField = operations.Apply(field, targetField, context);
             }
 

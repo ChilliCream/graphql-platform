@@ -6,27 +6,27 @@ namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 internal static class OperationsExtensions
 {
     public static void Apply(
-        this IEnumerable<ISchemaNodeOperation> operations,
+        this IEnumerable<IMergeSchemaNodeOperation> operations,
         ISyntaxNode source,
         ISchemaNode target,
-        OperationContext context)
+        MergeOperationContext context)
     {
-        foreach (ISchemaNodeOperation operation in operations)
+        foreach (IMergeSchemaNodeOperation operation in operations)
         {
             ISyntaxNode definition = operation.Apply(source, target.Definition, context);
             target.RewriteDefinition(definition);
-            target.Coordinate.Database.Reindex(target?.Parent ?? target);
+            context.Database.Reindex(target.Parent ?? target);
         }
     }
 
     public static TDefinition Apply<TDefinition>(
-        this IEnumerable<ISchemaNodeOperation> operations,
+        this IEnumerable<IMergeSchemaNodeOperation> operations,
         TDefinition source,
         TDefinition target,
-        OperationContext context)
+        MergeOperationContext context)
         where TDefinition : ISyntaxNode
     {
-        foreach (ISchemaNodeOperation operation in operations)
+        foreach (IMergeSchemaNodeOperation operation in operations)
         {
             target = (TDefinition) operation.Apply(source, target, context);
         }

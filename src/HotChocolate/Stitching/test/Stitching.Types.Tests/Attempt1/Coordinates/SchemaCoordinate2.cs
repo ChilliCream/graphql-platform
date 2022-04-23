@@ -7,24 +7,22 @@ namespace HotChocolate.Stitching.Types.Attempt1.Coordinates;
 [DebuggerDisplay(@"SchemaCoordinate2: {SchemaCoordinatePrinter.Print(this)}")]
 internal readonly struct SchemaCoordinate2 : ISchemaCoordinate2
 {
-    public ISchemaDatabase Database { get; }
     public ISchemaCoordinate2? Parent { get; }
     public SyntaxKind Kind { get; }
     public NameNode? Name { get; }
 
-    internal SchemaCoordinate2(ISchemaDatabase provider,
+    internal SchemaCoordinate2(
         SyntaxKind kind,
         NameNode? nodeName = default)
-        : this(provider, default, kind, nodeName)
+        : this(default, kind, nodeName)
     {
     }
 
-    internal SchemaCoordinate2(ISchemaDatabase provider,
+    internal SchemaCoordinate2(
         ISchemaCoordinate2? parent,
         SyntaxKind kind,
         NameNode? nodeName = default)
     {
-        Database = provider;
         Parent = parent;
         Kind = kind;
         Name = nodeName;

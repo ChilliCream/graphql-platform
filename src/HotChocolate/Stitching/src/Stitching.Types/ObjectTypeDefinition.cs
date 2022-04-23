@@ -10,11 +10,14 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
 {
     private readonly DocumentDefinition _parentDefinition;
 
-    public ObjectTypeDefinition(CoordinateFactory coordinateFactory, DocumentDefinition parentDefinition, ObjectTypeDefinitionNode definition)
+    public ObjectTypeDefinition(
+        ISchemaCoordinate2 coordinate,
+        DocumentDefinition parentDefinition,
+        ObjectTypeDefinitionNode definition)
     {
         _parentDefinition = parentDefinition ?? throw new ArgumentNullException(nameof(parentDefinition));
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-        Coordinate = coordinateFactory.Invoke(this);
+        Coordinate = coordinate;
     }
 
     public NameNode Name => Definition.Name;
@@ -35,7 +38,7 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
         {
             case ObjectTypeDefinitionNode objectTypeDefinitionNode:
                 return RewriteDefinition(objectTypeDefinitionNode);
-            case { } when this.IsInterfaceNode(original):
+            case { } when this.IsMemberOfInterface(original):
                 return ReplaceInterface(original.Definition, replacement);
         }
 

@@ -7,7 +7,7 @@ namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 internal sealed class RenameFieldOperation : ISchemaNodeRewriteOperation
 {
-    public bool CanHandle(ISchemaNode node)
+    public bool CanHandle(ISchemaNode node, RewriteOperationContext context)
     {
         return node.Definition is DirectiveNode directiveNode
                && node.Parent?.Definition is IHasName
@@ -15,7 +15,7 @@ internal sealed class RenameFieldOperation : ISchemaNodeRewriteOperation
                && RenameDirective.CanHandle(directiveNode);
     }
 
-    public void Handle(ISchemaNode node)
+    public void Handle(ISchemaNode node, RewriteOperationContext context)
     {
         ISchemaNode? parent = node.Parent;
         if (parent?.Definition is not IHasName hasName)
@@ -23,7 +23,7 @@ internal sealed class RenameFieldOperation : ISchemaNodeRewriteOperation
             throw new InvalidOperationException("Parent must be a named syntax node");
         }
 
-        ISchemaDatabase database = node.Coordinate.Database;
+        ISchemaDatabase database = context.Database;
         var directiveNode = node.Definition as DirectiveNode;
         var renameDirective = new RenameDirective(directiveNode!);
         var sourceDirective = new SourceDirective(parent);

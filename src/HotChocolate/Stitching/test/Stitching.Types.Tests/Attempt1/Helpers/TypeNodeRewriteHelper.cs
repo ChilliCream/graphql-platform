@@ -8,8 +8,7 @@ internal class TypeNodeRewriteHelper
     public static ISchemaNodeInfo<ITypeNode> Rewrite<T>(ISchemaNode schemaNode, T node)
         where T : ISyntaxNode
     {
-        CoordinateFactory coordinateFactory = schemaNode.Coordinate.Database.Add;
-        ISchemaNode? currentNode = new SchemaNode<T>(coordinateFactory, schemaNode.Parent, node);
+        ISchemaNode? currentNode = new SchemaNode<T>(schemaNode.Parent, schemaNode.Coordinate!, node);
 
         while (currentNode.Parent?.Definition is ITypeNode parentTypeNode)
         {

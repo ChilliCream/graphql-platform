@@ -8,15 +8,15 @@ namespace HotChocolate.Stitching.Types.Attempt1.Traversal;
 internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
 {
     private readonly ISchemaDatabase _schemaDatabase;
-    private readonly DefaultOperationProvider _operationProvider;
+    private readonly DefaultMergeOperationsProvider _operationsProvider;
 
     public DefaultSyntaxNodeVisitor(
         ISchemaDatabase schemaDatabase,
-        DefaultOperationProvider operationProvider)
+        DefaultMergeOperationsProvider operationsProvider)
         : base(VisitorAction.Continue)
     {
         _schemaDatabase = schemaDatabase;
-        _operationProvider = operationProvider;
+        _operationsProvider = operationsProvider;
 
         _visitorConfiguration = new VisitorExtensions.VisitorConfiguration(Enter, Leave);
     }
@@ -57,7 +57,8 @@ internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
             }
             else
             {
-                schemaNode.Apply(node, _operationProvider);
+                var operationContext = new MergeOperationContext(_schemaDatabase, _operationsProvider);
+                schemaNode.Apply(node, operationContext);
             }
 
             _coordinates.Push(schemaNode.Coordinate);

@@ -4,7 +4,7 @@ using HotChocolate.Stitching.Types.Attempt1.Operations;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Wip;
 
-public interface IOperationProvider
+public interface IMergeOperationsProvider
 {
-    ICollection<ISchemaNodeOperation> GetOperations(ISyntaxNode source);
+    ICollection<IMergeSchemaNodeOperation> GetOperations(ISyntaxNode source);
 }

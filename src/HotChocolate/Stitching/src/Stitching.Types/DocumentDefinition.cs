@@ -7,10 +7,12 @@ namespace HotChocolate.Stitching.Types;
 
 internal sealed class DocumentDefinition : ISchemaNode<DocumentNode>
 {
-    public DocumentDefinition(CoordinateFactory coordinateFactory, DocumentNode documentNode)
+    public DocumentDefinition(
+        ISchemaCoordinate2 coordinate,
+        DocumentNode documentNode)
     {
         Definition = documentNode;
-        Coordinate = coordinateFactory.Invoke(this);
+        Coordinate = coordinate;
     }
 
     public DocumentNode Definition { get; private set; }

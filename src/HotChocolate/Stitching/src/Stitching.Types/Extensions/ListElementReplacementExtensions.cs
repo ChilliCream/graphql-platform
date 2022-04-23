@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate.Stitching.Types.Extensions;
 
@@ -9,16 +8,25 @@ public static class ListElementReplacementExtensions
     public static IReadOnlyList<TElement> AddOrReplace<TList, TElement>(this TList list, TElement replacement, Func<TElement, bool> filter)
         where TList : class, IEnumerable<TElement>
     {
-        var updatedList = list.Select(element => filter(element) ? replacement : element)
-            .ToList();
+        var updatedList = new List<TElement>(list);
 
-        var exists = updatedList.Any(x => ReferenceEquals(replacement, x));
-        if (exists)
+        var replaced = false;
+        for (var i = 0; i < updatedList.Count; i++)
         {
-            return updatedList;
+            TElement element = updatedList[i];
+            if (!filter(element))
+            {
+                continue;
+            }
+
+            updatedList[i] = replacement;
+            replaced = true;
         }
 
-        updatedList.Add(replacement);
+        if (!replaced)
+        {
+            updatedList.Add(replacement);
+        }
 
         return updatedList;
     }

@@ -5,6 +5,7 @@ using HotChocolate.Language.Utilities;
 using HotChocolate.Stitching.Types.Attempt1.Coordinates;
 using HotChocolate.Stitching.Types.Attempt1.Operations;
 using HotChocolate.Stitching.Types.Attempt1.Traversal;
+using JetBrains.dotMemoryUnit;
 using Snapshooter.Xunit;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,7 +19,10 @@ public class BasicDocumentMergeTests
     public BasicDocumentMergeTests(ITestOutputHelper helper)
     {
         _helper = helper;
+        //DotMemoryUnitTestOutput.SetOutputMethod(str => _helper.WriteLine(str));
     }
+
+    //[DotMemoryUnit(SavingStrategy = SavingStrategy.OnCheckFail, Directory = @"C:\Temp\HotChocolate")]
     [Fact]
     public void Test()
     {
@@ -51,28 +55,33 @@ public class BasicDocumentMergeTests
             ",
             ParserOptions.NoLocation);
 
-        DefaultOperationProvider operationProvider = new DefaultOperationProvider();
         SchemaDatabase schemaDatabase = new SchemaDatabase();
-        DefaultSyntaxNodeVisitor visitor = new DefaultSyntaxNodeVisitor(schemaDatabase, operationProvider);
+        DefaultMergeOperationsProvider operationsProvider = new DefaultMergeOperationsProvider();
+        DefaultSyntaxNodeVisitor visitor = new DefaultSyntaxNodeVisitor(schemaDatabase, operationsProvider);
 
         var documentNode = new DocumentNode(new List<IDefinitionNode>(0));
-        var documentDefinition = new DocumentDefinition(schemaDatabase.Add, documentNode);
+        DocumentDefinition documentDefinition = SchemaNodeFactory.CreateDocument(
+            schemaDatabase,
+            documentNode);
+        
         schemaDatabase.Reindex(documentDefinition);
 
         //visitor.Accept(source);
         visitor.Accept(source1);
         visitor.Accept(source2);
 
-        var operations =
-            new List<ISchemaNodeRewriteOperation> { new RenameTypeOperation(), new RenameFieldOperation() };
-
-        var schemaOperations = new SchemaOperations(operations, schemaDatabase);
+        var schemaOperations = new DefaultRewriteOperationsProvider(schemaDatabase);
         schemaOperations.Apply(documentDefinition);
 
         ISchemaNode renderedSchema = schemaDatabase.Root;
         var schema = renderedSchema.Definition.Print();
-        var totalAllocatedBytes2 = GC.GetTotalAllocatedBytes();
-        _helper.WriteLine($"{totalAllocatedBytes2 - totalAllocatedBytes}");
+
+        //var totalAllocatedBytes2 = GC.GetTotalAllocatedBytes();
+        //_helper.WriteLine($"{totalAllocatedBytes2 - totalAllocatedBytes}");
+        //dotMemory.Check(_ =>
+        //{
+        //    Assert.True(false);
+        //});
 
         schema.MatchSnapshot();
 

@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types;
 
-internal interface ISchemaNode
+public interface ISchemaNode
 {
     ISyntaxNode Definition { get; }
     ISchemaNode? Parent { get; }
