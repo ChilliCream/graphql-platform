@@ -46,8 +46,29 @@ public static class FilterSchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IFilterConventionDescriptor> configure,
         string? name = null) =>
+        builder.AddFiltering(new FilterConvention(configure), name);
+
+    /// <summary>
+    /// Adds filtering support.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="ISchemaBuilder"/>.
+    /// </param>
+    /// <param name="convention">
+    /// The convention
+    /// </param>
+    /// <param name="name">
+    /// The filter convention name.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="ISchemaBuilder"/>.
+    /// </returns>
+    public static ISchemaBuilder AddFiltering(
+        this ISchemaBuilder builder,
+        IFilterConvention convention,
+        string? name = null) =>
         builder
-            .TryAddConvention<IFilterConvention>(sp => new FilterConvention(configure), name)
+            .TryAddConvention<IFilterConvention>(_ => convention, name)
             .TryAddTypeInterceptor<FilterTypeInterceptor>();
 
     /// <summary>
