@@ -17,24 +17,7 @@ public static class ExecutionSchemaExtensions
             throw new ArgumentNullException(nameof(schema));
         }
 
-        return schema.MakeExecutable(new ServiceCollection());
-    }
-
-    public static IRequestExecutor MakeExecutable(
-        this ISchema schema,
-        IServiceCollection services)
-    {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        return services
+        return new ServiceCollection()
             .AddGraphQL()
             .Configure(o => o.Schema = schema)
             .Services

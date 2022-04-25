@@ -324,15 +324,12 @@ namespace HotChocolate.Types.Relay
         public async Task Node_Resolve_Implicit_ExternalDefinedOnInterface_Resolver()
         {
             // arrange
-            var services = new ServiceCollection();
-            services.AddSingleton<IBar9Resolver, Bar9Resolver>();
-
-            ISchema schema = SchemaBuilder.New()
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddSingleton<IBar9Resolver, Bar9Resolver>()
+                .AddGraphQL()
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo9>()
-                .Create();
-
-            IRequestExecutor executor = schema.MakeExecutable(services);
+                .BuildRequestExecutorAsync();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -456,7 +453,6 @@ namespace HotChocolate.Types.Relay
             public string Id { get; set; }
 
             public static T Get(string id) => new() { Id = id };
-
         }
 
         [ObjectType("Bar")]
