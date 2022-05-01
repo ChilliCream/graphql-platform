@@ -1,0 +1,30 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must": [
+              {
+                "prefix": {
+                  "bar": {
+                    "value": "th"
+                  }
+                }
+              }
+            ],
+            "must_not": [
+              {
+                "prefix": {
+                  "qux": {
+                    "value": "do"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
