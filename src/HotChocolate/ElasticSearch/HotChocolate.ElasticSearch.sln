@@ -7,6 +7,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AED4D809-DEB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.ElasticSearch.Driver", "src\Data.ElasticSearch.Driver\HotChocolate.Data.ElasticSearch.Driver.csproj", "{B77A0EAE-BEE6-43FA-9D50-5F14B983185A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.ElasticSearch", "src\Data.ElasticSearch\HotChocolate.Data.ElasticSearch.csproj", "{5E40AFDA-93CC-4806-880D-6A93537F19CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +22,13 @@ Global
 		{B77A0EAE-BEE6-43FA-9D50-5F14B983185A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B77A0EAE-BEE6-43FA-9D50-5F14B983185A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B77A0EAE-BEE6-43FA-9D50-5F14B983185A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E40AFDA-93CC-4806-880D-6A93537F19CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E40AFDA-93CC-4806-880D-6A93537F19CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E40AFDA-93CC-4806-880D-6A93537F19CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E40AFDA-93CC-4806-880D-6A93537F19CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B77A0EAE-BEE6-43FA-9D50-5F14B983185A} = {AED4D809-DEB0-4C6E-AC73-C90863899233}
+		{5E40AFDA-93CC-4806-880D-6A93537F19CB} = {AED4D809-DEB0-4C6E-AC73-C90863899233}
 	EndGlobalSection
 EndGlobal
