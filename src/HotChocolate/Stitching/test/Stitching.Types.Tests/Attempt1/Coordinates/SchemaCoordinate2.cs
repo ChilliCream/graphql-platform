@@ -9,6 +9,7 @@ internal readonly struct SchemaCoordinate2 : ISchemaCoordinate2
 {
     public ISchemaCoordinate2? Parent { get; }
     public SyntaxKind Kind { get; }
+    public bool IsRoot => Kind == SyntaxKind.Document;
     public NameNode? Name { get; }
 
     internal SchemaCoordinate2(
@@ -21,21 +22,29 @@ internal readonly struct SchemaCoordinate2 : ISchemaCoordinate2
     internal SchemaCoordinate2(
         ISchemaCoordinate2? parent,
         SyntaxKind kind,
-        NameNode? nodeName = default)
+        NameNode? name = default)
     {
+        if (parent is not null && name is null)
+        {
+            throw new ArgumentNullException(nameof(name), @"Name must be provided when Parent is not null");
+        }
+
         Parent = parent;
         Kind = kind;
-        Name = nodeName;
+        Name = name;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Kind, Name, Parent);
+        return IsRoot
+            ? HashCode.Combine(IsRoot)
+            : HashCode.Combine(Kind, Name, Parent);
     }
 
     public bool Equals(SchemaCoordinate2 other)
     {
-        return Kind.IsEqualTo(other.Kind)
+        return IsRoot.IsEqualTo(other.IsRoot)
+               || Kind.IsEqualTo(other.Kind)
                && Name.IsEqualTo(other.Name)
                && Parent.IsEqualTo(other.Parent);
     }

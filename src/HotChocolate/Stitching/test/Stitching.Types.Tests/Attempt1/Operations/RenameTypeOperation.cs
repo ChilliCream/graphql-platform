@@ -23,7 +23,7 @@ internal sealed class RenameTypeOperation : ISchemaNodeRewriteOperation
             throw new InvalidOperationException("Parent must be a named syntax node");
         }
 
-        ISchemaDatabase database = context.Database;
+        ISchemaDatabase database = node.Database;
         var directiveNode = node.Definition as DirectiveNode;
         var renameDirective = new RenameDirective(directiveNode!);
         var sourceDirective = new SourceDirective(parent);
@@ -81,7 +81,7 @@ internal sealed class RenameTypeOperation : ISchemaNodeRewriteOperation
             .Last();
 
         IEnumerable<ISchemaNode> descendentNodes = documentDefinition
-            .DescendentNodes(schemaDatabase)
+            .DescendentNodes()
             .ToList();
 
         var typeReferenceNodes = descendentNodes

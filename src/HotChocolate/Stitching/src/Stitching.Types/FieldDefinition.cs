@@ -9,15 +9,16 @@ internal class FieldDefinition : ISchemaNode<FieldDefinitionNode>
     private readonly ITypeDefinition _typeDefinition;
 
     public FieldDefinition(
+        ISchemaDatabase database,
         ISchemaCoordinate2 coordinate,
         ITypeDefinition typeDefinition,
         FieldDefinitionNode definition)
     {
+        Database = database;
+        Coordinate = coordinate;
         _typeDefinition = typeDefinition
                           ?? throw new ArgumentNullException(nameof(typeDefinition));
-
         Definition = definition;
-        Coordinate = coordinate;
     }
 
     public NameNode Name => Definition.Name;
@@ -26,11 +27,13 @@ internal class FieldDefinition : ISchemaNode<FieldDefinitionNode>
 
     public bool IsExtension => false;
 
+    public ISchemaDatabase Database { get; }
+
     public FieldDefinitionNode Definition { get; private set; }
 
     public ISchemaNode Parent => _typeDefinition;
 
-    public ISchemaCoordinate2 Coordinate { get; }
+    public ISchemaCoordinate2 Coordinate { get; private set; }
 
     public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
     {
@@ -48,6 +51,9 @@ internal class FieldDefinition : ISchemaNode<FieldDefinitionNode>
         _typeDefinition.RewriteField(Definition, node);
 
         Definition = node;
+        Coordinate = Database.CalculateCoordinate(
+            Coordinate?.Parent,
+            Definition);
 
         return this;
     }

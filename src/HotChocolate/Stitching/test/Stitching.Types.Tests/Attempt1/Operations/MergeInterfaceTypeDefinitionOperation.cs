@@ -2,9 +2,9 @@ using HotChocolate.Stitching.Types.Attempt1.Helpers;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
-internal class MergeObjectTypeDefinitionOperation : ISchemaNodeOperation<ObjectTypeDefinition>
+internal class MergeInterfaceTypeDefinitionOperation : ISchemaNodeOperation<InterfaceTypeDefinition>
 {
-    public void Apply(ObjectTypeDefinition source, ObjectTypeDefinition target, MergeOperationContext context)
+    public void Apply(InterfaceTypeDefinition source, InterfaceTypeDefinition target, MergeOperationContext context)
     {
         source.MergeInterfacesInto(target);
         source.MergeDirectivesInto(target);

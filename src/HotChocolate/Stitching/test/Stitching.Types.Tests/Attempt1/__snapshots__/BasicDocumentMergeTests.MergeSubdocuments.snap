@@ -1,0 +1,12 @@
+﻿interface TestInterface_renamed {
+  foo_renamed: test2_renamed!
+}
+
+type test_renamed implements TestInterface_renamed {
+  foo_renamed: test2_renamed!
+  id_renamed: String!
+}
+
+type test2_renamed {
+  test: test_renamed!
+}

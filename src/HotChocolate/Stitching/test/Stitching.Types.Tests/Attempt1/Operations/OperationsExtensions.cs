@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
@@ -7,15 +6,14 @@ internal static class OperationsExtensions
 {
     public static void Apply(
         this IEnumerable<IMergeSchemaNodeOperation> operations,
-        ISyntaxNode source,
+        ISchemaNode source,
         ISchemaNode target,
         MergeOperationContext context)
     {
         foreach (IMergeSchemaNodeOperation operation in operations)
         {
-            ISyntaxNode definition = operation.Apply(source, target.Definition, context);
-            target.RewriteDefinition(definition);
-            context.Database.Reindex(target.Parent ?? target);
+            operation.Apply(source, target, context);
+            target.Database.Reindex(target.Parent ?? target);
         }
     }
 
@@ -24,11 +22,11 @@ internal static class OperationsExtensions
         TDefinition source,
         TDefinition target,
         MergeOperationContext context)
-        where TDefinition : ISyntaxNode
+        where TDefinition : ISchemaNode
     {
         foreach (IMergeSchemaNodeOperation operation in operations)
         {
-            target = (TDefinition) operation.Apply(source, target, context);
+            operation.Apply(source, target, context);
         }
 
         return target;

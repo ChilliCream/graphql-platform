@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Types.Extensions;
@@ -8,13 +7,16 @@ namespace HotChocolate.Stitching.Types;
 internal sealed class DocumentDefinition : ISchemaNode<DocumentNode>
 {
     public DocumentDefinition(
+        ISchemaDatabase database,
         ISchemaCoordinate2 coordinate,
         DocumentNode documentNode)
     {
-        Definition = documentNode;
+        Database = database;
         Coordinate = coordinate;
+        Definition = documentNode;
     }
 
+    public ISchemaDatabase Database { get; }
     public DocumentNode Definition { get; private set; }
     public ISchemaNode? Parent => default;
     public ISchemaCoordinate2 Coordinate { get; }

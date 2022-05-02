@@ -5,20 +5,22 @@ namespace HotChocolate.Stitching.Types;
 
 public interface ISchemaDatabase
 {
-    ISchemaNode Root { get; }
-    ISchemaCoordinate2 Add(ISchemaNode node);
-    ISchemaNode? Get(ISchemaCoordinate2? coordinate);
-    ISchemaCoordinate2? Get(ISchemaNode node);
-
     ISchemaNode Reindex(ISchemaNode schemaNode);
     ISchemaNode Reindex(ISyntaxNode? parent, ISyntaxNode node);
 
-    ISchemaCoordinate2? Get(ISyntaxNode node);
-    bool TryGet(ISchemaNode? node, [NotNullWhen(true)] out ISchemaCoordinate2? coordinate);
-    bool TryGetExact(ISyntaxNode? node, [NotNullWhen(true)] out ISchemaCoordinate2? coordinate);
-    bool TryGet(ISchemaNode? parent, ISyntaxNode node, [NotNullWhen(true)] out ISchemaNode? schemaNode);
-    bool TryGetExact(ISyntaxNode? node, [NotNullWhen(true)] out ISchemaNode? schemaNode);
-    bool TryGet(ISchemaCoordinate2? coordinate, [NotNullWhen(true)] out ISchemaNode? schemaNode);
-    bool TryGet(ISyntaxNode? parent, ISyntaxNode node, [NotNullWhen(true)] out ISchemaNode? existingNode);
+    ISchemaNode GetOrAdd(ISchemaNode node);
+    ISchemaNode GetOrAdd(ISchemaCoordinate2 coordinate, ISyntaxNode node);
+    ISchemaNode GetOrAdd(ISchemaNode parent, ISyntaxNode node);
+
+    bool TryGet(ISyntaxNode? parent,
+        ISyntaxNode node,
+        [MaybeNullWhen(false)] out ISchemaNode existingNode);
+
+    bool TryGet(
+        ISchemaNode? parent,
+        ISyntaxNode node,
+        [MaybeNullWhen(false)] out ISchemaNode schemaNode);
+
     ISchemaCoordinate2 CalculateCoordinate(ISchemaCoordinate2? parentCoordinate, ISyntaxNode node);
+    string? Name { get; }
 }

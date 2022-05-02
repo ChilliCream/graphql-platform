@@ -6,4 +6,5 @@ public interface ISyntaxNodeReference
 {
     ISyntaxNodeReference? Parent { get; }
     ISyntaxNode Node { get; }
+    ISchemaCoordinate2 Coordinate { get; }
 }

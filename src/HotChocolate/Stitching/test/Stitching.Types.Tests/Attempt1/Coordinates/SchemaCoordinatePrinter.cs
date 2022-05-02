@@ -27,8 +27,7 @@ internal class SchemaCoordinatePrinter
     public static string Print(IEnumerable<ISchemaCoordinate2> coordinates)
     {
         IEnumerable<ISchemaCoordinate2> filteredCoordinates = coordinates
-            .Where(x => x.Kind != SyntaxKind.Document);
-
+            .Where(x => !x.IsRoot);
         return string.Join(".", filteredCoordinates);
     }
 }

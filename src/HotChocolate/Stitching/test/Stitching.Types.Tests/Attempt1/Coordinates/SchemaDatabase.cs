@@ -4,27 +4,65 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Types.Attempt1.Traversal;
+using HotChocolate.Stitching.Types.Extensions;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Coordinates;
 
 internal class SchemaDatabase : ISchemaDatabase
 {
     private readonly Dictionary<ISchemaCoordinate2, ISchemaNode> _coordinateToSchemaNodeLookup = new();
+    private readonly HashSet<ISchemaNode> _nodes = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<ISchemaNode, ISchemaCoordinate2> _nodeToCoordinateLookup = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<ISyntaxNode, ISchemaCoordinate2> _syntaxNodeToCoordinateLookup = new(ReferenceEqualityComparer.Instance);
 
-    public ISchemaNode Root => _coordinateToSchemaNodeLookup.Values.First();
-
-    public ISchemaCoordinate2 Add(ISchemaNode node)
+    private readonly Dictionary<SyntaxKind, SyntaxKind> _syntaxMap = new()
     {
-        ISchemaCoordinate2 coordinate = CalculateCoordinate(node);
-        return coordinate;
+        { SyntaxKind.ObjectTypeExtension, SyntaxKind.ObjectTypeDefinition },
+        { SyntaxKind.InterfaceTypeExtension, SyntaxKind.InterfaceTypeDefinition }
+    };
+
+    public SchemaDatabase(string? name = default)
+    {
+        Name = name;
     }
+
+    public string? Name { get; }
+
+    public ISchemaNode Root => _coordinateToSchemaNodeLookup.Values.First();
 
     private ISchemaCoordinate2 CalculateCoordinate(ISchemaNode? parent, ISyntaxNode node)
     {
         TryGet(parent, out ISchemaCoordinate2? parentCoordinate);
         return CalculateCoordinate(parentCoordinate, node);
+    }
+
+    public ISchemaCoordinate2 CalculateCoordinate(ISchemaCoordinate2? parentCoordinate, ISyntaxNode node)
+    {
+        ISchemaCoordinate2 coordinate = node switch
+        {
+            DocumentNode => CalculateCoordinate(default, node.Kind, Name is not null ? new NameNode(Name) : default),
+            NameNode nameNode => CalculateCoordinate(parentCoordinate, node.Kind, nameNode),
+            ArgumentNode argumentNode => CalculateCoordinate(parentCoordinate, node.Kind, argumentNode.Name),
+            IValueNode valueNode => CalculateCoordinate(parentCoordinate, node.Kind, new NameNode($"{valueNode.Kind:G}")),
+            IHasName namedSyntaxNode => CalculateCoordinate(parentCoordinate, node.Kind, namedSyntaxNode.Name),
+            ITypeNode typeNode => CalculateCoordinate(parentCoordinate, node.Kind, new NameNode($"{typeNode.Kind:G}")),
+            _ => throw new NotImplementedException()
+        };
+
+        return coordinate;
+    }
+
+    private ISchemaCoordinate2 CalculateCoordinate(ISchemaCoordinate2? parentCoordinate, SyntaxKind kind, NameNode? name = default)
+    {
+        if (_syntaxMap.TryGetValue(kind, out SyntaxKind alternativeKind))
+        {
+            kind = alternativeKind;
+        }
+
+        return new SchemaCoordinate2(
+            parentCoordinate,
+            kind,
+            name);
     }
 
     private ISchemaCoordinate2 CalculateCoordinate(ISyntaxNode? parent, ISyntaxNode node)
@@ -47,31 +85,16 @@ internal class SchemaDatabase : ISchemaDatabase
         return CalculateCoordinate(parentSchemaNode, node);
     }
 
-    public ISchemaCoordinate2 CalculateCoordinate(ISchemaCoordinate2? parentCoordinate, ISyntaxNode node)
+    public bool TryGet(
+        ISchemaNode? parent,
+        ISyntaxNode node,
+        [MaybeNullWhen(false)]  out ISchemaNode schemaNode)
     {
-        ISchemaCoordinate2 coordinate = node switch
-        {
-            DocumentNode => CreateCoordinate(default, node, new NameNode("Root")),
-            NameNode nameNode => CreateCoordinate(parentCoordinate, node, nameNode),
-            ArgumentNode argumentNode => CreateCoordinate(parentCoordinate, node, argumentNode.Name),
-            IValueNode valueNode => CreateCoordinate(parentCoordinate, node, new NameNode($"{valueNode.Kind:G}")),
-            IHasName namedSyntaxNode => CreateCoordinate(parentCoordinate, node, namedSyntaxNode.Name),
-            ITypeNode typeNode => CreateCoordinate(parentCoordinate, node, new NameNode($"{typeNode.Kind:G}")),
-            _ => throw new NotImplementedException()
-        };
-
-        return coordinate;
+        ISchemaCoordinate2 coordinate = CalculateCoordinate(parent, node);
+        return TryGet(coordinate, out schemaNode);
     }
 
-    private static SchemaCoordinate2 CreateCoordinate(ISchemaCoordinate2? parentCoordinate, ISyntaxNode node, NameNode name)
-    {
-        return new SchemaCoordinate2(
-            parentCoordinate,
-            node.Kind,
-            name);
-    }
-
-    public bool TryGet(ISchemaNode? node, [NotNullWhen(true)] out ISchemaCoordinate2? coordinate)
+    public bool TryGet(ISchemaNode? node, [MaybeNullWhen(false)] out ISchemaCoordinate2 coordinate)
     {
         if (node is null)
         {
@@ -82,21 +105,25 @@ internal class SchemaDatabase : ISchemaDatabase
         return _nodeToCoordinateLookup.TryGetValue(node, out coordinate);
     }
 
-    public bool TryGet(ISchemaNode? parent, ISyntaxNode node, [NotNullWhen(true)] out ISchemaNode? schemaNode)
+    public bool TryGet(ISyntaxNode? parent, ISyntaxNode node, [MaybeNullWhen(false)] out ISchemaNode existingNode)
     {
         ISchemaCoordinate2 coordinate = CalculateCoordinate(parent, node);
 
-        return TryGet(coordinate, out schemaNode);
+        return TryGet(coordinate, out existingNode);
     }
 
-    public bool TryGet(ISyntaxNode? parent, ISyntaxNode node, [NotNullWhen(true)] out ISchemaNode? existingNode)
+    public bool TryGet(ISchemaCoordinate2? coordinate, [MaybeNullWhen(false)] out ISchemaNode schemaNode)
     {
-        ISchemaCoordinate2 coordinate = CalculateCoordinate(parent, node);
+        if (coordinate is null)
+        {
+            schemaNode = default;
+            return false;
+        }
 
-        return _coordinateToSchemaNodeLookup.TryGetValue(coordinate, out existingNode);
+        return _coordinateToSchemaNodeLookup.TryGetValue(coordinate, out schemaNode);
     }
 
-    public bool TryGetExact(ISyntaxNode? node, [NotNullWhen(true)] out ISchemaNode? schemaNode)
+    public bool TryGetExact(ISyntaxNode? node, [MaybeNullWhen(false)] out ISchemaNode schemaNode)
     {
         if (node is null)
         {
@@ -111,13 +138,6 @@ internal class SchemaDatabase : ISchemaDatabase
         }
 
         return _coordinateToSchemaNodeLookup.TryGetValue(coordinate, out schemaNode);
-    }
-
-    public ISchemaCoordinate2? Get(ISchemaNode node)
-    {
-        return !TryGet(node, out ISchemaCoordinate2? coordinate)
-            ? default
-            : coordinate;
     }
 
     public bool TryGetExact(ISyntaxNode? node, [NotNullWhen(true)] out ISchemaCoordinate2? coordinate)
@@ -138,34 +158,45 @@ internal class SchemaDatabase : ISchemaDatabase
         return _syntaxNodeToCoordinateLookup.TryGetValue(node, out coordinate);
     }
 
-    public ISchemaCoordinate2? Get(ISyntaxNode node)
+    public ISchemaNode GetOrAdd(ISchemaNode node)
     {
-        return !TryGetExact(node, out ISchemaCoordinate2? coordinate)
-            ? default
-            : coordinate;
-    }
-
-    public ISchemaNode? Get(ISchemaCoordinate2? coordinate)
-    {
-        if (coordinate is null)
+        if (TryGet(node.Coordinate, out ISchemaNode? existingNode))
         {
-            return default;
+            return existingNode;
         }
 
-        return !TryGet(coordinate, out ISchemaNode? schemaNode)
-            ? default
-            : schemaNode;
-    }
-
-    public bool TryGet(ISchemaCoordinate2? coordinate, [NotNullWhen(true)] out ISchemaNode? schemaNode)
-    {
-        if (coordinate is null)
+        ISchemaNode? existingParentNode = default;
+        if (node.Parent?.Coordinate is not null && !TryGet(node.Parent?.Coordinate, out existingParentNode))
         {
-            schemaNode = default;
-            return false;
+            throw new InvalidOperationException();
         }
 
-        return _coordinateToSchemaNodeLookup.TryGetValue(coordinate, out schemaNode);
+        ISchemaNode newNode = SchemaNodeFactory.CreateEmpty(this, existingParentNode, node.Definition);
+
+        Reindex(newNode);
+        return newNode;
+    }
+
+    public ISchemaNode GetOrAdd(ISchemaNode parent, ISyntaxNode node)
+    {
+        return GetOrAdd(parent.Coordinate, node);
+    }
+
+    public ISchemaNode GetOrAdd(ISchemaCoordinate2? coordinate, ISyntaxNode node)
+    {
+        if (TryGet(coordinate, out ISchemaNode? existingNode))
+        {
+            return existingNode;
+        }
+
+        if (!TryGet(coordinate?.Parent, out ISchemaNode? parentNode))
+        {
+            throw new InvalidOperationException();
+        }
+
+        ISchemaNode schemaNode = SchemaNodeFactory.Create(this, parentNode, node);
+        Reindex(schemaNode);
+        return schemaNode;
     }
 
     public ISchemaNode Reindex(ISyntaxNode? parent, ISyntaxNode node)
@@ -198,11 +229,6 @@ internal class SchemaDatabase : ISchemaDatabase
         return schemaNode;
     }
 
-    public ISchemaCoordinate2 CalculateCoordinate(ISchemaNode node)
-    {
-        return CalculateCoordinate(node.Parent, node.Definition);
-    }
-
     public ISchemaNode CreateSchemaNode(ISyntaxNode? parent, ISyntaxNode node)
     {
         ISchemaNode? parentSchemaNode = default;
@@ -214,7 +240,7 @@ internal class SchemaDatabase : ISchemaDatabase
             }
         }
 
-        return SchemaNodeFactory.Create<ISchemaNode>(this, parentSchemaNode, node);
+        return SchemaNodeFactory.Create(this, parentSchemaNode, node);
     }
 
     private void InnerReindex<TDefinition>(TDefinition typedDestination)
@@ -223,6 +249,7 @@ internal class SchemaDatabase : ISchemaDatabase
         ISchemaCoordinate2 coordinate =
             CalculateCoordinate(typedDestination.Coordinate?.Parent, typedDestination.Definition);
 
+        _nodes.AddIfNotExist((ISchemaNode) typedDestination);
         _nodeToCoordinateLookup[typedDestination] = coordinate;
         _coordinateToSchemaNodeLookup[coordinate] = typedDestination;
 

@@ -39,10 +39,13 @@ internal class SourceDirective
                     ArgumentNode source = sourceDirective.Arguments
                         .First(x => x.Name.IsEqualTo(new NameNode("coordinate")));
 
-                    coordinate = new SchemaCoordinate2(
-                        coordinate.Kind,
-                        new NameNode($"{source.Value.Value}"));
+                    var sourceValue = $"{source.Value.Value}";
+                    if (string.IsNullOrEmpty(sourceValue))
+                    {
+                        break;
+                    }
 
+                    coordinate = new SchemaCoordinate2(SyntaxKind.Name, new NameNode(sourceValue));
                     coordinates.Push(coordinate);
                     break;
                 }

@@ -2,40 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Types.Attempt1.Operations;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Helpers;
 
 internal static class InterfaceMergeHelper
 {
-    public static TDefinition MergeInterfaces<TOperation, TDefinition>(
-        this TOperation _,
-        TDefinition source,
-        TDefinition target)
-        where TOperation : ISchemaNodeOperation<TDefinition>
-        where TDefinition : ComplexTypeDefinitionNodeBase, IHasWithInterfaces<TDefinition>, ISyntaxNode
+    public static void MergeInterfacesInto<TSchemaNode>(
+        this TSchemaNode source,
+        TSchemaNode target)
+        where TSchemaNode : ISchemaNode
     {
-        IReadOnlyList<NamedTypeNode> interfaces = target.Interfaces
-            .Concat(source.Interfaces)
-            .Distinct()
-            .ToList();
-
-        return target.WithInterfaces(interfaces);
+        MergeInterfacesInto(source.Definition, target);
     }
 
-    public static TTargetDefinition MergeInterfaces<TOperation, TSourceDefinition, TTargetDefinition>(
-        this TOperation _,
-        TSourceDefinition source,
-        TTargetDefinition target)
-        where TOperation : ISchemaNodeOperation<TSourceDefinition, TTargetDefinition>
-        where TSourceDefinition : ComplexTypeDefinitionNodeBase, ISyntaxNode
-        where TTargetDefinition : ComplexTypeDefinitionNodeBase, IHasWithInterfaces<TTargetDefinition>, ISyntaxNode
+    public static void MergeInterfacesInto<TSchemaNode>(
+        this ISyntaxNode source,
+        TSchemaNode target)
+        where TSchemaNode : ISchemaNode
     {
-        IReadOnlyList<NamedTypeNode> interfaces = target.Interfaces
-            .Concat(source.Interfaces)
+        if (source is not IHasInterfaces sourceWithInterfaces
+            || target.Definition is not (IHasInterfaces targetWithInterfaces
+                and IHasWithInterfaces<ISyntaxNode> hasWithInterfaces))
+        {
+            return;
+        }
+
+        IReadOnlyList<NamedTypeNode> interfaces = targetWithInterfaces.Interfaces
+            .Concat(sourceWithInterfaces.Interfaces)
             .Distinct()
             .ToList();
 
-        return target.WithInterfaces(interfaces);
+        target.RewriteDefinition(hasWithInterfaces.WithInterfaces(interfaces));
     }
 }

@@ -7,20 +7,13 @@ internal class DefaultRewriteOperationsProvider
     private readonly List<ISchemaNodeRewriteOperation> _operations =
         new() { new RenameTypeOperation(), new RenameFieldOperation() };
 
-    private readonly ISchemaDatabase _schemaDatabase;
-
-    public DefaultRewriteOperationsProvider(ISchemaDatabase schemaDatabase)
-    {
-        _schemaDatabase = schemaDatabase;
-    }
-
     public void Apply(ISchemaNode schemaNode)
     {
-        var operationContext = new RewriteOperationContext(_schemaDatabase);
+        var operationContext = new RewriteOperationContext();
         foreach (ISchemaNodeRewriteOperation operation in _operations)
         {
             IEnumerable<ISchemaNode> nodes = schemaNode
-                .DescendentNodes(_schemaDatabase);
+                .DescendentNodes();
 
             foreach (ISchemaNode node in nodes)
             {

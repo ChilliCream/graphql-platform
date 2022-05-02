@@ -57,8 +57,8 @@ internal class DefaultSyntaxNodeVisitor : SyntaxNodeVisitor
             }
             else
             {
-                var operationContext = new MergeOperationContext(_schemaDatabase, _operationsProvider);
-                schemaNode.Apply(node, operationContext);
+                //var operationContext = new MergeOperationContext(_schemaDatabase);
+                //_operationsProvider.Apply(schemaNode, node, operationContext);
             }
 
             _coordinates.Push(schemaNode.Coordinate);

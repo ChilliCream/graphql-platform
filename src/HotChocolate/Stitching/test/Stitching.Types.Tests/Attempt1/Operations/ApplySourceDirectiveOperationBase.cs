@@ -1,16 +1,15 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Types.Attempt1.Helpers;
 using HotChocolate.Stitching.Types.Extensions;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
-internal class MergeFieldDefinitionOperation : ISchemaNodeOperation<FieldDefinition>
+internal class ApplySourceDirectiveOperationBase
 {
-    public void Apply(FieldDefinition source, FieldDefinition target, MergeOperationContext context)
+    protected static void ApplySourceDirective<TSchemaNode, TSyntaxNode>(TSchemaNode source, TSchemaNode target)
+        where TSchemaNode : ISchemaNode<TSyntaxNode>
+        where TSyntaxNode : ISyntaxNode, IHasDirectives, IHasWithDirectives<TSyntaxNode>
     {
-        source.MergeDirectivesInto(target);
-
         var sourceName = source.Database.Name;
         if (sourceName is null)
         {
@@ -26,7 +25,7 @@ internal class MergeFieldDefinitionOperation : ISchemaNodeOperation<FieldDefinit
             .AddOrReplace(sourceDirectiveNode,
                 node => sourceDirectiveNode.IsEqualTo(node));
 
-        FieldDefinitionNode fieldDefinitionNode = target.Definition
+        TSyntaxNode fieldDefinitionNode = target.Definition
             .WithDirectives(updatedDirectives);
 
         target.RewriteDefinition(fieldDefinitionNode);

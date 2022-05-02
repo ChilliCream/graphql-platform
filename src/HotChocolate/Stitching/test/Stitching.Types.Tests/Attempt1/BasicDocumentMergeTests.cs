@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Stitching.Types.Attempt1.Coordinates;
 using HotChocolate.Stitching.Types.Attempt1.Operations;
 using HotChocolate.Stitching.Types.Attempt1.Traversal;
-using JetBrains.dotMemoryUnit;
 using Snapshooter.Xunit;
 using Xunit;
 using Xunit.Abstractions;
@@ -55,22 +54,22 @@ public class BasicDocumentMergeTests
             ",
             ParserOptions.NoLocation);
 
+        DocumentDefinition document1 = SchemaNodeFactory.CreateDocument(
+            new SchemaDatabase(),
+            source1);
+
+        DocumentDefinition document2 = SchemaNodeFactory.CreateDocument(
+            new SchemaDatabase(),
+            source2);
+
         SchemaDatabase schemaDatabase = new SchemaDatabase();
+        DocumentDefinition documentDefinition = SchemaNodeFactory.CreateNewDocument(schemaDatabase);
+
         DefaultMergeOperationsProvider operationsProvider = new DefaultMergeOperationsProvider();
-        DefaultSyntaxNodeVisitor visitor = new DefaultSyntaxNodeVisitor(schemaDatabase, operationsProvider);
+        operationsProvider.Apply(document1, documentDefinition);
+        operationsProvider.Apply(document2, documentDefinition);
 
-        var documentNode = new DocumentNode(new List<IDefinitionNode>(0));
-        DocumentDefinition documentDefinition = SchemaNodeFactory.CreateDocument(
-            schemaDatabase,
-            documentNode);
-        
-        schemaDatabase.Reindex(documentDefinition);
-
-        //visitor.Accept(source);
-        visitor.Accept(source1);
-        visitor.Accept(source2);
-
-        var schemaOperations = new DefaultRewriteOperationsProvider(schemaDatabase);
+        var schemaOperations = new DefaultRewriteOperationsProvider();
         schemaOperations.Apply(documentDefinition);
 
         ISchemaNode renderedSchema = schemaDatabase.Root;
@@ -92,5 +91,70 @@ public class BasicDocumentMergeTests
         //var transformer = new SchemaTransformer();
         //var result = await transformer.Transform(definition, new SchemaTransformationOptions());
         //var subGraph = result.SubGraph;
+    }
+
+    [Fact]
+    public async Task MergeSubdocuments()
+    {
+        var subGraphDocument1 = Utf8GraphQLParser.Parse(@"
+interface TestInterface_renamed @_hc_source(coordinate: ""TestInterface"") {
+  foo_renamed: test2_renamed! @_hc_source(coordinate: ""TestInterface.foo"")
+}
+
+type test_renamed implements TestInterface_renamed @_hc_source(coordinate: ""Test"") {
+  foo_renamed: test2_renamed! @_hc_source(coordinate: ""Test.foo"")
+  id_renamed: String! @_hc_source(coordinate: ""Test.id"")
+}
+
+type test2_renamed @_hc_source(coordinate: ""Test2"") {
+  test: test_renamed!
+}
+");
+
+        var subGraphDocument2 = Utf8GraphQLParser.Parse(@"
+interface TestInterface_renamed {
+  foo_renamed: test2_renamed!
+}
+
+interface TestInterface {
+  foo_renamed: test2!
+}
+
+type test_renamed implements TestInterface_renamed {
+  foo_renamed: test2_renamed!
+  id_renamed: String!
+}
+
+type test2_renamed {
+  test: test_renamed!
+}
+
+type test2 {
+  test: test_renamed!
+}
+
+");
+
+        SchemaDatabase schemaDatabase1 = new SchemaDatabase("SubGraph1");
+        DocumentDefinition subGraph1 = SchemaNodeFactory.CreateDocument(
+            schemaDatabase1,
+            subGraphDocument1);
+
+        SchemaDatabase schemaDatabase2 = new SchemaDatabase("SubGraph2");
+        DocumentDefinition subGraph2 = SchemaNodeFactory.CreateDocument(
+            schemaDatabase2,
+            subGraphDocument2);
+
+        SchemaDatabase destinationDatabase = new SchemaDatabase();
+        DocumentDefinition documentDefinition = SchemaNodeFactory.CreateNewDocument(destinationDatabase);
+        destinationDatabase.Reindex(documentDefinition);
+
+        DefaultMergeOperationsProvider mergeOperations = new DefaultMergeOperationsProvider();
+        mergeOperations.Apply(subGraph1, documentDefinition);
+        mergeOperations.Apply(subGraph2, documentDefinition);
+
+        ISchemaNode renderedSchema = destinationDatabase.Root;
+        var schema = renderedSchema.Definition.Print();
+        schema.MatchSnapshot();
     }
 }

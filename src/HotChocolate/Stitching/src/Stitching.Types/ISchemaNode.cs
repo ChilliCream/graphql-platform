@@ -5,6 +5,7 @@ namespace HotChocolate.Stitching.Types;
 
 public interface ISchemaNode
 {
+    ISchemaDatabase Database { get; }
     ISyntaxNode Definition { get; }
     ISchemaNode? Parent { get; }
     ISchemaCoordinate2? Coordinate { get; }

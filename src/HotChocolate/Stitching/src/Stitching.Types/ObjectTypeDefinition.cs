@@ -11,13 +11,15 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
     private readonly DocumentDefinition _parentDefinition;
 
     public ObjectTypeDefinition(
+        ISchemaDatabase database,
         ISchemaCoordinate2 coordinate,
         DocumentDefinition parentDefinition,
         ObjectTypeDefinitionNode definition)
     {
+        Database = database ?? throw new ArgumentNullException(nameof(database));
+        Coordinate = coordinate;
         _parentDefinition = parentDefinition ?? throw new ArgumentNullException(nameof(parentDefinition));
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-        Coordinate = coordinate;
     }
 
     public NameNode Name => Definition.Name;
@@ -26,11 +28,13 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
 
     public bool IsExtension => false;
 
+    public ISchemaDatabase Database { get; }
+
     public ObjectTypeDefinitionNode Definition { get; set; }
 
-    public ISchemaNode? Parent => _parentDefinition;
+    public ISchemaNode Parent => _parentDefinition;
 
-    public ISchemaCoordinate2? Coordinate { get; }
+    public ISchemaCoordinate2? Coordinate { get; private set; }
 
     public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
     {
@@ -50,6 +54,9 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition<ObjectTypeDefinitio
         _parentDefinition.RewriteDefinition(Definition, node);
 
         Definition = node;
+        Coordinate = Database.CalculateCoordinate(
+            Coordinate?.Parent,
+            Definition);
 
         return this;
     }

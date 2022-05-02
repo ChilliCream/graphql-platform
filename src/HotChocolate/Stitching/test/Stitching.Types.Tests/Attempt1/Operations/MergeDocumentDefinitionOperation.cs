@@ -1,11 +1,8 @@
-using HotChocolate.Language;
-
 namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
-internal class MergeDocumentDefinitionOperation : ISchemaNodeOperation<DocumentNode>
+internal class MergeDocumentDefinitionOperation : ISchemaNodeOperation<DocumentDefinition>
 {
-    public DocumentNode Apply(DocumentNode source, DocumentNode target, MergeOperationContext context)
+    public void Apply(DocumentDefinition source, DocumentDefinition target, MergeOperationContext context)
     {
-        return target;
     }
 }

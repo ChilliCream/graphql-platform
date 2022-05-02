@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using HotChocolate.Language;
 
@@ -8,25 +7,29 @@ namespace HotChocolate.Stitching.Types;
 internal class SchemaNode<TNode> : ISchemaNode<TNode>
     where TNode : ISyntaxNode
 {
-    public SchemaNode(ISchemaCoordinate2 coordinate,
+    public SchemaNode(ISchemaDatabase database,
+        ISchemaCoordinate2 coordinate,
         TNode node)
-        : this(default, coordinate, node)
+        : this(database, coordinate, default, node)
     {
         Definition = node;
     }
 
-    public SchemaNode(ISchemaNode? parent, ISchemaCoordinate2 coordinate, TNode node)
+    public SchemaNode(ISchemaDatabase database, ISchemaCoordinate2 coordinate, ISchemaNode? parent, TNode node)
     {
         Parent = parent;
         Definition = node;
+        Database = database;
         Coordinate = coordinate;
     }
+
+    public ISchemaDatabase Database { get; }
 
     public TNode Definition { get; private set; }
 
     public ISchemaNode? Parent { get; }
 
-    public ISchemaCoordinate2? Coordinate { get; }
+    public ISchemaCoordinate2? Coordinate { get; private set; }
 
     public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
     {
@@ -41,6 +44,9 @@ internal class SchemaNode<TNode> : ISchemaNode<TNode>
     public ISchemaNode RewriteDefinition(TNode node)
     {
         Definition = node;
+        Coordinate = Database.CalculateCoordinate(
+            Coordinate?.Parent,
+            Definition);
 
         return this;
     }

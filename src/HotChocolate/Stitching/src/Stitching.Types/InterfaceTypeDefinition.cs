@@ -11,12 +11,14 @@ internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDef
     private readonly DocumentDefinition _parentDefinition;
 
     public InterfaceTypeDefinition(
+        ISchemaDatabase database,
         ISchemaCoordinate2 coordinate,
         DocumentDefinition parentDefinition,
         InterfaceTypeDefinitionNode definition)
     {
-        _parentDefinition = parentDefinition ?? throw new ArgumentNullException(nameof(parentDefinition));
+        Database = database ?? throw new ArgumentNullException(nameof(database));
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        _parentDefinition = parentDefinition ?? throw new ArgumentNullException(nameof(parentDefinition));
         Coordinate = coordinate;
     }
 
@@ -26,11 +28,13 @@ internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDef
 
     public bool IsExtension => false;
 
+    public ISchemaDatabase Database { get; }
+
     public InterfaceTypeDefinitionNode Definition { get; set; }
 
     public ISchemaNode? Parent => _parentDefinition;
 
-    public ISchemaCoordinate2? Coordinate { get; }
+    public ISchemaCoordinate2? Coordinate { get; private set; }
 
     public ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement)
     {
@@ -48,6 +52,9 @@ internal sealed class InterfaceTypeDefinition : ITypeDefinition<InterfaceTypeDef
         _parentDefinition.RewriteDefinition(Definition, node);
 
         Definition = node;
+        Coordinate = Database.CalculateCoordinate(
+            Coordinate?.Parent,
+            Definition);
 
         return this;
     }
