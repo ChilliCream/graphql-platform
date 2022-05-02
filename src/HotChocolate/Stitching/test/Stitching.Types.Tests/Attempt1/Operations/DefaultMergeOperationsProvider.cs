@@ -16,11 +16,11 @@ internal class DefaultMergeOperationsProvider : IMergeOperationsProvider
         },
         {
             typeof(ObjectTypeDefinitionNode),
-            new List<IMergeSchemaNodeOperation> { new MergeObjectTypeDefinitionOperation(), new ApplySourceDirectiveToObjectDefinitionOperation() }
+            new List<IMergeSchemaNodeOperation> { new ApplySourceDirectiveToObjectDefinitionOperation() }
         },
         {
             typeof(InterfaceTypeDefinitionNode),
-            new List<IMergeSchemaNodeOperation> { new MergeInterfaceTypeDefinitionOperation(), new ApplySourceDirectiveToInterfaceDefinitionOperation() }
+            new List<IMergeSchemaNodeOperation> { new ApplySourceDirectiveToInterfaceDefinitionOperation() }
         },
         {
             typeof(FieldDefinitionNode),
