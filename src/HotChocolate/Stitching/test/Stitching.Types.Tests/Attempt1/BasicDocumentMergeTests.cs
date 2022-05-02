@@ -97,11 +97,11 @@ public class BasicDocumentMergeTests
     public async Task MergeSubdocuments()
     {
         var subGraphDocument1 = Utf8GraphQLParser.Parse(@"
-interface TestInterface_renamed @_hc_source(coordinate: ""TestInterface"") {
+interface TestInterface_renamed @directive1 @_hc_source(coordinate: ""TestInterface"") {
   foo_renamed: test2_renamed! @_hc_source(coordinate: ""TestInterface.foo"")
 }
 
-type test_renamed implements TestInterface_renamed @_hc_source(coordinate: ""Test"") {
+type test_renamed implements TestInterface_renamed @directive2 @_hc_source(coordinate: ""Test"") {
   foo_renamed: test2_renamed! @_hc_source(coordinate: ""Test.foo"")
   id_renamed: String! @_hc_source(coordinate: ""Test.id"")
 }
@@ -112,7 +112,7 @@ type test2_renamed @_hc_source(coordinate: ""Test2"") {
 ");
 
         var subGraphDocument2 = Utf8GraphQLParser.Parse(@"
-interface TestInterface_renamed {
+interface TestInterface_renamed @directive1 {
   foo_renamed: test2_renamed!
 }
 

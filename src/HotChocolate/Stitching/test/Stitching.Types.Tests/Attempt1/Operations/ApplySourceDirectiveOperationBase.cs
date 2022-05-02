@@ -6,7 +6,10 @@ namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 internal class ApplySourceDirectiveOperationBase
 {
-    protected static void ApplySourceDirective<TSchemaNode, TSyntaxNode>(TSchemaNode source, TSchemaNode target)
+    protected static void ApplySourceDirective<TSchemaNode, TSyntaxNode>(
+        TSchemaNode source,
+        TSchemaNode target,
+        MergeOperationContext _)
         where TSchemaNode : ISchemaNode<TSyntaxNode>
         where TSyntaxNode : ISyntaxNode, IHasDirectives, IHasWithDirectives<TSyntaxNode>
     {

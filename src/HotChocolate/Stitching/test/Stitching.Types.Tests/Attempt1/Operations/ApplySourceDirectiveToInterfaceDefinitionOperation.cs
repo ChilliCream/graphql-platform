@@ -6,6 +6,6 @@ internal class ApplySourceDirectiveToInterfaceDefinitionOperation : ApplySourceD
 {
     public void Apply(InterfaceTypeDefinition source, InterfaceTypeDefinition target, MergeOperationContext context)
     {
-        ApplySourceDirective<InterfaceTypeDefinition, InterfaceTypeDefinitionNode>(source, target);
+        ApplySourceDirective<InterfaceTypeDefinition, InterfaceTypeDefinitionNode>(source, target, context);
     }
 }

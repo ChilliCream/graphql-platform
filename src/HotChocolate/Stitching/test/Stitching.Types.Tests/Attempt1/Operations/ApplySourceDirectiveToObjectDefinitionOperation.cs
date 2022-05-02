@@ -6,6 +6,6 @@ internal class ApplySourceDirectiveToObjectDefinitionOperation : ApplySourceDire
 {
     public void Apply(ObjectTypeDefinition source, ObjectTypeDefinition target, MergeOperationContext context)
     {
-        ApplySourceDirective<ObjectTypeDefinition, ObjectTypeDefinitionNode>(source, target);
+        ApplySourceDirective<ObjectTypeDefinition, ObjectTypeDefinitionNode>(source, target, context);
     }
 }

@@ -6,6 +6,6 @@ internal class ApplySourceDirectiveToFieldDefinitionOperation : ApplySourceDirec
 {
     public void Apply(FieldDefinition source, FieldDefinition target, MergeOperationContext context)
     {
-        ApplySourceDirective<FieldDefinition, FieldDefinitionNode>(source, target);
+        ApplySourceDirective<FieldDefinition, FieldDefinitionNode>(source, target, context);
     }
 }
