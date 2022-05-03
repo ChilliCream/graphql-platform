@@ -287,7 +287,7 @@ namespace HotChocolate.Types
             IValueNode result = scalar.ParseValue(runtime);
 
             // assert
-            Assert.Equal(expected, result);
+            Assert.Equal(expected, result, SyntaxComparer.BySyntax);
         }
 
         [Fact]

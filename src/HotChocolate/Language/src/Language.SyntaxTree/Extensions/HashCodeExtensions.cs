@@ -1,10 +1,5 @@
-#if NET6_0_OR_GREATER
+#if !NET6_0_OR_GREATER
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-#else
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #endif
@@ -13,10 +8,6 @@ namespace HotChocolate.Language;
 
 internal static class HashCodeExtensions
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int GetHashCodeOrDefault<T>(this T? obj)
-        => obj is not null ? obj.GetHashCode() : 0;
-
 #if !NET6_0_OR_GREATER
     public static void AddBytes(ref HashCode hashCode, ReadOnlySpan<byte> value)
     {
@@ -38,12 +29,4 @@ internal static class HashCodeExtensions
         }
     }
 #endif
-
-    public static void AddNodes(this ref HashCode hashCode, IReadOnlyList<ISyntaxNode> nodes)
-    {
-        for (var i = 0; i < nodes.Count; i++)
-        {
-            hashCode.Add(nodes[i]);
-        }
-    }
 }
