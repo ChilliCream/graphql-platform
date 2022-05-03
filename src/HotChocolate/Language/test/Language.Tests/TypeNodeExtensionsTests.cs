@@ -112,7 +112,7 @@ public class TypeNodeExtensionsTests
     public void InvalidTypeStructure()
     {
         // arrange
-        ITypeNode type = GetType("[[[Foo!]!]!]!");
+        ITypeNode type = GetType("[[[[[[Foo!]!]!]!]!]!]!");
 
         // act
         Action a = () => type.NamedType();

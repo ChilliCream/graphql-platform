@@ -157,11 +157,5 @@ public sealed class NullValueNode
     /// <summary>
     /// Gets the default null value instance.
     /// </summary>
-    public static NullValueNode Default { get; } = new NullValueNode();
-
-    public static bool operator ==(NullValueNode? left, NullValueNode? right)
-        => Equals(left, right);
-
-    public static bool operator !=(NullValueNode? left, NullValueNode? right)
-        => !Equals(left, right);
+    public static NullValueNode Default { get; } = new();
 }

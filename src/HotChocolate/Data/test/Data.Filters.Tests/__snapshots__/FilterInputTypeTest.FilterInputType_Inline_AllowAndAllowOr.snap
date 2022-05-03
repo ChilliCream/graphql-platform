@@ -9,7 +9,7 @@ type Query {
 input BookAuthorFilterInput {
   and: [BookAuthorFilterInput!]
   or: [BookAuthorFilterInput!]
-  id: ComparableInt32OperationFilterInput
+  id: IntOperationFilterInput
 }
 
 input BookChaptersFilterInput {
@@ -24,11 +24,11 @@ input BookFilterInput {
   author: BookAuthorFilterInput
 }
 
-input ComparableInt32OperationFilterInput {
+input IntOperationFilterInput {
   eq: Int
   neq: Int
-  in: [Int!]
-  nin: [Int!]
+  in: [Int]
+  nin: [Int]
   gt: Int
   ngt: Int
   gte: Int

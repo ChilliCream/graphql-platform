@@ -6,7 +6,7 @@ namespace HotChocolate.Stitching;
 
 public class SelectionPathParserTests
 {
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public void Parse_Single_Chain_No_Arguments()
     {
         // arrange
@@ -25,7 +25,7 @@ public class SelectionPathParserTests
             });
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public void Parse_Single_Chain_With_Literal()
     {
         // arrange
@@ -49,7 +49,7 @@ public class SelectionPathParserTests
             });
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public void Parse_Two_Chain_No_Arguments()
     {
         // arrange
@@ -73,7 +73,7 @@ public class SelectionPathParserTests
             });
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public void Parse_Two_Chain_With_Literal()
     {
         // arrange
@@ -107,7 +107,7 @@ public class SelectionPathParserTests
             });
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public void Parse_Single_Chain_With_ScopedVariable()
     {
         // arrange
@@ -136,7 +136,7 @@ public class SelectionPathParserTests
             });
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public void Parse_Two_Chain_With_ScopedVariable()
     {
         // arrange

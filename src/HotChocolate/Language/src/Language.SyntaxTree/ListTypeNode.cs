@@ -19,9 +19,7 @@ namespace HotChocolate.Language;
 /// in square brackets like this: pets: [Pet]. Nesting lists is allowed: matrix: [[Int]].
 /// </para>
 /// </summary>
-public sealed class ListTypeNode
-    : INullableTypeNode
-    , IEquatable<ListTypeNode>
+public sealed class ListTypeNode : INullableTypeNode
 {
     public ListTypeNode(ITypeNode type)
         : this(null, type)
@@ -76,72 +74,6 @@ public sealed class ListTypeNode
     public ListTypeNode WithType(ITypeNode type) => new(Location, type);
 
     /// <summary>
-    /// Determines whether the specified <see cref="ListTypeNode"/>
-    /// is equal to the current <see cref="ListTypeNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="ListTypeNode"/> to compare with the current
-    /// <see cref="ListTypeNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="ListTypeNode"/> is equal
-    /// to the current <see cref="ListTypeNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(ListTypeNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Type.Equals(other.Type);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="ListTypeNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="ListTypeNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="ListTypeNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
-
-        return Equals(obj as ListTypeNode);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="ListTypeNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-        => HashCode.Combine(Kind, Type);
-
-    /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </summary>
     /// <returns>
@@ -161,10 +93,4 @@ public sealed class ListTypeNode
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
-
-    public static bool operator ==(ListTypeNode? left, ListTypeNode? right)
-        => Equals(left, right);
-
-    public static bool operator !=(ListTypeNode? left, ListTypeNode? right)
-        => !Equals(left, right);
 }

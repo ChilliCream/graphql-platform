@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -7,10 +6,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// Represents the schema definition extension syntax.
 /// </summary>
-public sealed class SchemaExtensionNode
-    : SchemaDefinitionNodeBase
-    , ITypeSystemExtensionNode
-    , IEquatable<SchemaExtensionNode>
+public sealed class SchemaExtensionNode : SchemaDefinitionNodeBase, ITypeSystemExtensionNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="SchemaExtensionNode"/>
@@ -113,77 +109,4 @@ public sealed class SchemaExtensionNode
     public SchemaExtensionNode WithOperationTypes(
         IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
         => new(Location, Directives, operationTypes);
-
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <returns>
-    /// true if the current object is equal to the <paramref name="other" /> parameter;
-    /// otherwise, false.
-    /// </returns>
-    public bool Equals(SchemaExtensionNode? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return base.Equals(other);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object.
-    /// </summary>
-    /// <param name="obj">
-    /// The object to compare with the current object.
-    /// </param>
-    /// <returns>
-    /// true if the specified object  is equal to the current object; otherwise, false.
-    /// </returns>
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is SchemaExtensionNode other && Equals(other));
-
-    /// <summary>
-    /// Serves as the default hash function.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current object.
-    /// </returns>
-    public override int GetHashCode()
-        => HashCode.Combine(base.GetHashCode(), Kind);
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(
-        SchemaExtensionNode? left,
-        SchemaExtensionNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(
-        SchemaExtensionNode? left,
-        SchemaExtensionNode? right)
-        => !Equals(left, right);
 }

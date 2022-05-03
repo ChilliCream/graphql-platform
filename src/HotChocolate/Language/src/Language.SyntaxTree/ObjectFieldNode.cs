@@ -7,9 +7,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// Represents an object field literal.
 /// </summary>
-public sealed class ObjectFieldNode
-    : ISyntaxNode
-    , IEquatable<ObjectFieldNode>
+public sealed class ObjectFieldNode : ISyntaxNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectFieldNode"/>.
@@ -152,43 +150,6 @@ public sealed class ObjectFieldNode
     }
 
     /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="ObjectFieldNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="ObjectFieldNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="ObjectFieldNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(obj, this))
-        {
-            return true;
-        }
-
-        return Equals(obj as ObjectFieldNode);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="ObjectFieldNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode() => HashCode.Combine(Kind, Name, Value);
-
-    /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </summary>
     /// <returns>
@@ -244,10 +205,4 @@ public sealed class ObjectFieldNode
     /// Returns the new node with the new <paramref name="value" />.
     /// </returns>
     public ObjectFieldNode WithValue(IValueNode value) => new(Location, Name, value);
-
-    public static bool operator ==(ObjectFieldNode? left, ObjectFieldNode? right)
-        => Equals(left, right);
-
-    public static bool operator !=(ObjectFieldNode? left, ObjectFieldNode? right)
-        => !Equals(left, right);
 }
