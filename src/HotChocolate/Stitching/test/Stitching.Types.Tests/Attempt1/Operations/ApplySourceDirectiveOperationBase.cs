@@ -6,21 +6,20 @@ namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 internal class ApplySourceDirectiveOperationBase
 {
-    protected static void ApplySourceDirective<TSchemaNode, TSyntaxNode>(
-        TSchemaNode source,
+    protected static void ApplySourceDirective<TSyntaxNode, TSchemaNode>(
         TSchemaNode target,
-        MergeOperationContext _)
+        MergeOperationContext context)
+        where TSyntaxNode : IHasDirectives, IHasWithDirectives<TSyntaxNode>, ISyntaxNode
         where TSchemaNode : ISchemaNode<TSyntaxNode>
-        where TSyntaxNode : ISyntaxNode, IHasDirectives, IHasWithDirectives<TSyntaxNode>
     {
-        var sourceName = source.Database.Name;
+        NameNode? sourceName = context.Source;
         if (sourceName is null)
         {
             return;
         }
 
         var sourceDirectiveNode = new DirectiveNode("_hc_source",
-            new ArgumentNode("schema", sourceName));
+            new ArgumentNode("schema", sourceName.Value));
 
         IReadOnlyList<DirectiveNode> updatedDirectives = target
             .Definition

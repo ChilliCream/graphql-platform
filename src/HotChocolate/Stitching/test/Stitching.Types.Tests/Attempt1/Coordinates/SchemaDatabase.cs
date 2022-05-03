@@ -21,12 +21,12 @@ internal class SchemaDatabase : ISchemaDatabase
         { SyntaxKind.InterfaceTypeExtension, SyntaxKind.InterfaceTypeDefinition }
     };
 
-    public SchemaDatabase(string? name = default)
+    public SchemaDatabase(NameNode? name = default)
     {
         Name = name;
     }
 
-    public string? Name { get; }
+    public NameNode? Name { get; }
 
     public ISchemaNode Root => _coordinateToSchemaNodeLookup.Values.First();
 
@@ -40,7 +40,7 @@ internal class SchemaDatabase : ISchemaDatabase
     {
         ISchemaCoordinate2 coordinate = node switch
         {
-            DocumentNode => CalculateCoordinate(default, node.Kind, Name is not null ? new NameNode(Name) : default),
+            DocumentNode => CalculateCoordinate(default, node.Kind, Name),
             NameNode nameNode => CalculateCoordinate(parentCoordinate, node.Kind, nameNode),
             ArgumentNode argumentNode => CalculateCoordinate(parentCoordinate, node.Kind, argumentNode.Name),
             IValueNode valueNode => CalculateCoordinate(parentCoordinate, node.Kind, new NameNode($"{valueNode.Kind:G}")),
@@ -158,20 +158,24 @@ internal class SchemaDatabase : ISchemaDatabase
         return _syntaxNodeToCoordinateLookup.TryGetValue(node, out coordinate);
     }
 
-    public ISchemaNode GetOrAdd(ISchemaNode node)
+    public ISchemaNode GetOrAdd(SyntaxNodeReference nodeReference)
     {
-        if (TryGet(node.Coordinate, out ISchemaNode? existingNode))
+        ISyntaxNode node = nodeReference.Node;
+        ISchemaCoordinate2 coordinate = nodeReference.Coordinate;
+        ISyntaxNodeReference? parent = nodeReference.Parent;
+
+        if (TryGet(coordinate, out ISchemaNode? existingNode))
         {
             return existingNode;
         }
 
         ISchemaNode? existingParentNode = default;
-        if (node.Parent?.Coordinate is not null && !TryGet(node.Parent?.Coordinate, out existingParentNode))
+        if (parent?.Coordinate is not null && !TryGet(parent?.Coordinate, out existingParentNode))
         {
             throw new InvalidOperationException();
         }
 
-        ISchemaNode newNode = SchemaNodeFactory.CreateEmpty(this, existingParentNode, node.Definition);
+        ISchemaNode newNode = SchemaNodeFactory.CreateEmpty(this, existingParentNode, node);
 
         Reindex(newNode);
         return newNode;

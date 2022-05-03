@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Types.Attempt1.Traversal;
+using HotChocolate.Stitching.Types.Attempt1.Coordinates;
 
 namespace HotChocolate.Stitching.Types.Attempt1;
 
@@ -9,7 +9,7 @@ internal static class NodeExtensions
 {
     public static IEnumerable<ISchemaNode> DescendentNodes(this ISchemaNode root)
     {
-        var database = root.Database;
+        ISchemaDatabase database = root.Database;
         var nodes = DescendentSyntaxNodes(root)
             .ToList();
 
@@ -22,7 +22,7 @@ internal static class NodeExtensions
 
     public static IEnumerable<SyntaxNodeReference> ChildSyntaxNodes(this ISchemaNode node)
     {
-        var coordinate = node.Database.CalculateCoordinate(node.Parent?.Coordinate, node.Definition);
+        ISchemaCoordinate2 coordinate = node.Database.CalculateCoordinate(node.Parent?.Coordinate, node.Definition);
         var rootReference = new SyntaxNodeReference(default, coordinate, node.Definition);
         return ChildSyntaxNodes(rootReference,
             node.Definition,
@@ -31,9 +31,26 @@ internal static class NodeExtensions
 
     public static IEnumerable<SyntaxNodeReference> DescendentSyntaxNodes(this ISchemaNode root)
     {
+        return DescendentSyntaxNodes(root.Definition, root.Coordinate, root.Database);
+    }
+
+    public static IEnumerable<SyntaxNodeReference> DescendentSyntaxNodes(this ISyntaxNode root)
+    {
+        var database = new SchemaDatabase();
+        ISchemaCoordinate2 coordinate = database.CalculateCoordinate(default, root);
+
+        return DescendentSyntaxNodes(root, coordinate, database);
+    }
+
+    private static IEnumerable<SyntaxNodeReference> DescendentSyntaxNodes(
+        ISyntaxNode root,
+        ISchemaCoordinate2 coordinate,
+        ISchemaDatabase database)
+    {
+
+        var rootReference = new SyntaxNodeReference(default, coordinate, root);
+
         var nodes = new Stack<SyntaxNodeReference>();
-        var coordinate = root.Database.CalculateCoordinate(root.Parent?.Coordinate, root.Definition);
-        var rootReference = new SyntaxNodeReference(default, coordinate, root.Definition);
         nodes.Push(rootReference);
 
         while (nodes.Count != 0)
@@ -45,7 +62,7 @@ internal static class NodeExtensions
             IEnumerable<SyntaxNodeReference> children = ChildSyntaxNodes(
                 node,
                 node.Node,
-                root.Database);
+                database);
 
             foreach (SyntaxNodeReference child in children)
             {
@@ -64,7 +81,7 @@ internal static class NodeExtensions
         IEnumerable<ISyntaxNode> children = node.GetNodes();
         foreach (ISyntaxNode child in children)
         {
-            var childCoordinate = database.CalculateCoordinate(parentReference?.Coordinate, child);
+            ISchemaCoordinate2 childCoordinate = database.CalculateCoordinate(parentReference?.Coordinate, child);
             yield return new SyntaxNodeReference(parentReference, childCoordinate, child);
         }
     }

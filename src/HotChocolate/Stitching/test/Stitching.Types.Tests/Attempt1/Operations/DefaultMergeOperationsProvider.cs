@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Types.Attempt1.Wip;
 
@@ -11,105 +10,75 @@ internal class DefaultMergeOperationsProvider : IMergeOperationsProvider
     private static readonly Dictionary<Type, ICollection<IMergeSchemaNodeOperation>> _operations = new()
     {
         {
-            typeof(DocumentNode),
-            new List<IMergeSchemaNodeOperation> { new MergeDocumentDefinitionOperation() }
+            typeof(ObjectTypeDefinitionNode),
+            new List<IMergeSchemaNodeOperation>
+            {
+                new MergeComplexTypeDefinitionNodeBaseDefinitionOperation(),
+                new ApplySourceDirectiveToObjectDefinitionOperation<ObjectTypeDefinitionNode, ObjectTypeDefinition>()
+            }
         },
         {
-            typeof(ObjectTypeDefinitionNode),
-            new List<IMergeSchemaNodeOperation> { new MergeObjectTypeDefinitionOperation(), new ApplySourceDirectiveToObjectDefinitionOperation() }
+            typeof(ObjectTypeExtensionNode),
+            new List<IMergeSchemaNodeOperation> { new MergeComplexTypeDefinitionNodeBaseDefinitionOperation() }
         },
         {
             typeof(InterfaceTypeDefinitionNode),
-            new List<IMergeSchemaNodeOperation> { new MergeInterfaceTypeDefinitionOperation(), new ApplySourceDirectiveToInterfaceDefinitionOperation() }
+            new List<IMergeSchemaNodeOperation>
+            {
+                new MergeInterfaceTypeDefinitionOperation(),
+                new ApplySourceDirectiveToInterfaceDefinitionOperation()
+            }
         },
         {
             typeof(FieldDefinitionNode),
-            new List<IMergeSchemaNodeOperation> { new MergeFieldDefinitionOperation(), new ApplySourceDirectiveToFieldDefinitionOperation() }
+            new List<IMergeSchemaNodeOperation>
+            {
+                new MergeFieldDefinitionOperation(), new ApplySourceDirectiveToFieldDefinitionOperation()
+            }
         }
     };
 
-    public void Apply<TParentSourceNode, TParentTargetNode, TSourceSyntaxNode>(
-        TParentSourceNode source, TParentTargetNode destination,
-        Func<TParentSourceNode, TSourceSyntaxNode> sourceAccessor,
-        MergeOperationContext context)
-        where TParentSourceNode : ISchemaNode
-        where TParentTargetNode : ISchemaNode
-        where TSourceSyntaxNode : ISyntaxNode
+    public void Apply(SubgraphDocument sourceDefinition, ISchemaNode destinationDefinition)
     {
-        TSourceSyntaxNode sourceNode = sourceAccessor.Invoke(source);
+        var context = new MergeOperationContext(sourceDefinition.Name,
+            destinationDefinition.Database.Name);
 
-        if (!source.Database.TryGet(source, sourceNode, out ISchemaNode? sourceSchemaNode))
-            throw new InvalidOperationException();
-
-        ISchemaNode destinationSchemaNode = destination.Database
-            .GetOrAdd(destination, sourceNode);
-
-        Apply(sourceSchemaNode, destinationSchemaNode, context);
-    }
-
-    public void Apply<TParentSourceNode, TParentTargetNode, TSourceSyntaxNode>(
-        TParentSourceNode source,
-        TParentTargetNode destination,
-        Func<TParentSourceNode, IEnumerable<TSourceSyntaxNode>> sourceAccessor,
-        MergeOperationContext context)
-        where TParentSourceNode : ISchemaNode
-        where TParentTargetNode : ISchemaNode
-        where TSourceSyntaxNode : ISyntaxNode
-    {
-        IEnumerable<TSourceSyntaxNode> sourceSyntaxNodes = sourceAccessor.Invoke(source);
-
-        foreach (TSourceSyntaxNode node in sourceSyntaxNodes)
-        {
-            if (!source.Database.TryGet(source, node, out ISchemaNode? sourceSchemaNode))
-                throw new InvalidOperationException();
-
-            ISchemaNode destinationSchemaNode = destination.Database
-                .GetOrAdd(destination, node);
-
-            Apply(sourceSchemaNode, destinationSchemaNode, context);
-        }
-    }
-
-    public void Apply(ISchemaNode sourceDefinition, ISchemaNode destinationDefinition)
-    {
-        var context = new MergeOperationContext(this);
-
-        Apply(sourceDefinition,
+        Apply(sourceDefinition.Definition,
             destinationDefinition,
             context);
     }
 
+    public void Apply(ISyntaxNode source, ISchemaNode destination)
+    {
+        Apply(source, destination, new MergeOperationContext());
+    }
+
     private static void Apply(
-        ISchemaNode source,
+        ISyntaxNode source,
         ISchemaNode destination,
         MergeOperationContext context)
     {
-        IEnumerable<ISchemaNode> childSyntaxNodes = source.DescendentNodes();
-        foreach (ISchemaNode nodeReference in childSyntaxNodes)
+        IEnumerable<SyntaxNodeReference> childSyntaxNodes = source.DescendentSyntaxNodes();
+        foreach (SyntaxNodeReference nodeReference in childSyntaxNodes)
         {
             ISchemaNode targetDefinition = destination.Database.GetOrAdd(nodeReference);
 
             ICollection<IMergeSchemaNodeOperation> operations = GetOperations(nodeReference);
             foreach (IMergeSchemaNodeOperation operation in operations)
-                operation.Apply(nodeReference, targetDefinition, context);
+                operation.Apply(nodeReference.Node, targetDefinition, context);
         }
     }
 
-    private static ICollection<IMergeSchemaNodeOperation> GetOperations(ISchemaNode source)
+    private static ICollection<IMergeSchemaNodeOperation> GetOperations(SyntaxNodeReference sourceReference)
     {
-        ICollection<IMergeSchemaNodeOperation> definitionOperations =
-            _operations.TryGetValue(source.GetType(),
-                out ICollection<IMergeSchemaNodeOperation>? operations)
-                ? operations
-                : new List<IMergeSchemaNodeOperation>(0);
+        ISyntaxNode source = sourceReference.Node;
 
         ICollection<IMergeSchemaNodeOperation> syntaxNodeOperations =
-            _operations.TryGetValue(source.Definition.GetType(),
+            _operations.TryGetValue(source.GetType(),
                 out ICollection<IMergeSchemaNodeOperation>? nodeOperations)
                 ? nodeOperations
                 : new List<IMergeSchemaNodeOperation>(0);
 
-        return definitionOperations.Concat(syntaxNodeOperations)
-            .ToList();
+        return syntaxNodeOperations;
     }
 }

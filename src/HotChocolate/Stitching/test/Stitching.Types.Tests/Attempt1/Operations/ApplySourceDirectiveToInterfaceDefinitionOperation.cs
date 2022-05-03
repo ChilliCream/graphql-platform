@@ -2,10 +2,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
-internal class ApplySourceDirectiveToInterfaceDefinitionOperation : ApplySourceDirectiveOperationBase, ISchemaNodeOperation<InterfaceTypeDefinition>
+internal class ApplySourceDirectiveToInterfaceDefinitionOperation : ApplySourceDirectiveOperationBase, IMergeSchemaNodeOperation<InterfaceTypeDefinitionNode, InterfaceTypeDefinition>
 {
-    public void Apply(InterfaceTypeDefinition source, InterfaceTypeDefinition target, MergeOperationContext context)
+    public void Apply(InterfaceTypeDefinitionNode source, InterfaceTypeDefinition target, MergeOperationContext context)
     {
-        ApplySourceDirective<InterfaceTypeDefinition, InterfaceTypeDefinitionNode>(source, target, context);
+        ApplySourceDirective<InterfaceTypeDefinitionNode, InterfaceTypeDefinition>(target, context);
     }
 }

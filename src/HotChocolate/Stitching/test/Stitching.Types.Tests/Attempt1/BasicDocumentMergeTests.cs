@@ -4,7 +4,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Stitching.Types.Attempt1.Coordinates;
 using HotChocolate.Stitching.Types.Attempt1.Operations;
-using HotChocolate.Stitching.Types.Attempt1.Traversal;
 using Snapshooter.Xunit;
 using Xunit;
 using Xunit.Abstractions;
@@ -54,20 +53,12 @@ public class BasicDocumentMergeTests
             ",
             ParserOptions.NoLocation);
 
-        DocumentDefinition document1 = SchemaNodeFactory.CreateDocument(
-            new SchemaDatabase(),
-            source1);
-
-        DocumentDefinition document2 = SchemaNodeFactory.CreateDocument(
-            new SchemaDatabase(),
-            source2);
-
         SchemaDatabase schemaDatabase = new SchemaDatabase();
         DocumentDefinition documentDefinition = SchemaNodeFactory.CreateNewDocument(schemaDatabase);
 
         DefaultMergeOperationsProvider operationsProvider = new DefaultMergeOperationsProvider();
-        operationsProvider.Apply(document1, documentDefinition);
-        operationsProvider.Apply(document2, documentDefinition);
+        operationsProvider.Apply(source1, documentDefinition);
+        operationsProvider.Apply(source2, documentDefinition);
 
         var schemaOperations = new DefaultRewriteOperationsProvider();
         schemaOperations.Apply(documentDefinition);
@@ -135,14 +126,11 @@ type test2 {
 
 ");
 
-        SchemaDatabase schemaDatabase1 = new SchemaDatabase("SubGraph1");
-        DocumentDefinition subGraph1 = SchemaNodeFactory.CreateDocument(
-            schemaDatabase1,
+        SubgraphDocument subGraph1 = new SubgraphDocument(
+            new NameNode("SubGraph1"),
             subGraphDocument1);
-
-        SchemaDatabase schemaDatabase2 = new SchemaDatabase("SubGraph2");
-        DocumentDefinition subGraph2 = SchemaNodeFactory.CreateDocument(
-            schemaDatabase2,
+        SubgraphDocument subGraph2 = new SubgraphDocument(
+            new NameNode("SubGraph2"),
             subGraphDocument2);
 
         SchemaDatabase destinationDatabase = new SchemaDatabase();

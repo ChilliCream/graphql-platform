@@ -2,10 +2,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
-internal class ApplySourceDirectiveToFieldDefinitionOperation : ApplySourceDirectiveOperationBase, ISchemaNodeOperation<FieldDefinition>
+internal class ApplySourceDirectiveToFieldDefinitionOperation : ApplySourceDirectiveOperationBase, IMergeSchemaNodeOperation<FieldDefinitionNode, FieldDefinition>
 {
-    public void Apply(FieldDefinition source, FieldDefinition target, MergeOperationContext context)
+    public void Apply(FieldDefinitionNode source, FieldDefinition target, MergeOperationContext context)
     {
-        ApplySourceDirective<FieldDefinition, FieldDefinitionNode>(source, target, context);
+        ApplySourceDirective<FieldDefinitionNode, FieldDefinition>(target, context);
     }
 }

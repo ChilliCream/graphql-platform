@@ -1,12 +1,20 @@
-﻿interface TestInterface_renamed {
-  foo_renamed: test2_renamed!
+interface TestInterface_renamed @directive1(schema: "SubGraph1") @_hc_source(coordinate: "TestInterface", schema: "SubGraph1") @_hc_source(schema: "SubGraph1") @directive1(schema: "SubGraph2") @_hc_source(schema: "SubGraph2") {
+  foo_renamed: test2_renamed! @_hc_source(coordinate: "TestInterface.foo", schema: "SubGraph1") @_hc_source(schema: "SubGraph1") @_hc_source(schema: "SubGraph2")
 }
 
-type test_renamed implements TestInterface_renamed {
-  foo_renamed: test2_renamed!
-  id_renamed: String!
+type test_renamed implements TestInterface_renamed @directive2(schema: "SubGraph1") @_hc_source(coordinate: "Test", schema: "SubGraph1") @_hc_source(schema: "SubGraph1") @_hc_source(schema: "SubGraph2") {
+  foo_renamed: test2_renamed! @_hc_source(coordinate: "Test.foo", schema: "SubGraph1") @_hc_source(schema: "SubGraph1") @_hc_source(schema: "SubGraph2")
+  id_renamed: String! @_hc_source(coordinate: "Test.id", schema: "SubGraph1") @_hc_source(schema: "SubGraph1") @_hc_source(schema: "SubGraph2")
 }
 
-type test2_renamed {
-  test: test_renamed!
+type test2_renamed @_hc_source(coordinate: "Test2", schema: "SubGraph1") @_hc_source(schema: "SubGraph1") @_hc_source(schema: "SubGraph2") {
+  test: test_renamed! @_hc_source(schema: "SubGraph1") @_hc_source(schema: "SubGraph2")
+}
+
+interface TestInterface @_hc_source(schema: "SubGraph2") {
+  foo_renamed: test2! @_hc_source(schema: "SubGraph2")
+}
+
+type test2 @_hc_source(schema: "SubGraph2") {
+  test: test_renamed! @_hc_source(schema: "SubGraph2")
 }

@@ -1,13 +1,15 @@
-using HotChocolate.Stitching.Types.Attempt1.Wip;
+using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
 public class MergeOperationContext : OperationContextBase
 {
-    public IMergeOperationsProvider OperationsProvider { get; }
+    public NameNode? Source { get; }
+    public NameNode? Destination { get; }
 
-    public MergeOperationContext(IMergeOperationsProvider operationsProvider)
+    public MergeOperationContext(NameNode? source = default, NameNode? destination = default)
     {
-        OperationsProvider = operationsProvider;
+        Source = source;
+        Destination = destination;
     }
 }

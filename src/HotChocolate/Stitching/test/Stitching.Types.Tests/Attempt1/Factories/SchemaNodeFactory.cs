@@ -130,13 +130,13 @@ internal static class SchemaNodeFactory
         },
     };
 
-    public static DocumentDefinition CreateNewDocument(SchemaDatabase schemaDatabase)
+    public static DocumentDefinition CreateNewDocument(ISchemaDatabase schemaDatabase)
     {
         var documentNode = new DocumentNode(new List<IDefinitionNode>(0));
         return CreateDocument(schemaDatabase, documentNode);
     }
 
-    public static DocumentDefinition CreateDocument(SchemaDatabase database, DocumentNode node)
+    public static DocumentDefinition CreateDocument(ISchemaDatabase database, DocumentNode node)
     {
         ISchemaCoordinate2 coordinate = database.CalculateCoordinate(default, node);
         var definition = new DocumentDefinition(

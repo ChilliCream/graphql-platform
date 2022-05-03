@@ -8,9 +8,9 @@ public static class SourceExtensions
 {
     public static IEnumerable<DirectiveNode> PatchWithSchema(
         this IEnumerable<DirectiveNode> nodes,
-        ISchemaDatabase database)
+        NameNode? source)
     {
-        if (database.Name is null)
+        if (source is null)
         {
             foreach (DirectiveNode node in nodes)
             {
@@ -20,7 +20,7 @@ public static class SourceExtensions
             yield break;
         }
 
-        var sourceArgument = new ArgumentNode("schema", database.Name);
+        var sourceArgument = new ArgumentNode("schema", source.Value);
 
         foreach (DirectiveNode node in nodes)
         {

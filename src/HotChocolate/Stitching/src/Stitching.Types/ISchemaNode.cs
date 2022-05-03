@@ -8,7 +8,7 @@ public interface ISchemaNode
     ISchemaDatabase Database { get; }
     ISyntaxNode Definition { get; }
     ISchemaNode? Parent { get; }
-    ISchemaCoordinate2? Coordinate { get; }
+    ISchemaCoordinate2 Coordinate { get; }
     ISchemaNode RewriteDefinition(ISyntaxNode node);
     ISchemaNode RewriteDefinition(ISchemaNode original, ISyntaxNode replacement);
 }

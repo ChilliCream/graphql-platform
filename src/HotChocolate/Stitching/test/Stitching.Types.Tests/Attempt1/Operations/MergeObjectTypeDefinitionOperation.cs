@@ -1,12 +1,13 @@
+using HotChocolate.Language;
 using HotChocolate.Stitching.Types.Attempt1.Helpers;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Operations;
 
-internal class MergeObjectTypeDefinitionOperation : ISchemaNodeOperation<ObjectTypeDefinition>
+internal class MergeComplexTypeDefinitionNodeBaseDefinitionOperation : IMergeSchemaNodeOperation<ComplexTypeDefinitionNodeBase, ObjectTypeDefinition>
 {
-    public void Apply(ObjectTypeDefinition source, ObjectTypeDefinition target, MergeOperationContext context)
+    public void Apply(ComplexTypeDefinitionNodeBase source, ObjectTypeDefinition target, MergeOperationContext context)
     {
-        source.MergeInterfacesInto(target);
-        source.MergeDirectivesInto(target);
+        source.MergeInterfacesInto(target, context);
+        source.MergeDirectivesInto(target, context);
     }
 }

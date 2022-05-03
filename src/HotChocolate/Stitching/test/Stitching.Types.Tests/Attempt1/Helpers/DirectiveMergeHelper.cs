@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Types.Attempt1.Operations;
 
 namespace HotChocolate.Stitching.Types.Attempt1.Helpers;
 
@@ -9,10 +10,21 @@ internal static class DirectiveMergeHelper
 {
     public static void MergeDirectivesInto<TSchemaNode>(
         this TSchemaNode source,
-        TSchemaNode target)
+        TSchemaNode target,
+        MergeOperationContext context)
         where TSchemaNode : ISchemaNode
     {
-        if (source.Definition is not IHasDirectives sourceWithDirectives
+        MergeDirectivesInto(source.Definition, target, context);
+    }
+
+    public static void MergeDirectivesInto<TSchemaNode>(
+        this ISyntaxNode source,
+        TSchemaNode target,
+        MergeOperationContext context)
+        where TSchemaNode : ISchemaNode
+    {
+
+        if (source is not IHasDirectives sourceWithDirectives
             || target.Definition is not (IHasDirectives targetWithDirectives
                 and IHasWithDirectives<ISyntaxNode> hasWithDirectives))
         {
@@ -20,7 +32,7 @@ internal static class DirectiveMergeHelper
         }
 
         IReadOnlyList<DirectiveNode> directives = targetWithDirectives.Directives
-            .Concat(sourceWithDirectives.Directives.PatchWithSchema(source.Database))
+            .Concat(sourceWithDirectives.Directives.PatchWithSchema(context.Source))
             .Distinct()
             .ToList();
 

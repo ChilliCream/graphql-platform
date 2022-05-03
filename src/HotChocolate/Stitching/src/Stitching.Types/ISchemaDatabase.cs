@@ -8,9 +8,10 @@ public interface ISchemaDatabase
     ISchemaNode Reindex(ISchemaNode schemaNode);
     ISchemaNode Reindex(ISyntaxNode? parent, ISyntaxNode node);
 
-    ISchemaNode GetOrAdd(ISchemaNode node);
+    ISchemaNode GetOrAdd(SyntaxNodeReference nodeReference);
     ISchemaNode GetOrAdd(ISchemaCoordinate2 coordinate, ISyntaxNode node);
     ISchemaNode GetOrAdd(ISchemaNode parent, ISyntaxNode node);
+
 
     bool TryGet(ISyntaxNode? parent,
         ISyntaxNode node,
@@ -22,5 +23,5 @@ public interface ISchemaDatabase
         [MaybeNullWhen(false)] out ISchemaNode schemaNode);
 
     ISchemaCoordinate2 CalculateCoordinate(ISchemaCoordinate2? parentCoordinate, ISyntaxNode node);
-    string? Name { get; }
+    NameNode? Name { get; }
 }

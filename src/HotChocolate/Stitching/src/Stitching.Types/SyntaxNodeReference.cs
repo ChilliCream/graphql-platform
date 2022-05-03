@@ -1,7 +1,8 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Types.Attempt1.Traversal;
 
-namespace HotChocolate.Stitching.Types.Attempt1.Traversal;
+namespace HotChocolate.Stitching.Types;
 
 public readonly struct SyntaxNodeReference : ISyntaxNodeReference
 {
