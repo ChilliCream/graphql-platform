@@ -28,8 +28,6 @@ public class ObjectValueNodeTests
             new ObjectFieldNode("b", true),
             new ObjectFieldNode("a", 123));
 
-
-
         // act
         var aHash = SyntaxComparer.BySyntax.GetHashCode(a);
         var bHash = SyntaxComparer.BySyntax.GetHashCode(b);
