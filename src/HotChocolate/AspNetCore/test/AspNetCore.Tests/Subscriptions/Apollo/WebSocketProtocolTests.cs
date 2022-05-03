@@ -211,7 +211,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             Assert.Equal(WebSocketCloseStatus.ProtocolError, socket.CloseStatus!.Value);
         });
 
-    [Fact]
+    // TODO : FIX Flaky Test
+    [Fact(Skip = "Flaky")]
     public Task Send_Start_ReceiveDataOnMutation()
     {
         SnapshotFullName snapshotName = Snapshot.FullName();
