@@ -1,6 +1,8 @@
+using System.Linq.Expressions; 
 using System;
-using System.Collections.Generic;
+using System.Collections.Generic; 
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -18,7 +20,11 @@ public class FilterFieldDefinition
 
     public IFilterFieldHandler? Handler { get; set; }
 
-    public string? Scope { get; set; }
+    public Expression? Expression { get; set; }
+
+    internal IFilterMetadata? Metadata { get; set; }
+
+    public string? Scope { get; set; } 
 
     public List<int> AllowedOperations => _allowedOperations ??= new List<int>();
 
@@ -65,5 +71,5 @@ public class FilterFieldDefinition
         {
             target.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
         }
-    }
+    } 
 }

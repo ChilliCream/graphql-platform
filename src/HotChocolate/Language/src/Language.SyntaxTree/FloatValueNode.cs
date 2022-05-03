@@ -28,10 +28,7 @@ namespace HotChocolate.Language;
 /// has no valid lexical representation.
 /// </para>
 /// </summary>
-public sealed class FloatValueNode
-    : IValueNode<string>
-    , IEquatable<FloatValueNode>
-    , IFloatValueLiteral
+public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
 {
     private ReadOnlyMemory<byte> _memory;
     private string? _stringValue;
@@ -173,142 +170,7 @@ public sealed class FloatValueNode
 
     /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
-
-    /// <summary>
-    /// Determines whether the specified <see cref="FloatValueNode"/>
-    /// is equal to the current <see cref="FloatValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="FloatValueNode"/> to compare with the current
-    /// <see cref="FloatValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="FloatValueNode"/> is equal
-    /// to the current <see cref="FloatValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(FloatValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        ReadOnlyMemory<byte> ourMem = AsMemory();
-        ReadOnlyMemory<byte> otherMem = other.AsMemory();
-
-        // memory is not doing a deep equality check,
-        // but it will be equal if we are referring to the same
-        // underlying array.
-        if (otherMem.Equals(ourMem))
-        {
-            return true;
-        }
-
-        // if the length is not equals we can do a quick exit.
-        if (ourMem.Length != otherMem.Length)
-        {
-            return false;
-        }
-
-        // last we will do a sequence equals and compare the utf8string representation of
-        // this value.
-        return ourMem.Span.SequenceEqual(otherMem.Span);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="FloatValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="IValueNode"/> to compare with the current
-    /// <see cref="FloatValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="FloatValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(IValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        if (other.GetType() != GetType())
-        {
-            return false;
-        }
-
-        return Equals((FloatValueNode)other);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="FloatValueNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="FloatValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="FloatValueNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(obj, this))
-        {
-            return true;
-        }
-
-        if (obj.GetType() != GetType())
-        {
-            return false;
-        }
-
-        return Equals((FloatValueNode)obj);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="FloatValueNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-    {
-#if NET6_0_OR_GREATER
-        var hashCode = new HashCode();
-        hashCode.Add(Kind);
-        hashCode.AddBytes(AsSpan());
-        return hashCode.ToHashCode();
-#else
-        var hashCode = new HashCode();
-        hashCode.Add(Kind);
-        HashCodeExtensions.AddBytes(ref hashCode, AsSpan());
-        return hashCode.ToHashCode();
-#endif
-    }
-
+    
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </summary>
@@ -399,7 +261,7 @@ public sealed class FloatValueNode
     public ReadOnlySpan<byte> AsSpan()
         => AsMemory().Span;
 
-    private ReadOnlyMemory<byte> AsMemory()
+    internal ReadOnlyMemory<byte> AsMemory()
     {
         if (_memory.IsEmpty)
         {
@@ -504,26 +366,4 @@ public sealed class FloatValueNode
     /// </returns>
     public FloatValueNode WithValue(ReadOnlySpan<byte> value, FloatFormat format)
         => new(Location, value.ToArray(), format);
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(FloatValueNode? left, FloatValueNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(FloatValueNode? left, FloatValueNode? right)
-        => !Equals(left, right);
 }
