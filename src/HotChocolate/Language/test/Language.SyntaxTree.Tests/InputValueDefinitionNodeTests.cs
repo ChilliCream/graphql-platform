@@ -32,10 +32,10 @@ public class InputValueDefinitionNodeTests
             new List<DirectiveNode>(0));
 
         // act
-        var abResult = a.Equals(b);
-        var aaResult = a.Equals(a);
-        var acResult = a.Equals(c);
-        var aNullResult = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
         Assert.True(abResult);
@@ -71,10 +71,10 @@ public class InputValueDefinitionNodeTests
             new List<DirectiveNode>(0));
 
         // act
-        var abResult = a.Equals(b);
-        var aaResult = a.Equals(a);
-        var acResult = a.Equals(c);
-        var aNullResult = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
         Assert.True(abResult);
@@ -117,10 +117,10 @@ public class InputValueDefinitionNodeTests
             new List<DirectiveNode>(0));
 
         // act
-        var aHash = a.GetHashCode();
-        var bHash = b.GetHashCode();
-        var cHash = c.GetHashCode();
-        var dHash = d.GetHashCode();
+        var aHash = SyntaxComparer.BySyntax.GetHashCode(a);
+        var bHash = SyntaxComparer.BySyntax.GetHashCode(b);
+        var cHash = SyntaxComparer.BySyntax.GetHashCode(c);
+        var dHash = SyntaxComparer.BySyntax.GetHashCode(d);
 
         // assert
         Assert.Equal(aHash, bHash);
