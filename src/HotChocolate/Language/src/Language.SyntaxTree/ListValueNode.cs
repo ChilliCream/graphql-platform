@@ -13,13 +13,11 @@ namespace HotChocolate.Language;
 /// The values of a List literal may be any value literal or variable (ex. [1, 2, 3]).
 /// </para>
 /// <para>
-/// Commas are optional throughout GraphQL so trailing commas are allowed and 
+/// Commas are optional throughout GraphQL so trailing commas are allowed and
 /// repeated commas do not represent missing values.
 /// </para>
 /// </summary>
-public sealed class ListValueNode
-    : IValueNode<IReadOnlyList<IValueNode>>
-    , IEquatable<ListValueNode>
+public sealed class ListValueNode : IValueNode<IReadOnlyList<IValueNode>>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ListValueNode"/>.
@@ -110,124 +108,6 @@ public sealed class ListValueNode
     public IEnumerable<ISyntaxNode> GetNodes() => Items;
 
     /// <summary>
-    /// Determines whether the specified <see cref="ListValueNode"/>
-    /// is equal to the current <see cref="ListValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="ListValueNode"/> to compare with the current
-    /// <see cref="ListValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="ListValueNode"/> is equal
-    /// to the current <see cref="ListValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(ListValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        if (other.Items.Count == Items.Count)
-        {
-            for (var i = 0; i < Items.Count; i++)
-            {
-                if (!other.Items[i].Equals(Items[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="ListValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="IValueNode"/> to compare with the current
-    /// <see cref="ListValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="ListValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(IValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        if (other is ListValueNode l)
-        {
-            return Equals(l);
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="ListValueNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="ListValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="ListValueNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(obj, this))
-        {
-            return true;
-        }
-
-        return Equals(obj as ListValueNode);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="ListValueNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        var hashCode = new HashCode();
-        hashCode.Add(Kind);
-        hashCode.AddNodes(Items);
-        hashCode.ToHashCode();
-        return hashCode.ToHashCode();
-    }
-
-    /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </summary>
     /// <returns>
@@ -271,10 +151,4 @@ public sealed class ListValueNode
     /// Returns the new node with the new <paramref name="items" />.
     /// </returns>
     public ListValueNode WithItems(IReadOnlyList<IValueNode> items) => new(Location, items);
-
-    public static bool operator ==(ListValueNode? left, ListValueNode? right)
-        => Equals(left, right);
-
-    public static bool operator !=(ListValueNode? left, ListValueNode? right)
-        => !Equals(left, right);
 }

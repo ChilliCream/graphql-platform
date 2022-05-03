@@ -123,9 +123,8 @@ internal sealed class TypeReferenceRewriter
 
         foreach (NamedTypeNode namedType in objectType.Interfaces)
         {
-            if (types.TryGetValue(namedType.Name.Value,
-                out ComplexTypeDefinitionNodeBase ct)
-                && ct is InterfaceTypeDefinitionNode it)
+            if (types.TryGetValue(namedType.Name.Value, out ComplexTypeDefinitionNodeBase? ct) &&
+                ct is InterfaceTypeDefinitionNode it)
             {
                 interfaceTypes.Add(it);
             }
@@ -203,9 +202,10 @@ internal sealed class TypeReferenceRewriter
         NameString originalFieldName,
         NameString newFieldName)
     {
-        FieldDefinitionNode fieldDefinition = type.Fields.FirstOrDefault(
+        FieldDefinitionNode? fieldDefinition = type.Fields.FirstOrDefault(
             t => originalFieldName.Equals(t.GetOriginalName(
                 renameContext.SchemaName)));
+
         if (fieldDefinition != null)
         {
             renameContext.RenamedFields[fieldDefinition] = newFieldName;

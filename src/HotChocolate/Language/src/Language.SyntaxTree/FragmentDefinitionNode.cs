@@ -16,10 +16,7 @@ namespace HotChocolate.Language;
 /// reducing duplicated text in the document.
 /// </para>
 /// </summary>
-public sealed class FragmentDefinitionNode
-    : NamedSyntaxNode
-    , IExecutableDefinitionNode
-    , IEquatable<FragmentDefinitionNode>
+public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinitionNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="FragmentDefinitionNode"/>.
@@ -196,89 +193,4 @@ public sealed class FragmentDefinitionNode
     public FragmentDefinitionNode WithSelectionSet(
         SelectionSetNode selectionSet)
         => new(Location, Name, VariableDefinitions, TypeCondition, Directives, selectionSet);
-
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <returns>
-    /// true if the current object is equal to the <paramref name="other" /> parameter;
-    /// otherwise, false.
-    /// </returns>
-    public bool Equals(FragmentDefinitionNode? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return base.Equals(other)
-               && Kind == other.Kind
-               && TypeCondition.IsEqualTo(other.TypeCondition)
-               && SelectionSet.IsEqualTo(other.SelectionSet)
-               && VariableDefinitions.IsEqualTo(other.VariableDefinitions);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object.
-    /// </summary>
-    /// <param name="obj">
-    /// The object to compare with the current object.
-    /// </param>
-    /// <returns>
-    /// true if the specified object  is equal to the current object; otherwise, false.
-    /// </returns>
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is FragmentDefinitionNode other && Equals(other));
-
-    /// <summary>
-    /// Serves as the default hash function.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current object.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        var hashCode = new HashCode();
-        hashCode.Add(base.GetHashCode());
-        hashCode.Add(Kind);
-        hashCode.AddNodes(VariableDefinitions);
-        hashCode.Add(TypeCondition);
-        hashCode.Add(SelectionSet);
-        return hashCode.ToHashCode();
-    }
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(
-        FragmentDefinitionNode? left,
-        FragmentDefinitionNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(
-        FragmentDefinitionNode? left,
-        FragmentDefinitionNode? right)
-        => !Equals(left, right);
 }

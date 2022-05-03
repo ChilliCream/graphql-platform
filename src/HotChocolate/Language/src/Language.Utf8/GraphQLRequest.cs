@@ -29,7 +29,7 @@ public sealed class GraphQLRequest
     public string? QueryId { get; }
 
     public string? QueryHash { get; }
-    
+
     public DocumentNode? Query { get; }
 
     public string? OperationName { get; }
