@@ -17,13 +17,20 @@ public class OperationDefinitionNodeTests
             new List<DirectiveNode>(0),
             new SelectionSetNode(new List<ISelectionNode>(0)));
         var b = new OperationDefinitionNode(
-            TestLocations.Location1,
+            TestLocations.Location2,
             new NameNode("aa"),
             OperationType.Query,
             new List<VariableDefinitionNode>(0),
             new List<DirectiveNode>(0),
             new SelectionSetNode(new List<ISelectionNode>(0)));
         var c = new OperationDefinitionNode(
+            TestLocations.Location1,
+            new NameNode("aa"),
+            OperationType.Mutation,
+            new List<VariableDefinitionNode>(0),
+            new List<DirectiveNode>(0),
+            new SelectionSetNode(new List<ISelectionNode>(0)));
+        var d = new OperationDefinitionNode(
             TestLocations.Location1,
             new NameNode("aa"),
             OperationType.Mutation,
@@ -65,7 +72,14 @@ public class OperationDefinitionNodeTests
             new List<DirectiveNode>(0),
             new SelectionSetNode(new List<ISelectionNode>(0)));
         var c = new OperationDefinitionNode(
-            TestLocations.Location3,
+            TestLocations.Location1,
+            new NameNode("aa"),
+            OperationType.Mutation,
+            new List<VariableDefinitionNode>(0),
+            new List<DirectiveNode>(0),
+            new SelectionSetNode(new List<ISelectionNode>(0)));
+        var d = new OperationDefinitionNode(
+            TestLocations.Location2,
             new NameNode("aa"),
             OperationType.Mutation,
             new List<VariableDefinitionNode>(0),
