@@ -10,9 +10,7 @@ namespace HotChocolate.Language;
 /// schema { query: Query }
 /// </code>
 /// </summary>
-public sealed class OperationTypeDefinitionNode
-    : ISyntaxNode
-    , IEquatable<OperationTypeDefinitionNode>
+public sealed class OperationTypeDefinitionNode : ISyntaxNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="OperationTypeDefinitionNode"/>.
@@ -117,85 +115,4 @@ public sealed class OperationTypeDefinitionNode
     /// </returns>
     public OperationTypeDefinitionNode WithType(NamedTypeNode type)
         => new(Location, Operation, type);
-
-    /// <summary>
-    /// Determines whether the specified <see cref="OperationTypeDefinitionNode"/>
-    /// is equal to the current <see cref="OperationTypeDefinitionNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="OperationTypeDefinitionNode"/> to compare with the current
-    /// <see cref="OperationTypeDefinitionNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="OperationTypeDefinitionNode"/> is equal
-    /// to the current <see cref="OperationTypeDefinitionNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(OperationTypeDefinitionNode? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Operation == other.Operation && Type.Equals(other.Type);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="OperationTypeDefinitionNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="OperationTypeDefinitionNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="OperationTypeDefinitionNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is OperationTypeDefinitionNode other && Equals(other));
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="OperationTypeDefinitionNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-        => HashCode.Combine(Kind, Operation, Type);
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(
-        OperationTypeDefinitionNode? left,
-        OperationTypeDefinitionNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(
-        OperationTypeDefinitionNode? left,
-        OperationTypeDefinitionNode? right)
-        => !Equals(left, right);
 }

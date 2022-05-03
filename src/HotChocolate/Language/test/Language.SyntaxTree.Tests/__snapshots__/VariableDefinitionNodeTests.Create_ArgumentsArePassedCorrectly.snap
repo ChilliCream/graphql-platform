@@ -12,7 +12,7 @@
     "Name": {
       "Kind": "Name",
       "Location": null,
-      "Value": "quux"
+      "Value": "foo"
     }
   },
   "Type": {
