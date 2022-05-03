@@ -94,27 +94,6 @@ public class FloatValueNodeTests
     }
 
     [Fact]
-    public void EqualsFloatValueNode()
-    {
-        // arrange
-        var a = new FloatValueNode(1.0);
-        var b = new FloatValueNode(1.0);
-        var c = new FloatValueNode(3.0);
-
-        // act
-        var ab_result = a.Equals(b);
-        var aa_result = a.Equals(a);
-        var ac_result = a.Equals(c);
-        var anull_result = a.Equals(default);
-
-        // assert
-        Assert.True(ab_result);
-        Assert.True(aa_result);
-        Assert.False(ac_result);
-        Assert.False(anull_result);
-    }
-
-    [Fact]
     public void EqualsFloatValueNode_Float()
     {
         // arrange
@@ -123,16 +102,16 @@ public class FloatValueNodeTests
         var c = new FloatValueNode((float)3.0);
 
         // act
-        var ab_result = a.Equals(b);
-        var aa_result = a.Equals(a);
-        var ac_result = a.Equals(c);
-        var anull_result = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
-        Assert.True(ab_result);
-        Assert.True(aa_result);
-        Assert.False(ac_result);
-        Assert.False(anull_result);
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
     }
 
     [Fact]
@@ -144,16 +123,16 @@ public class FloatValueNodeTests
         var c = new FloatValueNode((double)3.0);
 
         // act
-        var ab_result = a.Equals(b);
-        var aa_result = a.Equals(a);
-        var ac_result = a.Equals(c);
-        var anull_result = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
-        Assert.True(ab_result);
-        Assert.True(aa_result);
-        Assert.False(ac_result);
-        Assert.False(anull_result);
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
     }
 
     [Fact]
@@ -165,16 +144,16 @@ public class FloatValueNodeTests
         var c = new FloatValueNode((decimal)3.0);
 
         // act
-        var ab_result = a.Equals(b);
-        var aa_result = a.Equals(a);
-        var ac_result = a.Equals(c);
-        var anull_result = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
-        Assert.True(ab_result);
-        Assert.True(aa_result);
-        Assert.False(ac_result);
-        Assert.False(anull_result);
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
     }
 
     [Fact]
@@ -187,45 +166,18 @@ public class FloatValueNodeTests
         var d = new StringValueNode("foo");
 
         // act
-        var ab_result = a.Equals((IValueNode)b);
-        var aa_result = a.Equals((IValueNode)a);
-        var ac_result = a.Equals((IValueNode)c);
-        var ad_result = a.Equals((IValueNode)d);
-        var anull_result = a.Equals(default(IValueNode));
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var adResult = SyntaxComparer.BySyntax.Equals(a, d);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
-        Assert.True(ab_result);
-        Assert.True(aa_result);
-        Assert.False(ac_result);
-        Assert.False(ad_result);
-        Assert.False(anull_result);
-    }
-
-    [Fact]
-    public void EqualsObject()
-    {
-        // arrange
-        var a = new FloatValueNode(1.0);
-        var b = new FloatValueNode(1.0);
-        var c = new FloatValueNode(2.0);
-        var d = "foo";
-        var e = 1;
-
-        // act
-        var ab_result = a.Equals((object)b);
-        var aa_result = a.Equals((object)a);
-        var ac_result = a.Equals((object)c);
-        var ad_result = a.Equals((object)d);
-        var ae_result = a.Equals((object)e);
-        var anull_result = a.Equals(default(object));
-
-        // assert
-        Assert.True(ab_result);
-        Assert.True(aa_result);
-        Assert.False(ac_result);
-        Assert.False(ad_result);
-        Assert.False(ae_result);
-        Assert.False(anull_result);
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(adResult);
+        Assert.False(aNullResult);
     }
 
     [Fact]
@@ -237,13 +189,13 @@ public class FloatValueNodeTests
         var c = new FloatValueNode(2.0);
 
         // act
-        var ahash = a.GetHashCode();
-        var bhash = b.GetHashCode();
-        var chash = c.GetHashCode();
+        var aHash = SyntaxComparer.BySyntax.GetHashCode(a);
+        var bHash = SyntaxComparer.BySyntax.GetHashCode(b);
+        var cHash = SyntaxComparer.BySyntax.GetHashCode(c);
 
         // assert
-        Assert.Equal(ahash, bhash);
-        Assert.NotEqual(ahash, chash);
+        Assert.Equal(aHash, bHash);
+        Assert.NotEqual(aHash, cHash);
     }
 
     [Fact]
@@ -254,12 +206,12 @@ public class FloatValueNodeTests
         var b = new FloatValueNode(2.0);
 
         // act
-        var astring = a.ToString();
-        var bstring = b.ToString();
+        var aString = a.ToString();
+        var bString = b.ToString();
 
         // assert
-        Assert.Equal("1", astring);
-        Assert.Equal("2", bstring);
+        Assert.Equal("1", aString);
+        Assert.Equal("2", bString);
     }
 
     [Fact]
@@ -294,10 +246,10 @@ public class FloatValueNodeTests
             1.2);
 
         // act
-        var abResult = a.Equals(b);
-        var aaResult = a.Equals(a);
-        var acResult = a.Equals(c);
-        var aNullResult = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
         Assert.True(abResult);
@@ -321,10 +273,10 @@ public class FloatValueNodeTests
             1.2);
 
         // act
-        var abResult = a.Equals(b);
-        var aaResult = a.Equals(a);
-        var acResult = a.Equals(c);
-        var aNullResult = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
         Assert.True(abResult);
@@ -351,10 +303,10 @@ public class FloatValueNodeTests
             1.2);
 
         // act
-        var aHash = a.GetHashCode();
-        var bHash = b.GetHashCode();
-        var cHash = c.GetHashCode();
-        var dHash = d.GetHashCode();
+        var aHash = SyntaxComparer.BySyntax.GetHashCode(a);
+        var bHash = SyntaxComparer.BySyntax.GetHashCode(b);
+        var cHash = SyntaxComparer.BySyntax.GetHashCode(c);
+        var dHash = SyntaxComparer.BySyntax.GetHashCode(d);
 
         // assert
         Assert.Equal(aHash, bHash);

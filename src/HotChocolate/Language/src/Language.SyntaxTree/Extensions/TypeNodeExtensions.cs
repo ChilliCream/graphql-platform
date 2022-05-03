@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language;
 
@@ -39,13 +40,17 @@ public static class TypeNodeExtensions
     }
 
     public static ITypeNode InnerType(this ITypeNode type)
+        => InnerTypeInternal(type);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ITypeNode InnerTypeInternal(ITypeNode type)
     {
-        if (type.Kind == SyntaxKind.NonNullType)
+        if (type.Kind is SyntaxKind.NonNullType)
         {
             return ((NonNullTypeNode)type).Type;
         }
 
-        if (type.Kind == SyntaxKind.ListType)
+        if (type.Kind is SyntaxKind.ListType)
         {
             return ((ListTypeNode)type).Type;
         }
@@ -65,53 +70,21 @@ public static class TypeNodeExtensions
 
     public static NamedTypeNode NamedType(this ITypeNode type)
     {
-        if (type.InnerType().InnerType().InnerType().InnerType().InnerType() is NamedTypeNode n)
+        ITypeNode innerType = InnerTypeInternal(type);
+
+        if (innerType.Kind is SyntaxKind.NamedType)
         {
-            return n;
+            return (NamedTypeNode)type;
         }
 
-        throw new NotSupportedException();
-    }
-
-    public static bool IsEqualTo(this ITypeNode? x, ITypeNode? y)
-    {
-        if (x is null)
+        for(var i = 0; i < 10; i++)
         {
-            return y is null;
-        }
+            innerType = innerType.InnerType();
 
-        if (y is null)
-        {
-            return false;
-        }
-
-        if (x is NonNullTypeNode nnx)
-        {
-            if (y is NonNullTypeNode nny)
+            if (innerType.Kind is SyntaxKind.NamedType)
             {
-                return IsEqualTo(nnx.Type, nny.Type);
+                return (NamedTypeNode)type;
             }
-            return false;
-        }
-
-        if (x is ListTypeNode lx)
-        {
-            if (y is ListTypeNode ly)
-            {
-                return IsEqualTo(lx.Type, ly.Type);
-            }
-            return false;
-        }
-
-        if (x is NamedTypeNode nx)
-        {
-            if (y is NamedTypeNode ny)
-            {
-                return nx.Name.Value.Equals(
-                    ny.Name.Value,
-                    StringComparison.Ordinal);
-            }
-            return false;
         }
 
         throw new NotSupportedException();

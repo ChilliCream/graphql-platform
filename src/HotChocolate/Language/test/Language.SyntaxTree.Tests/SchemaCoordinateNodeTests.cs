@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace HotChocolate.Language.SyntaxTree.Tests;
+namespace HotChocolate.Language.SyntaxTree;
 
 public class SchemaCoordinateNodeTests
 {

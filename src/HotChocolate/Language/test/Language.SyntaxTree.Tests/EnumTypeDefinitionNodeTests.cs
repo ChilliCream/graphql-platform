@@ -271,7 +271,7 @@ public class EnumTypeDefinitionNodeTests
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
-        var acResult = SyntaxComparer.BySyntax.Equals(a, c);;
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
         var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
@@ -312,7 +312,7 @@ public class EnumTypeDefinitionNodeTests
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
-        var acResult = SyntaxComparer.BySyntax.Equals(a, c);;
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
         var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
 

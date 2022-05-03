@@ -57,7 +57,7 @@ public sealed class SyntaxTypeReference
             return false;
         }
 
-        return Type.IsEqualTo(other.Type);
+        return SyntaxComparer.BySyntax.Equals(Type, other.Type);
     }
 
     /// <inheritdoc />

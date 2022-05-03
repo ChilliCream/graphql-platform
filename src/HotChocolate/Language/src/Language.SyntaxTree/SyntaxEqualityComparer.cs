@@ -184,7 +184,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(DirectiveDefinitionNode x, DirectiveDefinitionNode y)
         => Equals(x.Name, y.Name) &&
-            SyntaxComparer.ByReference.Equals(x.Description, y.Description) &&
+            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
             x.IsRepeatable.Equals(y.IsRepeatable) &&
             Equals(x.Arguments, y.Arguments) &&
             Equals(x.Locations, y.Locations);
@@ -197,7 +197,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(EnumTypeDefinitionNode x, EnumTypeDefinitionNode y)
         => Equals(x.Name, y.Name) &&
-            SyntaxComparer.ByReference.Equals(x.Description, y.Description) &&
+            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
             Equals(x.Directives, y.Directives) &&
             Equals(x.Values, y.Values);
 
@@ -208,14 +208,14 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(EnumValueDefinitionNode x, EnumValueDefinitionNode y)
         => Equals(x.Name, y.Name) &&
-            SyntaxComparer.ByReference.Equals(x.Description, y.Description);
+            SyntaxComparer.BySyntax.Equals(x.Description, y.Description);
 
     private bool Equals(EnumValueNode x, EnumValueNode y)
         => x.Value.Equals(y.Value, StringComparison.Ordinal);
 
     private bool Equals(FieldDefinitionNode x, FieldDefinitionNode y)
         => Equals(x.Name, y.Name) &&
-            SyntaxComparer.ByReference.Equals(x.Description, y.Description) &&
+            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
             Equals(x.Directives, y.Directives) &&
             Equals(x.Arguments, y.Arguments) &&
             Equals(x.Type, y.Type);
@@ -226,7 +226,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             Equals(x.Arguments, y.Arguments) &&
             Equals(x.Directives, y.Directives) &&
             Equals(x.Required, y.Required) &&
-            SyntaxComparer.ByReference.Equals(x.SelectionSet, y.SelectionSet);
+            SyntaxComparer.BySyntax.Equals(x.SelectionSet, y.SelectionSet);
 
     private bool Equals(FloatValueNode x, FloatValueNode y)
     {
@@ -264,13 +264,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             Equals(x.Directives, y.Directives);
 
     private bool Equals(InlineFragmentNode x, InlineFragmentNode y)
-        => SyntaxComparer.ByReference.Equals(x.TypeCondition, y.TypeCondition) &&
+        => SyntaxComparer.BySyntax.Equals(x.TypeCondition, y.TypeCondition) &&
             Equals(x.SelectionSet, y.SelectionSet) &&
             Equals(x.Directives, y.Directives);
 
     private bool Equals(InputObjectTypeDefinitionNode x, InputObjectTypeDefinitionNode y)
         => Equals(x.Name, y.Name) &&
-            SyntaxComparer.ByReference.Equals(x.Description, y.Description) &&
+            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
             Equals(x.Directives, y.Directives) &&
             Equals(x.Fields, y.Fields);
 
@@ -281,14 +281,14 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(InputValueDefinitionNode x, InputValueDefinitionNode y)
         => Equals(x.Name, y.Name) &&
-            SyntaxComparer.ByReference.Equals(x.Description, y.Description) &&
+            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
             Equals(x.Type, y.Type) &&
             Equals(x.DefaultValue, y.DefaultValue) &&
             Equals(x.Directives, y.Directives);
 
     private bool Equals(InterfaceTypeDefinitionNode x, InterfaceTypeDefinitionNode y)
         => Equals(x.Name, y.Name) &&
-            SyntaxComparer.ByReference.Equals(x.Description, y.Description) &&
+            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
             Equals(x.Directives, y.Directives) &&
             Equals(x.Interfaces, y.Interfaces) &&
             Equals(x.Fields, y.Fields);
@@ -335,7 +335,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         {
             for (var i = 0; i < x.Items.Count; i++)
             {
-                if (!x.Items[i].Equals(y.Items[i]))
+                if (!Equals(x.Items[i], y.Items[i]))
                 {
                     return false;
                 }
@@ -362,7 +362,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(ObjectTypeDefinitionNode x, ObjectTypeDefinitionNode y)
         => Equals(x.Name, y.Name) &&
-            SyntaxComparer.ByReference.Equals(x.Description, y.Description) &&
+            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
             Equals(x.Directives, y.Directives) &&
             Equals(x.Interfaces, y.Interfaces) &&
             Equals(x.Fields, y.Fields);
@@ -395,7 +395,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(ScalarTypeDefinitionNode x, ScalarTypeDefinitionNode y)
         => Equals(x.Name, y.Name) &&
-            SyntaxComparer.ByReference.Equals(x.Description, y.Description) &&
+            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
             Equals(x.Directives, y.Directives);
 
     private bool Equals(ScalarTypeExtensionNode x, ScalarTypeExtensionNode y)
@@ -446,7 +446,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(UnionTypeDefinitionNode x, UnionTypeDefinitionNode y)
         => Equals(x.Name, y.Name) &&
-            SyntaxComparer.ByReference.Equals(x.Description, y.Description) &&
+            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
             Equals(x.Directives, y.Directives) &&
             Equals(x.Types, y.Types);
 
