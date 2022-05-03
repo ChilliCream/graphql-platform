@@ -6,13 +6,15 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
 /// <summary>
-/// This filter operation handler maps a StartsWith operation field to a <see cref="ISearchOperation"/>
+/// This filter operation handler maps a StartsWith operation field to a
+/// <see cref="ISearchOperation"/>
 /// </summary>
 public class ElasticSearchStringStartsWithOperationHandler
     : ElasticSearchOperationHandlerBase
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="ElasticSearchStringStartsWithOperationHandler"/>
+    /// Initializes a new instance of
+    /// <see cref="ElasticSearchStringStartsWithOperationHandler"/>
     /// </summary>
     public ElasticSearchStringStartsWithOperationHandler(InputParser inputParser)
         : base(inputParser)
@@ -25,7 +27,10 @@ public class ElasticSearchStringStartsWithOperationHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
         => context.Type is StringOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition { Id: DefaultFilterOperations.StartsWith };
+            fieldDefinition is FilterOperationFieldDefinition
+            {
+                Id: DefaultFilterOperations.StartsWith
+            };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(

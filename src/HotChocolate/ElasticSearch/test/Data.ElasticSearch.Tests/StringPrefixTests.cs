@@ -33,7 +33,11 @@ public class StringPrefixTests : TestBase
             Id = "C",
             Bar = "I start with nothing",
             Qux = "you may start with something",
-            Baz = new Baz {Bar = "he can start with anything", Qux = "we start with passion!"}
+            Baz = new Baz
+            {
+                Bar = "he can start with anything",
+                Qux = "we start with passion!"
+            }
         }
     };
 
@@ -201,9 +205,13 @@ public class StringPrefixTests : TestBase
 
         const string query = @"
         {
-            test(where: {and: [{bar: { startsWith: ""th"" }},{qux: { startsWith: ""do"" }}]}) {
-                bar
-            }
+            test(where: {
+                  and: [
+                    {bar: { startsWith: ""th"" }},
+                    {qux: { startsWith: ""do"" }}
+                    ]}) {
+                            bar
+                        }
         }
         ";
 
@@ -229,9 +237,13 @@ public class StringPrefixTests : TestBase
 
         const string query = @"
         {
-            test(where: {and: [{bar: { startsWith: ""th"" }},{qux: { nstartsWith: ""do"" }}]}) {
-                bar
-            }
+            test(where: {
+                    and: [
+                        {bar: { startsWith: ""th"" }},
+                        {qux: { nstartsWith: ""do"" }}
+                ]}) {
+                        bar
+                    }
         }
         ";
 

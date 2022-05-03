@@ -14,7 +14,8 @@ public class ElasticSearchStringNotStartsWithOperationHandler
     : ElasticSearchStringStartsWithOperationHandler
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="ElasticSearchStringNotStartsWithOperationHandler"/>
+    /// Initializes a new instance of
+    /// <see cref="ElasticSearchStringNotStartsWithOperationHandler"/>
     /// </summary>
     public ElasticSearchStringNotStartsWithOperationHandler(InputParser inputParser)
         : base(inputParser)
@@ -36,7 +37,8 @@ public class ElasticSearchStringNotStartsWithOperationHandler
         IValueNode value,
         object? parsedValue)
     {
-        ISearchOperation operation = base.HandleOperation(context, field, value, parsedValue);
+        ISearchOperation operation =
+            base.HandleOperation(context, field, value, parsedValue);
         return ElasticSearchOperationHelpers.Negate(operation);
     }
 }
