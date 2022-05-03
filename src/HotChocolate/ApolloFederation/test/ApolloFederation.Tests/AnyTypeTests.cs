@@ -150,10 +150,13 @@ public class AnyTypeTests
         var representation = new Representation("test", objectValueNode);
 
         // act
-        var serialized = type.Serialize(representation);
+        var serialized = (ISyntaxNode)type.Serialize(representation)!;
 
         // assert
-        Assert.Equal(objectValueNode, serialized);
+        Assert.Equal(
+            objectValueNode,
+            serialized,
+            SyntaxComparer.BySyntax);
     }
 
     [Fact]
@@ -191,7 +194,10 @@ public class AnyTypeTests
 
         // assert
         Assert.True(success);
-        Assert.Equal(objectValueNode, serialized);
+        Assert.Equal(
+            objectValueNode,
+            (ISyntaxNode)serialized!,
+            SyntaxComparer.BySyntax);
     }
 
     [Fact]
@@ -245,7 +251,8 @@ public class AnyTypeTests
         // assert
         Assert.Equal(
             objectValueNode,
-            Assert.IsType<ObjectValueNode>(valueSyntax));
+            Assert.IsType<ObjectValueNode>(valueSyntax),
+            SyntaxComparer.BySyntax);
     }
 
     [Fact]
@@ -309,7 +316,8 @@ public class AnyTypeTests
         // assert
         Assert.Equal(
             objectValueNode,
-            Assert.IsType<ObjectValueNode>(parsedResult));
+            Assert.IsType<ObjectValueNode>(parsedResult),
+            SyntaxComparer.BySyntax);
     }
 
     [Fact]

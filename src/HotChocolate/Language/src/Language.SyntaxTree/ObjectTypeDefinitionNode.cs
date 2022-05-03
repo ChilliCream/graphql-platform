@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -22,10 +21,7 @@ namespace HotChocolate.Language;
 /// "__" (two underscores), as this is used exclusively by GraphQL’s introspection system.
 /// </para>
 /// </summary>
-public sealed class ObjectTypeDefinitionNode
-    : ComplexTypeDefinitionNodeBase
-    , ITypeDefinitionNode
-    , IEquatable<ObjectTypeDefinitionNode>
+public sealed class ObjectTypeDefinitionNode : ComplexTypeDefinitionNodeBase, ITypeDefinitionNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinitionNode"/>.
@@ -192,51 +188,4 @@ public sealed class ObjectTypeDefinitionNode
     /// </returns>
     public ObjectTypeDefinitionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields)
         => new(Location, Name, Description, Directives, Interfaces, fields);
-
-    /// <inheritdoc/>
-    public bool Equals(ObjectTypeDefinitionNode? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return base.Equals(other) && Description.IsEqualTo(other.Description);
-    }
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is ObjectTypeDefinitionNode other && Equals(other));
-
-    /// <inheritdoc/>
-    public override int GetHashCode()
-        => HashCode.Combine(base.GetHashCode(), Kind, Description);
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(ObjectTypeDefinitionNode? left, ObjectTypeDefinitionNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(ObjectTypeDefinitionNode? left, ObjectTypeDefinitionNode? right)
-        => !Equals(left, right);
 }

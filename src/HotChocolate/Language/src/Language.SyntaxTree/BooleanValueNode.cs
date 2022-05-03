@@ -10,9 +10,7 @@ namespace HotChocolate.Language;
 /// The two keywords true and false represent the two boolean values.
 /// https://spec.graphql.org/October2021/#sec-Boolean-Value
 /// </summary>
-public sealed class BooleanValueNode
-    : IValueNode<bool>
-    , IEquatable<BooleanValueNode?>
+public sealed class BooleanValueNode : IValueNode<bool>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="BooleanValueNode"/>
@@ -60,100 +58,6 @@ public sealed class BooleanValueNode
 
     /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
-
-    /// <summary>
-    /// Determines whether the specified <see cref="BooleanValueNode"/>
-    /// is equal to the current <see cref="BooleanValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="BooleanValueNode"/> to compare with the current
-    /// <see cref="BooleanValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="BooleanValueNode"/> is equal
-    /// to the current <see cref="BooleanValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(BooleanValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        return other.Value.Equals(Value);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="BooleanValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="IValueNode"/> to compare with the current
-    /// <see cref="BooleanValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="BooleanValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(IValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        return Equals(other as BooleanValueNode);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="BooleanValueNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="BooleanValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="BooleanValueNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(obj, this))
-        {
-            return true;
-        }
-
-        return Equals(obj as BooleanValueNode);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="BooleanValueNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-        => HashCode.Combine(Kind, Value);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -211,28 +115,5 @@ public sealed class BooleanValueNode
     /// Represents the false value for the boolean literal.
     /// </summary>
     public static BooleanValueNode False { get; } = new(false);
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(BooleanValueNode? left, BooleanValueNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-
-    public static bool operator !=(BooleanValueNode? left, BooleanValueNode? right)
-        => !Equals(left, right);
 }
 

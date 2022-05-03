@@ -119,4 +119,7 @@
   <data name="IntValueNode_ValueCannotBeEmpty" xml:space="preserve">
     <value>The value of an int value node mustn't be empty.</value>
   </data>
+  <data name="NameNode_Name_CannnotBeNullOrEmpty" xml:space="preserve">
+    <value>The value of a name node cannot be null or empty.</value>
+  </data>
 </root>

@@ -73,7 +73,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Subscription()
     {
         // arrange
@@ -120,7 +120,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         results.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_Inline_Fragment()
     {
         // arrange
@@ -167,7 +167,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_Fragment_Definition()
     {
         // arrange
@@ -218,7 +218,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_Variables()
     {
         // arrange
@@ -308,7 +308,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_Union()
     {
         // arrange
@@ -368,7 +368,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task Directive_Delegation()
     {
         // arrange
@@ -466,7 +466,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_List_Aggregations()
     {
         // arrange
@@ -501,7 +501,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_Object_Aggregations()
     {
         // arrange
@@ -536,7 +536,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_Scalar_Aggregations()
     {
         // arrange
@@ -609,7 +609,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_RenameScalar()
     {
         // arrange
@@ -679,7 +679,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_IntField()
     {
         // arrange
@@ -715,7 +715,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_Customer_DoesNotExist_And_Is_Correctly_Null()
     {
         // arrange
@@ -750,7 +750,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AutoMerge_Execute_GuidField()
     {
         // arrange
@@ -785,7 +785,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task Add_Dummy_Directive()
     {
         // arrange
@@ -859,7 +859,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             exception.Message);
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public async Task AddLocalSchema()
     {
         // arrange
