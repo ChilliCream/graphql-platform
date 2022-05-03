@@ -63,8 +63,7 @@
                 "Column": 40
               },
               "Value": "cat"
-            },
-            "Value": "cat"
+            }
           }
         },
         {
@@ -102,8 +101,7 @@
                 "Column": 51
               },
               "Value": "dog"
-            },
-            "Value": "dog"
+            }
           }
         }
       ]

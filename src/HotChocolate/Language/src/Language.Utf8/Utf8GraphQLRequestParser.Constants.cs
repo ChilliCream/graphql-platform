@@ -16,29 +16,29 @@ public ref partial struct Utf8GraphQLRequestParser
     // This uses C# compiler's ability to refer to static data directly. For more information see https://vcsjones.dev/2019/02/01/csharp-readonly-span-bytes-static
     private static ReadOnlySpan<byte> OperationName => new[]
     {
-            (byte)'o',
-            (byte)'p',
-            (byte)'e',
-            (byte)'r',
-            (byte)'a',
-            (byte)'t',
-            (byte)'i',
-            (byte)'o',
-            (byte)'n',
-            (byte)'N',
-            (byte)'a',
-            (byte)'m',
-            (byte)'e'
-        };
+        (byte)'o',
+        (byte)'p',
+        (byte)'e',
+        (byte)'r',
+        (byte)'a',
+        (byte)'t',
+        (byte)'i',
+        (byte)'o',
+        (byte)'n',
+        (byte)'N',
+        (byte)'a',
+        (byte)'m',
+        (byte)'e'
+    };
 
     private static ReadOnlySpan<byte> Query => new[]
     {
-            (byte)'q',
-            (byte)'u',
-            (byte)'e',
-            (byte)'r',
-            (byte)'y'
-        };
+        (byte)'q',
+        (byte)'u',
+        (byte)'e',
+        (byte)'r',
+        (byte)'y'
+    };
 
     private static ReadOnlySpan<byte> Variables => new[]
     {
@@ -55,40 +55,40 @@ public ref partial struct Utf8GraphQLRequestParser
 
     private static ReadOnlySpan<byte> Extensions => new[]
     {
-            (byte)'e',
-            (byte)'x',
-            (byte)'t',
-            (byte)'e',
-            (byte)'n',
-            (byte)'s',
-            (byte)'i',
-            (byte)'o',
-            (byte)'n',
-            (byte)'s'
-        };
+        (byte)'e',
+        (byte)'x',
+        (byte)'t',
+        (byte)'e',
+        (byte)'n',
+        (byte)'s',
+        (byte)'i',
+        (byte)'o',
+        (byte)'n',
+        (byte)'s'
+    };
 
     private static ReadOnlySpan<byte> Type => new[]
     {
-            (byte)'t',
-            (byte)'y',
-            (byte)'p',
-            (byte)'e'
-        };
+        (byte)'t',
+        (byte)'y',
+        (byte)'p',
+        (byte)'e'
+    };
 
     private static ReadOnlySpan<byte> Id => new[]
     {
-            (byte)'i',
-            (byte)'d'
-        };
+        (byte)'i',
+        (byte)'d'
+    };
 
     private static ReadOnlySpan<byte> Payload => new[]
     {
-            (byte)'p',
-            (byte)'a',
-            (byte)'y',
-            (byte)'l',
-            (byte)'o',
-            (byte)'a',
-            (byte)'d'
-        };
+        (byte)'p',
+        (byte)'a',
+        (byte)'y',
+        (byte)'l',
+        (byte)'o',
+        (byte)'a',
+        (byte)'d'
+    };
 }
