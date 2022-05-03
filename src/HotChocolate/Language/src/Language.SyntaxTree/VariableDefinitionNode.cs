@@ -7,10 +7,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// The variable definition syntax of a GraphQL operation.
 /// </summary>
-public sealed class VariableDefinitionNode
-    : ISyntaxNode
-    , IHasDirectives
-    , IEquatable<VariableDefinitionNode>
+public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
 {
     /// <summary>
     /// Initializes a new instance of <see cref="VariableDefinitionNode"/>.
@@ -174,89 +171,4 @@ public sealed class VariableDefinitionNode
 
     public VariableDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
         => new(Location, Variable, Type, DefaultValue, directives);
-
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <returns>
-    /// true if the current object is equal to the <paramref name="other" /> parameter;
-    /// otherwise, false.
-    /// </returns>
-    public bool Equals(VariableDefinitionNode? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Kind == other.Kind
-               && Variable.EqualsNullable(other.Variable)
-               && Type.IsEqualTo(other.Type)
-               && DefaultValue.EqualsNullable(other.DefaultValue)
-               && Directives.IsEqualTo(other.Directives);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object.
-    /// </summary>
-    /// <param name="obj">
-    /// The object to compare with the current object.
-    /// </param>
-    /// <returns>
-    /// true if the specified object  is equal to the current object; otherwise, false.
-    /// </returns>
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is VariableDefinitionNode other && Equals(other));
-
-    /// <summary>
-    /// Serves as the default hash function.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current object.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        var hashCode = new HashCode();
-        hashCode.Add(Kind);
-        hashCode.Add(Variable);
-        hashCode.Add(Type);
-        hashCode.Add(DefaultValue);
-        hashCode.AddNodes(Directives);
-        return hashCode.ToHashCode();
-    }
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(
-        VariableDefinitionNode? left,
-        VariableDefinitionNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(
-        VariableDefinitionNode? left,
-        VariableDefinitionNode? right)
-        => !Equals(left, right);
 }

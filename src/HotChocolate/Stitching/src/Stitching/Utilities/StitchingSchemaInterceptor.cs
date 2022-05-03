@@ -138,18 +138,22 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
     {
         var externalFieldLookup = new Dictionary<NameString, ISet<NameString>>();
 
-        foreach (ObjectTypeDefinitionNodeBase objectType in
-            document.Definitions.OfType<ObjectTypeDefinitionNodeBase>())
+        foreach (ComplexTypeDefinitionNodeBase objectType in
+            document.Definitions.OfType<ComplexTypeDefinitionNodeBase>())
         {
-            if (!externalFieldLookup.TryGetValue(
-                objectType.Name.Value,
-                out ISet<NameString>? externalFields))
+            if (objectType.Kind == SyntaxKind.ObjectTypeDefinition ||
+                objectType.Kind == SyntaxKind.ObjectTypeExtension)
             {
-                externalFields = new HashSet<NameString>();
-                externalFieldLookup.Add(objectType.Name.Value, externalFields);
-            }
+                if (!externalFieldLookup.TryGetValue(
+                    objectType.Name.Value,
+                    out ISet<NameString>? externalFields))
+                {
+                    externalFields = new HashSet<NameString>();
+                    externalFieldLookup.Add(objectType.Name.Value, externalFields);
+                }
 
-            MarkExternalFields(objectType.Fields, externalFields);
+                MarkExternalFields(objectType.Fields, externalFields);
+            }
         }
 
         schemaBuilder.AddExternalFieldLookup(externalFieldLookup);
@@ -161,8 +165,7 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
         DocumentNode document,
         ICollection<NameString> schemaNames)
     {
-        Dictionary<(NameString Type, NameString TargetSchema), NameString> nameLookup =
-            new Dictionary<(NameString, NameString), NameString>();
+        Dictionary<(NameString Type, NameString TargetSchema), NameString> nameLookup = new();
 
         foreach (INamedSyntaxNode type in document.Definitions.OfType<INamedSyntaxNode>())
         {

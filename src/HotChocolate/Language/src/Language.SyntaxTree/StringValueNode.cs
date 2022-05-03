@@ -10,10 +10,7 @@ namespace HotChocolate.Language;
 /// Represents a string value literal.
 /// http://facebook.github.io/graphql/June2018/#sec-String-Value
 /// </summary>
-public sealed class StringValueNode
-    : IValueNode<string>
-    , IHasSpan
-    , IEquatable<StringValueNode>
+public sealed class StringValueNode : IValueNode<string>, IHasSpan
 {
     private ReadOnlyMemory<byte> _memory;
     private string? _value;
@@ -110,112 +107,6 @@ public sealed class StringValueNode
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
     /// <summary>
-    /// Determines whether the specified <see cref="StringValueNode"/>
-    /// is equal to the current <see cref="StringValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="StringValueNode"/> to compare with the current
-    /// <see cref="StringValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="StringValueNode"/> is equal
-    /// to the current <see cref="StringValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(StringValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        return Block == other.Block &&
-            Value.Equals(other.Value, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="StringValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="IValueNode"/> to compare with the current
-    /// <see cref="StringValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="StringValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(IValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        if (other is StringValueNode s)
-        {
-            return Equals(s);
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="StringValueNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="StringValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="StringValueNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(obj, this))
-        {
-            return true;
-        }
-
-        return Equals(obj as StringValueNode);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="StringValueNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            return (Kind.GetHashCode() * 397)
-             ^ (Value.GetHashCode() * 97);
-        }
-    }
-
-    /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </summary>
     /// <returns>
@@ -236,17 +127,19 @@ public sealed class StringValueNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    /// <summary>
-    /// Gets a readonly span to access the string value memory.
-    /// </summary>
-    public ReadOnlySpan<byte> AsSpan()
+    internal ReadOnlyMemory<byte> AsMemory()
     {
         if (_memory.IsEmpty)
         {
             _memory = Encoding.UTF8.GetBytes(_value!);
         }
-        return _memory.Span;
+        return _memory;
     }
+
+    /// <summary>
+    /// Gets a readonly span to access the string value memory.
+    /// </summary>
+    public ReadOnlySpan<byte> AsSpan() => AsMemory().Span;
 
     public StringValueNode WithLocation(Location? location)
         => new(location, Value, Block);
@@ -256,10 +149,4 @@ public sealed class StringValueNode
 
     public StringValueNode WithValue(string value, bool block)
         => new(Location, value, block);
-
-    public static bool operator ==(StringValueNode? left, StringValueNode? right)
-        => Equals(left, right);
-
-    public static bool operator !=(StringValueNode? left, StringValueNode? right)
-        => !Equals(left, right);
 }
