@@ -74,7 +74,7 @@ public static class TypeNodeExtensions
 
         if (innerType.Kind is SyntaxKind.NamedType)
         {
-            return (NamedTypeNode)type;
+            return (NamedTypeNode)innerType;
         }
 
         for(var i = 0; i < 10; i++)
@@ -83,7 +83,7 @@ public static class TypeNodeExtensions
 
             if (innerType.Kind is SyntaxKind.NamedType)
             {
-                return (NamedTypeNode)type;
+                return (NamedTypeNode)innerType;
             }
         }
 
