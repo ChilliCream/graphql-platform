@@ -13,8 +13,7 @@
       "Kind": "Name",
       "Location": null,
       "Value": "quux"
-    },
-    "Value": "quux"
+    }
   },
   "Type": {
     "Kind": "NamedType",

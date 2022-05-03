@@ -44,10 +44,10 @@ public class BooleanValueNodeTests
         var c = new BooleanValueNode(new Location(1, 1, 1, 1), true);
 
         // act
-        var abResult = a.Equals(b);
-        var aaResult = a.Equals(a);
-        var acResult = a.Equals(c);
-        var aNullResult = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
         Assert.True(abResult);
@@ -65,10 +65,10 @@ public class BooleanValueNodeTests
         var c = new BooleanValueNode(new Location(3, 3, 3, 3), true);
 
         // act
-        var abResult = a.Equals(b);
-        var aaResult = a.Equals(a);
-        var acResult = a.Equals(c);
-        var aNullResult = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
         Assert.True(abResult);
@@ -86,66 +86,15 @@ public class BooleanValueNodeTests
         var c = new BooleanValueNode(true);
 
         // act
-        var abResult = a.Equals(b);
-        var aaResult = a.Equals(a);
-        var acResult = a.Equals(c);
-        var aNullResult = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
         Assert.True(abResult);
         Assert.True(aaResult);
         Assert.False(acResult);
-        Assert.False(aNullResult);
-    }
-
-    [Fact]
-    public void EqualsIValueNode()
-    {
-        // arrange
-        var a = new BooleanValueNode(false);
-        var b = new BooleanValueNode(false);
-        var c = new BooleanValueNode(true);
-        var d = new StringValueNode("foo");
-
-        // act
-        var ab_result = a.Equals((IValueNode)b);
-        var aa_result = a.Equals((IValueNode)a);
-        var ac_result = a.Equals((IValueNode)c);
-        var ad_result = a.Equals((IValueNode)d);
-        var anull_result = a.Equals(default(IValueNode));
-
-        // assert
-        Assert.True(ab_result);
-        Assert.True(aa_result);
-        Assert.False(ac_result);
-        Assert.False(ad_result);
-        Assert.False(anull_result);
-    }
-
-    [Fact]
-    public void EqualsObject()
-    {
-        // arrange
-        var a = new BooleanValueNode(false);
-        var b = new BooleanValueNode(false);
-        var c = new BooleanValueNode(true);
-        var d = "foo";
-        var e = 1;
-
-        // act
-        var abResult = a.Equals((object)b);
-        var aaResult = a.Equals((object)a);
-        var acResult = a.Equals((object)c);
-        var adResult = a.Equals((object)d);
-        var aeResult = a.Equals((object)e);
-        var aNullResult = a.Equals(default(object));
-
-        // assert
-        Assert.True(abResult);
-        Assert.True(aaResult);
-        Assert.False(acResult);
-        Assert.False(adResult);
-        Assert.False(aeResult);
         Assert.False(aNullResult);
     }
 
@@ -158,13 +107,13 @@ public class BooleanValueNodeTests
         var c = new BooleanValueNode(true);
 
         // act
-        var ahash = a.GetHashCode();
-        var bhash = b.GetHashCode();
-        var chash = c.GetHashCode();
+        var aHash = SyntaxComparer.BySyntax.GetHashCode(a);
+        var bHash = SyntaxComparer.BySyntax.GetHashCode(b);
+        var cHash = SyntaxComparer.BySyntax.GetHashCode(c);
 
         // assert
-        Assert.Equal(ahash, bhash);
-        Assert.NotEqual(ahash, chash);
+        Assert.Equal(aHash, bHash);
+        Assert.NotEqual(aHash, cHash);
     }
 
     [Fact]
@@ -177,10 +126,10 @@ public class BooleanValueNodeTests
         var d = new BooleanValueNode(new(2, 2, 2, 2), true);
 
         // act
-        var aHash = a.GetHashCode();
-        var bHash = b.GetHashCode();
-        var cHash = c.GetHashCode();
-        var dHash = d.GetHashCode();
+        var aHash = SyntaxComparer.BySyntax.GetHashCode(a);
+        var bHash = SyntaxComparer.BySyntax.GetHashCode(b);
+        var cHash = SyntaxComparer.BySyntax.GetHashCode(c);
+        var dHash = SyntaxComparer.BySyntax.GetHashCode(d);
 
         // assert
         Assert.Equal(aHash, bHash);

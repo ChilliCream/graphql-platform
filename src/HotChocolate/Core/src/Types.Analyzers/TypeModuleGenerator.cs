@@ -113,6 +113,10 @@ public class TypeModuleGenerator : IIncrementalGenerator
                         {
                             return ModuleOrType.Type(typeDisplayString, TypeKind.Type);
                         }
+                        else if (TypeExtensionClass.Contains(displayString))
+                        {
+                            return ModuleOrType.Type(typeDisplayString, TypeKind.TypeExtension);
+                        }
 
                         current = current.BaseType;
                     }

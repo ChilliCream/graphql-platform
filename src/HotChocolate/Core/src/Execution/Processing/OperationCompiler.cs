@@ -544,7 +544,7 @@ public sealed partial class OperationCompiler
                 return false;
 
             case SyntaxKind.ListValue:
-                ListValueNode list = (ListValueNode)valueLiteral;
+                var list = (ListValueNode)valueLiteral;
                 for (var i = 0; i < list.Items.Count; i++)
                 {
                     if (!CanBeCompiled(list.Items[i]))

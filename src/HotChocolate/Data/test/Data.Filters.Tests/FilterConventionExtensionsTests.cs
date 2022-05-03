@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Resolvers;
@@ -268,6 +269,11 @@ public class FilterConventionExtensionsTests
         public void ConfigureField(NameString argumentName, IObjectFieldDescriptor descriptor)
         {
             throw new NotImplementedException();
+        }
+
+        public IFilterMetadata? CreateMetaData(ITypeCompletionContext context, IFilterInputTypeDefinition typeDefinition, IFilterFieldDefinition fieldDefinition)
+        {
+            return null;
         }
     }
 

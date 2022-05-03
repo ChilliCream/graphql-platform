@@ -19,9 +19,7 @@ namespace HotChocolate.Language;
 /// <para>We refer to literal representation of input objects as “object literals.”
 /// </para>
 /// </summary>
-public sealed class ObjectValueNode
-    : IValueNode<IReadOnlyList<ObjectFieldNode>>
-    , IEquatable<ObjectValueNode>
+public sealed class ObjectValueNode : IValueNode<IReadOnlyList<ObjectFieldNode>>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectValueNode"/>.
@@ -76,110 +74,6 @@ public sealed class ObjectValueNode
     public IEnumerable<ISyntaxNode> GetNodes() => Fields;
 
     /// <summary>
-    /// Determines whether the specified <see cref="ObjectValueNode"/>
-    /// is equal to the current <see cref="ObjectValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="ObjectValueNode"/> to compare with the current
-    /// <see cref="ObjectValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="ObjectValueNode"/> is equal
-    /// to the current <see cref="ObjectValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(ObjectValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        return EqualityHelper.Equals(other.Fields, Fields);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="ObjectValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="IValueNode"/> to compare with the current
-    /// <see cref="ObjectValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="ObjectValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(IValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        if (other is ObjectValueNode o)
-        {
-            return Equals(o);
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="ObjectValueNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="ObjectValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="ObjectValueNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(obj, this))
-        {
-            return true;
-        }
-
-        return Equals(obj as ObjectValueNode);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="ObjectValueNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        var hashCode = new HashCode();
-        hashCode.Add(Kind);
-        hashCode.AddNodes(Fields);
-        return hashCode.ToHashCode();
-    }
-
-    /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </summary>
     /// <returns>
@@ -215,20 +109,14 @@ public sealed class ObjectValueNode
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
-    /// <see cref="Location" /> with <paramref name="location" />.
+    /// <see cref="Fields" /> with <paramref name="fields" />.
     /// </summary>
-    /// <param name="location">
-    /// The location that shall be used to replace the current location.
+    /// <param name="fields">
+    /// The fields that shall be used to replace the current <see cref="Fields"/>.
     /// </param>
     /// <returns>
-    /// Returns the new node with the new <paramref name="location" />.
+    /// Returns the new node with the new <paramref name="fields" />.
     /// </returns>
     public ObjectValueNode WithFields(IReadOnlyList<ObjectFieldNode> fields)
         => new(Location, fields);
-
-    public static bool operator ==(ObjectValueNode? left, ObjectValueNode? right)
-        => Equals(left, right);
-
-    public static bool operator !=(ObjectValueNode? left, ObjectValueNode? right)
-        => !Equals(left, right);
 }

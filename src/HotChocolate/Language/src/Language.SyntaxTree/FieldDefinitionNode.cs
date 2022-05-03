@@ -7,7 +7,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// Represents a filed definition of an interface- or object-type.
 /// </summary>
-public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefinitionNode>
+public sealed class FieldDefinitionNode : NamedSyntaxNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="FieldDefinitionNode"/>.
@@ -183,86 +183,4 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode, IEquatable<FieldDefin
     /// </returns>
     public FieldDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
         => new(Location, Name, Description, Arguments, Type, directives);
-
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <returns>
-    /// true if the current object is equal to the <paramref name="other" /> parameter;
-    /// otherwise, false.
-    /// </returns>
-    public bool Equals(FieldDefinitionNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return base.Equals(other) &&
-            Equals(Description, other.Description) &&
-            EqualityHelper.Equals(Arguments, other.Arguments) &&
-            Type.Equals(other.Type);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object.
-    /// </summary>
-    /// <param name="obj">
-    /// The object to compare with the current object.
-    /// </param>
-    /// <returns>
-    /// true if the specified object  is equal to the current object; otherwise, false.
-    /// </returns>
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is FieldDefinitionNode other && Equals(other));
-
-    /// <summary>
-    /// Serves as the default hash function.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current object.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hashCode = base.GetHashCode();
-            hashCode = (hashCode * 397) ^ Kind.GetHashCode();
-            hashCode = (hashCode * 397) ^ ((Description?.GetHashCode()) ?? 0);
-            hashCode = (hashCode * 397) ^ EqualityHelper.GetHashCode(Arguments);
-            hashCode = (hashCode * 397) ^ Type.GetHashCode();
-            return hashCode;
-        }
-    }
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(FieldDefinitionNode? left, FieldDefinitionNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(FieldDefinitionNode? left, FieldDefinitionNode? right)
-        => !Equals(left, right);
 }
