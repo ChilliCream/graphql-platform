@@ -7,9 +7,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// Represents a named type syntax.
 /// </summary>
-public sealed class NamedTypeNode
-    : INullableTypeNode
-    , IEquatable<NamedTypeNode>
+public sealed class NamedTypeNode : INullableTypeNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="NamedTypeNode"/>.
@@ -90,64 +88,6 @@ public sealed class NamedTypeNode
     public NamedTypeNode WithName(NameNode name) => new(Location, name);
 
     /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <returns>
-    /// true if the current object is equal to the <paramref name="other" /> parameter;
-    /// otherwise, false.
-    /// </returns>
-    public bool Equals(NamedTypeNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Name.Equals(other.Name);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object.
-    /// </summary>
-    /// <param name="obj">
-    /// The object to compare with the current object.
-    /// </param>
-    /// <returns>
-    /// true if the specified object  is equal to the current object; otherwise, false.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
-
-        return Equals(obj as NamedTypeNode);
-    }
-
-    /// <summary>
-    /// Serves as the default hash function.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current object.
-    /// </returns>
-    public override int GetHashCode()
-        => HashCode.Combine(Kind, Name);
-
-    /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </summary>
     /// <returns>
@@ -167,10 +107,4 @@ public sealed class NamedTypeNode
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
-
-    public static bool operator ==(NamedTypeNode? left, NamedTypeNode? right)
-        => Equals(left, right);
-
-    public static bool operator !=(NamedTypeNode? left, NamedTypeNode? right)
-        => !Equals(left, right);
 }

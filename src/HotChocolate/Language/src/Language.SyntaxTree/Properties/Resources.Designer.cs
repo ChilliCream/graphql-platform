@@ -86,5 +86,11 @@ namespace HotChocolate.Language.Properties {
                 return ResourceManager.GetString("IntValueNode_ValueCannotBeEmpty", resourceCulture);
             }
         }
+        
+        internal static string NameNode_Name_CannnotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("NameNode_Name_CannnotBeNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }

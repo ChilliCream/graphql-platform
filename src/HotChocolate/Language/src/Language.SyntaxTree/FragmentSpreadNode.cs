@@ -1,13 +1,9 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class FragmentSpreadNode
-    : NamedSyntaxNode
-    , ISelectionNode
-    , IEquatable<FragmentSpreadNode>
+public sealed class FragmentSpreadNode : NamedSyntaxNode, ISelectionNode
 {
     public FragmentSpreadNode(
         Location? location,
@@ -51,95 +47,10 @@ public sealed class FragmentSpreadNode
     /// </returns>
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public FragmentSpreadNode WithLocation(Location? location)
-    {
-        return new FragmentSpreadNode(location, Name, Directives);
-    }
+    public FragmentSpreadNode WithLocation(Location? location) => new(location, Name, Directives);
 
-    public FragmentSpreadNode WithName(NameNode name)
-    {
-        return new FragmentSpreadNode(Location, name, Directives);
-    }
+    public FragmentSpreadNode WithName(NameNode name) => new(Location, name, Directives);
 
-    public FragmentSpreadNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new FragmentSpreadNode(Location, Name, directives);
-    }
-
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <returns>
-    /// true if the current object is equal to the <paramref name="other" /> parameter;
-    /// otherwise, false.
-    /// </returns>
-    public bool Equals(FragmentSpreadNode? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return base.Equals(other);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object.
-    /// </summary>
-    /// <param name="obj">
-    /// The object to compare with the current object.
-    /// </param>
-    /// <returns>
-    /// true if the specified object  is equal to the current object; otherwise, false.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        return ReferenceEquals(this, obj) ||
-            (obj is FragmentSpreadNode other && Equals(other));
-    }
-
-
-    /// <summary>
-    /// Serves as the default hash function.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current object.
-    /// </returns>
-    public override int GetHashCode()
-        => HashCode.Combine(base.GetHashCode(), Kind);
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(
-        FragmentSpreadNode? left,
-        FragmentSpreadNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(
-        FragmentSpreadNode? left,
-        FragmentSpreadNode? right)
-        => !Equals(left, right);
+    public FragmentSpreadNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, directives);
 }

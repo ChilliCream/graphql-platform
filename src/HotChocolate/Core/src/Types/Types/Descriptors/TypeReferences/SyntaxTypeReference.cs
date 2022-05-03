@@ -57,7 +57,7 @@ public sealed class SyntaxTypeReference
             return false;
         }
 
-        return Type.IsEqualTo(other.Type);
+        return SyntaxComparer.BySyntax.Equals(Type, other.Type);
     }
 
     /// <inheritdoc />
@@ -104,12 +104,7 @@ public sealed class SyntaxTypeReference
 
     /// <inheritdoc />
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            return base.GetHashCode() ^ Type.GetHashCode() * 397;
-        }
-    }
+        => HashCode.Combine(base.GetHashCode(), SyntaxComparer.BySyntax.GetHashCode(Type));
 
     /// <inheritdoc />
     public override string ToString()
