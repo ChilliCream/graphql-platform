@@ -7,9 +7,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// Represent a GraphQL variable syntax.
 /// </summary>
-public sealed class VariableNode
-    : IValueNode<string>
-    , IEquatable<VariableNode>
+public sealed class VariableNode : IValueNode<string>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="VariableNode"/>.
@@ -72,107 +70,6 @@ public sealed class VariableNode
     }
 
     /// <summary>
-    /// Determines whether the specified <see cref="VariableNode"/>
-    /// is equal to the current <see cref="VariableNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="VariableNode"/> to compare with the current
-    /// <see cref="VariableNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="VariableNode"/> is equal
-    /// to the current <see cref="VariableNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(VariableNode? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Name.Equals(other.Name);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="VariableNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="IValueNode"/> to compare with the current
-    /// <see cref="VariableNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="VariableNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(IValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        if (other is VariableNode o)
-        {
-            return Equals(o);
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="VariableNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="VariableNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="VariableNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(obj, this))
-        {
-            return true;
-        }
-
-        return Equals(obj as VariableNode);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="VariableNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Kind, Name);
-    }
-
-    /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </summary>
     /// <returns>
@@ -216,30 +113,4 @@ public sealed class VariableNode
     /// Returns the new node with the new <paramref name="name" />.
     /// </returns>
     public VariableNode WithName(NameNode name) => new(Location, name);
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(
-        VariableNode? left,
-        VariableNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(
-        VariableNode? left,
-        VariableNode? right)
-        => !Equals(left, right);
 }

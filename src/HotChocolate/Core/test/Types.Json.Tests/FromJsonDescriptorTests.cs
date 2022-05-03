@@ -1,9 +1,9 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;

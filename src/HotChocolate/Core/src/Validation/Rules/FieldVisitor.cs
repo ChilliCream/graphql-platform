@@ -1,9 +1,11 @@
-using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
+using static System.StringComparison;
+using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -197,10 +199,9 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsTypeNameField(NameString fieldName)
-    {
-        return fieldName.Equals(IntrospectionFields.TypeName);
-    }
+        => fieldName.Equals(IntrospectionFields.TypeName);
 
     private static void TryMergeFieldsInSet(
         IDocumentValidatorContext context,
@@ -223,10 +224,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                 {
                     FieldInfo fieldB = fields[j];
                     if (!ReferenceEquals(fieldA.Field, fieldB.Field) &&
-                        string.Equals(
-                            fieldA.ResponseName,
-                            fieldB.ResponseName,
-                            StringComparison.Ordinal))
+                        string.Equals(fieldA.ResponseName, fieldB.ResponseName, Ordinal))
                     {
                         if (SameResponseShape(
                             fieldA.Type.RewriteNullability(fieldA.Field.Required),
@@ -234,7 +232,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                         {
                             if (IsParentTypeAligned(fieldA, fieldB))
                             {
-                                if (fieldA.Field.Name.Equals(fieldB.Field.Name) &&
+                                if (BySyntax.Equals(fieldA.Field.Name, fieldB.Field.Name) &&
                                     AreArgumentsIdentical(fieldA.Field, fieldB.Field))
                                 {
                                     TryMergeFieldsInSet(context, fieldA, fieldB);
@@ -307,9 +305,9 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             for (var j = 0; j < fieldB.Arguments.Count; j++)
             {
                 ArgumentNode argumentB = fieldB.Arguments[j];
-                if (argumentA.Name.Value.Equals(argumentB.Name.Value, StringComparison.Ordinal))
+                if (BySyntax.Equals(argumentA.Name, argumentB.Name))
                 {
-                    if (argumentA.Value.Equals(argumentB.Value))
+                    if (BySyntax.Equals(argumentA.Value, argumentB.Value))
                     {
                         validPairs++;
                     }
