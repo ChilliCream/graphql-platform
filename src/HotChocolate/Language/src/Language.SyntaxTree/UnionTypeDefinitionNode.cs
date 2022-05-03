@@ -186,7 +186,7 @@ public sealed class UnionTypeDefinitionNode
 
         return base.Equals(other)
                && Kind == other.Kind
-               && Description.IsEqualTo(other.Description);
+               && Description.EqualsNullable(other.Description);
     }
 
     /// <summary>

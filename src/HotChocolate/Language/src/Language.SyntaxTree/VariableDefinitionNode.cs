@@ -198,9 +198,9 @@ public sealed class VariableDefinitionNode
         }
 
         return Kind == other.Kind
-               && Variable.IsEqualTo(other.Variable)
+               && Variable.EqualsNullable(other.Variable)
                && Type.IsEqualTo(other.Type)
-               && DefaultValue.IsEqualTo(other.DefaultValue)
+               && DefaultValue.EqualsNullable(other.DefaultValue)
                && Directives.IsEqualTo(other.Directives);
     }
 
