@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 #nullable enable
@@ -58,6 +61,14 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     /// Gets the input formatter.
     /// </summary>
     InputFormatter InputFormatter { get; }
+
+    /// <summary>
+    /// Tries to resolve a schema building directive for the 
+    /// specified <paramref name="directiveNode"/>.
+    /// </summary>
+    bool TryGetSchemaDirective(
+        DirectiveNode directiveNode, 
+        [NotNullWhen(true)] out ISchemaDirective? directive);
 
     /// <summary>
     /// Gets a custom convention.

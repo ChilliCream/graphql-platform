@@ -2,7 +2,7 @@
 title: "Input Object Types"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 We already looked at [arguments](/docs/hotchocolate/defining-a-schema/arguments), which allow us to use simple [scalars](/docs/hotchocolate/defining-a-schema/scalars) like `String` to pass data into a field. GraphQL defines input object types to allow us to use objects as arguments on our fields.
 
@@ -20,7 +20,7 @@ input BookInput {
 Input object types can be defined like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class BookInput
@@ -80,8 +80,8 @@ type Mutation {
 
 > Note: While it is possible, it is not encouraged, as it complicates future extensions of either type.
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class BookInput
@@ -123,8 +123,8 @@ The `IInputTypeDescriptor` is really similar to the `IObjectTypeDescriptor` and 
 
 [Learn more about object types](/docs/hotchocolate/defining-a-schema/object-types)
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class BookInput
@@ -161,7 +161,7 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Immutable types
@@ -195,9 +195,36 @@ We can also use record types, if we're on C# 9.0+. The equivalent to the above w
 public record BookingInput(string Title, string Author);
 ```
 
+## Optional Properties
+
+If we want our input type classes to contain optional properties, we can use the `Optional<T>` type or mark the properties of the class as `nullable`. It is important to also define a default value for any non-nullable property that is using the `Optional<T>` type by adding the `[DefaultValue]` attribute, otherwise the field will still be required when defining the input.
+
+```csharp
+public class BookInput
+{
+    [DefaultValue("")]
+    public Optional<string> Title { get; set; }
+    public string Author { get; set; }
+
+    public BookInput(string title, string author)
+    {
+        Title = title;
+        Author = author;
+    }
+}
+
+```
+
+Also with record types, the equivalent of the above would be:
+
+```csharp
+public record BookInput([property:DefaultValue("")]Optional<string> Title, string Author);
+
+```
+
 ## Oneof Input Objects
 
-Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null, all others being omitted. This is represented in introspection with the __Type.oneField: Boolean field, and in SDL via the @oneOf directive on the input object.
+Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null, all others being omitted. This is represented in introspection with the \_\_Type.oneField: Boolean field, and in SDL via the @oneOf directive on the input object.
 
 > ⚠️ Note: Oneof Input Objects is currently a proposed feature to the GraphQL spec. https://github.com/graphql/graphql-spec/pull/825
 
@@ -231,7 +258,7 @@ builder.Services
 Once activate you can create Oneof Input Objects like the following:
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [OneOf]
@@ -242,7 +269,7 @@ public class PetInput
     public Cat? Cat { get; set; }
 }
 
-public interface IPet 
+public interface IPet
 {
     string Name { get; }
 }
@@ -299,8 +326,8 @@ type Mutation {
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class PetInput
@@ -393,8 +420,8 @@ type Mutation {
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ```csharp
 public class PetInput
@@ -404,7 +431,7 @@ public class PetInput
     public Cat? Cat { get; set; }
 }
 
-public interface IPet 
+public interface IPet
 {
     string Name { get; }
 }
@@ -471,5 +498,5 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

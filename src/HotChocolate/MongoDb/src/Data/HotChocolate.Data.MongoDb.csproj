@@ -4,6 +4,9 @@
     <PackageId>HotChocolate.Data.MongoDb</PackageId>
     <AssemblyName>HotChocolate.Data.MongoDb</AssemblyName>
     <RootNamespace>HotChocolate.Data.MongoDb</RootNamespace>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NeutralLanguage>en</NeutralLanguage>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
     <Description>Contains extensions for seamless integration of MongoDb into the HotChocolate.Data package</Description>
   </PropertyGroup>
@@ -12,6 +15,7 @@
     <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj"/>
     <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj"/>
     <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj"/>
+    <ProjectReference Include="..\Types\HotChocolate.Types.MongoDb.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

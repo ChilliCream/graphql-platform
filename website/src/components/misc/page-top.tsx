@@ -3,7 +3,11 @@ import styled from "styled-components";
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
 import { useObservable } from "../../state";
 
-export const PageTop: FC<{ onTopScroll: () => void }> = ({ onTopScroll }) => {
+export interface PageTopProps {
+  readonly onTopScroll: () => void;
+}
+
+export const PageTop: FC<PageTopProps> = ({ onTopScroll }) => {
   const ref = useRef<HTMLButtonElement>(null);
 
   const showButton$ = useObservable((state) => {

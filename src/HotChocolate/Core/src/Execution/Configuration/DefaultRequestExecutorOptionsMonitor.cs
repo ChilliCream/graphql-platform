@@ -121,7 +121,7 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
         }
     }
 
-    private class Session : IDisposable
+    private sealed class Session : IDisposable
     {
         private readonly DefaultRequestExecutorOptionsMonitor _monitor;
         private readonly Action<NameString> _listener;

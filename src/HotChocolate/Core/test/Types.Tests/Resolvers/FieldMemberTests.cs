@@ -334,7 +334,7 @@ namespace HotChocolate.Resolvers
             return typeof(Foo).GetProperty("BarB");
         }
 
-        private class Foo
+        private sealed class Foo
         {
             public string BarA { get; }
             public string BarB { get; }

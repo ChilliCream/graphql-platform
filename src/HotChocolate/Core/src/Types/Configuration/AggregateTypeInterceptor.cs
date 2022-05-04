@@ -140,7 +140,8 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
                     }
                 }
 
-                _typeReferences.AddRange(interceptor.RegisterMoreTypes(_discoveryContexts));
+                _typeReferences.AddRange(
+                    interceptor.RegisterMoreTypes(_discoveryContexts).Distinct());
             }
 
             _discoveryContexts.Clear();

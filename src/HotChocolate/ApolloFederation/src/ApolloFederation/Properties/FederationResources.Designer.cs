@@ -164,5 +164,11 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("Any_Description", resourceCulture);
             }
         }
+        
+        internal static string ResolveReference_MustBeMethod {
+            get {
+                return ResourceManager.GetString("ResolveReference_MustBeMethod", resourceCulture);
+            }
+        }
     }
 }

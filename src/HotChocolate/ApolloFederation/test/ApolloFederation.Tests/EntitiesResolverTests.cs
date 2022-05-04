@@ -1,8 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using Xunit;
+using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -17,22 +19,22 @@ public class EntitiesResolverTests
             .AddQueryType<Query>()
             .Create();
 
+        IResolverContext context = CreateResolverContext(schema);
+
         // act
-        var context = new MockResolverContext(schema);
-        var representations = new List<Representation>()
-            {
-                new Representation(){Typename = "ForeignType", Data = new ObjectValueNode(
-                    new ObjectFieldNode("Id", "1"),
-                    new ObjectFieldNode("SomeExternalField", "someExternalField")
-                    )}
-            };
+        var representations = new List<Representation>
+        {
+            new("ForeignType", new ObjectValueNode(
+                new ObjectFieldNode("id", "1"),
+                new ObjectFieldNode("someExternalField", "someExternalField")))
+        };
 
         // assert
-        List<object?>? result = await EntitiesResolver._Entities(schema, representations, context);
-        ForeignType? obj = Assert.IsType<ForeignType>(result[0]);
+        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
+        ForeignType obj = Assert.IsType<ForeignType>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("someExternalField", obj.SomeExternalField);
-        Assert.Equal("IntenalValue", obj.InternalField);
+        Assert.Equal("InternalValue", obj.InternalField);
     }
 
     [Fact]
@@ -44,22 +46,22 @@ public class EntitiesResolverTests
             .AddQueryType<Query>()
             .Create();
 
+        IResolverContext context = CreateResolverContext(schema);
+
         // act
-        var context = new MockResolverContext(schema);
-        var representations = new List<Representation>()
-            {
-                new Representation(){Typename = "MixedFieldTypes", Data = new ObjectValueNode(
-                    new ObjectFieldNode("Id", "1"),
-                    new ObjectFieldNode("IntField", 25)
-                )}
-            };
+        var representations = new List<Representation>
+        {
+            new("MixedFieldTypes",new ObjectValueNode(
+                new ObjectFieldNode("id", "1"),
+                new ObjectFieldNode("intField", 25)))
+        };
 
         // assert
-        List<object?>? result = await EntitiesResolver._Entities(schema, representations, context);
-        MixedFieldTypes? obj = Assert.IsType<MixedFieldTypes>(result[0]);
+        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
+        MixedFieldTypes obj = Assert.IsType<MixedFieldTypes>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal(25, obj.IntField);
-        Assert.Equal("IntenalValue", obj.InternalField);
+        Assert.Equal("InternalValue", obj.InternalField);
     }
 
     [Fact]
@@ -70,18 +72,17 @@ public class EntitiesResolverTests
             .AddQueryType<Query>()
             .Create();
 
+        IResolverContext context = CreateResolverContext(schema);
+
         // act
-        var context = new MockResolverContext(schema);
-        var representations = new List<Representation>()
-            {
-                new Representation(){Typename = "TypeWithReferenceResolver", Data = new ObjectValueNode(
-                    new ObjectFieldNode("Id", "1")
-                )}
-            };
+        var representations = new List<Representation>
+        {
+            new("TypeWithReferenceResolver", new ObjectValueNode(new ObjectFieldNode("Id", "1")))
+        };
 
         // assert
-        List<object?>? result = await EntitiesResolver._Entities(schema, representations, context);
-        TypeWithReferenceResolver? obj = Assert.IsType<TypeWithReferenceResolver>(result[0]);
+        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
+        TypeWithReferenceResolver obj = Assert.IsType<TypeWithReferenceResolver>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("SomeField", obj.SomeField);
     }
@@ -94,16 +95,17 @@ public class EntitiesResolverTests
             .AddQueryType<Query>()
             .Create();
 
+        IResolverContext context = CreateResolverContext(schema);
+
         // act
-        var context = new MockResolverContext(schema);
-        var representations = new List<Representation>()
-            {
-                new Representation(){Typename = "NonExistingTypeName", Data = new ObjectValueNode()}
-            };
+        var representations = new List<Representation>
+        {
+            new("NonExistingTypeName", new ObjectValueNode())
+        };
 
         // assert
-        Func<Task> shouldThrow = () => EntitiesResolver._Entities(schema, representations, context);
-        await Assert.ThrowsAsync<SchemaException>(shouldThrow);
+        Task ShouldThrow() => EntitiesResolver.ResolveAsync(schema, representations, context);
+        await Assert.ThrowsAsync<SchemaException>(ShouldThrow);
     }
 
     [Fact]
@@ -114,16 +116,17 @@ public class EntitiesResolverTests
             .AddQueryType<Query>()
             .Create();
 
+        IResolverContext context = CreateResolverContext(schema);
+
         // act
-        var context = new MockResolverContext(schema);
-        var representations = new List<Representation>()
-            {
-                new Representation(){Typename = "TypeWithoutRefResolver", Data = new ObjectValueNode()}
-            };
+        var representations = new List<Representation>
+        {
+            new("TypeWithoutRefResolver", new ObjectValueNode())
+        };
 
         // assert
-        Func<Task> shouldThrow = () => EntitiesResolver._Entities(schema, representations, context);
-        await Assert.ThrowsAsync<SchemaException>(shouldThrow);
+        Task ShouldThrow() => EntitiesResolver.ResolveAsync(schema, representations, context);
+        await Assert.ThrowsAsync<SchemaException>(ShouldThrow);
     }
 
     public class Query
@@ -147,33 +150,56 @@ public class EntitiesResolverTests
 
         public static TypeWithReferenceResolver Get([LocalState] ObjectValueNode data)
         {
-            return new TypeWithReferenceResolver() { Id = "1", SomeField = "SomeField" };
+            return new TypeWithReferenceResolver
+            {
+                Id = "1",
+                SomeField = "SomeField"
+            };
         }
     }
 
-    [ForeignServiceTypeExtension]
+    [ExtendServiceType]
     public class ForeignType
     {
+        public ForeignType(string id, string someExternalField)
+        {
+            Id = id;
+            SomeExternalField = someExternalField;
+        }
+
         [Key]
         [External]
-        public string Id { get; set; } = default!;
+        public string Id { get; }
 
         [External]
-        public string SomeExternalField { get; set; } = default!;
+        public string SomeExternalField { get; }
 
-        public string InternalField { get; set; } = "IntenalValue";
+        public string InternalField => "InternalValue";
+
+        [ReferenceResolver]
+        public static ForeignType GetById(string id, string someExternalField)
+            => new(id, someExternalField);
     }
 
-    [ForeignServiceTypeExtension]
+    [ExtendServiceType]
     public class MixedFieldTypes
     {
+        public MixedFieldTypes(string id, int intField)
+        {
+            Id = id;
+            IntField = intField;
+        }
+
         [Key]
         [External]
-        public string Id { get; set; } = default!;
+        public string Id { get; }
 
         [External]
-        public int IntField { get; set; }
+        public int IntField { get; }
 
-        public string InternalField { get; set; } = "IntenalValue";
+        public string InternalField { get; set; } = "InternalValue";
+
+        [ReferenceResolver]
+        public static MixedFieldTypes GetByExternal(string id, int intField) => new(id, intField);
     }
 }

@@ -5,13 +5,13 @@ using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Spatial
+namespace HotChocolate.Types.Spatial;
+
+public class GeoJsonMultiLineStringTypeTests
 {
-    public class GeoJsonMultiLineStringTypeTests
-    {
-        private readonly MultiLineString _geom = new MultiLineString(
-            new[]
-            {
+    private readonly MultiLineString _geom = new MultiLineString(
+        new[]
+        {
                 new LineString(new[]
                 {
                     new Coordinate(10, 10),
@@ -25,67 +25,66 @@ namespace HotChocolate.Types.Spatial
                     new Coordinate(40, 20),
                     new Coordinate(30, 10)
                 })
-            });
+        });
 
-        [Fact]
-        public async Task MultiLineString_Execution_Output()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddConvention<INamingConventions, MockNamingConvention>()
-                .BindClrType<Coordinate, GeoJsonPositionType>()
-                .AddType<GeoJsonMultiLineStringType>()
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Resolve(_geom))
-                .Create();
+    [Fact]
+    public async Task MultiLineString_Execution_Output()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .AddType<GeoJsonMultiLineStringType>()
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("test")
+                .Resolve(_geom))
+            .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+        IRequestExecutor executor = schema.MakeExecutable();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                "{ test { type coordinates bbox crs }}");
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            "{ test { type coordinates bbox crs }}");
 
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task MultiLineString_Execution_With_Fragments()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddConvention<INamingConventions, MockNamingConvention>()
-                .AddSpatialTypes()
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Type<GeoJsonMultiLineStringType>()
-                    .Resolve(_geom))
-                .Create();
-            IRequestExecutor executor = schema.MakeExecutable();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                "{ test { ... on MultiLineString { type coordinates bbox crs }}}");
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public void MultiLineString_Execution_Tests() =>
-            SchemaBuilder.New()
-                .AddConvention<INamingConventions, MockNamingConvention>()
-                .BindClrType<Coordinate, GeoJsonPositionType>()
-                .AddType<GeoJsonMultiLineStringType>()
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Resolve(_geom))
-                .Create()
-                .Print()
-                .MatchSnapshot();
+        // assert
+        result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task MultiLineString_Execution_With_Fragments()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddSpatialTypes()
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("test")
+                .Type<GeoJsonMultiLineStringType>()
+                .Resolve(_geom))
+            .Create();
+        IRequestExecutor executor = schema.MakeExecutable();
+
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            "{ test { ... on MultiLineString { type coordinates bbox crs }}}");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public void MultiLineString_Execution_Tests() =>
+        SchemaBuilder.New()
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .AddType<GeoJsonMultiLineStringType>()
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("test")
+                .Resolve(_geom))
+            .Create()
+            .Print()
+            .MatchSnapshot();
 }

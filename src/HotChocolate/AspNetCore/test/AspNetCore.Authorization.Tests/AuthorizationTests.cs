@@ -2,7 +2,7 @@ using System;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Builder;

@@ -287,7 +287,7 @@ namespace HotChocolate.Types
             IValueNode result = scalar.ParseValue(runtime);
 
             // assert
-            Assert.Equal(expected, result);
+            Assert.Equal(expected, result, SyntaxComparer.BySyntax);
         }
 
         [Fact]
@@ -463,7 +463,7 @@ namespace HotChocolate.Types
             IExecutionResult res = await executor.ExecuteAsync("{ test }");
 
             // assert
-            (await res.ToJsonAsync()).MatchSnapshot();
+            res.ToJson().MatchSnapshot();
         }
 
         public class DefaultLatitude

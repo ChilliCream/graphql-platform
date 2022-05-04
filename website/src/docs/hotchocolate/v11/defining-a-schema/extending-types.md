@@ -2,7 +2,7 @@
 title: "Extending Types"
 ---
 
-import { ExampleTabs } from "../../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 Type extensions allow us to add, remove or replace fields on existing types, without necessarily needing access to these types.
 
@@ -32,7 +32,7 @@ public class Book
 We can easily add new fields to our existing `Book` type.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [ExtendObjectType(typeof(Book))]
@@ -78,8 +78,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class BookTypeExtensions : ObjectTypeExtension<Book>
@@ -137,12 +137,12 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Simply add a new field to the existing type.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Removing fields
@@ -150,7 +150,7 @@ Simply add a new field to the existing type.
 We can also ignore fields of the type we are extending.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [ExtendObjectType(typeof(Book),
@@ -170,8 +170,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 **This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
 
@@ -195,12 +195,12 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Simply remove the field from the existing type.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Replacing fields
@@ -210,7 +210,7 @@ We might have an `Id` field, which we want to replace with a field that resolves
 In this example we replace the `authorId` field with an `author` field.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [ExtendObjectType(typeof(Book))]
@@ -234,8 +234,8 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 **This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
 
@@ -268,12 +268,12 @@ public class Startup
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Simply replace the field on the existing type.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 ## Extending by name
@@ -281,7 +281,7 @@ Simply replace the field on the existing type.
 If we can not reference a type, we can still extend it by specifying its name.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 [ExtendObjectType("Foo")]
@@ -291,8 +291,8 @@ public class FooExtensions
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class FooTypeExtensions : ObjectTypeExtension
@@ -306,12 +306,12 @@ public class FooTypeExtensions : ObjectTypeExtension
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 ⚠️ Schema-first does currently not support extending types by their name
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>
 
 When extending root types, we can make use of the constants in `OperationTypeNames`. We can for example use `OperationTypeNames.Query` instead of writing `"Query"` everywhere.

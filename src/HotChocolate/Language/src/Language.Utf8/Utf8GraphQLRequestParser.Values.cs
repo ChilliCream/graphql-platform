@@ -83,7 +83,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 TokenPrinter.Print(in _reader));
         }
 
-        string name = _reader.GetString();
+        var name = _reader.GetString();
         _reader.MoveNext();
         _reader.Expect(TokenKind.Colon);
         var value = ParseValue();

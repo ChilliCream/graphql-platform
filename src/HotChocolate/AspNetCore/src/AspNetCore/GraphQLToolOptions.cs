@@ -5,7 +5,7 @@ namespace HotChocolate.AspNetCore;
 /// <summary>
 /// Represents the GraphQL tool options for Banana Cake Pop.
 /// </summary>
-public class GraphQLToolOptions
+public sealed class GraphQLToolOptions
 {
     /// <summary>
     /// Gets or sets the website title.

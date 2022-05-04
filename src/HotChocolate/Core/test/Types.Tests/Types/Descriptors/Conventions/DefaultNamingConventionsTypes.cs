@@ -110,15 +110,15 @@ namespace HotChocolate.Types.Descriptors
             [GraphQLDescription("Baz Desc")] Baz
         }
 
-        private class MyInputType : InputObjectType
+        private sealed class MyInputType : InputObjectType
         {
         }
 
-        private class MyType : InputObjectType
+        private sealed class MyType : InputObjectType
         {
         }
 
-        private class MyInput : InputObjectType
+        private sealed class MyInput : InputObjectType
         {
         }
 

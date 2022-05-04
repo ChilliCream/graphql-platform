@@ -1,0 +1,10 @@
+﻿{
+  "message": "Required argument QueryWithDeprecatedArgumentsIllegal.field(deprecated) cannot be deprecated.",
+  "type": "QueryWithDeprecatedArgumentsIllegal",
+  "extensions": {
+    "argument": "deprecated",
+    "field": "field",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/805",
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
+  }
+}

@@ -6,12 +6,13 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 
-class Helpers
+static class Helpers
 {
     static readonly string[] Directories =
     {
         "GreenDonut",
         Path.Combine("HotChocolate", "Analyzers"),
+        Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "AzureFunctions"),
         Path.Combine("HotChocolate", "Core"),
@@ -28,6 +29,7 @@ class Helpers
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
         Path.Combine("StrawberryShake", "CodeGeneration"),
+        Path.Combine("StrawberryShake", "SourceGenerator"),
         Path.Combine("StrawberryShake", "Tooling")
     };
 

@@ -2,7 +2,7 @@
 title: Global State
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
 Global State allows us to define properties on a per-request basis to be made available to all resolvers and middleware.
 
@@ -39,7 +39,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 We can access the Global State in our resolvers like the following.
 
 <ExampleTabs>
-<ExampleTabs.Annotation>
+<Annotation>
 
 ```csharp
 public class Query
@@ -78,8 +78,8 @@ public class Query
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+</Annotation>
+<Code>
 
 ```csharp
 public class QueryType : ObjectType
@@ -98,7 +98,7 @@ public class QueryType : ObjectType
 }
 ```
 
-> ⚠ Note: If no value exists for the specified `key` a default value is returned an no exception is thrown.
+> ⚠️ Note: If no value exists for the specified `key` a default value is returned an no exception is thrown.
 
 We can also access the Global State through the `ContextData` dictionary on the `IResolverContext`.
 
@@ -117,10 +117,10 @@ descriptor
     });
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+</Code>
+<Schema>
 
 Take a look at the Annotation-based or Code-first example.
 
-</ExampleTabs.Schema>
+</Schema>
 </ExampleTabs>

@@ -95,7 +95,7 @@ public class ToolOptionsFileMiddleware
             _ => null
         };
 
-    private class BananaCakePopConfiguration
+    private sealed class BananaCakePopConfiguration
     {
         public string? Title { get; set; }
 

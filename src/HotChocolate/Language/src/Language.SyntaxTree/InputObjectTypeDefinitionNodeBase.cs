@@ -3,9 +3,26 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language;
 
-public abstract class InputObjectTypeDefinitionNodeBase
-    : NamedSyntaxNode
+/// <summary>
+/// The base class for input object types and input object type extensions.
+/// </summary>
+public abstract class InputObjectTypeDefinitionNodeBase : NamedSyntaxNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="InputObjectTypeDefinitionNodeBase"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name of the input object type.
+    /// </param>
+    /// <param name="directives">
+    /// The directives of the input object type.
+    /// </param>
+    /// <param name="fields">
+    /// The input fields of the input object type.
+    /// </param>
     protected InputObjectTypeDefinitionNodeBase(
         Location? location,
         NameNode name,
@@ -16,5 +33,8 @@ public abstract class InputObjectTypeDefinitionNodeBase
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
     }
 
+    /// <summary>
+    /// Gets the input fields.
+    /// </summary>
     public IReadOnlyList<InputValueDefinitionNode> Fields { get; }
 }

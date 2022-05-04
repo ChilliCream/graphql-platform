@@ -218,7 +218,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
         return range;
     }
 
-    private class SkipLastCollection<T> : IReadOnlyList<T>
+    private sealed class SkipLastCollection<T> : IReadOnlyList<T>
     {
         private readonly IReadOnlyList<T> _items;
         private readonly bool _skipLast;

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
                 await schema.MakeExecutable().ExecuteAsync("{ test }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
                 await schema.MakeExecutable().ExecuteAsync("{ test }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -63,7 +63,7 @@ namespace HotChocolate.Execution
                 await schema.MakeExecutable().ExecuteAsync("{ query }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -87,7 +87,7 @@ namespace HotChocolate.Execution
                         ");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -116,13 +116,11 @@ namespace HotChocolate.Execution
             // arrange
             ISchema schema = CreateSchema();
 
-            var context = new Mock<IResolverContext>(
-                MockBehavior.Strict);
             UnionType fooBar = schema.GetType<UnionType>("FooBar");
 
             // act
-            bool shouldBeFalse = fooBar.ContainsType("Tea");
-            bool shouldBeTrue = fooBar.ContainsType("Bar");
+            var shouldBeFalse = fooBar.ContainsType("Tea");
+            var shouldBeTrue = fooBar.ContainsType("Bar");
 
             // assert
             Assert.True(shouldBeTrue);
@@ -135,15 +133,13 @@ namespace HotChocolate.Execution
             // arrange
             ISchema schema = CreateSchema();
 
-            var context = new Mock<IResolverContext>(
-                MockBehavior.Strict);
             UnionType fooBar = schema.GetType<UnionType>("FooBar");
             ObjectType bar = schema.GetType<ObjectType>("Bar");
             ObjectType tea = schema.GetType<ObjectType>("Tea");
 
             // act
-            bool shouldBeTrue = fooBar.ContainsType(bar);
-            bool shouldBeFalse = fooBar.ContainsType(tea);
+            var shouldBeTrue = fooBar.ContainsType(bar);
+            var shouldBeFalse = fooBar.ContainsType(tea);
 
             // assert
             Assert.True(shouldBeTrue);
@@ -156,15 +152,13 @@ namespace HotChocolate.Execution
             // arrange
             ISchema schema = CreateSchema();
 
-            var context = new Mock<IResolverContext>(
-                MockBehavior.Strict);
             IUnionType fooBar = schema.GetType<UnionType>("FooBar");
             IObjectType tea = schema.GetType<ObjectType>("Tea");
             IObjectType bar = schema.GetType<ObjectType>("Bar");
 
             // act
-            bool shouldBeFalse = fooBar.ContainsType(tea);
-            bool shouldBeTrue = fooBar.ContainsType(bar);
+            var shouldBeFalse = fooBar.ContainsType(tea);
+            var shouldBeTrue = fooBar.ContainsType(bar);
 
             // assert
             Assert.True(shouldBeTrue);
@@ -183,7 +177,7 @@ namespace HotChocolate.Execution
                     "{ drink { ... on Tea { kind } } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -217,7 +211,7 @@ namespace HotChocolate.Execution
                     "{ dog { name } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -233,7 +227,7 @@ namespace HotChocolate.Execution
                     "{ dog { desc } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -249,7 +243,7 @@ namespace HotChocolate.Execution
                     "{ dog { name2 } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -265,7 +259,7 @@ namespace HotChocolate.Execution
                     "{ dog { names } }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 

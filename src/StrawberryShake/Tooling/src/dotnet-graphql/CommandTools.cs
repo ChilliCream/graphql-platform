@@ -32,7 +32,7 @@ namespace StrawberryShake.Tools
 
             if (error.Extensions is { } && error.Extensions.ContainsKey("fileName"))
             {
-                message.Append($"{IOPath.GetFullPath((string)error.Extensions["fileName"])}");
+                message.Append($"{IOPath.GetFullPath((string)error.Extensions["fileName"]!)}");
             }
 
             if (error.Locations is { } && error.Locations.Count > 0)

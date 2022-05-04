@@ -489,6 +489,18 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string QueryableFiltering_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableFiltering_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+
+        internal static string QueryableFilterProvider_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableFilterProvider_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+
         internal static string QueryableFiltering_NoMemberDeclared {
             get {
                 return ResourceManager.GetString("QueryableFiltering_NoMemberDeclared", resourceCulture);
@@ -543,6 +555,18 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string QueryableSorting_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableSorting_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableSortProvider_ExpressionParameterInvalid {
+            get {
+                return ResourceManager.GetString("QueryableSortProvider_ExpressionParameterInvalid", resourceCulture);
+            }
+        }
+        
         internal static string QueryableSorting_NoMemberDeclared {
             get {
                 return ResourceManager.GetString("QueryableSorting_NoMemberDeclared", resourceCulture);
@@ -570,6 +594,54 @@ namespace HotChocolate.Data {
         internal static string GlobalIdInputValueFormatter_IdsHaveInvalidFormat {
             get {
                 return ResourceManager.GetString("GlobalIdInputValueFormatter_IdsHaveInvalidFormat", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_InlineFilterTypeHadNoFields {
+            get {
+                return ResourceManager.GetString("Filtering_InlineFilterTypeHadNoFields", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_FieldHadNoType {
+            get {
+                return ResourceManager.GetString("Filtering_FieldHadNoType", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_DefinitionForTypeNotFound {
+            get {
+                return ResourceManager.GetString("Filtering_DefinitionForTypeNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string Sorting_InlineFilterTypeHadNoFields {
+            get {
+                return ResourceManager.GetString("Sorting_InlineFilterTypeHadNoFields", resourceCulture);
+            }
+        }
+        
+        internal static string Sorting_FieldHadNoType {
+            get {
+                return ResourceManager.GetString("Sorting_FieldHadNoType", resourceCulture);
+            }
+        }
+        
+        internal static string Sorting_DefinitionForTypeNotFound {
+            get {
+                return ResourceManager.GetString("Sorting_DefinitionForTypeNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string SelectionContext_NoTypeForAbstractFieldProvided {
+            get {
+                return ResourceManager.GetString("SelectionContext_NoTypeForAbstractFieldProvided", resourceCulture);
+            }
+        }
+        
+        internal static string NameHelpers_UppercaseFirstLetter {
+            get {
+                return ResourceManager.GetString("NameHelpers_UppercaseFirstLetter", resourceCulture);
             }
         }
     }

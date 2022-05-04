@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Batching;
 
 internal partial class BatchExecutor
 {
-    private class BatchExecutorEnumerable : IAsyncEnumerable<IQueryResult>
+    private sealed class BatchExecutorEnumerable : IAsyncEnumerable<IQueryResult>
     {
         private readonly IEnumerable<IQueryRequest> _requestBatch;
         private readonly IRequestExecutor _requestExecutor;
@@ -103,7 +103,7 @@ internal partial class BatchExecutor
                     .SetQueryHash(null)
                     .Create();
 
-                return (IReadOnlyQueryResult)await _requestExecutor.ExecuteAsync(
+                return (IQueryResult)await _requestExecutor.ExecuteAsync(
                     request, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -146,13 +146,12 @@ internal partial class BatchExecutor
                 return variables;
             }
 
-            ILookup<string, ExportedVariable> exported =
-                _exportedVariables.ToLookup(t => t.Name);
+            ILookup<string, ExportedVariable> exported = _exportedVariables.ToLookup(t => t.Name);
             var merged = new Dictionary<string, object?>();
 
             foreach (VariableDefinitionNode variableDefinition in operation.VariableDefinitions)
             {
-                string variableName = variableDefinition.Variable.Name.Value;
+                var variableName = variableDefinition.Variable.Name.Value;
 
                 if (!exported[variableName].Any())
                 {
@@ -210,7 +209,7 @@ internal partial class BatchExecutor
             return merged;
         }
 
-        private object? Serialize(ExportedVariable exported, ITypeNode type)
+        private object Serialize(ExportedVariable exported, ITypeNode type)
         {
             if (_requestExecutor.Schema.TryGetType<INamedInputType>(
                 type.NamedType().Name.Value,

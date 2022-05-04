@@ -19,7 +19,7 @@ public readonly struct ResultValue : IEquatable<ResultValue>
     /// Specifies if the <paramref name="value"/> is allowed to be null.
     /// </param>
     /// <exception cref="ArgumentException">
-    /// <see cref="name"/> is <c>null</c> or <see cref="string.Empty"/>.
+    /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
     /// </exception>
     public ResultValue(string name, object? value, bool isNullable = true)
     {

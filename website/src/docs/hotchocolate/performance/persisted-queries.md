@@ -57,6 +57,8 @@ To load persisted queries from the filesystem, we have to add the following pack
 dotnet add package HotChocolate.PersistedQueries.FileSystem
 ```
 
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+
 After this we need to specify where the persisted queries are located. The argument of `AddReadOnlyFileSystemQueryStorage()` specifies the directory in which the persisted queries are stored.
 
 ```csharp
@@ -85,6 +87,8 @@ To load persisted queries from Redis, we have to add the following package.
 ```bash
 dotnet add package HotChocolate.PersistedQueries.Redis
 ```
+
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
 After this we need to specify where the persisted queries are located. Using `AddReadOnlyRedisQueryStorage()` we can point to a specific Redis database in which the persisted queries are stored.
 

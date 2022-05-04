@@ -38,7 +38,7 @@ public static class AutoMapperQueryableExtensions
 
         QueryableProjectionVisitor.Default.Visit(visitorContext);
 
-        Expression<Func<TResult, object>> projection = visitorContext.Project<TResult, object>();
+        Expression<Func<TResult, object?>> projection = visitorContext.Project<TResult, object?>();
 
         return queryable.ProjectTo(mapper.ConfigurationProvider, projection);
     }

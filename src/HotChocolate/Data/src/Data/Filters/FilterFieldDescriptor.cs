@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -36,6 +37,23 @@ public class FilterFieldDescriptor
         Definition.Description = convention.GetFieldDescription(member);
         Definition.Type = convention.GetFieldType(member);
         Definition.Scope = scope;
+    }
+
+    protected FilterFieldDescriptor(
+        IDescriptorContext context,
+        string? scope,
+        Expression expression)
+        : base(context)
+    {
+        IFilterConvention convention = context.GetFilterConvention(scope);
+
+        Definition.Expression = expression;
+        Definition.Scope = scope;
+        if (Definition.Expression is LambdaExpression lambda)
+        {
+            Definition.Type = convention.GetFieldType(lambda.ReturnType);
+            Definition.RuntimeType = lambda.ReturnType;
+        }
     }
 
     protected internal FilterFieldDescriptor(
@@ -85,9 +103,15 @@ public class FilterFieldDescriptor
         return this;
     }
 
-    public new IFilterFieldDescriptor Description(string value)
+   public new IFilterFieldDescriptor Description(string value)
     {
         base.Description(value);
+        return this;
+    }
+
+    public IFilterFieldDescriptor AllowOperation(int operation)
+    {
+        Definition.AllowedOperations.Add(operation);
         return this;
     }
 
@@ -165,4 +189,10 @@ public class FilterFieldDescriptor
         NameString fieldName,
         string? scope) =>
         new FilterFieldDescriptor(context, scope, fieldName);
+
+    internal static FilterFieldDescriptor New(
+        IDescriptorContext context,
+        string? scope,
+        Expression expression) =>
+        new FilterFieldDescriptor(context, scope, expression);
 }

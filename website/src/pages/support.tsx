@@ -1,5 +1,6 @@
 import React, { FC } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+import { Layout } from "../components/layout";
 import {
   ContentContainer,
   EnvelopeIcon,
@@ -10,14 +11,13 @@ import {
 } from "../components/misc/marketing-elements";
 import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
-import { Layout } from "../components/structure/layout";
+import { SupportCard } from "../components/misc/support-card";
 import ContactUsSvg from "../images/contact-us.svg";
-import { SupportCard } from "../components/support/support-card";
 import { IsPhablet } from "../shared-style";
 
 type ServiceType = "Consulting" | "Production Support";
 
-interface SupportService {
+export interface SupportService {
   readonly service: ServiceType;
   readonly description: string;
   readonly perks: string[];
@@ -29,23 +29,25 @@ const SupportPage: FC = () => {
   const supportServices: SupportService[] = [
     {
       service: "Consulting",
-      description: "Hourly consulting services to get the help you need at any stage of your project. This is the best way to get started.",
+      description:
+        "Hourly consulting services to get the help you need at any stage of your project. This is the best way to get started.",
       perks: [
         "Mentoring and guidance",
         "Architecture",
         "Troubleshooting",
         "Code Review",
-        "Best practices education"
-      ]
+        "Best practices education",
+      ],
     },
     {
       service: "Production Support",
-      description: "Options for teams who don't have the time, bandwidth, and/or expertise to implement their own GraphQL solutions.",
+      description:
+        "Options for teams who don't have the time, bandwidth, and/or expertise to implement their own GraphQL solutions.",
       perks: [
         "Proof of concept development",
-        "Implementation of HotChocolate or Strawberry Shake"
-      ]
-    }
+        "Implementation of HotChocolate or Strawberry Shake",
+      ],
+    },
   ];
 
   return (
@@ -61,9 +63,16 @@ const SupportPage: FC = () => {
         </Teaser>
       </Intro>
       <Section>
-        <CardContainer>{supportServices.map(s =>
-          <SupportCard key={s.service} name={s.service} description={s.description} perks={s.perks} />
-        )}</CardContainer>
+        <CardContainer>
+          {supportServices.map((s) => (
+            <SupportCard
+              key={s.service}
+              name={s.service}
+              description={s.description}
+              perks={s.perks}
+            />
+          ))}
+        </CardContainer>
       </Section>
       <Section>
         <SectionRow>
@@ -87,32 +96,26 @@ const SupportPage: FC = () => {
   );
 };
 
-
 export default SupportPage;
 
 const CardContainer = styled.div`
-  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
   justify-items: center;
+  margin-top: 1.5rem auto 0;
+  max-width: 800px;
 
   > :not(:first-child) {
     margin-top: 16px;
   }
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-
-  gap: 1.5rem;
 
   > div {
     margin-top: 0 !important;
   }
 
-  ${IsPhablet(`
+  ${IsPhablet(css`
     margin-top: 1rem;
-    grid-template-columns: minmax(0, 1fr)
+    grid-template-columns: minmax(0, 1fr);
   `)}
 `;
-

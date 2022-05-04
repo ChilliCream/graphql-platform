@@ -2,15 +2,14 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class ResultListPool
-    : DefaultObjectPool<ResultObjectBuffer<ResultList>>
+internal sealed class ResultListPool : DefaultObjectPool<ResultObjectBuffer<ResultList>>
 {
     public ResultListPool(int maximumRetained)
         : base(new BufferPolicy(), maximumRetained)
     {
     }
 
-    private class BufferPolicy : IPooledObjectPolicy<ResultObjectBuffer<ResultList>>
+    private sealed class BufferPolicy : IPooledObjectPolicy<ResultObjectBuffer<ResultList>>
     {
         private static readonly ResultMapPolicy _policy = new();
 
@@ -23,9 +22,9 @@ internal sealed class ResultListPool
         }
     }
 
-    private class ResultMapPolicy : IPooledObjectPolicy<ResultList>
+    private sealed class ResultMapPolicy : IPooledObjectPolicy<ResultList>
     {
-        public ResultList Create() => new ResultList();
+        public ResultList Create() => new();
 
         public bool Return(ResultList obj)
         {

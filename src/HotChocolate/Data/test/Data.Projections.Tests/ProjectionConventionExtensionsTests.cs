@@ -110,11 +110,11 @@ public class ProjectionConventionExtensionsTests
             x => Assert.Equal(provider2, x));
     }
 
-    private class MockProviderExtensions : ProjectionProviderExtension
+    private sealed class MockProviderExtensions : ProjectionProviderExtension
     {
     }
 
-    private class MockProvider : IProjectionProvider
+    private sealed class MockProvider : IProjectionProvider
     {
         public string? Scope { get; }
 
@@ -131,7 +131,7 @@ public class ProjectionConventionExtensionsTests
         }
     }
 
-    private class MockProjectionConvention : ProjectionConvention
+    private sealed class MockProjectionConvention : ProjectionConvention
     {
         public MockProjectionConvention(
             Action<IProjectionConventionDescriptor> configure)

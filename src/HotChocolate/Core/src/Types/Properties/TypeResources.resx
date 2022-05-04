@@ -144,7 +144,7 @@
     <value>The DataLoader key cannot be null or empty.</value>
   </data>
   <data name="DataLoaderResolverContextExtensions_RegistryIsNull" xml:space="preserve">
-    <value>No DataLoader registry was registerd with your dependency injection.</value>
+    <value>No DataLoader registry was registered with your dependency injection.</value>
   </data>
   <data name="DataLoaderResolverContextExtensions_UnableToRegister" xml:space="preserve">
     <value>Unable to register a DataLoader with your DataLoader registry.</value>
@@ -254,7 +254,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>The enum type extension can only be merged with an enum type.</value>
   </data>
   <data name="EnumTypeExtension_ValueTypeInvalid" xml:space="preserve">
-    <value>The enum value `{0}` of the enum type extension is not assignabe with the target enum type.</value>
+    <value>The enum value `{0}` of the enum type extension is not assignable with the target enum type.</value>
   </data>
   <data name="EnumType_NoValues" xml:space="preserve">
     <value>The enum type `{0}` has no values.</value>
@@ -786,13 +786,13 @@ Type: `{0}`</value>
     <value>The type {0} is invalid because the runtime type is a {1}. It is not supported to have type system members as runtime types.</value>
   </data>
   <data name="FieldInitHelper_CompleteFields_MaxFieldCountToSmall" xml:space="preserve">
-    <value>The max expected field count cannot be smaller then 1.</value>
+    <value>The max expected field count cannot be smaller than 1.</value>
   </data>
   <data name="RegisteredType_Completion_NotYetReady" xml:space="preserve">
     <value>The object is not yet ready for this action.</value>
   </data>
   <data name="EdgeType_IsInstanceOfType_NonObject" xml:space="preserve">
-    <value>Edge types that have a non object node are not supported.</value>
+    <value>Edge types that have a non-object node are not supported.</value>
   </data>
   <data name="EdgeType_Description" xml:space="preserve">
     <value>An edge in a connection.</value>
@@ -836,5 +836,17 @@ Type: `{0}`</value>
   </data>
   <data name="ThrowHelper_OneOfFieldIsNull" xml:space="preserve">
     <value>`null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
+  </data>
+  <data name="ReflectionUtils_ExtractMethod_MethodExpected" xml:space="preserve">
+    <value>Member is not a method!</value>
+  </data>
+  <data name="ResolverContextExtensions_ScopedContextData_KeyNotFound" xml:space="preserve">
+    <value>The specified key `{0}` does not exist on `context.ScopedContextData`</value>
+  </data>
+  <data name="ResolverContextExtensions_LocalContextData_KeyNotFound" xml:space="preserve">
+    <value>The specified key `{0}` does not exist on `context.LocalContextData`</value>
+  </data>
+  <data name="ResolverContextExtensions_ContextData_KeyNotFound" xml:space="preserve">
+    <value>The specified key `{0}` does not exist on `context.ContextData`</value>
   </data>
 </root>

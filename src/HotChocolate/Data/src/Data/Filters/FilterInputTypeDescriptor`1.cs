@@ -99,23 +99,63 @@ public class FilterInputTypeDescriptor<T>
     /// <inheritdoc />
     public IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember)
     {
-        if (propertyOrMember.ExtractMember() is PropertyInfo m)
+        switch (propertyOrMember.TryExtractMember())
         {
-            FilterFieldDescriptor? fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Member == m);
+            case PropertyInfo m:
+                FilterFieldDescriptor? fieldDescriptor =
+                    Fields.FirstOrDefault(t => t.Definition.Member == m);
 
-            if (fieldDescriptor is null)
-            {
-                fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, m);
+                if (fieldDescriptor is null)
+                {
+                    fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, m);
+                    Fields.Add(fieldDescriptor);
+                }
+
+                return fieldDescriptor;
+
+            case MethodInfo m:
+                throw new ArgumentException(
+                    FilterInputTypeDescriptor_Field_OnlyProperties,
+                    nameof(propertyOrMember));
+
+            default:
+                fieldDescriptor = FilterFieldDescriptor
+                    .New(Context, Definition.Scope, propertyOrMember);
                 Fields.Add(fieldDescriptor);
-            }
-
-            return fieldDescriptor;
+                return fieldDescriptor;
         }
+    }
 
-        throw new ArgumentException(
-            FilterInputTypeDescriptor_Field_OnlyProperties,
-            nameof(propertyOrMember));
+    /// <inheritdoc />
+    public IFilterFieldDescriptor Field<TField>(
+        Expression<Func<T, TField?>> propertyOrMember,
+        Action<IFilterInputTypeDescriptor<TField>> configure)
+    {
+        IFilterFieldDescriptor descriptor = Field(propertyOrMember);
+
+        descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
+        return descriptor;
+
+        FilterInputTypeDefinition CreateFieldTypeDefinition(
+            IDescriptorContext context,
+            string? scope)
+        {
+            FilterInputTypeDescriptor<TField> descriptor =
+                New<TField>(context, typeof(TField), scope);
+            descriptor.BindFieldsExplicitly();
+
+            // This resets the name on the definition. This way we can check if the user has
+            // set a custom name. The context the user specifying descriptor.Name("Foo") is
+            // preserved this way.
+            descriptor.Definition.Name = default!;
+
+            // we deactivate And and Or by default.
+            descriptor.Definition.UseAnd = false;
+            descriptor.Definition.UseOr = false;
+
+            configure(descriptor);
+            return descriptor.CreateDefinition();
+        }
     }
 
     /// <inheritdoc />

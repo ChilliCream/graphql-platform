@@ -1,6 +1,4 @@
-using System;
 using System.Reflection;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
@@ -21,7 +19,8 @@ namespace HotChocolate.ApolloFederation;
     AttributeTargets.Struct |
     AttributeTargets.Interface |
     AttributeTargets.Property |
-    AttributeTargets.Method)]
+    AttributeTargets.Method,
+    AllowMultiple = true)]
 public sealed class KeyAttribute : DescriptorAttribute
 {
     /// <summary>
@@ -42,28 +41,29 @@ public sealed class KeyAttribute : DescriptorAttribute
     /// </summary>
     public string? FieldSet { get; }
 
-    protected override void TryConfigure(
+    protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
         ICustomAttributeProvider element)
     {
-        if (descriptor is IObjectTypeDescriptor objectTypeDescriptor &&
-            element is Type objectType)
+        switch (descriptor)
         {
-            if (string.IsNullOrEmpty(FieldSet))
+            case IObjectTypeDescriptor objectTypeDescriptor when element is Type runtimeType:
             {
-                throw Key_FieldSet_CannotBeEmpty(objectType);
+                if (string.IsNullOrEmpty(FieldSet))
+                {
+                    throw Key_FieldSet_CannotBeEmpty(runtimeType);
+                }
+
+                objectTypeDescriptor.Key(FieldSet!);
+                break;
             }
 
-            objectTypeDescriptor.Key(FieldSet!);
-        }
-
-        if (descriptor is IObjectFieldDescriptor objectFieldDescriptor &&
-            element is MemberInfo)
-        {
-            objectFieldDescriptor
-                .Extend()
-                .OnBeforeCreate(d => d.ContextData[WellKnownContextData.KeyMarker] = true);
+            case IObjectFieldDescriptor objectFieldDescriptor when element is MemberInfo:
+                objectFieldDescriptor
+                    .Extend()
+                    .OnBeforeCreate(d => d.ContextData[Constants.WellKnownContextData.KeyMarker] = true);
+                break;
         }
     }
 }

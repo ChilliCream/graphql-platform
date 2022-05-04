@@ -40,8 +40,8 @@ namespace HotChocolate.Execution
                                 }
                             }
                         }")
-                    .AddProperty("a", null)
-                    .AddProperty("b", "not_null")
+                    .AddGlobalState("a", null)
+                    .AddGlobalState("b", "not_null")
                     .Create();
 
             // act
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery($"{{ foo {{ {fieldType} {{ b }} }} }}")
-                    .AddProperty("b", null)
+                    .AddGlobalState("b", null)
                     .Create();
 
             // act
@@ -89,7 +89,7 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery($"{{ foo {{ {fieldType} {{ c }} }} }}")
-                    .AddProperty("b", null)
+                    .AddGlobalState("b", null)
                     .Create();
 
             // act
@@ -110,7 +110,7 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery($"{{ foo {{ {fieldType} {{ b }} }} }}")
-                    .AddProperty("b", null)
+                    .AddGlobalState("b", null)
                     .Create();
 
             // act
@@ -132,7 +132,7 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery($"{{ foo {{ {fieldType} {{ c }} }} }}")
-                    .AddProperty("b", null)
+                    .AddGlobalState("b", null)
                     .Create();
 
             // act
@@ -175,8 +175,8 @@ namespace HotChocolate.Execution
                 .AddResolver("Foo.nonnull_list_nonnull_element", _ => new(new[] { new object() }))
                 .AddResolver("Foo.nonnull_prop", _ => new(new object()))
                 .AddResolver("Foo.nullable_prop", _ => new(new object()))
-                .AddResolver("Bar.a", c => new(c.GetGlobalValue<string>("a")))
-                .AddResolver("Bar.b", c => new(c.GetGlobalValue<string>("b")))
+                .AddResolver("Bar.a", c => new(c.GetGlobalStateOrDefault<string>("a")))
+                .AddResolver("Bar.b", c => new(c.GetGlobalStateOrDefault<string>("b")))
                 .AddResolver("Bar.c", _ => throw new GraphQLException("ERROR"))
                 .Create()
                 .MakeExecutable();

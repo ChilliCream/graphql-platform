@@ -129,14 +129,13 @@ namespace HotChocolate.Execution.Benchmarks
             IRequestExecutor executor,
             IReadOnlyQueryRequest request)
         {
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            IQueryResult result = (await executor.ExecuteAsync(request)).ExpectQueryResult();
+            
 
             if (result.Errors is { Count: > 0 })
             {
-                await File.AppendAllTextAsync(
-                    "/Users/michael/local/hc-1/src/HotChocolate/Core/benchmark/err.log",
-                    result.ToJson());
-
+                Console.WriteLine("Full Error:");
+                Console.WriteLine(result.ToJson());
                 throw new InvalidOperationException(result.Errors[0].Message);
             }
 

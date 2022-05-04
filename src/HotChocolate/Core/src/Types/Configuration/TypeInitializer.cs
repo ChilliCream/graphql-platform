@@ -510,7 +510,7 @@ internal class TypeInitializer
     {
         foreach (RegisteredType type in _next)
         {
-            if (TryNormalizeDependencies(type.Conditionals, out IReadOnlyList<ITypeReference>? normalized) &&
+            if (TryNormalizeDependencies(type.Conditionals, out var normalized) &&
                 processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
             {
                 yield return type;

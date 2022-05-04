@@ -3,17 +3,16 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Language.Visitors;
 
-internal sealed class SyntaxNodeListPool
-    : DefaultObjectPool<List<ISyntaxNode>>
+internal sealed class SyntaxNodeListPool : DefaultObjectPool<List<ISyntaxNode>>
 {
     public SyntaxNodeListPool()
         : base(new Policy(), 64)
     {
     }
 
-    private class Policy : IPooledObjectPolicy<List<ISyntaxNode>>
+    private sealed class Policy : IPooledObjectPolicy<List<ISyntaxNode>>
     {
-        public List<ISyntaxNode> Create() => new List<ISyntaxNode>();
+        public List<ISyntaxNode> Create() => new();
 
         public bool Return(List<ISyntaxNode> obj)
         {

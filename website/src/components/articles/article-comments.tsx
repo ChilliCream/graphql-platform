@@ -4,10 +4,10 @@ import React, { FC } from "react";
 import styled from "styled-components";
 import { ArticleCommentsFragment } from "../../../graphql-types";
 
-interface ArticleCommentsProps {
-  data: ArticleCommentsFragment;
-  path: string;
-  title: string;
+export interface ArticleCommentsProps {
+  readonly data: ArticleCommentsFragment;
+  readonly path: string;
+  readonly title: string;
 }
 
 export const ArticleComments: FC<ArticleCommentsProps> = ({
@@ -37,7 +37,7 @@ export const ArticleCommentsGraphQLFragment = graphql`
 const DisqusWrapper = styled(Disqus)`
   margin: 0 20px 60px;
 
-  @media only screen and (min-width: 820px) {
+  @media only screen and (min-width: 860px) {
     margin: 0 50px 60px;
   }
 `;

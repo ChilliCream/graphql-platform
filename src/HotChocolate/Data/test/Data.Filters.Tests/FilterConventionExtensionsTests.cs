@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Resolvers;
@@ -252,11 +253,11 @@ public class FilterConventionExtensionsTests
             x => Assert.Equal(provider2, x));
     }
 
-    private class MockProviderExtensions : FilterProviderExtensions<QueryableFilterContext>
+    private sealed class MockProviderExtensions : FilterProviderExtensions<QueryableFilterContext>
     {
     }
 
-    private class MockProvider : IFilterProvider
+    private sealed class MockProvider : IFilterProvider
     {
         public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers { get; } = null!;
 
@@ -269,9 +270,14 @@ public class FilterConventionExtensionsTests
         {
             throw new NotImplementedException();
         }
+
+        public IFilterMetadata? CreateMetaData(ITypeCompletionContext context, IFilterInputTypeDefinition typeDefinition, IFilterFieldDefinition fieldDefinition)
+        {
+            return null;
+        }
     }
 
-    private class MockFilterConvention : FilterConvention
+    private sealed class MockFilterConvention : FilterConvention
     {
         public MockFilterConvention(
             Action<IFilterConventionDescriptor> configure)

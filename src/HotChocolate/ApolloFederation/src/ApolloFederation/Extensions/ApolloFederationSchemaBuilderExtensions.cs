@@ -1,5 +1,5 @@
-using System;
 using HotChocolate.ApolloFederation;
+using AnyType = HotChocolate.ApolloFederation.AnyType;
 
 namespace HotChocolate;
 
@@ -31,10 +31,10 @@ public static class ApolloFederationSchemaBuilderExtensions
         builder.AddType<AnyType>();
         builder.AddType<EntityType>();
         builder.AddType<ServiceType>();
+        builder.AddType<FieldSetType>();
         builder.AddType<ExternalDirectiveType>();
         builder.AddType<ProvidesDirectiveType>();
         builder.AddType<KeyDirectiveType>();
-        builder.AddType<FieldSetType>();
         builder.AddType<RequiresDirectiveType>();
         builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
         return builder;

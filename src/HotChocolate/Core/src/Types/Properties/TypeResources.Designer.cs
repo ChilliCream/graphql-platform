@@ -1454,5 +1454,29 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_OneOfFieldIsNull", resourceCulture);
             }
         }
+        
+        internal static string ReflectionUtils_ExtractMethod_MethodExpected {
+            get {
+                return ResourceManager.GetString("ReflectionUtils_ExtractMethod_MethodExpected", resourceCulture);
+            }
+        }
+        
+        internal static string ResolverContextExtensions_ScopedContextData_KeyNotFound {
+            get {
+                return ResourceManager.GetString("ResolverContextExtensions_ScopedContextData_KeyNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ResolverContextExtensions_LocalContextData_KeyNotFound {
+            get {
+                return ResourceManager.GetString("ResolverContextExtensions_LocalContextData_KeyNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ResolverContextExtensions_ContextData_KeyNotFound {
+            get {
+                return ResourceManager.GetString("ResolverContextExtensions_ContextData_KeyNotFound", resourceCulture);
+            }
+        }
     }
 }

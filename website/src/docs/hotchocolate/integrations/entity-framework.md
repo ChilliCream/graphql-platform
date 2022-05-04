@@ -2,288 +2,216 @@
 title: Entity Framework Core
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
 
-Entity Framework Core is a powerful object-relational mapping framework that has become a staple when working with SQL-based Databases in ASP.NET Core applications.
+[Entity Framework Core](https://docs.microsoft.com/ef/core/) is a powerful object-relational mapping framework that has become a staple when working with SQL-based Databases in .NET Core applications.
 
-Besides its many benefits there is one shortcoming that makes Entity Framework hard to use with a standard Hot Chocolate GraphQL server:
+When working with Entity Framework Core's [DbContext](https://docs.microsoft.com/dotnet/api/system.data.entity.dbcontext), it is most commonly registered as a scoped service.
 
-[**Entity Framework Core doesn't support multiple parallel operations being run on the same context instance.**](https://docs.microsoft.com/ef/core/miscellaneous/async)
+```csharp
+var builder = WebApplication.CreateBuilder(args);
 
-When using `services.AddDbContext<T>` to register a `DbContext` as a scoped service, one instance of this `DbContext` is created and used for the entirety of a GraphQL request. This is an issue, since Hot Chocolate executes resolvers in parallel for performance reasons. If two resolvers are executed in parallel and both try to perform an operation using the `DbContext`, we might see one of the following exceptions being thrown:
+builder.Services.AddDbContext<ApplicationDbContext>(
+    options => options.UseSqlServer("YOUR_CONNECTION_STRING"));
+```
+
+If you have read our [guidance on dependency injection](/docs/hotchocolate/server/dependency-injection#resolver-injection) you might be inclined to simply inject your `DbContext` using the `HotChocolate.ServiceAttribute`.
+
+```csharp
+public Foo GetFoo([Service] ApplicationDbContext dbContext)
+    => // Omitted code for brevity
+```
+
+While this is usually the correct way to inject services and it may appear to work initially, it has a fatal flaw: Entity Framework Core doesn't support [multiple parallel operations being run on the same context instance](https://docs.microsoft.com/ef/core/miscellaneous/async).
+
+Lets take a look at an example to understand why this can lead to issues. Both the `foo` and `bar` field in the below query are backed by a resolver that injects a scoped `DbContext` instance and performs a database query using it.
+
+```graphql
+{
+  foo
+  bar
+}
+```
+
+Since Hot Chocolate parallelizes the execution of query fields, and both of the resolvers will receive the same scoped `DbContext` instance, two database queries are likely to be ran through this scoped `DbContext` instance in parallel. This will then lead to one of the following exceptions being thrown:
 
 - `A second operation started on this context before a previous operation completed.`
 - `Cannot access a disposed object.`
 
-Fortunately there are a couple of solutions that can be used to avoid the described issue. We will take a closer look at them in the below sections.
+# Resolver injection of a DbContext
 
-# DbContextFactory
-
-The recommended approach to solving the `DbContext` concurreny issues is creating a `DbContext` instance on a per-operation basis using an `IDbContextFactory`.
-
-We can register a [pooled](https://docs.microsoft.com/en-us/ef/core/performance/advanced-performance-topics?tabs=with-constant#dbcontext-pooling) `IDbContextFactory` like the following.
+In order to ensure that resolvers do not access the same scoped `DbContext` instance in parallel, you can inject it using the `ServiceKind.Synchronized`.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddPooledDbContextFactory<SomeDbContext>(b =>
-            b.UseInMemoryDatabase("Test"));
-
-        // Omitted code for brevity
-    }
-}
-
+public Foo GetFoo(
+    [Service(ServiceKind.Synchronized)] ApplicationDbContext dbContext)
+    => // Omitted code for brevity
 ```
 
-> ⚠️ Note: All of the configuration done in the `OnConfiguring` method of the `DbContext` needs to be moved to the configuration action on the `AddPooledDbContextFactory` call.
+[Learn more about `ServiceKind.Synchronized`](/docs/hotchocolate/server/dependency-injection#servicekindsynchronized)
 
-Using the `IDbContextFactory` changes how we access an instance of our `DbContext`. Previously we would directly inject the scoped `DbContext` instance into our constructors or methods. Now we need to inject the `IDbContextFactory` instead and create an instance of the `DbContext` ourselves.
+Since this is a lot of code to write, just to inject a `DbContext`, you can use [`RegisterDbContext<T>`](#registerdbcontext) to simplify the injection.
 
-```csharp
-public ExampleConstructor(IDbContextFactory<SomeDbContext> dbContextFactory)
-{
-    SomeDbContext dbContext = dbContextFactory.CreateDbContext();
-}
-```
+# RegisterDbContext
 
-In the following we will look at some usage examples of the `IDbContextFactory` as well as how we eased the integration with resolvers.
-
-## Resolvers
-
-In order to integrate with our Data middleware, such as `UsePagination` or `UseSorting`, we have added a `UseDbContext` middleware. This middleware takes care of retrieving a `DbContext` instance from the pool, as well as disposing said instance, once the resolver and subsequent middleware has finished executing.
-
-The middleware is part of the `HotChocolate.Data.EntityFramework` package.
+In order to simplify the injection of a `DbContext` we have introduced a method called `RegisterDbContext<T>`, similar to the [`RegisterService<T>`](/docs/hotchocolate/server/dependency-injection#registerservice) method for regular services. This method is part of the `HotChocolate.Data.EntityFramework` package, which you'll have to install.
 
 ```bash
 dotnet add package HotChocolate.Data.EntityFramework
 ```
 
-Once installed we can start applying the `UseDbContext` middleware to our resolvers.
+> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
-<ExampleTabs>
-<ExampleTabs.Annotation>
-
-In the Annotation-based approach, we can annotate our resolver using the `UseDbContextAttribute`, specifying the type of our `DbContext` as an argument.
+Once installed you can simply call the `RegisterDbContext<T>` method on the `IRequestExecutorBuilder`. The Hot Chocolate Resolver Compiler will then take care of correctly injecting your scoped `DbContext` instance into your resolvers and also ensuring that the resolvers using it are never run in parallel.
 
 ```csharp
-public class Query
-{
-    [UseDbContext(typeof(SomeDbContext))]
-    public IQueryable<User> GetUsers([ScopedService] SomeDbContext dbContext)
-        => dbContext.Users;
-}
-```
+var builder = WebApplication.CreateBuilder(args);
 
-Please note that the `ScopedServiceAttribute` has nothing to do with service lifetime. It is used to inject the `DbContext` instance the `UseDbContext` middleware retrieved from the pool.
+builder.Services.AddDbContext<ApplicationDbContext>(
+    options => options.UseSqlServer("YOUR_CONNECTION_STRING"));
 
-We can make this even simpler, by creating an attribute inheriting from the `UseDbContextAttribute`:
-
-```csharp
-public class UseSomeDbContext : UseDbContextAttribute
-{
-    public UseSomeDbContext([CallerLineNumber] int order = 0)
-        : base(typeof(SomeDbContext))
-    {
-        Order = order;
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .RegisterDbContext<ApplicationDbContext>()
+    .AddQueryType<Query>();
 
 public class Query
 {
-    [UseSomeDbContext]
-    public IQueryable<User> GetUsers([ScopedService] SomeDbContext dbContext)
-        => dbContext.Users;
+    public Foo GetFoo(ApplicationDbContext dbContext)
+        => // Omitted code for brevity
 }
 ```
 
-> Note: Since the [order of attributes is not guaranteed by .NET](https://docs.microsoft.com/dotnet/csharp/language-reference/language-specification/attributes#attribute-specification), Hot Chocolate uses the line number to determine the correct order of the Data middleware. If you are using a custom attribute, you have to forward the line number using the `CallerLineNumberAttribute`.
+> ⚠️ Note: You still have to register your `DbContext` in the actual dependency injection container, by calling `services.AddDbContext<T>`. `RegisterDbContext<T>` on its own is not enough.
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
-
-In the Code-first approach we can add the `UseDbContext` middlware through the `IObjectFieldDescriptor`, specifying the type of our `DbContext` as the generic type parameter.
+You can also specify a [DbContextKind](#dbcontextkind) as argument to the `RegisterDbContext<T>` method, to change how the `DbContext` should be injected.
 
 ```csharp
-public class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor
-            .Field("users")
-            .UseDbContext<SomeDbContext>()
-            .Resolver((ctx) =>
-            {
-                return ctx.DbContext<SomeDbContext>().Users;
-            });
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .RegisterDbContext<ApplicationDbContext>(DbContextKind.Pooled)
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
+# DbContextKind
 
-⚠️ Schema-first does currently not support DbContext integration!
+When registering a `DbContext` you can specify a `DbContextKind` to instruct Hot Chocolate to use a certain strategy when injecting the `DbContext`. For the most part the `DbContextKind` is really similar to the [ServiceKind](/docs/hotchocolate/server/dependency-injection#servicekind), with the exception of the [DbContextKind.Pooled](#dbcontextkindpooled).
 
-</ExampleTabs.Schema>
-</ExampleTabs>
+## DbContextKind.Synchronized
 
-> ⚠️ Note: When using multiple middleware, keep in mind that the order of middleware matters. The correct order is:
->
-> UseDbContext > UsePaging > UseProjections > UseFiltering > UseSorting
+This injection mechanism ensures that resolvers injecting the specified `DbContext` are never run in parallel. It is the default for the [`RegisterDbContext<T>`](#registerdbcontext) method and behaves in the same fashion as [ServiceKind.Synchronized](/docs/hotchocolate/server/dependency-injection#servicekindsynchronized) does for regular services.
 
-## Services
+## DbContextKind.Resolver
 
-When creating services they can no longer be of a scoped lifetime, i.e. injecting a `DbContext` instance using the constructor. Instead we can create transient services and inject the `IDbContextFactory` using the constructor.
+This injection mechanism will resolve the scoped `DbContext` from a resolver-scoped [`IServiceScope`](https://docs.microsoft.com/dotnet/api/microsoft.extensions.dependencyinjection.iservicescope). It behaves in the same fashion as [ServiceKind.Resolver](/docs/hotchocolate/server/dependency-injection#servicekindresolver) does for regular services. Since a different `DbContext` instance is resolved for each resolver invocation, Hot Chocolate can parallelize the execution of resolvers using this `DbContext`.
+
+## DbContextKind.Pooled
+
+This injection mechanism will require your `DbContext` to be registered as a [pooled](https://docs.microsoft.com/ef/core/performance/advanced-performance-topics?tabs=with-constant#dbcontext-pooling) `IDbContextFactory<T>`.
 
 ```csharp
-public class UserRepository : IAsyncDisposable
-{
-    private readonly SomeDbContext _dbContext;
+var builder = WebApplication.CreateBuilder(args);
 
-    public UserRepository(IDbContextFactory<SomeDbContext> dbContextFactory)
-    {
-        _dbContext = dbContextFactory.CreateDbContext();
-    }
+builder.Services.AddPooledDbContextFactory<ApplicationDbContext>(
+    options => options.UseSqlServer("YOUR_CONNECTION_STRING"));
 
-    public async Task<User> GetUserAsync(string id)
-    {
-        var user = await _dbContext.Users.FirstOrDefault(u => u.Id == id);
-
-        return user;
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return _dbContext.DisposeAsync();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .RegisterDbContext<ApplicationDbContext>(DbContextKind.Pooled)
+    .AddQueryType<Query>();
 
 public class Query
 {
-    public async Task<User> GetUserAsync(string id,
-        [Service] UserRepository repository)
-    {
-        return await repository.GetUserAsync(id);
-    }
-}
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddTransient<UserRepository>();
-
-        // Omitted code for brevity
-    }
+    public Foo GetFoo(ApplicationDbContext dbContext)
+        => // Omitted code for brevity
 }
 ```
 
-> ⚠️ Note: It is important to dispose the `DbContext` we created. Notice how our service implements `IAsyncDisposable` and the `DbContext` we created is disposed using the `DisposeAsync` method.
+When injecting a `DbContext` using the `DbContextKind.Pool`, Hot Chocolate will retrieve one `DbContext` instance from the pool for each invocation of a resolver. Once the resolver has finished executing, the instance will be returned to the pool.
+
+Since each resolver invocation is therefore working with a "transient" `DbContext` instance, Hot Chocolate can parallelize the execution of resolvers using this `DbContext`.
+
+# Working with a pooled DbContext
+
+If you have registered your `DbContext` using [DbContextKind.Pooled](#dbcontextkindpooled) you are on your way to squeeze the most performance out of your GraphQL server, but unfortunately it also changes how you have to use the `DbContext`.
+
+For example you need to move all of the configuration from the `OnConfiguring` method inside your `DbContext` into the configuration action on the `AddPooledDbContextFactory` call.
+
+You also need to access your `DbContext` differently. In the following chapters we will take a look at some of the changes you have to make.
 
 ## DataLoaders
 
-With DataLoaders we inject the `IDbContextFactory` using the constructor and create **and dispose** our `DbContext` within the `Load...` method.
+When creating DataLoaders that need access to your `DbContext`, you need to inject the `IDbContextFactory<T>` using the constructor.
+
+The `DbContext` should only be created **and disposed** in the `LoadBatchAsync` method.
 
 ```csharp
-public class UserByIdDataLoader : BatchDataLoader<string, User>
+public class FooByIdDataLoader : BatchDataLoader<string, Foo>
 {
-    private readonly IDbContextFactory<SomeDbContext> _dbContextFactory;
+    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
     public UserByIdDataLoader(
-        IDbContextFactory<SomeDbContext> dbContextFactory,
+        IDbContextFactory<ApplicationDbContext> dbContextFactory,
         IBatchScheduler batchScheduler, DataLoaderOptions options)
         : base(batchScheduler, options)
     {
         _dbContextFactory = dbContextFactory;
     }
 
-    protected override async Task<IReadOnlyDictionary<string, User>>
+    protected override async Task<IReadOnlyDictionary<string, Foo>>
         LoadBatchAsync(IReadOnlyList<string> keys, CancellationToken ct)
     {
-        await using SomeDbContext dbContext =
+        await using ApplicationDbContext dbContext =
             _dbContextFactory.CreateDbContext();
 
-        return await dbContext.Users
+        return await dbContext.Foos
             .Where(s => keys.Contains(s.Id))
             .ToDictionaryAsync(t => t.Id, ct);
     }
 }
 ```
 
-> ⚠️ Note: It is important to dispose the `DbContext` we created. Notice how we used the `IAsyncDisposable` functionality using `await using` in the above example.
+> ⚠️ Note: It is important that you dispose the `DbContext` to return it to the pool. In the above example we are using `await using` to dispose the `DbContext` after it is no longer required.
 
-# Serial execution
+## Services
 
-If we depend on using a scoped `DbContext` or if we are using a Unit of Work style pattern, using the [DbContextFactory](#dbcontextfactory) might not be an option for us.
-
-Hot Chocolate gives us the option to execute certain resolvers serially, meaning that no other non-pure resolvers are run in parallel to this resolver. If we execute all resolvers using our `DbContext` serially, we avoid the possibility of two resolvers trying to run an operation on our scoped `DbContext` in parallel.
-
-> ⚠️ Note: Executing a resolver serially incurs a performance penalty. While a resolver is running serially, no other non-pure resolver can run in parallel. This also includes non-pure resolvers that do not use the `DbContext`, such as a resolver executing a REST call.
->
-> If we want to get the most performance out of our GraphQL server, we definitely need to use the [DbContextFactory](#dbcontextfactory) described above.
-
-We can execute a single resolver serially, by marking it as `Serial`.
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
+When creating services, they now need to inject the `IDbContextFactory<T>` instead of the `DbContext` directly. Your services also need be of a transient lifetime. Otherwise you could be faced with the `DbContext` concurrency issue again, if the same `DbContext` instance is accessed by two resolvers through our service in parallel.
 
 ```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddPooledDbContextFactory<ApplicationDbContext>(
+    options => options.UseSqlServer("YOUR_CONNECTION_STRING"));
+
+builder.Services.AddTransient<FooService>()
+
+builder.Services
+    .AddGraphQLServer()
+    .RegisterService<FooService>()
+    .AddQueryType<Query>();
+
 public class Query
 {
-    [Serial]
-    public async Task<List<User>> GetUsers([Service] SomeDbContext dbContext)
-    {
-        return await dbContext.Users.ToListAsync();
-    }
+    public Foo GetFoo(FooService FooService)
+        => // Omitted code for brevity
 }
-```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
-
-```csharp
-public class QueryType : ObjectType
+public class FooService : IAsyncDisposable
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor
-            .Field("users")
-            .Serial()
-            .Resolver((ctx) =>
-            {
-                var dbContext = ctx.Service<SomeDbContext>();
+    private readonly ApplicationDbContext _dbContext;
 
-                return dbContext.Users.ToListAsync();
-            });
+    public FooService(IDbContextFactory<ApplicationDbContext> dbContextFactory)
+    {
+        _dbContext = dbContextFactory.CreateDbContext();
+    }
+
+    public Foo GetFoo()
+        => _dbContext.Foos.FirstOrDefault();
+
+    public ValueTask DisposeAsync()
+    {
+        return _dbContext.DisposeAsync();
     }
 }
 ```
 
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-Take a look at the Annotation-based or Code-first example.
-
-</ExampleTabs.Schema>
-</ExampleTabs>
-
-We can also make `Serial` the default execution strategy.
-
-```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .ModifyOptions(options =>
-            {
-                options.DefaultResolverStrategy = ExecutionStrategy.Serial;
-            });
-    }
-}
-```
-
-> ⚠️ Note: This incurs the biggest performance hit as it causes all non-pure resolvers to be executed serially.
+> ⚠️ Note: It is important that you dispose the `DbContext` to return it to the pool, once your transient service is being disposed. In the above example we are implementing `IAsyncDisposable` and disposing the created `DbContext` in the `DisposeAsync` method. This method will be invoked by the dependency injection system.

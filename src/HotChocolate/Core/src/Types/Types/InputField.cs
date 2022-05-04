@@ -27,6 +27,9 @@ public class InputField : FieldBase<InputFieldDefinition>, IInputField
             1 => formatters[0],
             _ => new AggregateInputValueFormatter(formatters)
         };
+
+        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
+        DeprecationReason = definition.DeprecationReason;
     }
 
     /// <summary>
@@ -56,6 +59,12 @@ public class InputField : FieldBase<InputFieldDefinition>, IInputField
     /// Defines if the runtime type is represented as an <see cref="Optional{T}" />.
     /// </summary>
     internal bool IsOptional { get; private set; }
+
+    /// <inheritdoc />
+    public bool IsDeprecated { get; }
+
+    /// <inheritdoc />
+    public string? DeprecationReason { get; }
 
     /// <summary>
     /// If this field is bound to a property on a concrete model,

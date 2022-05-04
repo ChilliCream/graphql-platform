@@ -6,7 +6,7 @@ namespace HotChocolate.Validation
     public class MaxDepthRuleTests : DocumentValidatorVisitorTestBase
     {
         public MaxDepthRuleTests()
-            : base(b => b.AddMaxExecutionDepthRule(3))
+            : base(b => b.AddMaxExecutionDepthRule(3, skipIntrospectionFields: false))
         {
         }
 
@@ -85,6 +85,36 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+        }
+
+        [Fact]
+        public void MaxDepth3_IntrospectionQuery_Exceeds_Allowed_Depth_Error()
+        {
+            ExpectErrors(@"
+                query {
+                    __schema {
+                        types {
+                            fields {
+                                type {
+                                    kind
+                                    name
+                                    ofType {
+                                        kind
+                                        name
+                                        ofType {
+                                            kind
+                                            name
+                                            ofType {
+                                                kind
+                                                name
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }");
         }
 
         [Fact]

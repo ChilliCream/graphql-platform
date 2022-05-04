@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -17,7 +16,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="OperationDefinitionNode" />:
     /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private OperationDefinitionNode ParseOperationDefinition()
     {
         TokenInfo start = Start();
@@ -45,7 +43,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="OperationDefinitionNode" />:
     /// SelectionSet
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private OperationDefinitionNode ParseShortOperationDefinition()
     {
         TokenInfo start = Start();
@@ -66,7 +63,6 @@ public ref partial struct Utf8GraphQLParser
     /// <summary>
     /// Parses the <see cref="OperationType" />.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private OperationType ParseOperationType()
     {
         if (_reader.Kind == TokenKind.Name)
@@ -98,7 +94,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="IEnumerable{VariableDefinitionNode}" />:
     /// ( VariableDefinition+ )
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private List<VariableDefinitionNode> ParseVariableDefinitions()
     {
         if (_reader.Kind == TokenKind.LeftParenthesis)
@@ -127,7 +122,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="VariableDefinitionNode" />:
     /// $variable : Type = DefaultValue?
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private VariableDefinitionNode ParseVariableDefinition()
     {
         TokenInfo start = Start();
@@ -158,7 +152,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="VariableNode" />:
     /// $Name
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private VariableNode ParseVariable()
     {
         TokenInfo start = Start();
@@ -178,7 +171,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="SelectionSetNode" />:
     /// { Selection+ }
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SelectionSetNode ParseSelectionSet()
     {
         TokenInfo start = Start();
@@ -222,7 +214,6 @@ public ref partial struct Utf8GraphQLParser
     /// - FragmentSpread
     /// - InlineFragment
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ISelectionNode ParseSelection()
     {
         if (_reader.Kind == TokenKind.Spread)
@@ -237,7 +228,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="FieldNode"  />:
     /// Alias? : Name Arguments? Directives? SelectionSet?
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private FieldNode ParseField()
     {
         TokenInfo start = Start();
@@ -320,7 +310,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="ArgumentNode" />:
     /// Name : Value[isConstant]
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private List<ArgumentNode> ParseArguments(bool isConstant)
     {
         if (_reader.Kind == TokenKind.LeftParenthesis)
@@ -349,7 +338,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="ArgumentNode" />:
     /// Name : Value[isConstant]
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ArgumentNode ParseArgument(bool isConstant)
     {
         TokenInfo start = Start();

@@ -3,7 +3,7 @@
     {
       "OperationName": "ExecuteHttpRequest",
       "DisplayName": "query { hero }",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
           "Key": "graphql.schema.name",
@@ -44,8 +44,13 @@
         {
           "OperationName": "ParseHttpRequest",
           "DisplayName": "Parse HTTP Request",
-          "Status": "Unset",
-          "tags": [],
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
           "event": []
         },
         {
@@ -94,6 +99,10 @@
               "Value": "/hero"
             },
             {
+              "Key": "graphql.selection.hierarchy",
+              "Value": "/hero"
+            },
+            {
               "Key": "graphql.selection.field.name",
               "Value": "hero"
             },
@@ -115,7 +124,7 @@
         {
           "OperationName": "FormatHttpResponse",
           "DisplayName": "Format HTTP Response",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [],
           "event": []
         }

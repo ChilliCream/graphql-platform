@@ -34,7 +34,7 @@ public class SortEnumTypeDescriptor
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    protected override SortEnumTypeDefinition Definition { get; set; } =
+    protected internal override SortEnumTypeDefinition Definition { get; protected set; } =
         new SortEnumTypeDefinition();
 
     protected ICollection<SortEnumValueDescriptor> Values { get; } =

@@ -310,7 +310,7 @@ namespace HotChocolate.Types
             public TimeSpan Duration2() => TimeSpan.FromDays(1);
         }
 
-        private class IsoTimeSpanAttribute : ObjectFieldDescriptorAttribute
+        private sealed class IsoTimeSpanAttribute : ObjectFieldDescriptorAttribute
         {
             public override void OnConfigure(
                 IDescriptorContext context, 

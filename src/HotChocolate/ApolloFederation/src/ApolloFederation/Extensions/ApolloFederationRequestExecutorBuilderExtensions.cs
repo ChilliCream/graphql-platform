@@ -1,6 +1,6 @@
 using System;
-using HotChocolate;
 using HotChocolate.Execution.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -29,6 +29,6 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.ConfigureSchema(s => s.AddApolloFederation());
+        return builder.ConfigureSchema(s => ApolloFederationSchemaBuilderExtensions.AddApolloFederation(s));
     }
 }

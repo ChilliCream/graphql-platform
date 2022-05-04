@@ -30,7 +30,7 @@ internal sealed class MaxExecutionDepthVisitor : DocumentValidatorVisitor
         if (_options.MaxAllowedExecutionDepth.HasValue &&
             _options.MaxAllowedExecutionDepth < context.Max)
         {
-            context.Errors.Add(context.MaxExecutionDepth(
+            context.ReportError(context.MaxExecutionDepth(
                 node, _options.MaxAllowedExecutionDepth.Value, context.Max));
             return Break;
         }
@@ -42,6 +42,12 @@ internal sealed class MaxExecutionDepthVisitor : DocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
+        if (_options.SkipIntrospectionFields && 
+            node.Name.Value.StartsWith("__"))
+        {
+            return Skip;
+        }
+
         context.Fields.Push(node);
 
         if (context.Count < context.Fields.Count)
