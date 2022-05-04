@@ -1,3 +1,3 @@
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Pipeline;
 
 public delegate MergeSchema MergeSchemaMiddleware(MergeSchema next);
