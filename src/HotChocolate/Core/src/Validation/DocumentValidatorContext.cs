@@ -116,7 +116,9 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public void ReportError(IError error)
     {
-        if (_errors.Count == MaxAllowedErrors)
+        var errors = _errors.Count;
+
+        if (errors > 0 && errors == MaxAllowedErrors)
         {
             throw new MaxValidationErrorsException();
         }

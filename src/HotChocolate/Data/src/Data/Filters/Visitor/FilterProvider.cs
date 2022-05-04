@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -72,7 +73,7 @@ public abstract class FilterProvider<TContext>
     }
 
     /// <inheritdoc />
-    protected override void Complete(IConventionContext context)
+    protected internal override void Complete(IConventionContext context)
     {
         if (Definition!.Handlers.Count == 0)
         {
@@ -152,4 +153,10 @@ public abstract class FilterProvider<TContext>
         IObjectFieldDescriptor descriptor)
     {
     }
+
+    public virtual IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition)
+        => null;
 }

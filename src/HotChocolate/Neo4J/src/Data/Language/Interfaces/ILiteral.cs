@@ -1,7 +1,6 @@
-namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language;
+
+public interface ILiteral
 {
-    public interface ILiteral
-    {
-        string Print();
-    }
+    string Print();
 }

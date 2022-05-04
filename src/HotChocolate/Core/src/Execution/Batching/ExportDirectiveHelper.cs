@@ -13,9 +13,7 @@ internal static class ExportDirectiveHelper
         ConcurrentBag<ExportedVariable> exportedVariables)
         where T : IQueryRequestBuilder
     {
-        builder.SetProperty(
-            ExportedVariables,
-            exportedVariables);
+        builder.SetGlobalState(ExportedVariables, exportedVariables);
         return builder;
     }
 

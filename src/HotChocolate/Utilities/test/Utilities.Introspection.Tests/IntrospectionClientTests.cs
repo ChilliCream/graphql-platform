@@ -2,12 +2,12 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net.Http;
 using Microsoft.AspNetCore.TestHost;
-using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
-using HotChocolate.AspNetCore.Utilities;
-using System.Net.Http;
+using HotChocolate.Language;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.Utilities.Introspection
 {

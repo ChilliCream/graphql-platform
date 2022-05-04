@@ -20,4 +20,22 @@ public abstract class SortTestBase
 
         return builder.Create();
     }
+
+    public ISchema CreateSchemaWithSort<T>(
+        Action<ISortInputTypeDescriptor<T>> configure,
+        Action<ISchemaBuilder>? configureSchema = null)
+    {
+        ISchemaBuilder builder = SchemaBuilder.New()
+            .AddSorting()
+            .ModifyOptions(x => x.RemoveUnreachableTypes = true)
+            .AddQueryType(c =>
+                c.Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .UseSorting(configure)
+                    .Resolve("bar"));
+        configureSchema?.Invoke(builder);
+
+        return builder.Create();
+    }
 }

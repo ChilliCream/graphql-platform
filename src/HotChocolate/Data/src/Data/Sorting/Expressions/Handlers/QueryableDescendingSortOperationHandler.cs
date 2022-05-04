@@ -20,7 +20,7 @@ public class QueryableDescendingSortOperationHandler : QueryableOperationHandler
 
     private sealed class DescendingSortOperation : QueryableSortOperation
     {
-        protected DescendingSortOperation(QueryableFieldSelector fieldSelector)
+        private DescendingSortOperation(QueryableFieldSelector fieldSelector)
             : base(fieldSelector)
         {
         }

@@ -58,8 +58,7 @@
                 "Column": 28
               },
               "Value": "b"
-            },
-            "Value": "b"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -133,8 +132,7 @@
                       "Column": 31
                     },
                     "Value": "a"
-                  },
-                  "Value": "a"
+                  }
                 }
               },
               {
@@ -172,8 +170,7 @@
                       "Column": 38
                     },
                     "Value": "b"
-                  },
-                  "Value": "b"
+                  }
                 }
               },
               {
@@ -211,8 +208,7 @@
                       "Column": 45
                     },
                     "Value": "c"
-                  },
-                  "Value": "c"
+                  }
                 }
               }
             ],

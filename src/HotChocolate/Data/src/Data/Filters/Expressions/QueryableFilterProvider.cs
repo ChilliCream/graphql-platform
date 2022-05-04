@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -41,7 +42,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 
     public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
     {
-        ApplyFiltering applyFilter = CreateApplicatorAsync<TEntityType>(argumentName);
+        ApplyFiltering applyFilter = CreateApplicator<TEntityType>(argumentName);
 
         return next => context => ExecuteAsync(next, context);
 
@@ -57,7 +58,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         }
     }
 
-    private static ApplyFiltering CreateApplicatorAsync<TEntityType>(NameString argumentName)
+    private static ApplyFiltering CreateApplicator<TEntityType>(NameString argumentName)
     {
         return (context, input) =>
         {
@@ -71,12 +72,12 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 
             // if no filter is defined we can stop here and yield back control.
             var skipFiltering =
-            context.LocalContextData.TryGetValue(SkipFilteringKey, out var skip) &&
-            skip is true;
+                context.LocalContextData.TryGetValue(SkipFilteringKey, out var skip) &&
+                skip is true;
 
             // ensure filtering is only applied once
             context.LocalContextData =
-            context.LocalContextData.SetItem(SkipFilteringKey, true);
+                context.LocalContextData.SetItem(SkipFilteringKey, true);
 
             if (filter.IsNull() || skipFiltering)
             {
@@ -99,7 +100,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 
                 // compile expression tree
                 if (visitorContext.TryCreateLambda(
-                out Expression<Func<TEntityType, bool>>? where))
+                    out Expression<Func<TEntityType, bool>>? where))
                 {
                     input = input switch
                     {
@@ -149,5 +150,28 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         var argumentKey = (VisitFilterArgument)VisitFilterArgumentExecutor;
         contextData[ContextVisitFilterArgumentKey] = argumentKey;
         contextData[ContextArgumentNameKey] = argumentName;
+    }
+
+    public override IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition)
+    {
+        if (fieldDefinition.Expression is not null)
+        {
+            if (fieldDefinition.Expression is not LambdaExpression lambda ||
+                lambda.Parameters.Count != 1 ||
+                lambda.Parameters[0].Type != typeDefinition.EntityType)
+            {
+                throw ThrowHelper.QueryableFilterProvider_ExpressionParameterInvalid(
+                    context.Type,
+                    typeDefinition,
+                    fieldDefinition);
+            }
+
+            return new ExpressionFilterMetadata(fieldDefinition.Expression);
+        }
+
+        return null;
     }
 }

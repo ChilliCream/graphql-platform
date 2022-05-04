@@ -35,10 +35,7 @@ public abstract class FilterVisitorBase<TContext, T>
     {
         Queue<T> operations = context.PopLevel();
 
-        if (TryCombineOperations(context,
-                operations,
-                FilterCombinator.And,
-                out T combined))
+        if (TryCombineOperations(context, operations, FilterCombinator.And, out T combined))
         {
             context.GetLevel().Enqueue(combined);
         }
@@ -60,7 +57,7 @@ public abstract class FilterVisitorBase<TContext, T>
     {
         base.Enter(node, context);
 
-        if (context.Operations.Peek() is IFilterField field)
+        if (context.Operations.Peek() is IFilterField field and not IOrField and not IAndField)
         {
             return OnFieldEnter(context, field, node);
         }
@@ -103,11 +100,7 @@ public abstract class FilterVisitorBase<TContext, T>
 
         Queue<T> operations = context.PopLevel();
 
-        if (TryCombineOperations(
-                context,
-                operations,
-            combinator,
-            out T combined))
+        if (TryCombineOperations(context, operations, combinator, out T combined))
         {
             context.GetLevel().Enqueue(combined);
         }

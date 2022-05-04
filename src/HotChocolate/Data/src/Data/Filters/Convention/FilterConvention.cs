@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Data.Utilities;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -81,7 +83,7 @@ public class FilterConvention
     }
 
     /// <inheritdoc />
-    protected override void Complete(IConventionContext context)
+    protected internal override void Complete(IConventionContext context)
     {
         if (Definition?.Provider is null)
         {
@@ -123,7 +125,6 @@ public class FilterConvention
         // definition
         base.Complete(context);
     }
-
 
     /// <inheritdoc />
     public virtual NameString GetTypeName(Type runtimeType)
@@ -194,6 +195,35 @@ public class FilterConvention
         }
 
         return name;
+    }
+
+    /// <inheritdoc />
+    public NameString GetTypeName(
+        IFilterInputType parentType,
+        FilterFieldDefinition fieldDefinition)
+    {
+        const string operationInputPostFix = $"Operation{_inputPostFix}";
+        const string operationInputTypePostFix = $"Operation{_inputTypePostFix}";
+
+        string parentName = parentType.Name;
+        if (parentName.EndsWith(_inputPostFix, StringComparison.Ordinal))
+        {
+            parentName = parentName.Remove(parentName.Length - _inputPostFix.Length);
+        }
+        else if (parentName.EndsWith(operationInputPostFix, StringComparison.Ordinal))
+        {
+            parentName = parentName.Remove(parentName.Length - operationInputPostFix.Length);
+        }
+        else if (parentName.EndsWith(_inputTypePostFix, StringComparison.Ordinal))
+        {
+            parentName = parentName.Remove(parentName.Length - _inputTypePostFix.Length);
+        }
+        else if (parentName.EndsWith(operationInputTypePostFix, StringComparison.Ordinal))
+        {
+            parentName = parentName.Remove(parentName.Length - operationInputTypePostFix.Length);
+        }
+
+        return parentName + NameHelpers.UppercaseFirstLetter(fieldDefinition.Name) + _inputPostFix;
     }
 
     /// <inheritdoc />
@@ -299,6 +329,12 @@ public class FilterConvention
         handler = null;
         return false;
     }
+
+    public IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition)
+        => _provider.CreateMetaData(context, typeDefinition, fieldDefinition);
 
     private bool TryCreateFilterType(
         IExtendedType runtimeType,
