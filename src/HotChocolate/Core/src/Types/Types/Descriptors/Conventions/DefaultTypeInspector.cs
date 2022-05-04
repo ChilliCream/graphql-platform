@@ -1,5 +1,3 @@
-
-
 #nullable enable
 
 using System;
@@ -12,18 +10,17 @@ using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
-using static System.Reflection.BindingFlags;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
 using TypeInfo = HotChocolate.Internal.TypeInfo;
+using static System.Reflection.BindingFlags;
+
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>
 /// The default type inspector implementation that provides helpers to inspect .NET types and
 /// infer GraphQL type structures.
 /// </summary>
-public class DefaultTypeInspector
-    : Convention
-    , ITypeInspector
+public class DefaultTypeInspector : Convention, ITypeInspector
 {
     private const string _toString = "ToString";
     private const string _getHashCode = "GetHashCode";
