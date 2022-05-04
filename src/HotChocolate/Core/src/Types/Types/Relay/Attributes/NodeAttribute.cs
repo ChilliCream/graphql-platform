@@ -1,5 +1,3 @@
-
-
 #nullable enable
 
 using System;
@@ -10,6 +8,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay.Descriptors;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;
+
 namespace HotChocolate.Types.Relay;
 
 /// <summary>
