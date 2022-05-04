@@ -1,13 +1,15 @@
+
+
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay.Descriptors;
+using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;
-
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 /// <summary>
@@ -74,7 +76,9 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             {
                 if (NodeResolver is not null)
                 {
-                    MethodInfo? method = NodeResolverType.GetMethod(NodeResolver, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+                    MethodInfo? method = NodeResolverType.GetMethod(
+                        NodeResolver,
+                        Instance | Static | Public | FlattenHierarchy);
 
                     if (method is null)
                     {
@@ -92,7 +96,9 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
             else if (NodeResolver is not null)
             {
-                MethodInfo? method = type.GetMethod(NodeResolver, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+                MethodInfo? method = type.GetMethod(
+                    NodeResolver,
+                    Instance | Static | Public | FlattenHierarchy);
 
                 if (method is null)
                 {
@@ -132,8 +138,8 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
 
             // we trigger a late id field configuration
             var descriptor = ObjectTypeDescriptor.From(
-            descriptorContext.DescriptorContext,
-            definition);
+                descriptorContext.DescriptorContext,
+                definition);
             nodeDescriptor.ConfigureNodeField(descriptor);
             descriptor.CreateDefinition();
 
