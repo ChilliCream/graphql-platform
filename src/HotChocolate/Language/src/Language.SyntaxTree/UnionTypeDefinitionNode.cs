@@ -11,10 +11,7 @@ namespace HotChocolate.Language;
 /// declare what interfaces they implement, but are not aware of what
 /// unions contain them.
 /// </summary>
-public sealed class UnionTypeDefinitionNode
-    : UnionTypeDefinitionNodeBase
-    , ITypeDefinitionNode
-    , IEquatable<UnionTypeDefinitionNode>
+public sealed class UnionTypeDefinitionNode : UnionTypeDefinitionNodeBase, ITypeDefinitionNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="UnionTypeDefinitionNode"/>.
@@ -161,79 +158,4 @@ public sealed class UnionTypeDefinitionNode
     /// </returns>
     public UnionTypeDefinitionNode WithTypes(IReadOnlyList<NamedTypeNode> types)
         => new(Location, Name, Description, Directives, types);
-
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <returns>
-    /// true if the current object is equal to the <paramref name="other" /> parameter;
-    /// otherwise, false.
-    /// </returns>
-    public bool Equals(UnionTypeDefinitionNode? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return base.Equals(other)
-               && Kind == other.Kind
-               && Description.IsEqualTo(other.Description);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object.
-    /// </summary>
-    /// <param name="obj">
-    /// The object to compare with the current object.
-    /// </param>
-    /// <returns>
-    /// true if the specified object  is equal to the current object; otherwise, false.
-    /// </returns>
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is UnionTypeDefinitionNode other && Equals(other));
-
-    /// <summary>
-    /// Serves as the default hash function.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current object.
-    /// </returns>
-    public override int GetHashCode()
-        => HashCode.Combine(base.GetHashCode(), Kind, Description);
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(
-        UnionTypeDefinitionNode? left,
-        UnionTypeDefinitionNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(
-        UnionTypeDefinitionNode? left,
-        UnionTypeDefinitionNode? right)
-        => !Equals(left, right);
 }

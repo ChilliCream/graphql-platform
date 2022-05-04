@@ -11,8 +11,6 @@ public ref partial struct Utf8GraphQLParser
     {
         TokenInfo start = Start();
 
-        StringValueNode? description = ParseDescription();
-
         ExpectDirectiveKeyword();
         ExpectAt();
 
@@ -31,7 +29,7 @@ public ref partial struct Utf8GraphQLParser
         (
             location,
             name,
-            description,
+            TakeDescription(),
             isRepeatable,
             arguments,
             locations

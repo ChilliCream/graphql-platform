@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) RETURN foo ORDER BY foo.Bar DESC
+﻿MATCH (fooComp:FooComp) RETURN fooComp ORDER BY fooComp.Bar DESC

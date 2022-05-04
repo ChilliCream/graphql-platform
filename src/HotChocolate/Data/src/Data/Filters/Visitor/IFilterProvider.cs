@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -33,4 +34,12 @@ public interface IFilterProvider
     /// data to the field.
     /// </summary>
     void ConfigureField(NameString argumentName, IObjectFieldDescriptor descriptor);
+
+    /// <summary>
+    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// </summary>
+    IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition);
 }

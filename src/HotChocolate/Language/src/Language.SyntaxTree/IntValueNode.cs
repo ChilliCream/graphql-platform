@@ -26,10 +26,7 @@ namespace HotChocolate.Language;
 /// 0x123 and 123L have no valid lexical representations.
 /// </para>
 /// </summary>
-public sealed class IntValueNode
-    : IValueNode<string>
-    , IEquatable<IntValueNode>
-    , IIntValueLiteral
+public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
 {
     private ReadOnlyMemory<byte> _memory;
     private string? _stringValue;
@@ -52,9 +49,7 @@ public sealed class IntValueNode
     /// The value.
     /// </param>
     public IntValueNode(byte value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="IntValueNode"/>
@@ -79,9 +74,7 @@ public sealed class IntValueNode
     /// The value.
     /// </param>
     public IntValueNode(short value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="IntValueNode"/>
@@ -105,9 +98,7 @@ public sealed class IntValueNode
     /// The value.
     /// </param>
     public IntValueNode(int value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="IntValueNode"/>
@@ -131,9 +122,7 @@ public sealed class IntValueNode
     /// The value.
     /// </param>
     public IntValueNode(long value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="IntValueNode"/>
@@ -157,9 +146,7 @@ public sealed class IntValueNode
     /// The value.
     /// </param>
     public IntValueNode(sbyte value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="IntValueNode"/>
@@ -189,9 +176,7 @@ public sealed class IntValueNode
     /// The value.
     /// </param>
     public IntValueNode(ushort value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="IntValueNode"/>
@@ -221,9 +206,7 @@ public sealed class IntValueNode
     /// The value.
     /// </param>
     public IntValueNode(uint value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="IntValueNode"/>
@@ -253,9 +236,7 @@ public sealed class IntValueNode
     /// The value.
     /// </param>
     public IntValueNode(ulong value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="IntValueNode"/>
@@ -285,9 +266,7 @@ public sealed class IntValueNode
     /// The value.
     /// </param>
     public IntValueNode(ReadOnlyMemory<byte> value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="IntValueNode"/>
@@ -332,6 +311,7 @@ public sealed class IntValueNode
             if (_stringValue is null)
             {
                 ReadOnlySpan<byte> span = AsSpan();
+
                 fixed (byte* b = span)
                 {
                     _stringValue = Encoding.UTF8.GetString(b, span.Length);
@@ -341,145 +321,10 @@ public sealed class IntValueNode
         }
     }
 
-    object? IValueNode.Value => Value;
+    object IValueNode.Value => Value;
 
     /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
-
-    /// <summary>
-    /// Determines whether the specified <see cref="IntValueNode"/>
-    /// is equal to the current <see cref="IntValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="IntValueNode"/> to compare with the current
-    /// <see cref="IntValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="IntValueNode"/> is equal
-    /// to the current <see cref="IntValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(IntValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        ReadOnlyMemory<byte> ourMem = AsMemory();
-        ReadOnlyMemory<byte> otherMem = other.AsMemory();
-
-        // memory is not doing a deep equality check,
-        // but it will be equal if we are referring to the same
-        // underlying array.
-        if (otherMem.Equals(ourMem))
-        {
-            return true;
-        }
-
-        // if the length is not equals we can do a quick exit.
-        if (ourMem.Length != otherMem.Length)
-        {
-            return false;
-        }
-
-        // last we will do a sequence equals and compare the utf8string representation of
-        // this value.
-        return ourMem.Span.SequenceEqual(otherMem.Span);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="IntValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="IValueNode"/> to compare with the current
-    /// <see cref="IntValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="IntValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(IValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        if (other.GetType() != GetType())
-        {
-            return false;
-        }
-
-        return Equals((IntValueNode)other);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="IntValueNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="IntValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="IntValueNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(obj, this))
-        {
-            return true;
-        }
-
-        if (obj.GetType() != GetType())
-        {
-            return false;
-        }
-
-        return Equals((IntValueNode)obj);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="IntValueNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-    {
-#if NET6_0_OR_GREATER
-        var hashCode = new HashCode();
-        hashCode.Add(Kind);
-        hashCode.AddBytes(AsSpan());
-        return hashCode.ToHashCode();
-#else
-        var hashCode = new HashCode();
-        hashCode.Add(Kind);
-        HashCodeExtensions.AddBytes(ref hashCode, AsSpan());
-        return hashCode.ToHashCode();
-#endif
-    }
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -717,7 +562,7 @@ public sealed class IntValueNode
     public ReadOnlySpan<byte> AsSpan()
         => AsMemory().Span;
 
-    private ReadOnlyMemory<byte> AsMemory()
+    internal ReadOnlyMemory<byte> AsMemory()
     {
         if (!_memory.IsEmpty)
         {
@@ -843,10 +688,4 @@ public sealed class IntValueNode
     /// Returns the new node with the new <paramref name="value" />.
     /// </returns>
     public IntValueNode WithValue(ReadOnlyMemory<byte> value) => new(Location, value);
-
-    public static bool operator ==(IntValueNode? left, IntValueNode? right)
-        => Equals(left, right);
-
-    public static bool operator !=(IntValueNode? left, IntValueNode? right)
-        => !Equals(left, right);
 }

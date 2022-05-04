@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE foo.Bar <> True RETURN foo {.Bar}
+﻿MATCH (fooBool:FooBool) WHERE fooBool.Bar <> True RETURN fooBool {.Bar}

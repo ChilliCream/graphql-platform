@@ -1,22 +1,114 @@
+using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language;
 
-internal static class SyntaxNodeExtensions
+public static class SyntaxNodeExtensions
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsEqualTo(this ISyntaxNode? x, ISyntaxNode? y)
+    /// <summary>
+    /// Specifies if the current value node represents <c>null</c>.
+    /// </summary>
+    /// <param name="value">
+    /// The value node.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if the current value node represents <c>null</c>;
+    /// otherwise, <c>false</c> is returned.
+    /// </returns>
+    public static bool IsNull(this IValueNode? value)
+        => value is null or NullValueNode;
+
+    public static bool IsNonNullType(this ITypeNode type)
+        => type.Kind is SyntaxKind.NonNullType;
+
+    public static bool IsListType(this ITypeNode type)
     {
-        if (x is null)
+        if (type.Kind is SyntaxKind.ListType)
         {
-            return y is null;
+            return true;
         }
 
-        if (y is null)
+        if (type.Kind is SyntaxKind.NonNullType &&
+            ((NonNullTypeNode)type).Kind is SyntaxKind.ListType)
         {
-            return false;
+            return true;
         }
 
-        return x.Equals(y);
+        return false;
     }
+
+    public static ITypeNode ElementType(this ITypeNode type)
+    {
+        if (type.Kind is SyntaxKind.NonNullType)
+        {
+            type = ((NonNullTypeNode)type).Type;
+        }
+
+        if (type.Kind is SyntaxKind.ListType)
+        {
+            return ((ListTypeNode)type).Type;
+        }
+
+        throw new InvalidOperationException();
+    }
+
+    public static ITypeNode InnerType(this ITypeNode type)
+        => InnerTypeInternal(type);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ITypeNode InnerTypeInternal(ITypeNode type)
+    {
+        if (type.Kind is SyntaxKind.NonNullType)
+        {
+            return ((NonNullTypeNode)type).Type;
+        }
+
+        if (type.Kind is SyntaxKind.ListType)
+        {
+            return ((ListTypeNode)type).Type;
+        }
+
+        return type;
+    }
+
+    public static ITypeNode NullableType(this ITypeNode type)
+    {
+        if (type.Kind is SyntaxKind.NonNullType)
+        {
+            return ((NonNullTypeNode)type).Type;
+        }
+
+        return type;
+    }
+
+    public static NamedTypeNode NamedType(this ITypeNode type)
+    {
+        ITypeNode innerType = InnerTypeInternal(type);
+
+        if (innerType.Kind is SyntaxKind.NamedType)
+        {
+            return (NamedTypeNode)innerType;
+        }
+
+        for(var i = 0; i < 10; i++)
+        {
+            innerType = innerType.InnerType();
+
+            if (innerType.Kind is SyntaxKind.NamedType)
+            {
+                return (NamedTypeNode)innerType;
+            }
+        }
+
+        throw new NotSupportedException();
+    }
+
+    public static bool Equals(
+        this ISyntaxNode node,
+        ISyntaxNode? other,
+        SyntaxComparison comparison)
+        => comparison is SyntaxComparison.Syntax
+            ? SyntaxComparer.BySyntax.Equals(node, other)
+            : SyntaxComparer.ByReference.Equals(node, other);
 }
