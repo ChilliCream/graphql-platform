@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,8 +12,7 @@ using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
 using TypeInfo = HotChocolate.Internal.TypeInfo;
-
-#nullable enable
+using static System.Reflection.BindingFlags;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -19,9 +20,7 @@ namespace HotChocolate.Types.Descriptors;
 /// The default type inspector implementation that provides helpers to inspect .NET types and
 /// infer GraphQL type structures.
 /// </summary>
-public class DefaultTypeInspector
-    : Convention
-    , ITypeInspector
+public class DefaultTypeInspector : Convention, ITypeInspector
 {
     private const string _toString = "ToString";
     private const string _getHashCode = "GetHashCode";
@@ -67,7 +66,7 @@ public class DefaultTypeInspector
     }
 
     private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored) =>
-        type.GetMembers(BindingFlags.Instance | BindingFlags.Public)
+        type.GetMembers(Instance | Public)
             .Where(m => CanBeHandled(m, includeIgnored));
 
     /// <inheritdoc />
@@ -106,7 +105,9 @@ public class DefaultTypeInspector
 
         IExtendedType returnType = ExtendedType.FromMember(member, _typeCache);
 
-        return ignoreAttributes ? returnType : ApplyTypeAttributes(returnType, member);
+        return ignoreAttributes
+            ? returnType
+            : ApplyTypeAttributes(returnType, member);
     }
 
     /// <inheritdoc />
@@ -148,12 +149,14 @@ public class DefaultTypeInspector
         }
 
         IExtendedType argumentType = GetArgumentTypeInternal(parameter);
-        return ignoreAttributes ? argumentType : ApplyTypeAttributes(argumentType, parameter);
+        return ignoreAttributes
+            ? argumentType
+            : ApplyTypeAttributes(argumentType, parameter);
     }
 
     private IExtendedType GetArgumentTypeInternal(ParameterInfo parameter)
     {
-        MethodInfo method = (MethodInfo)parameter.Member;
+        var method = (MethodInfo)parameter.Member;
 
         if (!_methods.TryGetValue(method, out ExtendedMethodInfo? info))
         {
@@ -192,10 +195,10 @@ public class DefaultTypeInspector
 
         if (nullable is null)
         {
-            throw new ArgumentNullException(nameof(type));
+            throw new ArgumentNullException(nameof(nullable));
         }
 
-        ExtendedType extendedType = ExtendedType.FromType(type, _typeCache);
+        var extendedType = ExtendedType.FromType(type, _typeCache);
 
         return nullable is { Length: > 0 }
             ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
@@ -210,7 +213,7 @@ public class DefaultTypeInspector
             throw new ArgumentNullException(nameof(type));
         }
 
-        ExtendedType extendedType = ExtendedType.FromType(type, _typeCache);
+        var extendedType = ExtendedType.FromType(type, _typeCache);
 
         return nullable is { Length: > 0 }
             ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
@@ -227,7 +230,7 @@ public class DefaultTypeInspector
 
         if (enumType != typeof(object) && enumType.IsEnum)
         {
-            return Enum.GetValues(enumType).Cast<object>()!;
+            return Enum.GetValues(enumType).Cast<object>();
         }
 
         return Enumerable.Empty<object>();
@@ -278,7 +281,7 @@ public class DefaultTypeInspector
         if (resolverType is null)
         {
             return nodeType
-                .GetMembers(BindingFlags.Static | BindingFlags.Public)
+                .GetMembers(Static | Public | FlattenHierarchy)
                 .OfType<MethodInfo>()
                 .FirstOrDefault(m => IsPossibleNodeResolver(m, nodeType));
         }
@@ -287,7 +290,7 @@ public class DefaultTypeInspector
         // include the type name and can be an instance method.
         // first we will check for static load methods.
         MethodInfo? method = resolverType
-            .GetMembers(BindingFlags.Static | BindingFlags.Public)
+            .GetMembers(Static | Public | FlattenHierarchy)
             .OfType<MethodInfo>()
             .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
 
@@ -547,7 +550,7 @@ public class DefaultTypeInspector
     {
         IExtendedType resultType = type;
 
-        bool hasGraphQLTypeAttribute = false;
+        var hasGraphQLTypeAttribute = false;
 
         if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute) &&
             typeAttribute.Type is { } attributeType)
@@ -616,7 +619,7 @@ public class DefaultTypeInspector
         if (member is PropertyInfo property)
         {
             return CanHandleReturnType(member, property.PropertyType) &&
-                   property.GetIndexParameters().Length == 0;
+                property.GetIndexParameters().Length == 0;
         }
 
         if (member is MethodInfo method &&
@@ -674,8 +677,7 @@ public class DefaultTypeInspector
         }
 
 #if NETSTANDARD2_0
-            if (returnType.IsByRef)
-
+        if (returnType.IsByRef)
 #else
         if (returnType.IsByRefLike ||
             returnType.IsByRef)
@@ -738,9 +740,9 @@ public class DefaultTypeInspector
         // by ref and out will never be allowed
         if (parameter.ParameterType.IsByRef ||
 #if !NETSTANDARD2_0
-                parameter.ParameterType.IsByRefLike ||
+            parameter.ParameterType.IsByRefLike ||
 #endif
-                parameter.IsOut)
+            parameter.IsOut)
         {
             return false;
         }
@@ -755,34 +757,32 @@ public class DefaultTypeInspector
 
     private static bool HasConfiguration(ICustomAttributeProvider element)
         => element.IsDefined(typeof(GraphQLTypeAttribute), true) ||
-           element.IsDefined(typeof(ParentAttribute), true) ||
-           element.IsDefined(typeof(ServiceAttribute), true) ||
-           element.IsDefined(typeof(GlobalStateAttribute), true) ||
-           element.IsDefined(typeof(ScopedServiceAttribute), true) ||
-           element.IsDefined(typeof(ScopedStateAttribute), true) ||
-           element.IsDefined(typeof(LocalStateAttribute), true) ||
-           element.IsDefined(typeof(DescriptorAttribute), true);
+            element.IsDefined(typeof(ParentAttribute), true) ||
+            element.IsDefined(typeof(ServiceAttribute), true) ||
+            element.IsDefined(typeof(GlobalStateAttribute), true) ||
+            element.IsDefined(typeof(ScopedServiceAttribute), true) ||
+            element.IsDefined(typeof(ScopedStateAttribute), true) ||
+            element.IsDefined(typeof(LocalStateAttribute), true) ||
+            element.IsDefined(typeof(DescriptorAttribute), true);
 
     private static bool IsSystemMember(MemberInfo member)
-    {
-        return IsCloneMember(member) ||
-               IsToString(member) ||
-               IsGetHashCode(member) ||
-               IsEquals(member);
-    }
+        => IsCloneMember(member) ||
+            IsToString(member) ||
+            IsGetHashCode(member) ||
+            IsEquals(member);
 
     private static bool IsToString(MemberInfo member)
         => member is MethodInfo { Name: _toString };
 
     private static bool IsGetHashCode(MemberInfo member)
         => member is MethodInfo { Name: _getHashCode } m &&
-           m.GetParameters().Length == 0;
+            m.GetParameters().Length == 0;
 
     private static bool IsEquals(MemberInfo member)
         => member is MethodInfo { Name: _equals };
 
-    private static bool IsCloneMember(MemberInfo member) =>
-        member.Name.EqualsOrdinal(_clone);
+    private static bool IsCloneMember(MemberInfo member)
+        => member.Name.EqualsOrdinal(_clone);
 
     private IEnumerable<T> GetCustomAttributes<T>(
         ICustomAttributeProvider attributeProvider,
