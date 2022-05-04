@@ -22,12 +22,7 @@ internal readonly struct SourceBinding : IBinding, IEquatable<SourceBinding>
         => obj is SourceBinding other && Equals(other);
 
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            return (Target.GetHashCode() * 397) ^ Source.GetHashCode();
-        }
-    }
+        => HashCode.Combine(Target, Source);
 
     public static bool operator ==(SourceBinding left, SourceBinding right)
         => left.Equals(right);
