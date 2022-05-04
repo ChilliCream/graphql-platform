@@ -1,3 +1,7 @@
+
+
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -8,11 +12,9 @@ using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
+using static System.Reflection.BindingFlags;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
 using TypeInfo = HotChocolate.Internal.TypeInfo;
-
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>
@@ -67,7 +69,7 @@ public class DefaultTypeInspector
     }
 
     private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored) =>
-        type.GetMembers(BindingFlags.Instance | BindingFlags.Public)
+        type.GetMembers(Instance | Public)
             .Where(m => CanBeHandled(m, includeIgnored));
 
     /// <inheritdoc />
@@ -278,7 +280,7 @@ public class DefaultTypeInspector
         if (resolverType is null)
         {
             return nodeType
-                .GetMembers(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy)
+                .GetMembers(Static | Public | FlattenHierarchy)
                 .OfType<MethodInfo>()
                 .FirstOrDefault(m => IsPossibleNodeResolver(m, nodeType));
         }
@@ -287,7 +289,7 @@ public class DefaultTypeInspector
         // include the type name and can be an instance method.
         // first we will check for static load methods.
         MethodInfo? method = resolverType
-            .GetMembers(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy)
+            .GetMembers(Static | Public | FlattenHierarchy)
             .OfType<MethodInfo>()
             .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
 
