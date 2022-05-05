@@ -24,10 +24,12 @@ public class IsolatedProcessHostBuilderTests
         AssertFunctionsHostBuilderIsValid(hostBuilder);
     }
 
-    private void AssertFunctionsHostBuilderIsValid(MockIsolatedProcessHostBuilder hostBuilder)
+    private static void AssertFunctionsHostBuilderIsValid(MockIsolatedProcessHostBuilder hostBuilder)
     {
-        IHost? host = hostBuilder.Build();
-        Assert.NotNull(host?.Services);
+        if(hostBuilder is null)
+            throw new ArgumentNullException(nameof(hostBuilder));
+
+        IHost host = hostBuilder.Build();
 
         //The executor should resolve without error as a Required service...
         IGraphQLRequestExecutor requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();

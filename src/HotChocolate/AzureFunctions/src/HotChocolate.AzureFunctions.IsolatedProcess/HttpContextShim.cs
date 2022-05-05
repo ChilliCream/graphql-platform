@@ -34,11 +34,17 @@ public class HttpContextShim : IDisposable, IAsyncDisposable
     /// NOTE: This is done as Factory method (and not in the Constructor) to support optimized Async reading of incoming Request Content/Stream.
     /// </summary>
     /// <returns></returns>
-    public static async Task<HttpContextShim> CreateHttpContextAsync(HttpRequestData httpRequestData)
+    public static Task<HttpContextShim> CreateHttpContextAsync(HttpRequestData httpRequestData)
     {
         if (httpRequestData == null)
             throw new ArgumentNullException(nameof(httpRequestData));
 
+        //Factored out Async logic to Address Sonarrcloud concern for exceptions in Async flow...
+        return CreateHttpContextInternalAsync(httpRequestData);
+    }
+
+    private static async Task<HttpContextShim> CreateHttpContextInternalAsync(HttpRequestData httpRequestData)
+    {
         var requestBody = await httpRequestData.ReadAsStringAsync().ConfigureAwait(false);
 
         HttpContext httpContext = new HttpContextBuilder().CreateHttpContext(
@@ -89,16 +95,23 @@ public class HttpContextShim : IDisposable, IAsyncDisposable
 
     public virtual ValueTask DisposeAsync()
     {
-        if(!IsDisposed) Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
         return ValueTask.CompletedTask;
     }
 
-    public virtual void Dispose()
+    public void Dispose()
     {
-        if (IsDisposed) return;
-
-        HttpContext.DisposeSafely();
-
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (IsDisposed)
+            return;
+
+        HttpContext.DisposeSafely();
+    }
+
 }

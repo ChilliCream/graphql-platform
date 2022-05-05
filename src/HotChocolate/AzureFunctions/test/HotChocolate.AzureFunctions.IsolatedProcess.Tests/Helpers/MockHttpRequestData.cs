@@ -69,6 +69,7 @@ public class MockHttpRequestData : HttpRequestData, IDisposable
     public void Dispose()
     {
         Body?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
 

@@ -52,6 +52,9 @@ public class MockFunctionContext : FunctionContext, IDisposable
     public virtual void Dispose()
     {
         //DO NOTHING
+
+        //Address Sonarr IDisposable pattern concern...
+        GC.SuppressFinalize(this);
     }
 }
 
@@ -86,6 +89,9 @@ public class MockInvocationFeatures : Dictionary<Type, object>, IInvocationFeatu
 {
     public void Set<T>(T instance)
     {
+        if (instance == null)
+            return;
+
         TryAdd(typeof(T), instance);
     }
 

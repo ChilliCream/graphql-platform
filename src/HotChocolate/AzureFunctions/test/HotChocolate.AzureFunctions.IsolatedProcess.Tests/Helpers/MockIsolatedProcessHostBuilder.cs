@@ -38,12 +38,14 @@ internal class MockIsolatedProcessHostBuilder : IHostBuilder
     }
 
     public IHostBuilder UseServiceProviderFactory<TContainerBuilder>(IServiceProviderFactory<TContainerBuilder> factory)
+        where TContainerBuilder : notnull
         => DoNothing();
 
     public IHostBuilder UseServiceProviderFactory<TContainerBuilder>(Func<HostBuilderContext, IServiceProviderFactory<TContainerBuilder>> factory)
+        where TContainerBuilder : notnull
         => DoNothing();
 
-    public IHostBuilder DoNothing() { return this; } //DO NOTHING;
+    protected virtual IHostBuilder DoNothing() { return this; } //DO NOTHING;
 
     public IDictionary<object, object> Properties { get; } = new Dictionary<object, object>();
 }
@@ -61,7 +63,7 @@ internal class MockIsolatedProcessHost : IHost
     public Task StopAsync(CancellationToken cancellationToken = new CancellationToken())
         => DoNothingAsync();
 
-    public Task DoNothingAsync() { return Task.CompletedTask; } //DO NOTHING;
+    protected virtual Task<IHost> DoNothingAsync() { return Task.FromResult((IHost)this); } //DO NOTHING;
 
     public IServiceProvider Services { get; }
 }

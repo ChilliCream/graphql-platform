@@ -64,13 +64,10 @@ public static class HotChocolateFunctionsHostBuilderExtensions
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute
     )
     {
-        //NOTE: HostBuilder null check will be done by AddGraphQLFunction() call below...
-        //if (hostBuilder is null)
-        //    throw new ArgumentNullException(nameof(hostBuilder));
-
         if (graphqlConfigureFunc is null)
             throw new ArgumentNullException(nameof(graphqlConfigureFunc));
 
+        //NOTE: HostBuilder null check will be done by AddGraphQLFunction()...
         IRequestExecutorBuilder executorBuilder = hostBuilder.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
         graphqlConfigureFunc.Invoke(executorBuilder);
 
