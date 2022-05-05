@@ -1,12 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Language.SyntaxComparison;
+using ObjectTypeExtension = HotChocolate.Types.ObjectTypeExtension;
 
 namespace HotChocolate.Stitching.Types.Pipeline;
 
 public class ApplyExtensionsMiddleware
 {
+    private const string _schema = "$schema";
     private readonly MergeSchema _next;
 
     public ApplyExtensionsMiddleware(MergeSchema next)
@@ -16,8 +22,8 @@ public class ApplyExtensionsMiddleware
 
     public async ValueTask InvokeAsync(ISchemaMergeContext context)
     {
-        var definitions = new Dictionary<string, ITypeDefinitionNode>();
-        var extensions = new List<ITypeExtensionNode>();
+        var definitions = new Dictionary<string, ITypeSystemDefinitionNode>();
+        var extensions = new List<ITypeSystemExtensionNode>();
 
         foreach (ServiceConfiguration configuration in context.Configurations)
         {
@@ -25,64 +31,258 @@ public class ApplyExtensionsMiddleware
             {
                 CollectTypeDefinitions(definitions, extensions, document);
                 CollectTypeExtensions(extensions, document);
-                DocumentNode subgraph = ApplyExtensions(definitions, extensions);
-                context.Documents = context.Documents.Add(subgraph);
             }
+
+            DocumentNode subgraph = ApplyExtensions(definitions, extensions);
+            context.Documents = context.Documents.Add(subgraph);
         }
 
         await _next(context);
     }
 
     private void CollectTypeDefinitions(
-        Dictionary<string, ITypeDefinitionNode> definitions,
-        List<ITypeExtensionNode> extensions,
+        Dictionary<string, ITypeSystemDefinitionNode> definitions,
+        List<ITypeSystemExtensionNode> extensions,
         DocumentNode document)
     {
         foreach (IDefinitionNode definition in document.Definitions)
         {
-            if (definition is ITypeDefinitionNode typeDef)
+            if (definition is ITypeSystemDefinitionNode typeDef)
             {
-                if (definitions.ContainsKey(typeDef.Name.Value))
+                var name = GetName(typeDef);
+                if (definitions.ContainsKey(name))
                 {
-                    extensions.Add(ConvertToExtension(typeDef));
+                    // Directive definitions have no extensions syntax,
+                    // so if find a second directive with the same name we will just drop it.
+                    if (definition.Kind is not SyntaxKind.DirectiveDefinition)
+                    {
+                        extensions.Add(ConvertToExtension(typeDef));
+                    }
                 }
                 else
                 {
-                    definitions.Add(typeDef.Name.Value, typeDef);
+                    definitions.Add(name, typeDef);
                 }
             }
         }
     }
 
     private void CollectTypeExtensions(
-        List<ITypeExtensionNode> extensions,
+        List<ITypeSystemExtensionNode> extensions,
         DocumentNode document)
     {
         foreach (IDefinitionNode definition in document.Definitions)
         {
-            if (definition is ITypeExtensionNode typeExt)
+            if (definition is ITypeSystemExtensionNode typeExt)
             {
                 extensions.Add(typeExt);
             }
         }
     }
 
-    private DocumentNode ApplyExtensions(
-        Dictionary<string, ITypeDefinitionNode> definitions,
-        List<ITypeExtensionNode> extensions)
+    private static DocumentNode ApplyExtensions(
+        Dictionary<string, ITypeSystemDefinitionNode> definitions,
+        List<ITypeSystemExtensionNode> extensions)
     {
+        var preserved = new List<ITypeSystemExtensionNode>();
 
+        foreach (ITypeSystemExtensionNode extension in extensions)
+        {
+            if (extension is SchemaExtensionNode schemaExt)
+            {
+                ApplyExtensions(definitions, schemaExt);
+            }
+            else if (extension is ITypeExtensionNode typeExt)
+            {
+                // We try to apply the type extension. If we do not find a definition that we
+                // can apply it to we will preserve the extension for latter processing steps.
+                if (!TryApplyExtensions(definitions, typeExt))
+                {
+                    preserved.Add(typeExt);
+                }
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(extensions), extension, null);
+            }
+        }
+
+        // We create a single document per service where the extensions are at the top.
+        var definitionList = new List<IDefinitionNode>();
+        definitionList.AddRange(preserved.OrderBy(t => ((IHasName)t).Name.Value));
+        definitionList.AddRange(definitions.OrderBy(t => t.Key).Select(t => t.Value));
+        return new DocumentNode(definitionList);
     }
 
-    private static ITypeExtensionNode ConvertToExtension(ITypeDefinitionNode typeDef)
+    private static void ApplyExtensions(
+        Dictionary<string, ITypeSystemDefinitionNode> definitions,
+        SchemaExtensionNode extension)
+    {
+        if (definitions.TryGetValue(_schema, out ITypeSystemDefinitionNode? def) &&
+            def is SchemaDefinitionNode schemaDef)
+        {
+            var directives = schemaDef.Directives.ToList();
+            directives.AddRange(extension.Directives);
+            definitions[_schema] = schemaDef.WithDirectives(directives);
+        }
+        else
+        {
+            definitions[_schema] = new SchemaDefinitionNode(
+                null,
+                null,
+                extension.Directives,
+                extension.OperationTypes);
+        }
+    }
+
+    private static bool TryApplyExtensions(
+        Dictionary<string, ITypeSystemDefinitionNode> definitions,
+        ITypeExtensionNode extension)
+    {
+        if (definitions.TryGetValue(extension.Name.Value, out ITypeSystemDefinitionNode? typeDef))
+        {
+            ITypeSystemDefinitionNode definition = extension switch
+            {
+                ObjectTypeExtensionNode typeExt => ApplyExtensions(
+                    (ObjectTypeDefinitionNode)typeDef,
+                    typeExt),
+                InterfaceTypeExtensionNode typeExt => TryApplyExtensions(
+                    (InterfaceTypeDefinitionNode)typeDef,
+                    typeExt),
+                _ => throw new ArgumentOutOfRangeException(nameof(extension), extension, null)
+            };
+
+            definitions[extension.Name.Value] = definition;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static ObjectTypeDefinitionNode ApplyExtensions(
+        ObjectTypeDefinitionNode definition,
+        ObjectTypeExtensionNode extension)
+    {
+        IReadOnlyList<DirectiveNode> directives = definition.Directives;
+        IReadOnlyList<NamedTypeNode> interfaces = definition.Interfaces;
+        IReadOnlyList<FieldDefinitionNode> fields = definition.Fields;
+
+        if (extension.Directives.Count > 0)
+        {
+            var temp = definition.Directives.ToList();
+            temp.AddRange(extension.Directives);
+            directives = temp;
+        }
+
+        if (extension.Interfaces.Count > 0)
+        {
+            var names = definition.Interfaces.Select(t => t.Name.Value).ToHashSet();
+            List<NamedTypeNode>? temp = null;
+
+            foreach (NamedTypeNode type in extension.Interfaces)
+            {
+                if (names.Add(type.Name.Value))
+                {
+                    (temp ?? definition.Interfaces.ToList()).Add(type);
+                }
+            }
+
+            if (temp is not null)
+            {
+                interfaces = temp;
+            }
+        }
+
+        if (extension.Fields.Count > 0)
+        {
+            var map = definition.Fields.ToDictionary(t => t.Name.Value);
+            List<FieldDefinitionNode>? temp = null;
+
+            foreach (FieldDefinitionNode extensionField in extension.Fields)
+            {
+                // By default extensions would only allow to insert new fields.
+                // We also use extensions as a vehicle to annotate fields.
+                // So if we see that there is already a field we will try to merge it.
+                if (map.TryGetValue(extensionField.Name.Value, out FieldDefinitionNode? field))
+                {
+                    ApplyExtensions(field, extensionField);
+                }
+                else
+                {
+                    map.Add(extensionField.Name.Value, extensionField);
+                    (temp ??= definition.Fields.ToList()).Add(extensionField);
+                }
+            }
+        }
+
+        if (!ReferenceEquals(definition.Directives, directives) ||
+            !ReferenceEquals(definition.Interfaces, interfaces) ||
+            !ReferenceEquals(definition.Fields, fields))
+        {
+            return new ObjectTypeDefinitionNode(
+                null,
+                definition.Name,
+                definition.Description,
+                directives,
+                interfaces,
+                fields);
+        }
+
+        return definition;
+    }
+
+    private static FieldDefinitionNode ApplyExtensions(
+        string typeName,
+        FieldDefinitionNode definition,
+        FieldDefinitionNode extension)
+    {
+        // we first need to validate that the field structure can be merged.
+        if (definition.Arguments.Count != extension.Arguments.Count)
+        {
+
+        }
+
+        for(var i = 0; i < definition.Arguments.Count; i++)
+        {
+            InputValueDefinitionNode arg = definition.Arguments[i];
+            InputValueDefinitionNode argExt = definition.Arguments[i];
+
+            if (!arg.Name.Equals(argExt.Name, Syntax) || !arg.Type.Equals(argExt.Type, Syntax))
+            {
+
+            }
+
+            if (argExt.Directives.Count > 0)
+            {
+
+            }
+        }
+
+        IReadOnlyList<DirectiveNode> directives = definition.Directives;
+
+        if (extension.Directives.Count > 0)
+        {
+
+        }
+    }
+
+    private static InterfaceTypeDefinitionNode TryApplyExtensions(
+        InterfaceTypeDefinitionNode definition,
+        InterfaceTypeExtensionNode extension)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static ITypeSystemExtensionNode ConvertToExtension(IDefinitionNode typeDef)
         => typeDef switch
         {
             ObjectTypeDefinitionNode objectTypeDef => ConvertToExtension(objectTypeDef),
-            InterfaceTypeDefinitionNode objectTypeDef => ConvertToExtension(objectTypeDef),
-            UnionTypeDefinitionNode objectTypeDef => ConvertToExtension(objectTypeDef),
-            InputObjectTypeDefinitionNode objectTypeDef => ConvertToExtension(objectTypeDef),
-            EnumTypeDefinitionNode objectTypeDef => ConvertToExtension(objectTypeDef),
-            ScalarTypeDefinitionNode objectTypeDef => ConvertToExtension(objectTypeDef),
+            InterfaceTypeDefinitionNode interfaceTypeDef => ConvertToExtension(interfaceTypeDef),
+            UnionTypeDefinitionNode unionTypeDef => ConvertToExtension(unionTypeDef),
+            InputObjectTypeDefinitionNode inputTypeDef => ConvertToExtension(inputTypeDef),
+            EnumTypeDefinitionNode enumTypeDef => ConvertToExtension(enumTypeDef),
+            ScalarTypeDefinitionNode scalarTypeDef => ConvertToExtension(scalarTypeDef),
+            SchemaDefinitionNode schemaDef => ConvertToExtension(schemaDef),
             _ => throw new ArgumentOutOfRangeException(nameof(typeDef), typeDef, null)
         };
 
@@ -133,5 +333,21 @@ public class ApplyExtensionsMiddleware
         => new ScalarTypeExtensionNode(
             typeDef.Location,
             typeDef.Name,
-            typeDef.Directives;
+            typeDef.Directives);
+
+    private static SchemaExtensionNode ConvertToExtension(
+        SchemaDefinitionNode schemaDef)
+        => new SchemaExtensionNode(
+            schemaDef.Location,
+            schemaDef.Directives,
+            schemaDef.OperationTypes);
+
+    private static string GetName(IDefinitionNode definition)
+        => definition switch
+        {
+            IHasName typeDef => typeDef.Name.Value,
+            SchemaDefinitionNode schema => _schema,
+            SchemaExtensionNode schema => _schema,
+            _ => throw new ArgumentOutOfRangeException(nameof(definition), definition, null)
+        };
 }

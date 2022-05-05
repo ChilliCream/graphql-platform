@@ -15,5 +15,8 @@ public interface ISchemaMergeContext
 
 public class ServiceConfiguration
 {
+
+    public string Name { get; }
+
     public IReadOnlyList<DocumentNode> Documents { get; }
 }
