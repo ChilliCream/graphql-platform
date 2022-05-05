@@ -1,0 +1,34 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "should": [
+              {
+                "wildcard": {
+                  "bar": {
+                    "value": "*with*"
+                  }
+                }
+              },
+              {
+                "bool": {
+                  "must_not": [
+                    {
+                      "wildcard": {
+                        "bar": {
+                          "value": "*I*"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
