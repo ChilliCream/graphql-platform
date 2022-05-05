@@ -41,13 +41,12 @@ public static class RequestExecutorBuilderExtensions
                 next => async context =>
                 {
                     await next(context);
-                    if (context.Result is IReadOnlyQueryResult result &&
-                        context.ContextData.TryGetValue("sql", out object? queryString)&&
-                        context.ContextData.TryGetValue("expression", out object? expression))
+                    if (context.ContextData.TryGetValue("sql", out var queryString)&&
+                        context.ContextData.TryGetValue("expression", out var expression))
                     {
                         context.Result =
                             QueryResultBuilder
-                                .FromResult(result)
+                                .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("sql", queryString)
                                 .SetContextData("expression", expression)
                                 .Create();

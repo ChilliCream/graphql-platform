@@ -2,6 +2,7 @@ using Nuke.Common;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.SonarScanner;
+using Serilog;
 using static System.IO.Path;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
@@ -19,10 +20,10 @@ partial class Build
         .Requires(() => GitHubPRNumber != null)
         .Executes(() =>
         {
-            Logger.Info($"GitHubRepository: {GitHubRepository}");
-            Logger.Info($"GitHubHeadRef: {GitHubHeadRef}");
-            Logger.Info($"GitHubBaseRef: {GitHubBaseRef}");
-            Logger.Info($"GitHubPRNumber: {GitHubPRNumber}");
+            Log.Information($"GitHubRepository: {GitHubRepository}");
+            Log.Information($"GitHubHeadRef: {GitHubHeadRef}");
+            Log.Information($"GitHubBaseRef: {GitHubBaseRef}");
+            Log.Information($"GitHubPRNumber: {GitHubPRNumber}");
 
             TryDelete(SonarSolutionFile);
             DotNetBuildSonarSolution(AllSolutionFile);
@@ -33,7 +34,11 @@ partial class Build
                 .SetProcessWorkingDirectory(RootDirectory));
 
             SonarScannerBegin(SonarBeginPrSettings);
+
+            BuildCodeGenServer();
+
             DotNetBuild(SonarBuildAll);
+
             try
             {
                 DotNetTest(
@@ -56,10 +61,14 @@ partial class Build
                 .SetProjectFile(SonarSolutionFile)
                 .SetProcessWorkingDirectory(RootDirectory));
 
-            Logger.Info("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
+            Log.Information("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
 
             SonarScannerBegin(SonarBeginFullSettings);
+
+            BuildCodeGenServer();
+
             DotNetBuild(SonarBuildAll);
+
             try
             {
                 DotNetTest(
@@ -80,7 +89,7 @@ partial class Build
                 .Add("/d:sonar.pullrequest.key={0}", GitHubPRNumber)
                 .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
                 .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
-                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"))
+                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "false"))
             .SetFramework(Net50);
 
     SonarScannerBeginSettings SonarBeginFullSettings(SonarScannerBeginSettings settings) =>
@@ -99,7 +108,7 @@ partial class Build
             .AddSourceExclusions("**/Generated/**/*.*,**/*.Designer.cs,**/*.generated.cs,**/*.js,**/*.html,**/*.css,**/Sample/**/*.*,**/Samples.*/**/*.*,**/*Tools.*/**/*.*,**/Program.Dev.cs, **/Program.cs,**/*.ts,**/*.tsx,**/*EventSource.cs,**/*EventSources.cs,**/*.Samples.cs,**/*Tests.*/**/*.*,**/*Test.*/**/*.*")
             .SetProcessArgumentConfigurator(t => t
                 .Add("/o:{0}", "chillicream")
-                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"));
+                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "false"));
 
     SonarScannerBeginSettings SonarBaseSettings(SonarScannerBeginSettings settings) =>
         settings
@@ -124,5 +133,6 @@ partial class Build
         => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName)) &&
             !fileName.Contains("example") &&
             !fileName.Contains("sample") &&
-            !fileName.Contains("HotChocolate.Types.Analyzers");
+            !fileName.Contains("HotChocolate.Types.Analyzers") &&
+            !fileName.Contains("StrawberryShake.CodeGeneration.CSharp.Analyzers");
 }

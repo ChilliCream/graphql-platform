@@ -7,32 +7,31 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Stitching.Schemas
+namespace HotChocolate.Stitching.Schemas;
+
+public class SchemaTests
 {
-    public class SchemaTests
+    [Fact]
+    public async Task CustomerSchemaSnapshot()
     {
-        [Fact]
-        public async Task CustomerSchemaSnapshot()
-        {
-            Snapshot.FullName();
+        Snapshot.FullName();
 
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddCustomerSchema()
-                .BuildSchemaAsync()
-                .MatchSnapshotAsync();
-        }
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddCustomerSchema()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task ContractSchemaSnapshot()
-        {
-            Snapshot.FullName();
+    [Fact]
+    public async Task ContractSchemaSnapshot()
+    {
+        Snapshot.FullName();
 
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddContractSchema()
-                .BuildSchemaAsync()
-                .MatchSnapshotAsync();
-        }
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddContractSchema()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
     }
 }

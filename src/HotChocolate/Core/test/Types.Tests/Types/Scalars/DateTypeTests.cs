@@ -355,9 +355,10 @@ namespace HotChocolate.Types
 
         public class Foo
         {
-            public string GetTime(TimeOnly time) => time.ToString();
+            public TimeSpan GetTime(TimeOnly time) => time.ToTimeSpan();
 
-            public string GetDate(DateOnly date) => date.ToString();
+            public DateTime GetDate(DateOnly date) 
+                => date.ToDateTime(new TimeOnly(15, 0), DateTimeKind.Utc);
         }
 
         public class QueryDateTime2

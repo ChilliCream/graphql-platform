@@ -36,8 +36,7 @@ public class FilteringAndPaging
         res1.MatchSqlSnapshot("true");
         res2.MatchSqlSnapshot("false");
     }
-
-
+    
     public class Foo
     {
         public int Id { get; set; }

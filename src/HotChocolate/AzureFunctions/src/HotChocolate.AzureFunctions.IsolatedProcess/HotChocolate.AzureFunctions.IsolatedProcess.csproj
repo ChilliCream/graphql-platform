@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
+    <PackageId>HotChocolate.AzureFunctions.IsolatedProcess</PackageId>
+    <AssemblyName>HotChocolate.AzureFunctions.IsolatedProcess</AssemblyName>
     <RootNamespace>HotChocolate.AzureFunctions.IsolatedProcess</RootNamespace>
     <Description>This package contains the GraphQL AzureFunctions Isolated Process integration for Hot Chocolate.</Description>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -19,12 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\HotChocolate.AzureFunctions\HotChocolate.AzureFunctions.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.1.1" />
   </ItemGroup>
 
 </Project>

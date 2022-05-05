@@ -6,15 +6,15 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.ObjectPool;
+using GreenDonut;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.WellKnownContextData;
-using GreenDonut;
-using System.Collections;
 
 namespace HotChocolate.Diagnostics;
 
@@ -65,6 +65,11 @@ public class ActivityEnricher
             case HttpRequestKind.HttpGetSchema:
                 activity.DisplayName = "GraphQL HTTP GET SDL";
                 break;
+        }
+
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
         }
 
         activity.SetTag("graphql.http.kind", kind);
@@ -322,6 +327,11 @@ public class ActivityEnricher
     public virtual void EnrichParseHttpRequest(HttpContext context, Activity activity)
     {
         activity.DisplayName = "Parse HTTP Request";
+
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
+        }
     }
 
     public virtual void EnrichParserErrors(HttpContext context, IError error, Activity activity)
@@ -369,12 +379,12 @@ public class ActivityEnricher
 
             try
             {
-                var rootSelectionSet = operation.GetRootSelectionSet();
+                ISelectionSet rootSelectionSet = operation.GetRootSelectionSet();
 
                 displayName.Append('{');
                 displayName.Append(' ');
 
-                foreach (var selection in rootSelectionSet.Selections.Take(3))
+                foreach (ISelection selection in rootSelectionSet.Selections.Take(3))
                 {
                     if (displayName.Length > 2)
                     {
@@ -415,7 +425,7 @@ public class ActivityEnricher
         return null;
     }
 
-    private void UpdateRootActivityName(Activity activity, string operationDisplayName)
+    private void UpdateRootActivityName(Activity activity, string displayName)
     {
         Activity current = activity;
 
@@ -426,19 +436,34 @@ public class ActivityEnricher
 
         if (current != activity)
         {
-            current.DisplayName = CreateRootActivityName(activity, current, operationDisplayName);
+            current.DisplayName = CreateRootActivityName(activity, current, displayName);
         }
     }
 
     protected virtual string CreateRootActivityName(
         Activity activity,
         Activity root,
-        string operationDisplayName)
-        => $"{root.DisplayName}: {operationDisplayName}";
+        string displayName)
+    {
+        const string key = "originalDisplayName";
+
+        if (root.GetCustomProperty(key) is not string rootDisplayName)
+        {
+            rootDisplayName = root.DisplayName;
+            root.SetCustomProperty(key, rootDisplayName);
+        }
+
+        return $"{rootDisplayName}: {displayName}";
+    }
 
     public virtual void EnrichParseDocument(IRequestContext context, Activity activity)
     {
         activity.DisplayName = "Parse Document";
+
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
+        }
     }
 
     public virtual void EnrichSyntaxError(
@@ -450,6 +475,12 @@ public class ActivityEnricher
     public virtual void EnrichValidateDocument(IRequestContext context, Activity activity)
     {
         activity.DisplayName = "Validate Document";
+
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
+        }
+
         activity.SetTag("graphql.document.id", context.DocumentId);
         activity.SetTag("graphql.document.hash", context.DocumentHash);
     }
@@ -491,10 +522,12 @@ public class ActivityEnricher
 
         IFieldSelection selection = context.Selection;
         FieldCoordinate coordinate = selection.Field.Coordinate;
+
         activity.DisplayName = path;
         activity.SetTag("graphql.selection.name", selection.ResponseName.Value);
         activity.SetTag("graphql.selection.type", selection.Field.Type.Print());
         activity.SetTag("graphql.selection.path", path);
+        activity.SetTag("graphql.selection.hierarchy", hierarchy);
         activity.SetTag("graphql.selection.field.name", coordinate.FieldName.Value);
         activity.SetTag("graphql.selection.field.coordinate", coordinate.ToString());
         activity.SetTag("graphql.selection.field.declaringType", coordinate.TypeName.Value);
@@ -549,9 +582,7 @@ public class ActivityEnricher
         IMiddlewareContext context,
         IError error,
         Activity activity)
-    {
-        EnrichError(error, activity);
-    }
+        => EnrichError(error, activity);
 
     public virtual void EnrichDataLoaderBatch<TKey>(
         IDataLoader dataLoader,

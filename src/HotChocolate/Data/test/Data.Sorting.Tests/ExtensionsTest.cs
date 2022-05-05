@@ -200,7 +200,7 @@ public class ExtensionTests
         schema.ToString().MatchSnapshot();
     }
 
-    private class TestSort : SortInputType
+    private sealed class TestSort : SortInputType
     {
         protected override void Configure(ISortInputTypeDescriptor descriptor)
         {

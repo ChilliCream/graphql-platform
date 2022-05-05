@@ -128,6 +128,10 @@
                       "Value": "/foo"
                     },
                     {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/foo"
+                    },
+                    {
                       "Key": "graphql.selection.field.name",
                       "Value": "foo"
                     },

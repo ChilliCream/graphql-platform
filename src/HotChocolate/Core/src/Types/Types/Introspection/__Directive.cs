@@ -1,6 +1,8 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -19,6 +21,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         SyntaxTypeReference stringType = Create(ScalarNames.String);
         SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
         SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        SyntaxTypeReference booleanType = Parse($"{ScalarNames.Boolean}");
         SyntaxTypeReference argumentListType = Parse($"[{nameof(__InputValue)}!]!");
         SyntaxTypeReference locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
 
@@ -28,33 +31,43 @@ internal sealed class __Directive : ObjectType<DirectiveType>
             typeof(DirectiveType))
         {
             Fields =
+            {
+                new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
+                new(Names.Locations, type: locationListType, pureResolver: Resolvers.Locations),
+                new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments)
                 {
-                    new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
-                    new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
-                    new(Names.Locations, type: locationListType, pureResolver: Resolvers.Locations),
-                    new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments),
-                    new(Names.IsRepeatable,
-                        type: nonNullBooleanType,
-                        pureResolver: Resolvers.IsRepeatable),
-                    new(Names.OnOperation,
-                        type: nonNullBooleanType,
-                        pureResolver: Resolvers.OnOperation)
+                    Arguments =
                     {
-                        DeprecationReason = TypeResources.Directive_UseLocation
-                    },
-                    new(Names.OnFragment,
-                        type: nonNullBooleanType,
-                        pureResolver: Resolvers.OnFragment)
-                    {
-                        DeprecationReason = TypeResources.Directive_UseLocation
-                    },
-                    new(Names.OnField,
-                        type: nonNullBooleanType,
-                        pureResolver: Resolvers.OnField)
-                    {
-                        DeprecationReason = TypeResources.Directive_UseLocation
-                    },
+                        new(Names.IncludeDeprecated, type: booleanType)
+                        {
+                            DefaultValue = BooleanValueNode.False,
+                            RuntimeDefaultValue = false
+                        }
+                    }
+                },
+                new(Names.IsRepeatable,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.IsRepeatable),
+                new(Names.OnOperation,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.OnOperation)
+                {
+                    DeprecationReason = TypeResources.Directive_UseLocation
+                },
+                new(Names.OnFragment,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.OnFragment)
+                {
+                    DeprecationReason = TypeResources.Directive_UseLocation
+                },
+                new(Names.OnField,
+                    type: nonNullBooleanType,
+                    pureResolver: Resolvers.OnField)
+                {
+                    DeprecationReason = TypeResources.Directive_UseLocation
                 }
+            }
         };
     }
 
@@ -73,7 +86,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
             => context.Parent<DirectiveType>().Locations;
 
         public static object Arguments(IPureResolverContext context)
-            => context.Parent<DirectiveType>().Arguments;
+        {
+            DirectiveType directive = context.Parent<DirectiveType>();
+            return context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                ? directive.Arguments
+                : directive.Arguments.Where(t => !t.IsDeprecated);
+        }
 
         public static object OnOperation(IPureResolverContext context)
         {
@@ -81,8 +99,8 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 context.Parent<DirectiveType>().Locations;
 
             return locations.Contains(DirectiveLocation.Query)
-                   || locations.Contains(DirectiveLocation.Mutation)
-                   || locations.Contains(DirectiveLocation.Subscription);
+                || locations.Contains(DirectiveLocation.Mutation)
+                || locations.Contains(DirectiveLocation.Subscription);
         }
 
         public static object OnFragment(IPureResolverContext context)
@@ -91,8 +109,8 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 context.Parent<DirectiveType>().Locations;
 
             return locations.Contains(DirectiveLocation.InlineFragment)
-                   || locations.Contains(DirectiveLocation.FragmentSpread)
-                   || locations.Contains(DirectiveLocation.FragmentDefinition);
+                || locations.Contains(DirectiveLocation.FragmentSpread)
+                || locations.Contains(DirectiveLocation.FragmentDefinition);
         }
 
         public static object OnField(IPureResolverContext context)
@@ -110,6 +128,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         public const string Name = "name";
         public const string Description = "description";
         public const string IsRepeatable = "isRepeatable";
+        public const string IncludeDeprecated = "includeDeprecated";
         public const string Locations = "locations";
         public const string Args = "args";
         public const string OnOperation = "onOperation";

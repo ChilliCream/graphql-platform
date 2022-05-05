@@ -202,7 +202,7 @@ internal class CostTypeInterceptor : TypeInterceptor
         }
     }
 
-    private class DefaultCostSettings : ICostSettings
+    private sealed class DefaultCostSettings : ICostSettings
     {
         public bool Enable => false;
         public bool ApplyDefaults => false;

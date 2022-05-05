@@ -5,13 +5,13 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language;
 
 /// <summary>
+/// <para>
 /// The <see cref="DocumentNode"/> represents a parsed GraphQL document
 /// which also is the root node of a parsed GraphQL document.
-///
-/// The document can contain schema definition nodes or query nodes.
+/// </para>
+/// <para>The document can contain schema definition nodes or query nodes.</para>
 /// </summary>
-public sealed class DocumentNode
-    : ISyntaxNode
+public sealed class DocumentNode : ISyntaxNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="DocumentNode"/>.
@@ -39,16 +39,18 @@ public sealed class DocumentNode
         IReadOnlyList<IDefinitionNode> definitions)
     {
         Location = location;
-        Definitions = definitions ??
-            throw new ArgumentNullException(nameof(definitions));
+        Definitions = definitions ?? throw new ArgumentNullException(nameof(definitions));
     }
 
     /// <inheritdoc />
-    public SyntaxKind Kind { get; } = SyntaxKind.Document;
+    public SyntaxKind Kind => SyntaxKind.Document;
 
     /// <inheritdoc />
     public Location? Location { get; }
 
+    /// <summary>
+    /// Gets the documents definitions.
+    /// </summary>
     public IReadOnlyList<IDefinitionNode> Definitions { get; }
 
     /// <inheritdoc />
@@ -86,8 +88,8 @@ public sealed class DocumentNode
     /// Returns a new instance that has all the characteristics of this
     /// documents but with a different location.
     /// </returns>
-    public DocumentNode WithLocation(Location? location) =>
-        new(location, Definitions);
+    public DocumentNode WithLocation(Location? location)
+        => new(location, Definitions);
 
     /// <summary>
     /// Creates a new instance that has all the characteristics of this
@@ -100,13 +102,11 @@ public sealed class DocumentNode
     /// Returns a new instance that has all the characteristics of this
     /// documents but with a different definitions.
     /// </returns>
-    public DocumentNode WithDefinitions(
-        IReadOnlyList<IDefinitionNode> definitions) =>
-        new(Location, definitions);
+    public DocumentNode WithDefinitions(IReadOnlyList<IDefinitionNode> definitions)
+        => new(Location, definitions);
 
     /// <summary>
     /// Gets an empty GraphQL document.
     /// </summary>
-    public static DocumentNode Empty { get; } =
-        new(null, Array.Empty<IDefinitionNode>());
+    public static DocumentNode Empty { get; } = new(null, Array.Empty<IDefinitionNode>());
 }

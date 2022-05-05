@@ -22,6 +22,54 @@ internal static class TypeValidationHelper
         }
     }
 
+    public static void EnsureFieldDeprecationIsValid(
+        IInputObjectType type,
+        ICollection<ISchemaError> errors)
+    {
+        for (var i = 0; i < type.Fields.Count; i++)
+        {
+            IInputField field = type.Fields[i];
+
+            if (field.IsDeprecated && field.Type.IsNonNullType())
+            {
+                errors.Add(RequiredFieldCannotBeDeprecated(type, field));
+            }
+        }
+    }
+
+    public static void EnsureArgumentDeprecationIsValid(
+        IComplexOutputType type,
+        ICollection<ISchemaError> errors)
+    {
+        for (var i = 0; i < type.Fields.Count; i++)
+        {
+            IOutputField field = type.Fields[i];
+            for (var j = 0; j < field.Arguments.Count; j++)
+            {
+                IInputField argument = field.Arguments[j];
+
+                if (argument.IsDeprecated && argument.Type.IsNonNullType())
+                {
+                    errors.Add(RequiredArgumentCannotBeDeprecated(type, field, argument));
+                }
+            }
+        }
+    }
+
+    public static void EnsureArgumentDeprecationIsValid(
+        DirectiveType type,
+        ICollection<ISchemaError> errors)
+    {
+        for (var i = 0; i < type.Arguments.Count; i++)
+        {
+            Argument argument = type.Arguments[i];
+            if (argument.IsDeprecated && argument.Type.IsNonNullType())
+            {
+                errors.Add(RequiredArgumentCannotBeDeprecated(type, argument));
+            }
+        }
+    }
+
     public static void EnsureTypeHasFields(
         InputObjectType type,
         ICollection<ISchemaError> errors)
@@ -54,7 +102,9 @@ internal static class TypeValidationHelper
                     if (argument.Name.Value.StartsWith(_twoUnderscores))
                     {
                         errors.Add(TwoUnderscoresNotAllowedOnArgument(
-                            type, field, argument));
+                            type,
+                            field,
+                            argument));
                     }
                 }
             }
@@ -72,6 +122,21 @@ internal static class TypeValidationHelper
             if (field.Name.Value.StartsWith(_twoUnderscores))
             {
                 errors.Add(TwoUnderscoresNotAllowedField(type, field));
+            }
+        }
+    }
+
+    public static void EnsureArgumentNamesAreValid(
+        DirectiveType type,
+        ICollection<ISchemaError> errors)
+    {
+        for (var i = 0; i < type.Arguments.Count; i++)
+        {
+            IInputField field = type.Arguments[i];
+
+            if (field.Name.Value.StartsWith(_twoUnderscores))
+            {
+                errors.Add(TwoUnderscoresNotAllowedOnArgument(type, field));
             }
         }
     }
@@ -133,14 +198,17 @@ internal static class TypeValidationHelper
                 if (!argument.Type.IsEqualTo(implementedArgument.Type))
                 {
                     errors.Add(InvalidArgumentType(
-                        field, implementedField,
-                        argument, implementedArgument));
+                        field,
+                        implementedField,
+                        argument,
+                        implementedArgument));
                 }
             }
             else if (argument.Type.IsNonNullType())
             {
                 errors.Add(AdditionalArgumentNotNullable(
-                    field, implementedField,
+                    field,
+                    implementedField,
                     argument));
             }
         }
@@ -148,7 +216,9 @@ internal static class TypeValidationHelper
         foreach (IInputField? missingArgument in implArgs.Values)
         {
             errors.Add(ArgumentNotImplemented(
-                field, implementedField, missingArgument));
+                field,
+                implementedField,
+                missingArgument));
         }
     }
 
@@ -163,6 +233,7 @@ internal static class TypeValidationHelper
                 return false;
             }
         }
+
         return true;
     }
 

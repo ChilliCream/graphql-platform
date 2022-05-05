@@ -10,7 +10,7 @@ public static class WellKnownAttributes
     public const string InputObjectTypeAttribute = "HotChocolate.Types.InputObjectTypeAttribute";
 
     public static HashSet<string> TypeAttributes { get; } =
-        new HashSet<string>
+        new()
         {
             ExtendObjectTypeAttribute,
             ObjectTypeAttribute,

@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -519,6 +522,137 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public async Task AnnotationBased_Depreacted_NullableArguments_Valid()
+        {
+            // arrange
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive<DeprecatedDirective>())
+                .AddDirectiveType(new DirectiveType<DeprecatedDirective>(
+                    x => x.Location(DirectiveLocation.FieldDefinition)))
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AnnotationBased_DepreactedInputTypes_NonNullableField_Invalid()
+        {
+            // arrange
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive<DeprecatedNonNull>())
+                .AddDirectiveType(new DirectiveType<DeprecatedNonNull>(
+                    x => x.Location(DirectiveLocation.FieldDefinition)))
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(call);
+            exception.Errors.Single().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_Depreacted_NullableArguments_Valid()
+        {
+            // arrange
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
+                .AddDirectiveType(
+                    new DirectiveType(x => x
+                        .Name("Qux")
+                        .Location(DirectiveLocation.FieldDefinition)
+                        .Argument("bar")
+                        .Type<IntType>()
+                        .Deprecated("a")))
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DepreactedInputTypes_NonNullableField_Invalid()
+        {
+            // arrange
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
+                .AddDirectiveType(
+                    new DirectiveType(x => x
+                        .Name("Qux")
+                        .Location(DirectiveLocation.FieldDefinition)
+                        .Argument("bar")
+                        .Type<NonNullType<IntType>>()
+                        .Deprecated("a")))
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(call);
+            exception.Errors.Single().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DepreactedDirective_NullableFields_Valid()
+        {
+            // arrange
+            // act
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
+                .AddDocumentFromString(@"
+                    directive @Qux(bar: String @deprecated(reason: ""reason"")) on FIELD_DEFINITION
+                ")
+                .BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DepreactedDirective_NonNullableField_Invalid()
+        {
+            // arrange
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd").Directive("Qux"))
+                .AddDocumentFromString(@"
+                    directive @Qux(bar: String! @deprecated(reason: ""reason"")) on FIELD_DEFINITION
+                ")
+                .BuildSchemaAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(call);
+            exception.Errors.Single().ToString().MatchSnapshot();
+        }
+
         public class DirectiveWithSyntaxTypeArg : DirectiveType
         {
             protected override void Configure(IDirectiveTypeDescriptor descriptor)
@@ -565,6 +699,24 @@ namespace HotChocolate.Types
 
             public Task InvokeAsync(IDirectiveContext context) =>
                 Task.CompletedTask;
+        }
+
+        public class DeprecatedDirective
+        {
+            [Obsolete("reason")]
+            public int? ObsoleteWithReason { get; set; }
+
+            [Obsolete]
+            public int? Obsolete { get; set; }
+
+            [GraphQLDeprecated("reason")]
+            public int? Deprecated { get; set; }
+        }
+
+        public class DeprecatedNonNull
+        {
+            [Obsolete("reason")]
+            public int ObsoleteWithReason { get; set; }
         }
 
         public class CustomDirective

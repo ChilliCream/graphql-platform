@@ -1,0 +1,3 @@
+﻿SELECT "d"."Id", "d"."LastName", "d"."Name"
+FROM "Data" AS "d"
+ORDER BY ("d"."Name" || ' ') || "d"."LastName"

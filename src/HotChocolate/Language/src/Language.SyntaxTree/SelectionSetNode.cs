@@ -4,29 +4,49 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class SelectionSetNode
-    : ISyntaxNode
+/// <summary>
+/// Represents the selection set syntax.
+/// </summary>
+public sealed class SelectionSetNode : ISyntaxNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="SchemaDefinitionNode"/>
+    /// </summary>
+    /// <param name="selections">
+    /// The selections.
+    /// </param>
     public SelectionSetNode(IReadOnlyList<ISelectionNode> selections)
         : this(null, selections)
     {
     }
 
-    public SelectionSetNode(
-        Location? location,
-        IReadOnlyList<ISelectionNode> selections)
+    /// <summary>
+    /// Initializes a new instance of <see cref="SchemaDefinitionNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="selections">
+    /// The selections.
+    /// </param>
+    public SelectionSetNode(Location? location, IReadOnlyList<ISelectionNode> selections)
     {
         Location = location;
-        Selections = selections
-            ?? throw new ArgumentNullException(nameof(selections));
+        Selections = selections ?? throw new ArgumentNullException(nameof(selections));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.SelectionSet;
+    /// <inheritdoc />
+    public SyntaxKind Kind => SyntaxKind.SelectionSet;
 
+    /// <inheritdoc />
     public Location? Location { get; }
 
+    /// <summary>
+    /// Gets the selections.
+    /// </summary>
     public IReadOnlyList<ISelectionNode> Selections { get; }
 
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Selections;
 
     /// <summary>
@@ -51,83 +71,8 @@ public sealed class SelectionSetNode
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     public SelectionSetNode WithLocation(Location? location)
-    {
-        return new SelectionSetNode(
-            location, Selections);
-    }
+        => new(location, Selections);
 
-    public SelectionSetNode WithSelections(
-        IReadOnlyList<ISelectionNode> selections)
-    {
-        if (selections == null)
-        {
-            throw new ArgumentNullException(nameof(selections));
-        }
-
-        return new SelectionSetNode(
-            Location, selections);
-    }
-
-    public SelectionSetNode AddSelection(
-        ISelectionNode selection)
-    {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        var selections = new List<ISelectionNode>(Selections);
-        selections.Add(selection);
-
-        return new SelectionSetNode(
-            Location, selections);
-    }
-
-    public SelectionSetNode AddSelections(
-        params ISelectionNode[] selection)
-    {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        var selections = new List<ISelectionNode>(Selections);
-        selections.AddRange(selection);
-
-        return new SelectionSetNode(
-            Location, selections);
-    }
-
-    public SelectionSetNode RemoveSelection(
-        ISelectionNode selection)
-    {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        var selections = new List<ISelectionNode>(Selections);
-        selections.Remove(selection);
-
-        return new SelectionSetNode(
-            Location, selections);
-    }
-
-    public SelectionSetNode RemoveSelections(
-        params ISelectionNode[] selection)
-    {
-        if (selection == null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        var selections = new List<ISelectionNode>(Selections);
-        foreach (ISelectionNode node in selection)
-        {
-            selections.Remove(node);
-        }
-
-        return new SelectionSetNode(
-            Location, selections);
-    }
+    public SelectionSetNode WithSelections(IReadOnlyList<ISelectionNode> selections)
+        => new(Location, selections);
 }

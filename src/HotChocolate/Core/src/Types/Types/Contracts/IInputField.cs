@@ -8,4 +8,13 @@ namespace HotChocolate.Types;
 /// </summary>
 public interface IInputField : IField, IInputFieldInfo
 {
+     /// <summary>
+     /// Defines if this field is deprecated.
+     /// </summary>
+     bool IsDeprecated { get; }
+
+     /// <summary>
+     /// Gets the deprecation reason.
+     /// </summary>
+     string? DeprecationReason { get; }
 }

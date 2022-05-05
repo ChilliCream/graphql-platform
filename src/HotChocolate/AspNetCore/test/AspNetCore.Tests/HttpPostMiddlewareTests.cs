@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.AspNetCore.Instrumentation;
 using System;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.AspNetCore;
 

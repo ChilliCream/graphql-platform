@@ -96,6 +96,7 @@ internal sealed class DirectiveContext : IDirectiveContext
         get => _middlewareContext.LocalContextData;
         set => _middlewareContext.LocalContextData = value;
     }
+
     public IType? ValueType
     {
         get => _middlewareContext.ValueType;

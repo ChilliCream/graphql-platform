@@ -91,7 +91,7 @@ public class RequestExecutorProxy : IDisposable
     /// <returns>
     /// Returns a stream of query results.
     /// </returns>
-    public async Task<IBatchQueryResult> ExecuteBatchAsync(
+    public async Task<IResponseStream> ExecuteBatchAsync(
         IEnumerable<IQueryRequest> requestBatch,
         bool allowParallelExecution = false,
         CancellationToken cancellationToken = default)
@@ -105,7 +105,7 @@ public class RequestExecutorProxy : IDisposable
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-        IBatchQueryResult result =
+        IResponseStream result =
             await executor
                 .ExecuteBatchAsync(requestBatch, allowParallelExecution, cancellationToken)
                 .ConfigureAwait(false);

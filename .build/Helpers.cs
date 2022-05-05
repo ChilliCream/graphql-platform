@@ -6,7 +6,7 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 
-class Helpers
+static class Helpers
 {
     static readonly string[] Directories =
     {
@@ -29,6 +29,7 @@ class Helpers
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
         Path.Combine("StrawberryShake", "CodeGeneration"),
+        Path.Combine("StrawberryShake", "SourceGenerator"),
         Path.Combine("StrawberryShake", "Tooling")
     };
 

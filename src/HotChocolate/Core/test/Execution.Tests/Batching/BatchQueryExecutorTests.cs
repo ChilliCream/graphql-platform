@@ -48,10 +48,10 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
 
@@ -98,10 +98,10 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
         [Fact]
@@ -150,10 +150,10 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
         [Fact]
@@ -232,10 +232,10 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
         [Fact]
@@ -275,10 +275,10 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
         [Fact]
@@ -326,10 +326,10 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
 
             // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            await batchResult.MatchSnapshotAsync();
         }
 
         [Fact]

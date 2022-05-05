@@ -32,7 +32,7 @@ internal sealed class DefaultActivator : IActivator
         }
     }
 
-    private class Service : IDisposable
+    private sealed class Service : IDisposable
     {
         private readonly DefaultActivator _activator;
         private readonly Type _type;

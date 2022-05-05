@@ -17,7 +17,7 @@ namespace HotChocolate.Execution.Integration.EmbeddedResolvers
             await ExpectValid(
                 "{ foo { bar { baz }}}",
                 configure: c => c.AddQueryType<QueryType>())
-                .MatchSnapshotAsync();;
+                .MatchSnapshotAsync();
         }
 
         public class QueryType

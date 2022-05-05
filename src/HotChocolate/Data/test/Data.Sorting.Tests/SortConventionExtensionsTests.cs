@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Resolvers;
@@ -327,25 +328,25 @@ public class SortConventionExtensionsTests
             x => Assert.Equal(provider2, x));
     }
 
-    private class Foo
+    private sealed class Foo
     {
         public string? Bar { get; }
     }
 
-    private class Bar
+    private sealed class Bar
     {
         public string? Foo { get; }
     }
 
-    private class MockSortEnumType : DefaultSortEnumType
+    private sealed class MockSortEnumType : DefaultSortEnumType
     {
     }
 
-    private class MockProviderExtensions : SortProviderExtensions<QueryableSortContext>
+    private sealed class MockProviderExtensions : SortProviderExtensions<QueryableSortContext>
     {
     }
 
-    private class MockProvider : ISortProvider
+    private sealed class MockProvider : ISortProvider
     {
         public IReadOnlyCollection<ISortFieldHandler> FieldHandlers { get; } = null!;
         public IReadOnlyCollection<ISortOperationHandler> OperationHandlers { get; } = null!;
@@ -359,9 +360,14 @@ public class SortConventionExtensionsTests
         {
             throw new NotImplementedException();
         }
+
+        public ISortMetadata? CreateMetaData(ITypeCompletionContext context, ISortInputTypeDefinition typeDefinition, ISortFieldDefinition fieldDefinition)
+        {
+            return null;
+        }
     }
 
-    private class MockSortConvention : SortConvention
+    private sealed class MockSortConvention : SortConvention
     {
         public MockSortConvention(
             Action<ISortConventionDescriptor> configure)

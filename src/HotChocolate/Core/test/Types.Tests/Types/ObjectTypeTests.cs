@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -1811,7 +1812,7 @@ namespace HotChocolate.Types
         public async Task Override_Instance_Check_With_Options()
         {
             Snapshot.FullName();
-            
+
             var globalCheck = false;
 
             await new ServiceCollection()
@@ -1828,6 +1829,123 @@ namespace HotChocolate.Types
                 .MatchSnapshotAsync();
 
             Assert.True(globalCheck);
+        }
+
+        [Fact]
+        public async Task AnotationBased_DeprecatedArgument_Should_BeDeprecated()
+        {
+            // arrangt
+            Snapshot.FullName();
+
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithDeprecatedArguments>()
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AnotationBased_DeprecatedArgument_NonNullableIsDeprecated_Throw()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithDeprecatedArgumentsIllegal>()
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException ex = await Assert.ThrowsAsync<SchemaException>(call);
+            ex.Errors.Single().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DeprecatedArgument_Should_BeDeprecated()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x
+                    .Field("foo")
+                    .Argument("bar", x => x.Type<IntType>().Deprecated("Is deprecated"))
+                    .Resolve(""))
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CodeFirst_DeprecatedArgument_NonNullableIsDeprecated_Throw()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x
+                    .Field("foo")
+                    .Argument(
+                        "bar",
+                        x => x.Type<NonNullType<IntType>>().Deprecated("Is deprecated"))
+                    .Resolve(""))
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException ex = await Assert.ThrowsAsync<SchemaException>(call);
+            ex.Errors.Single().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DeprecatedArgument_Should_BeDeprecated()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            // act
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(@"
+                    type Query {
+                        foo(bar: String @deprecated(reason:""reason"")): Int!
+                    }
+                ")
+                .AddResolver("Query", "foo", x => 1)
+                .BuildRequestExecutorAsync();
+
+            // assert
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_DeprecatedArgument_NonNullableIsDeprecated_Throw()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            // act
+            Func<Task> call = async () => await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(@"
+                    type Query {
+                        foo(bar: String! @deprecated(reason:""reason"")): Int!
+                    }
+                ")
+                .AddResolver("Query", "foo", x => 1)
+                .BuildRequestExecutorAsync();
+
+            // assert
+            SchemaException ex = await Assert.ThrowsAsync<SchemaException>(call);
+            ex.Errors.Single().ToString().MatchSnapshot();
         }
 
         public class GenericFoo<T>
@@ -2094,6 +2212,16 @@ namespace HotChocolate.Types
             public string? Foo => "Foo";
 
             public string Bar => "Bar";
+        }
+
+        public class QueryWithDeprecatedArguments
+        {
+            public string Field([GraphQLDeprecated("Not longer allowed")] string? deprecated) => "";
+        }
+
+        public class QueryWithDeprecatedArgumentsIllegal
+        {
+            public string Field([GraphQLDeprecated("Not longer allowed")] int deprecated) => "";
         }
     }
 }

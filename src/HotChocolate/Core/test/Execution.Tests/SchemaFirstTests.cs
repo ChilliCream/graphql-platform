@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Threading.Tasks;
-using Snapshooter.Xunit;
+using HotChocolate.Tests;
+using HotChocolate.Types;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -25,7 +27,7 @@ namespace HotChocolate.Execution
                     "{ test testProp }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -57,7 +59,7 @@ namespace HotChocolate.Execution
                     "{ foo(bar: { baz: \"hello\"}) }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -84,7 +86,7 @@ namespace HotChocolate.Execution
                     "{ enumValue }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -100,7 +102,7 @@ namespace HotChocolate.Execution
 
                     enum FooEnum {
                         BAR
-                        BAZ
+                        BAZ_BAR
                     }")
                 .AddResolver<EnumQuery>("Query")
                 .Create();
@@ -108,10 +110,10 @@ namespace HotChocolate.Execution
             // act
             IExecutionResult result =
                 await schema.MakeExecutable().ExecuteAsync(
-                    "{ setEnumValue(value:BAZ) }");
+                    "{ setEnumValue(value:BAZ_BAR) }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -143,7 +145,7 @@ namespace HotChocolate.Execution
                     "{ enumInInputObject(payload: { value:BAZ } ) }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
             result.MatchSnapshot();
         }
 
@@ -196,7 +198,8 @@ namespace HotChocolate.Execution
         public enum FooEnum
         {
             Bar,
-            Baz
+            Baz,
+            BazBar
         }
     }
 }

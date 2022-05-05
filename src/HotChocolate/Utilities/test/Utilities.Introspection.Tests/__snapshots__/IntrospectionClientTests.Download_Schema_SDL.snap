@@ -21,8 +21,8 @@ type Mutation {
 
 type Subscription {
   onReview(episode: Episode!): Review!
-  onNext: String
-  onException: String
+  onNext: String!
+  onException: String!
 }
 
 type Human implements Character {

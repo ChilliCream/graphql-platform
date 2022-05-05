@@ -2,18 +2,18 @@ using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp;
+
+public class InputGeneratorTests
 {
-    public class InputGeneratorTests
+    [Fact]
+    public void Operation_With_Complex_Arguments()
     {
-        [Fact]
-        public void Operation_With_Complex_Arguments()
-        {
-            AssertResult(
-                @"query test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+        AssertResult(
+            @"query test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                     foo(single: $single, list: $list, nestedList:$nestedList)
                 }",
-                @"type Query {
+            @"type Query {
                     foo(single: Bar!, list: [Bar!]!, nestedList: [[Bar]]): String
                 }
 
@@ -24,17 +24,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     nestedList: [Bar!]!
                     nestedMatrix: [[Bar]]
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void Operation_With_Comments()
-        {
-            AssertResult(
-                @"query test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    [Fact]
+    public void Operation_With_Comments()
+    {
+        AssertResult(
+            @"query test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                     foo(single: $single, list: $list, nestedList:$nestedList)
                 }",
-                @"type Query {
+            @"type Query {
                     foo(single: Bar!, list: [Bar!]!, nestedList: [[Bar]]): String
                 }
 
@@ -51,19 +51,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     ""Field nestedMatrix""
                     nestedMatrix: [[Bar]]
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
 #if NET5_0 || NET6_0
-        [Fact]
-        public void Operation_With_Comments_With_Input_Records()
-        {
-            AssertResult(
-                new AssertSettings { InputRecords = true },
-                @"query test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    [Fact]
+    public void Operation_With_Comments_With_Input_Records()
+    {
+        AssertResult(
+            new AssertSettings { InputRecords = true },
+            @"query test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                     foo(single: $single, list: $list, nestedList:$nestedList)
                 }",
-                @"type Query {
+            @"type Query {
                     foo(single: Bar!, list: [Bar!]!, nestedList: [[Bar]]): String
                 }
 
@@ -80,30 +80,30 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     ""Field nestedMatrix""
                     nestedMatrix: [[Bar]]
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 #endif
 
-        [Fact]
-        public void Input_Type_Fields_Are_Inspected_For_LeafTypes()
-        {
-            AssertResult(
-                @"mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+    [Fact]
+    public void Input_Type_Fields_Are_Inspected_For_LeafTypes()
+    {
+        AssertResult(
+            @"mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
                     changeHomePlanet(input: $input) {
                         human {
                             homePlanet
                         }
                     }
                 }",
-                FileResource.Open("StarWarsSchema_ChangeHomePlanet.graphql"),
-                "extend schema @key(fields: \"id\")");
-        }
+            FileResource.Open("StarWarsSchema_ChangeHomePlanet.graphql"),
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void KeywordCollisions()
-        {
-            AssertResult(
-                @"query readonly($input: abstract!) {
+    [Fact]
+    public void KeywordCollisions()
+    {
+        AssertResult(
+            @"query readonly($input: abstract!) {
                     readonly(readonly: $input) {
                         abstract
                     }
@@ -112,7 +112,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         abstract
                     }
                 }",
-                @"
+            @"
                 type Query {
                     readonly(readonly: abstract): readonly
                     readonlyEntity: readonlyEntity
@@ -128,7 +128,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     abstract: String
                 }
                 ",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
     }
 }

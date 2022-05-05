@@ -69,14 +69,14 @@ internal sealed class TimeoutMiddleware
         {
             // If we return a stream we want to keep the combined token alive until
             // the stream is completed. By doing so we allow the initial cancellation token
-            // to still signal to resolvers in that stream that the request was canceled.
+            // to still signal to resolvers that the request was canceled.
             //
             // In the case of a stream it is still ok that we disposed the timeout since the
             // timeout is meant for the request processing itself which is finished at this
             // stage.
             if (context.Result is IResponseStream stream)
             {
-                stream.RegisterDisposable(combined);
+                stream.RegisterForCleanup(combined);
             }
             else
             {

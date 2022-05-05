@@ -284,13 +284,13 @@ namespace HotChocolate.Types
                     .AddSubscriptionType<PureCodeFirstSourceStream>());
 
                 // act
-                var subscriptionResult = (ISubscriptionResult)await executor.ExecuteAsync(
+                var subscriptionResult = (IResponseStream)await executor.ExecuteAsync(
                     "subscription { " + field + " (userId: \"1\") }", ct);
 
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeBoolean(userId: \"1\" message: true) }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 // assert
                 var results = new StringBuilder();
@@ -438,7 +438,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -478,7 +478,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeFixedMessage(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -518,7 +518,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeSysMessage(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -558,7 +558,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeOnInferTopic(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -598,7 +598,7 @@ namespace HotChocolate.Types
                 IExecutionResult mutationResult = await executor.ExecuteAsync(
                     "mutation { writeOnExplicit(message: \"def\") }",
                     ct);
-                Assert.Null(mutationResult.Errors);
+                Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
                 var results = new StringBuilder();
                 await foreach (IQueryResult queryResult in
@@ -884,7 +884,7 @@ namespace HotChocolate.Types
                 return new(OnSomethingObj());
             }
 
-            private class StringObservable
+            private sealed class StringObservable
                 : IObservable<string>
                 , IObservable<object>
             {
@@ -898,7 +898,7 @@ namespace HotChocolate.Types
                     return new Subscription(observer);
                 }
 
-                private class Subscription : IDisposable
+                private sealed class Subscription : IDisposable
                 {
                     public Subscription(IObserver<string> observer)
                     {

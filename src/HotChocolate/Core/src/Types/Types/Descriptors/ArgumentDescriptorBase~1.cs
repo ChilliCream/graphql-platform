@@ -5,33 +5,79 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors;
 
+/// <summary>
+/// A fluent configuration API for GraphQL arguments.
+/// </summary>
+/// <typeparam name="T">The type of the <see cref="ArgumentDefinition"/></typeparam>
 public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDefinition, new()
 {
+    /// <summary>
+    ///  Creates a new instance of <see cref="ArgumentDescriptor"/>
+    /// </summary>
     protected ArgumentDescriptorBase(IDescriptorContext context)
         : base(context)
     {
         Definition = new T();
     }
 
+    /// <inheritdoc />
     protected internal override T Definition { get; protected set; }
 
+    /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>
     protected void SyntaxNode(InputValueDefinitionNode inputValueDefinition)
     {
         Definition.SyntaxNode = inputValueDefinition;
     }
 
+    /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>
+    protected void Deprecated(string? reason)
+    {
+        if (string.IsNullOrEmpty(reason))
+        {
+            Deprecated();
+        }
+        else
+        {
+            Definition.DeprecationReason = reason;
+        }
+    }
+
+    /// <inheritdoc cref="IArgumentDescriptor.Deprecated()"/>
+    protected void Deprecated()
+    {
+        Definition.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
+    }
+
+    /// <inheritdoc cref="IArgumentDescriptor.Description(string)"/>
     protected void Description(string value)
     {
         Definition.Description = value;
     }
 
+    /// <inheritdoc cref="IArgumentDescriptor.Type{TInputType}()"/>
     public void Type<TInputType>() where TInputType : IInputType
     {
         Type(typeof(TInputType));
     }
 
+    /// <summary>
+    /// Sets the type of the argument
+    /// <example>
+    /// <code lang="csharp">
+    /// descriptor.Type(typeof(StringType));
+    /// </code>
+    /// Results in the following schema
+    /// <code lang="graphql">
+    /// type Query {
+    ///     ships(name: String): [Ship!]!
+    /// }
+    /// </code>
+    /// </example>
+    /// </summary>
     public void Type(Type type)
     {
         ITypeInfo typeInfo = Context.TypeInspector.CreateTypeInfo(type);
@@ -44,6 +90,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
         Definition.SetMoreSpecificType(typeInfo.GetExtendedType(), TypeContext.Input);
     }
 
+    /// <inheritdoc cref="IArgumentDescriptor.Type{TInputType}(TInputType)"/>
     public void Type<TInputType>(TInputType inputType)
         where TInputType : class, IInputType
     {
@@ -62,6 +109,27 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
         Definition.Type = new SchemaTypeReference(inputType);
     }
 
+    /// <summary>
+    /// Sets the type of the argument via a type reference
+    /// <example>
+    /// <code lang="csharp">
+    /// // definitions
+    /// ITypeInspector inspector;
+    /// ParameterInfo parameter;
+    /// // get  reference
+    /// ITypeReference reference = inspector.GetArgumentType(parameter)
+    /// descriptor.Type(reference);
+    /// </code>
+    /// <p>
+    /// Results in the following schema
+    /// </p>
+    /// <code lang="graphql">
+    /// type Query {
+    ///     ships(name: String): [Ship!]!
+    /// }
+    /// </code>
+    /// </example>
+    /// </summary>
     public void Type(ITypeReference typeReference)
     {
         if (typeReference is null)
@@ -73,6 +141,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
         Definition.Type = typeReference;
     }
 
+    /// <inheritdoc cref="IArgumentDescriptor.Type(ITypeNode)"/>
     public void Type(ITypeNode typeNode)
     {
         if (typeNode is null)
@@ -83,13 +152,15 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
         Definition.SetMoreSpecificType(typeNode, TypeContext.Input);
     }
 
-    public void DefaultValue(IValueNode value)
+    /// <inheritdoc cref="IArgumentDescriptor.DefaultValue(IValueNode)"/>
+    public void DefaultValue(IValueNode? value)
     {
         Definition.DefaultValue = value ?? NullValueNode.Default;
         Definition.RuntimeDefaultValue = null;
     }
 
-    public void DefaultValue(object value)
+    /// <inheritdoc cref="IArgumentDescriptor.DefaultValue(object)"/>
+    public void DefaultValue(object? value)
     {
         if (value is null)
         {
@@ -98,20 +169,22 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
         }
         else
         {
-            Definition.SetMoreSpecificType(
-                Context.TypeInspector.GetType(value.GetType()),
-                TypeContext.Input);
+            IExtendedType type = Context.TypeInspector.GetType(value.GetType());
+            Definition.SetMoreSpecificType(type, TypeContext.Input);
             Definition.RuntimeDefaultValue = value;
             Definition.DefaultValue = null;
         }
     }
 
+    /// <inheritdoc cref="IArgumentDescriptor.Directive{T}(T)"/>
     public void Directive<TDirective>(TDirective directiveInstance) where TDirective : class
         => Definition.AddDirective(directiveInstance, Context.TypeInspector);
 
+    /// <inheritdoc cref="IArgumentDescriptor.Directive{T}()"/>
     public void Directive<TDirective>() where TDirective : class, new()
         => Definition.AddDirective(new TDirective(), Context.TypeInspector);
 
+    /// <inheritdoc cref="IArgumentDescriptor.Directive(NameString, ArgumentNode[])"/>
     public void Directive(NameString name, params ArgumentNode[] arguments)
         => Definition.AddDirective(name, arguments);
 }

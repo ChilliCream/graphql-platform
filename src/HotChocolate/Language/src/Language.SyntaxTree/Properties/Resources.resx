@@ -107,4 +107,19 @@
   <data name="ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate" xml:space="preserve">
     <value>A directive cannot contain a member name.</value>
   </data>
+  <data name="EnumValueNode_ValueIsNull" xml:space="preserve">
+    <value>The value string representation mustn't be null.</value>
+  </data>
+  <data name="EnumValueNode_ValueIsEmpty" xml:space="preserve">
+    <value>The value mustn't be empty.</value>
+  </data>
+  <data name="FloatValueNode_ValueEmpty" xml:space="preserve">
+    <value>The value of a float value mustn't be empty.</value>
+  </data>
+  <data name="IntValueNode_ValueCannotBeEmpty" xml:space="preserve">
+    <value>The value of an int value node mustn't be empty.</value>
+  </data>
+  <data name="NameNode_Name_CannnotBeNullOrEmpty" xml:space="preserve">
+    <value>The value of a name node cannot be null or empty.</value>
+  </data>
 </root>
