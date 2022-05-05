@@ -69,7 +69,13 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     /// <inheritdoc />
     protected override IQuery Rewrite(TermOperation operation)
     {
-        return new PrefixQuery {Field = operation.Path, Value = operation.Value};
+        return new PrefixQuery { Field = operation.Path, Value = operation.Value };
+    }
+
+    /// <inheritdoc />
+    protected override IQuery Rewrite(ContainsOperation operation)
+    {
+        return new WildcardQuery { Field = operation.Path, Value = $"*{operation.Value}*" };
     }
 
     /// <inheritdoc />

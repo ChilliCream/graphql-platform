@@ -58,6 +58,13 @@ public abstract class SearchOperationRewriter<T>
     protected abstract T Rewrite(TermOperation operation);
 
     /// <summary>
+    /// Rewrites <see cref="ContainsOperation"/> to <typeparamref name="T"/>
+    /// </summary>
+    /// <param name="operation">The operation to rewrite</param>
+    /// <returns>The rewritten operation</returns>
+    protected abstract T Rewrite(ContainsOperation operation);
+
+    /// <summary>
     /// Rewrites <see cref="ExistsOperation"/> to <typeparamref name="T"/>
     /// </summary>
     /// <param name="operation">The operation to rewrite</param>
