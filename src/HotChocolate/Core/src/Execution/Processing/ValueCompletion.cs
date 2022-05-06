@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
 
@@ -37,7 +38,7 @@ internal static partial class ValueCompletion
                 completedResult is not null;
         }
 
-        if (result is null)
+        if (result is null or NullValueNode)
         {
             completedResult = null;
             return true;
