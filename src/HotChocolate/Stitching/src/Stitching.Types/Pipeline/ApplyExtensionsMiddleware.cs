@@ -205,7 +205,8 @@ public class ApplyExtensionsMiddleware
                 // So if we see that there is already a field we will try to merge it.
                 if (map.TryGetValue(extensionField.Name.Value, out FieldDefinitionNode? field))
                 {
-                    ApplyExtensions(field, extensionField);
+                    map[extensionField.Name.Value] =
+                        ApplyExtensions(definition.Name.Value, field, extensionField);
                 }
                 else
                 {
@@ -239,31 +240,113 @@ public class ApplyExtensionsMiddleware
         // we first need to validate that the field structure can be merged.
         if (definition.Arguments.Count != extension.Arguments.Count)
         {
-
+            // todo: ThrowHelper
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage($"The arguments for field {typeName}.{definition.Name} do not match with the type extension.")
+                    .SetExtension(nameof(typeName), typeName)
+                    .SetExtension("fieldName", definition.Name.Value)
+                    .SetExtension("expectedArgumentCount", definition.Arguments.Count)
+                    .SetExtension("argumentCount", extension.Arguments.Count)
+                    .Build());
         }
 
-        for(var i = 0; i < definition.Arguments.Count; i++)
-        {
-            InputValueDefinitionNode arg = definition.Arguments[i];
-            InputValueDefinitionNode argExt = definition.Arguments[i];
-
-            if (!arg.Name.Equals(argExt.Name, Syntax) || !arg.Type.Equals(argExt.Type, Syntax))
-            {
-
-            }
-
-            if (argExt.Directives.Count > 0)
-            {
-
-            }
-        }
-
+        IReadOnlyList<InputValueDefinitionNode> arguments = definition.Arguments;
         IReadOnlyList<DirectiveNode> directives = definition.Directives;
+
+
+        if (definition.Arguments.Count > 0)
+        {
+            List<InputValueDefinitionNode>? temp = null;
+
+            for (var i = 0; i < definition.Arguments.Count; i++)
+            {
+                InputValueDefinitionNode arg = definition.Arguments[i];
+                InputValueDefinitionNode argExt = definition.Arguments[i];
+
+                if (!arg.Name.Equals(argExt.Name, Syntax))
+                {
+                    // todo: ThrowHelper
+                    throw new GraphQLException(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                $"Expected argument {arg.Name.Value} at position {i} on field {typeName}.{definition.Name} but found {argExt.Name.Value}.")
+                            .SetExtension(nameof(typeName), typeName)
+                            .SetExtension("fieldName", definition.Name.Value)
+                            .SetExtension("argumentIndex", i)
+                            .SetExtension("expectedArgument", arg.Name.Value)
+                            .SetExtension("argument", argExt.Name.Value)
+                            .Build());
+                }
+
+                if (!arg.Type.Equals(argExt.Type, Syntax))
+                {
+                    // todo: ThrowHelper
+                    throw new GraphQLException(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                $"Expected {arg.Type} on argument {new SchemaCoordinate(typeName, definition.Name.Value, arg.Name.Value)} but found {argExt.Type}.")
+                            .SetExtension(nameof(typeName), typeName)
+                            .SetExtension("fieldName", definition.Name.Value)
+                            .SetExtension("argumentName", arg.Name.Value)
+                            .SetExtension("argumentIndex", i)
+                            .SetExtension("expectedArgumentType", arg.Type.ToString())
+                            .SetExtension("argumentType", argExt.Type.ToString())
+                            .Build());
+                }
+
+                if (argExt.Directives.Count > 0)
+                {
+                    if (temp is null)
+                    {
+                        temp = new();
+
+                        if (i > 0)
+                        {
+                            for (var j = 0; j < i; j++)
+                            {
+                                temp.Add(arguments[j]);
+                            }
+                        }
+                    }
+
+                    var argDirectives = arg.Directives.ToList();
+                    argDirectives.AddRange(argExt.Directives);
+                    arg = arg.WithDirectives(argDirectives);
+                    temp.Add(arg);
+                }
+                else if(temp is not null)
+                {
+                    temp.Add(arg);
+                }
+            }
+
+            if (temp is not null)
+            {
+                arguments = temp;
+            }
+        }
 
         if (extension.Directives.Count > 0)
         {
-
+            var temp = definition.Directives.ToList();
+            temp.AddRange(extension.Directives);
+            directives = temp;
         }
+
+        if (!ReferenceEquals(arguments, definition.Arguments) ||
+            !ReferenceEquals(directives, definition.Directives))
+        {
+            return new FieldDefinitionNode(
+                null,
+                definition.Name,
+                definition.Description,
+                arguments,
+                definition.Type,
+                directives);
+        }
+
+        return definition;
     }
 
     private static InterfaceTypeDefinitionNode TryApplyExtensions(
