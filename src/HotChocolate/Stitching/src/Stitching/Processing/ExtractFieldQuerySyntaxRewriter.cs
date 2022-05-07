@@ -291,8 +291,6 @@ internal sealed partial class ExtractFieldQuerySyntaxRewriter
                     new NameNode(sourceDirective.Name));
             }
 
-            Rewrite(node.Value, context);
-
             return base.RewriteObjectField(current, cloned);
         }
 
