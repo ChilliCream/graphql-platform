@@ -30,34 +30,4 @@ public class WriteVisitorTests
         merge.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
-
-    [Fact]
-    public void Set()
-    {
-        var visitor = new CypherVisitor();
-
-        var merge = new Set(_pattern);
-        merge.Visit(visitor);
-        visitor.Print().MatchSnapshot();
-    }
-
-    [Fact]
-    public void Delete()
-    {
-        var visitor = new CypherVisitor();
-
-        var merge = new Delete(Expressions.CreateSymbolicNames(_movie.));
-        merge.Visit(visitor);
-        visitor.Print().MatchSnapshot();
-    }
-
-    [Fact]
-    public void Remove()
-    {
-        var visitor = new CypherVisitor();
-
-        var merge = new Remove(_pattern);
-        merge.Visit(visitor);
-        visitor.Print().MatchSnapshot();
-    }
 }
