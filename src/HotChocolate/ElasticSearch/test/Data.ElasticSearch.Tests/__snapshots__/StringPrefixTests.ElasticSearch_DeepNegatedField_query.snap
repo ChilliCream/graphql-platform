@@ -1,0 +1,21 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must_not": [
+              {
+                "prefix": {
+                  "baz.bar": {
+                    "value": "he"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

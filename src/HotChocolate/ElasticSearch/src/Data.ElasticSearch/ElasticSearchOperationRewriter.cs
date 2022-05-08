@@ -69,7 +69,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     /// <inheritdoc />
     protected override IQuery Rewrite(TermOperation operation)
     {
-        throw new System.NotImplementedException();
+        return new PrefixQuery {Field = operation.Path, Value = operation.Value};
     }
 
     /// <inheritdoc />

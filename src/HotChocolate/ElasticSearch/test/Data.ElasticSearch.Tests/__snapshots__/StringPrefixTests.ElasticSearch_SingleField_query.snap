@@ -1,0 +1,15 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "prefix": {
+            "bar": {
+              "value": "th"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
