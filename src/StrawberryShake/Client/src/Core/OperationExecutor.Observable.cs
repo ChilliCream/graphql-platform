@@ -129,6 +129,10 @@ public partial class OperationExecutor<TData, TResult>
             }
             finally
             {
+                // call observer's OnCompleted method to notify observer
+                // there is no further data is available.
+                observer.OnCompleted();
+                
                 // after all the transport logic is finished we will dispose
                 // the request session.
                 session.RequestSession.Dispose();
