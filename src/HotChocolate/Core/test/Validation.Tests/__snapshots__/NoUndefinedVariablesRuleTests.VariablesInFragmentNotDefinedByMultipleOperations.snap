@@ -58,8 +58,7 @@
                 "Column": 28
               },
               "Value": "b"
-            },
-            "Value": "b"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -177,8 +176,7 @@
                 "Column": 28
               },
               "Value": "a"
-            },
-            "Value": "a"
+            }
           },
           "Type": {
             "Kind": "NamedType",

@@ -110,8 +110,7 @@
                 "Column": 34
               },
               "Value": "foo"
-            },
-            "Value": "foo"
+            }
           }
         }
       ]
@@ -197,8 +196,7 @@
                     "Column": 34
                   },
                   "Value": "foo"
-                },
-                "Value": "foo"
+                }
               }
             }
           ]

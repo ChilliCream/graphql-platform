@@ -3,7 +3,7 @@
 }
 
 type Query {
-  foo(test: FooFilterInput): String
+  foo(test: FooCompFilterInput): String
 }
 
 input ComparableDateTimeOperationFilterInput {
@@ -111,9 +111,9 @@ input ComparableSingleOperationFilterInput {
   nlte: Float
 }
 
-input FooFilterInput {
-  and: [FooFilterInput!]
-  or: [FooFilterInput!]
+input FooCompFilterInput {
+  and: [FooCompFilterInput!]
+  or: [FooCompFilterInput!]
   barShort: ComparableInt16OperationFilterInput
   barInt: ComparableInt32OperationFilterInput
   barLong: ComparableInt64OperationFilterInput

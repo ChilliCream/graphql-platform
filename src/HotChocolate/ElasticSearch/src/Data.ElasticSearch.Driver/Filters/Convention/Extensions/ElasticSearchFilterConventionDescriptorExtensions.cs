@@ -143,7 +143,7 @@ public static class ElasticSearchFilterConventionDescriptorExtensions
         descriptor.AddFieldHandler<ElasticSearchStringNotEqualsOperationHandler>();
         
         descriptor.AddFieldHandler<ElasticSearchStringStartsWithOperationHandler>();
-        descriptor.AddFieldHandler<ElasticSearchStringNotStartsWithOperationHandler>();
+        descriptor.AddFieldHandler<ElasticSearchStringNotStartsWithOperationHandler>(); 
 
         descriptor.AddFieldHandler<ElasticSearchStringContainsOperationHandler>();
         descriptor.AddFieldHandler<ElasticSearchStringNotContainsOperationHandler>();
