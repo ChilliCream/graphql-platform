@@ -11,7 +11,7 @@ namespace HotChocolate.Properties {
     using System;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TypeResources {
@@ -1410,6 +1410,24 @@ namespace HotChocolate.Properties {
         internal static string ConnectionType_Edges_Description {
             get {
                 return ResourceManager.GetString("ConnectionType_Edges_Description", resourceCulture);
+            }
+        }
+        
+        internal static string CollectionSegmentType_PageInfo_Description {
+            get {
+                return ResourceManager.GetString("CollectionSegmentType_PageInfo_Description", resourceCulture);
+            }
+        }
+        
+        internal static string CollectionSegmentType_Description {
+            get {
+                return ResourceManager.GetString("CollectionSegmentType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string CollectionSegmentType_Items_Description {
+            get {
+                return ResourceManager.GetString("CollectionSegmentType_Items_Description", resourceCulture);
             }
         }
         
