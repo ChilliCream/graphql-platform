@@ -561,7 +561,11 @@ namespace HotChocolate.Types.Pagination
                     .AddQueryType<QueryAttr>()
                     .AddInterfaceType<ISome>(d => d
                         .Field(t => t.ExplicitType())
-                        .UseOffsetPaging(options: new PagingOptions { InferCollectionSegmentNameFromField = false }))
+                        .UseOffsetPaging(
+                            options: new PagingOptions
+                            {
+                                InferCollectionSegmentNameFromField = false
+                            }))
                     .ModifyOptions(o =>
                     {
                         o.RemoveUnreachableTypes = false;
@@ -678,7 +682,7 @@ namespace HotChocolate.Types.Pagination
                 "l"
             };
 
-            public List<List<Foo>> Foos() => new List<List<Foo>>
+            public List<List<Foo>> Foos() => new()
             {
                 new List<Foo> { new Foo { Bar = "a" } },
                 new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
@@ -690,15 +694,16 @@ namespace HotChocolate.Types.Pagination
 
         public class ExecutableQuery
         {
-            public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(new List<Foo>
-            {
-                  new Foo { Bar = "a" },
-                  new Foo { Bar = "b" },
-                  new Foo { Bar = "c" } ,
-                  new Foo { Bar = "d" },
-                  new Foo { Bar = "e" },
-                  new Foo { Bar = "f" }
-            }.AsQueryable());
+            public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(
+                new List<Foo>
+                {
+                    new Foo { Bar = "a" },
+                    new Foo { Bar = "b" },
+                    new Foo { Bar = "c" } ,
+                    new Foo { Bar = "d" },
+                    new Foo { Bar = "e" },
+                    new Foo { Bar = "f" }
+                }.AsQueryable());
         }
 
         public class Foo

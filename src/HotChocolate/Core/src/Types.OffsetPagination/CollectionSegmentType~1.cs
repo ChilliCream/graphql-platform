@@ -17,7 +17,6 @@ internal class CollectionSegmentType
     internal CollectionSegmentType(
         NameString? collectionSegmentName,
         ITypeReference nodeType,
-        IDescriptorContext descriptorContext,
         bool withTotalCount)
     {
         if (nodeType is null)

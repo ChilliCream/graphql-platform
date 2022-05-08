@@ -295,7 +295,6 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                 _ => new CollectionSegmentType(
                     null,
                     itemsType,
-                    context,
                     options.IncludeTotalCount ?? false),
                 TypeContext.Output)
             : TypeReference.Create(
@@ -304,7 +303,6 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                 factory: _ => new CollectionSegmentType(
                     collectionSegmentName.Value,
                     itemsType,
-                    context,
                     options.IncludeTotalCount ?? false));
     }
 
