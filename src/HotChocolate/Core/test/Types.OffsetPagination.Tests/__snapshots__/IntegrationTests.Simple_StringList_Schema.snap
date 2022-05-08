@@ -10,27 +10,39 @@ type CollectionSegmentInfo {
   hasPreviousPage: Boolean!
 }
 
+"A segment of a collection."
+type ExplicitTypeCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [String!]
+}
+
 type Foo {
   bar: String!
 }
 
-type FooCollectionSegment {
-  items: [[Foo!]!]
+"A segment of a collection."
+type LettersCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [String!]
+}
+
+"A segment of a collection."
+type NestedObjectListCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [[Foo!]!]
   totalCount: Int!
 }
 
 type Query {
-  letters(skip: Int take: Int): StringCollectionSegment
-  explicitType(skip: Int take: Int): StringCollectionSegment
-  nestedObjectList(skip: Int take: Int): FooCollectionSegment
-}
-
-type StringCollectionSegment {
-  items: [String!]
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
+  letters(skip: Int take: Int): LettersCollectionSegment
+  explicitType(skip: Int take: Int): ExplicitTypeCollectionSegment
+  nestedObjectList(skip: Int take: Int): NestedObjectListCollectionSegment
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
