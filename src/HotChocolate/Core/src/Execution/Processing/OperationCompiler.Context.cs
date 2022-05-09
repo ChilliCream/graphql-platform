@@ -228,14 +228,14 @@ public sealed partial class OperationCompiler
 
         public ISelectionNode Spread { get; }
 
-        public bool Equals(SelectionReference other)
+        public bool Equals(SpreadReference other)
         {
-            return Path.Equals(other.Path) && Spread.Equals(other.Selection);
+            return Path.Equals(other.Path) && Spread.Equals(other.Spread);
         }
 
         public override bool Equals(object? obj)
         {
-            return obj is SelectionReference other && Equals(other);
+            return obj is SpreadReference other && Equals(other);
         }
 
         public override int GetHashCode()
