@@ -1,8 +1,6 @@
 using System.Buffers;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 
@@ -20,20 +18,24 @@ internal static class EntitiesResolver
     {
         Task<object?>[] tasks = ArrayPool<Task<object?>>.Shared.Rent(representations.Count);
         tasks.AsSpan().Slice(0, representations.Count).Clear();
-        var result = new object?[representations.Count];
+        var result = new List<object?>(representations.Count);
 
         try
         {
-            foreach (var indexedRepresentation in representations.Select((representation, index) => (representation, index)))
+            for (var i = 0; i < tasks.Length; i++)
             {
-                if (schema.TryGetType<ObjectType>(indexedRepresentation.representation.TypeName, out var objectType) &&
+                context.RequestAborted.ThrowIfCancellationRequested();
+
+                if (schema.TryGetType<ObjectType>(
+                        representations[i].TypeName,
+                        out ObjectType? objectType) &&
                     objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
                     value is FieldResolverDelegate resolver)
                 {
                     context.SetLocalState(TypeField, objectType);
-                    context.SetLocalState(DataField, indexedRepresentation.representation.Data);
+                    context.SetLocalState(DataField, representations[i].Data);
 
-                    tasks[indexedRepresentation.index] = resolver.Invoke(context).AsTask();
+                    tasks[i] = resolver.Invoke(context).AsTask();
                 }
                 else
                 {
@@ -41,31 +43,33 @@ internal static class EntitiesResolver
                 }
             }
 
-            foreach (var indexedRepresentation in representations.Select((representation, index) => (representation, index)))
+            for (var i = 0; i < tasks.Length; i++)
             {
-                Task<object?> task = tasks[indexedRepresentation.index];
+                context.RequestAborted.ThrowIfCancellationRequested();
+
+                Task<object?> task = tasks[i];
                 if (task.IsCompleted)
                 {
                     if (task.Exception is null)
                     {
-                        result[indexedRepresentation.index] = task.Result;
+                        result[i] = task.Result;
                     }
                     else
                     {
-                        result[indexedRepresentation.index] = null;
-                        ReportError(context, indexedRepresentation.index, task.Exception);
+                        result[i] = null;
+                        ReportError(context, i, task.Exception);
                     }
                 }
                 else
                 {
                     try
                     {
-                        result[indexedRepresentation.index] = await task;
+                        result[i] = await task;
                     }
                     catch (Exception ex)
                     {
-                        result[indexedRepresentation.index] = null;
-                        ReportError(context, indexedRepresentation.index, ex);
+                        result[i] = null;
+                        ReportError(context, i, ex);
                     }
                 }
             }
@@ -75,7 +79,7 @@ internal static class EntitiesResolver
             ArrayPool<Task<object?>>.Shared.Return(tasks);
         }
 
-        return result.ToList();
+        return result;
     }
 
     private static void ReportError(IResolverContext context, int item, Exception ex)
