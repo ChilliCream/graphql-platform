@@ -288,15 +288,14 @@ public class EntitiesResolverTests
         {
             TimesCalled++;
 
-            IReadOnlyDictionary<string, FederatedType> result =
-                new Dictionary<string, FederatedType>
-                {
-                    ["1"] = new() {Id = "1", SomeField = "SomeField-1"},
-                    ["2"] = new() {Id = "2", SomeField = "SomeField-2"},
-                    ["3"] = new() {Id = "3", SomeField = "SomeField-3"}
-                };
+            Dictionary<string, FederatedType> result = new()
+            {
+                ["1"] = new FederatedType {Id = "1", SomeField = "SomeField-1"},
+                ["2"] = new FederatedType {Id = "2", SomeField = "SomeField-2"},
+                ["3"] = new FederatedType {Id = "3", SomeField = "SomeField-3"}
+            };
 
-            return Task.FromResult(result);
+            return Task.FromResult<IReadOnlyDictionary<string, FederatedType>>(result);
         }
     }
 }
