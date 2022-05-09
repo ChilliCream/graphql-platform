@@ -8,7 +8,7 @@ using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate.ApolloFederation;
 
-internal static partial class FederationSchemaPrinter
+public static partial class FederationSchemaPrinter
 {
     private static DirectiveDefinitionNode SerializeDirectiveTypeDefinition(
         DirectiveType directiveType,
