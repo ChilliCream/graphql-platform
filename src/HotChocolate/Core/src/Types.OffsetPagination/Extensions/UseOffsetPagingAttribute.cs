@@ -16,6 +16,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
     private int? _maxPageSize;
     private bool? _includeTotalCount;
     private bool? _requirePagingBoundaries;
+    private string? _collectionSegmentName;
 
     /// <summary>
     /// Applies the offset paging middleware to the annotated property.
@@ -37,6 +38,16 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
     /// The schema type representation of the item type.
     /// </summary>
     public Type? Type { get; private set; }
+
+
+    /// <summary>
+    /// Specifies the collection segment name.
+    /// </summary>
+    public string? CollectionSegmentName
+    {
+        get => _collectionSegmentName;
+        set => _collectionSegmentName = value;
+    }
 
     /// <summary>
     /// Specifies the default page size for this field.
@@ -80,7 +91,7 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
     /// </summary>
     public string? ProviderName { get; set; }
 
-    protected override void TryConfigure(
+    protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
         ICustomAttributeProvider element)
@@ -89,6 +100,9 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
         {
             odf.UseOffsetPaging(
                 Type,
+                collectionSegmentName: string.IsNullOrEmpty(_collectionSegmentName)
+                    ? default(NameString?)
+                    : _collectionSegmentName,
                 options: new PagingOptions
                 {
                     DefaultPageSize = _defaultPageSize,
@@ -103,6 +117,9 @@ public class UseOffsetPagingAttribute : DescriptorAttribute
         {
             idf.UseOffsetPaging(
                 Type,
+                collectionSegmentName: string.IsNullOrEmpty(_collectionSegmentName)
+                    ? default(NameString?)
+                    : _collectionSegmentName,
                 options: new PagingOptions
                 {
                     DefaultPageSize = _defaultPageSize,

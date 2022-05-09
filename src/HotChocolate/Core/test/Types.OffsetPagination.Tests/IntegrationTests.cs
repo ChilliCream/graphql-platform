@@ -1,13 +1,12 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Pagination.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -562,7 +561,11 @@ namespace HotChocolate.Types.Pagination
                     .AddQueryType<QueryAttr>()
                     .AddInterfaceType<ISome>(d => d
                         .Field(t => t.ExplicitType())
-                        .UseOffsetPaging())
+                        .UseOffsetPaging(
+                            options: new PagingOptions
+                            {
+                                InferCollectionSegmentNameFromField = false
+                            }))
                     .ModifyOptions(o =>
                     {
                         o.RemoveUnreachableTypes = false;
@@ -686,7 +689,7 @@ namespace HotChocolate.Types.Pagination
                 "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
             };
 
-            public List<List<Foo>> Foos() => new List<List<Foo>>
+            public List<List<Foo>> Foos() => new()
             {
                 new List<Foo> {new Foo {Bar = "a"}},
                 new List<Foo> {new Foo {Bar = "b"}, new Foo {Bar = "c"}},
@@ -697,16 +700,17 @@ namespace HotChocolate.Types.Pagination
         }
 
         public class ExecutableQuery
-        {
-            public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(new List<Foo>
-            {
-                new Foo {Bar = "a"},
-                new Foo {Bar = "b"},
-                new Foo {Bar = "c"},
-                new Foo {Bar = "d"},
-                new Foo {Bar = "e"},
-                new Foo {Bar = "f"}
-            }.AsQueryable());
+        { 
+            public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(
+                new List<Foo>
+                {
+                    new Foo { Bar = "a" },
+                    new Foo { Bar = "b" },
+                    new Foo { Bar = "c" } ,
+                    new Foo { Bar = "d" },
+                    new Foo { Bar = "e" },
+                    new Foo { Bar = "f" }
+                }.AsQueryable()); 
         }
 
         public class Foo
