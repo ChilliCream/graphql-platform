@@ -32,13 +32,15 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new("ForeignType", new ObjectValueNode(
-                new ObjectFieldNode("id", "1"),
-                new ObjectFieldNode("someExternalField", "someExternalField")))
+            new("ForeignType",
+                new ObjectValueNode(
+                    new ObjectFieldNode("id", "1"),
+                    new ObjectFieldNode("someExternalField", "someExternalField")))
         };
 
         // assert
-        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
+        List<object?> result =
+            await EntitiesResolver.ResolveAsync(schema, representations, context);
         ForeignType obj = Assert.IsType<ForeignType>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("someExternalField", obj.SomeExternalField);
@@ -59,13 +61,15 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new("MixedFieldTypes",new ObjectValueNode(
-                new ObjectFieldNode("id", "1"),
-                new ObjectFieldNode("intField", 25)))
+            new("MixedFieldTypes",
+                new ObjectValueNode(
+                    new ObjectFieldNode("id", "1"),
+                    new ObjectFieldNode("intField", 25)))
         };
 
         // assert
-        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
+        List<object?> result =
+            await EntitiesResolver.ResolveAsync(schema, representations, context);
         MixedFieldTypes obj = Assert.IsType<MixedFieldTypes>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal(25, obj.IntField);
@@ -85,11 +89,13 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new("TypeWithReferenceResolver", new ObjectValueNode(new ObjectFieldNode("Id", "1")))
+            new("TypeWithReferenceResolver",
+                new ObjectValueNode(new ObjectFieldNode("Id", "1")))
         };
 
         // assert
-        List<object?> result = await EntitiesResolver.ResolveAsync(schema, representations, context);
+        List<object?> result =
+            await EntitiesResolver.ResolveAsync(schema, representations, context);
         TypeWithReferenceResolver obj = Assert.IsType<TypeWithReferenceResolver>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("SomeField", obj.SomeField);
@@ -107,10 +113,12 @@ public class EntitiesResolverTests
         var batchScheduler = new ManualBatchScheduler();
         var dataLoader = new FederatedTypeDataLoader(batchScheduler);
 
-        IResolverContext context = CreateResolverContext(schema, null, mock =>
-        {
-            mock.Setup(c => c.Service<FederatedTypeDataLoader>()).Returns(dataLoader);
-        });
+        IResolverContext context = CreateResolverContext(schema,
+            null,
+            mock =>
+            {
+                mock.Setup(c => c.Service<FederatedTypeDataLoader>()).Returns(dataLoader);
+            });
 
         var representations = new List<Representation>
         {
@@ -120,7 +128,7 @@ public class EntitiesResolverTests
         };
 
         // act
-        var resultTask =  EntitiesResolver.ResolveAsync(schema, representations, context);
+        var resultTask = EntitiesResolver.ResolveAsync(schema, representations, context);
         batchScheduler.Dispatch();
         var results = await resultTask;
 
@@ -193,11 +201,7 @@ public class EntitiesResolverTests
 
         public static TypeWithReferenceResolver Get([LocalState] ObjectValueNode data)
         {
-            return new TypeWithReferenceResolver
-            {
-                Id = "1",
-                SomeField = "SomeField"
-            };
+            return new TypeWithReferenceResolver {Id = "1", SomeField = "SomeField"};
         }
     }
 
@@ -252,12 +256,17 @@ public class EntitiesResolverTests
         [Key]
         [External]
         public string Id { get; set; } = default!;
+
         public string SomeField { get; set; } = default!;
 
         [ReferenceResolver]
-        public static async Task<FederatedType> GetById([LocalState] ObjectValueNode data, [Service] FederatedTypeDataLoader loader)
+        public static async Task<FederatedType> GetById(
+            [LocalState] ObjectValueNode data,
+            [Service] FederatedTypeDataLoader loader)
         {
-            var id = data.Fields.FirstOrDefault(_ => _.Name.Value == "Id")?.Value?.Value?.ToString() ?? string.Empty;
+            var id =
+                data.Fields.FirstOrDefault(_ => _.Name.Value == "Id")?.Value.Value?.ToString() ??
+                string.Empty;
 
             return await loader.LoadAsync(id);
         }
@@ -265,22 +274,27 @@ public class EntitiesResolverTests
 
     public class FederatedTypeDataLoader : BatchDataLoader<string, FederatedType>
     {
-        public int TimesCalled { get; private set; } = 0;
+        public int TimesCalled { get; private set; }
 
-        public FederatedTypeDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions? options = null) : base(batchScheduler, options)
+        public FederatedTypeDataLoader(
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions? options = null) : base(batchScheduler, options)
         {
         }
 
-        protected override Task<IReadOnlyDictionary<string, FederatedType>> LoadBatchAsync(IReadOnlyList<string> keys, CancellationToken cancellationToken)
+        protected override Task<IReadOnlyDictionary<string, FederatedType>> LoadBatchAsync(
+            IReadOnlyList<string> keys,
+            CancellationToken cancellationToken)
         {
             TimesCalled++;
-            var values = Enumerable.Range(1, 3).Select(_ => new FederatedType()
-            {
-                Id = _.ToString(),
-                SomeField = $"SomeField-{_}"
-            }).ToDictionary( _ => _.Id, _ => _);
 
-            IReadOnlyDictionary<string, FederatedType> result = new ReadOnlyDictionary<string, FederatedType>(values);
+            IReadOnlyDictionary<string, FederatedType> result =
+                new Dictionary<string, FederatedType>
+                {
+                    ["1"] = new() {Id = "1", SomeField = "SomeField-1"},
+                    ["2"] = new() {Id = "2", SomeField = "SomeField-2"},
+                    ["3"] = new() {Id = "3", SomeField = "SomeField-3"}
+                };
 
             return Task.FromResult(result);
         }
