@@ -80,7 +80,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions {RequirePagingBoundaries = true})
+                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -108,7 +108,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions {RequirePagingBoundaries = true})
+                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -271,7 +271,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions {DefaultPageSize = 2})
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2 })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -299,7 +299,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions {DefaultPageSize = 50})
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -327,7 +327,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
-                    .SetPagingOptions(new PagingOptions {DefaultPageSize = 2})
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2 })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -666,7 +666,7 @@ namespace HotChocolate.Types.Pagination
                     .Field(t => t.Foos())
                     .Name("nestedObjectList")
                     .UseOffsetPaging(
-                        options: new PagingOptions {MaxPageSize = 2, IncludeTotalCount = true});
+                        options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true });
             }
         }
 
@@ -678,7 +678,7 @@ namespace HotChocolate.Types.Pagination
                     .Field(t => t.FoosExecutable())
                     .Name("fooExecutable")
                     .UseOffsetPaging(
-                        options: new PagingOptions {MaxPageSize = 2, IncludeTotalCount = true});
+                        options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true });
             }
         }
 
@@ -691,26 +691,26 @@ namespace HotChocolate.Types.Pagination
 
             public List<List<Foo>> Foos() => new()
             {
-                new List<Foo> {new Foo {Bar = "a"}},
-                new List<Foo> {new Foo {Bar = "b"}, new Foo {Bar = "c"}},
-                new List<Foo> {new Foo {Bar = "d"}},
-                new List<Foo> {new Foo {Bar = "e"}},
-                new List<Foo> {new Foo {Bar = "f"}}
+                new List<Foo> { new Foo { Bar = "a" } },
+                new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
+                new List<Foo> { new Foo { Bar = "d" } },
+                new List<Foo> { new Foo { Bar = "e" } },
+                new List<Foo> { new Foo { Bar = "f" } }
             };
         }
 
         public class ExecutableQuery
-        { 
+        {
             public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(
                 new List<Foo>
                 {
                     new Foo { Bar = "a" },
                     new Foo { Bar = "b" },
-                    new Foo { Bar = "c" } ,
+                    new Foo { Bar = "c" },
                     new Foo { Bar = "d" },
                     new Foo { Bar = "e" },
                     new Foo { Bar = "f" }
-                }.AsQueryable()); 
+                }.AsQueryable());
         }
 
         public class Foo
@@ -725,7 +725,7 @@ namespace HotChocolate.Types.Pagination
                 int? skip,
                 int? take,
                 CancellationToken cancellationToken)
-                => await new[] {"a", "b", "c", "d"}
+                => await new[] { "a", "b", "c", "d" }
                     .AsQueryable()
                     .ApplyOffsetPaginationAsync(skip, take, cancellationToken);
         }
@@ -747,11 +747,11 @@ namespace HotChocolate.Types.Pagination
                 IncludeTotalCount = true)]
             public List<List<Foo>> Foos() => new List<List<Foo>>
             {
-                new List<Foo> {new Foo {Bar = "a"}},
-                new List<Foo> {new Foo {Bar = "b"}, new Foo {Bar = "c"}},
-                new List<Foo> {new Foo {Bar = "d"}},
-                new List<Foo> {new Foo {Bar = "e"}},
-                new List<Foo> {new Foo {Bar = "f"}}
+                new List<Foo> { new Foo { Bar = "a" } },
+                new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
+                new List<Foo> { new Foo { Bar = "d" } },
+                new List<Foo> { new Foo { Bar = "e" } },
+                new List<Foo> { new Foo { Bar = "f" } }
             };
         }
 
@@ -803,6 +803,6 @@ namespace HotChocolate.Types.Pagination
     {
         [UseOffsetPaging(IncludeTotalCount = true)]
         public CollectionSegment<string> GetFoos(int? first, string? after)
-            => new(new[] {"asd", "asd2"}, new CollectionSegmentInfo(false, false), 2);
+            => new(new[] { "asd", "asd2" }, new CollectionSegmentInfo(false, false), 2);
     }
 }
