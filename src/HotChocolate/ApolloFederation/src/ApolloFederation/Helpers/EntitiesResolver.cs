@@ -17,7 +17,6 @@ internal static class EntitiesResolver
         IResolverContext context)
     {
         Task<object?>[] tasks = ArrayPool<Task<object?>>.Shared.Rent(representations.Count);
-        tasks.AsSpan().Slice(0, representations.Count).Clear();
         var result = new List<object?>(representations.Count);
 
         try
@@ -26,14 +25,14 @@ internal static class EntitiesResolver
             {
                 context.RequestAborted.ThrowIfCancellationRequested();
 
-                if (schema.TryGetType<ObjectType>(
-                        representations[i].TypeName,
-                        out ObjectType? objectType) &&
+                Representation current = representations[i];
+
+                if (schema.TryGetType<ObjectType>(current.TypeName, out ObjectType? objectType) &&
                     objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
                     value is FieldResolverDelegate resolver)
                 {
                     context.SetLocalState(TypeField, objectType);
-                    context.SetLocalState(DataField, representations[i].Data);
+                    context.SetLocalState(DataField, current.Data);
 
                     tasks[i] = resolver.Invoke(context).AsTask();
                 }
@@ -76,7 +75,7 @@ internal static class EntitiesResolver
         }
         finally
         {
-            ArrayPool<Task<object?>>.Shared.Return(tasks);
+            ArrayPool<Task<object?>>.Shared.Return(tasks, true);
         }
 
         return result;
