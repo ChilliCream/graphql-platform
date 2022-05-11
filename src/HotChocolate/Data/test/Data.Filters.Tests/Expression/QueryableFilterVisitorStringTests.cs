@@ -119,6 +119,25 @@ public class QueryableFilterVisitorStringTests
     }
 
     [Fact]
+    public void Create_StringInvariantContains_Expression()
+    {
+        // arrange
+        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            "{ bar: { icontains:\"A\" }}");
+        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+
+        // act
+        Func<Foo, bool>? func = tester.Build<Foo>(value);
+
+        // assert
+        var a = new Foo { Bar = "testatest" };
+        Assert.True(func(a));
+
+        var b = new Foo { Bar = "testbtest" };
+        Assert.False(func(b));
+    }
+
+    [Fact]
     public void Create_StringNoContains_Expression()
     {
         IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
