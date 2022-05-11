@@ -215,7 +215,7 @@ Up until now we have only worked with Code-first APIs to create the field middle
 
 You can create a new attribute inheriting from `ObjectFieldDescriptorAttribute` and call or create your middleware inside of the `OnConfigure` method.
 
-> Note: Attribute order is not guaranteed in C#, so we, in the case of middleware attributes, use the `CallerLineNumberAttribute` to inject the C# line number at compile time. The line number is used as an order. We do not recommend inheriting middleware attributes from a base method or proerty since this can lead to confusion about ordering. Look at the example below to see how we infer the order. When inheriting from middleware, attributes always pass through the order argument. Further, indicate with the `Use` verb that your attribute is a middleware attribute.
+> Note: Attribute order is not guaranteed in C#, so we, in the case of middleware attributes, use the `CallerLineNumberAttribute` to inject the C# line number at compile time. The line number is used as an order. We do not recommend inheriting middleware attributes from a base method or property since this can lead to confusion about ordering. Look at the example below to see how we infer the order. When inheriting from middleware, attributes always pass through the order argument. Further, indicate with the `Use` verb that your attribute is a middleware attribute.
 
 ```csharp
 public class UseMyMiddlewareAttribute : ObjectFieldDescriptorAttribute
