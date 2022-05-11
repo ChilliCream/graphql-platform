@@ -2,7 +2,6 @@
 
 }
 
-type Foo {
+type Foo @a @b {
   abc: String
-  def: String
 }
