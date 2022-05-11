@@ -39,7 +39,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        List<object?> result =
+        IReadOnlyList<object?> result =
             await EntitiesResolver.ResolveAsync(schema, representations, context);
         ForeignType obj = Assert.IsType<ForeignType>(result[0]);
         Assert.Equal("1", obj.Id);
@@ -68,7 +68,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        List<object?> result =
+        IReadOnlyList<object?> result =
             await EntitiesResolver.ResolveAsync(schema, representations, context);
         MixedFieldTypes obj = Assert.IsType<MixedFieldTypes>(result[0]);
         Assert.Equal("1", obj.Id);
@@ -94,7 +94,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        List<object?> result =
+        IReadOnlyList<object?> result =
             await EntitiesResolver.ResolveAsync(schema, representations, context);
         TypeWithReferenceResolver obj = Assert.IsType<TypeWithReferenceResolver>(result[0]);
         Assert.Equal("1", obj.Id);

@@ -11,17 +11,17 @@ namespace HotChocolate.ApolloFederation.Helpers;
 /// </summary>
 internal static class EntitiesResolver
 {
-    public static async Task<List<object?>> ResolveAsync(
+    public static async Task<IReadOnlyList<object?>> ResolveAsync(
         ISchema schema,
         IReadOnlyList<Representation> representations,
         IResolverContext context)
     {
         Task<object?>[] tasks = ArrayPool<Task<object?>>.Shared.Rent(representations.Count);
-        var result = new List<object?>(representations.Count);
+        var result = new object?[representations.Count];
 
         try
         {
-            for (var i = 0; i < tasks.Length; i++)
+            for (var i = 0; i < representations.Count; i++)
             {
                 context.RequestAborted.ThrowIfCancellationRequested();
 
@@ -42,7 +42,7 @@ internal static class EntitiesResolver
                 }
             }
 
-            for (var i = 0; i < tasks.Length; i++)
+            for (var i = 0; i < representations.Count; i++)
             {
                 context.RequestAborted.ThrowIfCancellationRequested();
 

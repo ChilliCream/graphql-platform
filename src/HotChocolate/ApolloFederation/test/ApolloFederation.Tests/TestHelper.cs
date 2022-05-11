@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
@@ -17,6 +18,7 @@ public static class TestHelper
         var contextData = new Dictionary<string, object?>();
 
         var mock = new Mock<IResolverContext>(MockBehavior.Strict);
+        mock.SetupGet(c => c.RequestAborted).Returns(CancellationToken.None);
         mock.SetupGet(c => c.ContextData).Returns(contextData);
         mock.SetupProperty(c => c.ScopedContextData);
         mock.SetupProperty(c => c.LocalContextData);
