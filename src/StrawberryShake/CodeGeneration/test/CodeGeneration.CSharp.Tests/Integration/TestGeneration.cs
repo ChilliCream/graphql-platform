@@ -226,6 +226,22 @@ public class TestGeneration
                 name
             }");
 
+    [Fact]
+    public void StarWarsOnReviewSubCompletion() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(profiles: new[]
+            {
+                new TransportProfile("InMemory", TransportType.InMemory),
+                TransportProfile.Default
+            }),
+            @"subscription OnReviewSub {
+                onReview(episode: NEW_HOPE) {
+                    __typename
+                    stars
+                    commentary
+                }
+            }");
+
     /*
     [Fact]
     public void StarWarsGetFriendsDeferredData() =>
