@@ -12,11 +12,3 @@ public interface ISchemaMergeContext
 
     ICollection<IError> Errors { get; }
 }
-
-public class ServiceConfiguration
-{
-
-    public string Name { get; }
-
-    public IReadOnlyList<DocumentNode> Documents { get; }
-}

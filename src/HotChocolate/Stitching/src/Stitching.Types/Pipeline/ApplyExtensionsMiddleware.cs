@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using static HotChocolate.Language.SyntaxComparison;
 using static HotChocolate.Stitching.Types.ExceptionHelper;
 
 namespace HotChocolate.Stitching.Types.Pipeline;
 
-public class ApplyExtensionsMiddleware
+public sealed class ApplyExtensionsMiddleware
 {
     private const string _schema = "$schema";
     private readonly MergeSchema _next;
@@ -38,7 +39,7 @@ public class ApplyExtensionsMiddleware
         await _next(context);
     }
 
-    private void CollectTypeDefinitions(
+    private static void CollectTypeDefinitions(
         Dictionary<string, ITypeSystemDefinitionNode> definitions,
         List<ITypeSystemExtensionNode> extensions,
         DocumentNode document)
@@ -65,7 +66,7 @@ public class ApplyExtensionsMiddleware
         }
     }
 
-    private void CollectTypeExtensions(
+    private static void CollectTypeExtensions(
         List<ITypeSystemExtensionNode> extensions,
         DocumentNode document)
     {
@@ -144,7 +145,7 @@ public class ApplyExtensionsMiddleware
                 ObjectTypeExtensionNode typeExt => ApplyExtensions(
                     (ObjectTypeDefinitionNode)typeDef,
                     typeExt),
-                InterfaceTypeExtensionNode typeExt => TryApplyExtensions(
+                InterfaceTypeExtensionNode typeExt => ApplyExtensions(
                     (InterfaceTypeDefinitionNode)typeDef,
                     typeExt),
                 _ => throw new ArgumentOutOfRangeException(nameof(extension), extension, null)
@@ -193,8 +194,11 @@ public class ApplyExtensionsMiddleware
 
         if (extension.Fields.Count > 0)
         {
-            var map = definition.Fields.ToDictionary(t => t.Name.Value);
-            List<FieldDefinitionNode>? temp = null;
+            var map = new OrderedDictionary<string, FieldDefinitionNode>(
+                definition.Fields.Select(t => new KeyValuePair<string, FieldDefinitionNode>(
+                    t.Name.Value,
+                    t)));
+            bool touched = false;
 
             foreach (FieldDefinitionNode extensionField in extension.Fields)
             {
@@ -203,15 +207,24 @@ public class ApplyExtensionsMiddleware
                 // So if we see that there is already a field we will try to merge it.
                 if (map.TryGetValue(extensionField.Name.Value, out FieldDefinitionNode? field))
                 {
-                    map[extensionField.Name.Value] =
+                    FieldDefinitionNode temp =
                         ApplyExtensions(definition.Name.Value, field, extensionField);
+
+                    if (!touched)
+                    {
+                        touched = !ReferenceEquals(temp, field);
+                    }
+
+                    map[extensionField.Name.Value] = temp;
                 }
                 else
                 {
                     map.Add(extensionField.Name.Value, extensionField);
-                    (temp ??= definition.Fields.ToList()).Add(extensionField);
+                    touched = true;
                 }
             }
+
+            fields = map.Values.ToList();
         }
 
         if (!ReferenceEquals(definition.Directives, directives) ||
@@ -327,7 +340,7 @@ public class ApplyExtensionsMiddleware
         return definition;
     }
 
-    private static InterfaceTypeDefinitionNode TryApplyExtensions(
+    private static InterfaceTypeDefinitionNode ApplyExtensions(
         InterfaceTypeDefinitionNode definition,
         InterfaceTypeExtensionNode extension)
     {
