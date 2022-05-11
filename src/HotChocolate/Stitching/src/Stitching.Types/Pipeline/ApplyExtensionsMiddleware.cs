@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Language.SyntaxComparison;
-using ObjectTypeExtension = HotChocolate.Types.ObjectTypeExtension;
+using static HotChocolate.Stitching.Types.ExceptionHelper;
 
 namespace HotChocolate.Stitching.Types.Pipeline;
 
@@ -240,20 +238,11 @@ public class ApplyExtensionsMiddleware
         // we first need to validate that the field structure can be merged.
         if (definition.Arguments.Count != extension.Arguments.Count)
         {
-            // todo: ThrowHelper
-            throw new GraphQLException(
-                ErrorBuilder.New()
-                    .SetMessage($"The arguments for field {typeName}.{definition.Name} do not match with the type extension.")
-                    .SetExtension(nameof(typeName), typeName)
-                    .SetExtension("fieldName", definition.Name.Value)
-                    .SetExtension("expectedArgumentCount", definition.Arguments.Count)
-                    .SetExtension("argumentCount", extension.Arguments.Count)
-                    .Build());
+            throw ApplyExtensionsMiddleware_ArgumentCountMismatch(typeName, definition, extension);
         }
 
         IReadOnlyList<InputValueDefinitionNode> arguments = definition.Arguments;
         IReadOnlyList<DirectiveNode> directives = definition.Directives;
-
 
         if (definition.Arguments.Count > 0)
         {
@@ -266,33 +255,22 @@ public class ApplyExtensionsMiddleware
 
                 if (!arg.Name.Equals(argExt.Name, Syntax))
                 {
-                    // todo: ThrowHelper
-                    throw new GraphQLException(
-                        ErrorBuilder.New()
-                            .SetMessage(
-                                $"Expected argument {arg.Name.Value} at position {i} on field {typeName}.{definition.Name} but found {argExt.Name.Value}.")
-                            .SetExtension(nameof(typeName), typeName)
-                            .SetExtension("fieldName", definition.Name.Value)
-                            .SetExtension("argumentIndex", i)
-                            .SetExtension("expectedArgument", arg.Name.Value)
-                            .SetExtension("argument", argExt.Name.Value)
-                            .Build());
+                    throw ApplyExtensionsMiddleware_UnexpectedArgumentName(
+                        arg.Name.Value,
+                        argExt.Name.Value,
+                        i,
+                        typeName,
+                        definition.Name.Value);
                 }
 
                 if (!arg.Type.Equals(argExt.Type, Syntax))
                 {
-                    // todo: ThrowHelper
-                    throw new GraphQLException(
-                        ErrorBuilder.New()
-                            .SetMessage(
-                                $"Expected {arg.Type} on argument {new SchemaCoordinate(typeName, definition.Name.Value, arg.Name.Value)} but found {argExt.Type}.")
-                            .SetExtension(nameof(typeName), typeName)
-                            .SetExtension("fieldName", definition.Name.Value)
-                            .SetExtension("argumentName", arg.Name.Value)
-                            .SetExtension("argumentIndex", i)
-                            .SetExtension("expectedArgumentType", arg.Type.ToString())
-                            .SetExtension("argumentType", argExt.Type.ToString())
-                            .Build());
+                    throw ApplyExtensionsMiddleware_ArgumentTypeMismatch(
+                        arg,
+                        argExt,
+                        i,
+                        typeName,
+                        definition.Name.Value);
                 }
 
                 if (argExt.Directives.Count > 0)
@@ -353,7 +331,73 @@ public class ApplyExtensionsMiddleware
         InterfaceTypeDefinitionNode definition,
         InterfaceTypeExtensionNode extension)
     {
-        throw new NotImplementedException();
+        IReadOnlyList<DirectiveNode> directives = definition.Directives;
+        IReadOnlyList<NamedTypeNode> interfaces = definition.Interfaces;
+        IReadOnlyList<FieldDefinitionNode> fields = definition.Fields;
+
+        if (extension.Directives.Count > 0)
+        {
+            var temp = definition.Directives.ToList();
+            temp.AddRange(extension.Directives);
+            directives = temp;
+        }
+
+        if (extension.Interfaces.Count > 0)
+        {
+            var names = definition.Interfaces.Select(t => t.Name.Value).ToHashSet();
+            List<NamedTypeNode>? temp = null;
+
+            foreach (NamedTypeNode type in extension.Interfaces)
+            {
+                if (names.Add(type.Name.Value))
+                {
+                    (temp ?? definition.Interfaces.ToList()).Add(type);
+                }
+            }
+
+            if (temp is not null)
+            {
+                interfaces = temp;
+            }
+        }
+
+        if (extension.Fields.Count > 0)
+        {
+            var map = definition.Fields.ToDictionary(t => t.Name.Value);
+            List<FieldDefinitionNode>? temp = null;
+
+            foreach (FieldDefinitionNode extensionField in extension.Fields)
+            {
+                // By default extensions would only allow to insert new fields.
+                // We also use extensions as a vehicle to annotate fields.
+                // So if we see that there is already a field we will try to merge it.
+                if (map.TryGetValue(extensionField.Name.Value, out FieldDefinitionNode? field))
+                {
+                    map[extensionField.Name.Value] =
+                        ApplyExtensions(definition.Name.Value, field, extensionField);
+                }
+                else
+                {
+                    map.Add(extensionField.Name.Value, extensionField);
+                    (temp ??= definition.Fields.ToList()).Add(extensionField);
+                }
+            }
+        }
+
+        if (!ReferenceEquals(definition.Directives, directives) ||
+            !ReferenceEquals(definition.Interfaces, interfaces) ||
+            !ReferenceEquals(definition.Fields, fields))
+        {
+            return new InterfaceTypeDefinitionNode(
+                null,
+                definition.Name,
+                definition.Description,
+                directives,
+                interfaces,
+                fields);
+        }
+
+        return definition;
     }
 
     private static ITypeSystemExtensionNode ConvertToExtension(IDefinitionNode typeDef)
@@ -429,8 +473,8 @@ public class ApplyExtensionsMiddleware
         => definition switch
         {
             IHasName typeDef => typeDef.Name.Value,
-            SchemaDefinitionNode schema => _schema,
-            SchemaExtensionNode schema => _schema,
+            SchemaDefinitionNode => _schema,
+            SchemaExtensionNode => _schema,
             _ => throw new ArgumentOutOfRangeException(nameof(definition), definition, null)
         };
 }
