@@ -1,0 +1,4 @@
+﻿type Foo {
+  b: String
+  a: String
+}
