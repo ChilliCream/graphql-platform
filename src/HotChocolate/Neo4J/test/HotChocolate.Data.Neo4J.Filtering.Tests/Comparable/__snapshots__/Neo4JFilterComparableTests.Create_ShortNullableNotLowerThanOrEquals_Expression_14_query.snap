@@ -1,1 +1,1 @@
-﻿MATCH (fooNullable:FooNullable) WHERE NOT (fooNullable.BarShort <= 14) RETURN fooNullable {.BarShort}
+﻿MATCH (fooCompNullable:FooCompNullable) WHERE NOT (fooCompNullable.BarShort <= 14) RETURN fooCompNullable {.BarShort}

@@ -73,11 +73,6 @@ public sealed class SelectionIncludeCondition
         throw FieldVisibility_ValueNotSupported(value);
     }
 
-    public bool Equals(IValueNode? skip, IValueNode? include)
-    {
-        return EqualsInternal(skip, Skip) && EqualsInternal(include, Include);
-    }
-
     public bool Equals(SelectionIncludeCondition visibility)
     {
         if (Equals(visibility.Skip, visibility.Include))
@@ -86,35 +81,14 @@ public sealed class SelectionIncludeCondition
             {
                 return visibility.Parent is null;
             }
-            else
-            {
-                return visibility.Parent is { } && Parent.Equals(visibility.Parent);
-            }
-        }
-        return false;
-    }
 
-    private static bool EqualsInternal(IValueNode? a, IValueNode? b)
-    {
-        if (ReferenceEquals(a, b))
-        {
-            return true;
-        }
-
-        if (a is BooleanValueNode ab &&
-            b is BooleanValueNode bb &&
-            ab.Value == bb.Value)
-        {
-            return true;
-        }
-
-        if (a is VariableNode av &&
-            b is VariableNode bv &&
-            string.Equals(av.Value, bv.Value, StringComparison.Ordinal))
-        {
-            return true;
+            return visibility.Parent is not null && Parent.Equals(visibility.Parent);
         }
 
         return false;
     }
+
+    public bool Equals(IValueNode? skip, IValueNode? include)
+        => SyntaxComparer.BySyntax.Equals(skip, Skip) &&
+            SyntaxComparer.BySyntax.Equals(include, Include);
 }

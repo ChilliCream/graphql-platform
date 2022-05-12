@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 #nullable enable
@@ -62,7 +61,12 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder SetProperties(
         IDictionary<string, object?>? properties);
 
-    /// <inheritdoc cref="InitializeGlobalState(Dictionary{string, object})" />
+    /// <summary>
+    /// Initializes the global state of the request to the given
+    /// <paramref name="initialState" />.
+    /// </summary>
+    /// <param name="initialState">The initial state.</param>
+    /// <returns>The query request builder.</returns>
     IQueryRequestBuilder InitializeGlobalState(
         IDictionary<string, object?>? initialState);
 
@@ -70,7 +74,12 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder SetProperties(
         IReadOnlyDictionary<string, object?>? properties);
 
-    /// <inheritdoc cref="InitializeGlobalState(Dictionary{string, object})" />
+    /// <summary>
+    /// Initializes the global state of the request to the given
+    /// <paramref name="initialState" />.
+    /// </summary>
+    /// <param name="initialState">The initial state.</param>
+    /// <returns>The query request builder.</returns>
     IQueryRequestBuilder InitializeGlobalState(
         IReadOnlyDictionary<string, object?>? initialState);
 
@@ -79,8 +88,8 @@ public interface IQueryRequestBuilder
         string name, object? value);
 
     /// <summary>
-    /// Sets the global state for <paramref name="name" /> 
-    /// to the specified <paramref name="value" />, 
+    /// Sets the global state for <paramref name="name" />
+    /// to the specified <paramref name="value" />,
     /// or throws an exception if it already exists.
     /// </summary>
     /// <param name="name">The name of the state.</param>
@@ -88,7 +97,7 @@ public interface IQueryRequestBuilder
     /// <returns>The query request builder.</returns>
     /// <exception cref="System.ArgumentException">
     /// Thrown if a state value for <paramref name="name" /> already exists.
-    /// </exception> 
+    /// </exception>
     IQueryRequestBuilder AddGlobalState(
         string name, object? value);
 
@@ -97,7 +106,7 @@ public interface IQueryRequestBuilder
         string name, object? value);
 
     /// <summary>
-    /// Sets the global state for <paramref name="name" /> 
+    /// Sets the global state for <paramref name="name" />
     /// to the specified <paramref name="value" />,
     /// if it does not yet exist.
     /// </summary>
@@ -112,7 +121,7 @@ public interface IQueryRequestBuilder
         string name, object? value);
 
     /// <summary>
-    /// Sets the global state for <paramref name="name" /> 
+    /// Sets the global state for <paramref name="name" />
     /// to the specified <paramref name="value" />.
     /// State set previously using the same <paramref name="name" />
     /// will be overwritten.

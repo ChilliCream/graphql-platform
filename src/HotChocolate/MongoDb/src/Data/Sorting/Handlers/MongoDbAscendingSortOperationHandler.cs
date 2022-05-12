@@ -1,13 +1,12 @@
 using HotChocolate.Data.Sorting;
 using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb.Sorting
+namespace HotChocolate.Data.MongoDb.Sorting;
+
+public class MongoDbAscendingSortOperationHandler : MongoDbSortOperationHandlerBase
 {
-    public class MongoDbAscendingSortOperationHandler : MongoDbSortOperationHandlerBase
+    public MongoDbAscendingSortOperationHandler()
+        : base(DefaultSortOperations.Ascending, SortDirection.Ascending)
     {
-        public MongoDbAscendingSortOperationHandler()
-            : base(DefaultSortOperations.Ascending, SortDirection.Ascending)
-        {
-        }
     }
 }

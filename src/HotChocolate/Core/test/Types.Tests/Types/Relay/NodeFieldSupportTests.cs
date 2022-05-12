@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -244,6 +245,25 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
+        public async Task Node_Resolve_Implicit_Inherited_Resolver()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo6>()
+                .Create();
+
+            IRequestExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Node_Resolve_Implicit_External_Resolver()
         {
             // arrange
@@ -253,6 +273,63 @@ namespace HotChocolate.Types.Relay
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Node_Resolve_Implicit_ExternalInheritedStatic_Resolver()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo7>()
+                .Create();
+
+            IRequestExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Node_Resolve_Implicit_ExternalInheritedInstance_Resolver()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo8>()
+                .Create();
+
+            IRequestExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Node_Resolve_Implicit_ExternalDefinedOnInterface_Resolver()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddSingleton<IBar9Resolver, Bar9Resolver>()
+                .AddGraphQL()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo9>()
+                .BuildRequestExecutorAsync();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -364,6 +441,88 @@ namespace HotChocolate.Types.Relay
             public string Id { get; set; }
 
             public static Bar5 Get(string id) => new() { Id = id };
+        }
+
+        public class Foo6
+        {
+            public Bar6 Bar { get; set; } = new() { Id = "123" };
+        }
+
+        public abstract class Bar6Base<T> where T : Bar6Base<T>, new()
+        {
+            public string Id { get; set; }
+
+            public static T Get(string id) => new() { Id = id };
+        }
+
+        [ObjectType("Bar")]
+        [Node]
+        public class Bar6 : Bar6Base<Bar6>
+        {
+        }
+
+        public class Foo7
+        {
+            public Bar7 Bar { get; set; } = new() { Id = "123" };
+        }
+
+        [ObjectType("Bar")]
+        [Node(NodeResolverType = typeof(Bar7Resolver))]
+        public class Bar7
+        {
+            public string Id { get; set; }
+        }
+
+        public abstract class Bar7ResolverBase
+        {
+            public static Bar7 GetBar7(string id) => new() { Id = id };
+        }
+
+        public class Bar7Resolver : Bar7ResolverBase
+        {
+        }
+
+        public class Foo8
+        {
+            public Bar8 Bar { get; set; } = new() { Id = "123" };
+        }
+
+        [ObjectType("Bar")]
+        [Node(NodeResolverType = typeof(Bar8Resolver))]
+        public class Bar8
+        {
+            public string Id { get; set; }
+        }
+
+        public class Bar8ResolverBase
+        {
+            public Bar8 GetBar8(string id) => new() { Id = id };
+        }
+
+        public class Bar8Resolver : Bar8ResolverBase
+        {
+        }
+
+        public class Foo9
+        {
+            public Bar9 Bar { get; set; } = new() { Id = "123" };
+        }
+
+        [ObjectType("Bar")]
+        [Node(NodeResolverType = typeof(IBar9Resolver))]
+        public class Bar9
+        {
+            public string Id { get; set; }
+        }
+
+        public interface IBar9Resolver
+        {
+            public Bar9 GetBar9(string id);
+        }
+
+        public class Bar9Resolver : IBar9Resolver
+        {
+            public Bar9 GetBar9(string id) => new() { Id = id };
         }
 
         public class Parent

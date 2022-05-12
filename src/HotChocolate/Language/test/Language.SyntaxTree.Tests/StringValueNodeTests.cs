@@ -1,5 +1,6 @@
 using System.Text;
 using Xunit;
+using static HotChocolate.Language.SyntaxComparison;
 
 namespace HotChocolate.Language.SyntaxTree;
 
@@ -128,7 +129,7 @@ public class StringValueNodeTests
         var value2 = new StringValueNode(location, value, true);
 
         // act
-        var equals = value1.Equals(value2);
+        var equals = value1.Equals(value2, Syntax);
 
         // assert
         Assert.Equal(expected, equals);
@@ -143,7 +144,7 @@ public class StringValueNodeTests
         var value = new StringValueNode(location, stringValue, true);
 
         // act
-        var equals = value.Equals((IValueNode)null);
+        var equals = value.Equals((IValueNode)null!, Syntax);
 
         // assert
         Assert.False(equals);
@@ -175,7 +176,7 @@ public class StringValueNodeTests
         var value2 = new StringValueNode(location, value, true);
 
         // act
-        var equals = value1.Equals((IValueNode)value2);
+        var equals = value1.Equals((IValueNode)value2, Syntax);
 
         // assert
         Assert.Equal(expected, equals);
@@ -190,7 +191,7 @@ public class StringValueNodeTests
         var value = new StringValueNode(location, stringValue, true);
 
         // act
-        var equals = value.Equals(new IntValueNode(123));
+        var equals = value.Equals(new IntValueNode(123), Syntax);
 
         // assert
         Assert.False(equals);

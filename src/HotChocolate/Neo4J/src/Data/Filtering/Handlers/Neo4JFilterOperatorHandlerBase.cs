@@ -1,7 +1,9 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Filters.Internal;
 using HotChocolate.Data.Neo4J.Language;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -30,24 +32,31 @@ public abstract class Neo4JFilterOperationHandlerBase
         [NotNullWhen(true)] out Condition result)
     {
         IValueNode value = node.Value;
-        var parsedValue = InputParser.ParseLiteral(value, field.Type, field.Name);
+        IExtendedType runtimeType = context.RuntimeTypes.Peek();
 
-        if ((!context.RuntimeTypes.Peek().IsNullable || !CanBeNull) &&
-            parsedValue is null)
+        Type type = field.Type.IsListType()
+            ? runtimeType.Source.MakeArrayType()
+            : runtimeType.Source;
+
+        object? parsedValue = InputParser.ParseLiteral(value, field, type);
+
+        if ((!runtimeType.IsNullable || !CanBeNull) && parsedValue is null)
         {
-            context.ReportError(ErrorHelper.CreateNonNullError(field, value, context));
-
+            IError error = ErrorHelper.CreateNonNullError(field, value, context);
+            context.ReportError(error);
             result = null!;
             return false;
         }
 
-        if (!field.Type.IsInstanceOfType(value))
+        if (!ValueNullabilityHelpers.IsListValueValid(field.Type, runtimeType, node.Value))
         {
-            throw new InvalidOperationException();
+            IError error = ErrorHelper.CreateNonNullError(field, value, context, true);
+            context.ReportError(error);
+            result = null!;
+            return false;
         }
 
         result = HandleOperation(context, field, value, parsedValue);
-
         return true;
     }
 

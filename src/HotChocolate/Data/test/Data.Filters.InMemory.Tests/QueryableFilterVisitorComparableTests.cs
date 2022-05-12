@@ -160,7 +160,6 @@ public class QueryableFilterVisitorComparableTests : IClassFixture<SchemaCache>
         res4.MatchSnapshot("null");
     }
 
-
     [Fact]
     public async Task Create_ShortGreaterThanOrEquals_Expression()
     {

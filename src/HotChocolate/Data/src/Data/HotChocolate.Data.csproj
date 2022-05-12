@@ -30,11 +30,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.InMemory.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.SqlServer.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="DataResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>DataResources.resx</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
   </ItemGroup>
 
   <ItemGroup>

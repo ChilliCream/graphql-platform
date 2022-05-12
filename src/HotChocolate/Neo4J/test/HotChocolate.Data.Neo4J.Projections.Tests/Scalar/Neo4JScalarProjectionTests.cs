@@ -4,8 +4,8 @@ using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Projections.Scalar;
 
+[Collection("Database")]
 public class Neo4JScalarProjectionTest
-    : IClassFixture<Neo4JFixture>
 {
     private readonly Neo4JFixture _fixture;
 
@@ -15,10 +15,10 @@ public class Neo4JScalarProjectionTest
     }
 
     private string _fooEntitiesCypher = @"
-            CREATE (:Foo {Bar: true, Baz: 'a'}), (:Foo {Bar: false, Baz: 'b'})
+            CREATE (:FooScalar {Bar: true, Baz: 'a'}), (:FooScalar {Bar: false, Baz: 'b'})
         ";
 
-    public class Foo
+    public class FooScalar
     {
         public bool Bar { get; set; }
         public string Baz { get; set; } = null!;
@@ -28,7 +28,7 @@ public class Neo4JScalarProjectionTest
     public async Task Create_ProjectsTwoProperties_Expression()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
+        IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooScalar>(_fooEntitiesCypher);
 
         // act
         // assert
@@ -44,7 +44,7 @@ public class Neo4JScalarProjectionTest
     public async Task Create_ProjectsOneProperty_Expression()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
+        IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooScalar>(_fooEntitiesCypher);
 
         // act
         // assert

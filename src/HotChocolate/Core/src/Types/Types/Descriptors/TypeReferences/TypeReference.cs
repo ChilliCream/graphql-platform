@@ -68,19 +68,7 @@ public abstract class TypeReference : ITypeReference
     }
 
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hash = 0;
-
-            if (Scope is { })
-            {
-                hash ^= Scope.GetHashCode() * 397;
-            }
-
-            return hash;
-        }
-    }
+        => HashCode.Combine(Scope);
 
     public static DependantFactoryTypeReference Create(
         NameString name,
@@ -135,9 +123,6 @@ public abstract class TypeReference : ITypeReference
                 scope);
         }
 
-        return new ExtendedTypeReference(
-            type,
-            context,
-            scope);
+        return new ExtendedTypeReference(type, context, scope);
     }
 }

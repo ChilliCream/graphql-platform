@@ -23,17 +23,21 @@ public static class HotChocolateDataRequestBuilderExtensions
     /// <param name="name">
     /// The filter convention name.
     /// </param>
+    /// <param name="compatabilityMode">
+    /// If true uses the old naming convention
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
     public static IRequestExecutorBuilder AddFiltering(
         this IRequestExecutorBuilder builder,
-        string? name = null)
+        string? name = null,
+        bool compatabilityMode = false)
     {
         builder.Services.AddSingleton<IParameterExpressionBuilder>(
             new FilterContextParameterExpressionBuilder());
 
-        return builder.ConfigureSchema(s => s.AddFiltering(name));
+        return builder.ConfigureSchema(s => s.AddFiltering(name, compatabilityMode));
     }
 
     /// <summary>

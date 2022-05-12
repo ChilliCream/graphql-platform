@@ -8,19 +8,134 @@ namespace HotChocolate.Language.SyntaxTree;
 public class VariableDefinitionNodeTests
 {
     [Fact]
+    public void Equals_With_Same_Location()
+    {
+        // arrange
+        var a = new VariableDefinitionNode(
+            new Location(1, 1, 1, 1),
+            new VariableNode("aa"),
+            new NamedTypeNode("aa"),
+            default,
+            new List<DirectiveNode>(0));
+        var b = new VariableDefinitionNode(
+            new Location(1, 1, 1, 1),
+            new VariableNode("aa"),
+            new NamedTypeNode("aa"),
+            default,
+            new List<DirectiveNode>(0));
+        var c = new VariableDefinitionNode(
+            new Location(1, 1, 1, 1),
+            new VariableNode("aa"),
+            new NamedTypeNode("bb"),
+            default,
+            new List<DirectiveNode>(0));
+
+        // act
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+
+        // assert
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
+    }
+
+    [Fact]
+    public void Equals_With_Different_Location()
+    {
+        // arrange
+        var a = new VariableDefinitionNode(
+            new Location(1, 1, 1, 1),
+            new VariableNode("aa"),
+            new NamedTypeNode("aa"),
+            default,
+            new List<DirectiveNode>(0));
+        var b = new VariableDefinitionNode(
+            new Location(2, 2, 2, 2),
+            new VariableNode("aa"),
+            new NamedTypeNode("aa"),
+            default,
+            new List<DirectiveNode>(0));
+        var c = new VariableDefinitionNode(
+            new Location(3, 3, 3, 3),
+            new VariableNode("aa"),
+            new NamedTypeNode("bb"),
+            default,
+            new List<DirectiveNode>(0));
+
+        // act
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+
+        // assert
+        Assert.True(abResult);
+        Assert.True(aaResult);
+        Assert.False(acResult);
+        Assert.False(aNullResult);
+    }
+
+    [Fact]
+    public void GetHashCode_With_Location()
+    {
+        // arrange
+        var a = new VariableDefinitionNode(
+            new Location(1, 1, 1, 1),
+            new VariableNode("aa"),
+            new NamedTypeNode("aa"),
+            default,
+            new List<DirectiveNode>(0));
+        var b = new VariableDefinitionNode(
+            new Location(2, 2, 2, 2),
+            new VariableNode("aa"),
+            new NamedTypeNode("aa"),
+            default,
+            new List<DirectiveNode>(0));
+        var c = new VariableDefinitionNode(
+            new Location(1, 1, 1, 1),
+            new VariableNode("aa"),
+            new NamedTypeNode("bb"),
+            default,
+            new List<DirectiveNode>(0));
+        var d = new VariableDefinitionNode(
+            new Location(2, 2, 2, 2),
+            new VariableNode("aa"),
+            new NamedTypeNode("bb"),
+            default,
+            new List<DirectiveNode>(0));
+
+        // act
+        var aHash = SyntaxComparer.BySyntax.GetHashCode(a);
+        var bHash = SyntaxComparer.BySyntax.GetHashCode(b);
+        var cHash = SyntaxComparer.BySyntax.GetHashCode(c);
+        var dHash = SyntaxComparer.BySyntax.GetHashCode(d);
+
+        // assert
+        Assert.Equal(aHash, bHash);
+        Assert.NotEqual(aHash, cHash);
+        Assert.Equal(cHash, dHash);
+        Assert.NotEqual(aHash, dHash);
+    }
+
+    [Fact]
     public void Create_VariableIsNull_ArgumentNullException()
     {
         // arrange
         // act
-        Action action = () => new VariableDefinitionNode(
-            new Location(1, 1, 1, 1),
-            null,
-            new NamedTypeNode(new NameNode("foo")),
-            new StringValueNode("Foo"),
-            new List<DirectiveNode>());
+        void Action()
+            => new VariableDefinitionNode(
+                new Location(1, 1, 1, 1),
+                null!,
+                new NamedTypeNode(new NameNode("foo")),
+                new StringValueNode("Foo"),
+                new List<DirectiveNode>());
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -28,15 +143,16 @@ public class VariableDefinitionNodeTests
     {
         // arrange
         // act
-        Action action = () => new VariableDefinitionNode(
-            new Location(1, 1, 1, 1),
-            new VariableNode(new NameNode("foo")),
-            null,
-            new StringValueNode("Foo"),
-            new List<DirectiveNode>());
+        void Action()
+            => new VariableDefinitionNode(
+                new Location(1, 1, 1, 1),
+                new VariableNode(new NameNode("foo")),
+                null!,
+                new StringValueNode("Foo"),
+                new List<DirectiveNode>());
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -44,19 +160,20 @@ public class VariableDefinitionNodeTests
     {
         // arrange
         // act
-        Action action = () => new VariableDefinitionNode(
-            new Location(1, 1, 1, 1),
-            new VariableNode(new NameNode("foo")),
-            new NamedTypeNode(new NameNode("foo")),
-            new StringValueNode("Foo"),
-            null);
+        void Action()
+            => new VariableDefinitionNode(
+                new Location(1, 1, 1, 1),
+                new VariableNode(new NameNode("foo")),
+                new NamedTypeNode(new NameNode("foo")),
+                new StringValueNode("Foo"),
+                null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
-    public void Create_ArgumentsArePassedCorrecctly()
+    public void Create_ArgumentsArePassedCorrectly()
     {
         // arrange
         // act
@@ -65,10 +182,7 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode>
-            {
-                    new DirectiveNode("qux")
-            });
+            new List<DirectiveNode> { new("qux") });
 
         // assert
         variableDefinition.MatchSnapshot();
@@ -83,10 +197,7 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode>
-            {
-                    new DirectiveNode("qux")
-            });
+            new List<DirectiveNode> { new("qux") });
 
         // act
         variableDefinition =
@@ -135,11 +246,10 @@ public class VariableDefinitionNodeTests
             });
 
         // act
-        Action action = () =>
-            variableDefinition.WithVariable(null);
+        void Action() => variableDefinition.WithVariable(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -151,10 +261,7 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode>
-            {
-                    new DirectiveNode("qux")
-            });
+            new List<DirectiveNode> { new("qux") });
 
         // act
         variableDefinition =
@@ -180,11 +287,10 @@ public class VariableDefinitionNodeTests
             });
 
         // act
-        Action action = () =>
-            variableDefinition.WithType(null);
+        void Action() => variableDefinition.WithType(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -196,10 +302,7 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode>
-            {
-                    new DirectiveNode("qux")
-            });
+            new List<DirectiveNode> { new("qux") });
 
         // act
         variableDefinition =
@@ -219,18 +322,12 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode>
-            {
-                    new DirectiveNode("qux")
-            });
+            new List<DirectiveNode> { new("qux") });
 
         // act
         variableDefinition =
             variableDefinition.WithDirectives(
-                new List<DirectiveNode>
-                {
-                        new DirectiveNode("quux")
-                });
+                new List<DirectiveNode> { new("quux") });
 
         // assert
         variableDefinition.MatchSnapshot();
@@ -245,16 +342,12 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode>
-            {
-                    new DirectiveNode("qux")
-            });
+            new List<DirectiveNode> { new("qux") });
 
         // act
-        Action action = () =>
-            variableDefinition.WithDirectives(null);
+        void Action() => variableDefinition.WithDirectives(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>((Action) Action);
     }
 }

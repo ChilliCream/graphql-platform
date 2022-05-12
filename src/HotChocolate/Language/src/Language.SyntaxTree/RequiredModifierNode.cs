@@ -1,13 +1,22 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class RequiredModifierNode
-    : INullabilityModifierNode
-    , IEquatable<RequiredModifierNode>
+/// <summary>
+/// Represents the required modifier syntax.
+/// </summary>
+public sealed class RequiredModifierNode : INullabilityModifierNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="RequiredModifierNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="element">
+    /// The list nullability modifier.
+    /// </param>
     public RequiredModifierNode(Location? location, ListNullabilityNode? element)
     {
         Location = location;
@@ -54,32 +63,4 @@ public sealed class RequiredModifierNode
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
-
-    public bool Equals(RequiredModifierNode? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Equals(Element, other.Element);
-    }
-
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is RequiredModifierNode other && Equals(other));
-
-    public override int GetHashCode()
-        => HashCode.Combine(Kind, Element);
-
-    public static bool operator ==(RequiredModifierNode? left, RequiredModifierNode? right)
-        => Equals(left, right);
-
-    public static bool operator !=(RequiredModifierNode? left, RequiredModifierNode? right)
-        => !Equals(left, right);
 }

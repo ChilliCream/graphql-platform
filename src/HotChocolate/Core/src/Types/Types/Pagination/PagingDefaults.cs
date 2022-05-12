@@ -12,5 +12,7 @@ public static class PagingDefaults
 
     public const bool InferConnectionNameFromField = true;
 
+    public const bool InferCollectionSegmentNameFromField = true;
+
     public const bool RequirePagingBoundaries = false;
 }
