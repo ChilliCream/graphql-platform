@@ -4,9 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Rewriters;
 using HotChocolate.Language.Rewriters.Contracts;
-using HotChocolate.Language.Rewriters.Extensions;
+using HotChocolate.Stitching.Types.Directives;
+using HotChocolate.Stitching.Types.Extensions;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Rewriters;
 
 public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TContext>
 {

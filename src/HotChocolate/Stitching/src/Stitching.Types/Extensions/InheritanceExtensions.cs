@@ -1,6 +1,7 @@
 using System.Linq;
+using HotChocolate.Language;
 
-namespace HotChocolate.Language.Rewriters.Extensions;
+namespace HotChocolate.Stitching.Types.Extensions;
 
 public static class InheritanceExtensions
 {

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using HotChocolate.Language;
 
-namespace HotChocolate.Language.Rewriters.Extensions;
+namespace HotChocolate.Stitching.Types.Extensions;
 
 public static class DirectiveExtensions
 {

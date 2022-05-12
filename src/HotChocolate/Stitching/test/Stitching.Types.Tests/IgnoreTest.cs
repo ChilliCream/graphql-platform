@@ -7,27 +7,27 @@ using Xunit;
 
 namespace HotChocolate.Stitching.Types;
 
-public class RenameTest
+public class IgnoreTest
 {
     [Fact]
     public async Task Test()
     {
         DocumentNode source = Utf8GraphQLParser.Parse(@"
-            interface TestInterface @rename(name: ""TestInterface_renamed"") {
-              foo: [Test2!] @rename(name: ""foo_renamed"")
+            interface TestInterface @ignore {
+              foo: [Test2!]
             }
 
-            type Test implements TestInterface @rename(name: ""test_renamed"") {
-              id: String! @rename(name: ""id_renamed"")
+            type Test implements TestInterface {
+              id: String!
               foo: Test2!
             }
 
-            type Test2 @rename(name: ""test2_renamed"") {
+            type Test2 {
               test: Test!
             }
 
             type Test3 {
-              foo: TestInterface! @rename(name: ""test3_foo_renamed"")
+              foo: Test! @ignore
             }
 
             type Test4 {
@@ -36,11 +36,9 @@ public class RenameTest
 ",
             ParserOptions.NoLocation);
 
-        var renameStrategy = new TypeRenameStrategy();
-        var fieldRenameStrategy = new FieldRenameStrategy();
+        var ignoreStrategy = new IgnoreStrategy();
 
-        DocumentNode result = renameStrategy.Apply(source);
-        result = fieldRenameStrategy.Apply(result);
+        DocumentNode result = ignoreStrategy.Apply(source);
 
         var schema = result.Print();
         schema.MatchSnapshot();

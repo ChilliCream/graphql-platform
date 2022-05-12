@@ -1,0 +1,12 @@
+type Test {
+  id: String!
+  foo: Test2!
+}
+
+type Test2 {
+  test: Test!
+}
+
+type Test4 {
+  foo: TestInterface!
+}

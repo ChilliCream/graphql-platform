@@ -3,8 +3,10 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Rewriters;
 using HotChocolate.Language.Rewriters.Contracts;
+using HotChocolate.Stitching.Types.Directives;
+using HotChocolate.Stitching.Types.Rewriters;
 
-namespace HotChocolate.Stitching.Types;
+namespace HotChocolate.Stitching.Types.Strategies;
 
 public class FieldRenameStrategy : SchemaRewriteStrategyBase
 {
@@ -21,7 +23,7 @@ public class FieldRenameStrategy : SchemaRewriteStrategyBase
         return GetDescendants(source)
             .Where(reference => reference.Parent?.Node is FieldDefinitionNode
                                 && reference.Node is DirectiveNode directiveNode
-                                && directiveNode.Name.Equals(new NameNode("rename")))
+                                && RenameDirective.TryParse(directiveNode, out _))
             .ToList();
     }
 }

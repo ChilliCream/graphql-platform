@@ -1,33 +1,26 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
-namespace HotChocolate.Language.Rewriters.Extensions;
+namespace HotChocolate.Language.Rewriters;
 
 public static class SourceDirectiveExtensions
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGetSource(this IHasDirectives hasDirectives,
         [MaybeNullWhen(false)] out SourceDirective sourceDirective)
     {
-        sourceDirective = hasDirectives.Directives
-            .FirstOrDefaultWhereNotNull(x =>
-                SourceDirective.TryParse(x, out SourceDirective? directive) ? directive : default);
-
-        return sourceDirective is not null;
-    }
-
-    public static TProjection? FirstOrDefaultWhereNotNull<TElement, TProjection>(
-        this IEnumerable<TElement> element, Func<TElement, TProjection?> predicate)
-    {
-        using IEnumerator<TElement> enumerator = element.GetEnumerator();
-        while (enumerator.MoveNext())
+        for (var index = 0; index < hasDirectives.Directives.Count; index++)
         {
-            TProjection? result = predicate.Invoke(enumerator.Current);
-            if (result is null) continue;
+            DirectiveNode directive = hasDirectives.Directives[index];
+            if (!SourceDirective.TryParse(directive, out sourceDirective))
+            {
+                continue;
+            }
 
-            return result;
+            return true;
         }
 
-        return default;
+        sourceDirective = default;
+        return false;
     }
 }

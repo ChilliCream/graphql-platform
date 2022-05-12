@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language.Rewriters.Contracts;
-using HotChocolate.Language.Rewriters.Extensions;
 using HotChocolate.Language.Rewriters.Utilities;
 
 namespace HotChocolate.Language.Rewriters;
