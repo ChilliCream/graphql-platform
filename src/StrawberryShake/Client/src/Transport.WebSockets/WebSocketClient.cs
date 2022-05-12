@@ -19,7 +19,11 @@ public sealed class WebSocketClient : IWebSocketClient
     private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
     private readonly ClientWebSocket _socket;
     private ISocketProtocol? _activeProtocol;
+    private bool _receiveFinishEventTriggered = false;
     private bool _disposed;
+
+    /// <inheritdoc />
+    public event EventHandler ReceiveFinished = default!;
 
     /// <summary>
     /// Creates a new instance of <see cref="WebSocketClient"/>
@@ -52,10 +56,22 @@ public sealed class WebSocketClient : IWebSocketClient
     public string Name { get; }
 
     /// <inheritdoc />
-    public bool IsClosed =>
-        _disposed
-        || _socket.CloseStatus.HasValue
-        || _socket.State == WebSocketState.Aborted;
+    public bool IsClosed
+    {
+        get
+        {
+            var closed = _disposed
+                || _socket.CloseStatus.HasValue
+                || _socket.State == WebSocketState.Aborted;
+
+            if (closed && !_receiveFinishEventTriggered)
+            {
+                _receiveFinishEventTriggered = true;
+                ReceiveFinished?.Invoke(this, EventArgs.Empty);
+            }
+            return closed;
+        }
+    }
 
     /// <inheritdoc />
     public WebSocket Socket => _socket;

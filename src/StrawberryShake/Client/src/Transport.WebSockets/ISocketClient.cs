@@ -12,6 +12,11 @@ namespace StrawberryShake.Transport.WebSockets;
 public interface ISocketClient : IAsyncDisposable
 {
     /// <summary>
+    ///  A even that is called when the message receiving cycle stoped
+    /// </summary>
+    event EventHandler ReceiveFinished;
+
+    /// <summary>
     /// The URI where the socket should connect to
     /// </summary>
     Uri? Uri { get; set; }
