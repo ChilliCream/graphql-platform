@@ -11,11 +11,11 @@ namespace HotChocolate.Stitching.Types.Rewriters;
 
 public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TContext>
 {
-    private readonly Dictionary<NameNode, List<ISyntaxReference>> _renames = new(SyntaxComparer.BySyntax);
+    private readonly Dictionary<NameNode, List<SyntaxReference>> _renames = new(SyntaxComparer.BySyntax);
 
-    public RenameFields(IList<ISyntaxReference> renames)
+    public RenameFields(IList<SyntaxReference> renames)
     {
-        foreach (ISyntaxReference rename in renames)
+        foreach (SyntaxReference rename in renames)
         {
             if (rename.Parent?.Node is not INamedSyntaxNode namedSyntaxNode)
             {
@@ -23,9 +23,9 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
             }
 
             NameNode oldName = namedSyntaxNode.Name;
-            if (!_renames.TryGetValue(oldName, out List<ISyntaxReference>? references))
+            if (!_renames.TryGetValue(oldName, out List<SyntaxReference>? references))
             {
-                references = new List<ISyntaxReference>();
+                references = new List<SyntaxReference>();
                 _renames.Add(oldName, references);
             }
 
@@ -56,7 +56,7 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
         Func<TParent, IReadOnlyList<DirectiveNode>, TParent> rewriteDirectives)
         where TParent : INamedSyntaxNode
     {
-        if (!_renames.TryGetValue(name, out List<ISyntaxReference>? syntaxReferences))
+        if (!_renames.TryGetValue(name, out List<SyntaxReference>? syntaxReferences))
         {
             return node;
         }
@@ -67,7 +67,7 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
                 syntaxReferences,
                 typeDefinitionNode,
                 navigator,
-                out ISyntaxReference? applicableReference))
+                out SyntaxReference? applicableReference))
         {
             return node;
         }
@@ -80,10 +80,10 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
     }
 
     private bool TryGetApplicableReference<TParent>(
-        List<ISyntaxReference> syntaxReferences,
+        List<SyntaxReference> syntaxReferences,
         TParent? node,
         ISyntaxNavigator navigator,
-        [MaybeNullWhen(false)] out ISyntaxReference syntaxReference)
+        [MaybeNullWhen(false)] out SyntaxReference syntaxReference)
         where TParent : ITypeDefinitionNode
     {
         if (node is null)
@@ -92,7 +92,7 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
             return false;
         }
 
-        foreach (ISyntaxReference reference in syntaxReferences)
+        foreach (SyntaxReference reference in syntaxReferences)
         {
             ITypeDefinitionNode? typeDefinition = reference.GetAncestor<ITypeDefinitionNode>();
             switch (typeDefinition)
@@ -139,7 +139,7 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
     }
 
     private static TParent Rewrite<TParent>(TParent node,
-        ISyntaxReference match,
+        SyntaxReference match,
         ISyntaxNavigator navigator,
         Func<TParent, NameNode, TParent> rewriteName,
         Func<TParent, IReadOnlyList<DirectiveNode>, TParent> rewriteDirectives)

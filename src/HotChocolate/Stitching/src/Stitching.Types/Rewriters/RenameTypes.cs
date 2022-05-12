@@ -10,11 +10,11 @@ namespace HotChocolate.Stitching.Types.Rewriters;
 
 public class RenameTypes<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TContext>
 {
-    private readonly Dictionary<NameNode, ISyntaxReference> _renames = new();
+    private readonly Dictionary<NameNode, SyntaxReference> _renames = new();
 
-    public RenameTypes(IList<ISyntaxReference> renames)
+    public RenameTypes(IList<SyntaxReference> renames)
     {
-        foreach (ISyntaxReference rename in renames)
+        foreach (SyntaxReference rename in renames)
         {
             if (rename.Parent?.Node is not INamedSyntaxNode namedSyntaxNode)
             {
@@ -63,7 +63,7 @@ public class RenameTypes<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TCo
         Func<TParent, IReadOnlyList<DirectiveNode>, TParent> rewriteDirectives)
         where TParent : ITypeDefinitionNode
     {
-        if (!_renames.TryGetValue(name, out ISyntaxReference? syntaxReference))
+        if (!_renames.TryGetValue(name, out SyntaxReference? syntaxReference))
         {
             return node;
         }
@@ -76,7 +76,7 @@ public class RenameTypes<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TCo
     }
 
     private static TParent Rewrite<TParent>(TParent node,
-        ISyntaxReference match,
+        SyntaxReference match,
         ISyntaxNavigator navigator,
         Func<TParent, NameNode, TParent> rewriteName,
         Func<TParent, IReadOnlyList<DirectiveNode>, TParent> rewriteDirectives)
@@ -100,7 +100,7 @@ public class RenameTypes<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TCo
     {
         node = base.RewriteNamedType(node, navigator, context);
 
-        if (!_renames.TryGetValue(node.Name, out ISyntaxReference? match))
+        if (!_renames.TryGetValue(node.Name, out SyntaxReference? match))
         {
             return node;
         }

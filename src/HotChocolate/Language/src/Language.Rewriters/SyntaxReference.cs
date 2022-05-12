@@ -1,23 +1,22 @@
 using System.Collections.Generic;
-using HotChocolate.Language.Rewriters.Contracts;
 
 namespace HotChocolate.Language.Rewriters;
 
-public readonly struct SyntaxReference : ISyntaxReference
+public sealed class SyntaxReference
 {
-    public SyntaxReference(ISyntaxReference? parent, ISyntaxNode node)
+    public SyntaxReference(SyntaxReference? parent, ISyntaxNode node)
     {
         Parent = parent;
         Node = node;
     }
 
-    public ISyntaxReference? Parent { get; }
+    public SyntaxReference? Parent { get; }
     public ISyntaxNode Node { get; }
 
     public T? GetAncestor<T>()
         where T : ISyntaxNode
     {
-        ISyntaxReference? current = this;
+        SyntaxReference? current = this;
         while (current is not null)
         {
             if (current.Node is T typedReference)
@@ -34,7 +33,7 @@ public readonly struct SyntaxReference : ISyntaxReference
     public IEnumerable<T> GetAncestors<T>()
         where T : ISyntaxNode
     {
-        ISyntaxReference? current = this;
+        SyntaxReference? current = this;
         while (current is not null)
         {
             if (current.Node is T typedReference)

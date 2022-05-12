@@ -2,20 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Rewriters;
 using HotChocolate.Language.Rewriters.Contracts;
 
 namespace HotChocolate.Stitching.Types.Rewriters;
 
 public class IgnoreNode<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TContext>
 {
-    private readonly Dictionary<NameNode, ISyntaxReference> _ignores = new();
+    private readonly Dictionary<NameNode, SyntaxReference> _ignores = new();
     private readonly List<NameNode> _ignoredInterfaces = new();
 
     public IReadOnlyList<NameNode> IgnoredInterfaces => _ignoredInterfaces.AsReadOnly();
 
-    public IgnoreNode(IList<ISyntaxReference> ignoredNodes)
+    public IgnoreNode(IList<SyntaxReference> ignoredNodes)
     {
-        foreach (ISyntaxReference ignoredNode in ignoredNodes)
+        foreach (SyntaxReference ignoredNode in ignoredNodes)
         {
             if (ignoredNode.Parent?.Node is not INamedSyntaxNode namedSyntaxNode)
             {
@@ -77,7 +78,7 @@ public class IgnoreNode<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TCon
         }
 
         NameNode name = namedSyntaxNode.Name;
-        if (!_ignores.TryGetValue(name, out ISyntaxReference? syntaxReference))
+        if (!_ignores.TryGetValue(name, out SyntaxReference? syntaxReference))
         {
             return node;
         }
