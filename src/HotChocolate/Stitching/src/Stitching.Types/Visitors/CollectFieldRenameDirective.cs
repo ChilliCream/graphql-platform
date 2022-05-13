@@ -11,7 +11,7 @@ public class CollectFieldRenameDirective<TContext>
 {
     protected override bool ShouldCollect(ISyntaxNode directiveNode)
     {
-        INamedSyntaxNode? complexType = GetAncestor<INamedSyntaxNode>();
+        ISyntaxNode? complexType = GetParent();
         return complexType is FieldDefinitionNode;
     }
 

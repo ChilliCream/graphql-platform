@@ -8,29 +8,47 @@ namespace HotChocolate.Language.Rewriters;
 
 public class DefaultSyntaxNavigator : ISyntaxNavigator
 {
-    private readonly Stack<ISyntaxNode> _stack = new();
+    private readonly List<ISyntaxNode> _ancestors = new();
 
     public TNode? GetAncestor<TNode>()
         where TNode : ISyntaxNode
     {
-        return _stack.OfType<TNode>().LastOrDefault();
+        for (var i = _ancestors.Count - 1; i >= 0; i--)
+        {
+            if (_ancestors[i] is not TNode typedNode)
+            {
+                continue;
+            }
+
+            return typedNode;
+        }
+
+        return default;
     }
 
     public IEnumerable<TNode> GetAncestors<TNode>()
         where TNode : ISyntaxNode
     {
-        return _stack.OfType<TNode>();
+        for (var i = _ancestors.Count - 1; i >= 0; i--)
+        {
+            if (_ancestors[i] is not TNode typedNode)
+            {
+                continue;
+            }
+
+            yield return typedNode;
+        }
     }
 
     public IDisposable Push(ISyntaxNode node)
     {
-        _stack.Push(node);
+        _ancestors.Add(node);
         return new DisposableAction(Pop);
     }
 
     private void Pop()
     {
-        _stack.Pop();
+        _ancestors.RemoveAt(_ancestors.Count - 1);
     }
 
     public SchemaCoordinate CreateCoordinate()
@@ -59,7 +77,10 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
 
     private IEnumerable<NameNode> GetCoordinateNames()
     {
-        foreach (INamedSyntaxNode namedSyntaxNode in GetAncestors<INamedSyntaxNode>())
+        IList<INamedSyntaxNode> namedSyntaxNodes = GetAncestors<INamedSyntaxNode>()
+            .ToList();
+
+        foreach (INamedSyntaxNode namedSyntaxNode in namedSyntaxNodes)
         {
             NameNode defaultName = namedSyntaxNode.Name;
             if (!namedSyntaxNode.TryGetSource(out SourceDirective? sourceDirective))

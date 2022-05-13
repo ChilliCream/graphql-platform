@@ -105,7 +105,7 @@ public class RenameTypes<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TCo
             return node;
         }
 
-        if (!RenameDirective.TryParse(match.Node, out RenameDirective? renameDirective))
+        if (match.Node is not RenameDirective renameDirective)
         {
             return node;
         }

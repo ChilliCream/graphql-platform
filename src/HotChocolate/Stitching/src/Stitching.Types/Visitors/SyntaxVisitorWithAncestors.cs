@@ -48,7 +48,7 @@ public class SyntaxVisitorWithAncestors<TContext> : SyntaxVisitor<TContext>
         where T : ISyntaxNode
     {
         // Start at second last node to skip self.
-        for (var i = _ancestors.Count - 2; i > 0; i--)
+        for (var i = _ancestors.Count - 1; i > 0; i--)
         {
             if (_ancestors[i] is not T typedAncestor)
             {
@@ -59,6 +59,13 @@ public class SyntaxVisitorWithAncestors<TContext> : SyntaxVisitor<TContext>
         }
 
         return default;
+    }
+
+    protected virtual ISyntaxNode? GetParent()
+    {
+        return _ancestors.Count > 1
+            ? _ancestors[_ancestors.Count - 2]
+            : default;
     }
 
     protected override ISyntaxVisitorAction Enter(ISyntaxNode node, TContext context)

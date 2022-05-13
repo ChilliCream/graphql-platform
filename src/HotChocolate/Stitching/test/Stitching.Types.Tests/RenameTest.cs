@@ -33,16 +33,24 @@ public class RenameTest
 ",
     ParserOptions.NoLocation);
 
+    DocumentNode Source2 =
+        Utf8GraphQLParser.Parse(File.ReadAllText(@"C:\Temp\StitchingTest.graphql.txt"));
+
+
     [Fact]
     public void Test()
     {
         var renameStrategy = new TypeRenameStrategy();
         var fieldRenameStrategy = new FieldRenameStrategy();
 
-        DocumentNode result = renameStrategy.Apply(Source);
+        DocumentNode result = renameStrategy.Apply(Source2);
         result = fieldRenameStrategy.Apply(result);
 
-        var schema = result.Print();
-        schema.MatchSnapshot();
+        using FileStream fileStream = File.OpenWrite(@"C:\Temp\StitchingTest.graphql.result.txt");
+        result.PrintToAsync(fileStream)
+            .GetAwaiter()
+            .GetResult();
+
+        //schema.MatchSnapshot();
     }
 }

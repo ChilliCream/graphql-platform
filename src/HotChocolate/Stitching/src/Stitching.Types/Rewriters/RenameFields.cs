@@ -145,7 +145,7 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
         Func<TParent, IReadOnlyList<DirectiveNode>, TParent> rewriteDirectives)
         where TParent : INamedSyntaxNode
     {
-        if (!RenameDirective.TryParse(match.Node, out RenameDirective? renameDirective))
+        if (match.Node is not RenameDirective renameDirective)
         {
             return node;
         }

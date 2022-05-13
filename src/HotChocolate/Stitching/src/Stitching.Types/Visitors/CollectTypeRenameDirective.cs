@@ -11,7 +11,7 @@ public class CollectTypeRenameDirective<TContext>
 {
     protected override bool ShouldCollect(ISyntaxNode directiveNode)
     {
-        ITypeDefinitionNode? complexType = GetAncestor<ITypeDefinitionNode>();
+        ISyntaxNode? complexType = GetParent();
         return complexType is ComplexTypeDefinitionNodeBase;
     }
 
