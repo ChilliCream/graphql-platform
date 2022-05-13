@@ -13,7 +13,7 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
 {
     private readonly Dictionary<NameNode, List<SyntaxReference>> _renames = new(SyntaxComparer.BySyntax);
 
-    public RenameFields(IList<SyntaxReference> renames)
+    public RenameFields(IReadOnlyList<SyntaxReference> renames)
     {
         foreach (SyntaxReference rename in renames)
         {
@@ -94,7 +94,7 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
 
         foreach (SyntaxReference reference in syntaxReferences)
         {
-            ITypeDefinitionNode? typeDefinition = reference.GetAncestor<ITypeDefinitionNode>();
+            ITypeDefinitionNode? typeDefinition = SyntaxReference.GetAncestor<ITypeDefinitionNode>(reference);
             switch (typeDefinition)
             {
                 // If the rename node originated on an interface type, we need to rename the field on a type that implements the interface.

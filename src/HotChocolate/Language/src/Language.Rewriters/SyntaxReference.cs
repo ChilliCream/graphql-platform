@@ -13,10 +13,9 @@ public sealed class SyntaxReference
     public SyntaxReference? Parent { get; }
     public ISyntaxNode Node { get; }
 
-    public T? GetAncestor<T>()
+    public static T? GetAncestor<T>(SyntaxReference? current)
         where T : ISyntaxNode
     {
-        SyntaxReference? current = this;
         while (current is not null)
         {
             if (current.Node is T typedReference)
@@ -30,10 +29,9 @@ public sealed class SyntaxReference
         return default;
     }
 
-    public IEnumerable<T> GetAncestors<T>()
+    public static IEnumerable<T> GetAncestors<T>(SyntaxReference? current)
         where T : ISyntaxNode
     {
-        SyntaxReference? current = this;
         while (current is not null)
         {
             if (current.Node is T typedReference)

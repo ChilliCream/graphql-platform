@@ -1,12 +1,14 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types.Directives;
 
-public class RenameDirective
+public class RenameDirective : ISyntaxNode
 {
     private static readonly NameNode _renameNameNode = new("rename");
+    private static readonly NameNode _nameNode = new("name");
 
     public RenameDirective(DirectiveNode directiveNode, StringValueNode newName)
     {
@@ -37,7 +39,7 @@ public class RenameDirective
         }
 
         IValueNode? nameArgument = directiveNode.Arguments
-            .FirstOrDefault(x => x.Name.Equals(new NameNode("name")))?.Value;
+            .FirstOrDefault(x => x.Name.Equals(_nameNode))?.Value;
 
         if (nameArgument is not StringValueNode { Value.Length: > 0 } validNameArgument)
         {
@@ -48,4 +50,15 @@ public class RenameDirective
         renameDirective = new RenameDirective(directiveNode, validNameArgument);
         return true;
     }
+
+    public SyntaxKind Kind => SyntaxKind.Directive;
+    public Language.Location? Location => default;
+
+    public IEnumerable<ISyntaxNode> GetNodes()
+    {
+        return Enumerable.Empty<ISyntaxNode>();
+    }
+
+    public string ToString(bool indented) => Directive.ToString(indented);
+    public override string ToString() => ToString(true);
 }

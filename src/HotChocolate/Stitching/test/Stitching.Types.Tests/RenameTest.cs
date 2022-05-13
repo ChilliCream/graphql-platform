@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using System.IO;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Stitching.Types.Strategies;
@@ -9,10 +9,7 @@ namespace HotChocolate.Stitching.Types;
 
 public class RenameTest
 {
-    [Fact]
-    public async Task Test()
-    {
-        DocumentNode source = Utf8GraphQLParser.Parse(@"
+    private static readonly DocumentNode Source = Utf8GraphQLParser.Parse(@"
             interface TestInterface @rename(name: ""TestInterface_renamed"") {
               foo: [Test2!] @rename(name: ""foo_renamed"")
             }
@@ -34,12 +31,15 @@ public class RenameTest
               foo: TestInterface!
             }
 ",
-            ParserOptions.NoLocation);
+    ParserOptions.NoLocation);
 
+    [Fact]
+    public void Test()
+    {
         var renameStrategy = new TypeRenameStrategy();
         var fieldRenameStrategy = new FieldRenameStrategy();
 
-        DocumentNode result = renameStrategy.Apply(source);
+        DocumentNode result = renameStrategy.Apply(Source);
         result = fieldRenameStrategy.Apply(result);
 
         var schema = result.Print();

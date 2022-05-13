@@ -14,7 +14,7 @@ public class IgnoreNode<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TCon
 
     public IReadOnlyList<NameNode> IgnoredInterfaces => _ignoredInterfaces.AsReadOnly();
 
-    public IgnoreNode(IList<SyntaxReference> ignoredNodes)
+    public IgnoreNode(IReadOnlyList<SyntaxReference> ignoredNodes)
     {
         foreach (SyntaxReference ignoredNode in ignoredNodes)
         {
@@ -83,7 +83,7 @@ public class IgnoreNode<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TCon
             return node;
         }
 
-        ITypeDefinitionNode? interfaceTypeDefinitionNode = syntaxReference.GetAncestor<ITypeDefinitionNode>();
+        ITypeDefinitionNode? interfaceTypeDefinitionNode = SyntaxReference.GetAncestor<ITypeDefinitionNode>(syntaxReference);
         ITypeDefinitionNode? typeDefinitionNode = navigator.GetAncestor<ITypeDefinitionNode>();
 
         if (SyntaxComparer.BySyntax.Equals(interfaceTypeDefinitionNode?.Name,

@@ -12,7 +12,7 @@ public class RenameTypes<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TCo
 {
     private readonly Dictionary<NameNode, SyntaxReference> _renames = new();
 
-    public RenameTypes(IList<SyntaxReference> renames)
+    public RenameTypes(IReadOnlyList<SyntaxReference> renames)
     {
         foreach (SyntaxReference rename in renames)
         {
@@ -82,7 +82,7 @@ public class RenameTypes<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TCo
         Func<TParent, IReadOnlyList<DirectiveNode>, TParent> rewriteDirectives)
         where TParent : INamedSyntaxNode
     {
-        if (!RenameDirective.TryParse(match.Node, out RenameDirective? renameDirective))
+        if (match.Node is not RenameDirective renameDirective)
         {
             return node;
         }

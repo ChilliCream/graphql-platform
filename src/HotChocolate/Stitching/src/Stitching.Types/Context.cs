@@ -1,5 +1,7 @@
-﻿namespace HotChocolate.Stitching.Types;
+using HotChocolate.Language.Visitors;
 
-public class Context
+namespace HotChocolate.Stitching.Types;
+
+public class Context : ISyntaxVisitorContext
 {
 }
