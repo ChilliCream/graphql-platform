@@ -2,7 +2,6 @@
 
 }
 
-type Foo {
+type Foo @directive {
   abc: String
-  def: String
 }
