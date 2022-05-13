@@ -1,0 +1,11 @@
+﻿extend type Bar {
+  def: String
+}
+
+schema @_hc_service(name: "abc") {
+
+}
+
+type Foo {
+  abc: String
+}
