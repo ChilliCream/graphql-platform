@@ -109,6 +109,7 @@ public abstract class QueryableListOperationHandlerBase
     /// </summary>
     /// <param name="context">The context of the visitor</param>
     /// <param name="field">The currently visited filter field</param>
+    /// <param name="node">The object field node</param>
     /// <param name="closureType">The runtime type of the scope</param>
     /// <param name="lambda">The expression of the nested operations</param>
     /// <returns></returns>

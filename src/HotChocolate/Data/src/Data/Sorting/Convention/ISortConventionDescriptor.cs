@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -49,8 +50,7 @@ public interface ISortConventionDescriptor
     /// <typeparam name="TSortEnumType">
     /// The sort type for which additional configuration shall be provided.
     /// </typeparam>
-    ISortConventionDescriptor ConfigureEnum<TSortEnumType>(
-        ConfigureSortEnumType configure)
+    ISortConventionDescriptor ConfigureEnum<TSortEnumType>(ConfigureSortEnumType configure)
         where TSortEnumType : SortEnumType;
 
     /// <summary>
@@ -62,8 +62,7 @@ public interface ISortConventionDescriptor
     /// <typeparam name="TSortType">
     /// The sort type for which additional configuration shall be provided.
     /// </typeparam>
-    ISortConventionDescriptor Configure<TSortType>(
-        ConfigureSortInputType configure)
+    ISortConventionDescriptor Configure<TSortType>(ConfigureSortInputType configure)
         where TSortType : SortInputType;
 
     /// <summary>
@@ -105,7 +104,7 @@ public interface ISortConventionDescriptor
 
     /// <summary>
     /// Defines the argument name of the sort used by
-    /// <see cref="SortObjectFieldDescriptorExtensions.UseSorting"/>
+    /// <see cref="SortObjectFieldDescriptorExtensions.UseSorting(IObjectFieldDescriptor, string?)"/>
     /// </summary>
     /// <param name="argumentName">The argument name.</param>
     /// <exception cref="ArgumentNullException">
