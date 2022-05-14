@@ -14,6 +14,7 @@ public static class ListFilterDescriptorExtensions
     /// Defines a <see cref="FilterField" /> that binds to the specified property and also
     /// configures the type of the field
     /// </summary>
+    /// <param name="descriptor">The descriptor</param>
     /// <param name="propertyOrMember">
     /// The property to which a filter field shall be bound.
     /// </param>
