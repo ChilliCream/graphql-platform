@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
@@ -32,7 +33,7 @@ public abstract class CollectDirectiveVisitor<TContext, TDirective> : SyntaxVisi
     protected override ISyntaxVisitorAction VisitChildren(DirectiveNode node, TContext context)
     {
         if (!ShouldCollect(node)
-            || !TryParseDirective(node, out TDirective directive))
+            || !TryParseDirective(node, out TDirective? directive))
         {
             return base.VisitChildren(node, context);
         }
@@ -45,17 +46,7 @@ public abstract class CollectDirectiveVisitor<TContext, TDirective> : SyntaxVisi
 
     private SyntaxReference CreateSyntaxReference(TDirective renameDirective)
     {
-        using IEnumerator<ISyntaxNode> ancestors = GetAncestorsTopDown<ISyntaxNode>()
-            .GetEnumerator();
-
-        SyntaxReference? parent = default;
-        while (ancestors.MoveNext())
-        {
-            ISyntaxNode node = ancestors.Current;
-            var syntaxReference = new SyntaxReference(parent, node);
-            parent = syntaxReference;
-        }
-
-        return new SyntaxReference(parent, renameDirective);
+        IReadOnlyList<ISyntaxNode> ancestors = GetAncestors<ISyntaxNode>();
+        return new SyntaxReference(ancestors, renameDirective);
     }
 }

@@ -8,41 +8,60 @@ public class SyntaxVisitorWithAncestors<TContext> : SyntaxVisitor<TContext>
     where TContext : ISyntaxVisitorContext
 {
     private readonly List<ISyntaxNode> _ancestors = new();
-
+    
     protected SyntaxVisitorWithAncestors(SyntaxVisitorOptions options)
         : base(options)
     {
     }
 
-    protected virtual IEnumerable<T> GetAncestors<T>()
+    protected virtual IReadOnlyList<ISyntaxNode> GetAncestors<T>()
         where T : ISyntaxNode
     {
-        // Start at second last node to skip self.
-        for (var i = _ancestors.Count - 2; i >= 0; i--)
-        {
-            if (_ancestors[i] is not T typedAncestor)
-            {
-                continue;
-            }
+        var syntaxNodes = new List<ISyntaxNode>(_ancestors.Count - 1);
 
-            yield return typedAncestor;
-        }
-    }
-
-    protected virtual IEnumerable<T> GetAncestorsTopDown<T>()
-        where T : ISyntaxNode
-    {
-        // Skip last node which is self.
+        // Skip last element which is current node.
         for (var i = 0; i < _ancestors.Count - 1; i++)
         {
-            if (_ancestors[i] is not T typedAncestor)
+            if (_ancestors[i] is not T)
             {
                 continue;
             }
 
-            yield return typedAncestor;
+            syntaxNodes.Add(_ancestors[i]);
         }
+
+        return syntaxNodes;
     }
+
+    //protected virtual IEnumerable<T> GetAncestors<T>()
+    //    where T : ISyntaxNode
+    //{
+    //    // Start at second last node to skip self.
+    //    for (var i = _ancestors.Count - 2; i >= 0; i--)
+    //    {
+    //        if (_ancestors[i] is not T typedAncestor)
+    //        {
+    //            continue;
+    //        }
+
+    //        yield return typedAncestor;
+    //    }
+    //}
+
+    //protected virtual IReadOnlyList<ISyntaxNode> GetAncestorsTopDown<T>()
+    //    where T : ISyntaxNode
+    //{
+    //    // Skip last node which is self.
+    //    for (var i = 0; i < _ancestors.Count - 1; i++)
+    //    {
+    //        if (_ancestors[i] is not T typedAncestor)
+    //        {
+    //            continue;
+    //        }
+
+    //        yield return typedAncestor;
+    //    }
+    //}
 
     protected virtual T? GetAncestor<T>()
         where T : ISyntaxNode

@@ -6,7 +6,7 @@ using HotChocolate.Stitching.Types.Visitors;
 
 namespace HotChocolate.Stitching.Types.Strategies;
 
-public class FieldRenameStrategy : SchemaRewriteStrategyBase
+public class FieldRenameStrategy
 {
     public TNode Apply<TNode>(TNode source)
         where TNode : class, ISyntaxNode

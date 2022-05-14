@@ -92,12 +92,16 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
             SchemaCoordinateNode schemaCoordinateNode = sourceDirective.Coordinate
                 .ToSyntax();
 
-            foreach (NameNode node in schemaCoordinateNode.GetNodes().OfType<NameNode>())
+            IEnumerable<ISyntaxNode> syntaxNodes = schemaCoordinateNode.GetNodes();
+            foreach (ISyntaxNode syntaxNode in syntaxNodes)
             {
-                yield return node;
-            }
+                if (syntaxNode is not NameNode nameNode)
+                {
+                    continue;
+                }
 
-            yield break;
+                yield return nameNode;
+            }
         }
     }
 }

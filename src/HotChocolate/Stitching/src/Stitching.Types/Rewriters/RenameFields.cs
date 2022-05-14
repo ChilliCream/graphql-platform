@@ -17,7 +17,7 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
     {
         foreach (SyntaxReference rename in renames)
         {
-            if (rename.Parent?.Node is not INamedSyntaxNode namedSyntaxNode)
+            if (rename.GetParent() is not INamedSyntaxNode namedSyntaxNode)
             {
                 throw new NotSupportedException();
             }
@@ -94,7 +94,7 @@ public class RenameFields<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TC
 
         foreach (SyntaxReference reference in syntaxReferences)
         {
-            ITypeDefinitionNode? typeDefinition = SyntaxReference.GetAncestor<ITypeDefinitionNode>(reference);
+            ITypeDefinitionNode? typeDefinition = reference.GetAncestor<ITypeDefinitionNode>();
             switch (typeDefinition)
             {
                 // If the rename node originated on an interface type, we need to rename the field on a type that implements the interface.

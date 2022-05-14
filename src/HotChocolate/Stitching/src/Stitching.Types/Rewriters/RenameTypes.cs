@@ -16,7 +16,8 @@ public class RenameTypes<TContext> : Language.Rewriters.SchemaSyntaxRewriter<TCo
     {
         foreach (SyntaxReference rename in renames)
         {
-            if (rename.Parent?.Node is not INamedSyntaxNode namedSyntaxNode)
+            ISyntaxNode? parent = rename.GetParent();
+            if (parent is not INamedSyntaxNode namedSyntaxNode)
             {
                 throw new NotSupportedException();
             }

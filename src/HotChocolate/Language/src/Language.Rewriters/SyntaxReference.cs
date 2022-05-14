@@ -1,45 +1,64 @@
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language.Rewriters;
 
 public sealed class SyntaxReference
 {
-    public SyntaxReference(SyntaxReference? parent, ISyntaxNode node)
+    private readonly IReadOnlyList<ISyntaxNode> _ancestors;
+
+    public SyntaxReference(IReadOnlyList<ISyntaxNode> ancestors, ISyntaxNode node)
     {
-        Parent = parent;
+        _ancestors = ancestors;
+        if (_ancestors.Count == 0)
+        {
+            throw new InvalidOperationException();
+        }
+
         Node = node;
     }
 
-    public SyntaxReference? Parent { get; }
     public ISyntaxNode Node { get; }
 
-    public static T? GetAncestor<T>(SyntaxReference? current)
+    public T? GetAncestor<T>()
         where T : ISyntaxNode
     {
-        while (current is not null)
+        for (var i = _ancestors.Count - 1; i >= 0; i--)
         {
-            if (current.Node is T typedReference)
+            ISyntaxNode current = _ancestors[i];
+            if (current is not T typedReference)
             {
-                return typedReference;
+                continue;
             }
 
-            current = current.Parent;
+            return typedReference;
         }
 
         return default;
     }
 
-    public static IEnumerable<T> GetAncestors<T>(SyntaxReference? current)
+    public IEnumerable<T> GetAncestors<T>()
         where T : ISyntaxNode
     {
-        while (current is not null)
+        for (var i = _ancestors.Count - 1; i >= 0; i--)
         {
-            if (current.Node is T typedReference)
+            ISyntaxNode current = _ancestors[i];
+            if (current is not T typedReference)
             {
-                yield return typedReference;
+                continue;
             }
 
-            current = current.Parent;
+            yield return typedReference;
         }
+    }
+
+    public ISyntaxNode? GetParent()
+    {
+        if (_ancestors.Count > 0)
+        {
+            return _ancestors[_ancestors.Count - 1];
+        }
+
+        return default;
     }
 }

@@ -6,7 +6,7 @@ using HotChocolate.Stitching.Types.Visitors;
 
 namespace HotChocolate.Stitching.Types.Strategies;
 
-public class IgnoreStrategy : SchemaRewriteStrategyBase
+public class IgnoreStrategy
 {
     public TNode Apply<TNode>(TNode source)
         where TNode : class, ISyntaxNode

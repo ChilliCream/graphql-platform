@@ -38,19 +38,65 @@ public class RenameTest
 
 
     [Fact]
-    public void Test()
+    public void SchemaLoad()
+    {
+        DocumentNode source = Utf8GraphQLParser.Parse(@"
+            interface TestInterface @rename(name: ""TestInterface_renamed"") {
+              foo: [Test2!] @rename(name: ""foo_renamed"")
+            }
+
+            type Test implements TestInterface @rename(name: ""test_renamed"") {
+              id: String! @rename(name: ""id_renamed"")
+              foo: Test2!
+            }
+
+            type Test2 @rename(name: ""test2_renamed"") {
+              test: Test!
+            }
+
+            type Test3 {
+              foo: TestInterface! @rename(name: ""test3_foo_renamed"")
+            }
+
+            type Test4 {
+              foo: TestInterface!
+            }
+",
+            ParserOptions.NoLocation);
+    }
+
+    [Fact]
+    public void TestTypeRename()
     {
         var renameStrategy = new TypeRenameStrategy();
+        _ = renameStrategy.Apply(Source);
+    }
+
+    [Fact]
+    public void TestFieldRename()
+    {
         var fieldRenameStrategy = new FieldRenameStrategy();
 
-        DocumentNode result = renameStrategy.Apply(Source2);
-        result = fieldRenameStrategy.Apply(result);
+        _ = fieldRenameStrategy.Apply(Source);
 
-        using FileStream fileStream = File.OpenWrite(@"C:\Temp\StitchingTest.graphql.result.txt");
-        result.PrintToAsync(fileStream)
-            .GetAwaiter()
-            .GetResult();
+        //using FileStream fileStream = File.OpenWrite(@"C:\Temp\StitchingTest.graphql.result.txt");
+        //result.PrintToAsync(fileStream)
+        //    .GetAwaiter()
+        //    .GetResult();
 
         //schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public void TestFull()
+    {
+        var renameStrategy = new TypeRenameStrategy();
+        var result = renameStrategy.Apply(Source);
+
+        var fieldRenameStrategy = new FieldRenameStrategy();
+        result = fieldRenameStrategy.Apply(result);
+
+        var schema = result.Print();
+        schema.MatchSnapshot();
     }
 }
