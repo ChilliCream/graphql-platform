@@ -21,15 +21,14 @@ namespace HotChocolate.Execution.Benchmarks
             */
         {
 
-            /*
             var b = new NamePathBenchmark();
-            for (var i = 0; i < 1; i++)
+            b.Size = 8;
+            for (var i = 0; i < 100_000; i++)
             {
-                b.Pooled_CreateManyNamedPaths();
+                b.Optimized_CreatePath();
             }
-            */
 
-            BenchmarkRunner.Run<NamePathBenchmark>();
+            //BenchmarkRunner.Run<NamePathBenchmark>();
         }
     }
 }
