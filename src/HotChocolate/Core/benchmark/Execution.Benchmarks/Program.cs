@@ -10,17 +10,17 @@ namespace HotChocolate.Execution.Benchmarks
         static void Main(string[] args)
         /*
         {
-            var bench = new DefaultExecutionPipelineBenchmark();
+            var bench = new ResultDataBenchmarks();
 
             for (int i = 0; i < 1000; i++)
             {
                 Console.WriteLine(i);
-                bench.GetHeroWithFriends();
+                bench.Create_And_Fill_ResultMap_2_Init();
             }
         }
         */
         {
-            BenchmarkRunner.Run<DefaultExecutionPipelineBenchmark>();
+            BenchmarkRunner.Run<ResultDataBenchmarks>();
         }
     }
 }
