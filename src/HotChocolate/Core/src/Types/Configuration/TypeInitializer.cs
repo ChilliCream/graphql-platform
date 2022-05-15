@@ -24,7 +24,6 @@ internal class TypeInitializer
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
     private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
-    private readonly Func<ISchema> _schemaResolver;
     private readonly IReadOnlySchemaOptions _options;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
@@ -40,7 +39,6 @@ internal class TypeInitializer
         IReadOnlyList<ITypeReference> initialTypes,
         IsOfTypeFallback? isOfType,
         Func<TypeSystemObjectBase, RootTypeKind> getTypeKind,
-        Func<ISchema> schemaResolver,
         IReadOnlySchemaOptions options)
     {
         _context = descriptorContext ??
@@ -51,8 +49,6 @@ internal class TypeInitializer
             throw new ArgumentNullException(nameof(initialTypes));
         _getTypeKind = getTypeKind ??
             throw new ArgumentNullException(nameof(getTypeKind));
-        _schemaResolver = schemaResolver ??
-            throw new ArgumentNullException(nameof(schemaResolver));
         _options = options ??
             throw new ArgumentNullException(nameof(options));
 
@@ -227,7 +223,6 @@ internal class TypeInitializer
     {
         registeredType.PrepareForCompletion(
             _typeReferenceResolver,
-            _schemaResolver,
             _globalComps,
             _isOfType);
 
