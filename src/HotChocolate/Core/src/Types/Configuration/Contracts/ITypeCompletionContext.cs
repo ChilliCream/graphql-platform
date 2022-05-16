@@ -93,6 +93,4 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     bool TryGetDirectiveType(
         IDirectiveReference directiveRef,
         [NotNullWhen(true)] out DirectiveType? directiveType);
-
-    Func<ISchema> GetSchemaResolver();
 }

@@ -1,7 +1,11 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Types;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate;
 
@@ -17,38 +21,43 @@ internal sealed class SchemaTypes
             throw new ArgumentNullException(nameof(definition));
         }
 
+        if (definition.Types is null || definition.DirectiveTypes is null)
+        {
+            throw new ArgumentException(
+                SchemaTypes_DefinitionInvalid,
+                nameof(definition));
+        }
+
         _types = definition.Types.ToDictionary(t => t.Name);
         _possibleTypes = CreatePossibleTypeLookup(definition.Types);
-        QueryType = definition.QueryType;
+        QueryType = definition.QueryType!;
         MutationType = definition.MutationType;
         SubscriptionType = definition.SubscriptionType;
     }
 
     public ObjectType QueryType { get; }
 
-    public ObjectType MutationType { get; }
+    public ObjectType? MutationType { get; }
 
-    public ObjectType SubscriptionType { get; }
+    public ObjectType? SubscriptionType { get; }
 
     public T GetType<T>(NameString typeName) where T : IType
     {
-        if (_types.TryGetValue(typeName, out INamedType namedType)
+        if (_types.TryGetValue(typeName, out INamedType? namedType)
             && namedType is T type)
         {
             return type;
         }
 
-        // TODO : resource
         throw new ArgumentException(
-            $"The specified type `{typeName}` does not exist or " +
-            $"is not of the specified kind `{typeof(T).Name}`.",
+            string.Format(SchemaTypes_GetType_DoesNotExist, typeName, typeof(T).Name),
             nameof(typeName));
     }
 
-    public bool TryGetType<T>(NameString typeName, out T type)
+    public bool TryGetType<T>(NameString typeName, [NotNullWhen(true)] out T? type)
         where T : IType
     {
-        if (_types.TryGetValue(typeName, out INamedType namedType)
+        if (_types.TryGetValue(typeName, out INamedType? namedType)
             && namedType is T t)
         {
             type = t;
@@ -64,9 +73,9 @@ internal sealed class SchemaTypes
         return _types.Values;
     }
 
-    public bool TryGetClrType(NameString typeName, out Type clrType)
+    public bool TryGetClrType(NameString typeName, [NotNullWhen(true)] out Type? clrType)
     {
-        if (_types.TryGetValue(typeName, out INamedType type)
+        if (_types.TryGetValue(typeName, out INamedType? type)
             && type is IHasRuntimeType ct
             && ct.RuntimeType != typeof(object))
         {
@@ -80,9 +89,9 @@ internal sealed class SchemaTypes
 
     public bool TryGetPossibleTypes(
         string abstractTypeName,
-        out IReadOnlyList<ObjectType> types)
+        [NotNullWhen(true)] out IReadOnlyList<ObjectType>? types)
     {
-        if (_possibleTypes.TryGetValue(abstractTypeName, out List<ObjectType> pt))
+        if (_possibleTypes.TryGetValue(abstractTypeName, out List<ObjectType>? pt))
         {
             types = pt;
             return true;
@@ -103,7 +112,7 @@ internal sealed class SchemaTypes
 
             foreach (InterfaceType interfaceType in objectType.Implements)
             {
-                if (!possibleTypes.TryGetValue(interfaceType.Name, out List<ObjectType> pt))
+                if (!possibleTypes.TryGetValue(interfaceType.Name, out List<ObjectType>? pt))
                 {
                     pt = new List<ObjectType>();
                     possibleTypes[interfaceType.Name] = pt;
@@ -118,7 +127,7 @@ internal sealed class SchemaTypes
             foreach (ObjectType objectType in unionType.Types.Values)
             {
                 if (!possibleTypes.TryGetValue(
-                    unionType.Name, out List<ObjectType> pt))
+                    unionType.Name, out List<ObjectType>? pt))
                 {
                     pt = new List<ObjectType>();
                     possibleTypes[unionType.Name] = pt;

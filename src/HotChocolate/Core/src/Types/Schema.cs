@@ -122,7 +122,7 @@ public partial class Schema
             throw new ArgumentNullException(nameof(abstractType));
         }
 
-        if (_types.TryGetPossibleTypes(abstractType.Name, out IReadOnlyList<ObjectType> types))
+        if (_types.TryGetPossibleTypes(abstractType.Name, out IReadOnlyList<ObjectType>? types))
         {
             return types;
         }
