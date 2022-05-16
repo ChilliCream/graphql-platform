@@ -7,9 +7,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// The base class for enum type definitions.
 /// </summary>
-public abstract class EnumTypeDefinitionNodeBase
-    : NamedSyntaxNode
-    , IEquatable<EnumTypeDefinitionNodeBase>
+public abstract class EnumTypeDefinitionNodeBase : NamedSyntaxNode
 {
     /// <summary>
     /// Initializes a new instance of
@@ -41,99 +39,4 @@ public abstract class EnumTypeDefinitionNodeBase
     /// Gets the enum values.
     /// </summary>
     public IReadOnlyList<EnumValueDefinitionNode> Values { get; }
-
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <returns>
-    /// true if the current object is equal to the <paramref name="other" /> parameter;
-    /// otherwise, false.
-    /// </returns>
-    public bool Equals(EnumTypeDefinitionNodeBase? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return base.Equals(other) &&
-            EqualityHelper.Equals(Values, other.Values);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object.
-    /// </summary>
-    /// <param name="obj">
-    /// The object to compare with the current object.
-    /// </param>
-    /// <returns>
-    /// true if the specified object  is equal to the current object; otherwise, false.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
-
-        if (obj.GetType() != GetType())
-        {
-            return false;
-        }
-
-        return Equals((EnumTypeDefinitionNodeBase) obj);
-    }
-
-    /// <summary>
-    /// Serves as the default hash function.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current object.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        var hashCode = new HashCode();
-        hashCode.Add(base.GetHashCode());
-        hashCode.AddNodes(Values);
-        return hashCode.ToHashCode();
-    }
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(
-        EnumTypeDefinitionNodeBase? left,
-        EnumTypeDefinitionNodeBase? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(
-        EnumTypeDefinitionNodeBase? left,
-        EnumTypeDefinitionNodeBase? right)
-        => !Equals(left, right);
 }

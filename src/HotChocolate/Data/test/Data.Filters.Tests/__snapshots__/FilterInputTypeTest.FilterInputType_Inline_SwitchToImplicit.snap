@@ -16,7 +16,7 @@ input AddressFilterInput {
 }
 
 input BookAuthorFilterInput {
-  id: ComparableInt32OperationFilterInput
+  id: IntOperationFilterInput
   name: StringOperationFilterInput
   address: AddressFilterInput
 }
@@ -27,11 +27,17 @@ input BookFilterInput {
   author: BookAuthorFilterInput
 }
 
-input ComparableInt32OperationFilterInput {
+input CountryFilterInput {
+  and: [CountryFilterInput!]
+  or: [CountryFilterInput!]
+  name: StringOperationFilterInput
+}
+
+input IntOperationFilterInput {
   eq: Int
   neq: Int
-  in: [Int!]
-  nin: [Int!]
+  in: [Int]
+  nin: [Int]
   gt: Int
   ngt: Int
   gte: Int
@@ -40,12 +46,6 @@ input ComparableInt32OperationFilterInput {
   nlt: Int
   lte: Int
   nlte: Int
-}
-
-input CountryFilterInput {
-  and: [CountryFilterInput!]
-  or: [CountryFilterInput!]
-  name: StringOperationFilterInput
 }
 
 input StringOperationFilterInput {

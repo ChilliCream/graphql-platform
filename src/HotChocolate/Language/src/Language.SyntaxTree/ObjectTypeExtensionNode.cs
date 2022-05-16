@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -9,10 +8,7 @@ namespace HotChocolate.Language;
 /// from some original type. For example, this might be used to represent local data,
 /// or by a GraphQL service which is itself an extension of another GraphQL service.
 /// </summary>
-public sealed class ObjectTypeExtensionNode
-    : ComplexTypeDefinitionNodeBase
-    , ITypeExtensionNode
-    , IEquatable<ObjectTypeExtensionNode>
+public sealed class ObjectTypeExtensionNode : ComplexTypeDefinitionNodeBase, ITypeExtensionNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeExtensionNode"/>.
@@ -151,38 +147,4 @@ public sealed class ObjectTypeExtensionNode
     /// </returns>
     public ObjectTypeExtensionNode WithFields(IReadOnlyList<FieldDefinitionNode> fields)
         => new(Location, Name, Directives, Interfaces, fields);
-
-    /// <inheritdoc />
-    public bool Equals(ObjectTypeExtensionNode? other) => base.Equals(other);
-
-    /// <inheritdoc />
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is ObjectTypeExtensionNode other && Equals(other));
-
-    /// <inheritdoc />
-    public override int GetHashCode()
-        => HashCode.Combine(base.GetHashCode(), Kind);
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(ObjectTypeExtensionNode? left, ObjectTypeExtensionNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(ObjectTypeExtensionNode? left, ObjectTypeExtensionNode? right)
-        => !Equals(left, right);
 }

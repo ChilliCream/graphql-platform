@@ -1,15 +1,15 @@
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Execution;
-using HotChocolate.Properties;
-
-#nullable enable
+using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate;
 
 /// <summary>
-/// An optimized extension data dictionary for <see cref="IExecutionResult.Extensions"/> or
+/// An optimized extension data dictionary for <see cref="IQueryResult.Extensions"/> or
 /// <see cref="IExecutionResult.ContextData"/> when only one value is needed.
 /// </summary>
 public sealed class SingleValueExtensionData : IReadOnlyDictionary<string, object?>
@@ -26,7 +26,7 @@ public sealed class SingleValueExtensionData : IReadOnlyDictionary<string, objec
     {
         if (string.IsNullOrEmpty(key))
         {
-            throw new ArgumentException(AbstractionResources.SingleValueExtensionData_KeyIsEmpty, nameof(key));
+            throw new ArgumentException(SingleValueExtensionData_KeyIsEmpty, nameof(key));
         }
 
         _key = key;
@@ -63,7 +63,7 @@ public sealed class SingleValueExtensionData : IReadOnlyDictionary<string, objec
             }
 
             throw new KeyNotFoundException(string.Format(
-                AbstractionResources.SingleValueExtensionData_KeyNotFound,
+                SingleValueExtensionData_KeyNotFound,
                 key));
         }
     }
@@ -94,7 +94,5 @@ public sealed class SingleValueExtensionData : IReadOnlyDictionary<string, objec
 
     /// <inheritdoc />
     IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+        => GetEnumerator();
 }

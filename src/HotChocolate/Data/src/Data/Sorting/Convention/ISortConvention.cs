@@ -83,7 +83,7 @@ public interface ISortConvention : IConvention
     /// The member from which a field shall be inferred.
     /// </param>
     /// <returns>
-    /// Returns a <see cref="ClrTypeReference"/> that represents the field type.
+    /// Returns a <see cref="ExtendedTypeReference"/> that represents the field type.
     /// </returns>
     ExtendedTypeReference GetFieldType(MemberInfo member);
 

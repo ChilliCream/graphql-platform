@@ -17,9 +17,7 @@ namespace HotChocolate.Language;
 /// https://graphql.github.io/graphql-spec/June2018/#sec-Input-Objects
 /// </para>
 /// </summary>
-public sealed class InputValueDefinitionNode
-    : NamedSyntaxNode
-    , IEquatable<InputValueDefinitionNode>
+public sealed class InputValueDefinitionNode : NamedSyntaxNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="InputValueDefinitionNode"/>
@@ -195,64 +193,4 @@ public sealed class InputValueDefinitionNode
     /// </returns>
     public InputValueDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
         => new(Location, Name, Description, Type, DefaultValue, directives);
-
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <returns>
-    /// true if the current object is equal to the <paramref name="other" /> parameter;
-    /// otherwise, false.
-    /// </returns>
-    public bool Equals(InputValueDefinitionNode? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return base.Equals(other)
-           && Description.IsEqualTo(other.Description)
-           && Type.IsEqualTo(other.Type)
-           && DefaultValue.IsEqualTo(other.DefaultValue);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object.
-    /// </summary>
-    /// <param name="obj">
-    /// The object to compare with the current object.
-    /// </param>
-    /// <returns>
-    /// true if the specified object  is equal to the current object; otherwise, false.
-    /// </returns>
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) || obj is InputValueDefinitionNode other
-            && Equals(other);
-
-    /// <summary>
-    /// Serves as the default hash function.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current object.
-    /// </returns>
-    public override int GetHashCode()
-        => HashCode.Combine(base.GetHashCode(), Description, Type, DefaultValue);
-
-    public static bool operator ==(
-        InputValueDefinitionNode? left,
-        InputValueDefinitionNode? right)
-        => Equals(left, right);
-
-    public static bool operator !=(
-        InputValueDefinitionNode? left,
-        InputValueDefinitionNode? right)
-        => !Equals(left, right);
 }
