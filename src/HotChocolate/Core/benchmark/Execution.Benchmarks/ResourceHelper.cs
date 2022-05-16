@@ -6,9 +6,8 @@ namespace HotChocolate.Execution.Benchmarks
 {
     public class ResourceHelper
     {
-        private const string _resourcePath =
-            "HotChocolate.Execution.Benchmarks.Resources";
-        private Assembly _assembly;
+        private const string _resourcePath = "HotChocolate.Execution.Benchmarks.Resources";
+        private readonly Assembly _assembly;
 
         public ResourceHelper()
         {
@@ -20,10 +19,8 @@ namespace HotChocolate.Execution.Benchmarks
             Stream stream = GetResourceStream(fileName);
             if (stream != null)
             {
-                using (var reader = new StreamReader(stream, Encoding.UTF8))
-                {
-                    return reader.ReadToEnd();
-                }
+                using var reader = new StreamReader(stream, Encoding.UTF8);
+                return reader.ReadToEnd();
             }
             throw new FileNotFoundException(
                 "Could not find the specified resource file",

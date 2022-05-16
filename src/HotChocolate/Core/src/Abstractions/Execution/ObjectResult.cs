@@ -22,7 +22,7 @@ public sealed class ObjectResult
     {
         get
         {
-            if (index > 0 && index < _capacity)
+            if (index >= 0 && index < _capacity)
             {
                 return _buffer[index];
             }
