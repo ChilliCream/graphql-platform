@@ -23,9 +23,21 @@ namespace HotChocolate.Execution.Benchmarks
 
             var b = new NamePathBenchmark();
             b.Size = 8;
-            for (var i = 0; i < 100_000; i++)
+            for (var i = 0; i < 1_000; i++)
             {
-                b.Optimized_CreatePath();
+                b.Threadsafe_CreatePath();
+            }
+
+            b.Size = 256;
+            for (var i = 0; i < 1_000; i++)
+            {
+                b.Threadsafe_CreatePath();
+            }
+
+            b.Size = 16384;
+            for (var i = 0; i < 1_000; i++)
+            {
+                b.Threadsafe_CreatePath();
             }
 
             //BenchmarkRunner.Run<NamePathBenchmark>();
