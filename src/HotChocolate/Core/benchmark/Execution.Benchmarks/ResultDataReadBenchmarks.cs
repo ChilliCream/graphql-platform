@@ -14,7 +14,7 @@ public class ResultDataReadBenchmarks
     private readonly ObjectResult _objectResult = new();
     private readonly object[] _values = new object[256];
 
-    [Params(1,2,3,4, 8, 256)]
+    [Params(1, 2, 3, 4, 8, 16, 32, 64, 256)]
     public int Size { get; set; }
 
     [IterationSetup]
