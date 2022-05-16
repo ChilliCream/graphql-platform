@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 
-namespace HotChocolate.Execution.Processing;
+namespace HotChocolate.Execution.Processing.Pooling;
 
-internal sealed class ResultMemoryOwner : IResultMemoryOwner
+internal sealed class ResultMemoryOwner : IDisposable
 {
     private readonly ResultPool _resultPool;
     private bool _disposed;
@@ -12,13 +13,13 @@ internal sealed class ResultMemoryOwner : IResultMemoryOwner
         _resultPool = resultPool;
     }
 
-    public IResultMap? Data { get; set; }
+    public ObjectResult? Data { get; set; }
 
-    public List<ResultObjectBuffer<ResultMap>> ResultMaps { get; } = new();
+    public List<ResultBuffer<ObjectResult>> ResultMaps { get; } = new();
 
-    public List<ResultObjectBuffer<ResultMapList>> ResultMapLists { get; } = new();
+    public List<ResultBuffer<ObjectListResult>> ResultMapLists { get; } = new();
 
-    public List<ResultObjectBuffer<ResultList>> ResultLists { get; } = new();
+    public List<ResultBuffer<ListResult>> ResultLists { get; } = new();
 
     public void Dispose()
     {

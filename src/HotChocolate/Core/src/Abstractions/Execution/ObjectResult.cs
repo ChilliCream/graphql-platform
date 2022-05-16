@@ -255,7 +255,7 @@ public sealed class ObjectResult
 /// Represents an optimized list result that is used by the execution engine
 /// to store completed elements.
 /// </summary>
-public sealed class ListResult : ListResultBase<object?>
+public sealed class ListResult : ListResultBase<object>
 {
 
 }
@@ -264,13 +264,13 @@ public sealed class ListResult : ListResultBase<object?>
 /// Represents an optimized object list result that is used by the execution engine
 /// to store completed elements.
 /// </summary>
-public sealed class ObjectListResult : ListResultBase<ObjectResult?>
+public sealed class ObjectListResult : ListResultBase<ObjectResult>
 {
 }
 
-public abstract class ListResultBase<T> : IResultData, IReadOnlyList<T>
+public abstract class ListResultBase<T> : IResultData, IReadOnlyList<T?>
 {
-    private T[] _buffer = new T[4];
+    private T?[] _buffer = new T?[4];
     private int _capacity;
     private int _count;
 
@@ -283,7 +283,7 @@ public abstract class ListResultBase<T> : IResultData, IReadOnlyList<T>
     public int Count => _count;
 
     /// <inheritdoc cref="IReadOnlyList{T}.this"/>
-    public T this[int index]
+    public T? this[int index]
     {
         get
         {
@@ -345,7 +345,7 @@ public abstract class ListResultBase<T> : IResultData, IReadOnlyList<T>
     }
 
     /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
-    public IEnumerator<T> GetEnumerator()
+    public IEnumerator<T?> GetEnumerator()
     {
         for (var i = 0; i < _capacity; i++)
         {
