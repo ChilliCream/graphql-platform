@@ -16,20 +16,13 @@ public sealed class ObjectResult
 
     public IResultData? Parent { get; internal set; }
 
-    public int Capacity => _capacity;
+    internal int Capacity => _capacity;
 
-    public ObjectFieldResult this[int index]
-    {
-        get
-        {
-            if (index >= 0 && index < _capacity)
-            {
-                return _buffer[index];
-            }
+    internal ObjectFieldResult this[int index] => _buffer[index];
 
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
-    }
+    internal ReadOnlySpan<ObjectFieldResult> GetBufferUnsafe() => _buffer.AsSpan();
+
+    internal ObjectFieldResult[] GetBufferUnsafe2() => _buffer;
 
     internal ref ObjectFieldResult GetReference()
         => ref MemoryMarshal.GetReference(_buffer.AsSpan());

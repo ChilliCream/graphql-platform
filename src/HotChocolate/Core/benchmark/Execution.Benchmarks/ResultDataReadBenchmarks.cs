@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
@@ -34,7 +35,7 @@ public class ResultDataReadBenchmarks
     [Benchmark]
     public void ResultMap_Optimized_Read()
     {
-        for (var x = 0; x < 20; x++)
+        for (var x = 0; x < 100; x++)
         {
             ResultMap result = _resultMap;
 
@@ -53,7 +54,7 @@ public class ResultDataReadBenchmarks
     [Benchmark]
     public void ObjectResult_Optimized_Read()
     {
-        for (var x = 0; x < 20; x++)
+        for (var x = 0; x < 100; x++)
         {
             ObjectResult result = _objectResult;
 
@@ -80,7 +81,7 @@ public class ResultDataReadBenchmarks
     [Benchmark]
     public void ObjectResult_Optimized2_Read()
     {
-        for (var x = 0; x < 20; x++)
+        for (var x = 0; x < 100; x++)
         {
             ObjectResult result = _objectResult;
 
@@ -124,7 +125,7 @@ public class ResultDataReadBenchmarks
     [Benchmark]
     public void ObjectResult_For_Read()
     {
-        for (var x = 0; x < 20; x++)
+        for (var x = 0; x < 100; x++)
         {
             ObjectResult result = _objectResult;
 
@@ -133,6 +134,48 @@ public class ResultDataReadBenchmarks
             for (var i = 0; i < result.Capacity; i++)
             {
                 ObjectFieldResult field = result[i];
+
+                if (field.IsInitialized)
+                {
+                    _values[j++] = field.Value;
+                }
+            }
+        }
+    }
+
+    [Benchmark]
+    public void ObjectResult_For_Read_2()
+    {
+        for (var x = 0; x < 100; x++)
+        {
+            ReadOnlySpan<ObjectFieldResult> buffer = _objectResult.GetBufferUnsafe();
+
+            var j = 0;
+
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                ObjectFieldResult field = buffer[i];
+
+                if (field.IsInitialized)
+                {
+                    _values[j++] = field.Value;
+                }
+            }
+        }
+    }
+
+    [Benchmark]
+    public void ObjectResult_For_Read_3()
+    {
+        for (var x = 0; x < 100; x++)
+        {
+            ObjectFieldResult[] buffer = _objectResult.GetBufferUnsafe2();
+
+            var j = 0;
+
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                ObjectFieldResult field = buffer[i];
 
                 if (field.IsInitialized)
                 {
