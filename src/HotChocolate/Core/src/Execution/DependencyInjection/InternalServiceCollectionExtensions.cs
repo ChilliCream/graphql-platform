@@ -7,6 +7,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
@@ -41,14 +42,15 @@ internal static class InternalServiceCollectionExtensions
 
     internal static IServiceCollection TryAddResultPool(
         this IServiceCollection services,
-        int maximumRetained = 512)
+        int maximumRetained = ResultPoolDefaults.MaximumRetained,
+        int maximumArrayCapacity = ResultPoolDefaults.MaximumAllowedCapacity)
     {
-        services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultMap>>>(
-            _ => new ResultMapPool(maximumRetained));
-        services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultMapList>>>(
-            _ => new ResultMapListPool(maximumRetained));
-        services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultList>>>(
-            _ => new ResultListPool(maximumRetained));
+        services.TryAddSingleton(
+            _ => new ObjectResultPool(maximumRetained, maximumArrayCapacity));
+        services.TryAddSingleton(
+            _ => new ObjectListResult(maximumRetained, maximumArrayCapacity));
+        services.TryAddSingleton(
+            _ => new ListResult(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton<ResultPool>();
         return services;
     }

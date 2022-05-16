@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class ResultHelper : IResultHelper
+internal sealed partial class ResultHelper
 {
     private readonly object _syncMap = new();
     private readonly object _syncMapList = new();
@@ -40,12 +41,12 @@ internal sealed partial class ResultHelper : IResultHelper
 
         lock (_syncMap)
         {
-            if (!_resultOwner.ResultMaps.TryPeek(out ResultObjectBuffer<ResultMap>? buffer) ||
+            if (!_resultOwner.ObjectBuffers.TryPeek(out ResultObjectBuffer<ResultMap>? buffer) ||
                 !buffer.TryPop(out map))
             {
                 buffer = _resultPool.GetResultMap();
                 map = buffer.Pop();
-                _resultOwner.ResultMaps.Push(buffer);
+                _resultOwner.ObjectBuffers.Push(buffer);
             }
         }
 

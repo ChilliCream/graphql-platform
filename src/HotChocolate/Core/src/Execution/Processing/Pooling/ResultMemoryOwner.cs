@@ -15,17 +15,17 @@ internal sealed class ResultMemoryOwner : IDisposable
 
     public ObjectResult? Data { get; set; }
 
-    public List<ResultBuffer<ObjectResult>> ResultMaps { get; } = new();
+    public List<ResultBucket<ObjectResult>> ObjectBuffers { get; } = new();
 
-    public List<ResultBuffer<ObjectListResult>> ResultMapLists { get; } = new();
+    public List<ResultBucket<ObjectListResult>> ResultMapLists { get; } = new();
 
-    public List<ResultBuffer<ListResult>> ResultLists { get; } = new();
+    public List<ResultBucket<ListResult>> ResultLists { get; } = new();
 
     public void Dispose()
     {
         if (!_disposed)
         {
-            _resultPool.Return(ResultMaps);
+            _resultPool.Return(ObjectBuffers);
             _resultPool.Return(ResultMapLists);
             _resultPool.Return(ResultLists);
             _disposed = true;

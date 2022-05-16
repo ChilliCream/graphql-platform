@@ -1,15 +1,16 @@
 using Microsoft.Extensions.ObjectPool;
+using static HotChocolate.Execution.Processing.Pooling.ResultPoolDefaults;
 
 namespace HotChocolate.Execution.Processing.Pooling;
 
-internal sealed class ObjectResultPool : DefaultObjectPool<ResultBuffer<ObjectResult>>
+internal sealed class ObjectResultPool : DefaultObjectPool<ResultBucket<ObjectResult>>
 {
-    public ObjectResultPool(int maximumRetained, int maxAllowedCapacity = 256)
+    public ObjectResultPool(int maximumRetained, int maxAllowedCapacity)
         : base(new BufferPolicy(maxAllowedCapacity), maximumRetained)
     {
     }
 
-    private sealed class BufferPolicy : PooledObjectPolicy<ResultBuffer<ObjectResult>>
+    private sealed class BufferPolicy : PooledObjectPolicy<ResultBucket<ObjectResult>>
     {
         private readonly ObjectPolicy _objectPolicy;
 
@@ -18,10 +19,10 @@ internal sealed class ObjectResultPool : DefaultObjectPool<ResultBuffer<ObjectRe
             _objectPolicy = new ObjectPolicy(maxAllowedCapacity);
         }
 
-        public override ResultBuffer<ObjectResult> Create()
-            => new(16, _objectPolicy);
+        public override ResultBucket<ObjectResult> Create()
+            => new(BucketSize, _objectPolicy);
 
-        public override bool Return(ResultBuffer<ObjectResult> obj)
+        public override bool Return(ResultBucket<ObjectResult> obj)
         {
             obj.Reset();
             return true;

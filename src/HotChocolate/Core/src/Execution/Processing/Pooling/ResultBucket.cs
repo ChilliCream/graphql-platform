@@ -4,14 +4,14 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Pooling;
 
-internal sealed class ResultBuffer<T> where T : class
+internal sealed class ResultBucket<T> where T : class
 {
     private readonly int _capacity;
     private readonly IPooledObjectPolicy<T> _policy;
     private readonly T?[] _buffer;
     private int _index;
 
-    public ResultBuffer(int capacity, IPooledObjectPolicy<T> policy)
+    public ResultBucket(int capacity, IPooledObjectPolicy<T> policy)
     {
         _capacity = capacity;
         _policy = policy;

@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -93,7 +94,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         {
             throw new ArgumentNullException(nameof(writer));
         }
-        
+
         writer.WriteStartArray();
 
         for (var i = 0; i < errors.Count; i++)
@@ -183,7 +184,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         }
     }
 
-    private void WriteData(
+    private static void WriteData(
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? data)
     {
@@ -191,9 +192,9 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         {
             writer.WritePropertyName(Data);
 
-            if (data is IResultMap resultMap)
+            if (data is ObjectResult obj)
             {
-                WriteResultMap(writer, resultMap);
+                WriteResultMap(writer, obj);
             }
             else
             {
@@ -219,7 +220,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         }
     }
 
-    private void WriteError(Utf8JsonWriter writer, IError error)
+    private static void WriteError(Utf8JsonWriter writer, IError error)
     {
         writer.WriteStartObject();
 
@@ -312,7 +313,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         writer.WriteEndArray();
     }
 
-    private void WriteExtensions(
+    private static void WriteExtensions(
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? dict)
     {
@@ -323,7 +324,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         }
     }
 
-    private void WriteDictionary(
+    private static void WriteDictionary(
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?> dict)
     {
@@ -338,26 +339,32 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         writer.WriteEndObject();
     }
 
-    private void WriteResultMap(
-        Utf8JsonWriter writer,
-        IResultMap resultMap)
+    private static void WriteResultMap(Utf8JsonWriter writer, ObjectResult obj)
     {
         writer.WriteStartObject();
 
-        for (var i = 0; i < resultMap.Count; i++)
+        var ptr = (IntPtr)0;
+        var length = obj.Capacity;
+        ref ObjectFieldResult searchSpace = ref obj.GetReference();
+
+        while (length > 0)
         {
-            ResultValue value = resultMap[i];
-            if (value.IsInitialized)
+            ObjectFieldResult field = Unsafe.Add(ref searchSpace, ptr);
+
+            if (field.IsInitialized)
             {
-                writer.WritePropertyName(value.Name);
-                WriteFieldValue(writer, value.Value);
+                writer.WritePropertyName(field.Name);
+                WriteFieldValue(writer, field.Value);
             }
+
+            length--;
+            ptr += 1;
         }
 
         writer.WriteEndObject();
     }
 
-    private void WriteList(
+    private static void WriteList(
         Utf8JsonWriter writer,
         IList list)
     {
@@ -371,28 +378,44 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         writer.WriteEndArray();
     }
 
-    private void WriteResultMapList(
+    private static void WriteObjectList(
         Utf8JsonWriter writer,
-        IResultMapList list)
+        ObjectListResult list)
     {
         writer.WriteStartArray();
 
         for (var i = 0; i < list.Count; i++)
         {
-            if (list[i] is { } m)
+            ObjectResult? obj = list[i];
+
+            if (obj is not null)
             {
-                WriteResultMap(writer, m);
+                WriteResultMap(writer, obj);
             }
             else
             {
-                WriteFieldValue(writer, null);
+                writer.WriteNullValue();
             }
         }
 
         writer.WriteEndArray();
     }
 
-    private void WriteFieldValue(
+    private static void WriteList(
+        Utf8JsonWriter writer,
+        ListResult list)
+    {
+        writer.WriteStartArray();
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            WriteFieldValue(writer, list[i]);
+        }
+
+        writer.WriteEndArray();
+    }
+
+    private static void WriteFieldValue(
         Utf8JsonWriter writer,
         object? value)
     {
@@ -404,12 +427,16 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
         switch (value)
         {
-            case IResultMap resultMap:
-                WriteResultMap(writer, resultMap);
+            case ObjectResult obj:
+                WriteResultMap(writer, obj);
                 break;
 
-            case IResultMapList resultMapList:
-                WriteResultMapList(writer, resultMapList);
+            case ObjectListResult list:
+                WriteObjectList(writer, list);
+                break;
+
+            case ListResult list:
+                WriteList(writer, list);
                 break;
 
             case IReadOnlyDictionary<string, object?> dict:

@@ -5,30 +5,30 @@ namespace HotChocolate.Execution.Processing.Pooling;
 
 internal sealed class ResultPool
 {
-    private readonly ObjectPool<ResultBuffer<ObjectResult>> _objectResultPool;
-    private readonly ObjectPool<ResultBuffer<ObjectListResult>> _objectListResultPool;
-    private readonly ObjectPool<ResultBuffer<ListResult>> _listResultPool;
+    private readonly ObjectResultPool _objectResultPool;
+    private readonly ObjectListResultPool _objectListResultPool;
+    private readonly ListResultPool _listResultPool;
 
     public ResultPool(
-        ObjectPool<ResultBuffer<ObjectResult>> objectResultPool,
-        ObjectPool<ResultBuffer<ObjectListResult>> objectListResultPool,
-        ObjectPool<ResultBuffer<ListResult>> listResultPool)
+        ObjectResultPool objectResultPool,
+        ObjectListResultPool objectListResultPool,
+        ListResultPool listResultPool)
     {
         _objectResultPool = objectResultPool;
         _objectListResultPool = objectListResultPool;
         _listResultPool = listResultPool;
     }
 
-    public ResultBuffer<ObjectResult> GetObjectResult()
+    public ResultBucket<ObjectResult> GetObjectBuffer()
         => _objectResultPool.Get();
 
-    public ResultBuffer<ObjectListResult> GetObjectResultList()
+    public ResultBucket<ObjectListResult> GetObjectResultList()
         => _objectListResultPool.Get();
 
-    public ResultBuffer<ListResult> GetListResult()
+    public ResultBucket<ListResult> GetListResult()
         => _listResultPool.Get();
 
-    public void Return(IList<ResultBuffer<ObjectResult>> buffers)
+    public void Return(IList<ResultBucket<ObjectResult>> buffers)
     {
         for (var i = 0; i < buffers.Count; i++)
         {
@@ -36,7 +36,7 @@ internal sealed class ResultPool
         }
     }
 
-    public void Return(IList<ResultBuffer<ObjectListResult>> buffers)
+    public void Return(IList<ResultBucket<ObjectListResult>> buffers)
     {
         for (var i = 0; i < buffers.Count; i++)
         {
@@ -44,7 +44,7 @@ internal sealed class ResultPool
         }
     }
 
-    public void Return(IList<ResultBuffer<ListResult>> buffers)
+    public void Return(IList<ResultBucket<ListResult>> buffers)
     {
         for (var i = 0; i < buffers.Count; i++)
         {
