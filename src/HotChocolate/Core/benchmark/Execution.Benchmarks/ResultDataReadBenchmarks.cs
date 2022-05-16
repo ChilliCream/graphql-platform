@@ -35,7 +35,7 @@ public class ResultDataReadBenchmarks
     [Benchmark]
     public void ResultMap_Optimized_Read()
     {
-        for (var x = 0; x < 100; x++)
+        for (var x = 0; x < 1000; x++)
         {
             ResultMap result = _resultMap;
 
@@ -54,7 +54,7 @@ public class ResultDataReadBenchmarks
     [Benchmark]
     public void ObjectResult_Optimized_Read()
     {
-        for (var x = 0; x < 100; x++)
+        for (var x = 0; x < 1000; x++)
         {
             ObjectResult result = _objectResult;
 
@@ -81,7 +81,7 @@ public class ResultDataReadBenchmarks
     [Benchmark]
     public void ObjectResult_Optimized2_Read()
     {
-        for (var x = 0; x < 100; x++)
+        for (var x = 0; x < 1000; x++)
         {
             ObjectResult result = _objectResult;
 
@@ -125,7 +125,7 @@ public class ResultDataReadBenchmarks
     [Benchmark]
     public void ObjectResult_For_Read()
     {
-        for (var x = 0; x < 100; x++)
+        for (var x = 0; x < 1000; x++)
         {
             ObjectResult result = _objectResult;
 
@@ -146,9 +146,10 @@ public class ResultDataReadBenchmarks
     [Benchmark]
     public void ObjectResult_For_Read_2()
     {
-        for (var x = 0; x < 100; x++)
+        for (var x = 0; x < 1000; x++)
         {
-            ReadOnlySpan<ObjectFieldResult> buffer = _objectResult.GetBufferUnsafe();
+            ObjectResult result = _objectResult;
+            ReadOnlySpan<ObjectFieldResult> buffer = result.GetBufferUnsafe();
 
             var j = 0;
 
@@ -167,9 +168,10 @@ public class ResultDataReadBenchmarks
     [Benchmark]
     public void ObjectResult_For_Read_3()
     {
-        for (var x = 0; x < 100; x++)
+        for (var x = 0; x < 1000; x++)
         {
-            ObjectFieldResult[] buffer = _objectResult.GetBufferUnsafe2();
+            ObjectResult result = _objectResult;
+            ObjectFieldResult[] buffer = result.GetBufferUnsafe2();
 
             var j = 0;
 
