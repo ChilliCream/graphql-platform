@@ -10,19 +10,16 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultHelper
 {
-    private readonly object _syncMap = new();
-    private readonly object _syncMapList = new();
-    private readonly object _syncList = new();
     private readonly object _syncErrors = new();
     private readonly object _syncExtensions = new();
+
     private readonly List<IError> _errors = new();
     private readonly HashSet<FieldNode> _fieldErrors = new();
     private readonly List<NonNullViolation> _nonNullViolations = new();
-    private readonly ResultPool _resultPool;
     private readonly Dictionary<string, object?> _extensions = new();
     private readonly Dictionary<string, object?> _contextData = new();
     private ResultMemoryOwner _resultOwner;
-    private ResultMap? _data;
+    private ObjectResult? _data;
     private Path? _path;
     private string? _label;
     private bool? _hasNext;
@@ -35,63 +32,7 @@ internal sealed partial class ResultHelper
 
     public IReadOnlyList<IError> Errors => _errors;
 
-    public ResultMap RentResultMap(int capacity)
-    {
-        ResultMap? map;
-
-        lock (_syncMap)
-        {
-            if (!_resultOwner.ObjectBuffers.TryPeek(out ResultObjectBuffer<ResultMap>? buffer) ||
-                !buffer.TryPop(out map))
-            {
-                buffer = _resultPool.GetResultMap();
-                map = buffer.Pop();
-                _resultOwner.ObjectBuffers.Push(buffer);
-            }
-        }
-
-        map.EnsureCapacity(capacity);
-        return map;
-    }
-
-    public ResultMapList RentResultMapList()
-    {
-        ResultMapList? mapList;
-
-        lock (_syncMapList)
-        {
-            if (!_resultOwner.ResultMapLists.TryPeek(
-                out ResultObjectBuffer<ResultMapList>? buffer) ||
-                !buffer.TryPop(out mapList))
-            {
-                buffer = _resultPool.GetResultMapList();
-                mapList = buffer.Pop();
-                _resultOwner.ResultMapLists.Push(buffer);
-            }
-        }
-
-        return mapList;
-    }
-
-    public ResultList RentResultList()
-    {
-        ResultList? list;
-
-        lock (_syncList)
-        {
-            if (!_resultOwner.ResultLists.TryPeek(out ResultObjectBuffer<ResultList>? buffer) ||
-                !buffer.TryPop(out list))
-            {
-                buffer = _resultPool.GetResultList();
-                list = buffer.Pop();
-                _resultOwner.ResultLists.Push(buffer);
-            }
-        }
-
-        return list;
-    }
-
-    public void SetData(ResultMap data)
+    public void SetData(ObjectResult data)
     {
         _data = data;
     }
@@ -152,10 +93,8 @@ internal sealed partial class ResultHelper
         }
     }
 
-    public void AddNonNullViolation(FieldNode selection, Path path, IResultMap parent)
-    {
-        _nonNullViolations.Add(new NonNullViolation(selection, path, parent));
-    }
+    public void AddNonNullViolation(FieldNode selection, Path path, ObjectResult parent)
+        => _nonNullViolations.Add(new NonNullViolation(selection, path, parent));
 
     public IQueryResult BuildResult()
     {
@@ -273,7 +212,7 @@ internal sealed partial class ResultHelper
 
     private readonly struct NonNullViolation
     {
-        public NonNullViolation(FieldNode selection, Path path, IResultMap parent)
+        public NonNullViolation(FieldNode selection, Path path, ObjectResult parent)
         {
             Selection = selection;
             Path = path;
@@ -282,6 +221,6 @@ internal sealed partial class ResultHelper
 
         public FieldNode Selection { get; }
         public Path Path { get; }
-        public IResultMap Parent { get; }
+        public ObjectResult Parent { get; }
     }
 }

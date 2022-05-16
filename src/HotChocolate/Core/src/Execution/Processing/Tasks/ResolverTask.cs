@@ -54,7 +54,7 @@ internal sealed partial class ResolverTask : IExecutionTask
     /// <summary>
     /// Gets access to the internal result map into which the task will write the result.
     /// </summary>
-    public ResultMap ResultMap { get; private set; } = default!;
+    public ObjectResult ObjectResult { get; private set; } = default!;
 
     /// <summary>
     /// Gets the completed value of this task.
@@ -114,7 +114,7 @@ internal sealed partial class ResolverTask : IExecutionTask
                     _selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
                     completedValue is IHasResultDataParent result)
                 {
-                    result.Parent = _resolverContext.ResultMap;
+                    result.Parent = _resolverContext.ObjectResult;
                 }
             }
         }
@@ -148,14 +148,14 @@ internal sealed partial class ResolverTask : IExecutionTask
             _operationContext.Result.AddNonNullViolation(
                 _resolverContext.Selection.SyntaxNode,
                 _resolverContext.Path,
-                _resolverContext.ResultMap);
+                _resolverContext.ObjectResult);
             _taskBuffer.Clear();
         }
         else
         {
-            _resolverContext.ResultMap.SetValue(
+            _resolverContext.ObjectResult.SetValueUnsafe(
                 _resolverContext.ResponseIndex,
-                _resolverContext.ResponseName,
+                _resolverContext.ResponseName.Value,
                 completedValue,
                 !isNonNullType);
         }
@@ -167,7 +167,7 @@ internal sealed partial class ResolverTask : IExecutionTask
     public void Initialize(
         IOperationContext operationContext,
         ISelection selection,
-        ResultMap resultMap,
+        ObjectResult objectResult,
         int responseIndex,
         object? parent,
         Path path,
@@ -178,12 +178,12 @@ internal sealed partial class ResolverTask : IExecutionTask
         _resolverContext.Initialize(
             operationContext,
             selection,
-            resultMap,
+            objectResult,
             responseIndex,
             parent,
             path,
             scopedContextData);
-        ResultMap = resultMap;
+        ObjectResult = objectResult;
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ internal sealed partial class ResolverTask : IExecutionTask
         _operationContext = default!;
         _selection = default!;
         _resolverContext.Clean();
-        ResultMap = default!;
+        ObjectResult = default!;
         CompletedValue = null;
         Status = ExecutionTaskStatus.WaitingToRun;
         IsSerial = false;

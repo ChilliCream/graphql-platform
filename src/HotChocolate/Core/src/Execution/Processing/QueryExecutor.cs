@@ -35,7 +35,7 @@ internal sealed class QueryExecutor
         ISelectionSet rootSelections =
             operationContext.Operation.GetRootSelectionSet();
 
-        ResultMap resultMap = EnqueueResolverTasks(
+        ObjectResult objectResult = EnqueueResolverTasks(
             operationContext,
             rootSelections,
             operationContext.RootValue,
@@ -46,7 +46,7 @@ internal sealed class QueryExecutor
 
         return operationContext
             .TrySetNext()
-            .SetData(resultMap)
+            .SetData(objectResult)
             .BuildResult();
     }
 }

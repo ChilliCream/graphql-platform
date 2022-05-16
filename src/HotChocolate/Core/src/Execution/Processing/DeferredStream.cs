@@ -99,7 +99,7 @@ internal sealed class DeferredStream : IDeferredExecutionTask
             .TrySetNext(true)
             .SetLabel(Label)
             .SetPath(Path.Append(Index))
-            .SetData((ResultMap)_task.ChildTask.ResultMap[0].Value!)
+            .SetData((ObjectResult)_task.ChildTask.ObjectResult[0].Value!)
             .BuildResult();
 
         _task.ChildTask.CompleteUnsafe();

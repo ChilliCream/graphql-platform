@@ -77,7 +77,7 @@ internal interface IOperationContext : IHasContextData
     /// <summary>
     /// The result helper which provides utilities to build up the result.
     /// </summary>
-    IResultHelper Result { get; }
+    ResultHelper Result { get; }
 
     /// <summary>
     /// The work scheduler organizes the processing of request tasks.

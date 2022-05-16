@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;

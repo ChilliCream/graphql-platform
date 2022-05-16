@@ -333,6 +333,28 @@ public abstract class ListResultBase<T> : IResultData, IReadOnlyList<T?>
     }
 
     /// <summary>
+    /// Grows the internal capacity.
+    /// </summary>
+    internal void Grow()
+    {
+        var capacity = _capacity * 2;
+
+        if (_buffer.Length < capacity)
+        {
+            var newCapacity = _buffer.Length * 2;
+
+            if (newCapacity < capacity)
+            {
+                newCapacity = capacity;
+            }
+
+            Array.Resize(ref _buffer, newCapacity);
+        }
+
+        _capacity = capacity;
+    }
+
+    /// <summary>
     /// Resets the result object.
     /// </summary>
     internal void Reset()

@@ -61,7 +61,7 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
-    public IResultHelper Result
+    public ResultHelper Result
     {
         get
         {

@@ -19,13 +19,13 @@ internal sealed class ResultPool
         _listResultPool = listResultPool;
     }
 
-    public ResultBucket<ObjectResult> GetObjectBuffer()
+    public ResultBucket<ObjectResult> GetObjectBucket()
         => _objectResultPool.Get();
 
-    public ResultBucket<ObjectListResult> GetObjectResultList()
+    public ResultBucket<ObjectListResult> GetObjectListBucket()
         => _objectListResultPool.Get();
 
-    public ResultBucket<ListResult> GetListResult()
+    public ResultBucket<ListResult> GetListBucket()
         => _listResultPool.Get();
 
     public void Return(IList<ResultBucket<ObjectResult>> buffers)

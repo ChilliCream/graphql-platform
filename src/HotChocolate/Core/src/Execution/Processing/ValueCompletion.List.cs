@@ -68,54 +68,65 @@ internal static partial class ValueCompletion
         List<ResolverTask> bufferedTasks,
         out object? completedResult)
     {
-        ResultMapList resultList = operationContext.Result.RentResultMapList();
         IType elementType = fieldType.InnerType();
-        resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
 
         if (result is Array array)
         {
+            ObjectListResult listResult = operationContext.Result.RentObjectList(array.Length);
+            listResult.IsNullable = elementType.Kind is not TypeKind.NonNull;
+
             for (var i = 0; i < array.Length; i++)
             {
-                if (!TryCompleteElement(path.Append(i), array.GetValue(i)))
+                if (!TryCompleteElement(listResult, path.Append(i), array.GetValue(i)))
                 {
                     completedResult = null;
                     return true;
                 }
             }
 
-            completedResult = resultList;
+            completedResult = listResult;
             return true;
         }
 
         if (result is IList list)
         {
+            ObjectListResult listResult = operationContext.Result.RentObjectList(list.Count);
+            listResult.IsNullable = elementType.Kind is not TypeKind.NonNull;
+
             for (var i = 0; i < list.Count; i++)
             {
-                if (!TryCompleteElement(path.Append(i), list[i]))
+                if (!TryCompleteElement(listResult, path.Append(i), list[i]))
                 {
                     completedResult = null;
                     return true;
                 }
             }
 
-            completedResult = resultList;
+            completedResult = listResult;
             return true;
         }
 
         if (result is IEnumerable enumerable)
         {
+            ObjectListResult listResult = operationContext.Result.RentObjectList(4);
+            listResult.IsNullable = elementType.Kind is not TypeKind.NonNull;
             var index = 0;
 
             foreach (var element in enumerable)
             {
-                if (!TryCompleteElement(path.Append(index++), element))
+                if (listResult.Capacity == listResult.Count)
+                {
+                    listResult.Grow();
+                }
+
+                if (!TryCompleteElement(listResult, path.Append(index++), element))
                 {
                     completedResult = null;
                     return true;
                 }
             }
 
-            completedResult = resultList;
+            completedResult = listResult;
             return true;
         }
 
@@ -123,12 +134,12 @@ internal static partial class ValueCompletion
             operationContext,
             resolverContext,
             selection,
-            ListValueIsNotSupported(resultList.GetType(), selection.SyntaxNode, path));
+            ListValueIsNotSupported(typeof(ObjectListResult), selection.SyntaxNode, path));
 
         completedResult = null;
         return false;
 
-        bool TryCompleteElement(Path elementPath, object? elementResult)
+        bool TryCompleteElement(ObjectListResult listResult, Path elementPath, object? elementResult)
         {
             if (TryComplete(
                 operationContext,
@@ -141,14 +152,14 @@ internal static partial class ValueCompletion
                 elementResult,
                 bufferedTasks,
                 out var completedElement) &&
-                completedElement is ResultMap resultMap)
+                completedElement is ObjectResult objectResult)
             {
-                resultMap.Parent = resultList;
-                resultList.Add(resultMap);
+                objectResult.Parent = listResult;
+                listResult.AddUnsafe(objectResult);
             }
-            else if (resultList.IsNullable)
+            else if (listResult.IsNullable)
             {
-                resultList.Add(null);
+                listResult.AddUnsafe(null);
             }
             else
             {
@@ -171,55 +182,66 @@ internal static partial class ValueCompletion
         List<ResolverTask> bufferedTasks,
         out object? completedResult)
     {
-        ResultList resultList = operationContext.Result.RentResultList();
         IType elementType = fieldType.InnerType();
-        resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
         var isElementList = elementType.IsListType();
 
         if (result is Array array)
         {
+            ListResult listResult = operationContext.Result.RentList(array.Length);
+            listResult.IsNullable = elementType.Kind is not TypeKind.NonNull;
+
             for (var i = 0; i < array.Length; i++)
             {
-                if (!TryCompleteElement(path.Append(i), array.GetValue(i)))
+                if (!TryCompleteElement(listResult, path.Append(i), array.GetValue(i)))
                 {
                     completedResult = null;
                     return true;
                 }
             }
 
-            completedResult = resultList;
+            completedResult = listResult;
             return true;
         }
 
         if (result is IList list)
         {
+            ListResult listResult = operationContext.Result.RentList(list.Count);
+            listResult.IsNullable = elementType.Kind is not TypeKind.NonNull;
+
             for (var i = 0; i < list.Count; i++)
             {
-                if (!TryCompleteElement(path.Append(i), list[i]))
+                if (!TryCompleteElement(listResult, path.Append(i), list[i]))
                 {
                     completedResult = null;
                     return true;
                 }
             }
 
-            completedResult = resultList;
+            completedResult = listResult;
             return true;
         }
 
         if (result is IEnumerable enumerable)
         {
+            ListResult listResult = operationContext.Result.RentList(4);
+            listResult.IsNullable = elementType.Kind is not TypeKind.NonNull;
             var index = 0;
 
             foreach (var element in enumerable)
             {
-                if (!TryCompleteElement(path.Append(index++), element))
+                if (listResult.Capacity == listResult.Count)
+                {
+                    listResult.Grow();
+                }
+
+                if (!TryCompleteElement(listResult, path.Append(index++), element))
                 {
                     completedResult = null;
                     return true;
                 }
             }
 
-            completedResult = resultList;
+            completedResult = listResult;
             return true;
         }
 
@@ -227,12 +249,12 @@ internal static partial class ValueCompletion
             operationContext,
             resolverContext,
             selection,
-            ListValueIsNotSupported(resultList.GetType(), selection.SyntaxNode, path));
+            ListValueIsNotSupported(typeof(ListResult), selection.SyntaxNode, path));
 
         completedResult = null;
         return false;
 
-        bool TryCompleteElement(Path elementPath, object? elementResult)
+        bool TryCompleteElement(ListResult listResult, Path elementPath, object? elementResult)
         {
             if (TryComplete(
                 operationContext,
@@ -247,16 +269,16 @@ internal static partial class ValueCompletion
                 out var completedElement) &&
                 completedElement is not null)
             {
-                resultList.Add(completedElement);
+                listResult.AddUnsafe(completedElement);
 
                 if (isElementList)
                 {
-                    ((IHasResultDataParent)completedElement).Parent = resultList;
+                    ((IHasResultDataParent)completedElement).Parent = listResult;
                 }
             }
-            else if (resultList.IsNullable)
+            else if (listResult.IsNullable)
             {
-                resultList.Add(null);
+                listResult.AddUnsafe(null);
             }
             else
             {
