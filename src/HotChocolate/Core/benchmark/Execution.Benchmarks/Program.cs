@@ -22,7 +22,7 @@ namespace HotChocolate.Execution.Benchmarks
         }
         */
         {
-            BenchmarkRunner.Run<ResultDataReadBenchmarks>();
+            BenchmarkRunner.Run<ResultDataBenchmarks>();
         }
     }
 }
