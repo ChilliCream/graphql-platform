@@ -22,6 +22,7 @@ public static class FilterConventionDescriptorExtensions
     /// <see cref="IEnumerable{T}"/> on the convention
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
+    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
     /// <returns>The descriptor that was passed in as a parameter</returns>
     public static IFilterConventionDescriptor AddDefaults(
         this IFilterConventionDescriptor descriptor,
@@ -80,6 +81,7 @@ public static class FilterConventionDescriptorExtensions
     /// Binds common runtime types to the according <see cref="FilterInputType"/>
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
+    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
     /// <returns>The descriptor that was passed in as a parameter</returns>
     /// <exception cref="ArgumentNullException">
     /// Throws in case the argument <paramref name="descriptor"/> is null
@@ -124,41 +126,41 @@ public static class FilterConventionDescriptorExtensions
         else
         {
             return descriptor
-               .BindRuntimeType<string, StringOperationFilterInputType>()
-               .BindRuntimeType<bool, BooleanOperationFilterInputType>()
-               .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
-               .BindRuntimeType<byte, ByteOperationFilterInputType>()
-               .BindRuntimeType<byte?, ByteOperationFilterInputType>()
-               .BindRuntimeType<sbyte, ByteOperationFilterInputType>()
-               .BindRuntimeType<sbyte?, ByteOperationFilterInputType>()
-               .BindRuntimeType<short, ShortOperationFilterInputType>()
-               .BindRuntimeType<short?, ShortOperationFilterInputType>()
-               .BindRuntimeType<int, IntOperationFilterInputType>()
-               .BindRuntimeType<int?, IntOperationFilterInputType>()
-               .BindRuntimeType<long, LongOperationFilterInputType>()
-               .BindRuntimeType<long?, LongOperationFilterInputType>()
-               .BindRuntimeType<float, FloatOperationFilterInputType>()
-               .BindRuntimeType<float?, FloatOperationFilterInputType>()
-               .BindRuntimeType<double, FloatOperationFilterInputType>()
-               .BindRuntimeType<double?, FloatOperationFilterInputType>()
-               .BindRuntimeType<decimal, DecimalOperationFilterInputType>()
-               .BindRuntimeType<decimal?, DecimalOperationFilterInputType>()
-               .BindRuntimeType<Guid, UuidOperationFilterInputType>()
-               .BindRuntimeType<Guid?, UuidOperationFilterInputType>()
-               .BindRuntimeType<DateTime, DateTimeOperationFilterInputType>()
-               .BindRuntimeType<DateTime?, DateTimeOperationFilterInputType>()
-               .BindRuntimeType<DateTimeOffset, DateTimeOperationFilterInputType>()
-               .BindRuntimeType<DateTimeOffset?, DateTimeOperationFilterInputType>()
+                .BindRuntimeType<string, StringOperationFilterInputType>()
+                .BindRuntimeType<bool, BooleanOperationFilterInputType>()
+                .BindRuntimeType<bool?, BooleanOperationFilterInputType>()
+                .BindRuntimeType<byte, ByteOperationFilterInputType>()
+                .BindRuntimeType<byte?, ByteOperationFilterInputType>()
+                .BindRuntimeType<sbyte, ByteOperationFilterInputType>()
+                .BindRuntimeType<sbyte?, ByteOperationFilterInputType>()
+                .BindRuntimeType<short, ShortOperationFilterInputType>()
+                .BindRuntimeType<short?, ShortOperationFilterInputType>()
+                .BindRuntimeType<int, IntOperationFilterInputType>()
+                .BindRuntimeType<int?, IntOperationFilterInputType>()
+                .BindRuntimeType<long, LongOperationFilterInputType>()
+                .BindRuntimeType<long?, LongOperationFilterInputType>()
+                .BindRuntimeType<float, FloatOperationFilterInputType>()
+                .BindRuntimeType<float?, FloatOperationFilterInputType>()
+                .BindRuntimeType<double, FloatOperationFilterInputType>()
+                .BindRuntimeType<double?, FloatOperationFilterInputType>()
+                .BindRuntimeType<decimal, DecimalOperationFilterInputType>()
+                .BindRuntimeType<decimal?, DecimalOperationFilterInputType>()
+                .BindRuntimeType<Guid, UuidOperationFilterInputType>()
+                .BindRuntimeType<Guid?, UuidOperationFilterInputType>()
+                .BindRuntimeType<DateTime, DateTimeOperationFilterInputType>()
+                .BindRuntimeType<DateTime?, DateTimeOperationFilterInputType>()
+                .BindRuntimeType<DateTimeOffset, DateTimeOperationFilterInputType>()
+                .BindRuntimeType<DateTimeOffset?, DateTimeOperationFilterInputType>()
 #if NET6_0_OR_GREATER
                .BindRuntimeType<DateOnly, DateOperationFilterInputType>()
                .BindRuntimeType<DateOnly?, DateOperationFilterInputType>()
                .BindRuntimeType<TimeOnly, TimeSpanOperationFilterInputType>()
                .BindRuntimeType<TimeOnly?, TimeSpanOperationFilterInputType>()
 #endif
-               .BindRuntimeType<TimeSpan, TimeSpanOperationFilterInputType>()
-               .BindRuntimeType<TimeSpan?, TimeSpanOperationFilterInputType>()
-               .BindRuntimeType<Uri, UrlOperationFilterInputType>()
-               .BindRuntimeType<Uri?, UrlOperationFilterInputType>();
+                .BindRuntimeType<TimeSpan, TimeSpanOperationFilterInputType>()
+                .BindRuntimeType<TimeSpan?, TimeSpanOperationFilterInputType>()
+                .BindRuntimeType<Uri, UrlOperationFilterInputType>()
+                .BindRuntimeType<Uri?, UrlOperationFilterInputType>();
         }
     }
 

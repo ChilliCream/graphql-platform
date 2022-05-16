@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -206,16 +204,14 @@ public class FilterInputType
                 }
             ));
 
-        /// <summary>
-        /// Creates the configuration for the naming process of the inline filter types.
-        /// It uses the parent type name and the name of the field on which the new is applied,
-        /// to create a new typename
-        /// <example>
-        /// ParentTypeName: AuthorFilterInputType
-        /// Field: friends
-        /// Result: AuthorFriendsFilterInputType
-        /// </example>
-        /// </summary>
+        // Creates the configuration for the naming process of the inline filter types.
+        // It uses the parent type name and the name of the field on which the new is applied,
+        // to create a new typename
+        //
+        // ParentTypeName: AuthorFilterInputType
+        // Field: friends
+        // Result: AuthorFriendsFilterInputType
+        //
         void CreateNamingConfiguration(
             ITypeCompletionContext context,
             FilterInputTypeDefinition definition)
@@ -230,17 +226,14 @@ public class FilterInputType
             definition.Name = convention.GetTypeName(parentFilterType, fieldDefinition);
         }
 
-        /// <summary>
-        /// This configuration copies over the operations of the actual operation filter input to
-        /// the new one with the subset of the operations
-        /// </summary>
+        //
+        // This configuration copies over the operations of the actual operation filter input to
+        // the new one with the subset of the operations
+        //
         void CreateOperationFieldConfiguration(
             ITypeCompletionContext context,
             FilterInputTypeDefinition definition)
         {
-            IFilterInputType sourceType =
-                context.GetType<IFilterInputType>(filterOperationType);
-
             // the handlers of the operations are attached to the original type. We have
             // to copy them to the stripped down type
             foreach (var userDefinedField in
@@ -270,7 +263,7 @@ public class FilterInputType
                         parentType));
             }
 
-            /// we copy over the entity type of the type source.
+            // we copy over the entity type of the type source.
             definition.EntityType = sourceTypeDefinition.EntityType;
         }
     }

@@ -858,4 +858,10 @@ Type: `{0}`</value>
   <data name="ResolverContextExtensions_ContextData_KeyNotFound" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ContextData`</value>
   </data>
+  <data name="SchemaTypes_GetType_DoesNotExist" xml:space="preserve">
+    <value>The specified type `{0}` does not exist or is not of the specified kind `{1}`.</value>
+  </data>
+  <data name="SchemaTypes_DefinitionInvalid" xml:space="preserve">
+    <value>The schema types definition is in an invalid state.</value>
+  </data>
 </root>
