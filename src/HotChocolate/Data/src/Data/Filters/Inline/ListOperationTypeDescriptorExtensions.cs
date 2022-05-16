@@ -11,6 +11,7 @@ public static class ListOperationTypeDescriptorExtensions
     /// <summary>
     /// Allows the operation `All` on the type
     /// </summary>
+    /// <param name="descriptor">The descriptor</param>
     /// <param name="configure">The configuration of the type of the field</param>
     public static IFilterOperationFieldDescriptor AllowAll<T>(
         this IListOperationTypeDescriptor<T> descriptor,
@@ -24,6 +25,7 @@ public static class ListOperationTypeDescriptorExtensions
     /// <summary>
     /// Allows the operation `Some` on the type
     /// </summary>
+    /// <param name="descriptor">The descriptor</param>
     /// <param name="configure">The configuration of the type of the field</param>
     public static IFilterOperationFieldDescriptor AllowSome<T>(
         this IListOperationTypeDescriptor<T> descriptor,
@@ -37,6 +39,7 @@ public static class ListOperationTypeDescriptorExtensions
     /// <summary>
     /// Allows the operation `None` on the type
     /// </summary>
+    /// <param name="descriptor">The descriptor</param>
     /// <param name="configure">The configuration of the type of the field</param>
     public static IFilterOperationFieldDescriptor AllowNone<T>(
         this IListOperationTypeDescriptor<T> descriptor,
@@ -50,7 +53,7 @@ public static class ListOperationTypeDescriptorExtensions
     /// <summary>
     /// Allows the operation `Any` on the type
     /// </summary>
-    /// <param name="configure">The configuration of the type of the field</param>
+    /// <param name="descriptor">The descriptor</param>
     public static IFilterOperationFieldDescriptor AllowAny<T>(
         this IListOperationTypeDescriptor<T> descriptor)
         => descriptor.Operation(DefaultFilterOperations.Any);
@@ -70,11 +73,10 @@ public static class ListOperationTypeDescriptorExtensions
             IDescriptorContext context,
             string? scope)
         {
-            FilterInputTypeDescriptor<T> descriptor =
-                FilterInputTypeDescriptor.Inline<T>(context, typeof(T), scope);
+            var d = FilterInputTypeDescriptor.Inline<T>(context, typeof(T), scope);
 
-            configure(descriptor);
-            return descriptor.CreateDefinition();
+            configure(d);
+            return d.CreateDefinition();
         }
     }
 }
