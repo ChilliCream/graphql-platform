@@ -389,6 +389,21 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task Payload_Result_Field_Type_As_String()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithStringTypename>()
+            .AddMutationConventions()
+            .AddType<User>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task Allow_Id_Middleware()
     {
         Snapshot.FullName();
@@ -567,6 +582,15 @@ public class AnnotationBasedMutations
     public class MutationWithInputPayload
     {
         public User? DoSomething(int userId)
+        {
+            return null;
+        }
+    }
+
+    public class MutationWithStringTypename
+    {
+        [GraphQLType("User!")]
+        public User? MutateUser()
         {
             return null;
         }

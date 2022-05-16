@@ -36,7 +36,7 @@ Check the attribute `[Input(TypeName= "{2}")]` or the method `.Input(typeName: "
     <value>Could not find the InputAttribute</value>
   </data>
   <data name="ThrowHelper_CannotResolvePayloadType" xml:space="preserve">
-    <value>Cannot Resolve PayLoad Type</value>
+    <value>Cannot Resolve Payload Type</value>
   </data>
   <data name="ThrowHelper_NonMutationFields" xml:space="preserve">
     <value>There are mutation annotations on non mutation fields. The mutation conventions can only be applied to fields of the mutation type.</value>
