@@ -14,7 +14,6 @@ namespace HotChocolate.Configuration;
 internal sealed partial class RegisteredType : ITypeCompletionContext
 {
     private TypeReferenceResolver? _typeReferenceResolver;
-    private Func<ISchema>? _schemaResolver;
 
     public TypeStatus Status { get; set; } = TypeStatus.Initialized;
 
@@ -43,12 +42,10 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
 
     public void PrepareForCompletion(
         TypeReferenceResolver typeReferenceResolver,
-        Func<ISchema> schemaResolver,
         List<FieldMiddleware> globalComponents,
         IsOfTypeFallback? isOfType)
     {
         _typeReferenceResolver = typeReferenceResolver;
-        _schemaResolver = schemaResolver;
         GlobalComponents = globalComponents;
         IsOfType = isOfType;
     }
@@ -128,21 +125,5 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
         }
 
         return _typeReferenceResolver.TryGetDirectiveType(directiveRef, out directiveType);
-    }
-
-    /// <inheritdoc />
-    public Func<ISchema> GetSchemaResolver()
-    {
-        if (_schemaResolver is null)
-        {
-            throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
-        }
-
-        if (Status == TypeStatus.Initialized)
-        {
-            throw new NotSupportedException();
-        }
-
-        return _schemaResolver;
     }
 }
