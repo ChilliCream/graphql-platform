@@ -1,6 +1,8 @@
+using HotChocolate.Execution.Processing.Pooling;
+
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class ResultHelper
+internal sealed partial class ResultBuilder
 {
     public void Clear()
     {

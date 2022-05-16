@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Immutable;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 

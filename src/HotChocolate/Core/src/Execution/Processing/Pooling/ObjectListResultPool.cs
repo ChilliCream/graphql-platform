@@ -4,7 +4,7 @@ namespace HotChocolate.Execution.Processing.Pooling;
 
 internal sealed class ObjectListResultPool : DefaultObjectPool<ResultBucket<ObjectListResult>>
 {
-    public ObjectListResultPool(int maximumRetained, int maxAllowedCapacity = 256)
+    public ObjectListResultPool(int maximumRetained, int maxAllowedCapacity)
         : base(new BufferPolicy(maxAllowedCapacity), maximumRetained)
     {
     }

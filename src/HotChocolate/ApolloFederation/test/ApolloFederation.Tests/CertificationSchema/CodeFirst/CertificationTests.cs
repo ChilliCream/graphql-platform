@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -32,8 +32,8 @@ public class CertificationTests
             }");
 
         // assert
-        Assert.IsType<ResultMap>(
-            Assert.IsType<ResultMap>(
+        Assert.IsType<ObjectResult>(
+            Assert.IsType<ObjectResult>(
                 Assert.IsType<QueryResult>(result).Data)
                     .GetValueOrDefault("_service"))
                         .GetValueOrDefault("sdl")

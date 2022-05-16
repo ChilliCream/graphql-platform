@@ -10,7 +10,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class ResultHelper
+internal sealed partial class ResultBuilder
 {
     private readonly ResultPool _resultPool;
     private readonly object _objectSync = new();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Pooling;
 using static HotChocolate.Execution.Instrumentation.ApolloTracingResultKeys;
 
 namespace HotChocolate.Execution.Instrumentation;
@@ -9,13 +10,12 @@ internal class ApolloTracingResultBuilder
 {
     private const int _apolloTracingVersion = 1;
     private const long _ticksToNanosecondsMultiplicator = 100;
-    private readonly ConcurrentQueue<ApolloTracingResolverRecord> _resolverRecords =
-        new ConcurrentQueue<ApolloTracingResolverRecord>();
+    private readonly ConcurrentQueue<ApolloTracingResolverRecord> _resolverRecords = new();
     private TimeSpan _duration;
-    private ResultMap? _parsingResult;
+    private ObjectResult? _parsingResult;
     private DateTimeOffset _startTime;
     private long _startTimestamp;
-    private ResultMap? _validationResult;
+    private ObjectResult? _validationResult;
 
     public void SetRequestStartTime(
         DateTimeOffset startTime,
@@ -27,18 +27,18 @@ internal class ApolloTracingResultBuilder
 
     public void SetParsingResult(long startTimestamp, long endTimestamp)
     {
-        _parsingResult = new ResultMap();
+        _parsingResult = new ObjectResult();
         _parsingResult.EnsureCapacity(2);
-        _parsingResult.SetValue(0, StartOffset, startTimestamp - _startTimestamp);
-        _parsingResult.SetValue(1, Duration, endTimestamp - startTimestamp);
+        _parsingResult.SetValueUnsafe(0, StartOffset, startTimestamp - _startTimestamp);
+        _parsingResult.SetValueUnsafe(1, Duration, endTimestamp - startTimestamp);
     }
 
     public void SetValidationResult(long startTimestamp, long endTimestamp)
     {
-        _validationResult = new ResultMap();
+        _validationResult = new ObjectResult();
         _validationResult.EnsureCapacity(2);
-        _validationResult.SetValue(0, StartOffset, startTimestamp - _startTimestamp);
-        _validationResult.SetValue(1, Duration, endTimestamp - startTimestamp);
+        _validationResult.SetValueUnsafe(0, StartOffset, startTimestamp - _startTimestamp);
+        _validationResult.SetValueUnsafe(1, Duration, endTimestamp - startTimestamp);
     }
 
     public void AddResolverResult(ApolloTracingResolverRecord record)
@@ -51,7 +51,7 @@ internal class ApolloTracingResultBuilder
         _duration = duration;
     }
 
-    public IResultMap Build()
+    public ObjectResult Build()
     {
         if (_parsingResult is null)
         {
@@ -67,37 +67,37 @@ internal class ApolloTracingResultBuilder
             SetValidationResult(_startTimestamp, _startTimestamp);
         }
 
-        var executionResult = new ResultMap();
+        var executionResult = new ObjectResult();
         executionResult.EnsureCapacity(1);
-        executionResult.SetValue(0, ApolloTracingResultKeys.Resolvers, BuildResolverResults());
+        executionResult.SetValueUnsafe(0, ApolloTracingResultKeys.Resolvers, BuildResolverResults());
 
-        var result = new ResultMap();
+        var result = new ObjectResult();
         result.EnsureCapacity(7);
-        result.SetValue(0, ApolloTracingResultKeys.Version, _apolloTracingVersion);
-        result.SetValue(1, StartTime, _startTime.ToRfc3339DateTimeString());
-        result.SetValue(2, EndTime, _startTime.Add(_duration).ToRfc3339DateTimeString());
-        result.SetValue(3, Duration, _duration.Ticks * _ticksToNanosecondsMultiplicator);
-        result.SetValue(4, Parsing, _parsingResult);
-        result.SetValue(5, ApolloTracingResultKeys.Validation, _validationResult);
-        result.SetValue(6, ApolloTracingResultKeys.Execution, executionResult);
+        result.SetValueUnsafe(0, ApolloTracingResultKeys.Version, _apolloTracingVersion);
+        result.SetValueUnsafe(1, StartTime, _startTime.ToRfc3339DateTimeString());
+        result.SetValueUnsafe(2, EndTime, _startTime.Add(_duration).ToRfc3339DateTimeString());
+        result.SetValueUnsafe(3, Duration, _duration.Ticks * _ticksToNanosecondsMultiplicator);
+        result.SetValueUnsafe(4, Parsing, _parsingResult);
+        result.SetValueUnsafe(5, ApolloTracingResultKeys.Validation, _validationResult);
+        result.SetValueUnsafe(6, ApolloTracingResultKeys.Execution, executionResult);
         return result;
     }
 
-    private ResultMap[] BuildResolverResults()
+    private ObjectResult[] BuildResolverResults()
     {
         var i = 0;
-        var results = new ResultMap[_resolverRecords.Count];
+        var results = new ObjectResult[_resolverRecords.Count];
 
         foreach (ApolloTracingResolverRecord record in _resolverRecords)
         {
-            var result = new ResultMap();
+            var result = new ObjectResult();
             result.EnsureCapacity(6);
-            result.SetValue(0, ApolloTracingResultKeys.Path, record.Path);
-            result.SetValue(1, ParentType, record.ParentType);
-            result.SetValue(2, FieldName, record.FieldName);
-            result.SetValue(3, ReturnType, record.ReturnType);
-            result.SetValue(4, StartOffset, record.StartTimestamp - _startTimestamp);
-            result.SetValue(5, Duration, record.EndTimestamp - record.StartTimestamp);
+            result.SetValueUnsafe(0, ApolloTracingResultKeys.Path, record.Path);
+            result.SetValueUnsafe(1, ParentType, record.ParentType);
+            result.SetValueUnsafe(2, FieldName, record.FieldName);
+            result.SetValueUnsafe(3, ReturnType, record.ReturnType);
+            result.SetValueUnsafe(4, StartOffset, record.StartTimestamp - _startTimestamp);
+            result.SetValueUnsafe(5, Duration, record.EndTimestamp - record.StartTimestamp);
             results[i++] = result;
         }
 

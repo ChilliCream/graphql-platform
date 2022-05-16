@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Pooling;
 
 namespace HotChocolate.Execution;
 

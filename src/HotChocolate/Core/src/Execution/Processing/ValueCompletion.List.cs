@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
@@ -273,7 +274,7 @@ internal static partial class ValueCompletion
 
                 if (isElementList)
                 {
-                    ((IHasResultDataParent)completedElement).Parent = listResult;
+                    ((ResultData)completedElement).Parent = listResult;
                 }
             }
             else if (listResult.IsNullable)

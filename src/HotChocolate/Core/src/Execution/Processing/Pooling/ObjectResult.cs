@@ -1,26 +1,31 @@
 using System;
-using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace HotChocolate.Execution;
+namespace HotChocolate.Execution.Processing.Pooling;
 
 /// <summary>
 /// Represents an optimized object result that is used by the execution engine
 /// to store completed values.
 /// </summary>
 public sealed class ObjectResult
-    : IResultData
+    : ResultData
     , IReadOnlyDictionary<string, object?>
     , IEnumerable<ObjectFieldResult>
 {
-    private ObjectFieldResult[] _buffer = { new(), new(), new(), new() };
+    private ObjectFieldResult[] _buffer;
     private int _capacity;
 
-    /// <inheritdoc cref="IResultData.Parent"/>
-    public IResultData? Parent { get; internal set; }
+    public ObjectResult()
+        => _buffer = new[]
+        {
+            new ObjectFieldResult { Parent = this },
+            new ObjectFieldResult { Parent = this },
+            new ObjectFieldResult { Parent = this },
+            new ObjectFieldResult { Parent = this },
+        };
 
     /// <summary>
     /// Gets the capacity of this object result.
@@ -133,7 +138,8 @@ public sealed class ObjectResult
 
             for (var i = oldCapacity; i < _buffer.Length; i++)
             {
-                _buffer[i] = new();
+                var field = new ObjectFieldResult { Parent = this };
+                _buffer[i] = field;
             }
         }
 
@@ -269,14 +275,11 @@ public sealed class ObjectListResult : ListResultBase<ObjectResult>
 {
 }
 
-public abstract class ListResultBase<T> : IResultData, IReadOnlyList<T?>
+public abstract class ListResultBase<T> : ResultData, IReadOnlyList<T?>
 {
     private T?[] _buffer = new T?[4];
     private int _capacity;
     private int _count;
-
-    /// <inheritdoc cref="IResultData.Parent"/>
-    public IResultData? Parent { get; internal set; }
 
     public int Capacity => _capacity;
 

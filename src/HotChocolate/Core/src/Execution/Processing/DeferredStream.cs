@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing;

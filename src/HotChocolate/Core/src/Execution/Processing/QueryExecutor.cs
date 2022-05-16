@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Pooling;
 using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing;

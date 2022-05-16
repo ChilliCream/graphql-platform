@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -296,7 +297,7 @@ internal static class ResolverTaskFactory
                 bufferedTasks,
                 out completedValue) &&
                 elementType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
-                completedValue is IHasResultDataParent result)
+                completedValue is ResultData result)
             {
                 result.Parent = objectResult;
             }

@@ -14,7 +14,7 @@ internal sealed partial class OperationContext
     private readonly ConcurrentBag<Action> _cleanupActions = new();
     private readonly ObjectPool<ResolverTask> _resolverTaskPool;
     private readonly WorkScheduler _workScheduler;
-    private readonly ResultHelper _resultHelper;
+    private readonly ResultBuilder _resultBuilder;
     private IRequestContext _requestContext = default!;
     private IPreparedOperation _operation = default!;
     private QueryPlan _queryPlan = default!;
@@ -30,7 +30,7 @@ internal sealed partial class OperationContext
     {
         _resolverTaskPool = resolverTaskPool;
         _workScheduler = new WorkScheduler(this);
-        _resultHelper = new ResultHelper(resultPool);
+        _resultBuilder = new ResultBuilder(resultPool);
     }
 
     public bool IsInitialized => _isInitialized;
@@ -70,7 +70,7 @@ internal sealed partial class OperationContext
             }
 
             _workScheduler.Clear();
-            _resultHelper.Clear();
+            _resultBuilder.Clear();
             _requestContext = default!;
             _operation = default!;
             _queryPlan = default!;

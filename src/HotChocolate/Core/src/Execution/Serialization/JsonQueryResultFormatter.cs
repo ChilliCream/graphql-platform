@@ -9,6 +9,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.JsonConstants;
 

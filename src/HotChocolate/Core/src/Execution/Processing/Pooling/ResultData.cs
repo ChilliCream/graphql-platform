@@ -1,14 +1,14 @@
 #nullable enable
 
-namespace HotChocolate.Execution;
+namespace HotChocolate.Execution.Processing.Pooling;
 
 /// <summary>
 /// Represents a result data object like an object or list.
 /// </summary>
-public interface IResultData
+public class ResultData
 {
     /// <summary>
     /// Gets the parent result data object.
     /// </summary>
-    IResultData? Parent { get; }
+    internal virtual ResultData? Parent { get; set; }
 }

@@ -48,9 +48,9 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton(
             _ => new ObjectResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton(
-            _ => new ObjectListResult(maximumRetained, maximumArrayCapacity));
+            _ => new ObjectListResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton(
-            _ => new ListResult(maximumRetained, maximumArrayCapacity));
+            _ => new ListResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton<ResultPool>();
         return services;
     }

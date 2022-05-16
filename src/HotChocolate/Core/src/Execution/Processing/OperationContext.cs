@@ -61,12 +61,12 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
-    public ResultHelper Result
+    public ResultBuilder Result
     {
         get
         {
             AssertInitialized();
-            return _resultHelper;
+            return _resultBuilder;
         }
     }
 

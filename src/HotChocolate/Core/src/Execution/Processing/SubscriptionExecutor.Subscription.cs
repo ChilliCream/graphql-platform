@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

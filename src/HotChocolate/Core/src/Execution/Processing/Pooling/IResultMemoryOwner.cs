@@ -1,8 +1,8 @@
-using System;
-
 #nullable enable
 
-namespace HotChocolate.Execution;
+using System;
+
+namespace HotChocolate.Execution.Processing.Pooling;
 
 /// <summary>
 /// This interface represents the owner of the rented objects associated
@@ -16,5 +16,5 @@ public interface IResultMemoryOwner : IDisposable
     /// <summary>
     /// The data object structure representing the GraphQL result.
     /// </summary>
-    IResultMap? Data { get; }
+    ObjectResult? Data { get; }
 }

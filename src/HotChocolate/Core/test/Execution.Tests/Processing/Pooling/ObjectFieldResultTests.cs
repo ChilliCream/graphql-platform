@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace HotChocolate.Execution;
+namespace HotChocolate.Execution.Processing.Pooling;
 
 public class ObjectFieldResultTests
 {

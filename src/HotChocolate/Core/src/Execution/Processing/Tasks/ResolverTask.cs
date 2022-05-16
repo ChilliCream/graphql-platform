@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing.Pooling;
 using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
 
@@ -112,7 +113,7 @@ internal sealed partial class ResolverTask : IExecutionTask
                     _taskBuffer,
                     out completedValue) &&
                     _selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
-                    completedValue is IHasResultDataParent result)
+                    completedValue is ResultData result)
                 {
                     result.Parent = _resolverContext.ObjectResult;
                 }

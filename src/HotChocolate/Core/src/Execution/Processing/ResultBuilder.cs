@@ -8,14 +8,14 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class ResultHelper
+internal sealed partial class ResultBuilder
 {
     private readonly object _syncErrors = new();
-    private readonly object _syncExtensions = new();
-
     private readonly List<IError> _errors = new();
     private readonly HashSet<FieldNode> _fieldErrors = new();
     private readonly List<NonNullViolation> _nonNullViolations = new();
+
+    private readonly object _syncExtensions = new();
     private readonly Dictionary<string, object?> _extensions = new();
     private readonly Dictionary<string, object?> _contextData = new();
     private ResultMemoryOwner _resultOwner;
@@ -24,7 +24,7 @@ internal sealed partial class ResultHelper
     private string? _label;
     private bool? _hasNext;
 
-    public ResultHelper(ResultPool resultPool)
+    public ResultBuilder(ResultPool resultPool)
     {
         _resultPool = resultPool;
         _resultOwner = new ResultMemoryOwner(resultPool);
@@ -33,9 +33,7 @@ internal sealed partial class ResultHelper
     public IReadOnlyList<IError> Errors => _errors;
 
     public void SetData(ObjectResult data)
-    {
-        _data = data;
-    }
+        => _data = data;
 
     public void SetExtension(string key, object? value)
     {
@@ -54,19 +52,13 @@ internal sealed partial class ResultHelper
     }
 
     public void SetPath(Path? path)
-    {
-        _path = path;
-    }
+        => _path = path;
 
     public void SetLabel(string? label)
-    {
-        _label = label;
-    }
+        => _label = label;
 
     public void SetHasNext(bool value)
-    {
-        _hasNext = value;
-    }
+        => _hasNext = value;
 
     public void AddError(IError error, FieldNode? selection = null)
     {
@@ -94,76 +86,20 @@ internal sealed partial class ResultHelper
     }
 
     public void AddNonNullViolation(FieldNode selection, Path path, ObjectResult parent)
-        => _nonNullViolations.Add(new NonNullViolation(selection, path, parent));
+    {
+        lock (_syncErrors)
+        {
+            _nonNullViolations.Add(new NonNullViolation(selection, path, parent));
+        }
+    }
 
     public IQueryResult BuildResult()
     {
-        while (_data != null && _nonNullViolations.TryPop(out NonNullViolation violation))
+        if (!ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors))
         {
-            Path? path = violation.Path;
-            IResultData? parent = violation.Parent;
-
-            if (!_fieldErrors.Contains(violation.Selection))
-            {
-                _errors.Add(ErrorHelper.NonNullOutputFieldViolation(path, violation.Selection));
-            }
-
-            while (parent != null)
-            {
-                if (parent is ResultMap map && path is NamePathSegment nameSegment)
-                {
-                    ResultValue value = map.GetValue(nameSegment.Name.Value, out var index);
-
-                    if (value.IsNullable)
-                    {
-                        map.SetValue(index, value.Name, value: null, isNullable: true);
-                        break;
-                    }
-
-                    if (index != -1)
-                    {
-                        map.RemoveValue(index);
-                    }
-
-                    path = path.Parent;
-                    parent = parent.Parent;
-
-                    if (parent is null)
-                    {
-                        _data = null;
-                        _resultOwner.Dispose();
-                        break;
-                    }
-                }
-                else if (parent is ResultMapList mapList &&
-                    path is IndexerPathSegment mapListIndexSegment)
-                {
-                    if (mapList.IsNullable)
-                    {
-                        mapList[mapListIndexSegment.Index] = null;
-                        break;
-                    }
-
-                    path = path.Parent;
-                    parent = parent.Parent;
-                }
-                else if (parent is ResultList list &&
-                    path is IndexerPathSegment listIndexSegment)
-                {
-                    if (list.IsNullable)
-                    {
-                        list[listIndexSegment.Index] = null;
-                        break;
-                    }
-
-                    path = path.Parent;
-                    parent = parent.Parent;
-                }
-                else
-                {
-                    break;
-                }
-            }
+            // The non-null violation cased the whole result being deleted.
+            _data = null;
+            _resultOwner.Dispose();
         }
 
         if (_data is null && _errors.Count == 0 && _hasNext is not false)
@@ -209,18 +145,6 @@ internal sealed partial class ResultHelper
     }
 
     public void DropResult() => _resultOwner.Dispose();
-
-    private readonly struct NonNullViolation
-    {
-        public NonNullViolation(FieldNode selection, Path path, ObjectResult parent)
-        {
-            Selection = selection;
-            Path = path;
-            Parent = parent;
-        }
-
-        public FieldNode Selection { get; }
-        public Path Path { get; }
-        public ObjectResult Parent { get; }
-    }
 }
+
+
