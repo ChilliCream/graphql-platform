@@ -21,16 +21,12 @@ public sealed class ObjectFieldResult
 
         if (isNullable)
         {
-            _flags &= Flags.Nullable;
+
+            _flags = Flags.Nullable | Flags.Initialized;
         }
         else
         {
-            _flags &= ~Flags.Nullable;
-        }
-
-        if (!IsInitialized)
-        {
-            _flags &= Flags.Initialized;
+            _flags = Flags.Initialized;
         }
     }
 

@@ -16,8 +16,23 @@ public sealed class ObjectResult
 
     public IResultData? Parent { get; internal set; }
 
-    public ReadOnlySpan<ObjectFieldResult> AsSpan()
-        => _buffer.AsSpan().Slice(0, _capacity);
+    public int Capacity => _capacity;
+
+    public ObjectFieldResult this[int index]
+    {
+        get
+        {
+            if (index > 0 && index < _capacity)
+            {
+                return _buffer[index];
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+    }
+
+    internal ref ObjectFieldResult GetReference()
+        => ref MemoryMarshal.GetReference(_buffer.AsSpan());
 
     internal void SetValueUnsafe(int index, string name, object? value, bool isNullable = true)
         => _buffer[index].Set(name, value, isNullable);

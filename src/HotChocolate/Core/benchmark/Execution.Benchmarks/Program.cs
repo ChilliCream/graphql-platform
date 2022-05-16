@@ -8,14 +8,16 @@ namespace HotChocolate.Execution.Benchmarks
     class Program
     {
         static void Main(string[] args)
-        /*
+/*
         {
-            var bench = new ResultDataBenchmarks();
+            var bench = new ResultDataReadBenchmarks();
 
-            for (int i = 0; i < 1000; i++)
+            for (var i = 0; i < 1000; i++)
             {
                 Console.WriteLine(i);
-                bench.Create_And_Fill_ResultMap_2_Init();
+                bench.Size = 8;
+                bench.Init();
+                bench.ObjectResult_Optimized_Read();
             }
         }
         */

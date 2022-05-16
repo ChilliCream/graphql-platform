@@ -6,7 +6,8 @@ namespace HotChocolate.Execution.Benchmarks;
 [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
 public class ResultDataBenchmarks
 {
-    private readonly string[] _data = new string[256];
+    private readonly string[] _keys = new string[256];
+    private readonly object _value = new();
     private readonly ResultMap _resultMap = new();
     private readonly ResultMap _resultMapExpanded = new();
     private readonly ObjectResult _objectResult = new();
@@ -14,9 +15,9 @@ public class ResultDataBenchmarks
 
     public ResultDataBenchmarks ()
     {
-        for (var i = 0; i < _data.Length; i++)
+        for (var i = 0; i < _keys.Length; i++)
         {
-            _data[i] = i.ToString();
+            _keys[i] = i.ToString();
         }
 
         _resultMapExpanded.EnsureCapacity(256);
@@ -33,7 +34,7 @@ public class ResultDataBenchmarks
 
         for (var i = 0; i < Size; i++)
         {
-            _resultMap.SetValue(i, _data[i], i);
+            _resultMap.SetValue(i, _keys[i], _value);
         }
 
         _resultMap.Clear();
@@ -46,7 +47,7 @@ public class ResultDataBenchmarks
 
         for (var i = 0; i < Size; i++)
         {
-            _resultMapExpanded.SetValue(i, _data[i], i);
+            _resultMapExpanded.SetValue(i, _keys[i], _value);
         }
 
         _resultMapExpanded.Clear();
@@ -59,7 +60,7 @@ public class ResultDataBenchmarks
 
         for (var i = 0; i < Size; i++)
         {
-            _objectResult.SetValueUnsafe(i, _data[i], i);
+            _objectResult.SetValueUnsafe(i, _keys[i], _value);
         }
 
         _objectResult.Reset();
@@ -72,7 +73,7 @@ public class ResultDataBenchmarks
 
         for (var i = 0; i < Size; i++)
         {
-            _objectResultExpanded.SetValueUnsafe(i, _data[i], i);
+            _objectResultExpanded.SetValueUnsafe(i, _keys[i], _value);
         }
 
         _objectResultExpanded.Reset();
