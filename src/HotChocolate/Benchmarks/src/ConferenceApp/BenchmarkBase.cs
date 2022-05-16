@@ -101,7 +101,7 @@ namespace HotChocolate.ConferencePlanner
             IRequestExecutor executor = await ExecutorResolver.GetRequestExecutorAsync();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
-            if (result.Errors is { Count: > 0 })
+            if (result is IQueryResult cr && cr.Errors is { Count: > 0 })
             {
                 throw new InvalidOperationException("The request failed.");
             }
