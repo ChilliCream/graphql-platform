@@ -2,8 +2,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class ResultMapPool
-    : DefaultObjectPool<ResultObjectBuffer<ResultMap>>
+internal sealed class ResultMapPool : DefaultObjectPool<ResultObjectBuffer<ResultMap>>
 {
     public ResultMapPool(int maximumRetained)
         : base(new BufferPolicy(), maximumRetained)
