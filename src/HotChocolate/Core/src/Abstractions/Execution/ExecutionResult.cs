@@ -14,7 +14,6 @@ public abstract class ExecutionResult : IExecutionResult
 
     protected ExecutionResult()
     {
-
     }
 
     protected ExecutionResult(Func<ValueTask>[] cleanupTasks)
@@ -62,6 +61,7 @@ public abstract class ExecutionResult : IExecutionResult
                 await _cleanupTasks[i].Invoke();
             }
 
+            _cleanupTasks = Array.Empty<Func<ValueTask>>();
             _disposed = true;
         }
     }
