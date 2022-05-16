@@ -10,7 +10,7 @@ public class FilterVisitorTestBase
     {
         convention ??=
             new FilterConvention(
-               x => x.AddDefaults().AddCaseInsensitiveContains().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
+               x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
 
         ISchemaBuilder builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)

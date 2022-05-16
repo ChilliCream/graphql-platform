@@ -124,7 +124,12 @@ public class QueryableFilterVisitorStringTests
         // arrange
         IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { icontains:\"A\" }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+
+        var filterConvention =
+            new FilterConvention(
+               x => x.AddDefaults().AddCaseInsensitiveContains());
+
+        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput(), filterConvention);
 
         // act
         Func<Foo, bool>? func = tester.Build<Foo>(value);

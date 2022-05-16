@@ -7,7 +7,6 @@ public static class DefaultFilterOperations
 
     public const int Contains = 2;
     public const int NotContains = 3;
-    public const int CaseInsensitiveContains = 2103;
 
     public const int In = 4;
     public const int NotIn = 5;

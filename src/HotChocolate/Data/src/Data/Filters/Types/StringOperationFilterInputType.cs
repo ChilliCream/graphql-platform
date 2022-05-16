@@ -16,6 +16,5 @@ public class StringOperationFilterInputType : FilterInputType
         descriptor.Operation(DefaultFilterOperations.NotStartsWith).Type<StringType>();
         descriptor.Operation(DefaultFilterOperations.EndsWith).Type<StringType>();
         descriptor.Operation(DefaultFilterOperations.NotEndsWith).Type<StringType>();
-        descriptor.Operation(DefaultFilterOperations.CaseInsensitiveContains).Type<StringType>();
     }
 }

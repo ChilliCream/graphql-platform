@@ -176,10 +176,10 @@ public static class FilterConventionDescriptorExtensions
     {
         descriptor
             .Configure<StringOperationFilterInputType>(
-                x => x.Operation(DefaultFilterOperations.CaseInsensitiveContains).Type<StringType>());
+                x => x.Operation(ExtendedFilterOperations.CaseInsensitiveContains).Type<StringType>());
 
         descriptor
-            .Operation(DefaultFilterOperations.CaseInsensitiveContains)
+            .Operation(ExtendedFilterOperations.CaseInsensitiveContains)
             .Name("icontains")
             .Description("Contains ignoring case");
 
