@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,13 +24,11 @@ using HotChocolate.ConferencePlanner.Sessions;
 using HotChocolate.ConferencePlanner.Speakers;
 using HotChocolate.ConferencePlanner.Tracks;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Newtonsoft.Json;
 
 namespace HotChocolate.ConferencePlanner
 {
@@ -106,9 +102,9 @@ namespace HotChocolate.ConferencePlanner
                 throw new InvalidOperationException("The request failed.");
             }
 
-            if (result is IDisposable d)
+            if (result is IAsyncDisposable d)
             {
-                d.Dispose();
+                await d.DisposeAsync();
             }
         }
 
