@@ -15,8 +15,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 public static class Program
 {
-    static async Task Main(string[] args) => await Run().ConfigureAwait(false);
-    // static void Main(string[] args) => BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+    // static async Task Main(string[] args) => await Run().ConfigureAwait(false);
+    static void Main(string[] args) => BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
     private static async Task Run()
     {
