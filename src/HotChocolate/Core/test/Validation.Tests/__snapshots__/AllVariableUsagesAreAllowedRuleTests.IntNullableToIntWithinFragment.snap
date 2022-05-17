@@ -3,13 +3,19 @@
     "Message": "The variable `intArg` is not compatible with the type of the current location.",
     "Code": null,
     "Path": {
+      "Name": "nonNullIntArgField",
       "Parent": {
-        "Parent": null,
+        "Name": "arguments",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
         "Depth": 0,
-        "Name": "arguments"
+        "IsRoot": false
       },
       "Depth": 1,
-      "Name": "nonNullIntArgField"
+      "IsRoot": false
     },
     "Locations": [
       {

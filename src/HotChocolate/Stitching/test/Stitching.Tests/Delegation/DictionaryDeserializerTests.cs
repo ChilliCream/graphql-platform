@@ -19,7 +19,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -45,7 +45,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -71,7 +71,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -99,7 +99,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -125,7 +125,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -151,7 +151,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -179,7 +179,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -207,7 +207,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -241,7 +241,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -272,7 +272,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -303,7 +303,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -334,7 +334,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -368,7 +368,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -406,7 +406,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -440,7 +440,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -479,7 +479,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -513,7 +513,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -544,7 +544,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -575,7 +575,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -609,7 +609,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -644,7 +644,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()
@@ -678,7 +678,7 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
         ISchema schema =
             await new ServiceCollection()

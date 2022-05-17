@@ -3,13 +3,19 @@
     "Message": "There can be only one input field named `f2`.",
     "Code": null,
     "Path": {
+      "Name": "complexArgField",
       "Parent": {
-        "Parent": null,
+        "Name": "arguments",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
         "Depth": 0,
-        "Name": "arguments"
+        "IsRoot": false
       },
       "Depth": 1,
-      "Name": "complexArgField"
+      "IsRoot": false
     },
     "Locations": [
       {

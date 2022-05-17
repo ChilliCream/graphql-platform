@@ -3,29 +3,16 @@
 namespace HotChocolate;
 
 /// <summary>
-/// An <see cref="IndexerPathSegment" /> represents a pointer to 
+/// An <see cref="IndexerPathSegment" /> represents a pointer to
 /// an list element in the result structure.
 /// </summary>
 public sealed class IndexerPathSegment : Path
 {
-    internal IndexerPathSegment(Path parent, int index)
-    {
-        Parent = parent;
-        Depth = parent.Depth + 1;
-        Index = index;
-    }
-
-    /// <inheritdoc />
-    public override Path Parent { get; }
-
-    /// <inheritdoc />
-    public override int Depth { get; }
-
     /// <summary>
-    /// Gets the <see cref="Index"/> which represents the position an element in a 
+    /// Gets the <see cref="Index"/> which represents the position an element in a
     /// list of the result structure.
     /// </summary>
-    public int Index { get; }
+    public int Index { get; internal set; }
 
     /// <inheritdoc />
     public override string Print()
@@ -51,6 +38,10 @@ public sealed class IndexerPathSegment : Path
 
         return false;
     }
+
+    /// <inheritdoc />
+    public override Path Clone()
+        => new IndexerPathSegment { Depth = Depth, Index = Index, Parent = Parent.Clone() };
 
     /// <inheritdoc />
     public override int GetHashCode()
