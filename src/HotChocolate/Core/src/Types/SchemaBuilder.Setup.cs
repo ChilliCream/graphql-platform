@@ -65,8 +65,7 @@ public partial class SchemaBuilder
                 IReadOnlyList<ITypeReference> typeReferences =
                     CreateTypeReferences(builder, context);
 
-                TypeRegistry typeRegistry =
-                    InitializeTypes(builder, context, typeReferences, lazySchema);
+                TypeRegistry typeRegistry = InitializeTypes(builder, context, typeReferences);
 
                 return CompleteSchema(builder, context, lazySchema, typeRegistry);
             }
@@ -127,7 +126,7 @@ public partial class SchemaBuilder
         {
             var types = new List<ITypeReference>();
             var documents = new List<DocumentNode>();
-            context.ContextData[WellKnownContextData.SchemaDocuments] = documents; 
+            context.ContextData[WellKnownContextData.SchemaDocuments] = documents;
 
             foreach (LoadSchemaDocument fetchSchema in builder._documents)
             {
@@ -194,12 +193,11 @@ public partial class SchemaBuilder
         private static TypeRegistry InitializeTypes(
             SchemaBuilder builder,
             IDescriptorContext context,
-            IReadOnlyList<ITypeReference> types,
-            LazySchema lazySchema)
+            IReadOnlyList<ITypeReference> types)
         {
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
             TypeInitializer initializer =
-                CreateTypeInitializer(builder, context, types, typeRegistry, lazySchema);
+                CreateTypeInitializer(builder, context, types, typeRegistry);
             initializer.Initialize();
             return typeRegistry;
         }
@@ -208,8 +206,7 @@ public partial class SchemaBuilder
             SchemaBuilder builder,
             IDescriptorContext context,
             IReadOnlyList<ITypeReference> typeReferences,
-            TypeRegistry typeRegistry,
-            LazySchema lazySchema)
+            TypeRegistry typeRegistry)
         {
             var operations =
                 builder._operations.ToDictionary(
@@ -222,7 +219,6 @@ public partial class SchemaBuilder
                 typeReferences,
                 builder._isOfType,
                 type => GetOperationKind(type, context.TypeInspector, operations),
-                () => lazySchema.Schema,
                 builder._options);
 
             foreach (FieldMiddleware component in builder._globalComponents)
@@ -256,7 +252,7 @@ public partial class SchemaBuilder
             {
                 var serviceFactory = new ServiceFactory { Services = services };
 
-                foreach (object interceptorOrType in registered)
+                foreach (var interceptorOrType in registered)
                 {
                     if (interceptorOrType is Type type)
                     {
@@ -398,10 +394,9 @@ public partial class SchemaBuilder
                 OperationType.Subscription,
                 builder._options.SubscriptionTypeName);
 
-            Dictionary<OperationType, ITypeReference> operations =
-                builder._operations.ToDictionary(
-                    t => t.Key,
-                    t => t.Value(context.TypeInspector));
+            var operations = builder._operations.ToDictionary(
+                static t => t.Key,
+                t => t.Value(context.TypeInspector));
 
             ResolveOperations(definition, operations, typeRegistry);
 
