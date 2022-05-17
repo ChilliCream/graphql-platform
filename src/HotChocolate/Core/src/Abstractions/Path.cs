@@ -115,15 +115,15 @@ public abstract class Path : IEquatable<Path>
         }
 
         Path segment =
-            MemoryPathFactory.Instance.New(path[0] is NameString s ? s : (string)path[0]);
+            PathFactory.Instance.New(path[0] is NameString s ? s : (string)path[0]);
 
         for (var i = 1; i < path.Count; i++)
         {
             segment = path[i] switch
             {
-                NameString n => MemoryPathFactory.Instance.Append(segment, n),
-                string n => MemoryPathFactory.Instance.Append(segment, n),
-                int n => MemoryPathFactory.Instance.Append(segment, n),
+                NameString n => PathFactory.Instance.Append(segment, n),
+                string n => PathFactory.Instance.Append(segment, n),
+                int n => PathFactory.Instance.Append(segment, n),
                 _ => throw new NotSupportedException("notsupported")
             };
         }

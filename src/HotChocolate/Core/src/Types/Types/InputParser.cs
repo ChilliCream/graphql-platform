@@ -35,7 +35,7 @@ public class InputParser
             throw new ArgumentNullException(nameof(field));
         }
 
-        Path path = MemoryPathFactory.Instance.New(field.Name);
+        Path path = PathFactory.Instance.New(field.Name);
         var runtimeValue = ParseLiteralInternal(value, field.Type, path, 0, true, field);
         runtimeValue = FormatValue(field, runtimeValue);
 
@@ -131,7 +131,7 @@ public class InputParser
                     list.Add(ParseLiteralInternal(
                         items[i],
                         elementType,
-                        MemoryPathFactory.Instance.Append(path, i),
+                        PathFactory.Instance.Append(path, i),
                         stack,
                         defaults,
                         field));
@@ -142,7 +142,7 @@ public class InputParser
                 for (var i = 0; i < items.Count; i++)
                 {
                     IValueNode item = items[i];
-                    Path itemPath = MemoryPathFactory.Instance.Append(path, i);
+                    Path itemPath = PathFactory.Instance.Append(path, i);
 
                     if (item.Kind != SyntaxKind.ListValue)
                     {
@@ -167,7 +167,7 @@ public class InputParser
             list.Add(ParseLiteralInternal(
                 resultValue,
                 type.ElementType,
-                MemoryPathFactory.Instance.Append(path, 0),
+                PathFactory.Instance.Append(path, 0),
                 stack,
                 defaults, field));
             return list;
@@ -225,7 +225,7 @@ public class InputParser
                     {
                         IValueNode literal = fieldValue.Value;
                         Path fieldPath =
-                            MemoryPathFactory.Instance.Append(path, field.Name);
+                            PathFactory.Instance.Append(path, field.Name);
 
                         if (literal.Kind is SyntaxKind.NullValue)
                         {
@@ -277,7 +277,7 @@ public class InputParser
                         if (!processed[i])
                         {
                             InputField field = type.Fields[i];
-                            Path fieldPath = MemoryPathFactory.Instance.Append(path, field.Name);
+                            Path fieldPath = PathFactory.Instance.Append(path, field.Name);
                             fieldValues[i] = CreateDefaultValue(field, fieldPath, stack);
                         }
                     }
@@ -381,7 +381,7 @@ public class InputParser
 
             for (var i = 0; i < serializedList.Count; i++)
             {
-                Path newPath = MemoryPathFactory.Instance.Append(path, i);
+                Path newPath = PathFactory.Instance.Append(path, i);
                 list.Add(
                     Deserialize(serializedList[i], type.ElementType, newPath, field));
             }
@@ -423,7 +423,7 @@ public class InputParser
                 if (map.TryGetValue(field.Name.Value, out var fieldValue))
                 {
                     Path fieldPath =
-                        MemoryPathFactory.Instance.Append(path, field.Name);
+                        PathFactory.Instance.Append(path, field.Name);
 
                     if (fieldValue is null)
                     {
@@ -452,7 +452,7 @@ public class InputParser
                 }
                 else
                 {
-                    Path fieldPath = MemoryPathFactory.Instance.Append(path, field.Name);
+                    Path fieldPath = PathFactory.Instance.Append(path, field.Name);
                     fieldValues[i] = CreateDefaultValue(field, fieldPath, 0);
                 }
             }

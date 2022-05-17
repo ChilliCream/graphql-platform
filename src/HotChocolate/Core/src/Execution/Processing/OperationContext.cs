@@ -88,7 +88,7 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
-    public IPathFactory PathFactory
+    public PathFactory PathFactory
     {
         get
         {

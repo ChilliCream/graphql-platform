@@ -32,7 +32,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
         IDocumentAnalyzerContext context,
         SelectionSetVariants selectionSetVariants)
     {
-        Path rootSelectionPath = MemoryPathFactory.Instance.New(context.OperationName);
+        Path rootSelectionPath = PathFactory.Instance.New(context.OperationName);
 
         FragmentNode returnTypeFragment =
             FragmentHelper.CreateFragmentNode(

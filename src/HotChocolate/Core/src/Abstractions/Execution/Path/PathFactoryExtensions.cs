@@ -8,6 +8,6 @@ public static class PathFactoryExtensions
     /// <param name="factory">The factory</param>
     /// <param name="name">The name of the root element</param>
     public static NamePathSegment New(
-        this IPathFactory factory,
+        this PathFactory factory,
         NameString name) => factory.Append(Path.Root, name);
 }

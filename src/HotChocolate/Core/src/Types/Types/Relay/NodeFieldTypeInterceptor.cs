@@ -207,7 +207,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     private static void ReportError(IResolverContext context, int item, Exception ex)
     {
-        Path itemPath = MemoryPathFactory.Instance.Append(context.Path, item);
+        Path itemPath = PathFactory.Instance.Append(context.Path, item);
         context.ReportError(ex, error => error.SetPath(itemPath));
     }
 }

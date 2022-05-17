@@ -3,11 +3,12 @@ using System;
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// A base implementation of <see cref="IPathFactory"/>
+/// A implementation of <see cref="PathFactory"/> that creates segments of a <see cref="Path"/>.
 /// </summary>
-public abstract class BasePathFactory
-    : IPathFactory
+public class PathFactory
 {
+    protected PathFactory() { }
+
     /// <summary>
     /// Appends an element.
     /// </summary>
@@ -52,10 +53,12 @@ public abstract class BasePathFactory
     /// <summary>
     /// Creates a new instance of <see cref="IndexerPathSegment"/>
     /// </summary>
-    protected abstract IndexerPathSegment CreateIndexer();
+    protected virtual IndexerPathSegment CreateIndexer() => new();
 
     /// <summary>
     /// Creates a new instance of <see cref="NamePathSegment"/>
     /// </summary>
-    protected abstract NamePathSegment CreateNamed();
+    protected virtual NamePathSegment CreateNamed() => new();
+
+    public static PathFactory Instance { get; } = new();
 }

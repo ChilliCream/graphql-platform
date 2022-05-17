@@ -76,7 +76,7 @@ public class InputFormatter
         {
             InputField field = type.Fields[i];
             var fieldValue = fieldValues[i];
-            Path fieldPath = MemoryPathFactory.Instance.Append(path, field.Name);
+            Path fieldPath = PathFactory.Instance.Append(path, field.Name);
 
             if (field.IsOptional)
             {
@@ -113,7 +113,7 @@ public class InputFormatter
 
             for (var i = 0; i < runtimeList.Count; i++)
             {
-                Path newPath = MemoryPathFactory.Instance.Append(path, i);
+                Path newPath = PathFactory.Instance.Append(path, i);
                 items.Add(
                     FormatValueInternal(runtimeList[i], type.ElementType, newPath));
             }
@@ -128,7 +128,7 @@ public class InputFormatter
 
             foreach (var item in enumerable)
             {
-                Path newPath = MemoryPathFactory.Instance.Append(path, i);
+                Path newPath = PathFactory.Instance.Append(path, i);
                 items.Add(FormatValueInternal(item, type.ElementType, newPath));
             }
 
@@ -258,7 +258,7 @@ public class InputFormatter
 
             for (var i = 0; i < resultList.Count; i++)
             {
-                Path newPath = MemoryPathFactory.Instance.Append(path, i);
+                Path newPath = PathFactory.Instance.Append(path, i);
                 items.Add(FormatResultInternal(resultList[i], type.ElementType, newPath));
             }
 

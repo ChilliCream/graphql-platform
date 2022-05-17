@@ -87,7 +87,7 @@ internal interface IOperationContext : IHasContextData
     /// <summary>
     /// The factory for path <see cref="Path"/>.
     /// </summary>
-    IPathFactory PathFactory { get; }
+    PathFactory PathFactory { get; }
 
     /// <summary>
     /// Gets the resolver task pool.

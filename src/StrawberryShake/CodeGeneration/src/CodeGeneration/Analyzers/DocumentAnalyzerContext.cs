@@ -28,7 +28,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         OperationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
         OperationType = schema.GetOperationType(OperationDefinition.Operation)!;
         OperationName = OperationDefinition.Name!.Value;
-        RootPath = MemoryPathFactory.Instance.New(OperationName);
+        RootPath = PathFactory.Instance.New(OperationName);
 
         _fieldCollector = new FieldCollector(schema, document);
     }
@@ -56,7 +56,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         _fieldCollector.CollectFields(
             OperationDefinition.SelectionSet,
             OperationType,
-            MemoryPathFactory.Instance.New(OperationName));
+            PathFactory.Instance.New(OperationName));
 
     public SelectionSetVariants CollectFields(FieldSelection fieldSelection) =>
         CollectFields(

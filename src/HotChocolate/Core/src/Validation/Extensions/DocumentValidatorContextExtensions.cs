@@ -20,8 +20,8 @@ internal static class DocumentValidatorContextExtensions
             {
                 string name = field.Alias?.Value ?? field.Name.Value;
                 segment = segment is null
-                    ? MemoryPathFactory.Instance.New(name)
-                    : MemoryPathFactory.Instance.Append(segment, name);
+                    ? PathFactory.Instance.New(name)
+                    : PathFactory.Instance.Append(segment, name);
             }
         }
 

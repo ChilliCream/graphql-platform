@@ -65,7 +65,7 @@ namespace HotChocolate.Types
 
             // act
             var coercedValue =
-                inputParser.ParseLiteral(list, type, MemoryPathFactory.Instance.New("root"));
+                inputParser.ParseLiteral(list, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Collection(Assert.IsType<List<bool?>>(coercedValue), Assert.True, Assert.False);
@@ -88,7 +88,7 @@ namespace HotChocolate.Types
 
             // act
             var coercedValue =
-                inputParser.ParseLiteral(value, type, MemoryPathFactory.Instance.New("root"));
+                inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
 
             // assert
             coercedValue.MatchSnapshot();
@@ -109,7 +109,7 @@ namespace HotChocolate.Types
 
             // act
             var coercedValue =
-                inputParser.ParseLiteral(value, type, MemoryPathFactory.Instance.New("root"));
+                inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
 
             // assert
             coercedValue.MatchSnapshot();
@@ -130,7 +130,7 @@ namespace HotChocolate.Types
 
             // act
             var coercedValue =
-                inputParser.ParseLiteral(value, type, MemoryPathFactory.Instance.New("root"));
+                inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Null(coercedValue);
@@ -151,7 +151,7 @@ namespace HotChocolate.Types
 
             // act
             void Action() =>
-                inputParser.ParseLiteral(value, type, MemoryPathFactory.Instance.New("root"));
+                inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action);
@@ -167,7 +167,7 @@ namespace HotChocolate.Types
 
             // act
             var coercedValue =
-                inputParser.ParseLiteral(element, type, MemoryPathFactory.Instance.New("root"));
+                inputParser.ParseLiteral(element, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Collection(Assert.IsType<List<bool?>>(coercedValue), Assert.True);
@@ -183,7 +183,7 @@ namespace HotChocolate.Types
 
             // act
             void Action() =>
-                inputParser.ParseLiteral(list, type, MemoryPathFactory.Instance.New("root"));
+                inputParser.ParseLiteral(list, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action);
@@ -199,7 +199,7 @@ namespace HotChocolate.Types
 
             // act
             void Action() =>
-                inputParser.ParseLiteral(element, type, MemoryPathFactory.Instance.New("root"));
+                inputParser.ParseLiteral(element, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action);

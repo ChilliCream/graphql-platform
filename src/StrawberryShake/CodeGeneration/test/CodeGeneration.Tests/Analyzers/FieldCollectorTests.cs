@@ -91,7 +91,7 @@ public class FieldCollectorTests
                 .CollectFields(
                     secondLevel.SelectionSet!,
                     character,
-                    MemoryPathFactory.Instance.New("hero"));
+                    PathFactory.Instance.New("hero"));
 
         // assert
         Assert.Collection(

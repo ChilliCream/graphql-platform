@@ -80,7 +80,7 @@ public class FieldScopedVariableResolverTests
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null));
-        context.Setup(t => t.Path).Returns(MemoryPathFactory.Instance.New("foo"));
+        context.Setup(t => t.Path).Returns(PathFactory.Instance.New("foo"));
 
         var scopedVariable = new ScopedVariableNode(
             null,

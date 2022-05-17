@@ -252,7 +252,7 @@ public class DirectiveType
         }
 
         return _inputFormatter
-            .FormatValue(obj, argument.Type, MemoryPathFactory.Instance.New(argument.Name));
+            .FormatValue(obj, argument.Type, PathFactory.Instance.New(argument.Name));
     }
 
     internal object? DeserializeArgument(Argument argument, IValueNode literal, Type target)

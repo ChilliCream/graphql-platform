@@ -487,7 +487,7 @@ public sealed partial class OperationCompiler
         bool isDefaultValue)
     {
         ArgumentNonNullValidator.ValidationResult validationResult = ArgumentNonNullValidator
-            .Validate(argument, value, MemoryPathFactory.Instance.New(argument.Name));
+            .Validate(argument, value, PathFactory.Instance.New(argument.Name));
 
         if (argumentValue is not null && validationResult.HasErrors)
         {
