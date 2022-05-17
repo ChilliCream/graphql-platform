@@ -251,8 +251,8 @@ public class DirectiveType
             throw new ArgumentNullException(nameof(argument));
         }
 
-        return _inputFormatter
-            .FormatValue(obj, argument.Type, PathFactory.Instance.New(argument.Name));
+        var path = PathFactory.Instance.New(argument.Name);
+        return _inputFormatter.FormatValue(obj, argument.Type, path);
     }
 
     internal object? DeserializeArgument(Argument argument, IValueNode literal, Type target)
