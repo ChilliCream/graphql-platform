@@ -10,11 +10,10 @@ namespace HotChocolate.Execution.Instrumentation
         public void Path_ToString()
         {
             // arrange
-            Path path = Path
-                .New("hero")
-                .Append("friends")
-                .Append(0)
-                .Append("name");
+            Path path = MemoryPathFactory.Instance.New("hero");
+            path = MemoryPathFactory.Instance.Append(path, "friends");
+            path = MemoryPathFactory.Instance.Append(path, 0);
+            path = MemoryPathFactory.Instance.Append(path, "name");
 
             // act
             string result = path.ToString();
@@ -27,11 +26,10 @@ namespace HotChocolate.Execution.Instrumentation
         public void Path_ToList()
         {
             // arrange
-            Path path = Path
-                .New("hero")
-                .Append("friends")
-                .Append(0)
-                .Append("name");
+            Path path = MemoryPathFactory.Instance.New("hero");
+            path = MemoryPathFactory.Instance.Append(path, "friends");
+            path = MemoryPathFactory.Instance.Append(path, 0);
+            path = MemoryPathFactory.Instance.Append(path, "name");
 
             // act
             IReadOnlyList<object> result = path.ToList();
@@ -44,7 +42,7 @@ namespace HotChocolate.Execution.Instrumentation
         public void Path_Equals_Null()
         {
             // arrange
-            Path hero = Path.New("hero");
+            Path hero = MemoryPathFactory.Instance.New("hero");
             Path friends = null;
 
             // act
@@ -58,8 +56,9 @@ namespace HotChocolate.Execution.Instrumentation
         public void Path_Equals_False()
         {
             // arrange
-            Path hero = Path.New("hero");
-            Path friends = Path.New("hero").Append("friends");
+            Path hero = MemoryPathFactory.Instance.New("hero");
+            Path friends = MemoryPathFactory.Instance.New("hero");
+            friends = MemoryPathFactory.Instance.Append(friends, "friends");
 
             // act
             var areEqual = hero.Equals(friends);
@@ -72,8 +71,10 @@ namespace HotChocolate.Execution.Instrumentation
         public void Path_Equals_True()
         {
             // arrange
-            Path friends1 = Path.New("hero").Append("friends");
-            Path friends2 = Path.New("hero").Append("friends");
+            Path friends1 = MemoryPathFactory.Instance.New("hero");
+            friends1 = MemoryPathFactory.Instance.Append(friends1, "friends");
+            Path friends2 = MemoryPathFactory.Instance.New("hero");
+            friends2 = MemoryPathFactory.Instance.Append(friends2, "friends");
 
             // act
             var areEqual = friends1.Equals(friends2);

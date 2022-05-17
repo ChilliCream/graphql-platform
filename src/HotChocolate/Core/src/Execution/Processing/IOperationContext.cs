@@ -85,6 +85,11 @@ internal interface IOperationContext : IHasContextData
     IWorkScheduler Scheduler { get; }
 
     /// <summary>
+    /// The factory for path <see cref="Path"/>.
+    /// </summary>
+    IPathFactory PathFactory { get; }
+
+    /// <summary>
     /// Gets the resolver task pool.
     /// </summary>
     ObjectPool<ResolverTask> ResolverTasks { get; }

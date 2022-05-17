@@ -119,7 +119,7 @@ internal static class ErrorHelper
                 field.Name)
             .SetCode(ErrorCodes.Schema.NoFieldType)
             .SetTypeSystemObject(type)
-            .SetPath(Path.New(typeName).Append(field.Name))
+            .SetPath(Path.FromList(typeName, field.Name))
             .SetExtension(TypeErrorFields.Definition, field)
             .Build();
 

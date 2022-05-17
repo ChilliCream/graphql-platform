@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation;
@@ -18,7 +19,9 @@ internal static class DocumentValidatorContextExtensions
             if (context.Path[i] is FieldNode field)
             {
                 string name = field.Alias?.Value ?? field.Name.Value;
-                segment = segment is null ? Path.New(name) : segment.Append(name);
+                segment = segment is null
+                    ? MemoryPathFactory.Instance.New(name)
+                    : MemoryPathFactory.Instance.Append(segment, name);
             }
         }
 
