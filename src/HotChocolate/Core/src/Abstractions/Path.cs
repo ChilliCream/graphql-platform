@@ -78,6 +78,11 @@ public abstract class Path : IEquatable<Path>
 
     public abstract bool Equals(Path? other);
 
+    /// <summary>
+    /// Clones the path
+    /// </summary>
+    public abstract Path Clone();
+
     public sealed override bool Equals(object? obj)
         => obj switch
         {
@@ -148,6 +153,9 @@ public abstract class Path : IEquatable<Path>
 
             return ReferenceEquals(other, this);
         }
+
+        /// <inheritdoc />
+        public override Path Clone() => this;
 
         /// <inheritdoc />
         public override int GetHashCode()

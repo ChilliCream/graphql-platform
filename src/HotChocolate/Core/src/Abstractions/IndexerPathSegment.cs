@@ -40,6 +40,10 @@ public sealed class IndexerPathSegment : Path
     }
 
     /// <inheritdoc />
+    public override Path Clone()
+        => new IndexerPathSegment { Depth = Depth, Index = Index, Parent = Parent.Clone() };
+
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         unchecked

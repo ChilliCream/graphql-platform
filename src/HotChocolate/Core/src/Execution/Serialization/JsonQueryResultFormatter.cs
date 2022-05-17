@@ -268,7 +268,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
     private static void WritePathValue(Utf8JsonWriter writer, Path path)
     {
-        if (path is not null && !path.IsRoot)
+        if (path is not null && path.IsRoot)
         {
             writer.WriteStartArray();
             writer.WriteEndArray();

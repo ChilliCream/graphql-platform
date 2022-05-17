@@ -46,6 +46,10 @@ public sealed class NamePathSegment : Path
     }
 
     /// <inheritdoc />
+    public override Path Clone()
+        => new NamePathSegment { Depth = Depth, Name = Name, Parent = Parent.Clone() };
+
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         unchecked
