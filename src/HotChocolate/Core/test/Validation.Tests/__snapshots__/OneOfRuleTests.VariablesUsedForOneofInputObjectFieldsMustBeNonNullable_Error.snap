@@ -3,9 +3,14 @@
     "Message": "The variable `$cat` assigned to the field `cat` of the Oneof Input Object `PetInput` must be non-null.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "addPet",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "addPet"
+      "IsRoot": false
     },
     "Locations": [
       {

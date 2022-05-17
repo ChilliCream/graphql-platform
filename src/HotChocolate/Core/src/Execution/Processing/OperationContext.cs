@@ -88,6 +88,15 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
+    public PathFactory PathFactory
+    {
+        get
+        {
+            AssertInitialized();
+            return _pathFactory;
+        }
+    }
+
     public ISelectionSet CollectFields(
         SelectionSetNode selectionSet,
         ObjectType objectType)

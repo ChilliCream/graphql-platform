@@ -486,8 +486,8 @@ public sealed partial class OperationCompiler
         IValueNode value,
         bool isDefaultValue)
     {
-        ArgumentNonNullValidator.ValidationResult validationResult =
-            ArgumentNonNullValidator.Validate(argument, value, Path.New(argument.Name));
+        ArgumentNonNullValidator.ValidationResult validationResult = ArgumentNonNullValidator
+            .Validate(argument, value, PathFactory.Instance.New(argument.Name));
 
         if (argumentValue is not null && validationResult.HasErrors)
         {

@@ -36,7 +36,7 @@ public class Error : IError
 
         Message = message;
         Code = code;
-        Path = path;
+        Path = path?.Clone();
         Locations = locations;
         Extensions = extensions;
         Exception = exception;
