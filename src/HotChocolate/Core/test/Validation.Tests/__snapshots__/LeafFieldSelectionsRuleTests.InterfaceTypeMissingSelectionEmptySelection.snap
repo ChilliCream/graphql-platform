@@ -3,9 +3,14 @@
     "Message": "`pets` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "human",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "human"
+      "IsRoot": false
     },
     "Locations": [
       {

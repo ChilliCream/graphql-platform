@@ -3,9 +3,14 @@
     "Message": "String cannot deserialize the given value.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "abc",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "abc"
+      "IsRoot": false
     },
     "Locations": null,
     "Extensions": null,

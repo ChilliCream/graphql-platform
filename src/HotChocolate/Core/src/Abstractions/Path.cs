@@ -1,5 +1,3 @@
-
-
 #nullable enable
 
 using System;
@@ -111,7 +109,8 @@ public abstract class Path : IEquatable<Path>
             return Root;
         }
 
-        Path segment = MemoryPathFactory.Instance.New((string)path[0]);
+        Path segment =
+            MemoryPathFactory.Instance.New(path[0] is NameString s ? s : (string)path[0]);
 
         for (var i = 1; i < path.Count; i++)
         {
@@ -133,13 +132,8 @@ public abstract class Path : IEquatable<Path>
     {
         private RootPathSegment()
         {
-            Name = default;
+            Depth = -1;
         }
-
-        /// <summary>
-        ///  Gets the name representing a field on a result map.
-        /// </summary>
-        public NameString Name { get; }
 
         /// <inheritdoc />
         public override string Print() => "/";
@@ -162,7 +156,6 @@ public abstract class Path : IEquatable<Path>
             {
                 var hash = Parent.GetHashCode() * 3;
                 hash ^= Depth.GetHashCode() * 7;
-                hash ^= Name.GetHashCode() * 11;
                 return hash;
             }
         }
