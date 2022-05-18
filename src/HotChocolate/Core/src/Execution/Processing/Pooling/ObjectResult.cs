@@ -219,7 +219,7 @@ public sealed class ObjectResult
     {
         ObjectFieldResult? field = TryGetValue(key, out _);
 
-        if(field?.Name is not null)
+        if (field?.Name is not null)
         {
             value = field.Value;
             return true;
@@ -329,6 +329,8 @@ public abstract class ListResultBase<T> : ResultData, IReadOnlyList<T?>
                 newCapacity = capacity;
             }
 
+            _capacity = newCapacity;
+
             Array.Resize(ref _buffer, newCapacity);
         }
 
@@ -340,21 +342,15 @@ public abstract class ListResultBase<T> : ResultData, IReadOnlyList<T?>
     /// </summary>
     internal void Grow()
     {
-        var capacity = _capacity * 2;
-
-        if (_buffer.Length < capacity)
+        if (_capacity == 0)
         {
-            var newCapacity = _buffer.Length * 2;
-
-            if (newCapacity < capacity)
-            {
-                newCapacity = capacity;
-            }
-
-            Array.Resize(ref _buffer, newCapacity);
+            EnsureCapacity(4);
+            return;
         }
 
-        _capacity = capacity;
+        var newCapacity = _capacity * 2;
+        Array.Resize(ref _buffer, newCapacity);
+        _capacity = newCapacity;
     }
 
     /// <summary>
