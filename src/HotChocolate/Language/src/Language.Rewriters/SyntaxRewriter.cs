@@ -2,7 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 
-namespace HotChocolate.Language;
+namespace HotChocolate.Language.Rewriters;
 
 public class SyntaxRewriter<TContext>
 {

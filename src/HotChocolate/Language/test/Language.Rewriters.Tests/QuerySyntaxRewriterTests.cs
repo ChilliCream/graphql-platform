@@ -3,7 +3,7 @@ using System.Text;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Language;
+namespace HotChocolate.Language.Rewriters;
 
 public class QuerySyntaxRewriterTests
 {

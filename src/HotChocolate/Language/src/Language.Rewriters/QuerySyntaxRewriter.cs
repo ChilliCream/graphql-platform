@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using static HotChocolate.Language.Properties.LangUtf8Resources;
+using static HotChocolate.Language.Rewriters.LangRewritersResources;
 
-namespace HotChocolate.Language;
+namespace HotChocolate.Language.Rewriters;
 
 public class QuerySyntaxRewriter<TContext>
     : SyntaxRewriter<TContext>

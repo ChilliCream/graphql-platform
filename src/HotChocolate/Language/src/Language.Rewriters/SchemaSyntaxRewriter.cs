@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace HotChocolate.Language;
+namespace HotChocolate.Language.Rewriters;
 
 public class SchemaSyntaxRewriter<TContext>
     : SyntaxRewriter<TContext>

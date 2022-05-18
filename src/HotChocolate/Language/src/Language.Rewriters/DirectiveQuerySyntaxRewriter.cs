@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Language;
+namespace HotChocolate.Language.Rewriters;
 
 public class DirectiveQuerySyntaxRewriter
     : QuerySyntaxRewriter<DirectiveNode>

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Language.Rewriters</PackageId>
+    <AssemblyName>HotChocolate.Language.Rewriters</AssemblyName>
+    <RootNamespace>HotChocolate.Language.Rewriters</RootNamespace>
+    <Description>This package contains Syntax Rewrite primitives of Hot Chocolate.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="HotChocolate.Language.Rewriters.csproj.DotSettings" />
+  </ItemGroup>
+
+  <ItemGroup>
+   <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+   <ProjectReference Include="..\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\LangRewritersResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LangRewritersResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\LangRewritersResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>LangRewritersResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
