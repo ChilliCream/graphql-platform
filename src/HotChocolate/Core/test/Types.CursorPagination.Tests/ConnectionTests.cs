@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace HotChocolate.Types.Pagination
@@ -10,7 +11,7 @@ namespace HotChocolate.Types.Pagination
         public void CreateConnection_PageInfoAndEdges_PassedCorrectly()
         {
             // arrange
-            var pageInfo = new ConnectionPageInfo(true, true, "a", "b", null);
+            var pageInfo = new ConnectionPageInfo(true, true, "a", "b");
             var edges = new List<Edge<string>>();
 
             // act
@@ -44,7 +45,7 @@ namespace HotChocolate.Types.Pagination
         public void CreateConnection_EdgesNull_ArgumentNullException()
         {
             // arrange
-            var pageInfo = new ConnectionPageInfo(true, true, "a", "b", null);
+            var pageInfo = new ConnectionPageInfo(true, true, "a", "b");
 
             // act
             void Action() => new Connection<string>(
@@ -57,20 +58,31 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
-        public void CreateConnection_CountIsNull_ArgumentNullException()
+        public async Task GetTotalCountAsync_Delegate_ReturnTotalCount()
         {
             // arrange
-            var pageInfo = new ConnectionPageInfo(true, true, "a", "b", null);
+            var pageInfo = new ConnectionPageInfo(true, true, "a", "b");
             var edges = new List<Edge<string>>();
 
             // act
-            void Action() => new Connection<string>(
-                edges,
-                pageInfo,
-                null!);
+            var connection = new Connection(edges, pageInfo, _ => new(2));
 
             // assert
-            Assert.Throws<ArgumentNullException>(Action);
+            Assert.Equal(2, await connection.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task GetTotalCountAsync_Value_ReturnTotalCount()
+        {
+            // arrange
+            var pageInfo = new ConnectionPageInfo(true, true, "a", "b");
+            var edges = new List<Edge<string>>();
+
+            // act
+            var connection = new Connection(edges, pageInfo, 2);
+
+            // assert
+            Assert.Equal(2, await connection.GetTotalCountAsync(default));
         }
     }
 }

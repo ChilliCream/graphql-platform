@@ -95,7 +95,7 @@ public class Neo4JOffsetPagingProvider : OffsetPagingProvider
                 .ToListAsync(context.RequestAborted)
                 .ConfigureAwait(false);
 
-            return new CollectionSegment((IReadOnlyCollection<object>)items, null, null);
+            return new CollectionSegment((IReadOnlyCollection<object>)items, null!);
         }
     }
 }
