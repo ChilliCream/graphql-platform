@@ -436,7 +436,7 @@ input UpdateUserNameInput {
 
 type UpdateUserNamePayload {
   user: User
-  errors: [CreateUserError!]
+  errors: [UpdateUserNameError!]
 }
 
 type User {

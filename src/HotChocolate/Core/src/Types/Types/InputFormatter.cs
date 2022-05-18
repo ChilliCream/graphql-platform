@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -27,7 +28,7 @@ public class InputFormatter
             throw new ArgumentNullException(nameof(type));
         }
 
-        return FormatValueInternal(runtimeValue, type, path ?? Path.New("root"));
+        return FormatValueInternal(runtimeValue, type, path ?? Path.Root);
     }
 
     private IValueNode FormatValueInternal(object? runtimeValue, IType type, Path path)
@@ -75,7 +76,7 @@ public class InputFormatter
         {
             InputField field = type.Fields[i];
             var fieldValue = fieldValues[i];
-            Path fieldPath = path.Append(field.Name);
+            Path fieldPath = PathFactory.Instance.Append(path, field.Name);
 
             if (field.IsOptional)
             {
@@ -112,8 +113,9 @@ public class InputFormatter
 
             for (var i = 0; i < runtimeList.Count; i++)
             {
+                Path newPath = PathFactory.Instance.Append(path, i);
                 items.Add(
-                    FormatValueInternal(runtimeList[i], type.ElementType, path.Append(i)));
+                    FormatValueInternal(runtimeList[i], type.ElementType, newPath));
             }
 
             return new ListValueNode(items);
@@ -126,7 +128,8 @@ public class InputFormatter
 
             foreach (var item in enumerable)
             {
-                items.Add(FormatValueInternal(item, type.ElementType, path.Append(i)));
+                Path newPath = PathFactory.Instance.Append(path, i);
+                items.Add(FormatValueInternal(item, type.ElementType, newPath));
             }
 
             return new ListValueNode(items);
@@ -160,7 +163,7 @@ public class InputFormatter
             throw new ArgumentNullException(nameof(type));
         }
 
-        return FormatResultInternal(resultValue, type, path ?? Path.New("root"));
+        return FormatResultInternal(resultValue, type, path ?? Path.Root);
     }
 
     private IValueNode FormatResultInternal(object? resultValue, IType type, Path path)
@@ -255,7 +258,8 @@ public class InputFormatter
 
             for (var i = 0; i < resultList.Count; i++)
             {
-                items.Add(FormatResultInternal(resultList[i], type.ElementType, path.Append(i)));
+                Path newPath = PathFactory.Instance.Append(path, i);
+                items.Add(FormatResultInternal(resultList[i], type.ElementType, newPath));
             }
 
             return new ListValueNode(items);

@@ -1496,5 +1496,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ResolverContextExtensions_ContextData_KeyNotFound", resourceCulture);
             }
         }
+        
+        internal static string SchemaTypes_GetType_DoesNotExist {
+            get {
+                return ResourceManager.GetString("SchemaTypes_GetType_DoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaTypes_DefinitionInvalid {
+            get {
+                return ResourceManager.GetString("SchemaTypes_DefinitionInvalid", resourceCulture);
+            }
+        }
     }
 }

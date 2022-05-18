@@ -3,9 +3,14 @@
     "Message": "The field `tailLength` does not exist on the type `Pet`.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "pet",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "pet"
+      "IsRoot": false
     },
     "Locations": [
       {

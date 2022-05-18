@@ -196,12 +196,6 @@ public readonly struct NameString
     public static implicit operator string(NameString name)
         => name.ToString();
 
-    /// <summary>
-    /// Implicitly creates a new root path.
-    /// </summary>
-    public static implicit operator Path(NameString name)
-        => Path.New(name);
-
     internal static NameString ConvertFromString(string s)
         => string.IsNullOrEmpty(s)
             ? new NameString()
