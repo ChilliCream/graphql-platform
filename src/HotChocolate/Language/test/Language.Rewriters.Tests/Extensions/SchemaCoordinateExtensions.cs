@@ -22,50 +22,6 @@ public static class SchemaCoordinateExtensions
         return namedSyntaxNodes;
     }
 
-    public static SchemaCoordinate ToSchemaCoordinate(this IReadOnlyList<ISyntaxNode> syntaxNodes)
-    {
-        return CreateCoordinate(syntaxNodes);
-    }
-
-    private static SchemaCoordinate CreateCoordinate(IReadOnlyList<ISyntaxNode> nodes)
-    {
-        IReadOnlyList<NameNode> namedSyntaxNodes = GetCoordinateNames(nodes);
-
-        switch (namedSyntaxNodes.Count)
-        {
-            case 1:
-                return new SchemaCoordinate(new NameString(namedSyntaxNodes[0].Value));
-
-            case 2:
-                return new SchemaCoordinate(
-                    new NameString(namedSyntaxNodes[1].Value),
-                    new NameString(namedSyntaxNodes[0].Value));
-            case 3:
-                return new SchemaCoordinate(
-                    new NameString(namedSyntaxNodes[2].Value),
-                    new NameString(namedSyntaxNodes[1].Value),
-                    new NameString(namedSyntaxNodes[0].Value));
-        }
-
-        return new SchemaCoordinate();
-    }
-
-    private static IReadOnlyList<NameNode> GetCoordinateNames(IReadOnlyList<ISyntaxNode> nodes)
-    {
-        var namedSyntaxNodes = new List<NameNode>();
-        for (var i = 0; i < nodes.Count; i++)
-        {
-            if (nodes[i] is not INamedSyntaxNode namedSyntaxNode)
-            {
-                continue;
-            }
-
-            namedSyntaxNodes.Add(namedSyntaxNode.Name);
-        }
-
-        return namedSyntaxNodes;
-    }
-
     private static NameNode? GetName(ISyntaxNode node)
     {
         switch (node)
