@@ -3,9 +3,14 @@
     "Message": "The field `meowVolume` does not exist on the type `Dog`.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "pet",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "pet"
+      "IsRoot": false
     },
     "Locations": [
       {

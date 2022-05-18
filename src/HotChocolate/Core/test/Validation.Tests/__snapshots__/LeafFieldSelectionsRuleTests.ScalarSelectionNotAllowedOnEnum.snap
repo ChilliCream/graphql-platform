@@ -3,9 +3,14 @@
     "Message": "`furColor` returns an enum value. Selections on scalars or enums are never allowed, because they are the leaf nodes of any GraphQL query.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "catOrDog",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "catOrDog"
+      "IsRoot": false
     },
     "Locations": [
       {

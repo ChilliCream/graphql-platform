@@ -93,7 +93,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         {
             throw new ArgumentNullException(nameof(writer));
         }
-        
+
         writer.WriteStartArray();
 
         for (var i = 0; i < errors.Count; i++)
@@ -259,7 +259,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
     private static void WritePath(Utf8JsonWriter writer, Path? path)
     {
-        if (path is not null && path is not RootPathSegment)
+        if (path is not null && !path.IsRoot)
         {
             writer.WritePropertyName(JsonConstants.Path);
             WritePathValue(writer, path);
@@ -268,7 +268,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
     private static void WritePathValue(Utf8JsonWriter writer, Path path)
     {
-        if (path is RootPathSegment)
+        if (path is not null && path.IsRoot)
         {
             writer.WriteStartArray();
             writer.WriteEndArray();

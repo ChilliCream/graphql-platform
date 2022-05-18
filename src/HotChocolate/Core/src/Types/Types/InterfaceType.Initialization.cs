@@ -16,6 +16,7 @@ public partial class InterfaceType
     private InterfaceType[] _implements = Array.Empty<InterfaceType>();
     private Action<IInterfaceTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
+    private ISchema _schema = default!;
 
     protected override InterfaceTypeDefinition CreateDefinition(
         ITypeDiscoveryContext context)
@@ -56,8 +57,9 @@ public partial class InterfaceType
 
         SyntaxNode = definition.SyntaxNode;
         Fields = OnCompleteFields(context, definition);
+        context.DescriptorContext.SchemaCompleted += (_, args) => _schema = args.Schema;
 
-        CompleteAbstractTypeResolver(context, definition.ResolveAbstractType);
+        CompleteAbstractTypeResolver(definition.ResolveAbstractType);
         _implements = CompleteInterfaces(context, definition.GetInterfaces(), this);
     }
 
@@ -70,24 +72,16 @@ public partial class InterfaceType
             => new(fieldDef, index);
     }
 
-    private void CompleteAbstractTypeResolver(
-        ITypeCompletionContext context,
-        ResolveAbstractType? resolveAbstractType)
+    private void CompleteAbstractTypeResolver(ResolveAbstractType? resolveAbstractType)
     {
         if (resolveAbstractType is null)
         {
-            Func<ISchema> schemaResolver = context.GetSchemaResolver();
-
             // if there is no custom type resolver we will use this default
             // abstract type resolver.
             IReadOnlyCollection<ObjectType>? types = null;
             _resolveAbstractType = (c, r) =>
             {
-                if (types is null)
-                {
-                    ISchema schema = schemaResolver.Invoke();
-                    types = schema.GetPossibleTypes(this);
-                }
+                types ??= _schema.GetPossibleTypes(this);
 
                 foreach (ObjectType type in types)
                 {
