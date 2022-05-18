@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -7,8 +8,7 @@ using static HotChocolate.Stitching.Properties.StitchingResources;
 
 namespace HotChocolate.Stitching.Processing.ScopedVariables;
 
-internal class FieldScopedVariableResolver
-    : IScopedVariableResolver
+internal class FieldScopedVariableResolver : IScopedVariableResolver
 {
     public ScopedVariableValue Resolve(
         IResolverContext context,
@@ -34,7 +34,7 @@ internal class FieldScopedVariableResolver
 
         if (context.ObjectType.Fields.TryGetField(variable.Name.Value, out IObjectField? field))
         {
-            object parent = context.Parent<object>();
+            var parent = context.Parent<object>();
 
             IValueNode? valueLiteral = null;
 
@@ -49,7 +49,10 @@ internal class FieldScopedVariableResolver
                 }
                 else if (field.Type.IsInputType() && field.Type is IInputType type)
                 {
-                    valueLiteral = formatter.FormatValue(value, type, field.Name);
+                    valueLiteral = formatter.FormatValue(
+                        value,
+                        type,
+                        PathFactory.Instance.New(field.Name));
                 }
             }
 

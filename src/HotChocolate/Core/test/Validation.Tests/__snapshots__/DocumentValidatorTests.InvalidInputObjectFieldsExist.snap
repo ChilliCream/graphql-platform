@@ -3,9 +3,14 @@
     "Message": "The specified input object field `favoriteCookieFlavor` does not exist.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "findDog",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "findDog"
+      "IsRoot": false
     },
     "Locations": [
       {

@@ -204,7 +204,7 @@ namespace HotChocolate
             // act
             IError error = ErrorBuilder.New()
                 .SetMessage("bar")
-                .SetPath(Path.New("foo"))
+                .SetPath(Path.FromList("foo"))
                 .Build();
 
             // assert
@@ -265,8 +265,8 @@ namespace HotChocolate
         {
             // arrange
             var syntaxNode = new StringValueNode(
-                new HotChocolate.Language.Location(1, 2, 3, 4), 
-                "abc", 
+                new HotChocolate.Language.Location(1, 2, 3, 4),
+                "abc",
                 false);
 
             // act

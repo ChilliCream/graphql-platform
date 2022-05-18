@@ -1,3 +1,7 @@
+
+
+#nullable enable
+
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -5,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -15,9 +20,6 @@ using HotChocolate.Types.Introspection;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.WellKnownContextData;
-
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
@@ -205,7 +207,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     private static void ReportError(IResolverContext context, int item, Exception ex)
     {
-        Path itemPath = context.Path.Append(item);
+        Path itemPath = PathFactory.Instance.Append(context.Path, item);
         context.ReportError(ex, error => error.SetPath(itemPath));
     }
 }

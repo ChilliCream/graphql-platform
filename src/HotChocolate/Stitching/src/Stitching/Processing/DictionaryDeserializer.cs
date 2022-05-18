@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -49,7 +50,11 @@ internal static class DictionaryDeserializer
                     foreach (var item in list)
                     {
                         deserializedList.Add(
-                            DeserializeEnumResult(elementType, item, parser, path.Append(i++)));
+                            DeserializeEnumResult(
+                                elementType,
+                                item,
+                                parser,
+                                PathFactory.Instance.Append(path, i++)));
                     }
 
                     return deserializedList;
@@ -64,7 +69,11 @@ internal static class DictionaryDeserializer
                     foreach (IValueNode item in listLiteral.Items)
                     {
                         list.Add(
-                            DeserializeEnumResult(elementType, item, parser, path.Append(i++)));
+                            DeserializeEnumResult(
+                                elementType,
+                                item,
+                                parser,
+                                PathFactory.Instance.Append(path, i++)));
                     }
 
                     return list;
@@ -106,7 +115,11 @@ internal static class DictionaryDeserializer
                     foreach (var item in list)
                     {
                         deserializedList.Add(
-                            DeserializeScalarResult(elementType, item, parser, path.Append(i++)));
+                            DeserializeScalarResult(
+                                elementType,
+                                item,
+                                parser,
+                                PathFactory.Instance.Append(path, i++)));
                     }
 
                     return deserializedList;
@@ -121,7 +134,11 @@ internal static class DictionaryDeserializer
                     foreach (IValueNode item in listLiteral.Items)
                     {
                         list.Add(
-                            DeserializeScalarResult(elementType, item, parser, path.Append(i++)));
+                            DeserializeScalarResult(
+                                elementType,
+                                item,
+                                parser,
+                                PathFactory.Instance.Append(path, i++)));
                     }
 
                     return list;

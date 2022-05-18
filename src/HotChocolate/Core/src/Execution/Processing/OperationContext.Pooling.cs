@@ -15,6 +15,7 @@ internal sealed partial class OperationContext
     private readonly ObjectPool<ResolverTask> _resolverTaskPool;
     private readonly WorkScheduler _workScheduler;
     private readonly ResultBuilder _resultBuilder;
+    private readonly PooledPathFactory _pathFactory;
     private IRequestContext _requestContext = default!;
     private IPreparedOperation _operation = default!;
     private QueryPlan _queryPlan = default!;
@@ -26,11 +27,14 @@ internal sealed partial class OperationContext
 
     public OperationContext(
         ObjectPool<ResolverTask> resolverTaskPool,
-        ResultPool resultPool)
+        ResultPool resultPool,
+        ObjectPool<PathSegmentBuffer<IndexerPathSegment>> indexerPathSegmentPool,
+        ObjectPool<PathSegmentBuffer<NamePathSegment>> namePathSegmentPool)
     {
         _resolverTaskPool = resolverTaskPool;
         _workScheduler = new WorkScheduler(this);
         _resultBuilder = new ResultBuilder(resultPool);
+        _pathFactory = new PooledPathFactory(indexerPathSegmentPool, namePathSegmentPool);
     }
 
     public bool IsInitialized => _isInitialized;
@@ -69,6 +73,7 @@ internal sealed partial class OperationContext
                 }
             }
 
+            _pathFactory.Clear();
             _workScheduler.Clear();
             _resultBuilder.Clear();
             _requestContext = default!;

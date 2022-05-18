@@ -3,9 +3,14 @@
     "Message": "The specified value type of field `name` does not match the field type.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "findDog",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "findDog"
+      "IsRoot": false
     },
     "Locations": [
       {

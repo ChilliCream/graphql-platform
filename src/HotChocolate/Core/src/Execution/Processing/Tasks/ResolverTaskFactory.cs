@@ -42,7 +42,7 @@ internal static class ResolverTaskFactory
                         selection,
                         parent,
                         responseIndex++,
-                        path.Append(selection.ResponseName),
+                        operationContext.PathFactory.Append(path, selection.ResponseName),
                         objectResult,
                         scopedContext));
                 }
@@ -105,7 +105,7 @@ internal static class ResolverTaskFactory
                 resolverTask.ResolverContext,
                 selection,
                 selection.Type.ElementType(),
-                path.Append(index),
+                operationContext.PathFactory.Append(path, index),
                 0,
                 resultMap,
                 value.Current,
@@ -147,7 +147,7 @@ internal static class ResolverTaskFactory
                         operationContext,
                         resolverContext,
                         selection,
-                        path.Append(selection.ResponseName),
+                        operationContext.PathFactory.Append(path, selection.ResponseName),
                         responseIndex++,
                         resultType,
                         result,
@@ -160,7 +160,7 @@ internal static class ResolverTaskFactory
                         operationContext,
                         resolverContext,
                         selection,
-                        path.Append(selection.ResponseName),
+                        operationContext.PathFactory.Append(path, selection.ResponseName),
                         responseIndex++,
                         result,
                         objectResult));

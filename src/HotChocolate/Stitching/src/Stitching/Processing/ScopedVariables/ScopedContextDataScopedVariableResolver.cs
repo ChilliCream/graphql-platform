@@ -1,7 +1,9 @@
 using System;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using static HotChocolate.Execution.PathFactory;
 using static HotChocolate.Stitching.Properties.StitchingResources;
 
 namespace HotChocolate.Stitching.Processing.ScopedVariables;
@@ -43,7 +45,7 @@ internal class ScopedContextDataScopedVariableResolver
         {
             IValueNode l => l,
             null => NullValueNode.Default,
-            _ => formatter.FormatValue(data, targetType, Path.New(variable.Name.Value))
+            _ => formatter.FormatValue(data, targetType, Instance.New(variable.Name.Value))
         };
 
         return new ScopedVariableValue

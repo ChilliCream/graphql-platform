@@ -78,7 +78,10 @@ internal static partial class ValueCompletion
 
             for (var i = 0; i < array.Length; i++)
             {
-                if (!TryCompleteElement(listResult, path.Append(i), array.GetValue(i)))
+                if (!TryCompleteElement(
+                        listResult,
+                        operationContext.PathFactory.Append(path,i),
+                        array.GetValue(i)))
                 {
                     completedResult = null;
                     return true;
@@ -96,7 +99,10 @@ internal static partial class ValueCompletion
 
             for (var i = 0; i < list.Count; i++)
             {
-                if (!TryCompleteElement(listResult, path.Append(i), list[i]))
+                if (!TryCompleteElement(
+                    listResult, 
+                    operationContext.PathFactory.Append(path, i),
+                    list[i]))
                 {
                     completedResult = null;
                     return true;
@@ -120,7 +126,10 @@ internal static partial class ValueCompletion
                     listResult.Grow();
                 }
 
-                if (!TryCompleteElement(listResult, path.Append(index++), element))
+                if (!TryCompleteElement(
+                    listResult,
+                    operationContext.PathFactory.Append(path, index++),
+                    element))
                 {
                     completedResult = null;
                     return true;
@@ -193,7 +202,10 @@ internal static partial class ValueCompletion
 
             for (var i = 0; i < array.Length; i++)
             {
-                if (!TryCompleteElement(listResult, path.Append(i), array.GetValue(i)))
+                if (!TryCompleteElement(
+                    listResult,
+                    operationContext.PathFactory.Append(path, i),
+                    array.GetValue(i)))
                 {
                     completedResult = null;
                     return true;
@@ -211,7 +223,10 @@ internal static partial class ValueCompletion
 
             for (var i = 0; i < list.Count; i++)
             {
-                if (!TryCompleteElement(listResult, path.Append(i), list[i]))
+                if (!TryCompleteElement(
+                    listResult,
+                    operationContext.PathFactory.Append(path, i),
+                    list[i]))
                 {
                     completedResult = null;
                     return true;
@@ -235,7 +250,10 @@ internal static partial class ValueCompletion
                     listResult.Grow();
                 }
 
-                if (!TryCompleteElement(listResult, path.Append(index++), element))
+                if (!TryCompleteElement(
+                    listResult,
+                    operationContext.PathFactory.Append(path, index++),
+                    element))
                 {
                     completedResult = null;
                     return true;

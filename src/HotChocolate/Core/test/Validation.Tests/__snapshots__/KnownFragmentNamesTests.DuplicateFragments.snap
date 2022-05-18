@@ -3,9 +3,14 @@
     "Message": "The specified fragment `UnknownFragment1` does not exist.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "human",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "human"
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -43,9 +48,14 @@
     "Message": "The specified fragment `UnknownFragment2` does not exist.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "human",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "human"
+      "IsRoot": false
     },
     "Locations": [
       {

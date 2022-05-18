@@ -257,7 +257,7 @@ internal sealed partial class SubscriptionExecutor
                     objectResult,
                     1,
                     rootValue,
-                    Path.New(rootSelection.ResponseName),
+                    operationContext.PathFactory.New(rootSelection.ResponseName),
                     _scopedContextData);
 
                 // it is important that we correctly coerce the arguments before

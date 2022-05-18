@@ -256,7 +256,7 @@ namespace HotChocolate.ConferencePlanner
         public override void StartProcessing(IRequestContext context)
         {
             ((RequestScope)context.ContextData[nameof(RequestScope)]!).CountStarts();
-        
+
             // TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
             // Console.WriteLine($"{timeSpan} Start processing.");
         }
