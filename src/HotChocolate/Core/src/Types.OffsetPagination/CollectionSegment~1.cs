@@ -33,6 +33,27 @@ public class CollectionSegment<T> : CollectionSegment
     }
 
     /// <summary>
+    /// Initializes <see cref="CollectionSegment" />.
+    /// </summary>
+    /// <param name="items">
+    /// The items that belong to this page.
+    /// </param>
+    /// <param name="info">
+    /// Additional information about this page.
+    /// </param>
+    /// <param name="totalCount">
+    /// The total count of the data set / collection that is being paged.
+    /// </param>
+    public CollectionSegment(
+        IReadOnlyCollection<T> items,
+        CollectionSegmentInfo info,
+        int totalCount = 0)
+        : base(new CollectionWrapper(items), info, totalCount)
+    {
+        Items = items;
+    }
+
+    /// <summary>
     /// The items that belong to this page.
     /// </summary>
     public new IReadOnlyCollection<T> Items { get; }
