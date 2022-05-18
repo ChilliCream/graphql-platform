@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -27,7 +28,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         OperationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
         OperationType = schema.GetOperationType(OperationDefinition.Operation)!;
         OperationName = OperationDefinition.Name!.Value;
-        RootPath = Path.Root.Append(OperationName);
+        RootPath = PathFactory.Instance.New(OperationName);
 
         _fieldCollector = new FieldCollector(schema, document);
     }
@@ -55,7 +56,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         _fieldCollector.CollectFields(
             OperationDefinition.SelectionSet,
             OperationType,
-            Path.New(OperationName));
+            PathFactory.Instance.New(OperationName));
 
     public SelectionSetVariants CollectFields(FieldSelection fieldSelection) =>
         CollectFields(

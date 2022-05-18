@@ -101,14 +101,14 @@ namespace HotChocolate.ConferencePlanner
             IRequestExecutor executor = await ExecutorResolver.GetRequestExecutorAsync();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
-            if (result.Errors is { Count: > 0 })
+            if (result is IQueryResult cr && cr.Errors is { Count: > 0 })
             {
                 throw new InvalidOperationException("The request failed.");
             }
 
-            if (result is IDisposable d)
+            if (result is IAsyncDisposable d)
             {
-                d.Dispose();
+                await d.DisposeAsync();
             }
         }
 
@@ -260,7 +260,7 @@ namespace HotChocolate.ConferencePlanner
         public override void StartProcessing(IRequestContext context)
         {
             ((RequestScope)context.ContextData[nameof(RequestScope)]!).CountStarts();
-        
+
             // TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
             // Console.WriteLine($"{timeSpan} Start processing.");
         }
