@@ -98,7 +98,7 @@ internal sealed class DeferredStream : IDeferredExecutionTask
         IQueryResult result = operationContext
             .TrySetNext(true)
             .SetLabel(Label)
-            .SetPath(Path.Append(Index))
+            .SetPath(operationContext.PathFactory.Append(Path, Index))
             .SetData((ResultMap)_task.ChildTask.ResultMap[0].Value!)
             .BuildResult();
 

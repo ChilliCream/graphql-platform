@@ -181,7 +181,7 @@ internal sealed class FieldCollector
                     fieldSelection = new FieldSelection(
                         field,
                         fieldSyntax,
-                        path.Append(responseName));
+                        PathFactory.Instance.Append(path, responseName));
                     fields[responseName] = fieldSelection;
                 }
             }
@@ -190,7 +190,7 @@ internal sealed class FieldCollector
                 fieldSelection = new FieldSelection(
                     field,
                     fieldSyntax,
-                    path.Append(responseName),
+                    PathFactory.Instance.Append(path, responseName),
                     IsConditional(fieldSyntax));
                 fields.Add(responseName, fieldSelection);
             }

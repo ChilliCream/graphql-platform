@@ -176,7 +176,9 @@ namespace HotChocolate.Types
 
             // act
             var parser = new InputParser(new DefaultTypeConverter());
-            void Action() => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
+
+            void Action()
+                => parser.ParseResult(fieldData, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action).MatchSnapshot();
@@ -199,7 +201,9 @@ namespace HotChocolate.Types
 
             // act
             var parser = new InputParser(new DefaultTypeConverter());
-            void Action() => parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+
+            void Action()
+                => parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action).MatchSnapshot();
@@ -225,7 +229,9 @@ namespace HotChocolate.Types
 
             // act
             var parser = new InputParser(new DefaultTypeConverter());
-            void Action() => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
+
+            void Action()
+                => parser.ParseResult(fieldData, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action).MatchSnapshot();
@@ -249,7 +255,9 @@ namespace HotChocolate.Types
 
             // act
             var parser = new InputParser(new DefaultTypeConverter());
-            void Action() => parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+
+            void Action()
+                => parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action).MatchSnapshot();
@@ -271,7 +279,7 @@ namespace HotChocolate.Types
 
             // act
             var parser = new InputParser();
-            var obj = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+            var obj = parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Equal("DefaultAbc", Assert.IsType<Test3Input>(obj).Field1);
@@ -290,8 +298,12 @@ namespace HotChocolate.Types
 
             // act
             var parser = new InputParser();
+
             void Action()
-                => parser.ParseLiteral(NullValueNode.Default, type, Path.Root.Append("root"));
+                => parser.ParseLiteral(
+                    NullValueNode.Default,
+                    type,
+                    PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action).MatchSnapshot();
@@ -317,7 +329,8 @@ namespace HotChocolate.Types
 
             // act
             var parser = new InputParser();
-            var runtimeData = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+            var runtimeData =
+                parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Collection(
@@ -369,7 +382,8 @@ namespace HotChocolate.Types
                 new ObjectFieldNode("b", 123));
 
             // act
-            void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+            void Fail()
+                => parser.ParseLiteral(data, oneOfInput, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
@@ -395,7 +409,8 @@ namespace HotChocolate.Types
                 new ObjectFieldNode("b", 123));
 
             // act
-            void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+            void Fail()
+                => parser.ParseLiteral(data, oneOfInput, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
@@ -420,7 +435,8 @@ namespace HotChocolate.Types
                 new ObjectFieldNode("b", 123));
 
             // act
-            var runtimeValue = parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+            var runtimeValue =
+                parser.ParseLiteral(data, oneOfInput, PathFactory.Instance.New("root"));
 
             // assert
             runtimeValue.MatchSnapshot();

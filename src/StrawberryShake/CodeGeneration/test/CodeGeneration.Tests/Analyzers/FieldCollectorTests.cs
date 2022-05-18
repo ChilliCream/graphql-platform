@@ -88,7 +88,10 @@ public class FieldCollectorTests
         // act
         SelectionSetVariants selectionSetVariants =
             new FieldCollector(schema, document)
-                .CollectFields(secondLevel.SelectionSet!, character, Path.Root.Append("hero"));
+                .CollectFields(
+                    secondLevel.SelectionSet!,
+                    character,
+                    PathFactory.Instance.New("hero"));
 
         // assert
         Assert.Collection(
