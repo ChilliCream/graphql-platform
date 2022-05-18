@@ -99,7 +99,7 @@ namespace HotChocolate.ConferencePlanner
 
             if (result is IQueryResult cr && cr.Errors is { Count: > 0 })
             {
-                throw new InvalidOperationException("The request failed.");
+                throw new InvalidOperationException(cr.Errors[0].Exception.Message);
             }
 
             if (result is IAsyncDisposable d)
