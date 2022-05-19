@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DefaultSyntaxNavigator_NoAncestors" xml:space="preserve">
+    <value>The navigator does not contain any ancestors</value>
+  </data>
   <data name="QuerySyntaxRewriter_NotSupported" xml:space="preserve">
     <value>The given syntax node is not supported by this rewriter.</value>
   </data>

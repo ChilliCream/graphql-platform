@@ -15,7 +15,6 @@ type Query {
   test: String @test_directive
 }
 ";
-
         DocumentNode documentNode = Utf8GraphQLParser.Parse(document);
 
         var captures = new List<IReadOnlyList<ISyntaxNode>>();
@@ -107,7 +106,7 @@ type Query implements TestInterface {
         }
     }
 
-    private class Context : IHasNavigator
+    private class Context : INavigatorContext
     {
         public Context()
         {

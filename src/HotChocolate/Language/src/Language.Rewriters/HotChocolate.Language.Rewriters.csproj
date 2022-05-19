@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-   <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
    <ProjectReference Include="..\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
   </ItemGroup>
 
@@ -28,6 +27,7 @@
     <EmbeddedResource Update="Properties\LangRewritersResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>LangRewritersResources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>HotChocolate.Language.Rewriters</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
 

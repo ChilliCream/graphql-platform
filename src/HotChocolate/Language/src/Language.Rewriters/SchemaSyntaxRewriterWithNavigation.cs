@@ -390,7 +390,7 @@ public class SchemaSyntaxRewriterWithNavigation<TContext>
 
     protected virtual void Push(ISyntaxNode node, TContext context)
     {
-        if (context is not IHasNavigator
+        if (context is not INavigatorContext
             {
                 Navigator: { } navigator
             })
@@ -403,7 +403,7 @@ public class SchemaSyntaxRewriterWithNavigation<TContext>
 
     protected virtual void Pop(TContext context)
     {
-        if (context is not IHasNavigator
+        if (context is not INavigatorContext
             {
                 Navigator: { } navigator
             })
