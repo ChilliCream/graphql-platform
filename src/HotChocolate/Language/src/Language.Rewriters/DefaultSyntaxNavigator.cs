@@ -73,6 +73,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
         {
             return null;
         }
-        return _anchesors[_ancestors.Count - 1];
+
+        return _ancestors[_ancestors.Count - 1];
     }
 }
