@@ -9,7 +9,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution;
 
-internal class ResolverContextProxy : IResolverContext
+internal sealed class ResolverContextProxy : IResolverContext
 {
     private readonly IResolverContext _resolverContext;
 
