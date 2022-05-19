@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -26,18 +25,15 @@ internal sealed class HttpPostBatchRequestHandler : IRemoteBatchRequestHandler
         _targetSchema = targetSchema;
     }
 
-    public Task<IBatchQueryResult> ExecuteAsync(
+    public Task<IResponseStream> ExecuteAsync(
         IEnumerable<IQueryRequest> requestBatch,
         CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult<IBatchQueryResult>(
-            new BatchQueryResult(
+        => Task.FromResult<IResponseStream>(
+            new ResponseStream(
                 () => new HttpPostBatchStream(
                     _clientFactory,
                     _errorHandler,
                     _requestInterceptor,
                     _targetSchema,
-                    requestBatch),
-                Array.Empty<IError>()));
-    }
+                    requestBatch)));
 }

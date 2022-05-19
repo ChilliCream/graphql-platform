@@ -45,7 +45,7 @@ dotnet new sln -n Demo
 2. Create a new Blazor for WebAssembly application.
 
 ```bash
-dotnet new wasm -n Demo
+dotnet new blazorwasm -n Demo
 ```
 
 3. Add the project to the solution `Demo.sln`.

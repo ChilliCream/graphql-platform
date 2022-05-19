@@ -3,6 +3,9 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Spatial.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>

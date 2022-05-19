@@ -3,13 +3,19 @@
     "Message": "The field `unknown_field` does not exist on the type `Pet`.",
     "Code": null,
     "Path": {
+      "Name": "pets",
       "Parent": {
-        "Parent": null,
+        "Name": "human",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
         "Depth": 0,
-        "Name": "human"
+        "IsRoot": false
       },
       "Depth": 1,
-      "Name": "pets"
+      "IsRoot": false
     },
     "Locations": [
       {

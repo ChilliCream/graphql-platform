@@ -182,5 +182,71 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("DataStartMessageHandler_Not_A_SubscriptionResult", resourceCulture);
             }
         }
+        
+        internal static string OperationMessage_TypeCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("OperationMessage_TypeCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string TerminateConnectionMessageHandler_Message {
+            get {
+                return ResourceManager.GetString("TerminateConnectionMessageHandler_Message", resourceCulture);
+            }
+        }
+        
+        internal static string OperationManager_Register_SessionIdNullOrEmpty {
+            get {
+                return ResourceManager.GetString("OperationManager_Register_SessionIdNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_MessageMustBeJson {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_MessageMustBeJson", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_TypePropMissing {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_TypePropMissing", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_ToManyInitializations {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_ToManyInitializations", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_InvalidSubscribeMessage {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_InvalidSubscribeMessage", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_SubscriptionIdNotUnique {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_SubscriptionIdNotUnique", resourceCulture);
+            }
+        }
+        
+        internal static string Apollo_OnReceive_InvalidMessageType {
+            get {
+                return ResourceManager.GetString("Apollo_OnReceive_InvalidMessageType", resourceCulture);
+            }
+        }
+        
+        internal static string ConnectionStatus_Reject_Message_cannot_be_null_or_empty_ {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_Reject_Message_cannot_be_null_or_empty_", resourceCulture);
+            }
+        }
+        
+        internal static string ConnectionStatus_Reject_MessageCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_Reject_MessageCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }

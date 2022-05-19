@@ -26,6 +26,22 @@ public interface ISortConvention : IConvention
     NameString GetTypeName(Type runtimeType);
 
     /// <summary>
+    /// Gets the GraphQL type name for a inline type based on the field definition and the
+    /// parent type name.
+    /// </summary>
+    /// <param name="parentType">
+    /// The parent type of the field that refrences the new type.
+    /// </param>
+    /// <param name="fieldDefinition">
+    /// The definition of the field that refrences the new type.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL type name that was inferred from the <paramref name="parentType"/> and
+    /// the <paramref name="fieldDefinition"/>.
+    /// </returns>
+    NameString GetTypeName(ISortInputType parentType, SortFieldDefinition fieldDefinition);
+
+    /// <summary>
     /// Gets the GraphQL type description from a runtime type.
     /// </summary>
     /// <param name="runtimeType">
@@ -67,7 +83,7 @@ public interface ISortConvention : IConvention
     /// The member from which a field shall be inferred.
     /// </param>
     /// <returns>
-    /// Returns a <see cref="ClrTypeReference"/> that represents the field type.
+    /// Returns a <see cref="ExtendedTypeReference"/> that represents the field type.
     /// </returns>
     ExtendedTypeReference GetFieldType(MemberInfo member);
 
@@ -153,11 +169,19 @@ public interface ISortConvention : IConvention
     FieldMiddleware CreateExecutor<TEntityType>();
 
     /// <summary>
-    /// Configures the field where the filters are applied. This can be used to add context
+    /// Configures the field where the sortings are applied. This can be used to add context
     /// data to the field.
     /// </summary>
     /// <param name="fieldDescriptor">
-    /// the field descriptor where the filtering is applied
+    /// the field descriptor where the sorting is applied
     /// </param>
     void ConfigureField(IObjectFieldDescriptor fieldDescriptor);
+
+    /// <summary>
+    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// </summary>
+    ISortMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        ISortInputTypeDefinition typeDefinition,
+        ISortFieldDefinition fieldDefinition);
 }

@@ -203,7 +203,7 @@ namespace HotChocolate
             IError error = new Error("123");
 
             // act
-            error = error.WithPath(Path.New("foo"));
+            error = error.WithPath(Path.FromList("foo"));
 
             // assert
             Assert.Equal("/foo", error.Path.Print());

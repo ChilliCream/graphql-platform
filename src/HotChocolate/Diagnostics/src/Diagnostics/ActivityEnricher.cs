@@ -567,7 +567,7 @@ public class ActivityEnricher
                 }
 
                 current = current.Parent;
-            } while (current is not null && current is not RootPathSegment);
+            } while (current is not null && !current.IsRoot);
 
             path = p.ToString();
             hierarchy = h.ToString();

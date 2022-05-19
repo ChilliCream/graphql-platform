@@ -145,7 +145,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
     /// <returns>
     /// Returns a stream of query results.
     /// </returns>
-    public Task<IBatchQueryResult> ExecuteBatchAsync(
+    public Task<IResponseStream> ExecuteBatchAsync(
         IEnumerable<IQueryRequest> requestBatch,
         bool allowParallelExecution = false,
         CancellationToken cancellationToken = default) =>

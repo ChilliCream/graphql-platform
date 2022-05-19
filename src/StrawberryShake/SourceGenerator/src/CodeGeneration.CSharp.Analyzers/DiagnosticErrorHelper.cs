@@ -3,7 +3,7 @@ using static StrawberryShake.CodeGeneration.CSharp.Analyzers.Properties.Analyzer
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers;
 
-public static class DiagnosticErrorHelper
+internal static class DiagnosticErrorHelper
 {
     public const string ErrorCategory = "StrawberryShakeGenerator";
 

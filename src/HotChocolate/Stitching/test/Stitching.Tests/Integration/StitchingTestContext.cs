@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.WebSockets;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Stitching.Execution;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
+using HotChocolate.Transport.Sockets.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using StrawberryShake.Transport.WebSockets;
-using StrawberryShake.Transport.WebSockets.Protocols;
 using WebSocketClient = Microsoft.AspNetCore.TestHost.WebSocketClient;
 
 namespace HotChocolate.Stitching.Integration;
@@ -63,16 +66,14 @@ public class StitchingTestContext
     public ISocketClientFactory CreateDefaultWebSocketClientFactory()
     {
         WebSocketClient client = CreateCustomerService().CreateWebSocketClient();
-        client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");
+        client.ConfigureRequest =
+            r => r.Headers.Add("Sec-WebSocket-Protocol", "graphql-transport-ws");
 
-        var connections = new Dictionary<string, ISocketClient>
+        var connections = new Dictionary<string, Func<CancellationToken, ValueTask<WebSocket>>>
         {
             {
                 CustomerSchema,
-                new TestWebSocketClient(
-                    CustomerSchema,
-                    new ISocketProtocolFactory[] { new GraphQLWebSocketProtocolFactory() },
-                    (uri, ct) => client.ConnectAsync(uri, ct))
+                async ct => await client.ConnectAsync(new Uri("ws://localhost:5000/graphql"), ct)
             },
         };
 
@@ -97,20 +98,22 @@ public class StitchingTestContext
         return httpClientFactory.Object;
     }
 
-    public static ISocketClientFactory CreateSocketClientFactory(
-        Dictionary<string, ISocketClient> connections)
+    private static ISocketClientFactory CreateSocketClientFactory(
+        Dictionary<string, Func<CancellationToken, ValueTask<WebSocket>>> connections)
     {
         var httpClientFactory = new Mock<ISocketClientFactory>();
-        httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
-            .Returns(new Func<string, ISocketClient>(n =>
-            {
-                if (connections.ContainsKey(n))
+        httpClientFactory
+            .Setup(t => t.CreateClientAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(new Func<string, CancellationToken, ValueTask<SocketClient>>(
+                async (n, ct) =>
                 {
-                    return connections[n];
-                }
+                    if (connections.ContainsKey(n))
+                    {
+                        return await SocketClient.ConnectAsync(await connections[n](ct), ct);
+                    }
 
-                throw new Exception();
-            }));
+                    throw new Exception($"{n} is not configured as a socket.");
+                }));
 
         return httpClientFactory.Object;
     }

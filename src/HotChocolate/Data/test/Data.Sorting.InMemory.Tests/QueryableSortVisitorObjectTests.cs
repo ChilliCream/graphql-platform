@@ -6,160 +6,158 @@ using Xunit;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
-public class QueryableSortVisitorObjectTests
-    : IClassFixture<SchemaCache>
+public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 {
-    private static readonly Bar[] _barEntities = new[]
+    private static readonly Bar[] _barEntities =
     {
-            new Bar
+        new()
+        {
+            Foo = new Foo
             {
-                Foo = new Foo
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                //ScalarArray = new[] { "c", "d", "a" },
+                ObjectArray = new List<Bar>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    //ScalarArray = new[] { "c", "d", "a" },
-                    ObjectArray = new List<Bar>
+                    new()
                     {
-                        new Bar
+                        Foo = new Foo
                         {
-                            Foo = new Foo
-                            {
-                                // ScalarArray = new[] { "c", "d", "a" }
-                                BarShort = 12, BarString = "a"
-                            }
+                            // ScalarArray = new[] { "c", "d", "a" }
+                            BarShort = 12, BarString = "a"
                         }
                     }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 14,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    //ScalarArray = new[] { "c", "d", "b" },
-                    ObjectArray = new List<Bar>
-                    {
-                        new Bar
-                        {
-                            Foo = new Foo
-                            {
-                                //ScalarArray = new[] { "c", "d", "b" }
-                                BarShort = 14, BarString = "d"
-                            }
-                        }
-                    }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testctest",
-                    //ScalarArray = null,
-                    ObjectArray = null,
                 }
             }
-        };
+        },
+        new()
+        {
+            Foo = new Foo
+            {
+                BarShort = 14,
+                BarBool = true,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                //ScalarArray = new[] { "c", "d", "b" },
+                ObjectArray = new List<Bar>
+                {
+                    new()
+                    {
+                        Foo = new Foo
+                        {
+                            //ScalarArray = new[] { "c", "d", "b" }
+                            BarShort = 14, BarString = "d"
+                        }
+                    }
+                }
+            }
+        },
+        new()
+        {
+            Foo = new Foo
+            {
+                BarShort = 13,
+                BarBool = false,
+                BarEnum = BarEnum.FOO,
+                BarString = "testctest",
+                //ScalarArray = null,
+                ObjectArray = null,
+            }
+        }
+    };
 
-    private static readonly BarNullable?[] _barNullableEntities = new[]
+    private static readonly BarNullable?[] _barNullableEntities =
     {
-            new BarNullable
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                //ScalarArray = new[] { "c", "d", "a" },
+                ObjectArray = new List<BarNullable>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    //ScalarArray = new[] { "c", "d", "a" },
-                    ObjectArray = new List<BarNullable>
+                    new()
                     {
-                        new BarNullable
+                        Foo = new FooNullable
                         {
-                            Foo = new FooNullable
-                            {
-                                //ScalarArray = new[] { "c", "d", "a" }
-                                BarShort = 12,
-                            }
+                            //ScalarArray = new[] { "c", "d", "a" }
+                            BarShort = 12,
                         }
                     }
                 }
-            },
-            new BarNullable
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = null,
+                BarBool = null,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                //ScalarArray = new[] { "c", "d", "b" },
+                ObjectArray = new List<BarNullable>
                 {
-                    BarShort = null,
-                    BarBool = null,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    //ScalarArray = new[] { "c", "d", "b" },
-                    ObjectArray = new List<BarNullable>
+                    new()
                     {
-                        new BarNullable
+                        Foo = new FooNullable
                         {
-                            Foo = new FooNullable
-                            {
-                                //ScalarArray = new[] { "c", "d", "b" }
-                                BarShort = null,
-                            }
+                            //ScalarArray = new[] { "c", "d", "b" }
+                            BarShort = null,
                         }
                     }
                 }
-            },
-            new BarNullable
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = 14,
+                BarBool = false,
+                BarEnum = BarEnum.QUX,
+                BarString = "testctest",
+                //ScalarArray = null,
+                ObjectArray = new List<BarNullable>
                 {
-                    BarShort = 14,
-                    BarBool = false,
-                    BarEnum = BarEnum.QUX,
-                    BarString = "testctest",
-                    //ScalarArray = null,
-                    ObjectArray = new List<BarNullable>
+                    new()
                     {
-                        new BarNullable
+                        Foo = new FooNullable
                         {
-                            Foo = new FooNullable
-                            {
-                                //ScalarArray = new[] { "c", "d", "b" }
-                                BarShort = 14,
-                            }
+                            //ScalarArray = new[] { "c", "d", "b" }
+                            BarShort = 14,
                         }
                     }
                 }
-            },
-            new BarNullable
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
-                {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testdtest",
-                    //ScalarArray = null,
-                    ObjectArray = null
-                }
-            },
-            new BarNullable
-            {
-                Foo =null
-            },
-            null
-        };
+                BarShort = 13,
+                BarBool = false,
+                BarEnum = BarEnum.FOO,
+                BarString = "testdtest",
+                //ScalarArray = null,
+                ObjectArray = null
+            }
+        },
+        new()
+        {
+            Foo =null
+        },
+        null
+    };
 
     private readonly SchemaCache _cache;
 
-    public QueryableSortVisitorObjectTests(
-        SchemaCache cache)
+    public QueryableSortVisitorObjectTests(SchemaCache cache)
     {
         _cache = cache;
     }
@@ -432,18 +430,16 @@ public class QueryableSortVisitorObjectTests
         IExecutionResult res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root(order: [
-                                { foo: { barBool: DESC } },
-                                { foo: { barShort: DESC } }]) {
-                                foo {
-                                    barBool
-                                    barShort
-                                }
+                    @"{
+                        root(order: [
+                            { foo: { barBool: DESC } },
+                            { foo: { barShort: DESC } }]) {
+                            foo {
+                                barBool
+                                barShort
                             }
                         }
-                        ")
+                    }")
                 .Create());
 
         res4.MatchSnapshot("DESC");
@@ -464,7 +460,7 @@ public class QueryableSortVisitorObjectTests
         //Not supported in SQL
         //public string[] ScalarArray { get; set; }
 
-        public List<Bar>? ObjectArray { get; set; } = new List<Bar>();
+        public List<Bar>? ObjectArray { get; set; } = new();
     }
 
     public class FooNullable
@@ -499,13 +495,11 @@ public class QueryableSortVisitorObjectTests
         public FooNullable? Foo { get; set; }
     }
 
-    public class BarSortType
-        : SortInputType<Bar>
+    public class BarSortType : SortInputType<Bar>
     {
     }
 
-    public class BarNullableSortType
-        : SortInputType<BarNullable>
+    public class BarNullableSortType : SortInputType<BarNullable>
     {
     }
 

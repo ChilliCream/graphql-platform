@@ -3,9 +3,14 @@
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "dog",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "dog"
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -36,13 +41,19 @@
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
     "Path": {
+      "Name": "name",
       "Parent": {
-        "Parent": null,
+        "Name": "dog",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
         "Depth": 0,
-        "Name": "dog"
+        "IsRoot": false
       },
       "Depth": 1,
-      "Name": "name"
+      "IsRoot": false
     },
     "Locations": [
       {

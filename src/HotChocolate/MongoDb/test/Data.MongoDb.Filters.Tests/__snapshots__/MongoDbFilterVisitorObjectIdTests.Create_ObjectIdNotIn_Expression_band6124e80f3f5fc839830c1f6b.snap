@@ -1,7 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "The specified value type of field \u0060nin\u0060 does not match the field type.",
+      "message": "The provided value for filter \u0060nin\u0060 of type ObjectIdOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
@@ -12,11 +12,13 @@
         "root"
       ],
       "extensions": {
-        "fieldName": "nin",
-        "fieldType": "[String!]",
-        "locationType": "[String!]",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "code": "HC0026",
+        "expectedType": "[ObjectId!]",
+        "filterType": "ObjectIdOperationFilterInput"
       }
     }
-  ]
+  ],
+  "data": {
+    "root": []
+  }
 }

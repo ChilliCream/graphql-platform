@@ -1,50 +1,30 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using HotChocolate.Properties;
-
-#nullable enable
+using HotChocolate.Execution;
 
 namespace HotChocolate;
 
+/// <summary>
+/// An <see cref="Path" /> represents a pointer to an element in the result structure.
+/// </summary>
 public abstract class Path : IEquatable<Path>
 {
-    internal Path() { }
-
     /// <summary>
     /// Gets the parent path segment.
     /// </summary>
-    public abstract Path? Parent { get; }
+    public Path Parent { get; internal set; } = Root;
 
     /// <summary>
     /// Gets the count of segments this path contains.
     /// </summary>
-    public abstract int Depth { get; }
+    public int Depth { get; protected internal set; }
 
     /// <summary>
-    /// Appends an element.
+    /// Returns true if the Path is the root element
     /// </summary>
-    /// <param name="index">The index of the element.</param>
-    /// <returns>Returns a new path segment pointing to an element in a list.</returns>
-    public virtual IndexerPathSegment Append(int index)
-    {
-        if (index < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
-
-        return new IndexerPathSegment(this, index);
-    }
-
-    /// <summary>
-    /// Appends a new path segment.
-    /// </summary>
-    /// <param name="name">The name of the path segment.</param>
-    /// <returns>Returns a new path segment.</returns>
-    public virtual NamePathSegment Append(NameString name)
-    {
-        name.EnsureNotEmpty(nameof(name));
-        return new NamePathSegment(this, name);
-    }
+    public bool IsRoot => ReferenceEquals(this, Root);
 
     /// <summary>
     /// Generates a string that represents the current path.
@@ -62,15 +42,15 @@ public abstract class Path : IEquatable<Path>
     /// </returns>
     public IReadOnlyList<object> ToList()
     {
-        if (this is RootPathSegment)
+        if (IsRoot)
         {
             return Array.Empty<object>();
         }
 
         var stack = new List<object>();
-        Path? current = this;
+        Path current = this;
 
-        while (current != null)
+        while (!current.IsRoot)
         {
             switch (current)
             {
@@ -98,6 +78,11 @@ public abstract class Path : IEquatable<Path>
 
     public abstract bool Equals(Path? other);
 
+    /// <summary>
+    /// Clones the path
+    /// </summary>
+    public abstract Path Clone();
+
     public sealed override bool Equals(object? obj)
         => obj switch
         {
@@ -114,16 +99,8 @@ public abstract class Path : IEquatable<Path>
     /// </returns>
     public abstract override int GetHashCode();
 
-    /// <summary>
-    /// Creates a root segment.
-    /// </summary>
-    /// <param name="name">The name of the root segment.</param>
-    /// <returns>
-    /// Returns a new root segment.
-    /// </returns>
-    public static NamePathSegment New(NameString name) => new(null, name);
-
-    public static RootPathSegment Root => RootPathSegment.Instance;
+    internal static Path FromList(params object[] elements) =>
+        FromList((IReadOnlyList<object>)elements);
 
     internal static Path FromList(IReadOnlyList<object> path)
     {
@@ -137,20 +114,60 @@ public abstract class Path : IEquatable<Path>
             return Root;
         }
 
-        Path segment = New((string)path[0]);
+        Path segment =
+            PathFactory.Instance.New(path[0] is NameString s ? s : (string)path[0]);
 
         for (var i = 1; i < path.Count; i++)
         {
             segment = path[i] switch
             {
-                NameString n => segment.Append(n),
-                string s => segment.Append(s),
-                int n => segment.Append(n),
-                _ => throw new NotSupportedException(
-                    AbstractionResources.Path_WithPath_Path_Value_NotSupported)
+                NameString n => PathFactory.Instance.Append(segment, n),
+                string n => PathFactory.Instance.Append(segment, n),
+                int n => PathFactory.Instance.Append(segment, n),
+                _ => throw new NotSupportedException("notsupported")
             };
         }
 
         return segment;
+    }
+
+    public static Path Root => RootPathSegment.Instance;
+
+    private sealed class RootPathSegment : Path
+    {
+        private RootPathSegment()
+        {
+            Depth = -1;
+        }
+
+        /// <inheritdoc />
+        public override string Print() => "/";
+
+        /// <inheritdoc />
+        public override bool Equals(Path? other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+
+            return ReferenceEquals(other, this);
+        }
+
+        /// <inheritdoc />
+        public override Path Clone() => this;
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = Parent.GetHashCode() * 3;
+                hash ^= Depth.GetHashCode() * 7;
+                return hash;
+            }
+        }
+
+        public static RootPathSegment Instance { get; } = new();
     }
 }

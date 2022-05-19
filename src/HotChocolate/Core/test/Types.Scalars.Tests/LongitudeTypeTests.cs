@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Types
 {
@@ -287,10 +288,10 @@ namespace HotChocolate.Types
             StringValueNode expected = new(literal);
 
             // act
-            object result = scalar.ParseValue(runtime);
+            ISyntaxNode result = scalar.ParseValue(runtime);
 
             // assert
-            Assert.Equal(expected, result);
+            Assert.Equal(expected, result, BySyntax);
         }
 
         [Fact]
@@ -466,7 +467,7 @@ namespace HotChocolate.Types
             IExecutionResult res = await executor.ExecuteAsync("{ test }");
 
             // assert
-            (await res.ToJsonAsync()).MatchSnapshot();
+            res.ToJson().MatchSnapshot();
         }
 
         public class DefaultLongitude

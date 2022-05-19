@@ -1,4 +1,5 @@
 ﻿{
+  "Kind": "SingleResult",
   "Label": null,
   "Path": null,
   "Data": null,
@@ -7,9 +8,14 @@
       "Message": "Unknown type `MultiPolygon`.",
       "Code": null,
       "Path": {
-        "Parent": null,
+        "Name": "test",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
         "Depth": 0,
-        "Name": "test"
+        "IsRoot": false
       },
       "Locations": [
         {

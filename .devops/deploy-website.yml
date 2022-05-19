@@ -11,17 +11,7 @@ steps:
       versionSpec: "14.x"
       checkLatest: true
 
-  # Can be uncommented as of Node 16.10
-  # - script: "corepack enable"
-  #   displayName: "Enable CorePack"
-  #   workingDirectory: $(projectDirectory)
-
-  # Can be removed as of Node 16.10
-  - script: "npm i -g corepack"
-    displayName: "Install CorePack"
-    workingDirectory: "website"
-
-  - script: "yarn --frozen-lockfile --network-timeout 100000"
+  - script: "yarn --immutable --network-timeout 100000"
     displayName: "Install Packages"
     workingDirectory: "website"
 

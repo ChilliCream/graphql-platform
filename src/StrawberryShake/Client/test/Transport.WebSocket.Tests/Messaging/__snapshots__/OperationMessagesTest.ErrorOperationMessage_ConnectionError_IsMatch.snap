@@ -1,4 +1,11 @@
 ﻿{
-  "Message": "Connection initialization failed. Could not connect to server",
+  "Payload": {
+    "Message": "Connection initialization failed. Could not connect to server",
+    "Code": null,
+    "Path": null,
+    "Locations": null,
+    "Exception": null,
+    "Extensions": null
+  },
   "Type": "Error"
 }

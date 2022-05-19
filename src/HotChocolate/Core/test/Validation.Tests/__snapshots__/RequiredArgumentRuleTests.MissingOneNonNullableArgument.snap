@@ -3,9 +3,14 @@
     "Message": "The argument `req2` does not exist.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "arguments",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "arguments"
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -54,9 +59,14 @@
     "Message": "The argument `x` is required.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "arguments",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "arguments"
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -130,9 +140,14 @@
     "Message": "The argument `y` is required.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "arguments",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "arguments"
+      "IsRoot": false
     },
     "Locations": [
       {

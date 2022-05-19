@@ -1,12 +1,10 @@
 using System;
-using System.Runtime.Serialization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.SchemaBuilding;
 
 [Serializable]
-public class SchemaMergeException
-    : Exception
+public class SchemaMergeException : Exception
 {
     public SchemaMergeException(
         ITypeDefinitionNode typeDefinition,
@@ -14,17 +12,11 @@ public class SchemaMergeException
         string message)
         : base(message)
     {
-        TypeDefinition = typeDefinition
-            ?? throw new ArgumentNullException(nameof(typeDefinition));
-        TypeExtension = typeExtension
-            ?? throw new ArgumentNullException(nameof(typeExtension));
+        TypeDefinition = typeDefinition ??
+            throw new ArgumentNullException(nameof(typeDefinition));
+        TypeExtension = typeExtension ??
+            throw new ArgumentNullException(nameof(typeExtension));
     }
-
-
-    protected SchemaMergeException(
-        SerializationInfo info,
-        StreamingContext context)
-        : base(info, context) { }
 
     public ITypeDefinitionNode TypeDefinition { get; }
 

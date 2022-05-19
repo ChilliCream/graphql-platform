@@ -1,11 +1,10 @@
-namespace HotChocolate.Data.Neo4J.Language
-{
-    public class PlainStringLiteral : Literal<string>
-    {
-        public PlainStringLiteral(string content) : base(content)
-        {
-        }
+namespace HotChocolate.Data.Neo4J.Language;
 
-        public override string Print() => Content;
+public class PlainStringLiteral : Literal<string>
+{
+    public PlainStringLiteral(string content) : base(content)
+    {
     }
+
+    public override string Print() => Content;
 }

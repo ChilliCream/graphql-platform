@@ -362,5 +362,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ThrowHelper_ResolverContext_CannotCastParent", resourceCulture);
             }
         }
+        
+        internal static string ExecutionResultExtensions_OnlyQueryResults {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_OnlyQueryResults", resourceCulture);
+            }
+        }
     }
 }

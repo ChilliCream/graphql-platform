@@ -93,7 +93,7 @@ internal static class ArgumentNonNullValidator
             ValidationResult report = Validate(
                 field,
                 fieldValue,
-                path.Append(field.Name));
+                PathFactory.Instance.Append(path, field.Name));
 
             if (report.HasErrors)
             {
@@ -111,7 +111,8 @@ internal static class ArgumentNonNullValidator
 
         foreach (IValueNode element in list.Items)
         {
-            ValidationResult error = Validate(elementType, element, path.Append(i++));
+            ValidationResult error =
+                Validate(elementType, element, PathFactory.Instance.Append(path, i++));
             if (error.HasErrors)
             {
                 return error;

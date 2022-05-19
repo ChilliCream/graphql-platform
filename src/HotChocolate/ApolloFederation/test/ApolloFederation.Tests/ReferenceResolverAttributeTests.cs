@@ -195,8 +195,8 @@ public class ReferenceResolverAttributeTests
             Assert.IsType<FieldResolverDelegate>(inClassResolverContextObject);
         IResolverContext context = CreateResolverContext(schema, type);
 
-        context.SetLocalValue(DataField, representation);
-        context.SetLocalValue(TypeField, type);
+        context.SetLocalState(DataField, representation);
+        context.SetLocalState(TypeField, type);
 
         var entity = await inClassResolverDelegate.Invoke(context);
 

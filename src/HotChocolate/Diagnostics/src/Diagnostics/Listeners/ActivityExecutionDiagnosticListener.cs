@@ -316,7 +316,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         activity.SetStatus(Status.Ok);
         activity.SetStatus(ActivityStatusCode.Ok);
 
-        context.SetLocalValue(ResolverActivity, activity);
+        context.SetLocalState(ResolverActivity, activity);
 
         return activity!;
     }

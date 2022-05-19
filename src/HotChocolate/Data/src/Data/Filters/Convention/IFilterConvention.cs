@@ -25,6 +25,22 @@ public interface IFilterConvention : IConvention
     NameString GetTypeName(Type runtimeType);
 
     /// <summary>
+    /// Gets the GraphQL type name for a inline type based on the field definition and the
+    /// parent type name.
+    /// </summary>
+    /// <param name="parentType">
+    /// The parent type of the field that refrences the new type.
+    /// </param>
+    /// <param name="fieldDefinition">
+    /// The definition of the field that refrences the new type.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL type name that was inferred from the <paramref name="parentType"/> and
+    /// the <paramref name="fieldDefinition"/>.
+    /// </returns>
+    NameString GetTypeName(IFilterInputType parentType, FilterFieldDefinition fieldDefinition);
+
+    /// <summary>
     /// Gets the GraphQL type description from a runtime type.
     /// </summary>
     /// <param name="runtimeType">
@@ -66,7 +82,7 @@ public interface IFilterConvention : IConvention
     /// The member from which a field shall be inferred.
     /// </param>
     /// <returns>
-    /// Returns a <see cref="RuntimeTypeReference"/> that represents the field type.
+    /// Returns a <see cref="ExtendedTypeReference"/> that represents the field type.
     /// </returns>
     ExtendedTypeReference GetFieldType(MemberInfo member);
 
@@ -118,6 +134,14 @@ public interface IFilterConvention : IConvention
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition,
         [NotNullWhen(true)] out IFilterFieldHandler? handler);
+
+    /// <summary>
+    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// </summary>
+    IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition);
 
     /// <summary>
     /// Creates a middleware that represents the filter execution logic

@@ -166,8 +166,8 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
-                    .AddProperty("one", "foo")
-                    .AddProperty("two", "bar")
+                    .AddGlobalState("one", "foo")
+                    .AddGlobalState("two", "bar")
                     .Create();
 
             // assert
@@ -182,9 +182,9 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
-                    .AddProperty("one", "foo")
-                    .AddProperty("two", "bar")
-                    .SetProperties(new Dictionary<string, object>
+                    .AddGlobalState("one", "foo")
+                    .AddGlobalState("two", "bar")
+                    .InitializeGlobalState(new Dictionary<string, object>
                     {
                         { "three", "baz" }
                     })
@@ -203,8 +203,8 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
-                    .AddProperty("one", "foo")
-                    .SetProperty("one", "bar")
+                    .AddGlobalState("one", "foo")
+                    .SetGlobalState("one", "bar")
                     .Create();
 
             // assert
@@ -220,7 +220,7 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
-                    .SetProperty("one", "bar")
+                    .SetGlobalState("one", "bar")
                     .Create();
 
             // assert
@@ -236,9 +236,9 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
-                    .AddProperty("one", "foo")
-                    .AddProperty("two", "bar")
-                    .SetProperties(null)
+                    .AddGlobalState("one", "foo")
+                    .AddGlobalState("two", "bar")
+                    .InitializeGlobalState(null)
                     .Create();
 
             // assert
@@ -323,7 +323,7 @@ namespace HotChocolate.Execution
                     .SetQuery("{ foo }")
                     .SetOperation("bar")
                     .SetInitialValue(new { a = "456" })
-                    .AddProperty("one", "foo")
+                    .AddGlobalState("one", "foo")
                     .AddVariableValue("two", "bar")
                     .SetServices(new DictionaryServiceProvider(
                         service.GetType(), service))
@@ -341,7 +341,7 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
-                    .TryAddProperty("one", "bar")
+                    .TryAddGlobalState("one", "bar")
                     .Create();
 
             // assert
@@ -356,8 +356,8 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
-                    .AddProperty("one", "foo")
-                    .TryAddProperty("one", "bar")
+                    .AddGlobalState("one", "foo")
+                    .TryAddGlobalState("one", "bar")
                     .Create();
 
             // assert

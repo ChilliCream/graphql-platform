@@ -3,9 +3,14 @@
     "Message": "The argument `DogCommand` does not exist.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "dog",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "dog"
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -54,9 +59,14 @@
     "Message": "The argument `dogCommand` is required.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "dog",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "dog"
+      "IsRoot": false
     },
     "Locations": [
       {

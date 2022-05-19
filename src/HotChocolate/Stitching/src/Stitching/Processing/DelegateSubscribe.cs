@@ -32,9 +32,9 @@ internal sealed class DelegateSubscribe
             reversePath = ImmutableStack.CreateRange(path);
         }
 
-        context.SetScopedValue(WellKnownContextData.Path, path);
-        context.SetScopedValue(ReversePath, reversePath);
-        context.SetScopedValue(SchemaName, delegateDirective.Schema);
+        context.SetScopedState(WellKnownContextData.Path, path);
+        context.SetScopedState(ReversePath, reversePath);
+        context.SetScopedState(SchemaName, delegateDirective.Schema);
 
         return new ValueTask<ISourceStream>(
             new RemoteSourceStream(
@@ -61,7 +61,7 @@ internal sealed class DelegateSubscribe
 
         public async IAsyncEnumerable<object> ReadEventsAsync()
         {
-            await using SubscriptionResult result =
+            await using ResponseStream result =
                 await ExecuteSubscribeAsync(
                         _context,
                         _request,
@@ -79,7 +79,7 @@ internal sealed class DelegateSubscribe
         public ValueTask DisposeAsync() => default;
     }
 
-    private static async ValueTask<SubscriptionResult> ExecuteSubscribeAsync(
+    private static async ValueTask<ResponseStream> ExecuteSubscribeAsync(
         IResolverContext context,
         IQueryRequest request,
         string schemaName)
@@ -91,12 +91,12 @@ internal sealed class DelegateSubscribe
                 context.RequestAborted)
                 .ConfigureAwait(false);
 
-        if (result is SubscriptionResult subscriptionResult)
+        if (result is ResponseStream subscriptionResult)
         {
             return subscriptionResult;
         }
 
-        if (result is IQueryResult {Data: null, Errors.Count: > 0} errorResult)
+        if (result is IQueryResult { Data: null, Errors.Count: > 0 } errorResult)
         {
             throw new GraphQLException(errorResult.Errors!);
         }

@@ -521,6 +521,38 @@ namespace HotChocolate
         }
 
         [Fact]
+        public async Task Ensure_Default_Values_With_Inputs_Are_Applied()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(@"
+                    type Query {
+                        book(input: Foo): String
+                    }
+
+                    input Foo { bar: String = ""baz"" }")
+                .AddResolver<QueryWithFooInput>("Query")
+                .ExecuteRequestAsync("{ book(input: { }) }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Default_Values_With_Inputs_Can_Be_Overriden()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(@"
+                    type Query {
+                        book(input: Foo): String
+                    }
+
+                    input Foo { bar: String = ""baz"" }")
+                .AddResolver<QueryWithFooInput>("Query")
+                .ExecuteRequestAsync("{ book(input: { bar: \"baz123\" }) }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound_When_Using_BindRuntimeType()
         {
 
@@ -642,5 +674,20 @@ namespace HotChocolate
     public enum TestEnumInput
     {
         FooBarInput
+    }
+
+    public class QueryWithFooInput
+    {
+        public string GetBook(Foo input) => input.Bar;
+    }
+
+    public class Foo
+    {
+        public Foo(string bar)
+        {
+            Bar = bar;
+        }
+
+        public string Bar { get; }
     }
 }

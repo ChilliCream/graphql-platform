@@ -4,63 +4,121 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.TestHost;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace StrawberryShake.Transport.Http
+namespace StrawberryShake.Transport.Http;
+
+public class HttpConnectionTests : ServerTestBase
 {
-    public class HttpConnectionTests : ServerTestBase
+    public HttpConnectionTests(TestServerFactory serverFactory)
+        : base(serverFactory)
     {
-        public HttpConnectionTests(TestServerFactory serverFactory)
-            : base(serverFactory)
+    }
+
+    [Fact]
+    public async Task Simple_Request()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer();
+        HttpClient client = server.CreateClient();
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
+        var document = new MockDocument("query Test { __typename }");
+        var request = new OperationRequest("Test", document);
+
+        // act
+        var results = new List<JsonDocument>();
+        var connection = new HttpConnection(() => client);
+        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(request))
         {
+            if (response.Body is not null)
+            {
+                results.Add(response.Body);
+            }
         }
 
-        [Fact]
-        public async Task Simple_Request()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-            HttpClient client = server.CreateClient();
-            client.BaseAddress = new Uri("http://localhost:5000/graphql");
+        // assert
+        Assert.Collection(
+            results,
+            t => t.RootElement.ToString().MatchSnapshot());
+    }
 
-            var document = new MockDocument("query Test { __typename }");
-            var request = new OperationRequest("Test", document);
+    [Fact]
+    public async Task MultiPart_Request()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer();
+        HttpClient client = server.CreateClient();
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
-            // act
-            var results = new List<JsonDocument>();
-            var connection = new HttpConnection(() => client);
-            await foreach (var response in connection.ExecuteAsync(request))
-            {
-                if (response.Body is not null)
-                {
-                    results.Add(response.Body);
+        var document = new MockDocument(
+            @"query GetHero {
+                hero(episode: NEW_HOPE) {
+                    ... HeroName
+                    ... HeroAppearsIn @defer(label: ""HeroAppearsIn"")
                 }
             }
 
-            // assert
-            Assert.Collection(
-                results,
-                t => t.RootElement.ToString().MatchSnapshot());
-        }
-
-
-        private sealed class MockDocument : IDocument
-        {
-            private readonly byte[] _query;
-
-            public MockDocument(string query)
-            {
-                _query = Encoding.UTF8.GetBytes(query);
+            fragment HeroName on Character {
+                name
+                friends {
+                    nodes {
+                        name
+                        ... HeroAppearsIn2 @defer(label: ""HeroAppearsIn2"")
+                    }
+                }
             }
 
-            public OperationKind Kind => OperationKind.Query;
+            fragment HeroAppearsIn on Character {
+                appearsIn
+            }
 
-            public ReadOnlySpan<byte> Body => _query;
+            fragment HeroAppearsIn2 on Character {
+                appearsIn
+            }");
+        var request = new OperationRequest("GetHero", document);
 
-            public DocumentHash Hash { get; } = new("MD5", "ABC");
+        // act
+        var results = new List<JsonDocument>();
+        var connection = new HttpConnection(() => client);
+        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(request))
+        {
+            if (response.Body is not null)
+            {
+                results.Add(response.Body);
+            }
         }
+
+        // assert
+        var i = 0;
+        var data = new StringBuilder();
+
+        foreach (JsonDocument result in results)
+        {
+            data.Append("Result ").Append(++i).AppendLine(":");
+            data.AppendLine(result.RootElement.ToString());
+            data.AppendLine();
+        }
+
+        data.ToString().MatchSnapshot();
+    }
+
+    private sealed class MockDocument : IDocument
+    {
+        private readonly byte[] _query;
+
+        public MockDocument(string query)
+        {
+            _query = Encoding.UTF8.GetBytes(query);
+        }
+
+        public OperationKind Kind => OperationKind.Query;
+
+        public ReadOnlySpan<byte> Body => _query;
+
+        public DocumentHash Hash { get; } = new("MD5", "ABC");
     }
 }

@@ -63,16 +63,16 @@ partial class Build : NukeBuild
             DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
         });
 
-    void BuildCodeGenServer()
+    void BuildCodeGenServer(bool restore = false)
     {
         DotNetBuild(c => c
-            .SetNoRestore(true)
+            .SetNoRestore(!restore)
             .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
             .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server")
             .SetConfiguration(Configuration));
 
         DotNetBuild(c => c
-            .SetNoRestore(true)
+            .SetNoRestore(!restore)
             .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
                 .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server")
                 .SetConfiguration(Configuration));

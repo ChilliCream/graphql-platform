@@ -28,9 +28,7 @@ public class ExtensionData
     {
         ImmutableDictionary<string, object?>.Builder builder =
             ImmutableDictionary.CreateBuilder<string, object?>();
-
         builder.AddRange(extensionData);
-
         _dict = builder.ToImmutableDictionary();
     }
 

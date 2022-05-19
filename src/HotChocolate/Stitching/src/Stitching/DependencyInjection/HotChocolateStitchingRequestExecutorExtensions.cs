@@ -20,7 +20,6 @@ using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using StrawberryShake.Transport.WebSockets;
 using static HotChocolate.Stitching.ThrowHelper;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -166,12 +165,21 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
                         sp.GetRequiredService<IHttpStitchingRequestInterceptor>(),
                         schemaName));
 
-                services.AddSingleton<IRemoteBatchRequestHandler>(
-                    sp => new HttpPostBatchRequestHandler(
-                        sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
-                        sp.GetRequiredService<IErrorHandler>(),
-                        sp.GetRequiredService<IHttpStitchingRequestInterceptor>(),
-                        schemaName));
+                if (capabilities.Batching == BatchingSupport.Off)
+                {
+                    services.AddSingleton<IRemoteBatchRequestHandler>(
+                        sp => new ParallelBatchRequestHandler(
+                            sp.GetCombinedServices().GetServices<IRemoteRequestHandler>()));
+                }
+                else
+                {
+                    services.AddSingleton<IRemoteBatchRequestHandler>(
+                        sp => new HttpPostBatchRequestHandler(
+                            sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
+                            sp.GetRequiredService<IErrorHandler>(),
+                            sp.GetRequiredService<IHttpStitchingRequestInterceptor>(),
+                            schemaName));
+                }
 
                 services.TryAddSingleton<
                     IHttpStitchingRequestInterceptor,

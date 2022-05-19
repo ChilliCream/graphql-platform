@@ -69,7 +69,7 @@ public interface IRequestExecutor
     /// <returns>
     /// Returns a stream of query results.
     /// </returns>
-    Task<IBatchQueryResult> ExecuteBatchAsync(
+    Task<IResponseStream> ExecuteBatchAsync(
         IEnumerable<IQueryRequest> requestBatch,
         bool allowParallelExecution = false,
         CancellationToken cancellationToken = default);
