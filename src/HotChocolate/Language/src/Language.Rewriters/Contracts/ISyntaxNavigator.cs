@@ -9,6 +9,11 @@ namespace HotChocolate.Language.Rewriters;
 public interface ISyntaxNavigator
 {
     /// <summary>
+    /// Returns the immediate parent of the current Syntax Node
+    /// </summary>
+    ISyntaxNode? Parent { get; }
+    
+    /// <summary>
     /// Adds a syntax node to the Syntax Navigator to record the parent of the Syntax Node being visited.
     /// </summary>
     /// <param name="node">The parent syntax node to be added to the Syntax Navigator</param>
@@ -43,9 +48,4 @@ public interface ISyntaxNavigator
     /// <returns>A collection of Syntax Nodes of type <see cref="TNode" /></returns>
     IEnumerable<TNode> GetAncestors<TNode>()
         where TNode : ISyntaxNode;
-
-    /// <summary>
-    /// Returns the immediate parent of the current Syntax Node
-    /// </summary>
-    ISyntaxNode? Parent { get; }
 }
