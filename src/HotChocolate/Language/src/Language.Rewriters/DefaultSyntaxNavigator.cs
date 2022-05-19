@@ -55,5 +55,12 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     }
 
     /// <inheritdoc cref="ISyntaxNavigator.GetParent"/>
-    public ISyntaxNode? GetParent() => GetAncestor<ISyntaxNode>();
+    public ISyntaxNode? GetParent()
+    {
+        if(_ancestors.Count == 0)
+        {
+            return null;
+        }
+        return _anchesors[_ancestors.Count - 1];
+    }
 }
