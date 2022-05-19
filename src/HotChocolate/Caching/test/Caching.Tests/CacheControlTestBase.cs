@@ -47,7 +47,7 @@ public abstract class CacheControlTestBase
         return cache.Writes.First().Result;
     }
 
-    public class QueryCache : DefaultQueryCache
+    internal class QueryCache : DefaultQueryCache
     {
         public List<ReadArgs> Reads { get; } = new List<ReadArgs>();
         public List<WriteArgs> Writes { get; } = new List<WriteArgs>();
@@ -62,7 +62,7 @@ public abstract class CacheControlTestBase
         public bool ThrowInWrite { get; }
 
         public QueryCache(bool returnResult = false, bool skipWrite = false, bool skipRead = false,
-            bool throwInShouldRead = false, bool throwInShouldWrite = false,
+            bool throwInShouldRead = false,  bool throwInShouldWrite = false,
             bool throwInRead = false, bool throwInWrite = false)
         {
             ReturnResult = returnResult;
@@ -74,29 +74,29 @@ public abstract class CacheControlTestBase
             ThrowInWrite = throwInWrite;
         }
 
-        public override bool ShouldReadResultFromCache(IRequestContext context)
-        {
-            if (ThrowInShouldRead)
-            {
-                throw new Exception();
-            }
+        //public override bool ShouldReadResultFromCache(IRequestContext context)
+        //{
+        //    if (ThrowInShouldRead)
+        //    {
+        //        throw new Exception();
+        //    }
 
-            bool result;
+        //    bool result;
 
-            if (SkipRead)
-            {
-                result = false;
-            }
+        //    if (SkipRead)
+        //    {
+        //        result = false;
+        //    }
 
-            else
-            {
-                result = base.ShouldReadResultFromCache(context);
-            }
+        //    else
+        //    {
+        //        result = base.ShouldReadResultFromCache(context);
+        //    }
 
-            ShouldReads.Add(result);
+        //    ShouldReads.Add(result);
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public override bool ShouldWriteResultToCache(IRequestContext context)
         {
@@ -121,27 +121,27 @@ public abstract class CacheControlTestBase
             return result;
         }
 
-        public override Task<IQueryResult?> TryReadCachedQueryResultAsync(IRequestContext context,
-            ICacheControlOptions options)
-        {
-            if (ThrowInRead)
-            {
-                throw new Exception();
-            }
+        //public override Task<IQueryResult?> TryReadCachedQueryResultAsync(IRequestContext context,
+        //    ICacheControlOptions options)
+        //{
+        //    if (ThrowInRead)
+        //    {
+        //        throw new Exception();
+        //    }
 
-            Reads.Add(new(options));
+        //    Reads.Add(new(options));
 
-            if (ReturnResult)
-            {
-                IQueryResult result = QueryResultBuilder.New()
-                    .SetData(new Dictionary<string, object?>())
-                    .Create();
+        //    if (ReturnResult)
+        //    {
+        //        IQueryResult result = QueryResultBuilder.New()
+        //            .SetData(new Dictionary<string, object?>())
+        //            .Create();
 
-                return Task.FromResult<IQueryResult?>(result);
-            }
+        //        return Task.FromResult<IQueryResult?>(result);
+        //    }
 
-            return Task.FromResult<IQueryResult?>(null);
-        }
+        //    return Task.FromResult<IQueryResult?>(null);
+        //}
 
         public override Task CacheQueryResultAsync(IRequestContext context, ICacheControlResult result,
             ICacheControlOptions options)

@@ -4,18 +4,16 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Caching;
 
-public abstract class DefaultQueryCache : IQueryCache
+internal abstract class DefaultQueryCache : IQueryCache
 {
-    public abstract Task<IQueryResult?> TryReadCachedQueryResultAsync(
-        IRequestContext context, ICacheControlOptions options);
+    //public abstract Task<IQueryResult?> TryReadCachedQueryResultAsync(
+    //    IRequestContext context, ICacheControlOptions options);
 
     public abstract Task CacheQueryResultAsync(IRequestContext context,
         ICacheControlResult result, ICacheControlOptions options);
 
-    public virtual bool ShouldReadResultFromCache(IRequestContext context)
-    {
-        return true;
-    }
+    //public virtual bool ShouldReadResultFromCache(IRequestContext context)
+    //    => true;
 
     public virtual bool ShouldWriteResultToCache(IRequestContext context)
     {

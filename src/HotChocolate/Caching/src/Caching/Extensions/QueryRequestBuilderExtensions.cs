@@ -6,5 +6,5 @@ public static class QueryRequestBuilderExtensions
 {
     public static IQueryRequestBuilder SkipQueryCaching(
         this IQueryRequestBuilder builder) =>
-        builder.SetProperty(WellKnownContextData.SkipQueryCaching, null);
+        builder.SetGlobalState(WellKnownContextData.SkipQueryCaching, null);
 }

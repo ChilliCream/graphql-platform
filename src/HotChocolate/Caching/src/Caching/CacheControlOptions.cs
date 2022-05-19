@@ -8,5 +8,5 @@ public class CacheControlOptions : ICacheControlOptions
 
     public bool ApplyDefaults { get; set; } = true;
 
-    public GetSessionIdDelegate? GetSessionId { get; set; } = null;
+    //public GetSessionIdDelegate? GetSessionId { get; set; } = null;
 }

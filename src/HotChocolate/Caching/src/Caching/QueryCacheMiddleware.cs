@@ -12,20 +12,14 @@ namespace HotChocolate.Caching;
 
 public sealed class QueryCacheMiddleware
 {
-    private static readonly string _contextKey = nameof(CacheControlOptions);
-
     private readonly RequestDelegate _next;
-    private readonly DocumentValidatorContextPool _contextPool;
     private readonly IQueryCache[] _caches;
     private readonly ICacheControlOptions _options;
 
     public QueryCacheMiddleware(
-        RequestDelegate next,
-        DocumentValidatorContextPool contextPool,
-        IEnumerable<IQueryCache> caches)
+        RequestDelegate next, IEnumerable<IQueryCache> caches)
     {
         _next = next;
-        _contextPool = contextPool;
         _caches = caches.ToArray();
 
         // todo: how to properly access options in this middleware?
@@ -41,31 +35,34 @@ public sealed class QueryCacheMiddleware
             return;
         }
 
-        foreach (IQueryCache cache in _caches)
-        {
-            try
-            {
-                if (!cache.ShouldReadResultFromCache(context))
-                {
-                    continue;
-                }
+        // Since we are only "writing" to a cache using HTTP Cache-Control,
+        // we do not yet have to worry about the details for reading from
+        // a user-space cache implementation.
 
-                // todo: new JSON stream implementation for IQueryResult
-                IQueryResult? cachedResult =
-                    await cache.TryReadCachedQueryResultAsync(context, _options);
+        //foreach (IQueryCache cache in _caches)
+        //{
+        //    try
+        //    {
+        //        if (!cache.ShouldReadResultFromCache(context))
+        //        {
+        //            continue;
+        //        }
 
-                if (cachedResult is not null)
-                {
-                    context.Result = cachedResult;
-                    return;
-                }
-            }
-            catch
-            {
-                // An exception while trying to retrieve the cached query result
-                // should not error out the actual query, so we are ignoring it.
-            }
-        }
+        //        IQueryResult? cachedResult =
+        //            await cache.TryReadCachedQueryResultAsync(context, _options);
+
+        //        if (cachedResult is not null)
+        //        {
+        //            context.Result = cachedResult;
+        //            return;
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        // An exception while trying to retrieve the cached query result
+        //        // should not error out the actual query, so we are ignoring it.
+        //    }
+        //}
 
         await _next(context).ConfigureAwait(false);
 
