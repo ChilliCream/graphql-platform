@@ -97,7 +97,7 @@ type Query implements TestInterface {
 
         protected override NamedTypeNode RewriteNamedType(NamedTypeNode node, Context context)
         {
-            if (context.Navigator.GetParent() is ObjectTypeDefinitionNode)
+            if (context.Navigator.Parent is ObjectTypeDefinitionNode)
             {
                 Capture(node, context);
             }

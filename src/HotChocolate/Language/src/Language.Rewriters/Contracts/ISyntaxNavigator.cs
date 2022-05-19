@@ -47,6 +47,5 @@ public interface ISyntaxNavigator
     /// <summary>
     /// Returns the immediate parent of the current Syntax Node
     /// </summary>
-    /// <returns>The parent Syntax Node or null if the current node does not have a parent.</returns>
-    ISyntaxNode? GetParent();
+    ISyntaxNode? Parent { get; }
 }

@@ -66,14 +66,17 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
         }
     }
 
-    /// <inheritdoc cref="ISyntaxNavigator.GetParent"/>
-    public ISyntaxNode? GetParent()
+    /// <inheritdoc cref="ISyntaxNavigator.Parent"/>
+    public ISyntaxNode? Parent
     {
-        if(_ancestors.Count == 0)
+        get
         {
-            return null;
-        }
+            if (_ancestors.Count == 0)
+            {
+                return null;
+            }
 
-        return _ancestors[_ancestors.Count - 1];
+            return _ancestors[_ancestors.Count - 1];
+        }
     }
 }
