@@ -22,8 +22,8 @@ public interface ISyntaxNavigator
     /// <summary>
     /// Removes the current parent node from the Syntax Navigator.
     /// </summary>
-    /// <param name="node">The removed parent node.</param>
-    void Pop(out ISyntaxNode node);
+    /// <returns>The removed parent node.</returns>
+    ISyntaxNode Pop();
 
     /// <summary>
     /// Attempts to remove the current parent node from the Syntax Navigator.

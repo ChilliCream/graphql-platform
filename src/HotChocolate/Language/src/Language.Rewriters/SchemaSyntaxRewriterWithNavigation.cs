@@ -411,6 +411,6 @@ public class SchemaSyntaxRewriterWithNavigation<TContext>
             return;
         }
 
-        navigator.Pop(out _);
+        navigator.Pop();
     }
 }

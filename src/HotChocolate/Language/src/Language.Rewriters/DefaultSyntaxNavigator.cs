@@ -16,12 +16,14 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     public void Push(ISyntaxNode node) => _ancestors.Add(node);
 
     /// <inheritdoc cref="ISyntaxNavigator.Pop"/>
-    public void Pop(out ISyntaxNode node)
+    public ISyntaxNode Pop()
     {
-        if (!TryPop(out node!))
+        if (!TryPop(out ISyntaxNode? node))
         {
             throw new InvalidOperationException(DefaultSyntaxNavigator_NoAncestors);
         }
+
+        return node;
     }
 
     /// <inheritdoc cref="ISyntaxNavigator.TryPop"/>
