@@ -39,8 +39,9 @@ public abstract class CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executeRequest(executor);
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.NotEmpty(cache.Writes);
 
         return cache.Writes.First().Result;

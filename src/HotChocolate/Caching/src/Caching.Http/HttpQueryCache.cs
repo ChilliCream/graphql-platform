@@ -23,7 +23,7 @@ internal sealed class HttpQueryCache : DefaultQueryCache
     public override Task<IQueryResult?> TryReadCachedQueryResultAsync(
         IRequestContext context, ICacheControlOptions options)
     {
-        return Task.FromResult<IQueryResult?>(null);
+        throw new NotSupportedException("TODO");
     }
 
     public override Task CacheQueryResultAsync(IRequestContext context,

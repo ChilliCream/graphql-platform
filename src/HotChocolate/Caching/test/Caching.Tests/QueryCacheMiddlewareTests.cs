@@ -29,8 +29,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Empty(cache.Reads);
         Assert.Empty(cache.Writes);
     }
@@ -57,8 +58,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
             .Create();
 
         IExecutionResult result = await executor.ExecuteAsync(query);
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Empty(cache.Reads);
         Assert.Empty(cache.Writes);
     }
@@ -82,8 +84,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Single(cache1.Reads);
         Assert.Single(cache2.Reads);
     }
@@ -107,8 +110,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Single(cache1.Reads);
         Assert.Empty(cache2.Reads);
     }
@@ -130,8 +134,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Empty(cache.Reads);
         Assert.Single(cache.Writes);
     }
@@ -153,8 +158,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Empty(cache.Reads);
         Assert.Single(cache.Writes);
     }
@@ -176,8 +182,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Empty(cache.Reads);
         Assert.Single(cache.Writes);
     }
@@ -201,8 +208,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Single(cache1.Writes);
         Assert.Single(cache2.Writes);
     }
@@ -224,8 +232,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ __typename }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Empty(cache.Writes);
     }
 
@@ -246,8 +255,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Single(cache.Reads);
         Assert.Collection(cache.ShouldWrites, result => Assert.False(result));
         Assert.Empty(cache.Writes);
@@ -270,8 +280,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Single(cache.Reads);
         Assert.Empty(cache.Writes);
     }
@@ -293,8 +304,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Single(cache.Reads);
         Assert.Empty(cache.Writes);
     }

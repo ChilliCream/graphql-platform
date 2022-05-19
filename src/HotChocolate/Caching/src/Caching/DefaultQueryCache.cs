@@ -19,7 +19,7 @@ public abstract class DefaultQueryCache : IQueryCache
 
     public virtual bool ShouldWriteResultToCache(IRequestContext context)
     {
-        if (context.Result is not IReadOnlyQueryResult result)
+        if (context.Result is not IQueryResult result)
         {
             // Result is a potentially deferred, we can not cache the entire query.
             return false;

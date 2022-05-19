@@ -31,8 +31,9 @@ public class DefaultQueryCacheTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("{ field }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.NotEmpty(result.Errors);
+        Assert.NotEmpty(queryResult.Errors);
         Assert.Single(cache.Reads);
         Assert.Empty(cache.Writes);
     }
@@ -64,7 +65,6 @@ public class DefaultQueryCacheTests : CacheControlTestBase
 
         IExecutionResult result = await executor.ExecuteAsync("{ ... @defer { deferred } regular }");
 
-        Assert.Null(result.Errors);
         Assert.Single(cache.Reads);
         Assert.Empty(cache.Writes);
     }
@@ -97,8 +97,9 @@ public class DefaultQueryCacheTests : CacheControlTestBase
         IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
 
         IExecutionResult result = await executor.ExecuteAsync("mutation { modifyEntity { field } }");
+        IQueryResult queryResult = result.ExpectQueryResult();
 
-        Assert.Null(result.Errors);
+        Assert.Null(queryResult.Errors);
         Assert.Collection(cache.ShouldWrites, result => Assert.False(result));
         Assert.Single(cache.Reads);
         Assert.Empty(cache.Writes);

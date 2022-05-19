@@ -1,12 +1,5 @@
 ﻿{
-  "Headers": [
-    {
-      "Key": "Cache-Control",
-      "Value": [
-        "max-age=0, private"
-      ]
-    }
-  ],
+  "Headers": [],
   "ContentHeaders": [
     {
       "Key": "Content-Type",

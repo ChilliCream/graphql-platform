@@ -18,7 +18,7 @@ public class HttpCachingTests : ServerTestBase
     }
 
     [Fact]
-    public async Task MaxAge()
+    public async Task MaxAge_NonZero_Should_Cache()
     {
         TestServer server = CreateServer(services =>
         {
@@ -39,7 +39,7 @@ public class HttpCachingTests : ServerTestBase
     }
 
     [Fact]
-    public async Task MaxAge_Zero()
+    public async Task MaxAge_Zero_Should_Not_Cache()
     {
         TestServer server = CreateServer(services =>
         {
@@ -60,7 +60,7 @@ public class HttpCachingTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Scope()
+    public async Task JustScope_Should_Not_Cache()
     {
         TestServer server = CreateServer(services =>
         {
@@ -81,7 +81,7 @@ public class HttpCachingTests : ServerTestBase
     }
 
     [Fact]
-    public async Task MaxAgeAndScope()
+    public async Task MaxAgeAndScope_Should_Cache()
     {
         TestServer server = CreateServer(services =>
         {
