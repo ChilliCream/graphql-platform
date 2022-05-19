@@ -31,8 +31,8 @@ internal static class EntitiesResolver
                     objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
                     value is FieldResolverDelegate resolver)
                 {
-                    context.SetLocalState(TypeField, objectType);
-                    context.SetLocalState(DataField, current.Data);
+                    context.SetLocalValue(TypeField, objectType);
+                    context.SetLocalValue(DataField, current.Data);
 
                     tasks[i] = resolver.Invoke(new ResolverContextProxy(context)).AsTask();
                 }
@@ -83,7 +83,7 @@ internal static class EntitiesResolver
 
     private static void ReportError(IResolverContext context, int item, Exception ex)
     {
-        Path itemPath = PathFactory.Instance.Append(context.Path, item);
+        Path itemPath = context.Path.Append(item);
         context.ReportError(ex, error => error.SetPath(itemPath));
     }
 }
