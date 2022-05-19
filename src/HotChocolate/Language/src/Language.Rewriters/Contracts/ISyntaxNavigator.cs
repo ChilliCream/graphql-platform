@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Language.Rewriters;
 
@@ -18,6 +19,14 @@ public interface ISyntaxNavigator
     /// </summary>
     /// <param name="node">The removed parent node.</param>
     void Pop(out ISyntaxNode node);
+
+    /// <summary>
+    /// Attempts to remove the current parent node from the Syntax Navigator.
+    /// </summary>
+    /// <param name="node">The removed parent node.</param>
+    /// <returns>True when a syntax node was successfully removed from the Syntax Navigator.
+    /// False when a syntax node was not removed.</returns>
+    bool TryPop([NotNullWhen(true)] out ISyntaxNode? node);
 
     /// <summary>
     /// Returns the first ancestor of the provided <see cref="TNode" /> type.
