@@ -1,5 +1,8 @@
 namespace HotChocolate.Language.Rewriters;
 
+/// <summary>
+/// A rewriter context that contains a syntax navigator.
+/// </summary>
 public interface INavigatorContext
 {
     /// <summary>
