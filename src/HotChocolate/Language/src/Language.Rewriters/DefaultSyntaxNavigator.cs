@@ -4,6 +4,9 @@ using static HotChocolate.Language.Rewriters.LangRewritersResources;
 
 namespace HotChocolate.Language.Rewriters;
 
+/// <summary>
+/// Represents the default implementation of <see cref="ISyntaxNavigator" />
+/// </summary>
 public class DefaultSyntaxNavigator : ISyntaxNavigator
 {
     private readonly List<ISyntaxNode> _ancestors = new();
