@@ -34,7 +34,7 @@ internal static class EntitiesResolver
                     context.SetLocalState(TypeField, objectType);
                     context.SetLocalState(DataField, current.Data);
 
-                    tasks[i] = resolver.Invoke(context).AsTask();
+                    tasks[i] = resolver.Invoke(new ResolverContextProxy(context)).AsTask();
                 }
                 else
                 {
@@ -83,7 +83,7 @@ internal static class EntitiesResolver
 
     private static void ReportError(IResolverContext context, int item, Exception ex)
     {
-        Path itemPath = context.Path.Append(item);
+        Path itemPath = PathFactory.Instance.Append(context.Path, item);
         context.ReportError(ex, error => error.SetPath(itemPath));
     }
 }
