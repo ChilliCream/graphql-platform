@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language.Rewriters;
 
+/// <summary>
+/// The syntax navigator keeps track of the syntax path that has been traversed and allows to access the nodes in the path in a streamlined way.
+/// </summary>
 public interface ISyntaxNavigator
 {
     /// <summary>
