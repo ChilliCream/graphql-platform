@@ -4,10 +4,12 @@ namespace HotChocolate.Caching;
 
 public class CacheControlDirectiveType : DirectiveType<CacheControlDirective>
 {
+    public const string DirectiveName = "cacheControl";
+
     protected override void Configure(IDirectiveTypeDescriptor<CacheControlDirective> descriptor)
     {
         descriptor
-            .Name("cacheControl")
+            .Name(DirectiveName)
             .Description("TODO")
             .Location(DirectiveLocation.Object
                 | DirectiveLocation.FieldDefinition

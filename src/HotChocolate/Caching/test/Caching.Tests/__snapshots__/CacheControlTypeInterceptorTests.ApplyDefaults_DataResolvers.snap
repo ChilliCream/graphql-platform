@@ -46,7 +46,7 @@ type Query {
 "A segment of a collection."
 type QueryableFieldWithCollectionSegmentCollectionSegment {
   "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo! @cacheControl(inheritMaxAge: true)
+  pageInfo: CollectionSegmentInfo!
   "A flattened list of the items."
   items: [String!]
 }
@@ -54,9 +54,9 @@ type QueryableFieldWithCollectionSegmentCollectionSegment {
 "A connection to a list of items."
 type QueryableFieldWithConnectionConnection {
   "Information to aid in pagination."
-  pageInfo: PageInfo! @cacheControl(inheritMaxAge: true)
+  pageInfo: PageInfo!
   "A list of edges."
-  edges: [QueryableFieldWithConnectionEdge!] @cacheControl(inheritMaxAge: true)
+  edges: [QueryableFieldWithConnectionEdge!]
   "A flattened list of the nodes."
   nodes: [String!]
 }
