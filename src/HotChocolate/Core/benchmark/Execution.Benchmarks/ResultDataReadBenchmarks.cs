@@ -4,13 +4,13 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Pooling;
 
 namespace HotChocolate.Execution.Benchmarks;
 
 [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
 public class ResultDataReadBenchmarks
 {
-    private readonly ResultMap _resultMap = new();
     private readonly ObjectResult _objectResult = new();
     private readonly object[] _values = new object[256];
 
@@ -22,32 +22,11 @@ public class ResultDataReadBenchmarks
     {
         var dummy = new object();
 
-        _resultMap.EnsureCapacity(Size);
         _objectResult.EnsureCapacity(Size);
 
         for (var i = 0; i < Size; i++)
         {
-            _resultMap.SetValue(i, i.ToString(), dummy);
             _objectResult.SetValueUnsafe(i, i.ToString(), dummy);
-        }
-    }
-
-    [Benchmark]
-    public void ResultMap_Optimized_Read()
-    {
-        for (var x = 0; x < 1000; x++)
-        {
-            ResultMap result = _resultMap;
-
-            for (var i = 0; i < result.Count; i++)
-            {
-                ResultValue value = result[i];
-
-                if (value.IsInitialized)
-                {
-                    _values[i] = value.Value;
-                }
-            }
         }
     }
 
@@ -134,50 +113,6 @@ public class ResultDataReadBenchmarks
             for (var i = 0; i < result.Capacity; i++)
             {
                 ObjectFieldResult field = result[i];
-
-                if (field.IsInitialized)
-                {
-                    _values[j++] = field.Value;
-                }
-            }
-        }
-    }
-
-    [Benchmark]
-    public void ObjectResult_For_Read_2()
-    {
-        for (var x = 0; x < 1000; x++)
-        {
-            ObjectResult result = _objectResult;
-            ReadOnlySpan<ObjectFieldResult> buffer = result.GetBufferUnsafe();
-
-            var j = 0;
-
-            for (var i = 0; i < buffer.Length; i++)
-            {
-                ObjectFieldResult field = buffer[i];
-
-                if (field.IsInitialized)
-                {
-                    _values[j++] = field.Value;
-                }
-            }
-        }
-    }
-
-    [Benchmark]
-    public void ObjectResult_For_Read_3()
-    {
-        for (var x = 0; x < 1000; x++)
-        {
-            ObjectResult result = _objectResult;
-            ObjectFieldResult[] buffer = result.GetBufferUnsafe2();
-
-            var j = 0;
-
-            for (var i = 0; i < buffer.Length; i++)
-            {
-                ObjectFieldResult field = buffer[i];
 
                 if (field.IsInitialized)
                 {
