@@ -8,5 +8,5 @@ public interface ICacheControlOptionsAccessor
     /// <summary>
     /// Gets the cache control options.
     /// </summary>
-    CacheControlOptions CacheControl { get; }
+    ICacheControlOptions CacheControl { get; }
 }

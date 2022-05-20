@@ -5,7 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Validation;
 using static HotChocolate.Caching.WellKnownContextData;
 
 namespace HotChocolate.Caching;
@@ -17,14 +16,13 @@ public sealed class QueryCacheMiddleware
     private readonly ICacheControlOptions _options;
 
     public QueryCacheMiddleware(
-        RequestDelegate next, IEnumerable<IQueryCache> caches)
+        RequestDelegate next,
+        [SchemaService] IEnumerable<IQueryCache> caches,
+        [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
     {
         _next = next;
         _caches = caches.ToArray();
-
-        // todo: how to properly access options in this middleware?
-        //       schema service which accesses the context?
-        _options = new CacheControlOptions();
+        _options = optionsAccessor.CacheControl;
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)

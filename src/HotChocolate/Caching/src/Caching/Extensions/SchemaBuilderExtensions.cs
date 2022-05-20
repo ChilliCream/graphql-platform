@@ -16,6 +16,6 @@ public static class SchemaBuilderExtensions
         return builder
             .AddCacheControlScopeType()
             .AddCacheControlDirectiveType()
-            .TryAddTypeInterceptor<CacheControlTypeInterceptor>();
+            .TryAddTypeInterceptor<CacheControlValidationTypeInterceptor>();
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using HotChocolate;
 using HotChocolate.Caching;
 using HotChocolate.Execution.Configuration;
 
@@ -39,7 +40,17 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.ConfigureSchema(b => b.AddCacheControl());
+        builder.ConfigureSchemaServices(services =>
+        {
+            services.AddOptions();
+            services.AddSingleton<ICacheControlOptionsAccessor, CacheControlOptionsAccessor>();
+        });
+
+        return builder.ConfigureSchema(b =>
+        {
+            b.AddCacheControl();
+            b.TryAddTypeInterceptor<CacheControlTypeInterceptor>();
+        });
     }
 
     public static IRequestExecutorBuilder ModifyCacheControlOptions(this IRequestExecutorBuilder builder,
@@ -50,24 +61,19 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.ConfigureSchema(s =>
+        if (modifyOptions is null)
         {
-            if (!s.ContextData.TryGetValue(WellKnownContextData.CacheControlOptions, out var options) ||
-                options is not CacheControlOptions typedOptions)
-            {
-                typedOptions = new CacheControlOptions();
-            }
+            throw new ArgumentNullException(nameof(modifyOptions));
+        }
 
-            modifyOptions(typedOptions);
-
-            s.SetContextData(WellKnownContextData.CacheControlOptions, typedOptions);
+        builder.ConfigureSchemaServices(services =>
+        {
+            services.Configure(modifyOptions);
         });
 
         return builder;
     }
 
-    // todo: these should probably also not be added as global DI services?
-    //       Using ConfigureSchemaServices you seem to not be able to access it as a IEnumerable<IQueryCache> though...
     public static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder)
         where TCache : class, IQueryCache
     {
@@ -76,7 +82,10 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.Services.AddSingleton<IQueryCache, TCache>();
+        builder.ConfigureSchemaServices(services =>
+        {
+            services.AddSingleton<IQueryCache, TCache>();
+        });
 
         return builder.AddCacheControl();
     }
@@ -90,7 +99,10 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.Services.AddSingleton<IQueryCache>(cacheFactory);
+        builder.ConfigureSchemaServices(services =>
+        {
+            services.AddSingleton<IQueryCache>(cacheFactory);
+        });
 
         return builder.AddCacheControl();
     }

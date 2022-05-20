@@ -9,7 +9,7 @@ namespace HotChocolate.Caching.Tests;
 
 public class QueryCacheMiddlewareTests : CacheControlTestBase
 {
-    [Fact(Skip = "Until options are correctly implemented")]
+    [Fact]
     public async Task QueryCachingDisabled()
     {
         var cache = new QueryCache();

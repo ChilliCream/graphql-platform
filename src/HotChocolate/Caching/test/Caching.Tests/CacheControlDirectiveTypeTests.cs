@@ -1,6 +1,7 @@
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;
@@ -45,6 +46,25 @@ public class CacheControlDirectiveTypeTests
             t => Assert.Equal(Types.DirectiveLocation.FieldDefinition, t),
             t => Assert.Equal(Types.DirectiveLocation.Interface, t),
             t => Assert.Equal(Types.DirectiveLocation.Union, t));
+    }
+
+    [Fact]
+    public void CacheControlDirective_Cannot_Be_Applied_Multiple_Times()
+    {
+        ISchemaBuilder builder = SchemaBuilder.New()
+            .AddQueryType(d => d
+                .Name("ObjectType")
+                .Field("field")
+                .Type<StringType>()
+                .CacheControl(500)
+                .CacheControl(1000))
+            .AddDirectiveType<CacheControlDirectiveType>()
+            .Use(_ => _);
+
+        var act = () => builder.Create();
+
+        var expectedException = Assert.Throws<SchemaException>(act);
+        expectedException.Message.MatchSnapshot();
     }
 
     [Fact]
