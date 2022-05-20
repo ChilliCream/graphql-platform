@@ -18,6 +18,7 @@ internal sealed partial class ResultBuilder
     private readonly object _syncExtensions = new();
     private readonly Dictionary<string, object?> _extensions = new();
     private readonly Dictionary<string, object?> _contextData = new();
+
     private ResultMemoryOwner _resultOwner;
     private ObjectResult? _data;
     private Path? _path;

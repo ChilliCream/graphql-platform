@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using HotChocolate.Execution.Processing.Pooling;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing;
@@ -19,7 +16,7 @@ internal sealed partial class ResultBuilder
         {
             while (violations.TryPop(out NonNullViolation violation))
             {
-                Path? path = violation.Path;
+                Path path = violation.Path;
                 ResultData? parent = violation.Parent;
 
                 if (!errorFields.Contains(violation.Selection))
