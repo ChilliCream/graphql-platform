@@ -88,7 +88,7 @@ public abstract class CacheControlTestBase
             .AddQueryCache(_ => cache.Object)
             .UseQueryCachePipeline()
             .UseField(_ => _ => default);
-        
+
         return (builder, cache);
     }
 

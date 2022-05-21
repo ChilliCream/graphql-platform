@@ -1,5 +1,5 @@
-using HotChocolate.Execution;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Caching;
 

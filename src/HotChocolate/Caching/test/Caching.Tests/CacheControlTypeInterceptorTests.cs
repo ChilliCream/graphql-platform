@@ -1,13 +1,13 @@
+using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using System.Text;
 using Snapshooter.Xunit;
-using System;
+using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
