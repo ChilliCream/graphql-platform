@@ -27,6 +27,10 @@ type NestedType {
   pureFieldWithCacheControl: String! @cacheControl(maxAge: 200)
 }
 
+type NestedType2 {
+  taskFieldWithInheritMaxAge: String! @cacheControl(inheritMaxAge: true)
+}
+
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -53,6 +57,7 @@ type Query {
   queryableFieldWithConnectionWithCacheControl("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionWithCacheControlConnection @cacheControl(maxAge: 200)
   queryableFieldWithCollectionSegmentWithCacheControl(skip: Int take: Int): QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment @cacheControl(maxAge: 200)
   nested: NestedType! @cacheControl(maxAge: 100)
+  nested2: NestedType2! @cacheControl(maxAge: 100)
   pureField: String! @cacheControl(maxAge: 100)
   pureFieldWithCacheControl: String! @cacheControl(maxAge: 200)
 }

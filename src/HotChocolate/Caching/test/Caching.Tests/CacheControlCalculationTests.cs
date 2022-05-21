@@ -225,6 +225,78 @@ public class CacheControlCalculationTests : CacheControlTestBase
         AssertOneWriteToCache(cache,
             result => result.MaxAge == 50);
     }
+
+    [Fact]
+    public async Task MergeScopeFromTypeIfMissingOnField()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: ObjectType @cacheControl(maxAge: 50)
+                }
+
+                type ObjectType @cacheControl(scope: PRIVATE) {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
+
+        await ExecuteRequestAsync(builder, "{ field { field } }");
+
+        AssertOneWriteToCache(cache,
+            r => r.MaxAge == 50 && r.Scope == CacheControlScope.Private);
+    }
+
+    [Fact]
+    public async Task MergeMaxAgeFromTypeIfMissingOnField()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: ObjectType @cacheControl(scope: PRIVATE)
+                }
+
+                type ObjectType @cacheControl(maxAge: 50) {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
+
+        await ExecuteRequestAsync(builder, "{ field { field } }");
+
+        AssertOneWriteToCache(cache,
+            r => r.MaxAge == 50 && r.Scope == CacheControlScope.Private);
+    }
+
+    [Fact]
+    public async Task DoNotMergeMaxAgeFromTypeIfInheritMaxAgeOnField()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: ObjectType @cacheControl(maxAge: 100)
+                }
+
+                type ObjectType {
+                    field: ObjectType2 @cacheControl(inheritMaxAge: true)
+                }
+
+                type ObjectType2 @cacheControl(maxAge: 50) {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
+
+        await ExecuteRequestAsync(builder, "{ field { field { field } } }");
+
+        AssertOneWriteToCache(cache, r => r.MaxAge == 100);
+    }
     #endregion
 
     #region Multiple fields
@@ -343,6 +415,87 @@ public class CacheControlCalculationTests : CacheControlTestBase
 
         AssertOneWriteToCache(cache,
             r => r.MaxAge == 1 && r.Scope == CacheControlScope.Private);
+    }
+
+    [Fact]
+    public async Task FieldOnNestedObjectTypeHasCacheControl()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: ObjectType @cacheControl(maxAge: 100)
+                }
+
+                type ObjectType {
+                    field: String @cacheControl(maxAge: 50)
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
+
+        await ExecuteRequestAsync(builder, "{ field { field } }");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 50);
+    }
+
+    [Fact]
+    public async Task FieldOnNestedInterfaceTypeHasCacheControl()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: InterfaceType @cacheControl(maxAge: 100)
+                }
+
+                interface InterfaceType {
+                    field: String
+                }
+
+                type ObjectType implements InterfaceType {
+                    field: String @cacheControl(maxAge: 50)
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
+
+        await ExecuteRequestAsync(builder, "{ field { field } }");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 50);
+    }
+
+    [Fact]
+    public async Task FieldOnNestedUnionTypeHasCacheControl()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: UnionType @cacheControl(maxAge: 100)
+                }
+
+                union UnionType = ObjectType
+
+                type ObjectType {
+                    field: String @cacheControl(maxAge: 50)
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
+
+        await ExecuteRequestAsync(builder, @"{
+            field {
+                ... on ObjectType {
+                    field
+                }
+            }
+        }");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 50);
     }
     #endregion
 

@@ -39,7 +39,7 @@ public class HttpCachingTests : ServerTestBase
     }
 
     [Fact]
-    public async Task MaxAge_Zero_Should_Not_Cache()
+    public async Task MaxAge_Zero_Should_Cache()
     {
         TestServer server = CreateServer(services =>
         {

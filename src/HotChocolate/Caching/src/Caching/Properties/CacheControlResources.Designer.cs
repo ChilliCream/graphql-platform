@@ -133,6 +133,15 @@ namespace HotChocolate.Caching.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can not specify `inheritMaxAge: true` for the @cacheControl directive on the field {0}, since it&apos;s a field of the Query root type {1}..
+        /// </summary>
+        internal static string ErrorHelper_CacheControlInheritMaxAgeOnQueryTypeField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_CacheControlInheritMaxAgeOnQueryTypeField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can not specify `inheritMaxAge: true` for the @cacheControl directive on the type {0}..
         /// </summary>
         internal static string ErrorHelper_CacheControlInheritMaxAgeOnType {

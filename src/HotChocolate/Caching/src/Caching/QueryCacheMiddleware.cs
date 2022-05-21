@@ -196,7 +196,7 @@ public sealed class QueryCacheMiddleware
 
             if (directive is not null)
             {
-                if (directive.MaxAge.HasValue &&
+                if (!maxAgeSet && directive.MaxAge.HasValue &&
                  (!result.MaxAge.HasValue ||
                      directive.MaxAge < result.MaxAge.Value))
                 {

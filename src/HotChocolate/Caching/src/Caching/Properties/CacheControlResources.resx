@@ -141,6 +141,9 @@
   <data name="ErrorHelper_CacheControlBothMaxAgeAndInheritMaxAge" xml:space="preserve">
     <value>Can not specify `inheritMaxAge: true` and a value for `maxAge` for the @cacheControl directive on the field {0}.</value>
   </data>
+  <data name="ErrorHelper_CacheControlInheritMaxAgeOnQueryTypeField" xml:space="preserve">
+    <value>Can not specify `inheritMaxAge: true` for the @cacheControl directive on the field {0}, since it's a field of the Query root type {1}.</value>
+  </data>
   <data name="ErrorHelper_CacheControlInheritMaxAgeOnType" xml:space="preserve">
     <value>Can not specify `inheritMaxAge: true` for the @cacheControl directive on the type {0}.</value>
   </data>

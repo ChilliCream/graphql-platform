@@ -45,6 +45,8 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
                 continue;
             }
 
+            // todo: still set maxage if possible
+
             if (HasCacheControlDirective(field))
             {
                 // If the field has a @cacheControl directive,

@@ -12,6 +12,15 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
+    public static ISchemaError CacheControlInheritMaxAgeOnQueryTypeField(
+        ITypeSystemObject type, IField field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_CacheControlInheritMaxAgeOnQueryTypeField,
+                field.Coordinate.ToString(), type.Name.ToString())
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(field.SyntaxNode)
+            .Build();
+
     public static ISchemaError CacheControlOnInterfaceField(ITypeSystemObject type,
         IField field)
         => SchemaErrorBuilder.New()

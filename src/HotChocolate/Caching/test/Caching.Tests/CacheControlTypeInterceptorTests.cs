@@ -150,6 +150,10 @@ public class CacheControlTypeInterceptorTests
         ExpectErrors(builder => builder
             .AddDocumentFromString(@"
                 type Query {
+                    field: NestedType
+                }
+
+                type NestedType {
                     field: String @cacheControl(maxAge: 10 inheritMaxAge: true)
                 }
             ")
@@ -235,6 +239,19 @@ public class CacheControlTypeInterceptorTests
             .AddCacheControl());
     }
 
+    [Fact]
+    public void InheritMaxAgeOnQueryTypeField()
+    {
+        ExpectErrors(builder => builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: String @cacheControl(inheritMaxAge: true)
+                }
+            ")
+            .Use(_ => _ => default)
+            .AddCacheControl());
+    }
+
     private static void ExpectErrors(Action<SchemaBuilder> configureBuilder)
     {
         try
@@ -266,6 +283,8 @@ public class CacheControlTypeInterceptorTests
     public class Query : NestedType
     {
         public NestedType Nested { get; } = new();
+
+        public NestedType2 Nested2 { get; } = new();
     }
 
     public class NestedType
@@ -310,5 +329,11 @@ public class CacheControlTypeInterceptorTests
         [UseOffsetPaging]
         public IQueryable<string>
             QueryableFieldWithCollectionSegmentWithCacheControl() => default!;
+    }
+
+    public class NestedType2
+    {
+        [CacheControl(InheritMaxAge = true)]
+        public Task<string> TaskFieldWithInheritMaxAge() => default!;
     }
 }
