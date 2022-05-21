@@ -1,30 +1,18 @@
-using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
+#if !NET6_0_OR_GREATER
+using Microsoft.Net.Http.Headers;
+#endif
 
 namespace HotChocolate.Caching.Http;
 
 internal sealed class HttpQueryCache : DefaultQueryCache
 {
-    private static readonly string _httpContextKey = nameof(HttpContext);
+    private const string _httpContextKey = nameof(HttpContext);
     private const string _cacheControlValueTemplate = "{0}, max-age={1}";
-
-    //public override bool ShouldReadResultFromCache(IRequestContext context)
-    //{
-    //    // The cache request is supposed to be handled by a CDN 
-    //    // or another inbetween HTTP caching layer.
-    //    // We do not know how to resolve the query from cache,
-    //    // if we actually get here, so we bail.
-
-    //    return false;
-    //}
-
-    //public override Task<IQueryResult?> TryReadCachedQueryResultAsync(
-    //    IRequestContext context, ICacheControlOptions options)
-    //{
-    //    throw new NotSupportedException("TODO");
-    //}
+    private const string _cacheControlPrivateScope = "private";
+    private const string _cacheControlPublicScope = "public";
 
     public override Task CacheQueryResultAsync(IRequestContext context,
         ICacheControlResult result, ICacheControlOptions options)
@@ -37,18 +25,20 @@ internal sealed class HttpQueryCache : DefaultQueryCache
 
         var cacheType = result.Scope switch
         {
-            CacheControlScope.Private => "private",
-            CacheControlScope.Public => "public",
-            _ => throw new Exception("TODO")
+            CacheControlScope.Private => _cacheControlPrivateScope,
+            CacheControlScope.Public => _cacheControlPublicScope,
+            _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(result.Scope)
         };
 
         var headerValue = string.Format(_cacheControlValueTemplate,
             cacheType, result.MaxAge);
 
+
+
 #if NET6_0_OR_GREATER
         httpContext.Response.Headers.CacheControl = headerValue;
 #else
-        httpContext.Response.Headers.Add("Cache-Control", headerValue);
+        httpContext.Response.Headers.Add(HeaderNames.CacheControl, headerValue);
 #endif
 
         return Task.CompletedTask;

@@ -17,5 +17,20 @@
   <ItemGroup>
     <ProjectReference Include="..\Caching\HotChocolate.Caching.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Properties\HttpQueryCacheResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>HttpQueryCacheResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\HttpQueryCacheResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>HttpQueryCacheResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 
 </Project>
