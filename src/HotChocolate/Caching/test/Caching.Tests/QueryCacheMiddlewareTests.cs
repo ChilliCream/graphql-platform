@@ -65,6 +65,44 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         Assert.Empty(cache.Writes);
     }
 
+    [Fact]
+    public async Task QueryCachingIsOnlyAppliedToTargetSchema()
+    {
+        var cache = new QueryCache();
+
+        IRequestExecutorBuilder builder = new ServiceCollection()
+            .AddGraphQLServer("withcache")
+            .AddQueryType(d => d.Name("Query")
+                .Field("field").Type<StringType>().CacheControl(100))
+            .UseField(_ => _ => default)
+            .AddQueryCache(_ => cache)
+            .UseQueryCachePipeline()
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+            .AddGraphQLServer("withoutcache")
+            .AddQueryType(d => d.Name("Query")
+                .Field("field").Type<StringType>())
+            .UseField(_ => _ => default);
+
+        IRequestExecutor executorWithCache = await builder
+            .BuildRequestExecutorAsync("withcache");
+        IExecutionResult executorWithCacheResult = await executorWithCache
+            .ExecuteAsync("{ a: field }");
+        IQueryResult executorWithCacheQueryResult = executorWithCacheResult
+            .ExpectQueryResult();
+
+        IRequestExecutor executorWithoutCache = await builder
+            .BuildRequestExecutorAsync("withoutcache");
+        IExecutionResult executorWithoutCacheResult = await executorWithoutCache
+            .ExecuteAsync("{ b: field }");
+        IQueryResult executorWithoutCacheQueryResult = executorWithoutCacheResult
+            .ExpectQueryResult();
+
+        Assert.Null(executorWithCacheQueryResult.Errors);
+        Assert.Null(executorWithoutCacheQueryResult.Errors);
+
+        Assert.Single(cache.Writes);
+    }
+
     //[Fact]
     //public async Task ReadFromAllCaches()
     //{
