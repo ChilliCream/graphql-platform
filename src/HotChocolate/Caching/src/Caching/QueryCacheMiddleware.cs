@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -129,41 +128,10 @@ public sealed class QueryCacheMiddleware
             throw ThrowHelper.EncounteredIntrospectionField();
         }
 
-        CacheControlDirective? directive = field.Directives
-            .FirstOrDefault(d => d.Name == "cacheControl")?
-            .ToObject<CacheControlDirective>();
-
         var maxAgeSet = false;
         var scopeSet = false;
 
-        if (directive is not null)
-        {
-            // The @cacheControl directive was specified on this field.
-
-            if (directive.MaxAge.HasValue &&
-                (!result.MaxAge.HasValue ||
-                    directive.MaxAge < result.MaxAge.Value))
-            {
-                // The maxAge of the @cacheControl on this field is lower
-                // than the previously lowest maxAge value.
-                result.MaxAge = directive.MaxAge.Value;
-                maxAgeSet = true;
-            }
-            else if (directive.InheritMaxAge == true)
-            {
-                // If inheritMaxAge is set, we keep the computed maxAge value as is.
-                maxAgeSet = true;
-            }
-
-            if (directive.Scope.HasValue &&
-                directive.Scope < result.Scope)
-            {
-                // The scope of the @cacheControl on this field is more restrivive
-                // than the computed scope.
-                result.Scope = directive.Scope.Value;
-                scopeSet = true;
-            }
-        }
+        ExtractCacheControlDetailsFromDirectives(field.Directives);
 
         if (!maxAgeSet || !scopeSet)
         {
@@ -176,33 +144,7 @@ public sealed class QueryCacheMiddleware
                 // The type of the field is complex and can therefore be
                 // annotated with a @cacheControl directive.
 
-                directive = type.Directives
-                    .FirstOrDefault(d => d.Name == "cacheControl")?
-                    .ToObject<CacheControlDirective>();
-
-                if (directive is not null)
-                {
-                    // The @cacheControl directive was specified on this type.
-
-                    if (!maxAgeSet && directive.MaxAge.HasValue &&
-                        (!result.MaxAge.HasValue
-                            || directive.MaxAge < result.MaxAge.Value))
-                    {
-                        // The field did not specify a value for maxAge and the
-                        // maxAge of the @cacheControl directive on this type 
-                        // is lower than the previously lowest maxAge value.
-                        result.MaxAge = directive.MaxAge.Value;
-                    }
-
-                    if (!scopeSet && directive.Scope.HasValue &&
-                        directive.Scope < result.Scope)
-                    {
-                        // The field did not specify a value for scope and the
-                        // scope of the @cacheControl directive on this type 
-                        // is more restrictive than the computed scope.
-                        result.Scope = directive.Scope.Value;
-                    }
-                }
+                ExtractCacheControlDetailsFromDirectives(type.Directives);
             }
         }
 
@@ -225,6 +167,42 @@ public sealed class QueryCacheMiddleware
             foreach (ISelection typeSelection in typeSet)
             {
                 ProcessSelection(typeSelection, result, operation);
+            }
+        }
+
+        void ExtractCacheControlDetailsFromDirectives(
+            IDirectiveCollection directives)
+        {
+            var directive = directives
+                    .FirstOrDefault(d => d.Name == "cacheControl")?
+                    .ToObject<CacheControlDirective>();
+
+            if (directive is not null)
+            {
+                if (directive.MaxAge.HasValue &&
+                 (!result.MaxAge.HasValue ||
+                     directive.MaxAge < result.MaxAge.Value))
+                {
+                    // The maxAge of the @cacheControl directive is lower
+                    // than the previously lowest maxAge value.
+                    result.MaxAge = directive.MaxAge.Value;
+                    maxAgeSet = true;
+                }
+                else if (directive.InheritMaxAge == true)
+                {
+                    // If inheritMaxAge is set, we keep the
+                    // computed maxAge value as is.
+                    maxAgeSet = true;
+                }
+
+                if (directive.Scope.HasValue &&
+                    directive.Scope < result.Scope)
+                {
+                    // The scope of the @cacheControl directive is more
+                    // restrivive than the computed scope.
+                    result.Scope = directive.Scope.Value;
+                    scopeSet = true;
+                }
             }
         }
     }

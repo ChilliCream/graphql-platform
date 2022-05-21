@@ -9,7 +9,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
 {
     #region Single field
     [Fact]
-    public async Task SingleField_WithoutCacheControl_Ignore()
+    public async Task SingleField_WithoutCacheControl()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -25,7 +25,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task SingleField_WithCacheControl_Cache()
+    public async Task SingleField_WithCacheControl()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -38,11 +38,28 @@ public class CacheControlCalculationTests : CacheControlTestBase
         await ExecuteRequestAsync(builder, "{ field }");
 
         AssertOneWriteToCache(cache,
-            result => result.MaxAge == 100);
+            r => r.MaxAge == 100 && r.Scope == CacheControlScope.Public);
     }
 
     [Fact]
-    public async Task SingleField_CacheControlOnObjectType_Cache()
+    public async Task SingleField_WithCacheControlAndScope()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: String @cacheControl(maxAge: 100 scope: PRIVATE)
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, "{ field }");
+
+        AssertOneWriteToCache(cache,
+            r => r.MaxAge == 100 && r.Scope == CacheControlScope.Private);
+    }
+
+    [Fact]
+    public async Task SingleFieldControlOnObjectType()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -63,7 +80,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task SingleField_CacheControlOnInterfaceType_Cache()
+    public async Task SingleFieldControlOnInterfaceType()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -88,7 +105,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task SingleField_CacheControlOnUnionType_Cache()
+    public async Task SingleFieldControlOnUnionType()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -117,7 +134,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task SingleField_CacheControlOnObjectTypeAndField_Cache()
+    public async Task SingleFieldControlOnObjectTypeAndField()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -138,7 +155,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task SingleField_CacheControlOnInterfaceTypeAndField_Cache()
+    public async Task SingleFieldControlOnInterfaceTypeAndField()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -163,7 +180,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task SingleField_CacheControlOnUnionTypeAndField_Cache()
+    public async Task SingleFieldControlOnUnionTypeAndField()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -194,7 +211,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
 
     #region Multiple fields
     [Fact]
-    public async Task MultipleFields_OneWithOneWithoutCacheControl_Cache()
+    public async Task MultipleFields_OneWithOneWithoutCacheControl()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -212,7 +229,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task MultipleFields_DifferentCacheControls_Cache()
+    public async Task MultipleFields_DifferentCacheControls()
     {
         var schema = @"
             type Query {
@@ -235,6 +252,31 @@ public class CacheControlCalculationTests : CacheControlTestBase
         AssertOneWriteToCache(cache2,
             result => result.MaxAge == 50);
     }
+
+    [Fact]
+    public async Task MultipleFields_DifferentCacheControlAndScopes()
+    {
+        var schema = @"
+            type Query {
+                field1: String @cacheControl(maxAge: 50)
+                field2: String @cacheControl(maxAge: 100 scope: PRIVATE)
+            }
+        ";
+
+        var (builder1, cache1) = GetExecutorBuilderAndCache();
+        builder1.AddDocumentFromString(schema);
+
+        var (builder2, cache2) = GetExecutorBuilderAndCache();
+        builder2.AddDocumentFromString(schema);
+
+        await ExecuteRequestAsync(builder1, "{ field1 field2 }");
+        await ExecuteRequestAsync(builder2, "{ field2 field1 }");
+
+        AssertOneWriteToCache(cache1,
+            r => r.MaxAge == 50 && r.Scope == CacheControlScope.Private);
+        AssertOneWriteToCache(cache2,
+            r => r.MaxAge == 50 && r.Scope == CacheControlScope.Private);
+    }
     #endregion
 
     #region Deeply nested fields
@@ -243,7 +285,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
 
     #region Special cases
     [Fact]
-    public async Task MultipleOperations_DifferentCacheControlInOperations_Cache()
+    public async Task MultipleOperations_DifferentCacheControlInOperations()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -275,7 +317,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
             result => result.MaxAge == 100);
     }
 
-    public async Task CacheControlInFragment_Cache()
+    public async Task CacheControlInFragment()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -303,7 +345,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
 
     #region Introspection queries
     [Fact]
-    public async Task PureIntrospectionQuery_Ignore()
+    public async Task PureIntrospectionQuery()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -319,7 +361,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task IntrospectionAndRegularQuery_Ignore()
+    public async Task IntrospectionAndRegularQuery()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -335,7 +377,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task TypeNameIntrospection_Cache()
+    public async Task TypeNameIntrospection()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
