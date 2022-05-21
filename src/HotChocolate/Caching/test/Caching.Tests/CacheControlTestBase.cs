@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,41 +34,18 @@ public abstract class CacheControlTestBase
         Times.Once());
     }
 
-    public async Task AssertNoWritesToCacheAsync(string query)
-    {
-        var (executor, cache) = await GetExecutorForCacheControlSchemaAsync();
-
-        IExecutionResult result = await executor.ExecuteAsync(query);
-        IQueryResult queryResult = result.ExpectQueryResult();
-
-        Assert.Null(queryResult.Errors);
-
-        cache.Verify(x => x.CacheQueryResultAsync(
-            It.IsAny<IRequestContext>(),
-            It.IsAny<ICacheControlResult>(),
-            It.IsAny<ICacheControlOptions>()),
-        Times.Never());
-    }
-
-    public async Task AssertOneWriteToCacheAsync(string query,
+    protected void AssertOneWriteToCache(Mock<DefaultQueryCache> cacheMock,
         Expression<Func<ICacheControlResult, bool>>? isValidResult)
     {
-        var (executor, cache) = await GetExecutorForCacheControlSchemaAsync();
-
-        IExecutionResult result = await executor.ExecuteAsync(query);
-        IQueryResult queryResult = result.ExpectQueryResult();
-
-        Assert.Null(queryResult.Errors);
-
-        cache.Verify(x => x.CacheQueryResultAsync(
+        cacheMock.Verify(x => x.CacheQueryResultAsync(
             It.IsAny<IRequestContext>(),
             It.Is(isValidResult),
             It.IsAny<ICacheControlOptions>()),
         Times.Once());
     }
 
-    private async Task<(IRequestExecutor, Mock<DefaultQueryCache>)>
-        GetExecutorForCacheControlSchemaAsync()
+    protected (IRequestExecutorBuilder, Mock<DefaultQueryCache>)
+        GetExecutorBuilderAndCache()
     {
         Mock<DefaultQueryCache> cache = GetMockedCache();
 
@@ -79,12 +53,18 @@ public abstract class CacheControlTestBase
             .AddGraphQLServer()
             .AddQueryCache(_ => cache.Object)
             .UseQueryCachePipeline()
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
             .UseField(_ => _ => default)
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
-        IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
+        return (builder, cache);
+    }
 
-        return (executor, cache);
+    protected async Task ExecuteRequestAsync(
+        IRequestExecutorBuilder builder, string query)
+    {
+        IExecutionResult result = await builder.ExecuteRequestAsync(query);
+        IQueryResult queryResult = result.ExpectQueryResult();
+
+        Assert.Null(queryResult.Errors);
     }
 }

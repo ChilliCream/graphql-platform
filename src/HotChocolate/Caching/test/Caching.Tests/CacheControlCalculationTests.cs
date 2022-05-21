@@ -1,63 +1,194 @@
 using System.Threading.Tasks;
-using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
 public class CacheControlCalculationTests : CacheControlTestBase
 {
+    #region Single field
     [Fact]
-    public async Task IgnorePureIntrospectionQuery()
+    public async Task Ignore_SingleField_WithoutCacheControl()
     {
-        await AssertNoWritesToCacheAsync("{ __schema { types { name } } }");
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: String
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, "{ field }");
+
+        AssertNoWritesToCache(cache);
     }
 
     [Fact]
-    public async Task IgnoreIntrospectionAndRegularQuery()
+    public async Task Cache_SingleField_WithCacheControl()
     {
-        await AssertNoWritesToCacheAsync("{ __schema { types { name } } scalar_fieldCache }");
-    }
+        var (builder, cache) = GetExecutorBuilderAndCache();
 
-    [Fact]
-    public async Task CacheTypenameIntrospection()
-    {
-        await AssertOneWriteToCacheAsync("{ nestedObject { __typename scalar_fieldCache } }",
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: String @cacheControl(maxAge: 100)
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, "{ field }");
+
+        AssertOneWriteToCache(cache,
             result => result.MaxAge == 100);
     }
 
     [Fact]
-    public async Task NoCacheControl()
+    public async Task Cache_SingleField_CacheControlOnObjectType()
     {
-        await AssertNoWritesToCacheAsync("{ regular }");
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: ObjectType
+            }
+
+            type ObjectType @cacheControl(maxAge: 100) {
+                field: String
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, "{ field { field } }");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 100);
     }
 
     [Fact]
-    public async Task FieldHasCacheControl()
+    public async Task Cache_SingleField_CacheControlOnInterfaceType()
     {
-        await AssertOneWriteToCacheAsync("{ fieldCache }",
-            result => result.MaxAge == 1 && result.Scope == CacheControlScope.Private);
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: InterfaceType
+            }
+
+            interface InterfaceType @cacheControl(maxAge: 100) {
+                field: String
+            }
+
+            type ObjectType implements InterfaceType {
+                field: String
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, "{ field { field } }");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 100);
     }
 
     [Fact]
-    public async Task TypeHasCacheControl()
+    public async Task Cache_SingleField_CacheControlOnUnionType()
     {
-        await AssertOneWriteToCacheAsync("{ typeCache { field } }",
-            result => result.MaxAge == 180 && result.Scope == CacheControlScope.Private);
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: UnionType
+            }
+
+            union UnionType @cacheControl(maxAge: 100) = ObjectType
+
+            type ObjectType {
+                field: String
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, @"{
+            field {
+                ... on ObjectType {
+                    field
+                }
+            }
+        }");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 100);
+    }
+    #endregion
+
+    #region Introspection queries
+    [Fact]
+    public async Task Ignore_Pure_Introspection_Query()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: String
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, @"{ __schema { types { name } } }");
+
+        AssertNoWritesToCache(cache);
     }
 
     [Fact]
-    public async Task FieldAndTypeHaveCacheControl()
+    public async Task Ignore_IntrospectionAndRegularQuery_OnSameLevel()
     {
-        await AssertOneWriteToCacheAsync("{ fieldAndTypeCache { field } }",
-            result => result.MaxAge == 2 && result.Scope == CacheControlScope.Private);
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: String
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, @"{ __schema { types { name } } field }");
+
+        AssertNoWritesToCache(cache);
     }
 
     [Fact]
-    public async Task TwoFields_OneMaxAge_OneDefault()
+    public async Task Cache_TypeNameIntrospection()
     {
-        await AssertOneWriteToCacheAsync("{ regular fieldCache }",
-            result => result.MaxAge == 1 && result.Scope == CacheControlScope.Private);
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: UnionType @cacheControl(maxAge: 100)
+            }
+
+            union UnionType = ObjectType
+
+            type ObjectType {
+                field: String
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, @"{
+            field {
+                __typename
+            }
+        }");
+
+        AssertOneWriteToCache(cache);
     }
+    #endregion
+
+    //[Fact]
+    //public async Task FieldAndTypeHaveCacheControl()
+    //{
+    //    await AssertOneWriteToCacheAsync("{ fieldAndTypeCache { field } }",
+    //        result => result.MaxAge == 2 && result.Scope == CacheControlScope.Private);
+    //}
+
+    //[Fact]
+    //public async Task TwoFields_OneMaxAge_OneDefault()
+    //{
+    //    await AssertOneWriteToCacheAsync("{ regular fieldCache }",
+    //        result => result.MaxAge == 1 && result.Scope == CacheControlScope.Private);
+    //}
 
     //[Fact]
     //public async Task TwoFields_OneScopePrivate_OneDefault()

@@ -171,7 +171,7 @@ public sealed class QueryCacheMiddleware
             // directive on the field, so we try to infer these details
             // from the type of the field.
 
-            if (field.Type is IComplexOutputType type)
+            if (field.Type is Types.IHasDirectives type)
             {
                 // The type of the field is complex and can therefore be
                 // annotated with a @cacheControl directive.
