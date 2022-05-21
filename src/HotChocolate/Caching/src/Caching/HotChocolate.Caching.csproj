@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
@@ -17,8 +17,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="HotChocolate.Caching.Http" />
     <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Caching.Http" />
+    <InternalsVisibleTo Include="HotChocolate.Caching.Http.Tests" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
@@ -7,12 +8,21 @@ using Microsoft.Net.Http.Headers;
 
 namespace HotChocolate.Caching.Http;
 
-internal sealed class HttpQueryCache : DefaultQueryCache
+public class HttpQueryCache : DefaultQueryCache
 {
     private const string _httpContextKey = nameof(HttpContext);
     private const string _cacheControlValueTemplate = "{0}, max-age={1}";
     private const string _cacheControlPrivateScope = "private";
     private const string _cacheControlPublicScope = "public";
+
+    public override bool ShouldReadResultFromCache(IRequestContext context)
+        => false;
+
+    public override Task<IQueryResult?> TryReadCachedQueryResultAsync(
+        IRequestContext context, ICacheControlOptions options)
+    {
+        throw new NotSupportedException();
+    }
 
     public override Task CacheQueryResultAsync(IRequestContext context,
         ICacheControlResult result, ICacheControlOptions options)

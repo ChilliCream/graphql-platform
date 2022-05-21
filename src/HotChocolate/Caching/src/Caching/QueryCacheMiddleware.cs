@@ -65,8 +65,25 @@ public sealed class QueryCacheMiddleware
 
         await _next(context).ConfigureAwait(false);
 
-        if (context.DocumentId is null || context.Operation is null)
+        if (context.Result is not IQueryResult queryResult)
         {
+            // Result is potentially deferred or batched,
+            // we can not cache the entire query.
+
+            return;
+        }
+
+        if (context.Operation?.Definition.Operation != OperationType.Query)
+        {
+            // Request is not a query, so we do not cache it.
+
+            return;
+        }
+
+        if (queryResult.Errors is { Count: > 0 })
+        {
+            // Result has unexpected errors, we do not want to cache it.
+
             return;
         }
 

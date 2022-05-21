@@ -8,5 +8,5 @@ public interface ICacheControlOptions
 
     bool ApplyDefaults { get; }
 
-    //GetSessionIdDelegate? GetSessionId { get; }
+    GetSessionIdDelegate? GetSessionId { get; }
 }

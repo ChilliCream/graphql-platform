@@ -13,11 +13,13 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: String
-            }
-        ");
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, "{ field }");
 
@@ -29,11 +31,13 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: String @cacheControl(maxAge: 100)
-            }
-        ");
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: String @cacheControl(maxAge: 100)
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, "{ field }");
 
@@ -46,11 +50,13 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: String @cacheControl(maxAge: 100 scope: PRIVATE)
-            }
-        ");
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: String @cacheControl(maxAge: 100 scope: PRIVATE)
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, "{ field }");
 
@@ -63,15 +69,17 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: ObjectType
-            }
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: ObjectType
+                }
 
-            type ObjectType @cacheControl(maxAge: 100) {
-                field: String
-            }
-        ");
+                type ObjectType @cacheControl(maxAge: 100) {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, "{ field { field } }");
 
@@ -84,19 +92,21 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: InterfaceType
-            }
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: InterfaceType
+                }
 
-            interface InterfaceType @cacheControl(maxAge: 100) {
-                field: String
-            }
+                interface InterfaceType @cacheControl(maxAge: 100) {
+                    field: String
+                }
 
-            type ObjectType implements InterfaceType {
-                field: String
-            }
-        ");
+                type ObjectType implements InterfaceType {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, "{ field { field } }");
 
@@ -109,17 +119,19 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: UnionType
-            }
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: UnionType
+                }
 
-            union UnionType @cacheControl(maxAge: 100) = ObjectType
+                union UnionType @cacheControl(maxAge: 100) = ObjectType
 
-            type ObjectType {
-                field: String
-            }
-        ");
+                type ObjectType {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, @"{
             field {
@@ -138,15 +150,17 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: ObjectType @cacheControl(maxAge: 50)
-            }
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: ObjectType @cacheControl(maxAge: 50)
+                }
 
-            type ObjectType @cacheControl(maxAge: 100) {
-                field: String
-            }
-        ");
+                type ObjectType @cacheControl(maxAge: 100) {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, "{ field { field } }");
 
@@ -159,19 +173,21 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: InterfaceType @cacheControl(maxAge: 50)
-            }
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: InterfaceType @cacheControl(maxAge: 50)
+                }
 
-            interface InterfaceType @cacheControl(maxAge: 100) {
-                field: String
-            }
+                interface InterfaceType @cacheControl(maxAge: 100) {
+                    field: String
+                }
 
-            type ObjectType implements InterfaceType {
-                field: String
-            }
-        ");
+                type ObjectType implements InterfaceType {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, "{ field { field } }");
 
@@ -184,17 +200,19 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: UnionType @cacheControl(maxAge: 50)
-            }
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: UnionType @cacheControl(maxAge: 50)
+                }
 
-            union UnionType @cacheControl(maxAge: 100) = ObjectType
+                union UnionType @cacheControl(maxAge: 100) = ObjectType
 
-            type ObjectType {
-                field: String
-            }
-        ");
+                type ObjectType {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, @"{
             field {
@@ -215,12 +233,14 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field1: String
-                field2: String @cacheControl(maxAge: 100)
-            }
-        ");
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String
+                    field2: String @cacheControl(maxAge: 100)
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, "{ field1 field2 }");
 
@@ -239,10 +259,14 @@ public class CacheControlCalculationTests : CacheControlTestBase
         ";
 
         var (builder1, cache1) = GetExecutorBuilderAndCache();
-        builder1.AddDocumentFromString(schema);
+        builder1
+            .AddDocumentFromString(schema)
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         var (builder2, cache2) = GetExecutorBuilderAndCache();
-        builder2.AddDocumentFromString(schema);
+        builder2
+            .AddDocumentFromString(schema)
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder1, "{ field1 field2 }");
         await ExecuteRequestAsync(builder2, "{ field2 field1 }");
@@ -264,10 +288,14 @@ public class CacheControlCalculationTests : CacheControlTestBase
         ";
 
         var (builder1, cache1) = GetExecutorBuilderAndCache();
-        builder1.AddDocumentFromString(schema);
+        builder1
+            .AddDocumentFromString(schema)
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         var (builder2, cache2) = GetExecutorBuilderAndCache();
-        builder2.AddDocumentFromString(schema);
+        builder2
+            .AddDocumentFromString(schema)
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder1, "{ field1 field2 }");
         await ExecuteRequestAsync(builder2, "{ field2 field1 }");
@@ -280,21 +308,58 @@ public class CacheControlCalculationTests : CacheControlTestBase
     #endregion
 
     #region Deeply nested fields
-    // TODO: add
+    [Fact]
+    public async Task DeepestLeafNodeIsNotResult()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String @cacheControl(maxAge: 200)
+                    field2: Obj1 @cacheControl(maxAge: 100)
+                }
+
+                type Obj1 {
+                    field1: String @cacheControl(maxAge: 1)
+                    field2: Obj2 @cacheControl(maxAge: 75 scope: PRIVATE)
+                }
+
+                type Obj2 {
+                    field: String @cacheControl(maxAge: 50 scope: PUBLIC)
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
+
+        await ExecuteRequestAsync(builder, @"{
+            field1
+            field2 {
+                field1
+                field2 {
+                    field
+                }
+            }
+        }");
+
+        AssertOneWriteToCache(cache,
+            r => r.MaxAge == 1 && r.Scope == CacheControlScope.Private);
+    }
     #endregion
 
-    #region Special cases
+    #region Special queries
     [Fact]
     public async Task MultipleOperations_DifferentCacheControlInOperations()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field1: String @cacheControl(maxAge: 50)
-                field2: String @cacheControl(maxAge: 100)
-            }
-        ");
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String @cacheControl(maxAge: 50)
+                    field2: String @cacheControl(maxAge: 100)
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         IQueryRequest request = QueryRequestBuilder.New()
                     .SetQuery(@"
@@ -317,19 +382,22 @@ public class CacheControlCalculationTests : CacheControlTestBase
             result => result.MaxAge == 100);
     }
 
+    [Fact]
     public async Task CacheControlInFragment()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field1: String @cacheControl(maxAge: 50)
-                field2: String @cacheControl(maxAge: 100)
-            }
-        ");
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String @cacheControl(maxAge: 50)
+                    field2: String @cacheControl(maxAge: 100)
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, @"{
-                fiedl2
+                field2
                 ...Fragment
             }
 
@@ -349,11 +417,13 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: String
-            }
-        ");
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, @"{ __schema { types { name } } }");
 
@@ -365,11 +435,13 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: String
-            }
-        ");
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, @"{ __schema { types { name } } field }");
 
@@ -381,17 +453,19 @@ public class CacheControlCalculationTests : CacheControlTestBase
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
-        builder.AddDocumentFromString(@"
-            type Query {
-                field: UnionType @cacheControl(maxAge: 100)
-            }
+        builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: UnionType @cacheControl(maxAge: 100)
+                }
 
-            union UnionType = ObjectType
+                union UnionType = ObjectType
 
-            type ObjectType {
-                field: String
-            }
-        ");
+                type ObjectType {
+                    field: String
+                }
+            ")
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
         await ExecuteRequestAsync(builder, @"{
             field {

@@ -1,190 +1,135 @@
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
-public class CacheControlOptionsTests
+public class CacheControlOptionsTests : CacheControlTestBase
 {
     [Fact]
     public async Task CacheControlOptions_Default()
     {
-        var cache = new TestQueryCache();
+        var (builder, cache) = GetExecutorBuilderAndCache();
 
-        IRequestExecutor executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
-            .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache)
-            .UseQueryCachePipeline()
-            .BuildRequestExecutorAsync();
+        builder.AddQueryType(d => d.Name("Query")
+            .Field("field").Resolve("")
+            .CacheControl(100));
 
-        IExecutionResult result = await executor.ExecuteAsync("{ scalar_fieldCache }");
-        IQueryResult queryResult = result.ExpectQueryResult();
+        await ExecuteRequestAsync(builder, "{ field }");
 
-        Assert.Null(queryResult.Errors);
-        Assert.NotNull(cache.Options);
-        Assert.True(cache.Options!.Enable);
-        Assert.Equal(0, cache.Options!.DefaultMaxAge);
-        Assert.True(cache.Options!.ApplyDefaults);
-        //Assert.Null(cache.Options!.GetSessionId);
+        cache.Verify(x => x.CacheQueryResultAsync(
+                It.IsAny<IRequestContext>(),
+                It.IsAny<ICacheControlResult>(),
+                It.Is<ICacheControlOptions>(o =>
+                    o.Enable == true &&
+                    o.ApplyDefaults == true &&
+                    o.DefaultMaxAge == 0)),
+            Times.Once());
     }
 
     [Fact]
     public async Task CacheControlOptions_Modified()
     {
-        var cache = new TestQueryCache();
+        var (builder, cache) = GetExecutorBuilderAndCache();
 
-        IRequestExecutor executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
-            .UseField(_ => _ => default)
+        builder
             .ModifyCacheControlOptions(options =>
             {
-                options.DefaultMaxAge = 100;
                 options.ApplyDefaults = false;
-                //options.GetSessionId = context => "Test";
+                options.DefaultMaxAge = 100;
+                options.GetSessionId = context => "Test";
             })
-            .AddQueryCache(_ => cache)
-            .UseQueryCachePipeline()
-            .BuildRequestExecutorAsync();
+            .AddQueryType(d => d.Name("Query")
+                .Field("field").Resolve("")
+                .CacheControl(100));
 
-        IExecutionResult result = await executor.ExecuteAsync("{ scalar_fieldCache }");
-        IQueryResult queryResult = result.ExpectQueryResult();
+        await ExecuteRequestAsync(builder, "{ field }");
 
-        Assert.Null(queryResult.Errors);
-        Assert.NotNull(cache.Options);
-        Assert.True(cache.Options!.Enable);
-        Assert.Equal(100, cache.Options!.DefaultMaxAge);
-        Assert.False(cache.Options!.ApplyDefaults);
-        //Assert.NotNull(cache.Options!.GetSessionId);
+        cache.Verify(x => x.CacheQueryResultAsync(
+                It.IsAny<IRequestContext>(),
+                It.IsAny<ICacheControlResult>(),
+                It.Is<ICacheControlOptions>(o =>
+                    o.Enable == true &&
+                    o.ApplyDefaults == false &&
+                    o.DefaultMaxAge == 100 &&
+                    o.GetSessionId != null)),
+            Times.Once());
     }
 
     [Fact]
-    public async Task CacheControlOptions_Modified_Twice()
+    public async Task CacheControlOptions_ModifiedTwice()
     {
-        var cache = new TestQueryCache();
+        var (builder, cache) = GetExecutorBuilderAndCache();
 
-        IRequestExecutor executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
-            .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache)
+        builder
             .ModifyCacheControlOptions(options => options.DefaultMaxAge = 10)
             .ModifyCacheControlOptions(options => options.ApplyDefaults = false)
-            .UseQueryCachePipeline()
-            .BuildRequestExecutorAsync();
+            .AddQueryType(d => d.Name("Query")
+                .Field("field").Resolve("")
+                .CacheControl(100));
 
-        IExecutionResult result = await executor.ExecuteAsync("{ scalar_fieldCache }");
-        IQueryResult queryResult = result.ExpectQueryResult();
+        await ExecuteRequestAsync(builder, "{ field }");
 
-        Assert.Null(queryResult.Errors);
-        Assert.NotNull(cache.Options);
-        Assert.Equal(10, cache.Options!.DefaultMaxAge);
-        Assert.False(cache.Options!.ApplyDefaults);
-    }
-
-    [Fact]
-    public async Task CacheControlOptions_Modified_AfterRegistrations()
-    {
-        var cache = new TestQueryCache();
-
-        IRequestExecutor executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
-            .UseField(_ => _ => default)
-            .ModifyCacheControlOptions(options => options.DefaultMaxAge = 10)
-            .UseQueryCachePipeline()
-            .AddQueryCache(_ => cache)
-            .BuildRequestExecutorAsync();
-
-        IExecutionResult result = await executor.ExecuteAsync("{ scalar_fieldCache }");
-        IQueryResult queryResult = result.ExpectQueryResult();
-
-        Assert.Null(queryResult.Errors);
-        Assert.NotNull(cache.Options);
-        Assert.Equal(10, cache.Options!.DefaultMaxAge);
+        cache.Verify(x => x.CacheQueryResultAsync(
+                It.IsAny<IRequestContext>(),
+                It.IsAny<ICacheControlResult>(),
+                It.Is<ICacheControlOptions>(o =>
+                    o.Enable == true &&
+                    o.ApplyDefaults == false &&
+                    o.DefaultMaxAge == 10)),
+            Times.Once());
     }
 
     [Fact]
     public async Task CacheControlOptions_Disable()
     {
-        var cache = new TestQueryCache();
+        var (builder, cache) = GetExecutorBuilderAndCache();
 
-        IRequestExecutor executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
-            .UseField(_ => _ => default)
-            .ModifyCacheControlOptions(options => options.Enable = false)
-            .AddQueryCache(_ => cache)
-            .UseQueryCachePipeline()
-            .BuildRequestExecutorAsync();
+        builder
+            .ModifyCacheControlOptions(o => o.Enable = false)
+            .AddQueryType(d => d.Name("Query")
+                .Field("field").Resolve("")
+                .CacheControl(100));
 
-        IExecutionResult result = await executor.ExecuteAsync("{ scalar_fieldCache }");
-        IQueryResult queryResult = result.ExpectQueryResult();
+        await ExecuteRequestAsync(builder, "{ field }");
 
-        Assert.Null(queryResult.Errors);
-        Assert.Null(cache.Options);
+        AssertNoWritesToCache(cache);
     }
 
     [Fact]
     public async Task CacheControlOptionsAreScopedToSchema()
     {
-        var cache1 = new TestQueryCache();
-        var cache2 = new TestQueryCache();
+        var cache1 = GetMock();
+        var cache2 = GetMock();
+
+        var schema = @"
+            type Query {
+                field: String
+            }
+        ";
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer("schema1")
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
+            .AddDocumentFromString(schema)
             .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache1)
+            .AddQueryCache(_ => cache1.Object)
             .UseQueryCachePipeline()
-            .ModifyCacheControlOptions(o =>
-            {
-                o.ApplyDefaults = false;
-                o.DefaultMaxAge = 100;
-            })
+            .ModifyCacheControlOptions(o => o.DefaultMaxAge = 100)
             .AddGraphQLServer("schema2")
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
+            .AddDocumentFromString(schema)
             .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache2)
+            .AddQueryCache(_ => cache2.Object)
             .UseQueryCachePipeline()
-            .ModifyCacheControlOptions(o =>
-            {
-                o.ApplyDefaults = false;
-                o.DefaultMaxAge = 200;
-            });
+            .ModifyCacheControlOptions(o => o.DefaultMaxAge = 200);
 
-        IRequestExecutor executor1 = await builder.BuildRequestExecutorAsync("schema1");
-        IExecutionResult executor1Result = await executor1.ExecuteAsync("{ a: scalar_fieldCache }");
-        IQueryResult executor1QueryResult = executor1Result.ExpectQueryResult();
+        await ExecuteRequestAsync(builder, "schema1", "{ field }");
+        await ExecuteRequestAsync(builder, "schema2", "{ field }");
 
-        IRequestExecutor executor2 = await builder.BuildRequestExecutorAsync("schema2");
-        IExecutionResult executor2Result = await executor2.ExecuteAsync("{ b: scalar_fieldCache }");
-        IQueryResult executor2QueryResult = executor2Result.ExpectQueryResult();
-
-        Assert.Null(executor1QueryResult.Errors);
-        Assert.NotNull(cache1.Options);
-        Assert.Equal(100, cache1.Options!.DefaultMaxAge);
-
-        Assert.Null(executor2QueryResult.Errors);
-        Assert.NotNull(cache2.Options);
-        Assert.Equal(200, cache2.Options!.DefaultMaxAge);
-    }
-
-    private class TestQueryCache : DefaultQueryCache
-    {
-        public ICacheControlOptions? Options { get; private set; }
-
-        public override Task CacheQueryResultAsync(IRequestContext context, ICacheControlResult result,
-            ICacheControlOptions options)
-        {
-            Options = options;
-
-            return Task.CompletedTask;
-        }
+        AssertOneWriteToCache(cache1, r => r.MaxAge == 100);
+        AssertOneWriteToCache(cache2, r => r.MaxAge == 200);
     }
 }

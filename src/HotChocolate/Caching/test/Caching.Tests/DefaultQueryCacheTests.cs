@@ -14,7 +14,7 @@ public class DefaultQueryCacheTests : CacheControlTestBase
     [Fact]
     public async Task CacheRegularResult()
     {
-        Mock<DefaultQueryCache> cache = GetMockedCache();
+        Mock<DefaultQueryCache> cache = GetMock();
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
@@ -38,7 +38,7 @@ public class DefaultQueryCacheTests : CacheControlTestBase
     [Fact]
     public async Task DoNotCacheResultWithErrors()
     {
-        Mock<DefaultQueryCache> cache = GetMockedCache();
+        Mock<DefaultQueryCache> cache = GetMock();
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
@@ -66,7 +66,7 @@ public class DefaultQueryCacheTests : CacheControlTestBase
     [Fact]
     public async Task DoNotCacheDeferredResults()
     {
-        Mock<DefaultQueryCache> cache = GetMockedCache();
+        Mock<DefaultQueryCache> cache = GetMock();
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
@@ -96,7 +96,7 @@ public class DefaultQueryCacheTests : CacheControlTestBase
     [Fact]
     public async Task DoNotCacheBatchedResults()
     {
-        Mock<DefaultQueryCache> cache = GetMockedCache();
+        Mock<DefaultQueryCache> cache = GetMock();
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
@@ -126,7 +126,7 @@ public class DefaultQueryCacheTests : CacheControlTestBase
     [Fact]
     public async Task DoNotCacheMutationResults()
     {
-        Mock<DefaultQueryCache> cache = GetMockedCache();
+        Mock<DefaultQueryCache> cache = GetMock();
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()

@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -9,44 +8,58 @@ using Xunit;
 using System.Text;
 using Snapshooter.Xunit;
 using System;
-using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Caching.Tests;
 
 public class CacheControlTypeInterceptorTests
 {
     [Fact]
-    public async Task ApplyDefaults()
+    public async Task QueryFields_ApplyDefaults()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
-            .UseField(_ => _ => default)
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String
+                    field2: String @cacheControl(maxAge: 200)
+                }
+            ")
+            .UseField(_ => _)
             .AddCacheControl()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task ApplyDefaults_DefaultMaxAge()
+    public async Task QueryFields_ApplyDefaults_DifferentDefaultMaxAge()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
-            .UseField(_ => _ => default)
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String
+                    field2: String @cacheControl(maxAge: 200)
+                }
+            ")
+            .UseField(_ => _)
             .AddCacheControl()
-            .ModifyCacheControlOptions(o => o.DefaultMaxAge = 666)
+            .ModifyCacheControlOptions(o => o.DefaultMaxAge = 100)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
     [Fact]
-    public async Task ApplyDefaults_Disabled()
+    public async Task QueryFields_ApplyDefaults_False()
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(FileResource.Open("CacheControlSchema.graphql"))
-            .UseField(_ => _ => default)
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String
+                    field2: String @cacheControl(maxAge: 200)
+                }
+            ")
+            .UseField(_ => _)
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
             .BuildSchemaAsync()
@@ -54,12 +67,66 @@ public class CacheControlTypeInterceptorTests
     }
 
     [Fact]
-    public async Task ApplyDefaults_DataResolvers()
+    public async Task QueryFields_CacheControl_Disabled()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String
+                    field2: String @cacheControl(maxAge: 200)
+                }
+            ")
+            .UseField(_ => _)
+            .AddCacheControl()
+            .ModifyCacheControlOptions(o => o.Enable = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task DataResolvers_ApplyDefaults()
     {
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddCacheControl()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task DataResolvers_ApplyDefaults_DifferentDefaultMaxAge()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddCacheControl()
+            .ModifyCacheControlOptions(o => o.DefaultMaxAge = 100)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task DataResolvers_ApplyDefaults_False()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddCacheControl()
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task DataResolvers_CacheControl_Disabled()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddCacheControl()
+            .ModifyCacheControlOptions(o => o.Enable = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -218,5 +285,30 @@ public class CacheControlTypeInterceptorTests
 
         [UseOffsetPaging]
         public IQueryable<string> QueryableFieldWithCollectionSegment() => default!;
+
+        [CacheControl(200)]
+        public string PureFieldWithCacheControl { get; } = default!;
+
+        [CacheControl(200)]
+        public Task<string> TaskFieldWithCacheControl() => default!;
+
+        [CacheControl(200)]
+        public ValueTask<string> ValueTaskFieldWithCacheControl() => default!;
+
+        [CacheControl(200)]
+        public IExecutable<string> ExecutableFieldWithCacheControl() => default!;
+
+        [CacheControl(200)]
+        public IQueryable<string> QueryableFieldWithCacheControl() => default!;
+
+        [CacheControl(200)]
+        [UsePaging]
+        public IQueryable<string>
+            QueryableFieldWithConnectionWithCacheControl() => default!;
+
+        [CacheControl(200)]
+        [UseOffsetPaging]
+        public IQueryable<string>
+            QueryableFieldWithCollectionSegmentWithCacheControl() => default!;
     }
 }

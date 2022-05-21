@@ -17,6 +17,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Caching\HotChocolate.Caching.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Caching.Http.Tests" />
+  </ItemGroup>
   
   <ItemGroup>
     <Compile Update="Properties\HttpQueryCacheResources.Designer.cs">

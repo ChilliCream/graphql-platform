@@ -17,7 +17,14 @@ type NestedType {
   queryableField: [String!]! @cacheControl(maxAge: 0)
   queryableFieldWithConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionConnection @cacheControl(maxAge: 0)
   queryableFieldWithCollectionSegment(skip: Int take: Int): QueryableFieldWithCollectionSegmentCollectionSegment @cacheControl(maxAge: 0)
+  taskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
+  valueTaskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
+  executableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithConnectionWithCacheControl("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionWithCacheControlConnection @cacheControl(maxAge: 200)
+  queryableFieldWithCollectionSegmentWithCacheControl(skip: Int take: Int): QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment @cacheControl(maxAge: 200)
   pureField: String!
+  pureFieldWithCacheControl: String! @cacheControl(maxAge: 200)
 }
 
 "Information about pagination in a connection."
@@ -39,12 +46,27 @@ type Query {
   queryableField: [String!]! @cacheControl(maxAge: 0)
   queryableFieldWithConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionConnection @cacheControl(maxAge: 0)
   queryableFieldWithCollectionSegment(skip: Int take: Int): QueryableFieldWithCollectionSegmentCollectionSegment @cacheControl(maxAge: 0)
+  taskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
+  valueTaskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
+  executableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithConnectionWithCacheControl("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionWithCacheControlConnection @cacheControl(maxAge: 200)
+  queryableFieldWithCollectionSegmentWithCacheControl(skip: Int take: Int): QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment @cacheControl(maxAge: 200)
   nested: NestedType! @cacheControl(maxAge: 0)
   pureField: String! @cacheControl(maxAge: 0)
+  pureFieldWithCacheControl: String! @cacheControl(maxAge: 200)
 }
 
 "A segment of a collection."
 type QueryableFieldWithCollectionSegmentCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [String!]
+}
+
+"A segment of a collection."
+type QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
   "A flattened list of the items."
@@ -63,6 +85,24 @@ type QueryableFieldWithConnectionConnection {
 
 "An edge in a connection."
 type QueryableFieldWithConnectionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String!
+}
+
+"A connection to a list of items."
+type QueryableFieldWithConnectionWithCacheControlConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [QueryableFieldWithConnectionWithCacheControlEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
+}
+
+"An edge in a connection."
+type QueryableFieldWithConnectionWithCacheControlEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
