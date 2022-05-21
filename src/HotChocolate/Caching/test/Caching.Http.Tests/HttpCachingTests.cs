@@ -25,6 +25,7 @@ public class HttpCachingTests : ServerTestBase
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
                 .AddHttpQueryCache()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
                 .AddQueryType(d =>
                     d.Name("Query")
                     .Field("field")
@@ -46,6 +47,7 @@ public class HttpCachingTests : ServerTestBase
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
                 .AddHttpQueryCache()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
                 .AddQueryType(d =>
                     d.Name("Query")
                     .Field("field")
@@ -67,6 +69,7 @@ public class HttpCachingTests : ServerTestBase
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
                 .AddHttpQueryCache()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
                 .AddQueryType(d =>
                     d.Name("Query")
                     .Field("field")
@@ -88,6 +91,7 @@ public class HttpCachingTests : ServerTestBase
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
                 .AddHttpQueryCache()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
                 .AddQueryType(d =>
                     d.Name("Query")
                     .Field("field")

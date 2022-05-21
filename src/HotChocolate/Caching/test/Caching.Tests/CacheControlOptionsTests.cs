@@ -19,16 +19,16 @@ public class CacheControlOptionsTests : CacheControlTestBase
             .Field("field").Resolve("")
             .CacheControl(100));
 
-        await ExecuteRequestAsync(builder, "{ field }");
+        ISchema schema = await builder.BuildSchemaAsync();
 
-        cache.Verify(x => x.CacheQueryResultAsync(
-                It.IsAny<IRequestContext>(),
-                It.IsAny<ICacheControlResult>(),
-                It.Is<ICacheControlOptions>(o =>
-                    o.Enable == true &&
-                    o.ApplyDefaults == true &&
-                    o.DefaultMaxAge == 0)),
-            Times.Once());
+        var accessor = schema.Services?
+            .GetRequiredService<ICacheControlOptionsAccessor>();
+
+        Assert.NotNull(accessor);
+        Assert.True(accessor!.CacheControl.Enable);
+        Assert.True(accessor!.CacheControl.ApplyDefaults);
+        Assert.Equal(0, accessor!.CacheControl.DefaultMaxAge);
+        Assert.Null(accessor!.CacheControl.GetSessionId);
     }
 
     [Fact]
@@ -39,6 +39,7 @@ public class CacheControlOptionsTests : CacheControlTestBase
         builder
             .ModifyCacheControlOptions(options =>
             {
+                options.Enable = false;
                 options.ApplyDefaults = false;
                 options.DefaultMaxAge = 100;
                 options.GetSessionId = context => "Test";
@@ -47,17 +48,16 @@ public class CacheControlOptionsTests : CacheControlTestBase
                 .Field("field").Resolve("")
                 .CacheControl(100));
 
-        await ExecuteRequestAsync(builder, "{ field }");
+        ISchema schema = await builder.BuildSchemaAsync();
 
-        cache.Verify(x => x.CacheQueryResultAsync(
-                It.IsAny<IRequestContext>(),
-                It.IsAny<ICacheControlResult>(),
-                It.Is<ICacheControlOptions>(o =>
-                    o.Enable == true &&
-                    o.ApplyDefaults == false &&
-                    o.DefaultMaxAge == 100 &&
-                    o.GetSessionId != null)),
-            Times.Once());
+        var accessor = schema.Services?
+            .GetRequiredService<ICacheControlOptionsAccessor>();
+
+        Assert.NotNull(accessor);
+        Assert.False(accessor!.CacheControl.Enable);
+        Assert.False(accessor!.CacheControl.ApplyDefaults);
+        Assert.Equal(100, accessor!.CacheControl.DefaultMaxAge);
+        Assert.NotNull(accessor!.CacheControl.GetSessionId);
     }
 
     [Fact]
@@ -72,32 +72,16 @@ public class CacheControlOptionsTests : CacheControlTestBase
                 .Field("field").Resolve("")
                 .CacheControl(100));
 
-        await ExecuteRequestAsync(builder, "{ field }");
+        ISchema schema = await builder.BuildSchemaAsync();
 
-        cache.Verify(x => x.CacheQueryResultAsync(
-                It.IsAny<IRequestContext>(),
-                It.IsAny<ICacheControlResult>(),
-                It.Is<ICacheControlOptions>(o =>
-                    o.Enable == true &&
-                    o.ApplyDefaults == false &&
-                    o.DefaultMaxAge == 10)),
-            Times.Once());
-    }
+        var accessor = schema.Services?
+            .GetRequiredService<ICacheControlOptionsAccessor>();
 
-    [Fact]
-    public async Task CacheControlOptions_Disable()
-    {
-        var (builder, cache) = GetExecutorBuilderAndCache();
-
-        builder
-            .ModifyCacheControlOptions(o => o.Enable = false)
-            .AddQueryType(d => d.Name("Query")
-                .Field("field").Resolve("")
-                .CacheControl(100));
-
-        await ExecuteRequestAsync(builder, "{ field }");
-
-        AssertNoWritesToCache(cache);
+        Assert.NotNull(accessor);
+        Assert.True(accessor!.CacheControl.Enable);
+        Assert.False(accessor!.CacheControl.ApplyDefaults);
+        Assert.Equal(10, accessor!.CacheControl.DefaultMaxAge);
+        Assert.Null(accessor!.CacheControl.GetSessionId);
     }
 
     [Fact]
@@ -126,10 +110,20 @@ public class CacheControlOptionsTests : CacheControlTestBase
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o => o.DefaultMaxAge = 200);
 
-        await ExecuteRequestAsync(builder, "schema1", "{ field }");
-        await ExecuteRequestAsync(builder, "schema2", "{ field }");
+        ISchema schema1 = await builder.BuildSchemaAsync("schema1");
 
-        AssertOneWriteToCache(cache1, r => r.MaxAge == 100);
-        AssertOneWriteToCache(cache2, r => r.MaxAge == 200);
+        var accessor1 = schema1.Services?
+            .GetRequiredService<ICacheControlOptionsAccessor>();
+
+        Assert.NotNull(accessor1);
+        Assert.Equal(100, accessor1!.CacheControl.DefaultMaxAge);
+
+        ISchema schema2 = await builder.BuildSchemaAsync("schema2");
+
+        var accessor2 = schema2.Services?
+            .GetRequiredService<ICacheControlOptionsAccessor>();
+
+        Assert.NotNull(accessor2);
+        Assert.Equal(200, accessor2!.CacheControl.DefaultMaxAge);
     }
 }

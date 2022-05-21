@@ -45,8 +45,6 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
                 continue;
             }
 
-            // todo: still set maxage if possible
-
             if (HasCacheControlDirective(field))
             {
                 // If the field has a @cacheControl directive,
@@ -70,7 +68,8 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
             new DirectiveDefinition(
                 new DirectiveNode(
                     CacheControlDirectiveType.DirectiveName,
-                    new ArgumentNode("maxAge", _cacheControlOptions.DefaultMaxAge))));
+                    new ArgumentNode(CacheControlDirectiveType.MaxAgeArgName,
+                        _cacheControlOptions.DefaultMaxAge))));
     }
 
     private static bool HasCacheControlDirective(ObjectFieldDefinition field)

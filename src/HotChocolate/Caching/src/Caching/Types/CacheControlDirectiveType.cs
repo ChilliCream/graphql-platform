@@ -6,6 +6,9 @@ namespace HotChocolate.Caching;
 public class CacheControlDirectiveType : DirectiveType<CacheControlDirective>
 {
     public const string DirectiveName = "cacheControl";
+    public const string MaxAgeArgName = "maxAge";
+    public const string ScopeArgName = "scope";
+    public const string InheritMaxAgeArgName = "inheritMaxAge";
 
     protected override void Configure(IDirectiveTypeDescriptor<CacheControlDirective> descriptor)
     {
@@ -19,19 +22,19 @@ public class CacheControlDirectiveType : DirectiveType<CacheControlDirective>
 
         descriptor
             .Argument(a => a.MaxAge)
-            .Name("maxAge")
+            .Name(MaxAgeArgName)
             .Description(CacheControlDirectiveType_MaxAge)
             .Type<IntType>();
 
         descriptor
             .Argument(a => a.Scope)
-            .Name("scope")
+            .Name(ScopeArgName)
             .Description(CacheControlDirectiveType_Scope)
             .Type<CacheControlScopeType>();
 
         descriptor
             .Argument(a => a.InheritMaxAge)
-            .Name("inheritMaxAge")
+            .Name(InheritMaxAgeArgName)
             .Description(CacheControlDirectiveType_InheritMaxAge)
             .Type<BooleanType>();
     }
