@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -8,7 +9,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
 {
     #region Single field
     [Fact]
-    public async Task Ignore_SingleField_WithoutCacheControl()
+    public async Task SingleField_WithoutCacheControl_Ignore()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -24,7 +25,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task Cache_SingleField_WithCacheControl()
+    public async Task SingleField_WithCacheControl_Cache()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -41,7 +42,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task Cache_SingleField_CacheControlOnObjectType()
+    public async Task SingleField_CacheControlOnObjectType_Cache()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -62,7 +63,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task Cache_SingleField_CacheControlOnInterfaceType()
+    public async Task SingleField_CacheControlOnInterfaceType_Cache()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -87,7 +88,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task Cache_SingleField_CacheControlOnUnionType()
+    public async Task SingleField_CacheControlOnUnionType_Cache()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -114,11 +115,195 @@ public class CacheControlCalculationTests : CacheControlTestBase
         AssertOneWriteToCache(cache,
             result => result.MaxAge == 100);
     }
+
+    [Fact]
+    public async Task SingleField_CacheControlOnObjectTypeAndField_Cache()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: ObjectType @cacheControl(maxAge: 50)
+            }
+
+            type ObjectType @cacheControl(maxAge: 100) {
+                field: String
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, "{ field { field } }");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 50);
+    }
+
+    [Fact]
+    public async Task SingleField_CacheControlOnInterfaceTypeAndField_Cache()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: InterfaceType @cacheControl(maxAge: 50)
+            }
+
+            interface InterfaceType @cacheControl(maxAge: 100) {
+                field: String
+            }
+
+            type ObjectType implements InterfaceType {
+                field: String
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, "{ field { field } }");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 50);
+    }
+
+    [Fact]
+    public async Task SingleField_CacheControlOnUnionTypeAndField_Cache()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field: UnionType @cacheControl(maxAge: 50)
+            }
+
+            union UnionType @cacheControl(maxAge: 100) = ObjectType
+
+            type ObjectType {
+                field: String
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, @"{
+            field {
+                ... on ObjectType {
+                    field
+                }
+            }
+        }");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 50);
+    }
+    #endregion
+
+    #region Multiple fields
+    [Fact]
+    public async Task MultipleFields_OneWithOneWithoutCacheControl_Cache()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field1: String
+                field2: String @cacheControl(maxAge: 100)
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, "{ field1 field2 }");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 100);
+    }
+
+    [Fact]
+    public async Task MultipleFields_DifferentCacheControls_Cache()
+    {
+        var schema = @"
+            type Query {
+                field1: String @cacheControl(maxAge: 50)
+                field2: String @cacheControl(maxAge: 100)
+            }
+        ";
+
+        var (builder1, cache1) = GetExecutorBuilderAndCache();
+        builder1.AddDocumentFromString(schema);
+
+        var (builder2, cache2) = GetExecutorBuilderAndCache();
+        builder2.AddDocumentFromString(schema);
+
+        await ExecuteRequestAsync(builder1, "{ field1 field2 }");
+        await ExecuteRequestAsync(builder2, "{ field2 field1 }");
+
+        AssertOneWriteToCache(cache1,
+            result => result.MaxAge == 50);
+        AssertOneWriteToCache(cache2,
+            result => result.MaxAge == 50);
+    }
+    #endregion
+
+    #region Deeply nested fields
+    // TODO: add
+    #endregion
+
+    #region Special cases
+    [Fact]
+    public async Task MultipleOperations_DifferentCacheControlInOperations_Cache()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field1: String @cacheControl(maxAge: 50)
+                field2: String @cacheControl(maxAge: 100)
+            }
+        ");
+
+        IQueryRequest request = QueryRequestBuilder.New()
+                    .SetQuery(@"
+                         query First {
+                             field1
+                         }
+
+                         query Second {
+                            field2
+                         }
+                     ")
+                    .SetOperation("Second")
+                    .Create();
+
+        IExecutionResult result = await builder.ExecuteRequestAsync(request);
+        IQueryResult queryResult = result.ExpectQueryResult();
+
+        Assert.Null(queryResult.Errors);
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 100);
+    }
+
+    public async Task CacheControlInFragment_Cache()
+    {
+        var (builder, cache) = GetExecutorBuilderAndCache();
+
+        builder.AddDocumentFromString(@"
+            type Query {
+                field1: String @cacheControl(maxAge: 50)
+                field2: String @cacheControl(maxAge: 100)
+            }
+        ");
+
+        await ExecuteRequestAsync(builder, @"{
+                fiedl2
+                ...Fragment
+            }
+
+            fragment Fragment on Query {
+                field1
+            }
+        ");
+
+        AssertOneWriteToCache(cache,
+            result => result.MaxAge == 50);
+    }
     #endregion
 
     #region Introspection queries
     [Fact]
-    public async Task Ignore_Pure_Introspection_Query()
+    public async Task PureIntrospectionQuery_Ignore()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -134,7 +319,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task Ignore_IntrospectionAndRegularQuery_OnSameLevel()
+    public async Task IntrospectionAndRegularQuery_Ignore()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -150,7 +335,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
     }
 
     [Fact]
-    public async Task Cache_TypeNameIntrospection()
+    public async Task TypeNameIntrospection_Cache()
     {
         var (builder, cache) = GetExecutorBuilderAndCache();
 
@@ -175,148 +360,4 @@ public class CacheControlCalculationTests : CacheControlTestBase
         AssertOneWriteToCache(cache);
     }
     #endregion
-
-    //[Fact]
-    //public async Task FieldAndTypeHaveCacheControl()
-    //{
-    //    await AssertOneWriteToCacheAsync("{ fieldAndTypeCache { field } }",
-    //        result => result.MaxAge == 2 && result.Scope == CacheControlScope.Private);
-    //}
-
-    //[Fact]
-    //public async Task TwoFields_OneMaxAge_OneDefault()
-    //{
-    //    await AssertOneWriteToCacheAsync("{ regular fieldCache }",
-    //        result => result.MaxAge == 1 && result.Scope == CacheControlScope.Private);
-    //}
-
-    //[Fact]
-    //public async Task TwoFields_OneScopePrivate_OneDefault()
-    //{
-    //    var cache = new TestQueryCache();
-
-    //    IRequestExecutor executor = await GetTestExecutorAsync(cache);
-    //    IExecutionResult result = await executor.ExecuteAsync("{ field scopePrivate }");
-
-    //    Assert.Null(result.Errors);
-    //    Assert.Equal(0, cache.Result?.MaxAge);
-    //    Assert.Equal(CacheControlScope.Private, cache.Result?.Scope);
-    //}
-
-    //[Fact]
-    //public async Task TwoFields_DifferentMaxAge()
-    //{
-    //    var cache = new TestQueryCache();
-
-    //    IRequestExecutor executor = await GetTestExecutorAsync(cache);
-    //    IExecutionResult result = await executor.ExecuteAsync("{ maxAge1 maxAge2 }");
-
-    //    Assert.Null(result.Errors);
-    //    Assert.Equal(1, cache.Result?.MaxAge);
-    //    Assert.Equal(CacheControlScope.Public, cache.Result?.Scope);
-    //}
-
-    //[Fact]
-    //public async Task TwoFields_DifferentMaxAge_Fragment()
-    //{
-    //    var cache = new TestQueryCache();
-
-    //    IRequestExecutor executor = await GetTestExecutorAsync(cache);
-    //    IExecutionResult result = await executor.ExecuteAsync(@"
-    //         { 
-    //             maxAge2 
-    //             ...QueryFragment 
-    //         }
-
-    //         fragment QueryFragment on Query {
-    //             maxAge1
-    //         }
-    //         ");
-
-    //    Assert.Null(result.Errors);
-    //    Assert.Equal(1, cache.Result?.MaxAge);
-    //    Assert.Equal(CacheControlScope.Public, cache.Result?.Scope);
-    //}
-
-    //[Fact]
-    //public async Task TwoFields_DifferentScope()
-    //{
-    //    var cache = new TestQueryCache();
-
-    //    IRequestExecutor executor = await GetTestExecutorAsync(cache);
-    //    IExecutionResult result = await executor.ExecuteAsync("{ scopePrivate scopePublic }");
-
-    //    Assert.Null(result.Errors);
-    //    Assert.Equal(0, cache.Result?.MaxAge);
-    //    Assert.Equal(CacheControlScope.Private, cache.Result?.Scope);
-    //}
-
-    //[Fact]
-    //public async Task OneField_MaxAge_MultipleOperations()
-    //{
-    //    var cache = new TestQueryCache();
-
-    //    IRequestExecutor executor = await GetTestExecutorAsync(cache);
-
-    //    IQueryRequest request = QueryRequestBuilder.New()
-    //                .SetQuery(@"
-    //                     query First {
-    //                         maxAge1
-    //                         maxAge2
-    //                     }
-
-    //                     query Second {
-    //                         maxAge2
-    //                     }
-    //                 ")
-    //                .SetOperation("Second")
-    //                .Create();
-
-    //    IExecutionResult result = await executor.ExecuteAsync(request);
-
-    //    Assert.Null(result.Errors);
-    //    Assert.Equal(2, cache.Result?.MaxAge);
-    //    Assert.Equal(CacheControlScope.Public, cache.Result?.Scope);
-    //}
-
-    //[Fact]
-    //public async Task OneField_ScopePrivate()
-    //{
-    //    var cache = new TestQueryCache();
-
-    //    IRequestExecutor executor = await GetTestExecutorAsync(cache);
-    //    IExecutionResult result = await executor.ExecuteAsync("{ scopePrivate }");
-
-    //    Assert.Null(result.Errors);
-    //    Assert.Equal(0, cache.Result?.MaxAge);
-    //    Assert.Equal(CacheControlScope.Private, cache.Result?.Scope);
-    //}
-
-    //[Fact]
-    //public async Task OneField_Scope_MultipleOperations()
-    //{
-    //    var cache = new TestQueryCache();
-
-    //    IRequestExecutor executor = await GetTestExecutorAsync(cache);
-
-    //    IQueryRequest request = QueryRequestBuilder.New()
-    //                .SetQuery(@"
-    //                     query First {
-    //                         maxAge1
-    //                         maxAge2
-    //                     }
-
-    //                     query Second {
-    //                         scopePrivate
-    //                     }
-    //                 ")
-    //                .SetOperation("Second")
-    //                .Create();
-
-    //    IExecutionResult result = await executor.ExecuteAsync(request);
-
-    //    Assert.Null(result.Errors);
-    //    Assert.Equal(0, cache.Result?.MaxAge);
-    //    Assert.Equal(CacheControlScope.Private, cache.Result?.Scope);
-    //}
 }

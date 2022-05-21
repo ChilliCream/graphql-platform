@@ -55,7 +55,7 @@ public abstract class CacheControlTestBase
             .UseQueryCachePipeline()
             .UseField(_ => _ => default)
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
-
+        
         return (builder, cache);
     }
 
