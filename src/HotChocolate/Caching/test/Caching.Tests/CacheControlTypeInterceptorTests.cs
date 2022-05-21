@@ -9,7 +9,6 @@ using Xunit;
 using System.Text;
 using Snapshooter.Xunit;
 using System;
-using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Caching.Tests;
 
