@@ -63,7 +63,7 @@ type NestedObjectType {
   interfaceList_fieldCache_typeCache: [CachableInterface] @cacheControl(maxAge: 100, scope: PRIVATE)
 }
 
-type Query @cacheControl(maxAge: 0) {
+type Query {
   scalar: String
   scalarList: [String]
   object: DefaultObjectType

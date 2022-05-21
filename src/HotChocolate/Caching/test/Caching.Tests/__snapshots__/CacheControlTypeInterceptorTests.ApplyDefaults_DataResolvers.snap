@@ -32,7 +32,7 @@ type PageInfo {
   endCursor: String
 }
 
-type Query @cacheControl(maxAge: 0) {
+type Query {
   taskField: String! @cacheControl(maxAge: 0)
   valueTaskField: String! @cacheControl(maxAge: 0)
   executableField: [String!]! @cacheControl(maxAge: 0)
