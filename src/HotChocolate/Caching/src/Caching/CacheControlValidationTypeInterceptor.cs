@@ -51,7 +51,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         if (directive.InheritMaxAge == true
             && type is ITypeSystemObject typeSystemObject)
         {
-            ISchemaError error = ErrorHelper.InheritMaxAgeCanNotBeOnType(typeSystemObject);
+            ISchemaError error = ErrorHelper.CacheControlInheritMaxAgeOnType(typeSystemObject);
 
             validationContext.ReportError(error);
         }
@@ -70,12 +70,22 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
             return;
         }
 
+        if (field is InterfaceField interfaceField)
+        {
+            ISchemaError error = ErrorHelper
+                    .CacheControlOnInterfaceField(obj, field);
+
+            validationContext.ReportError(error);
+
+            return;
+        }
+
         if (directive.MaxAge.HasValue)
         {
             if (directive.MaxAge.Value < 0)
             {
                 ISchemaError error = ErrorHelper
-                    .MaxAgeValueCanNotBeNegative(obj, field);
+                    .CacheControlNegativeMaxAge(obj, field);
 
                 validationContext.ReportError(error);
             }
@@ -83,7 +93,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
             if (directive.InheritMaxAge == true)
             {
                 ISchemaError error = ErrorHelper
-                    .BothInheritMaxAgeAndMaxAgeSpecified(obj, field);
+                    .CacheControlBothMaxAgeAndInheritMaxAge(obj, field);
 
                 validationContext.ReportError(error);
             }

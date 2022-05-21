@@ -90,7 +90,7 @@ public class CacheControlTypeInterceptorTests
     }
 
     [Fact]
-    public void MaxAgeAndInheritMaxAgeOnSameInterfaceField()
+    public void CacheControlOnInterfaceField()
     {
         ExpectErrors(builder => builder
             .AddDocumentFromString(@"
@@ -99,7 +99,7 @@ public class CacheControlTypeInterceptorTests
                 }
 
                 interface Interface {
-                    field: String @cacheControl(maxAge: 10 inheritMaxAge: true)
+                    field: String @cacheControl(maxAge: 10)
                 }
 
                 type Object implements Interface {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -5,6 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 using static HotChocolate.Caching.WellKnownContextData;
 
 namespace HotChocolate.Caching;
@@ -120,6 +122,13 @@ public sealed class QueryCacheMiddleware
     {
         IObjectField field = selection.Field;
 
+        if (field.IsIntrospectionField && field.Name != IntrospectionFields.TypeName)
+        {
+            // If we encounter an introspection field, we immediately stop
+            // trying to compute a cache control result.
+            throw ThrowHelper.EncounteredIntrospectionField();
+        }
+
         CacheControlDirective? directive = field.Directives
             .FirstOrDefault(d => d.Name == "cacheControl")?
             .ToObject<CacheControlDirective>();
@@ -162,7 +171,6 @@ public sealed class QueryCacheMiddleware
             // directive on the field, so we try to infer these details
             // from the type of the field.
 
-            // todo: this might not contain union types
             if (field.Type is IComplexOutputType type)
             {
                 // The type of the field is complex and can therefore be

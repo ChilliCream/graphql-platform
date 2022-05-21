@@ -138,13 +138,19 @@
   <data name="CacheControlScopeType_Public" xml:space="preserve">
     <value>The value to cache is not tied to a single user.</value>
   </data>
-  <data name="ErrorHelper_BothInheritMaxAgeAndMaxAgeSpecified" xml:space="preserve">
+  <data name="ErrorHelper_CacheControlBothMaxAgeAndInheritMaxAge" xml:space="preserve">
     <value>Can not specify `inheritMaxAge: true` and a value for `maxAge` for the @cacheControl directive on the field {0}.</value>
   </data>
-  <data name="ErrorHelper_InheritMaxAgeCanNotBeOnType" xml:space="preserve">
+  <data name="ErrorHelper_CacheControlInheritMaxAgeOnType" xml:space="preserve">
     <value>Can not specify `inheritMaxAge: true` for the @cacheControl directive on the type {0}.</value>
   </data>
-  <data name="ErrorHelper_MaxAgeValueCanNotBeNegative" xml:space="preserve">
+  <data name="ErrorHelper_CacheControlNegativeMaxAge" xml:space="preserve">
     <value>The `maxAge` value for the @cacheControl directive on the field {0} can not be negative.</value>
+  </data>
+  <data name="ErrorHelper_CacheControlOnInterfaceField" xml:space="preserve">
+    <value>Can not specify @cacheControl directive on interface fields, such as {0}.</value>
+  </data>
+  <data name="ThrowHelper_EncounteredIntrospectionField" xml:space="preserve">
+    <value>CacheControlResult could not be computed, since query contained an introspection field.</value>
   </data>
 </root>

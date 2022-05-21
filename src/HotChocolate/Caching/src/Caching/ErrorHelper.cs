@@ -5,26 +5,35 @@ namespace HotChocolate.Caching;
 
 internal static class ErrorHelper
 {
-    public static ISchemaError InheritMaxAgeCanNotBeOnType(ITypeSystemObject type)
+    public static ISchemaError CacheControlInheritMaxAgeOnType(ITypeSystemObject type)
         => SchemaErrorBuilder.New()
-            .SetMessage(ErrorHelper_InheritMaxAgeCanNotBeOnType,
+            .SetMessage(ErrorHelper_CacheControlInheritMaxAgeOnType,
                 type.Name.ToString())
             .SetTypeSystemObject(type)
             .Build();
 
-    public static ISchemaError MaxAgeValueCanNotBeNegative(ITypeSystemObject type,
+    public static ISchemaError CacheControlOnInterfaceField(ITypeSystemObject type,
         IField field)
         => SchemaErrorBuilder.New()
-            .SetMessage(ErrorHelper_MaxAgeValueCanNotBeNegative,
+            .SetMessage(ErrorHelper_CacheControlOnInterfaceField,
                 field.Coordinate.ToString())
             .SetTypeSystemObject(type)
             .AddSyntaxNode(field.SyntaxNode)
             .Build();
 
-    public static ISchemaError BothInheritMaxAgeAndMaxAgeSpecified(ITypeSystemObject type,
+    public static ISchemaError CacheControlNegativeMaxAge(ITypeSystemObject type,
         IField field)
         => SchemaErrorBuilder.New()
-            .SetMessage(ErrorHelper_BothInheritMaxAgeAndMaxAgeSpecified,
+            .SetMessage(ErrorHelper_CacheControlNegativeMaxAge,
+                field.Coordinate.ToString())
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(field.SyntaxNode)
+            .Build();
+
+    public static ISchemaError CacheControlBothMaxAgeAndInheritMaxAge(ITypeSystemObject type,
+        IField field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(ErrorHelper_CacheControlBothMaxAgeAndInheritMaxAge,
                 field.Coordinate.ToString())
             .SetTypeSystemObject(type)
             .AddSyntaxNode(field.SyntaxNode)

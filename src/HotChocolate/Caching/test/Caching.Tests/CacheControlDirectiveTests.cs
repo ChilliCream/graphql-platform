@@ -1,7 +1,7 @@
 using Xunit;
 using HotChocolate.Caching;
 
-namespace Caching.Tests;
+namespace HotChocolate.Caching.Tests;
 
 public class CacheControlDirectiveTests
 {

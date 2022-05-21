@@ -126,27 +126,45 @@ namespace HotChocolate.Caching.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Can not specify `inheritMaxAge: true` and a value for `maxAge` for the @cacheControl directive on the field {0}..
         /// </summary>
-        internal static string ErrorHelper_BothInheritMaxAgeAndMaxAgeSpecified {
+        internal static string ErrorHelper_CacheControlBothMaxAgeAndInheritMaxAge {
             get {
-                return ResourceManager.GetString("ErrorHelper_BothInheritMaxAgeAndMaxAgeSpecified", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_CacheControlBothMaxAgeAndInheritMaxAge", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Can not specify `inheritMaxAge: true` for the @cacheControl directive on the type {0}..
         /// </summary>
-        internal static string ErrorHelper_InheritMaxAgeCanNotBeOnType {
+        internal static string ErrorHelper_CacheControlInheritMaxAgeOnType {
             get {
-                return ResourceManager.GetString("ErrorHelper_InheritMaxAgeCanNotBeOnType", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_CacheControlInheritMaxAgeOnType", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The `maxAge` value for the @cacheControl directive on the field {0} can not be negative..
         /// </summary>
-        internal static string ErrorHelper_MaxAgeValueCanNotBeNegative {
+        internal static string ErrorHelper_CacheControlNegativeMaxAge {
             get {
-                return ResourceManager.GetString("ErrorHelper_MaxAgeValueCanNotBeNegative", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_CacheControlNegativeMaxAge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can not specify @cacheControl directive on interface fields, such as {0}..
+        /// </summary>
+        internal static string ErrorHelper_CacheControlOnInterfaceField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_CacheControlOnInterfaceField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CacheControlResult could not be computed, since query contained an introspection field..
+        /// </summary>
+        internal static string ThrowHelper_EncounteredIntrospectionField {
+            get {
+                return ResourceManager.GetString("ThrowHelper_EncounteredIntrospectionField", resourceCulture);
             }
         }
     }
