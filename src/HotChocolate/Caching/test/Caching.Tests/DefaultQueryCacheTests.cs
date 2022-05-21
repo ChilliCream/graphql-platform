@@ -70,6 +70,37 @@ public class DefaultQueryCacheTests : CacheControlTestBase
     }
 
     [Fact]
+    public async Task DoNotCacheBatchedResults()
+    {
+        var cache = new QueryCache();
+
+        IRequestExecutorBuilder builder = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType(d => d.Name("Query")
+                .Field("field").Resolve("").CacheControl(100))
+            .AddQueryCache(_ => cache)
+            .UseQueryCachePipeline()
+            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
+
+        IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
+
+        IQueryRequest request1 = QueryRequestBuilder.New()
+            .SetQuery("{ field }")
+            .Create();
+
+        IQueryRequest request2 = QueryRequestBuilder.New()
+            .SetQuery("{ field }")
+            .Create();
+
+        var requestBatch = new[] { request1, request2 };
+
+        IExecutionResult result = await executor.ExecuteBatchAsync(requestBatch);
+
+        //Assert.Single(cache.Reads);
+        Assert.Empty(cache.Writes);
+    }
+
+    [Fact]
     public async Task DoNotCacheMutationResults()
     {
         var cache = new QueryCache();
