@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
@@ -11,43 +11,81 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
     public override void OnValidateType(ITypeSystemObjectContext validationContext,
         DefinitionBase? definition, IDictionary<string, object?> contextData)
     {
-        if (validationContext.Type is not ObjectType obj)
+        if (validationContext.Type is ObjectType objectType)
+        {
+            ValidateCacheControlOnType(validationContext, objectType);
+
+            foreach (ObjectField field in objectType.Fields)
+            {
+                ValidateCacheControlOnField(validationContext, field, objectType);
+            }
+        }
+        else if (validationContext.Type is InterfaceType interfaceType)
+        {
+            ValidateCacheControlOnType(validationContext, interfaceType);
+
+            foreach (InterfaceField field in interfaceType.Fields)
+            {
+                ValidateCacheControlOnField(validationContext, field, interfaceType);
+            }
+        }
+        else if (validationContext.Type is UnionType unionType)
+        {
+            ValidateCacheControlOnType(validationContext, unionType);
+        }
+    }
+
+    private static void ValidateCacheControlOnType(
+        ITypeSystemObjectContext validationContext,
+        IHasDirectives type)
+    {
+        CacheControlDirective? directive = type.Directives
+                    .FirstOrDefault(d => d.Name == CacheControlDirectiveType.DirectiveName)
+                    ?.ToObject<CacheControlDirective>();
+
+        if (directive is null)
         {
             return;
         }
 
-        foreach (ObjectField field in obj.Fields)
+        if (directive.InheritMaxAge == true
+            && type is ITypeSystemObject typeSystemObject)
         {
-            CacheControlDirective? directive = field.Directives
-                .FirstOrDefault(d => d.Name == CacheControlDirectiveType.DirectiveName)
-                ?.ToObject<CacheControlDirective>();
+            ISchemaError error = ErrorHelper.InheritMaxAgeCanNotBeOnType(typeSystemObject);
 
-            if (directive is null)
+            validationContext.ReportError(error);
+        }
+    }
+
+    private static void ValidateCacheControlOnField(
+        ITypeSystemObjectContext validationContext,
+        IField field, ITypeSystemObject obj)
+    {
+        CacheControlDirective? directive = field.Directives
+                    .FirstOrDefault(d => d.Name == CacheControlDirectiveType.DirectiveName)
+                    ?.ToObject<CacheControlDirective>();
+
+        if (directive is null)
+        {
+            return;
+        }
+
+        if (directive.MaxAge.HasValue)
+        {
+            if (directive.MaxAge.Value < 0)
             {
-                continue;
+                ISchemaError error = ErrorHelper
+                    .MaxAgeValueCanNotBeNegative(obj, field);
+
+                validationContext.ReportError(error);
             }
 
-            if (directive.MaxAge.HasValue)
+            if (directive.InheritMaxAge == true)
             {
-                if (directive.MaxAge.Value < 0)
-                {
-                    // todo: error helper and more information about location
-                    ISchemaError error = SchemaErrorBuilder.New()
-                                .SetMessage("Value of `maxAge` on @cacheControl directive can not be negative.")
-                                .Build();
+                ISchemaError error = ErrorHelper
+                    .BothInheritMaxAgeAndMaxAgeSpecified(obj, field);
 
-                    validationContext.ReportError(error);
-                }
-
-                if (directive.InheritMaxAge == true)
-                {
-                    // todo: error helper and more information about location
-                    ISchemaError error = SchemaErrorBuilder.New()
-                                .SetMessage("@cacheControl directive can not specify `inheritMaxAge: true` and a value for `maxAge`.")
-                                .Build();
-
-                    validationContext.ReportError(error);
-                }
+                validationContext.ReportError(error);
             }
         }
     }

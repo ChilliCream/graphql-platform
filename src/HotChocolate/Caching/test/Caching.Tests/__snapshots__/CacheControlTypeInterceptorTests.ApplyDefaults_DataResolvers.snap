@@ -69,16 +69,16 @@ type QueryableFieldWithConnectionEdge {
   node: String!
 }
 
-"TODO"
+"The scope of a cache hint."
 enum CacheControlScope {
-  "TODO"
+  "The value to cache is not tied to a single user."
   PUBLIC
-  "TODO"
+  "The value to cache is specific to a single user."
   PRIVATE
 }
 
-"TODO"
-directive @cacheControl("TODO" maxAge: Int "TODO" scope: CacheControlScope "TODO" inheritMaxAge: Boolean) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+"The `@cacheControl` directive may be provided for individual fields or entire object, interface or union types to provide caching hints to the executor."
+directive @cacheControl("The maximum amount of time this field's cached value is valid, in seconds." maxAge: Int "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user." scope: CacheControlScope "If `true`, the field inherits the `maxAge` of its parent field." inheritMaxAge: Boolean) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT

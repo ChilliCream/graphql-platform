@@ -90,7 +90,28 @@ public class CacheControlTypeInterceptorTests
             .AddCacheControl());
     }
 
-    [Fact(Skip = "Not yet implemented")]
+    [Fact]
+    public void MaxAgeAndInheritMaxAgeOnSameInterfaceField()
+    {
+        ExpectErrors(builder => builder
+            .AddDocumentFromString(@"
+                type Query {
+                    field: Interface!
+                }
+
+                interface Interface {
+                    field: String @cacheControl(maxAge: 10 inheritMaxAge: true)
+                }
+
+                type Object implements Interface {
+                    field: String
+                }
+            ")
+            .Use(_ => _ => default)
+            .AddCacheControl());
+    }
+
+    [Fact]
     public void InheritMaxAgeOnObjectType()
     {
         ExpectErrors(builder => builder
@@ -107,7 +128,7 @@ public class CacheControlTypeInterceptorTests
             .AddCacheControl());
     }
 
-    [Fact(Skip = "Not yet implemented")]
+    [Fact]
     public void InheritMaxAgeOnInterfaceType()
     {
         ExpectErrors(builder => builder
@@ -128,7 +149,7 @@ public class CacheControlTypeInterceptorTests
             .AddCacheControl());
     }
 
-    [Fact(Skip = "Not yet implemented")]
+    [Fact]
     public void InheritMaxAgeOnUnionType()
     {
         ExpectErrors(builder => builder

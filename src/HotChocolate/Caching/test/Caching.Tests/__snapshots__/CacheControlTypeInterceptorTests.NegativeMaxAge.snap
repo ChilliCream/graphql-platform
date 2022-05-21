@@ -1,5 +1,6 @@
 ﻿{
-  "message": "Value of `maxAge` on @cacheControl directive can not be negative.",
+  "message": "The `maxAge` value for the @cacheControl directive on the field Query.field can not be negative.",
+  "type": "Query",
   "extensions": {}
 }
 
