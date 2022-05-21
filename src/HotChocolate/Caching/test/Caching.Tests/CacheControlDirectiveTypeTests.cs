@@ -289,8 +289,6 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_InterfaceType_CodeFirst()
     {
-        // todo: unrelated to the feature, but shouldn't this crash since there
-        //       is no object type implementing the interface?
         ISchema schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("Query")

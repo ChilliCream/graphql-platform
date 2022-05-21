@@ -93,7 +93,7 @@ public sealed class QueryCacheMiddleware
             {
                 try
                 {
-                    if (!cache.ShouldWriteResultToCache(context))
+                    if (!cache.ShouldCacheResult(context))
                     {
                         continue;
                     }

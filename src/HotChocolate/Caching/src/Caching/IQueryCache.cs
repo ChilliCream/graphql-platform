@@ -7,7 +7,7 @@ public interface IQueryCache
 {
     //bool ShouldReadResultFromCache(IRequestContext context);
 
-    bool ShouldWriteResultToCache(IRequestContext context);
+    bool ShouldCacheResult(IRequestContext context);
 
     //Task<IQueryResult?> TryReadCachedQueryResultAsync(IRequestContext context,
     //    ICacheControlOptions options);

@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;
@@ -12,14 +13,14 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact]
     public async Task QueryCachingDisabled()
     {
-        var cache = new QueryCache();
+        Mock<DefaultQueryCache> cache = GetMockedCache();
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
             .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache)
+            .AddQueryCache(_ => cache.Object)
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o =>
             {
@@ -32,21 +33,21 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IQueryResult queryResult = result.ExpectQueryResult();
 
         Assert.Null(queryResult.Errors);
-        Assert.Empty(cache.Reads);
-        Assert.Empty(cache.Writes);
+
+        AssertNoWritesToCache(cache);
     }
 
     [Fact]
     public async Task SkipQueryCaching()
     {
-        var cache = new QueryCache();
+        Mock<DefaultQueryCache> cache = GetMockedCache();
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
             .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache)
+            .AddQueryCache(_ => cache.Object)
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -61,21 +62,21 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IQueryResult queryResult = result.ExpectQueryResult();
 
         Assert.Null(queryResult.Errors);
-        Assert.Empty(cache.Reads);
-        Assert.Empty(cache.Writes);
+
+        AssertNoWritesToCache(cache);
     }
 
     [Fact]
     public async Task QueryCachingIsOnlyAppliedToTargetSchema()
     {
-        var cache = new QueryCache();
+        Mock<DefaultQueryCache> cache = GetMockedCache();
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer("withcache")
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
             .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache)
+            .AddQueryCache(_ => cache.Object)
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
             .AddGraphQLServer("withoutcache")
@@ -100,22 +101,22 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         Assert.Null(executorWithCacheQueryResult.Errors);
         Assert.Null(executorWithoutCacheQueryResult.Errors);
 
-        Assert.Single(cache.Writes);
+        AssertOneWriteToCache(cache);
     }
 
     //[Fact]
     //public async Task ReadFromAllCaches()
     //{
-    //    var cache1 = new QueryCache();
-    //    var cache2 = new QueryCache();
+    //    Mock<DefaultQueryCache> cache1 = GetMockedCache();
+    //    Mock<DefaultQueryCache> cache2 = GetMockedCache();
 
     //    IRequestExecutorBuilder builder = new ServiceCollection()
     //        .AddGraphQLServer()
     //        .AddQueryType(d => d.Name("Query")
     //            .Field("field").Type<StringType>().CacheControl(100))
     //        .UseField(_ => _ => default)
-    //        .AddQueryCache(_ => cache1)
-    //        .AddQueryCache(_ => cache2)
+    //        .AddQueryCache(_ => cache1.Object)
+    //        .AddQueryCache(_ => cache2.Object)
     //        .UseQueryCachePipeline()
     //        .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -125,23 +126,25 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     //    IQueryResult queryResult = result.ExpectQueryResult();
 
     //    Assert.Null(queryResult.Errors);
-    //    Assert.Single(cache1.Reads);
-    //    Assert.Single(cache2.Reads);
+
+    //    AssertOneReadFromCache(cache1);
+    //    AssertOneReadFromCache(cache2);
     //}
 
     //[Fact]
     //public async Task DoNotReadFromAllCachesIfOneResolvesTheCachedResult()
     //{
-    //    var cache1 = new QueryCache(returnResult: true);
-    //    var cache2 = new QueryCache();
+    //    // cache1 should return result
+    //    Mock<DefaultQueryCache> cache1 = GetMockedCache();
+    //    Mock<DefaultQueryCache> cache2 = GetMockedCache();
 
     //    IRequestExecutorBuilder builder = new ServiceCollection()
     //        .AddGraphQLServer()
     //        .AddQueryType(d => d.Name("Query")
     //            .Field("field").Type<StringType>().CacheControl(100))
     //        .UseField(_ => _ => default)
-    //        .AddQueryCache(_ => cache1)
-    //        .AddQueryCache(_ => cache2)
+    //        .AddQueryCache(_ => cache1.Object)
+    //        .AddQueryCache(_ => cache2.Object)
     //        .UseQueryCachePipeline()
     //        .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -151,21 +154,23 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     //    IQueryResult queryResult = result.ExpectQueryResult();
 
     //    Assert.Null(queryResult.Errors);
-    //    Assert.Single(cache1.Reads);
-    //    Assert.Empty(cache2.Reads);
+
+    //    AssertOneReadFromCache(cache1);
+    //    AssertNoReadFromCache(cache2);
     //}
 
     //[Fact]
     //public async Task SkipReadIfShouldReadResultFromCacheReturnsFalse()
     //{
-    //    var cache = new QueryCache(skipRead: true);
+    //    // ShouldRead should return false
+    //    Mock<DefaultQueryCache> cache = GetMockedCache();
 
     //    IRequestExecutorBuilder builder = new ServiceCollection()
     //        .AddGraphQLServer()
     //        .AddQueryType(d => d.Name("Query")
     //            .Field("field").Type<StringType>().CacheControl(100))
     //        .UseField(_ => _ => default)
-    //        .AddQueryCache(_ => cache)
+    //        .AddQueryCache(_ => cache.Object)
     //        .UseQueryCachePipeline()
     //        .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -175,21 +180,22 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     //    IQueryResult queryResult = result.ExpectQueryResult();
 
     //    Assert.Null(queryResult.Errors);
-    //    Assert.Empty(cache.Reads);
-    //    Assert.Single(cache.Writes);
+
+    //    AssertNoReadFromCache(cache);
     //}
 
     //[Fact]
     //public async Task IgnoreExceptionInShouldReadFromCache()
     //{
-    //    var cache = new QueryCache(throwInShouldRead: true);
+    //    // ShouldRead should throw
+    //    Mock<DefaultQueryCache> cache = GetMockedCache();
 
     //    IRequestExecutorBuilder builder = new ServiceCollection()
     //        .AddGraphQLServer()
     //        .AddQueryType(d => d.Name("Query")
     //            .Field("field").Type<StringType>().CacheControl(100))
     //        .UseField(_ => _ => default)
-    //        .AddQueryCache(_ => cache)
+    //        .AddQueryCache(_ => cache.Object)
     //        .UseQueryCachePipeline()
     //        .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -199,21 +205,22 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     //    IQueryResult queryResult = result.ExpectQueryResult();
 
     //    Assert.Null(queryResult.Errors);
-    //    Assert.Empty(cache.Reads);
-    //    Assert.Single(cache.Writes);
+
+    //    AssertNotReadsFromCache(cache);
     //}
 
     //[Fact]
     //public async Task IgnoreExceptionInReadCachedQueryResult()
     //{
-    //    var cache = new QueryCache(throwInRead: true);
+    //    // Read should throw
+    //    Mock<DefaultQueryCache> cache = GetMockedCache();
 
     //    IRequestExecutorBuilder builder = new ServiceCollection()
     //        .AddGraphQLServer()
     //        .AddQueryType(d => d.Name("Query")
     //            .Field("field").Type<StringType>().CacheControl(100))
     //        .UseField(_ => _ => default)
-    //        .AddQueryCache(_ => cache)
+    //        .AddQueryCache(_ => cache.Object)
     //        .UseQueryCachePipeline()
     //        .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -223,23 +230,23 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     //    IQueryResult queryResult = result.ExpectQueryResult();
 
     //    Assert.Null(queryResult.Errors);
-    //    Assert.Empty(cache.Reads);
-    //    Assert.Single(cache.Writes);
+
+    //    AssertNotReadsFromCache(cache);
     //}
 
     [Fact]
     public async Task WriteToAllCaches()
     {
-        var cache1 = new QueryCache();
-        var cache2 = new QueryCache();
+        Mock<DefaultQueryCache> cache1 = GetMockedCache();
+        Mock<DefaultQueryCache> cache2 = GetMockedCache();
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
             .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache1)
-            .AddQueryCache(_ => cache2)
+            .AddQueryCache(_ => cache1.Object)
+            .AddQueryCache(_ => cache2.Object)
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -249,21 +256,22 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IQueryResult queryResult = result.ExpectQueryResult();
 
         Assert.Null(queryResult.Errors);
-        Assert.Single(cache1.Writes);
-        Assert.Single(cache2.Writes);
+
+        AssertOneWriteToCache(cache1);
+        AssertOneWriteToCache(cache2);
     }
 
     [Fact]
     public async Task DoNotWriteToCacheIfNoMaxAgeCouldBeComputed()
     {
-        var cache = new QueryCache();
+        Mock<DefaultQueryCache> cache = GetMockedCache();
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
             .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache)
+            .AddQueryCache(_ => cache.Object)
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -273,20 +281,25 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IQueryResult queryResult = result.ExpectQueryResult();
 
         Assert.Null(queryResult.Errors);
-        Assert.Empty(cache.Writes);
+
+        AssertNoWritesToCache(cache);
     }
 
     [Fact]
-    public async Task SkipWriteIfShouldWriteResultToCacheReturnsFalse()
+    public async Task SkipWriteIfShouldCacheResultReturnsFalse()
     {
-        var cache = new QueryCache(skipWrite: true);
+        Mock<DefaultQueryCache> cache = GetMockedCache();
+
+        cache.Setup(x => x.ShouldCacheResult(
+            It.IsAny<IRequestContext>()))
+            .Returns(false);
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
             .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache)
+            .AddQueryCache(_ => cache.Object)
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -296,22 +309,25 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IQueryResult queryResult = result.ExpectQueryResult();
 
         Assert.Null(queryResult.Errors);
-        //Assert.Single(cache.Reads);
-        Assert.Collection(cache.ShouldWrites, result => Assert.False(result));
-        Assert.Empty(cache.Writes);
+
+        AssertNoWritesToCache(cache);
     }
 
     [Fact]
-    public async Task IgnoreExceptionInShouldWriteToCache()
+    public async Task IgnoreExceptionInShouldCacheResult()
     {
-        var cache = new QueryCache(throwInShouldWrite: true);
+        Mock<DefaultQueryCache> cache = GetMockedCache();
+
+        cache.Setup(x => x.ShouldCacheResult(
+            It.IsAny<IRequestContext>()))
+            .Throws(new System.Exception());
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
             .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache)
+            .AddQueryCache(_ => cache.Object)
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -321,21 +337,27 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IQueryResult queryResult = result.ExpectQueryResult();
 
         Assert.Null(queryResult.Errors);
-        //Assert.Single(cache.Reads);
-        Assert.Empty(cache.Writes);
+
+        AssertNoWritesToCache(cache);
     }
 
     [Fact]
     public async Task IgnoreExceptionInCacheQueryResult()
     {
-        var cache = new QueryCache(throwInWrite: true);
+        Mock<DefaultQueryCache> cache = GetMockedCache();
+
+        cache.Setup(x => x.CacheQueryResultAsync(
+            It.IsAny<IRequestContext>(),
+            It.IsAny<ICacheControlResult>(),
+            It.IsAny<ICacheControlOptions>()))
+            .Throws(new System.Exception());
 
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
             .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache)
+            .AddQueryCache(_ => cache.Object)
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
@@ -345,7 +367,7 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         IQueryResult queryResult = result.ExpectQueryResult();
 
         Assert.Null(queryResult.Errors);
-        //Assert.Single(cache.Reads);
-        Assert.Empty(cache.Writes);
+
+        AssertOneWriteToCache(cache);
     }
 }

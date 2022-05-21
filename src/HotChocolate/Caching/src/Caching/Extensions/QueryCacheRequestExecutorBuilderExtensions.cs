@@ -74,7 +74,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder)
+    internal static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder)
         where TCache : class, IQueryCache
     {
         if (builder is null)
@@ -90,7 +90,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
         return builder.AddCacheControl();
     }
 
-    public static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder,
+    internal static IRequestExecutorBuilder AddQueryCache<TCache>(this IRequestExecutorBuilder builder,
         Func<IServiceProvider, TCache> cacheFactory)
         where TCache : class, IQueryCache
     {
