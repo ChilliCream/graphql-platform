@@ -49,6 +49,6 @@ public class ElasticSearchStringContainsOperationHandler
         return new WildcardOperation(
             context.GetPath(),
             metadata.Kind,
-            val);
+            $"*{val}*");
     }
 }
