@@ -73,7 +73,7 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     }
 
     /// <inheritdoc />
-    protected override IQuery Rewrite(ContainsOperation operation)
+    protected override IQuery Rewrite(WildcardOperation operation)
     {
         return new WildcardQuery { Field = operation.Path, Value = $"*{operation.Value}*" };
     }

@@ -46,7 +46,7 @@ public class ElasticSearchStringContainsOperationHandler
 
         IElasticFilterMetadata metadata = field.GetElasticMetadata();
 
-        return new ContainsOperation(
+        return new WildcardOperation(
             context.GetPath(),
             metadata.Kind,
             val);

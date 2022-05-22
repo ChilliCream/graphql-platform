@@ -159,7 +159,7 @@ internal class KindOperationRewriter : SearchOperationRewriter<ISearchOperation?
         => RewriteLeaf(operation);
 
     /// <inheritdoc />
-    protected override ISearchOperation? Rewrite(ContainsOperation operation)
+    protected override ISearchOperation? Rewrite(WildcardOperation operation)
         => RewriteLeaf(operation);
 
     /// <inheritdoc />

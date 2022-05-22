@@ -1,8 +1,8 @@
 namespace HotChocolate.Data.ElasticSearch;
 
-public class ContainsOperation : ILeafSearchOperation
+public class WildcardOperation : ILeafSearchOperation
 {
-    public ContainsOperation(
+    public WildcardOperation(
         string path,
         ElasticSearchOperationKind kind,
         object value)
