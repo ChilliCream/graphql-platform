@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace HotChocolate.Language.Rewriters;
+namespace HotChocolate.Language.Contracts;
 
 /// <summary>
 /// The syntax navigator keeps track of the syntax path that has been traversed and allows to access the nodes in the path in a streamlined way.

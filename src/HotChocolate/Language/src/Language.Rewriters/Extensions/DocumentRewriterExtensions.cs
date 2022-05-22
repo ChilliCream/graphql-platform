@@ -1,4 +1,4 @@
-namespace HotChocolate.Language.Rewriters;
+namespace HotChocolate.Language.Extensions;
 
 public static class DocumentRewriterExtensions
 {

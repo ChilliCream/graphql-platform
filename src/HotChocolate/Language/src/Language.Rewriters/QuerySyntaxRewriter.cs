@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using static HotChocolate.Language.Rewriters.LangRewritersResources;
+using static HotChocolate.Language.Properties.LangRewritersResources;
 
-namespace HotChocolate.Language.Rewriters;
+namespace HotChocolate.Language;
 
-public class QuerySyntaxRewriter<TContext>
-    : SyntaxRewriter<TContext>
+public class QuerySyntaxRewriter<TContext> : SyntaxRewriter<TContext>
 {
     protected virtual bool VisitFragmentDefinitions => true;
 
@@ -18,41 +17,20 @@ public class QuerySyntaxRewriter<TContext>
             throw new ArgumentNullException(nameof(node));
         }
 
-        switch (node)
+        return node switch
         {
-            case DocumentNode document:
-                return RewriteDocument(document, context);
-
-            case OperationDefinitionNode operation:
-                return RewriteOperationDefinition(operation, context);
-
-            case FieldNode field:
-                return RewriteField(field, context);
-
-            case FragmentSpreadNode spread:
-                return RewriteFragmentSpread(spread, context);
-
-            case FragmentDefinitionNode fragment:
-                return RewriteFragmentDefinition(fragment, context);
-
-            case InlineFragmentNode inline:
-                return RewriteInlineFragment(inline, context);
-
-            case ObjectValueNode objectValue:
-                return RewriteObjectValue(objectValue, context);
-
-            case ListValueNode listValue:
-                return RewriteListValue(listValue, context);
-
-            case VariableNode variable:
-                return RewriteVariable(variable, context);
-
-            case IValueNode _:
-                return node;
-
-            default:
-                throw new NotSupportedException(QuerySyntaxRewriter_NotSupported);
-        }
+            DocumentNode document => RewriteDocument(document, context),
+            OperationDefinitionNode operation => RewriteOperationDefinition(operation, context),
+            FieldNode field => RewriteField(field, context),
+            FragmentSpreadNode spread => RewriteFragmentSpread(spread, context),
+            FragmentDefinitionNode fragment => RewriteFragmentDefinition(fragment, context),
+            InlineFragmentNode inline => RewriteInlineFragment(inline, context),
+            ObjectValueNode objectValue => RewriteObjectValue(objectValue, context),
+            ListValueNode listValue => RewriteListValue(listValue, context),
+            VariableNode variable => RewriteVariable(variable, context),
+            IValueNode _ => node,
+            _ => throw new NotSupportedException(QuerySyntaxRewriter_NotSupported)
+        };
     }
 
     protected virtual DocumentNode RewriteDocument(
@@ -70,19 +48,14 @@ public class QuerySyntaxRewriter<TContext>
         IDefinitionNode node,
         TContext context)
     {
-        switch (node)
+        return node switch
         {
-            case OperationDefinitionNode value:
-                return RewriteOperationDefinition(value, context);
-
-            case FragmentDefinitionNode value:
-                return VisitFragmentDefinitions
-                    ? RewriteFragmentDefinition(value, context)
-                    : value;
-
-            default:
-                return node;
-        }
+            OperationDefinitionNode value => RewriteOperationDefinition(value, context),
+            FragmentDefinitionNode value => VisitFragmentDefinitions
+                ? RewriteFragmentDefinition(value, context)
+                : value,
+            _ => node
+        };
     }
 
     protected virtual OperationDefinitionNode RewriteOperationDefinition(

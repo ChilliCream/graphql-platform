@@ -1,19 +1,15 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Language.Rewriters;
+namespace HotChocolate.Language;
 
-public class DirectiveQuerySyntaxRewriter
-    : QuerySyntaxRewriter<DirectiveNode>
+public class DirectiveQuerySyntaxRewriter : QuerySyntaxRewriter<DirectiveNode>
 {
     protected override FieldNode RewriteField(
         FieldNode node,
         DirectiveNode directive)
     {
-        var directives = new List<DirectiveNode>(node.Directives);
-        directives.Add(directive);
-
+        var directives = new List<DirectiveNode>(node.Directives) { directive };
         FieldNode rewritten = node.WithDirectives(directives);
-
         return base.RewriteField(rewritten, directive);
     }
 }

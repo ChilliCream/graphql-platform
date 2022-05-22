@@ -1,7 +1,8 @@
-namespace HotChocolate.Language.Rewriters;
+using HotChocolate.Language.Contracts;
 
-public class SchemaSyntaxRewriterWithNavigation<TContext>
-    : SchemaSyntaxRewriter<TContext>
+namespace HotChocolate.Language;
+
+public class SchemaSyntaxRewriterWithNavigation<TContext> : SchemaSyntaxRewriter<TContext>
 {
     protected override DocumentNode RewriteDocument(
         DocumentNode node,

@@ -3,13 +3,9 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Language.Rewriters</PackageId>
     <AssemblyName>HotChocolate.Language.Rewriters</AssemblyName>
-    <RootNamespace>HotChocolate.Language.Rewriters</RootNamespace>
-    <Description>This package contains Syntax Rewrite primitives of Hot Chocolate.</Description>
+    <RootNamespace>HotChocolate.Language</RootNamespace>
+    <Description>This package contains syntax rewrite primitives of Hot Chocolate.</Description>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="HotChocolate.Language.Rewriters.csproj.DotSettings" />
-  </ItemGroup>
 
   <ItemGroup>
    <ProjectReference Include="..\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />

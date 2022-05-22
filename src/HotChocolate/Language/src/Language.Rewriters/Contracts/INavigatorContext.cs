@@ -1,4 +1,4 @@
-namespace HotChocolate.Language.Rewriters;
+namespace HotChocolate.Language.Contracts;
 
 /// <summary>
 /// A rewriter context that contains a syntax navigator.

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using static HotChocolate.Language.Rewriters.LangRewritersResources;
+using HotChocolate.Language.Contracts;
+using static HotChocolate.Language.Properties.LangRewritersResources;
 
-namespace HotChocolate.Language.Rewriters;
+namespace HotChocolate.Language;
 
 /// <summary>
 /// Represents the default implementation of <see cref="ISyntaxNavigator" />
