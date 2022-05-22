@@ -4,7 +4,6 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Nest;
 using Squadron;
 using Xunit;
 
@@ -15,6 +14,13 @@ public class StringContainsTests : TestBase
 {
     private readonly IReadOnlyList<Foo> _data = new[]
     {
+        new Foo
+        {
+            Id = "a",
+            Bar = "this sta*rts with this",
+            Qux = "does starts with some?thing",
+            Baz = new Baz {Bar = "does start with another thing", Qux = "don't care"}
+        },
         new Foo
         {
             Id = "A",
@@ -95,6 +101,34 @@ public class StringContainsTests : TestBase
         const string query = @"
         {
             test(where: {bar: { contains: ""with"" }}) {
+                bar
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_EscapeAsteriskCharacter()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: {bar: { contains: ""sta*rts"" }}) {
                 bar
             }
         }
@@ -363,6 +397,7 @@ public class StringContainsTests : TestBase
         IExecutionResult result = await executorAsync.ExecuteAsync(query);
         result.MatchQuerySnapshot();
     }
+    
 
     public class Foo
     {
