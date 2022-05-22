@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Language.SyntaxComparison;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Stitching.Types.Pipeline;
@@ -33,7 +35,15 @@ public class ApplyExtensionsMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // assert
-        context.Documents.Single().ToString().MatchSnapshot();
+        var expected = @"
+            schema @_hc_service(name: ""abc"") { }
+
+            type Foo {
+                abc: String
+                def: String
+            }";
+
+        AssertEqual(expected, context.Documents.Single());
     }
 
     [Fact]
@@ -59,7 +69,18 @@ public class ApplyExtensionsMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // assert
-        context.Documents.Single().ToString().MatchSnapshot();
+        var expected = @"
+            extend type Bar {
+                def: String
+            }
+
+            schema @_hc_service(name: ""abc"") { }
+
+            type Foo {
+                abc: String
+            }";
+
+        AssertEqual(expected, context.Documents.Single());
     }
 
     [Fact]
@@ -85,7 +106,14 @@ public class ApplyExtensionsMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // assert
-        context.Documents.Single().ToString().MatchSnapshot();
+        var expected = @"
+            schema @_hc_service(name: ""abc"") { }
+
+            type Foo {
+                abc: String @directive
+            }";
+
+        AssertEqual(expected, context.Documents.Single());
     }
 
     [Fact]
@@ -109,7 +137,14 @@ public class ApplyExtensionsMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // assert
-        context.Documents.Single().ToString().MatchSnapshot();
+        var expected = @"
+            schema @_hc_service(name: ""abc"") { }
+
+            type Foo @directive {
+                abc: String
+            }";
+
+        AssertEqual(expected, context.Documents.Single());
     }
 
     [Fact]
@@ -161,4 +196,10 @@ public class ApplyExtensionsMiddlewareTests
         // assert
         await Assert.ThrowsAsync<GraphQLException>(Error);
     }
+
+    private static void AssertEqual(string expected, ISyntaxNode actual)
+        => Assert.Equal(Parse(expected), actual, SyntaxComparer.BySyntax);
+
+    private static void AssertEqual(ISyntaxNode expected, ISyntaxNode actual)
+        => Assert.Equal(expected, actual, SyntaxComparer.BySyntax);
 }
