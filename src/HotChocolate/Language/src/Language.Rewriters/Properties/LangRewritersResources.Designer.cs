@@ -8,7 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate.Language.Properties {
+namespace HotChocolate.Language.Rewriters {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -36,7 +39,7 @@ namespace HotChocolate.Language.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Language.Rewriters.Properties.LangRewritersResources", typeof(LangRewritersResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Language.Properties.LangRewritersResources", typeof(LangRewritersResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

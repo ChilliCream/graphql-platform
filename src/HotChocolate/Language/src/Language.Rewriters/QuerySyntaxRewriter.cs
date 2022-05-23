@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using static HotChocolate.Language.Properties.LangRewritersResources;
+using static HotChocolate.Language.Rewriters.LangRewritersResources;
 
 namespace HotChocolate.Language;
 

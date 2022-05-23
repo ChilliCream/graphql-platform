@@ -1,0 +1,20 @@
+interface TestInterface_renamed @source(coordinate: "TestInterface") {
+  foo: [test2_renamed!] @rename(name: "foo_renamed")
+}
+
+type test_renamed implements TestInterface_renamed @source(coordinate: "Test") {
+  id: String! @rename(name: "id_renamed")
+  foo: test2_renamed!
+}
+
+type test2_renamed @source(coordinate: "Test2") {
+  test: test_renamed!
+}
+
+type Test3 {
+  foo: TestInterface_renamed! @rename(name: "test3_foo_renamed")
+}
+
+type Test4 {
+  foo: TestInterface_renamed!
+}

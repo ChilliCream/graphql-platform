@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.Rewriters\HotChocolate.Language.Rewriters.csproj" />
   </ItemGroup>
 
   <ItemGroup>
