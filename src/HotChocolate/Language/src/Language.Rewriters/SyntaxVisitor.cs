@@ -2,21 +2,21 @@ using System;
 
 namespace HotChocolate.Language.Visitors;
 
-public class SyntaxVisitor : SyntaxVisitor<ISyntaxVisitorContext>
+public class SyntaxRewriter : SyntaxRewriter<ISyntaxVisitorContext>
 {
-    public SyntaxVisitor(SyntaxVisitorOptions options = default)
+    public SyntaxRewriter(SyntaxVisitorOptions options = default)
         : base(options)
     {
     }
 
-    public SyntaxVisitor(
+    public SyntaxRewriter(
         ISyntaxVisitorAction defaultResult,
         SyntaxVisitorOptions options = default)
         : base(defaultResult, options)
     {
     }
 
-    public static ISyntaxVisitor<ISyntaxVisitorContext> Create(
+    public static ISyntaxRewriter<ISyntaxVisitorContext> Create(
         Func<ISyntaxNode, ISyntaxVisitorAction>? enter = null,
         Func<ISyntaxNode, ISyntaxVisitorAction>? leave = null,
         ISyntaxVisitorAction? defaultAction = null,
@@ -31,7 +31,7 @@ public class SyntaxVisitor : SyntaxVisitor<ISyntaxVisitorContext>
             defaultAction,
             options);
 
-    public static ISyntaxVisitor<TContext> Create<TContext>(
+    public static ISyntaxRewriter<TContext> Create<TContext>(
         VisitSyntaxNode<TContext>? enter = null,
         VisitSyntaxNode<TContext>? leave = null,
         ISyntaxVisitorAction? defaultAction = null,
@@ -46,7 +46,7 @@ public class SyntaxVisitor : SyntaxVisitor<ISyntaxVisitorContext>
         return new DelegateSyntaxVisitor<TContext>(enter, leave, defaultAction, options);
     }
 
-    public static ISyntaxVisitor<TContext> CreateWithNavigator<TContext>(
+    public static ISyntaxRewriter<TContext> CreateWithNavigator<TContext>(
         VisitSyntaxNode<TContext>? enter = null,
         VisitSyntaxNode<TContext>? leave = null,
         ISyntaxVisitorAction? defaultAction = null,

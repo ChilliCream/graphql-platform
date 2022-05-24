@@ -1,18 +1,14 @@
 namespace HotChocolate.Language.Visitors;
 
-public partial class SyntaxVisitor<TContext>
-    : ISyntaxVisitor<TContext>
+public partial class SyntaxRewriter<TContext>
+    : ISyntaxRewriter<TContext>
     where TContext : ISyntaxVisitorContext
 {
-    private readonly SyntaxVisitorOptions _options;
-
-    protected SyntaxVisitor(SyntaxVisitorOptions options = default)
+    protected SyntaxRewriter()
     {
-        DefaultAction = Skip;
-        _options = options;
     }
 
-    protected SyntaxVisitor(
+    protected SyntaxRewriter(
         ISyntaxVisitorAction defaultResult,
         SyntaxVisitorOptions options = default)
     {
