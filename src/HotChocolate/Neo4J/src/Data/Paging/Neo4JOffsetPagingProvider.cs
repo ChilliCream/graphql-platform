@@ -95,7 +95,7 @@ namespace HotChocolate.Data.Neo4J.Paging
                     .ToListAsync(context.RequestAborted)
                     .ConfigureAwait(false);
 
-                return new CollectionSegment((IReadOnlyCollection<object>)items, null, null);
+                return new CollectionSegment((IReadOnlyCollection<object>)items, null!);
             }
         }
     }

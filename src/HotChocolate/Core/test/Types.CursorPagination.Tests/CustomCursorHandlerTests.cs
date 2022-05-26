@@ -46,15 +46,15 @@ namespace HotChocolate.Types.Pagination
         {
             [UsePaging]
             public Connection<string> GetItems(
-                int first = 10, 
-                string? after = null, 
-                int? last = null, 
+                int first = 10,
+                string? after = null,
+                int? last = null,
                 string? before = null)
             {
                 return new(
                     new[] { new Edge<string>("hello", "abc") },
-                    new ConnectionPageInfo(false, false, "abc", "abc", 2000),
-                    _ => throw new NotImplementedException());
+                    new ConnectionPageInfo(false, false, "abc", "abc"),
+                    2000);
             }
         }
     }

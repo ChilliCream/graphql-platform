@@ -1116,8 +1116,17 @@ namespace HotChocolate.Types.Pagination
             public Connection<string> GetFoos(int? first, string? after)
                 => new Connection<string>(
                     new[] { new Edge<string>("abc", "def") },
-                    new ConnectionPageInfo(false, false, null, null, 1),
+                    new ConnectionPageInfo(false, false, null, null),
                     _ => new(1));
+        }
+
+        public class CustomConnectionQuery
+        {
+            [UsePaging(IncludeTotalCount = true)]
+            public Connection<string> GetFoos(int? first, string? after)
+                => new Connection<string>(
+                    new[] {new Edge<string>("abc", "def"), new Edge<string>("abc", "def")},
+                    new ConnectionPageInfo(false, false, null, null), 2);
         }
     }
 }
