@@ -126,7 +126,6 @@ internal static class InputObjectConstructorResolver
 
         field = fields[key];
         return true;
-
     }
 
     private static string GetAlternativeParameterName(string name)
