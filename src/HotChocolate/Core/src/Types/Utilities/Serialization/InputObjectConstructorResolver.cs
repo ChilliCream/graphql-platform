@@ -110,8 +110,23 @@ internal static class InputObjectConstructorResolver
         string name = parameter.Name!;
         string alternativeName = GetAlternativeParameterName(parameter.Name!);
 
-        return (fields.TryGetValue(alternativeName, out field) ||
-            fields.TryGetValue(name, out field));
+        if (fields.TryGetValue(alternativeName, out field) ||
+            fields.TryGetValue(name, out field))
+        {
+            return true;
+        }
+
+        var key = fields.Keys.SingleOrDefault(key => key.Equals(name,
+            StringComparison.OrdinalIgnoreCase));
+
+        if (key is null)
+        {
+            return false;
+        }
+
+        field = fields[key];
+        return true;
+
     }
 
     private static string GetAlternativeParameterName(string name)
