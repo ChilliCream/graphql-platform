@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
@@ -63,7 +64,8 @@ namespace HotChocolate.Types
             var list = new ListValueNode(new BooleanValueNode(true), new BooleanValueNode(false));
 
             // act
-            var coercedValue = inputParser.ParseLiteral(list, type, Path.New("root"));
+            var coercedValue =
+                inputParser.ParseLiteral(list, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Collection(Assert.IsType<List<bool?>>(coercedValue), Assert.True, Assert.False);
@@ -85,7 +87,8 @@ namespace HotChocolate.Types
                 new ListValueNode(new BooleanValueNode(true), new BooleanValueNode(false)));
 
             // act
-            var coercedValue = inputParser.ParseLiteral(value, type, Path.New("root"));
+            var coercedValue =
+                inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
 
             // assert
             coercedValue.MatchSnapshot();
@@ -105,7 +108,8 @@ namespace HotChocolate.Types
             var value = new BooleanValueNode(true);
 
             // act
-            var coercedValue = inputParser.ParseLiteral(value, type, Path.New("root"));
+            var coercedValue =
+                inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
 
             // assert
             coercedValue.MatchSnapshot();
@@ -125,7 +129,8 @@ namespace HotChocolate.Types
             NullValueNode value = NullValueNode.Default;
 
             // act
-            var coercedValue = inputParser.ParseLiteral(value, type, Path.New("root"));
+            var coercedValue =
+                inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Null(coercedValue);
@@ -145,7 +150,8 @@ namespace HotChocolate.Types
             var value = new ListValueNode(new BooleanValueNode(true));
 
             // act
-            void Action() => inputParser.ParseLiteral(value, type, Path.New("root"));
+            void Action() =>
+                inputParser.ParseLiteral(value, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action);
@@ -160,7 +166,8 @@ namespace HotChocolate.Types
             var element = new BooleanValueNode(true);
 
             // act
-            var coercedValue = inputParser.ParseLiteral(element, type, Path.New("root"));
+            var coercedValue =
+                inputParser.ParseLiteral(element, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Collection(Assert.IsType<List<bool?>>(coercedValue), Assert.True);
@@ -175,7 +182,8 @@ namespace HotChocolate.Types
             var list = new ListValueNode(new BooleanValueNode(true), new StringValueNode("foo"));
 
             // act
-            void Action() => inputParser.ParseLiteral(list, type, Path.New("root"));
+            void Action() =>
+                inputParser.ParseLiteral(list, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action);
@@ -190,7 +198,8 @@ namespace HotChocolate.Types
             var element = new StringValueNode("foo");
 
             // act
-            void Action() => inputParser.ParseLiteral(element, type, Path.New("root"));
+            void Action() =>
+                inputParser.ParseLiteral(element, type, PathFactory.Instance.New("root"));
 
             // assert
             Assert.Throws<SerializationException>(Action);

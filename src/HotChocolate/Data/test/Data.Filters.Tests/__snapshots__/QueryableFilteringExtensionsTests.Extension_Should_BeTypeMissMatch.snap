@@ -8,9 +8,14 @@
       "Message": "Cannot return null for non-nullable field.",
       "Code": "HC0018",
       "Path": {
-        "Parent": null,
+        "Name": "typeMissmatch",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
         "Depth": 0,
-        "Name": "typeMissmatch"
+        "IsRoot": false
       },
       "Locations": [
         {

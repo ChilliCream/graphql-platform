@@ -5,7 +5,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// Represents a collection of <see cref="IFilterValueNode">
+/// Represents a collection of <see cref="IFilterValueNode"/>
 /// </summary>
 public class FilterValueCollection : List<IFilterValueNode>, IFilterValueCollection
 {

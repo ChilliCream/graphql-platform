@@ -74,11 +74,11 @@ internal static class JsonResponseDeserializer
                 switch (segment.ValueKind)
                 {
                     case JsonValueKind.String:
-                        current = current.Append(segment.GetString()!);
+                        current = PathFactory.Instance.Append(current, segment.GetString()!);
                         break;
 
                     case JsonValueKind.Number:
-                        current = current.Append(segment.GetInt32());
+                        current = PathFactory.Instance.Append(current, segment.GetInt32());
                         break;
 
                     default:

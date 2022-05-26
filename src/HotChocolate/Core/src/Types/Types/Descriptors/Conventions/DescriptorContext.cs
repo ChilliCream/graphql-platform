@@ -62,6 +62,7 @@ public sealed class DescriptorContext : IDescriptorContext
         void OnSchemaOnCompleted(object? sender, EventArgs args)
         {
             SchemaCompleted?.Invoke(this, new SchemaCompletedEventArgs(schema.Schema));
+            SchemaCompleted = null;
         }
     }
 

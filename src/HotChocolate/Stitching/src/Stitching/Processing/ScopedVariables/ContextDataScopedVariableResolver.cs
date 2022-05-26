@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -42,7 +43,7 @@ internal class ContextDataScopedVariableResolver : IScopedVariableResolver
         {
             IValueNode l => l,
             null => NullValueNode.Default,
-            _ => formatter.FormatValue(data, targetType, Path.New(variable.Name.Value))
+            _ => formatter.FormatValue(data, targetType, PathFactory.Instance.New(variable.Name.Value))
         };
 
         return new ScopedVariableValue

@@ -3,9 +3,14 @@
     "Message": "There can be only one input field named `name`.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "findDog",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "findDog"
+      "IsRoot": false
     },
     "Locations": [
       {
