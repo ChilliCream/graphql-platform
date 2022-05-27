@@ -102,7 +102,7 @@ public partial class SyntaxVisitor<TContext>
         DocumentNode node,
         TContext context)
     {
-        for (int i = 0; i < node.Definitions.Count; i++)
+        for (var i = 0; i < node.Definitions.Count; i++)
         {
             if (Visit(node.Definitions[i], node, context).IsBreak())
             {
@@ -125,7 +125,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.VariableDefinitions.Count; i++)
+        for (var i = 0; i < node.VariableDefinitions.Count; i++)
         {
             if (Visit(node.VariableDefinitions[i], node, context).IsBreak())
             {
@@ -135,7 +135,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -176,7 +176,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -203,7 +203,7 @@ public partial class SyntaxVisitor<TContext>
         SelectionSetNode node,
         TContext context)
     {
-        for (int i = 0; i < node.Selections.Count; i++)
+        for (var i = 0; i < node.Selections.Count; i++)
         {
             if (Visit(node.Selections[i], node, context).IsBreak())
             {
@@ -233,7 +233,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitArguments)
         {
-            for (int i = 0; i < node.Arguments.Count; i++)
+            for (var i = 0; i < node.Arguments.Count; i++)
             {
                 if (Visit(node.Arguments[i], node, context).IsBreak())
                 {
@@ -244,7 +244,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -292,7 +292,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -318,7 +318,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -351,7 +351,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -379,7 +379,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitArguments)
         {
-            for (int i = 0; i < node.Arguments.Count; i++)
+            for (var i = 0; i < node.Arguments.Count; i++)
             {
                 if (Visit(node.Arguments[i], node, context).IsBreak())
                 {
@@ -428,7 +428,7 @@ public partial class SyntaxVisitor<TContext>
         ListValueNode node,
         TContext context)
     {
-        for (int i = 0; i < node.Items.Count; i++)
+        for (var i = 0; i < node.Items.Count; i++)
         {
             if (Visit(node.Items[i], node, context).IsBreak())
             {
@@ -443,7 +443,7 @@ public partial class SyntaxVisitor<TContext>
         ObjectValueNode node,
         TContext context)
     {
-        for (int i = 0; i < node.Fields.Count; i++)
+        for (var i = 0; i < node.Fields.Count; i++)
         {
             if (Visit(node.Fields[i], node, context).IsBreak())
             {
@@ -485,7 +485,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -494,7 +494,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.OperationTypes.Count; i++)
+        for (var i = 0; i < node.OperationTypes.Count; i++)
         {
             if (Visit(node.OperationTypes[i], node, context).IsBreak())
             {
@@ -535,7 +535,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -564,7 +564,7 @@ public partial class SyntaxVisitor<TContext>
             return Break;
         }
 
-        for (int i = 0; i < node.Interfaces.Count; i++)
+        for (var i = 0; i < node.Interfaces.Count; i++)
         {
             if (Visit(node.Interfaces[i], node, context).IsBreak())
             {
@@ -574,7 +574,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -583,7 +583,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.Fields.Count; i++)
+        for (var i = 0; i < node.Fields.Count; i++)
         {
             if (Visit(node.Fields[i], node, context).IsBreak())
             {
@@ -613,7 +613,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitArguments)
         {
-            for (int i = 0; i < node.Arguments.Count; i++)
+            for (var i = 0; i < node.Arguments.Count; i++)
             {
                 if (Visit(node.Arguments[i], node, context).IsBreak())
                 {
@@ -624,7 +624,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -663,7 +663,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -692,7 +692,7 @@ public partial class SyntaxVisitor<TContext>
             return Break;
         }
 
-        for (int i = 0; i < node.Interfaces.Count; i++)
+        for (var i = 0; i < node.Interfaces.Count; i++)
         {
             if (Visit(node.Interfaces[i], node, context).IsBreak())
             {
@@ -702,7 +702,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -711,7 +711,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.Fields.Count; i++)
+        for (var i = 0; i < node.Fields.Count; i++)
         {
             if (Visit(node.Fields[i], node, context).IsBreak())
             {
@@ -741,7 +741,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -750,7 +750,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.Types.Count; i++)
+        for (var i = 0; i < node.Types.Count; i++)
         {
             if (Visit(node.Types[i], node, context).IsBreak())
             {
@@ -780,7 +780,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -790,7 +790,7 @@ public partial class SyntaxVisitor<TContext>
         }
 
 
-        for (int i = 0; i < node.Values.Count; i++)
+        for (var i = 0; i < node.Values.Count; i++)
         {
             if (Visit(node.Values[i], node, context).IsBreak())
             {
@@ -820,7 +820,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -851,7 +851,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -860,7 +860,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.Fields.Count; i++)
+        for (var i = 0; i < node.Fields.Count; i++)
         {
             if (Visit(node.Fields[i], node, context).IsBreak())
             {
@@ -890,7 +890,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitArguments)
         {
-            for (int i = 0; i < node.Arguments.Count; i++)
+            for (var i = 0; i < node.Arguments.Count; i++)
             {
                 if (Visit(node.Arguments[i], node, context).IsBreak())
                 {
@@ -899,7 +899,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.Locations.Count; i++)
+        for (var i = 0; i < node.Locations.Count; i++)
         {
             if (Visit(node.Locations[i], node, context).IsBreak())
             {
@@ -916,7 +916,7 @@ public partial class SyntaxVisitor<TContext>
     {
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -925,7 +925,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.OperationTypes.Count; i++)
+        for (var i = 0; i < node.OperationTypes.Count; i++)
         {
             if (Visit(node.OperationTypes[i], node, context).IsBreak())
             {
@@ -947,7 +947,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -968,7 +968,7 @@ public partial class SyntaxVisitor<TContext>
             return Break;
         }
 
-        for (int i = 0; i < node.Interfaces.Count; i++)
+        for (var i = 0; i < node.Interfaces.Count; i++)
         {
             if (Visit(node.Interfaces[i], node, context).IsBreak())
             {
@@ -978,7 +978,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -987,7 +987,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.Fields.Count; i++)
+        for (var i = 0; i < node.Fields.Count; i++)
         {
             if (Visit(node.Fields[i], node, context).IsBreak())
             {
@@ -1007,7 +1007,7 @@ public partial class SyntaxVisitor<TContext>
             return Break;
         }
 
-        for (int i = 0; i < node.Interfaces.Count; i++)
+        for (var i = 0; i < node.Interfaces.Count; i++)
         {
             if (Visit(node.Interfaces[i], node, context).IsBreak())
             {
@@ -1017,7 +1017,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -1026,7 +1026,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.Fields.Count; i++)
+        for (var i = 0; i < node.Fields.Count; i++)
         {
             if (Visit(node.Fields[i], node, context).IsBreak())
             {
@@ -1048,7 +1048,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -1057,7 +1057,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.Types.Count; i++)
+        for (var i = 0; i < node.Types.Count; i++)
         {
             if (Visit(node.Types[i], node, context).IsBreak())
             {
@@ -1079,7 +1079,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -1088,7 +1088,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.Values.Count; i++)
+        for (var i = 0; i < node.Values.Count; i++)
         {
             if (Visit(node.Values[i], node, context).IsBreak())
             {
@@ -1110,7 +1110,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -1119,7 +1119,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        for (int i = 0; i < node.Fields.Count; i++)
+        for (var i = 0; i < node.Fields.Count; i++)
         {
             if (Visit(node.Fields[i], node, context).IsBreak())
             {
@@ -1139,15 +1139,15 @@ public partial class SyntaxVisitor<TContext>
             return Break;
         }
 
-        if(_options.VisitNames && 
-            node.MemberName is not null && 
+        if(_options.VisitNames &&
+            node.MemberName is not null &&
             Visit(node.MemberName, node, context).IsBreak())
         {
             return Break;
         }
 
-        if(_options.VisitNames && 
-            node.ArgumentName is not null && 
+        if(_options.VisitNames &&
+            node.ArgumentName is not null &&
             Visit(node.ArgumentName, node, context).IsBreak())
         {
             return Break;
