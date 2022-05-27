@@ -11,8 +11,7 @@ public class SyntaxRewriter<TContext>
     {
         TContext newContext = OnEnter(node, context);
         ISyntaxNode rewrittenNode = OnRewrite(node, context);
-        OnLeave(node, rewrittenNode, newContext);
-        return rewrittenNode;
+        return OnLeave(rewrittenNode, newContext);
     }
 
     protected virtual TContext OnEnter(ISyntaxNode node, TContext context)
@@ -71,12 +70,10 @@ public class SyntaxRewriter<TContext>
             _ => throw new ArgumentOutOfRangeException(nameof(node))
         };
 
-    protected virtual void OnLeave(
-        ISyntaxNode originalNode,
-        ISyntaxNode rewrittenNode,
+    protected virtual ISyntaxNode OnLeave(
+        ISyntaxNode node,
         TContext context)
-    {
-    }
+        => node;
 
     protected virtual ArgumentNode RewriteArgument(
         ArgumentNode node,

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace HotChocolate.Language.Visitors;
 
@@ -13,14 +12,14 @@ public class SyntaxRewriter : SyntaxRewriter<ISyntaxVisitorContext>
     public static ISyntaxRewriter<TContext> Create<TContext>(
         RewriteSyntaxNode<TContext>? rewrite = null,
         Func<ISyntaxNode, TContext, TContext>? enter = null,
-        Action<ISyntaxNode, ISyntaxNode, TContext>? leave = null)
+        RewriteSyntaxNode<TContext>? leave = null)
         where TContext : ISyntaxVisitorContext
         => new DelegateSyntaxRewriter<TContext>(rewrite, enter, leave);
 
     public static ISyntaxRewriter<TContext> CreateWithNavigator<TContext>(
         RewriteSyntaxNode<TContext>? rewrite = null,
         Func<ISyntaxNode, TContext, TContext>? enter = null,
-        Action<ISyntaxNode, ISyntaxNode, TContext>? leave = null)
+        RewriteSyntaxNode<TContext>? leave = null)
         where TContext : INavigatorContext
     {
 
@@ -36,15 +35,16 @@ public class SyntaxRewriter : SyntaxRewriter<ISyntaxVisitorContext>
                 return context;
             };
 
-        Action<ISyntaxNode, ISyntaxNode, TContext> leaveFunc = leave is not null
-            ? (node, rewrittenNode, context) =>
+        RewriteSyntaxNode<TContext> leaveFunc = leave is not null
+            ? (node, context) =>
             {
                 context.Navigator.Pop();
-                leave(node, rewrittenNode, context);
+                return leave(node, context);
             }
-            : (_, _, context) =>
+            : (node, context) =>
             {
                 context.Navigator.Pop();
+                return node;
             };
 
         return new DelegateSyntaxRewriter<TContext>(rewrite, enterFunc, leaveFunc);

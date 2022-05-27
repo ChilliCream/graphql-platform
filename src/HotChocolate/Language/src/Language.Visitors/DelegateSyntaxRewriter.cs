@@ -8,16 +8,16 @@ internal sealed class DelegateSyntaxRewriter<TContext>
 {
     private readonly RewriteSyntaxNode<TContext> _rewrite;
     private readonly Func<ISyntaxNode, TContext, TContext> _enter;
-    private readonly Action<ISyntaxNode, ISyntaxNode, TContext> _leave;
+    private readonly RewriteSyntaxNode<TContext> _leave;
 
     public DelegateSyntaxRewriter(
         RewriteSyntaxNode<TContext>? rewrite = null,
         Func<ISyntaxNode, TContext, TContext>? enter = null,
-        Action<ISyntaxNode, ISyntaxNode, TContext>? leave = null)
+        RewriteSyntaxNode<TContext>? leave = null)
     {
         _rewrite = rewrite ?? new RewriteSyntaxNode<TContext>(static (node, _) => node);
         _enter = enter ?? new Func<ISyntaxNode, TContext, TContext>(static (_, ctx) => ctx);
-        _leave = leave ?? new Action<ISyntaxNode, ISyntaxNode, TContext>(static (_, _, _) => { });
+        _leave = leave ?? new RewriteSyntaxNode<TContext>(static (node, _) => node);
     }
 
     protected override TContext OnEnter(
@@ -29,15 +29,12 @@ internal sealed class DelegateSyntaxRewriter<TContext>
         ISyntaxNode node,
         TContext context)
     {
-        ISyntaxNode rewrittenNode = _rewrite(node, context);
-        return ReferenceEquals(rewrittenNode, node)
-            ? base.OnRewrite(node, context)
-            : rewrittenNode;
+        ISyntaxNode rewrittenNode = base.OnRewrite(node, context);
+        return _rewrite(rewrittenNode, context);
     }
 
-    protected override void OnLeave(
-        ISyntaxNode originalNode,
-        ISyntaxNode rewrittenNode,
+    protected override ISyntaxNode OnLeave(
+        ISyntaxNode node,
         TContext context)
-        => _leave(originalNode, rewrittenNode, context);
+        => _leave(node, context);
 }

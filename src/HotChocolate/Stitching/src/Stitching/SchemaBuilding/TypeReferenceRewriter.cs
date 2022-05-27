@@ -2,12 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Stitching.SchemaBuilding;
 
 internal sealed class TypeReferenceRewriter
-    : SchemaSyntaxRewriter<TypeReferenceRewriter.Context>
+    : SyntaxRewriter<TypeReferenceRewriter.Context>
 {
+    public DocumentNode RewriteSchema(
+        DocumentNode document,
+        NameString schemaName)
+    {
+        return document;
+    }
+
+    /*
     public DocumentNode RewriteSchema(
         DocumentNode document,
         NameString schemaName)
@@ -297,7 +306,9 @@ internal sealed class TypeReferenceRewriter
             || typeDefinition.IsFromSchema(context.SourceSchema.Value);
     }
 
-    public sealed class Context
+    */
+
+    public sealed class Context : ISyntaxVisitorContext
     {
         public Context(
             NameString? sourceSchema,

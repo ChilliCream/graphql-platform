@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
@@ -114,8 +115,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
                 {
                     foreach (ISelectionNode? nodeField in edgeSubFieldNode.SelectionSet.Selections)
                     {
-                        selections.Add(
-                            CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
+                        selections.Add(_cloneSelectionSetRewriter.Rewrite(nodeField));
                     }
                 }
             }
@@ -131,7 +131,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         {
             foreach (ISelectionNode? nodeField in itemSelection.SelectionSet!.Selections)
             {
-                selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
+                selections.Add(_cloneSelectionSetRewriter.Rewrite(nodeField));
             }
         }
     }
@@ -145,27 +145,14 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         {
             foreach (ISelectionNode? nodeField in nodeSelection.SelectionSet!.Selections)
             {
-                selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
+                selections.Add(_cloneSelectionSetRewriter.Rewrite(nodeField));
             }
         }
     }
 
-    private sealed class CloneSelectionSetVisitor : QuerySyntaxRewriter<object>
-    {
-        private static readonly object _context = new();
-
-        protected override SelectionSetNode RewriteSelectionSet(
-            SelectionSetNode node,
-            object context)
-        {
-            return new(base.RewriteSelectionSet(node, context).Selections);
-        }
-
-        public ISelectionNode CloneSelectionNode(ISelectionNode selection)
-        {
-            return RewriteSelection(selection, _context);
-        }
-
-        public static readonly CloneSelectionSetVisitor Default = new();
-    }
+    private static readonly ISyntaxRewriter<ISyntaxVisitorContext> _cloneSelectionSetRewriter =
+        SyntaxRewriter.Create(
+            n => n.Kind is SyntaxKind.SelectionSet
+                ? new SelectionSetNode(((SelectionSetNode)n).Selections)
+                : n);
 }
