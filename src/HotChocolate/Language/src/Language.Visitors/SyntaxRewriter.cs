@@ -96,10 +96,10 @@ public class SyntaxRewriter<TContext>
                 return RewriteNonNullType(casted, context);
 
             case NullValueNode casted:
-                break;
+                return RewriteNullValue(casted, context);
 
             case ObjectFieldNode casted:
-                break;
+                return RewriteObjectField(casted, context);
 
             case ObjectTypeDefinitionNode casted:
                 return RewriteObjectTypeDefinition(casted, context);
@@ -107,31 +107,31 @@ public class SyntaxRewriter<TContext>
             case ObjectTypeExtensionNode casted:
                 return RewriteObjectTypeExtension(casted, context);
 
-            case ObjectValueNode objectValueNode:
+            case ObjectValueNode casted:
+                return RewriteObjectValue(casted, context);
+
+            case OperationDefinitionNode casted:
+                return RewriteOperationDefinition(casted, context);
+
+            case OperationTypeDefinitionNode casted:
+                return RewriteOperationTypeDefinition(casted, context);
+
+            case OptionalModifierNode casted:
                 break;
 
-            case OperationDefinitionNode operationDefinitionNode:
+            case RequiredModifierNode casted:
                 break;
 
-            case OperationTypeDefinitionNode operationTypeDefinitionNode:
+            case ScalarTypeDefinitionNode casted:
                 break;
 
-            case OptionalModifierNode optionalModifierNode:
+            case ScalarTypeExtensionNode casted:
                 break;
 
-            case RequiredModifierNode requiredModifierNode:
+            case SchemaCoordinateNode casted:
                 break;
 
-            case ScalarTypeDefinitionNode scalarTypeDefinitionNode:
-                break;
-
-            case ScalarTypeExtensionNode scalarTypeExtensionNode:
-                break;
-
-            case SchemaCoordinateNode schemaCoordinateNode:
-                break;
-
-            case SchemaDefinitionNode schemaDefinitionNode:
+            case SchemaDefinitionNode casted:
                 break;
 
             case SchemaExtensionNode schemaExtensionNode:
@@ -662,89 +662,26 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual VariableNode RewriteVariable(
-        VariableNode node,
-        TContext context)
-    {
-        NameNode name = RewriteName(node.Name, context);
-
-        if (!ReferenceEquals(name, node.Name))
-        {
-            return new VariableNode(node.Location, name);
-        }
-
-        return node;
-    }
-
-
-
-
-
-    protected virtual StringValueNode RewriteStringValue(
-        StringValueNode node,
-        TContext context)
-    {
-        return node;
-    }
-
-
-
-
-
     protected virtual NullValueNode RewriteNullValue(
         NullValueNode node,
         TContext context)
-    {
-        return node;
-    }
-
-
-    protected virtual ObjectValueNode RewriteObjectValue(
-        ObjectValueNode node,
-        TContext context)
-    {
-        ObjectValueNode current = node;
-
-        current = RewriteMany(current, current.Fields, context,
-            RewriteObjectField, current.WithFields);
-
-        return current;
-    }
+        => node;
 
     protected virtual ObjectFieldNode RewriteObjectField(
         ObjectFieldNode node,
         TContext context)
     {
-        ObjectFieldNode current = node;
+        NameNode name = RewriteNode(node.Name, context);
+        IValueNode value = RewriteNode(node.Value, context);
 
-        current = Rewrite(current, node.Name, context,
-            RewriteName, current.WithName);
+        if (!ReferenceEquals(name, node.Name) ||
+            !ReferenceEquals(value, node.Value))
+        {
+            return new ObjectFieldNode(node.Location, name, value);
+        }
 
-        current = Rewrite(current, node.Value, context,
-            RewriteValue, current.WithValue);
-
-        return current;
+        return node;
     }
-
-
-
-    protected virtual TParent RewriteDirectives<TParent>(
-        TParent parent,
-        IReadOnlyList<DirectiveNode> directives,
-        TContext context,
-        Func<IReadOnlyList<DirectiveNode>, TParent> rewrite)
-    {
-        return RewriteMany(parent, directives, context,
-            RewriteDirective, rewrite);
-    }
-
-
-
-
-
-
-
-
 
     protected virtual ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
         ObjectTypeDefinitionNode node,
@@ -798,6 +735,122 @@ public class SyntaxRewriter<TContext>
 
         return node;
     }
+
+    protected virtual ObjectValueNode RewriteObjectValue(
+        ObjectValueNode node,
+        TContext context)
+    {
+        IReadOnlyList<ObjectFieldNode> fields = RewriteList(node.Fields, context);
+
+        if (!ReferenceEquals(fields, node.Fields))
+        {
+            return new ObjectValueNode(node.Location, fields);
+        }
+
+        return node;
+    }
+
+    protected virtual OperationDefinitionNode RewriteOperationDefinition(
+        OperationDefinitionNode node,
+        TContext context)
+    {
+        NameNode? name = RewriteNode(node.Name, context);
+        IReadOnlyList<VariableDefinitionNode> variableDefinitions =
+            RewriteList(node.VariableDefinitions, context);
+        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        SelectionSetNode selectionSet = RewriteNode(node.SelectionSet, context);
+
+        if (!ReferenceEquals(name, node.Name) ||
+            !ReferenceEquals(variableDefinitions, node.VariableDefinitions) ||
+            !ReferenceEquals(directives, node.Directives) ||
+            !ReferenceEquals(selectionSet, node.SelectionSet))
+        {
+            return new OperationDefinitionNode(
+                node.Location,
+                name,
+                node.Operation,
+                variableDefinitions,
+                directives,
+                selectionSet);
+        }
+
+        return node;
+    }
+
+    protected virtual OperationTypeDefinitionNode RewriteOperationTypeDefinition(
+        OperationTypeDefinitionNode node,
+        TContext context)
+    {
+        NamedTypeNode type = RewriteNode(node.Type, context);
+
+        if (!ReferenceEquals(type, node.Type))
+        {
+            return new OperationTypeDefinitionNode(
+                node.Location,
+                node.Operation,
+                type);
+        }
+
+        return node;
+    }
+
+
+    protected virtual VariableNode RewriteVariable(
+        VariableNode node,
+        TContext context)
+    {
+        NameNode name = RewriteName(node.Name, context);
+
+        if (!ReferenceEquals(name, node.Name))
+        {
+            return new VariableNode(node.Location, name);
+        }
+
+        return node;
+    }
+
+
+
+
+
+    protected virtual StringValueNode RewriteStringValue(
+        StringValueNode node,
+        TContext context)
+    {
+        return node;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    protected virtual TParent RewriteDirectives<TParent>(
+        TParent parent,
+        IReadOnlyList<DirectiveNode> directives,
+        TContext context,
+        Func<IReadOnlyList<DirectiveNode>, TParent> rewrite)
+    {
+        return RewriteMany(parent, directives, context,
+            RewriteDirective, rewrite);
+    }
+
+
+
+
+
+
+
+
+
+
 
     private T RewriteNode<T>(T? node, TContext context) where T : ISyntaxNode
         => node is null ? default : (T)Rewrite(node, context);
