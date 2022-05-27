@@ -60,12 +60,12 @@ public partial class SyntaxVisitor<TContext>
         TContext context) =>
         Visit<ISyntaxNode, ISyntaxNode?>(node, null, context);
 
-    protected ISyntaxVisitorAction Visit<T, P>(
-        T node,
-        P parent,
+    protected ISyntaxVisitorAction Visit<TNode, TParent>(
+        TNode node,
+        TParent parent,
         TContext context)
-        where T : notnull, ISyntaxNode
-        where P : ISyntaxNode?
+        where TNode : notnull, ISyntaxNode
+        where TParent : ISyntaxNode?
     {
         TContext? localContext = OnBeforeEnter(node, parent, context);
         ISyntaxVisitorAction? result = Enter(node, localContext);
