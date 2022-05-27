@@ -3,19 +3,107 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language.Visitors;
 
+internal sealed class DelegateSyntaxRewriter<TContext>
+    : SyntaxRewriter<TContext>
+    where TContext : ISyntaxVisitorContext
+{
+    private readonly RewriteSyntaxNode<TContext> _rewrite;
+    private readonly Func<ISyntaxNode, TContext, TContext> _enter;
+    private readonly Action<ISyntaxNode, ISyntaxNode, TContext> _leave;
+
+    public DelegateSyntaxRewriter(
+        RewriteSyntaxNode<TContext>? rewrite = null,
+        Func<ISyntaxNode, TContext, TContext>? enter = null,
+        Action<ISyntaxNode, ISyntaxNode, TContext>? leave = null)
+    {
+        _rewrite = rewrite ?? new RewriteSyntaxNode<TContext>(static (node, _) => node);
+        _enter = enter ?? new Func<ISyntaxNode, TContext, TContext>(static (_, ctx) => ctx);
+        _leave = leave ?? new Action<ISyntaxNode, ISyntaxNode, TContext>(static (_, _, _) => { });
+    }
+
+    protected override TContext OnEnter(
+        ISyntaxNode node,
+        TContext context)
+        => _enter(node, context);
+
+    protected override ISyntaxNode OnRewrite(
+        ISyntaxNode node,
+        TContext context)
+    {
+        ISyntaxNode rewrittenNode = _rewrite(node, context);
+        return ReferenceEquals(rewrittenNode, node)
+            ? base.OnRewrite(node, context)
+            : rewrittenNode;
+    }
+
+    protected override void OnLeave(
+        ISyntaxNode originalNode,
+        ISyntaxNode rewrittenNode,
+        TContext context)
+        => _leave(originalNode, rewrittenNode, context);
+}
+
+public class SyntaxRewriter : SyntaxRewriter<ISyntaxVisitorContext>
+{
+    public static ISyntaxRewriter<ISyntaxVisitorContext> Create(
+        Func<ISyntaxNode, ISyntaxNode> rewrite)
+        => new DelegateSyntaxRewriter<ISyntaxVisitorContext>(
+            rewrite: (node, _) => rewrite(node));
+
+    public static ISyntaxRewriter<TContext> Create<TContext>(
+        RewriteSyntaxNode<TContext>? rewrite = null,
+        Func<ISyntaxNode, TContext, TContext>? enter = null,
+        Action<ISyntaxNode, ISyntaxNode, TContext>? leave = null)
+        where TContext : ISyntaxVisitorContext
+        => new DelegateSyntaxRewriter<TContext>(rewrite, enter, leave);
+
+    public static ISyntaxRewriter<TContext> CreateWithNavigator<TContext>(
+        RewriteSyntaxNode<TContext>? rewrite = null,
+        Func<ISyntaxNode, TContext, TContext>? enter = null,
+        Action<ISyntaxNode, ISyntaxNode, TContext>? leave = null)
+        where TContext : INavigatorContext
+    {
+
+        Func<ISyntaxNode, TContext, TContext> enterFunc = enter is not null
+            ? (node, context) =>
+            {
+                context.Navigator.Push(node);
+                return enter(node, context);
+            }
+            : (node, context) =>
+            {
+                context.Navigator.Push(node);
+                return context;
+            };
+
+        Action<ISyntaxNode, ISyntaxNode, TContext> leaveFunc = leave is not null
+            ? (node, rewrittenNode, context) =>
+            {
+                context.Navigator.Pop();
+                leave(node, rewrittenNode, context);
+            }
+            : (_, _, context) =>
+            {
+                context.Navigator.Pop();
+            };
+
+        return new DelegateSyntaxRewriter<TContext>(rewrite, enterFunc, leaveFunc);
+    }
+}
+
 public class SyntaxRewriter<TContext>
     : ISyntaxRewriter<TContext>
     where TContext : ISyntaxVisitorContext
 {
     public virtual ISyntaxNode Rewrite(ISyntaxNode node, TContext context)
     {
-        TContext newContext = OnBeforeRewrite(node, context);
-        ISyntaxNode newNode = OnRewrite(node, context);
-        OnAfterRewrite(node, newNode, context, newContext);
-        return newNode;
+        TContext newContext = OnEnter(node, context);
+        ISyntaxNode rewrittenNode = OnRewrite(node, context);
+        OnLeave(node, rewrittenNode, newContext);
+        return rewrittenNode;
     }
 
-    protected virtual TContext OnBeforeRewrite(ISyntaxNode node, TContext context)
+    protected virtual TContext OnEnter(ISyntaxNode node, TContext context)
         => context;
 
     protected virtual ISyntaxNode OnRewrite(ISyntaxNode node, TContext context)
@@ -71,11 +159,10 @@ public class SyntaxRewriter<TContext>
             _ => throw new ArgumentOutOfRangeException(nameof(node))
         };
 
-    protected virtual void OnAfterRewrite(
-        ISyntaxNode node,
-        ISyntaxNode newNode,
-        TContext context,
-        TContext newContext)
+    protected virtual void OnLeave(
+        ISyntaxNode originalNode,
+        ISyntaxNode rewrittenNode,
+        TContext context)
     {
     }
 
@@ -949,7 +1036,37 @@ public class SyntaxRewriter<TContext>
         => node is null ? default : (T)Rewrite(node, context);
 
     protected IReadOnlyList<T> RewriteList<T>(IReadOnlyList<T> nodes, TContext context)
+        where T : ISyntaxNode
     {
+        T[]? rewrittenList = null;
 
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            T originalNode = nodes[i];
+            T rewrittenNode = RewriteNode(originalNode, context);
+
+            if (rewrittenList is null)
+            {
+                if (ReferenceEquals(originalNode, rewrittenNode))
+                {
+                    continue;
+                }
+
+                rewrittenList = new T[nodes.Count];
+
+                for (var j = 0; j < i; j++)
+                {
+                    rewrittenList[j] = nodes[j];
+                }
+
+                rewrittenList[i] = rewrittenNode;
+            }
+            else
+            {
+                rewrittenList[i] = rewrittenNode;
+            }
+        }
+
+        return rewrittenList ?? nodes;
     }
 }
