@@ -3,6 +3,13 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language.Visitors;
 
+/// <summary>
+/// Represents a syntax rewriter. A syntax rewriter is a visitor that creates a new syntax tree
+/// from the passed in syntax tree.
+/// </summary>
+/// <typeparam name="TContext">
+/// The context type.
+/// </typeparam>
 public class SyntaxRewriter<TContext>
     : ISyntaxRewriter<TContext>
     where TContext : ISyntaxVisitorContext
@@ -11,7 +18,8 @@ public class SyntaxRewriter<TContext>
     {
         TContext newContext = OnEnter(node, context);
         ISyntaxNode rewrittenNode = OnRewrite(node, context);
-        return OnLeave(rewrittenNode, newContext);
+        OnLeave(rewrittenNode, newContext);
+        return rewrittenNode;
     }
 
     protected virtual TContext OnEnter(ISyntaxNode node, TContext context)
@@ -70,10 +78,11 @@ public class SyntaxRewriter<TContext>
             _ => throw new ArgumentOutOfRangeException(nameof(node))
         };
 
-    protected virtual ISyntaxNode OnLeave(
+    protected virtual void OnLeave(
         ISyntaxNode node,
         TContext context)
-        => node;
+    {
+    }
 
     protected virtual ArgumentNode RewriteArgument(
         ArgumentNode node,
