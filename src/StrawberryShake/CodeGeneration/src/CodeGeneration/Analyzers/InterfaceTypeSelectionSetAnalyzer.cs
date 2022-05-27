@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.Execution;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
@@ -31,7 +32,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
         IDocumentAnalyzerContext context,
         SelectionSetVariants selectionSetVariants)
     {
-        Path rootSelectionPath = Path.Root.Append(context.OperationName);
+        Path rootSelectionPath = PathFactory.Instance.New(context.OperationName);
 
         FragmentNode returnTypeFragment =
             FragmentHelper.CreateFragmentNode(

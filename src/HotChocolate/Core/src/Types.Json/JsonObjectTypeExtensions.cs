@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Provides <see cref="IObjectFieldDescriptor"> extensions to handle JSON objects.
+/// Provides <see cref="IObjectFieldDescriptor"/> extensions to handle JSON objects.
 /// </summary>
 public static class JsonObjectTypeExtensions
 {

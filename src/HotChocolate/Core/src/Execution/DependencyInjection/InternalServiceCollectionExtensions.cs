@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using GreenDonut;
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
@@ -65,6 +66,17 @@ internal static class InternalServiceCollectionExtensions
         return services;
     }
 
+    internal static IServiceCollection TryAddPathSegmentPool(
+        this IServiceCollection services,
+        int maximumRetained = 256)
+    {
+        services.TryAddSingleton<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(
+            _ => new IndexerPathSegmentPool(maximumRetained));
+        services.TryAddSingleton<ObjectPool<PathSegmentBuffer<NamePathSegment>>>(
+            _ => new NamePathSegmentPool(maximumRetained));
+        return services;
+    }
+
     internal static IServiceCollection TryAddOperationContextPool(
         this IServiceCollection services)
     {
@@ -73,7 +85,9 @@ internal static class InternalServiceCollectionExtensions
             ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new OperationContextPooledObjectPolicy(
                 sp.GetRequiredService<ObjectPool<ResolverTask>>(),
-                sp.GetRequiredService<ResultPool>());
+                sp.GetRequiredService<ResultPool>(),
+                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(),
+                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<NamePathSegment>>>());
             return provider.Create(policy);
         });
 
@@ -233,19 +247,27 @@ internal static class InternalServiceCollectionExtensions
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly ResultPool _resultPool;
+        private readonly ObjectPool<PathSegmentBuffer<IndexerPathSegment>> _indexerPathSegmentPool;
+        private readonly ObjectPool<PathSegmentBuffer<NamePathSegment>> _namePathSegmentPool;
 
         public OperationContextPooledObjectPolicy(
             ObjectPool<ResolverTask> resolverTaskPool,
-            ResultPool resultPool)
+            ResultPool resultPool,
+            ObjectPool<PathSegmentBuffer<IndexerPathSegment>> indexerPathSegmentPool,
+            ObjectPool<PathSegmentBuffer<NamePathSegment>> namePathSegmentPool)
         {
             _resolverTaskPool = resolverTaskPool ??
                 throw new ArgumentNullException(nameof(resolverTaskPool));
             _resultPool = resultPool ??
                 throw new ArgumentNullException(nameof(resultPool));
+            _indexerPathSegmentPool = indexerPathSegmentPool ??
+                throw new ArgumentNullException(nameof(indexerPathSegmentPool));
+            _namePathSegmentPool = namePathSegmentPool ??
+                throw new ArgumentNullException(nameof(namePathSegmentPool));
         }
 
         public override OperationContext Create()
-            => new(_resolverTaskPool, _resultPool);
+            => new(_resolverTaskPool, _resultPool, _indexerPathSegmentPool, _namePathSegmentPool);
 
         public override bool Return(OperationContext obj)
         {

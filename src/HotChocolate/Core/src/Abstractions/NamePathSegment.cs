@@ -1,31 +1,24 @@
-#nullable  enable
+#nullable enable
 
 namespace HotChocolate;
 
+/// <summary>
+/// An <see cref="IndexerPathSegment" /> represents a pointer to
+/// an named element in the result structure.
+/// </summary>
 public sealed class NamePathSegment : Path
 {
-    internal NamePathSegment(Path? parent, NameString name)
-    {
-        Parent = parent;
-        Depth = parent?.Depth + 1 ?? 0;
-        Name = name;
-    }
-
-    /// <inheritdoc />
-    public override Path? Parent { get; }
-
-    /// <inheritdoc />
-    public override int Depth { get; }
-
     /// <summary>
     ///  Gets the name representing a field on a result map.
     /// </summary>
-    public NameString Name { get; }
+    public NameString Name { get; internal set; }
 
     /// <inheritdoc />
     public override string Print()
     {
-        var parent = Parent is null ? string.Empty : Parent.Print();
+        var parent = Parent.IsRoot
+            ? string.Empty
+            : Parent.Print();
         return $"{parent}/{Name}";
     }
 
@@ -41,14 +34,9 @@ public sealed class NamePathSegment : Path
             Depth.Equals(name.Depth) &&
             Name.Equals(name.Name))
         {
-            if (Parent is null)
+            if (ReferenceEquals(Parent, other.Parent))
             {
-                return name.Parent is null;
-            }
-
-            if (name.Parent is null)
-            {
-                return false;
+                return true;
             }
 
             return Parent.Equals(name.Parent);
@@ -56,6 +44,10 @@ public sealed class NamePathSegment : Path
 
         return false;
     }
+
+    /// <inheritdoc />
+    public override Path Clone()
+        => new NamePathSegment { Depth = Depth, Name = Name, Parent = Parent.Clone() };
 
     /// <inheritdoc />
     public override int GetHashCode()

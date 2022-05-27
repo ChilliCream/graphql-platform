@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace HotChocolate.Types.Pagination
@@ -52,6 +53,34 @@ namespace HotChocolate.Types.Pagination
 
             // assert
             Assert.Throws<ArgumentNullException>(Verify);
+        }
+
+        [Fact]
+        public async Task GetTotalCountAsync_Delegate_ReturnsTotalCount()
+        {
+            // arrange
+            var pageInfo = new CollectionSegmentInfo(true, true);
+            var items = new List<string>();
+
+            // act
+            var collection = new CollectionSegment(items, pageInfo, _ => new ValueTask<int>(2));
+
+            // assert
+            Assert.Equal(2, await collection.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task GetTotalCountAsync_Value_ReturnsTotalCount()
+        {
+            // arrange
+            var pageInfo = new CollectionSegmentInfo(true, true);
+            var items = new List<string>();
+
+            // act
+            var collection = new CollectionSegment(items, pageInfo, 2);
+
+            // assert
+            Assert.Equal(2, await collection.GetTotalCountAsync(default));
         }
     }
 }

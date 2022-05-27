@@ -1,6 +1,6 @@
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 
@@ -11,39 +11,79 @@ namespace HotChocolate.ApolloFederation.Helpers;
 /// </summary>
 internal static class EntitiesResolver
 {
-    public static async Task<List<object?>> ResolveAsync(
+    public static async Task<IReadOnlyList<object?>> ResolveAsync(
         ISchema schema,
         IReadOnlyList<Representation> representations,
         IResolverContext context)
     {
-        var entities = new List<object?>();
+        Task<object?>[] tasks = ArrayPool<Task<object?>>.Shared.Rent(representations.Count);
+        var result = new object?[representations.Count];
 
-        foreach (Representation representation in representations)
+        try
         {
-            if (schema.TryGetType<ObjectType>(representation.TypeName, out var objectType) &&
-                objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
-                value is FieldResolverDelegate resolver)
+            for (var i = 0; i < representations.Count; i++)
             {
-                context.SetLocalState(TypeField, objectType);
-                context.SetLocalState(DataField, representation.Data);
+                context.RequestAborted.ThrowIfCancellationRequested();
 
-                var entity = await resolver.Invoke(context).ConfigureAwait(false);
+                Representation current = representations[i];
 
-                if (entity is not null &&
-                    objectType!.ContextData.TryGetValue(ExternalSetter, out value) &&
-                    value is Action<ObjectType, IValueNode, object> setExternals)
+                if (schema.TryGetType<ObjectType>(current.TypeName, out ObjectType? objectType) &&
+                    objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
+                    value is FieldResolverDelegate resolver)
                 {
-                    setExternals(objectType, representation.Data!, entity);
-                }
+                    context.SetLocalState(TypeField, objectType);
+                    context.SetLocalState(DataField, current.Data);
 
-                entities.Add(entity);
+                    tasks[i] = resolver.Invoke(new ResolverContextProxy(context)).AsTask();
+                }
+                else
+                {
+                    throw ThrowHelper.EntityResolver_NoResolverFound();
+                }
             }
-            else
+
+            for (var i = 0; i < representations.Count; i++)
             {
-                throw ThrowHelper.EntityResolver_NoResolverFound();
+                context.RequestAborted.ThrowIfCancellationRequested();
+
+                Task<object?> task = tasks[i];
+                if (task.IsCompleted)
+                {
+                    if (task.Exception is null)
+                    {
+                        result[i] = task.Result;
+                    }
+                    else
+                    {
+                        result[i] = null;
+                        ReportError(context, i, task.Exception);
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        result[i] = await task;
+                    }
+                    catch (Exception ex)
+                    {
+                        result[i] = null;
+                        ReportError(context, i, ex);
+                    }
+                }
             }
         }
+        finally
+        {
+            ArrayPool<Task<object?>>.Shared.Return(tasks, true);
+        }
 
-        return entities;
+        return result;
+    }
+
+    private static void ReportError(IResolverContext context, int item, Exception ex)
+    {
+        Path itemPath = PathFactory.Instance.Append(context.Path, item);
+        context.ReportError(ex, error => error.SetPath(itemPath));
     }
 }

@@ -3,13 +3,19 @@
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
     "Path": {
+      "Name": "multipleReqs",
       "Parent": {
-        "Parent": null,
+        "Name": "arguments",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
         "Depth": 0,
-        "Name": "arguments"
+        "IsRoot": false
       },
       "Depth": 1,
-      "Name": "multipleReqs"
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -40,13 +46,19 @@
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
     "Path": {
+      "Name": "multipleReqs",
       "Parent": {
-        "Parent": null,
+        "Name": "arguments",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
         "Depth": 0,
-        "Name": "arguments"
+        "IsRoot": false
       },
       "Depth": 1,
-      "Name": "multipleReqs"
+      "IsRoot": false
     },
     "Locations": [
       {

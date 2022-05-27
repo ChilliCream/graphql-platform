@@ -90,7 +90,7 @@ internal sealed class VariableCoercionHelper
         IInputType variableType,
         object value)
     {
-        Path root = Path.New(variableDefinition.Variable.Name.Value);
+        Path root = PathFactory.Instance.New(variableDefinition.Variable.Name.Value);
 
         if (value is IValueNode valueLiteral)
         {
