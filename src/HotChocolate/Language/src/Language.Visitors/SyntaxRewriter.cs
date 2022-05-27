@@ -47,25 +47,25 @@ public class SyntaxRewriter<TContext>
             case FieldNode casted:
                 return RewriteField(casted, context);
 
-            case FloatValueNode floatValueNode:
-                break;
+            case FloatValueNode casted:
+                return RewriteFloatValue(casted, context);
 
-            case FragmentDefinitionNode fragmentDefinitionNode:
-                break;
+            case FragmentDefinitionNode casted:
+                return RewriteFragmentDefinition(casted, context);
 
-            case FragmentSpreadNode fragmentSpreadNode:
-                break;
+            case FragmentSpreadNode casted:
+                return RewriteFragmentSpread(casted, context);
 
-            case InlineFragmentNode inlineFragmentNode:
-                break;
+            case InlineFragmentNode casted:
+                return RewriteInlineFragment(casted, context);
 
-            case InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode:
-                break;
+            case InputObjectTypeDefinitionNode casted:
+                return RewriteInputObjectTypeDefinition(casted, context);
 
-            case InputObjectTypeExtensionNode inputObjectTypeExtensionNode:
-                break;
+            case InputObjectTypeExtensionNode casted:
+                return RewriteInputObjectTypeExtension(casted, context);
 
-            case InputValueDefinitionNode inputValueDefinitionNode:
+            case InputValueDefinitionNode casted:
                 break;
 
             case InterfaceTypeDefinitionNode casted:
@@ -377,6 +377,128 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
+    protected virtual FloatValueNode RewriteFloatValue(
+        FloatValueNode node,
+        TContext context)
+        => node;
+
+    protected virtual FragmentDefinitionNode RewriteFragmentDefinition(
+        FragmentDefinitionNode node,
+        TContext context)
+    {
+        NameNode name = RewriteNode(node.Name, context);
+        IReadOnlyList<VariableDefinitionNode> variableDefinitions =
+            RewriteList(node.VariableDefinitions, context);
+        NamedTypeNode typeCondition = RewriteNode(node.TypeCondition, context);
+        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        SelectionSetNode? selectionSet = RewriteNode(node.SelectionSet, context);
+
+        if (!ReferenceEquals(name, node.Name) ||
+            !ReferenceEquals(variableDefinitions, node.VariableDefinitions) ||
+            !ReferenceEquals(typeCondition, node.TypeCondition) ||
+            !ReferenceEquals(directives, node.Directives) ||
+            !ReferenceEquals(selectionSet, node.SelectionSet))
+        {
+            return new FragmentDefinitionNode(
+                node.Location,
+                name,
+                variableDefinitions,
+                typeCondition,
+                directives,
+                selectionSet);
+        }
+
+        return node;
+    }
+
+    protected virtual FragmentSpreadNode RewriteFragmentSpread(
+        FragmentSpreadNode node,
+        TContext context)
+    {
+        NameNode name = RewriteNode(node.Name, context);
+        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+
+        if (!ReferenceEquals(name, node.Name) ||
+            !ReferenceEquals(directives, node.Directives))
+        {
+            return new FragmentSpreadNode(
+                node.Location,
+                name,
+                directives);
+        }
+
+        return node;
+    }
+
+    protected virtual InlineFragmentNode RewriteInlineFragment(
+        InlineFragmentNode node,
+        TContext context)
+    {
+        NamedTypeNode? typeCondition = RewriteNode(node.TypeCondition, context);
+        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        SelectionSetNode? selectionSet = RewriteNode(node.SelectionSet, context);
+
+        if (!ReferenceEquals(typeCondition, node.TypeCondition) ||
+            !ReferenceEquals(directives, node.Directives) ||
+            !ReferenceEquals(selectionSet, node.SelectionSet))
+        {
+            return new InlineFragmentNode(
+                node.Location,
+                typeCondition,
+                directives,
+                selectionSet);
+        }
+
+        return node;
+    }
+
+    protected virtual InputObjectTypeDefinitionNode RewriteInputObjectTypeDefinition(
+        InputObjectTypeDefinitionNode node,
+        TContext context)
+    {
+        NameNode name = RewriteNode(node.Name, context);
+        StringValueNode? description = RewriteNode(node.Description, context);
+        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        IReadOnlyList<InputValueDefinitionNode> fields = RewriteList(node.Fields, context);
+
+        if (!ReferenceEquals(name, node.Name) ||
+            !ReferenceEquals(description, node.Description) ||
+            !ReferenceEquals(directives, node.Directives) ||
+            !ReferenceEquals(fields, node.Fields))
+        {
+            return new InputObjectTypeDefinitionNode(
+                node.Location,
+                name,
+                description,
+                directives,
+                fields);
+        }
+
+        return node;
+    }
+
+    protected virtual InputObjectTypeExtensionNode RewriteInputObjectTypeExtension(
+        InputObjectTypeExtensionNode node,
+        TContext context)
+    {
+        NameNode name = RewriteNode(node.Name, context);
+        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        IReadOnlyList<InputValueDefinitionNode> fields = RewriteList(node.Fields, context);
+
+        if (!ReferenceEquals(name, node.Name) ||
+            !ReferenceEquals(directives, node.Directives) ||
+            !ReferenceEquals(fields, node.Fields))
+        {
+            return new InputObjectTypeExtensionNode(
+                node.Location,
+                name,
+                directives,
+                fields);
+        }
+
+        return node;
+    }
+
     protected virtual NameNode RewriteName(
         NameNode node,
         TContext context)
@@ -398,13 +520,6 @@ public class SyntaxRewriter<TContext>
 
     protected virtual IntValueNode RewriteIntValue(
         IntValueNode node,
-        TContext context)
-    {
-        return node;
-    }
-
-    protected virtual FloatValueNode RewriteFloatValue(
-        FloatValueNode node,
         TContext context)
     {
         return node;
