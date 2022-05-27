@@ -12,7 +12,7 @@ public class SyntaxRewriterTests
     public void Rename_Field()
     {
         // arrange
-        DocumentNode schema = Parse(FileResource.Open("onegraph.graphql"));
+        DocumentNode schema = Parse(FileResource.Open("schema-kitchen-sink.graphql"));
 
         // act
         ISyntaxRewriter<NavigatorContext> rewriter =
@@ -20,7 +20,7 @@ public class SyntaxRewriterTests
                 (node, context) =>
                 {
                     if (node.Kind is SyntaxKind.FieldDefinition &&
-                        "GitHubIssuesEventSubscriptionDeletedIssue".Equals(
+                        "Foo".Equals(
                             context.Navigator.GetAncestor<ObjectTypeDefinitionNode>()?.Name.Value))
                     {
                         var field = (FieldDefinitionNode)node;
