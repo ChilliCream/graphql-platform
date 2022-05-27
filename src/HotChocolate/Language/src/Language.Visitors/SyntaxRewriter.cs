@@ -66,7 +66,7 @@ public class SyntaxRewriter<TContext>
                 return RewriteInputObjectTypeExtension(casted, context);
 
             case InputValueDefinitionNode casted:
-                break;
+                return RewriteInputValueDefinition(casted, context);
 
             case InterfaceTypeDefinitionNode casted:
                 return RewriteInterfaceTypeDefinition(casted, context);
@@ -74,31 +74,31 @@ public class SyntaxRewriter<TContext>
             case InterfaceTypeExtensionNode casted:
                 return RewriteInterfaceTypeExtension(casted, context);
 
-            case IntValueNode intValueNode:
+            case IntValueNode casted:
+                return RewriteIntValue(casted, context);
+
+            case ListNullabilityNode casted:
+                return RewriteListNullability(casted, context);
+
+            case ListTypeNode casted:
+                return RewriteListType(casted, context);
+
+            case ListValueNode casted:
+                return RewriteListValue(casted, context);
+
+            case NamedTypeNode casted:
+                return RewriteNamedType(casted, context);
+
+            case NameNode casted:
+                return RewriteName(casted, context);
+
+            case NonNullTypeNode casted:
+                return RewriteNonNullType(casted, context);
+
+            case NullValueNode casted:
                 break;
 
-            case ListNullabilityNode listNullabilityNode:
-                break;
-
-            case ListTypeNode listTypeNode:
-                break;
-
-            case ListValueNode listValueNode:
-                break;
-
-            case NamedTypeNode namedTypeNode:
-                break;
-
-            case NameNode nameNode:
-                break;
-
-            case NonNullTypeNode nonNullTypeNode:
-                break;
-
-            case NullValueNode nullValueNode:
-                break;
-
-            case ObjectFieldNode objectFieldNode:
+            case ObjectFieldNode casted:
                 break;
 
             case ObjectTypeDefinitionNode casted:
@@ -499,136 +499,32 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual NameNode RewriteName(
-        NameNode node,
-        TContext context)
-        => node;
-
-    protected virtual VariableNode RewriteVariable(
-        VariableNode node,
+    protected virtual InputValueDefinitionNode RewriteInputValueDefinition(
+        InputValueDefinitionNode node,
         TContext context)
     {
-        VariableNode current = node;
+        NameNode name = RewriteNode(node.Name, context);
+        StringValueNode? description = RewriteNode(node.Description, context);
+        ITypeNode type = RewriteNode(node.Type, context);
+        IValueNode? defaultValue = RewriteNode(node.DefaultValue, context);
+        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
 
-        current = Rewrite(current, node.Name, context,
-            RewriteName, current.WithName);
+        if (!ReferenceEquals(name, node.Name) ||
+            !ReferenceEquals(description, node.Description) ||
+            !ReferenceEquals(type, node.Type) ||
+            !ReferenceEquals(defaultValue, node.DefaultValue) ||
+            !ReferenceEquals(directives, node.Directives))
+        {
+            return new InputValueDefinitionNode(
+                node.Location,
+                name,
+                description,
+                type,
+                defaultValue,
+                directives);
+        }
 
-        return current;
-    }
-
-
-
-    protected virtual IntValueNode RewriteIntValue(
-        IntValueNode node,
-        TContext context)
-    {
         return node;
-    }
-
-    protected virtual StringValueNode RewriteStringValue(
-        StringValueNode node,
-        TContext context)
-    {
-        return node;
-    }
-
-
-
-
-
-    protected virtual NullValueNode RewriteNullValue(
-        NullValueNode node,
-        TContext context)
-    {
-        return node;
-    }
-
-    protected virtual ListValueNode RewriteListValue(
-        ListValueNode node,
-        TContext context)
-    {
-        ListValueNode current = node;
-
-        current = RewriteMany(current, current.Items, context,
-            RewriteValue, current.WithItems);
-
-        return current;
-    }
-
-    protected virtual ObjectValueNode RewriteObjectValue(
-        ObjectValueNode node,
-        TContext context)
-    {
-        ObjectValueNode current = node;
-
-        current = RewriteMany(current, current.Fields, context,
-            RewriteObjectField, current.WithFields);
-
-        return current;
-    }
-
-    protected virtual ObjectFieldNode RewriteObjectField(
-        ObjectFieldNode node,
-        TContext context)
-    {
-        ObjectFieldNode current = node;
-
-        current = Rewrite(current, node.Name, context,
-            RewriteName, current.WithName);
-
-        current = Rewrite(current, node.Value, context,
-            RewriteValue, current.WithValue);
-
-        return current;
-    }
-
-
-
-    protected virtual TParent RewriteDirectives<TParent>(
-        TParent parent,
-        IReadOnlyList<DirectiveNode> directives,
-        TContext context,
-        Func<IReadOnlyList<DirectiveNode>, TParent> rewrite)
-    {
-        return RewriteMany(parent, directives, context,
-            RewriteDirective, rewrite);
-    }
-
-    protected virtual NamedTypeNode RewriteNamedType(
-        NamedTypeNode node,
-        TContext context)
-    {
-        NamedTypeNode current = node;
-
-        current = Rewrite(current, node.Name, context,
-            RewriteName, current.WithName);
-
-        return current;
-    }
-
-    protected virtual ListTypeNode RewriteListType(
-        ListTypeNode node,
-        TContext context)
-    {
-        ListTypeNode current = node;
-
-        current = Rewrite(current, current.Type, context,
-            RewriteType, current.WithType);
-
-        return current;
-    }
-
-    protected virtual NonNullTypeNode RewriteNonNullType(
-        NonNullTypeNode node,
-        TContext context)
-    {
-        NonNullTypeNode current = node;
-
-        current = Rewrite(current, current.Type, context,
-            (t, c) => (INullableTypeNode)RewriteType(t, c),
-            current.WithType);
-
-        return current;
     }
 
     protected virtual InterfaceTypeDefinitionNode RewriteInterfaceTypeDefinition(
@@ -683,6 +579,172 @@ public class SyntaxRewriter<TContext>
 
         return node;
     }
+
+    protected virtual IntValueNode RewriteIntValue(
+        IntValueNode node,
+        TContext context)
+        => node;
+
+    protected virtual ListNullabilityNode RewriteListNullability(
+        ListNullabilityNode node,
+        TContext context)
+    {
+        INullabilityNode? element = RewriteNode(node.Element, context);
+
+        if (!ReferenceEquals(element, node.Element))
+        {
+            return new ListNullabilityNode(
+                node.Location,
+                element);
+        }
+
+        return node;
+    }
+
+    protected virtual ListTypeNode RewriteListType(
+        ListTypeNode node,
+        TContext context)
+    {
+        ITypeNode type = RewriteNode(node.Type, context);
+
+        if (!ReferenceEquals(type, node.Type))
+        {
+            return new ListTypeNode(node.Location, type);
+        }
+
+        return node;
+    }
+
+    protected virtual ListValueNode RewriteListValue(
+        ListValueNode node,
+        TContext context)
+    {
+        IReadOnlyList<IValueNode> items = RewriteList(node.Items, context);
+
+        if (!ReferenceEquals(items, node.Items))
+        {
+            return new ListValueNode(node.Location, items);
+        }
+
+        return node;
+    }
+
+    protected virtual NamedTypeNode RewriteNamedType(
+        NamedTypeNode node,
+        TContext context)
+    {
+        NameNode name = RewriteName(node.Name, context);
+
+        if (!ReferenceEquals(name, node.Name))
+        {
+            return new NamedTypeNode(node.Location, name);
+        }
+
+        return node;
+    }
+
+    protected virtual NameNode RewriteName(
+        NameNode node,
+        TContext context)
+        => node;
+
+    protected virtual NonNullTypeNode RewriteNonNullType(
+        NonNullTypeNode node,
+        TContext context)
+    {
+        INullableTypeNode type = RewriteNode(node.Type, context);
+
+        if (!ReferenceEquals(type, node.Type))
+        {
+            return new NonNullTypeNode(node.Location, type);
+        }
+
+        return node;
+    }
+
+    protected virtual VariableNode RewriteVariable(
+        VariableNode node,
+        TContext context)
+    {
+        NameNode name = RewriteName(node.Name, context);
+
+        if (!ReferenceEquals(name, node.Name))
+        {
+            return new VariableNode(node.Location, name);
+        }
+
+        return node;
+    }
+
+
+
+
+
+    protected virtual StringValueNode RewriteStringValue(
+        StringValueNode node,
+        TContext context)
+    {
+        return node;
+    }
+
+
+
+
+
+    protected virtual NullValueNode RewriteNullValue(
+        NullValueNode node,
+        TContext context)
+    {
+        return node;
+    }
+
+
+    protected virtual ObjectValueNode RewriteObjectValue(
+        ObjectValueNode node,
+        TContext context)
+    {
+        ObjectValueNode current = node;
+
+        current = RewriteMany(current, current.Fields, context,
+            RewriteObjectField, current.WithFields);
+
+        return current;
+    }
+
+    protected virtual ObjectFieldNode RewriteObjectField(
+        ObjectFieldNode node,
+        TContext context)
+    {
+        ObjectFieldNode current = node;
+
+        current = Rewrite(current, node.Name, context,
+            RewriteName, current.WithName);
+
+        current = Rewrite(current, node.Value, context,
+            RewriteValue, current.WithValue);
+
+        return current;
+    }
+
+
+
+    protected virtual TParent RewriteDirectives<TParent>(
+        TParent parent,
+        IReadOnlyList<DirectiveNode> directives,
+        TContext context,
+        Func<IReadOnlyList<DirectiveNode>, TParent> rewrite)
+    {
+        return RewriteMany(parent, directives, context,
+            RewriteDirective, rewrite);
+    }
+
+
+
+
+
+
+
+
 
     protected virtual ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
         ObjectTypeDefinitionNode node,
