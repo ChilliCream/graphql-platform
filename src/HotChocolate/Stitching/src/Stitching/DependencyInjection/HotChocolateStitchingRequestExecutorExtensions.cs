@@ -253,8 +253,9 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
 
                 foreach (DocumentNode extensionDocument in schemaDefinition.ExtensionDocuments)
                 {
-                    var doc = (DocumentNode)extensionsRewriter
-                        .Rewrite(extensionDocument, schemaName.Value);
+                    var doc = (DocumentNode)extensionsRewriter.Rewrite(
+                        extensionDocument,
+                        new SchemaExtensionsRewriter.Context(schemaName.Value));
 
                     SchemaExtensionNode? schemaExtension =
                         doc.Definitions.OfType<SchemaExtensionNode>().FirstOrDefault();

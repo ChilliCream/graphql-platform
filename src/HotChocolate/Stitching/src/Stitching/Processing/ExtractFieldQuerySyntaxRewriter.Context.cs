@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Processing;
 
 internal sealed partial class ExtractFieldQuerySyntaxRewriter
 {
-    public class Context
+    public class Context : ISyntaxVisitorContext
     {
         public Context(
             NameString schema,
