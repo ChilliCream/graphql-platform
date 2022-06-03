@@ -170,4 +170,9 @@ public interface IResolverContext : IPureResolverContext
     /// Returns the query root instance.
     /// </returns>
     T GetQueryRoot<T>();
+
+     /// <summary>
+     /// Gets the current execution path.
+     /// </summary>
+     new Path Path { get; }
 }
