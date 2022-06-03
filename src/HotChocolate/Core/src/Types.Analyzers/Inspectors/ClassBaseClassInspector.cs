@@ -11,7 +11,11 @@ public class ClassBaseClassInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
     {
-        if (context.Node is ClassDeclarationSyntax { BaseList.Types.Count: > 0 } possibleType)
+        if (context.Node is ClassDeclarationSyntax
+            {
+                BaseList.Types.Count: > 0,
+                TypeParameterList: null
+            } possibleType)
         {
             var model = context.SemanticModel.GetDeclaredSymbol(possibleType);
             if (model is { IsAbstract: false } type)
