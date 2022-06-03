@@ -155,6 +155,33 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Complexity_Exceeded()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer(
+            configureServices: c => c.AddGraphQLServer().ModifyRequestOptions(o=>
+            {
+                o.Complexity.Enable = true;
+                o.Complexity.MaximumAllowed = 1;
+            }));
+
+        // act
+        ClientQueryResult result =
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                    {
+                        HERO: hero {
+                            name
+                        }
+                    }"
+            });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task SingleRequest_GetHeroName_With_EnumVariable()
     {
         // arrange
