@@ -8,7 +8,7 @@ public class QueryType : ObjectType
     {
         descriptor
             .Name("Query");
-            
+
         descriptor
             .Field("person")
             .Type("Entity")

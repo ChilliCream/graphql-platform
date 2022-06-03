@@ -274,7 +274,7 @@ public static class TestServerExtensions
     public static Task<HttpResponseMessage> SendPostRequestAsync(
         this TestServer testServer,
         string requestBody,
-        string path = null,
+        string? path = null,
         bool enableApolloTracing = false,
         bool includeQueryPlan = false) =>
         SendPostRequestAsync(
@@ -289,7 +289,7 @@ public static class TestServerExtensions
         this TestServer testServer,
         string requestBody,
         string contentType,
-        string path,
+        string? path,
         bool enableApolloTracing = false,
         bool includeQueryPlan = false)
     {
@@ -314,11 +314,11 @@ public static class TestServerExtensions
         string path = null) =>
         testServer.CreateClient().GetAsync($"{CreateUrl(path)}/?{query}");
 
-    public static string CreateUrl(string path)
+    public static string CreateUrl(string? path)
     {
         var url = "http://localhost:5000";
 
-        if (path != null)
+        if (path is not null)
         {
             url += "/" + path.TrimStart('/');
         }
