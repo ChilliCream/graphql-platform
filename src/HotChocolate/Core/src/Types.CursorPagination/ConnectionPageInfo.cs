@@ -33,12 +33,8 @@ public class ConnectionPageInfo : IPageInfo
         bool hasPreviousPage,
         string? startCursor,
         string? endCursor,
-        int? totalCount = null)
+        int? totalCount = null) : this(hasNextPage, hasPreviousPage, startCursor, endCursor)
     {
-        HasNextPage = hasNextPage;
-        HasPreviousPage = hasPreviousPage;
-        StartCursor = startCursor;
-        EndCursor = endCursor;
         TotalCount = totalCount;
     }
 
