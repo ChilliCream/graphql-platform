@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
@@ -25,6 +27,21 @@ public class ConnectionPageInfo : IPageInfo
         EndCursor = endCursor;
     }
 
+    [Obsolete("use the constructor without the total count")]
+    public ConnectionPageInfo(
+        bool hasNextPage,
+        bool hasPreviousPage,
+        string? startCursor,
+        string? endCursor,
+        int? totalCount = null)
+    {
+        HasNextPage = hasNextPage;
+        HasPreviousPage = hasPreviousPage;
+        StartCursor = startCursor;
+        EndCursor = endCursor;
+        TotalCount = totalCount;
+    }
+
     /// <summary>
     /// <c>true</c> if there is another page after the current one.
     /// <c>false</c> if this page is the last page of the current data set / collection.
@@ -46,4 +63,7 @@ public class ConnectionPageInfo : IPageInfo
     /// When paginating forwards, the cursor to continue.
     /// </summary>
     public string? EndCursor { get; }
+
+    [Obsolete("The total count is on the connection")]
+    public int? TotalCount { get; }
 }
