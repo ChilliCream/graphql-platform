@@ -54,7 +54,7 @@ public class Connection : IPage
         ConnectionPageInfo info,
         int totalCount = 0)
     {
-        _getTotalCount = _ => new(totalCount);
+        _getTotalCount = _ => new(info.TotalCount ?? totalCount);
         Edges = edges ??
             throw new ArgumentNullException(nameof(edges));
         Info = info ??
