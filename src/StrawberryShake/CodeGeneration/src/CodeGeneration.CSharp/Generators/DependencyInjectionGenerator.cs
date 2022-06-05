@@ -261,9 +261,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                                     .Inline()
                                     .SetMethodName(GetRequiredService)
                                     .SetWrapArguments()
-                                    .AddGeneric(
-                                        IEnumerable.WithGeneric(
-                                            ISerializer))
+                                    .AddGeneric(IEnumerable.WithGeneric(ISerializer))
                                     .AddArgument(_parentServices))
                             .AddArgument(MethodCallBuilder
                                 .Inline()
@@ -475,7 +473,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
         var stringTypeInfo = new RuntimeTypeInfo(String);
         foreach (ScalarTypeDescriptor scalar in
-                 descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+            descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
             if (scalar.RuntimeType.Equals(stringTypeInfo) &&
                 scalar.SerializationType.Equals(stringTypeInfo) &&
@@ -494,7 +492,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         }
 
         foreach (ITypeDescriptor inputTypeDescriptor in
-                 descriptor.TypeDescriptors.Where(x => x.Kind is TypeKind.Input))
+            descriptor.TypeDescriptors.Where(x => x.Kind is TypeKind.Input))
         {
             var formatter =
                 CreateInputValueFormatter(
