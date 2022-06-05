@@ -338,6 +338,154 @@ namespace Foo.Bar
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnBarResult : global::System.IEquatable<OnBarResult>, IOnBarResult
+    {
+        public OnBarResult(global::Foo.Bar.IOnBar_OnBar? onBar)
+        {
+            OnBar = onBar;
+        }
+
+        public global::Foo.Bar.IOnBar_OnBar? OnBar { get; }
+
+        public virtual global::System.Boolean Equals(OnBarResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((OnBar is null && other.OnBar is null) || OnBar != null && OnBar.Equals(other.OnBar)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnBarResult)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (OnBar != null)
+                {
+                    hash ^= 397 * OnBar.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnBar_OnBar_Bar : global::System.IEquatable<OnBar_OnBar_Bar>, IOnBar_OnBar_Bar
+    {
+        public OnBar_OnBar_Bar(global::System.String id)
+        {
+            Id = id;
+        }
+
+        public global::System.String Id { get; }
+
+        public virtual global::System.Boolean Equals(OnBar_OnBar_Bar? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnBar_OnBar_Bar)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * Id.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnBarResult
+    {
+        public global::Foo.Bar.IOnBar_OnBar? OnBar { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnBar_OnBar
+    {
+        public global::System.String Id { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnBar_OnBar_Bar : IOnBar_OnBar
+    {
+    }
+
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the GetBars GraphQL operation
@@ -620,6 +768,110 @@ namespace Foo.Bar
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISaveBarsResult>> Watch(global::System.String a, global::System.String? b, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+    /// Represents the operation service of the OnBar GraphQL operation
+    /// <code>
+    /// subscription OnBar {
+    ///   onBar {
+    ///     __typename
+    ///     id
+    ///     ... on Bar {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnBarSubscriptionDocument : global::StrawberryShake.IDocument
+    {
+        private OnBarSubscriptionDocument()
+        {
+        }
+
+        public static OnBarSubscriptionDocument Instance { get; } = new OnBarSubscriptionDocument();
+        public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x4f, 0x6e, 0x42, 0x61, 0x72, 0x20, 0x7b, 0x20, 0x6f, 0x6e, 0x42, 0x61, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x42, 0x61, 0x72, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "35e402ceb27b9d621c9a83923b3c58eea1d7e260");
+        public override global::System.String ToString()
+        {
+#if NETCOREAPP3_1_OR_GREATER
+        return global::System.Text.Encoding.UTF8.GetString(Body);
+#else
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#endif
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+    /// Represents the operation service of the OnBar GraphQL operation
+    /// <code>
+    /// subscription OnBar {
+    ///   onBar {
+    ///     __typename
+    ///     id
+    ///     ... on Bar {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnBarSubscription : global::Foo.Bar.IOnBarSubscription
+    {
+        private readonly global::StrawberryShake.IOperationExecutor<IOnBarResult> _operationExecutor;
+        public OnBarSubscription(global::StrawberryShake.IOperationExecutor<IOnBarResult> operationExecutor)
+        {
+            _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+        }
+
+        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IOnBarResult);
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IOnBarResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
+        {
+            var request = CreateRequest();
+            return _operationExecutor.Watch(request, strategy);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest()
+        {
+            return CreateRequest(null);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return new global::StrawberryShake.OperationRequest(id: OnBarSubscriptionDocument.Instance.Hash.Value, name: "OnBar", document: OnBarSubscriptionDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default);
+        }
+
+        global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return CreateRequest();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+    /// Represents the operation service of the OnBar GraphQL operation
+    /// <code>
+    /// subscription OnBar {
+    ///   onBar {
+    ///     __typename
+    ///     id
+    ///     ... on Bar {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnBarSubscription : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IOnBarResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
+    }
+
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
@@ -629,15 +881,18 @@ namespace Foo.Bar
     {
         private readonly global::Foo.Bar.IGetBarsQuery _getBars;
         private readonly global::Foo.Bar.ISaveBarsMutation _saveBars;
-        public FooClient(global::Foo.Bar.IGetBarsQuery getBars, global::Foo.Bar.ISaveBarsMutation saveBars)
+        private readonly global::Foo.Bar.IOnBarSubscription _onBar;
+        public FooClient(global::Foo.Bar.IGetBarsQuery getBars, global::Foo.Bar.ISaveBarsMutation saveBars, global::Foo.Bar.IOnBarSubscription onBar)
         {
             _getBars = getBars ?? throw new global::System.ArgumentNullException(nameof(getBars));
             _saveBars = saveBars ?? throw new global::System.ArgumentNullException(nameof(saveBars));
+            _onBar = onBar ?? throw new global::System.ArgumentNullException(nameof(onBar));
         }
 
         public static global::System.String ClientName => "FooClient";
         public global::Foo.Bar.IGetBarsQuery GetBars => _getBars;
         public global::Foo.Bar.ISaveBarsMutation SaveBars => _saveBars;
+        public global::Foo.Bar.IOnBarSubscription OnBar => _onBar;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
@@ -650,6 +905,8 @@ namespace Foo.Bar
         global::Foo.Bar.IGetBarsQuery GetBars { get; }
 
         global::Foo.Bar.ISaveBarsMutation SaveBars { get; }
+
+        global::Foo.Bar.IOnBarSubscription OnBar { get; }
     }
 }
 
@@ -830,6 +1087,78 @@ namespace Foo.Bar.State
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnBarResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.OnBarResult>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, OnBar_OnBar_Bar> _onBar_OnBar_BarFromBarEntityMapper;
+        public OnBarResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, OnBar_OnBar_Bar> onBar_OnBar_BarFromBarEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _onBar_OnBar_BarFromBarEntityMapper = onBar_OnBar_BarFromBarEntityMapper ?? throw new global::System.ArgumentNullException(nameof(onBar_OnBar_BarFromBarEntityMapper));
+        }
+
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IOnBarResult);
+        public OnBarResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            if (dataInfo is OnBarResultInfo info)
+            {
+                return new OnBarResult(MapIOnBar_OnBar(info.OnBar, snapshot));
+            }
+
+            throw new global::System.ArgumentException("OnBarResultInfo expected.");
+        }
+
+        private global::Foo.Bar.IOnBar_OnBar? MapIOnBar_OnBar(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("Bar", global::System.StringComparison.Ordinal))
+            {
+                return _onBar_OnBar_BarFromBarEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.BarEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot)
+        {
+            return Create(dataInfo, snapshot);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnBarResultInfo : global::StrawberryShake.IOperationResultDataInfo
+    {
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
+        private readonly global::System.UInt64 _version;
+        public OnBarResultInfo(global::StrawberryShake.EntityId? onBar, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
+        {
+            OnBar = onBar;
+            _entityIds = entityIds ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
+        }
+
+        public global::StrawberryShake.EntityId? OnBar { get; }
+
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
+        public global::System.UInt64 Version => _version;
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
+        {
+            return new OnBarResultInfo(OnBar, _entityIds, version);
+        }
+    }
+
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetBarsBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IGetBarsResult>
@@ -1000,6 +1329,73 @@ namespace Foo.Bar.State
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnBarBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IOnBarResult>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        public OnBarBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IOnBarResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _idSerializer = idSerializer ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
+            ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+        }
+
+        protected override global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IOnBarResult> ResultDataFactory { get; }
+
+        protected override global::StrawberryShake.IOperationResultDataInfo BuildData(global::System.Text.Json.JsonElement obj)
+        {
+            var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::StrawberryShake.EntityId? onBarId = default !;
+            _entityStore.Update(session =>
+            {
+                onBarId = Update_IOnBar_OnBarEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "onBar"), entityIds);
+                snapshot = session.CurrentSnapshot;
+            });
+            return new OnBarResultInfo(onBarId, entityIds, snapshot.Version);
+        }
+
+        private global::StrawberryShake.EntityId? Update_IOnBar_OnBarEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            entityIds.Add(entityId);
+            if (entityId.Name.Equals("Bar", global::System.StringComparison.Ordinal))
+            {
+                if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.BarEntity? entity))
+                {
+                    session.SetEntity(entityId, new global::Foo.Bar.State.BarEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), entity.Name));
+                }
+                else
+                {
+                    session.SetEntity(entityId, new global::Foo.Bar.State.BarEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), default !));
+                }
+
+                return entityId;
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.String Deserialize_NonNullableString(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            return _stringParser.Parse(obj.Value.GetString()!);
+        }
+    }
+
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetBars_Bars_BarFromBarEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, GetBars_Bars_Bar>
@@ -1039,6 +1435,27 @@ namespace Foo.Bar.State
             }
 
             return new SaveBars_SaveBar_Bar(entity.Id, entity.Name);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class OnBar_OnBar_BarFromBarEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, OnBar_OnBar_Bar>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public OnBar_OnBar_BarFromBarEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public OnBar_OnBar_Bar Map(global::Foo.Bar.State.BarEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new OnBar_OnBar_Bar(entity.Id);
         }
     }
 
@@ -1110,6 +1527,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::Foo.Bar.State.FooClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetBarsQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.SaveBarsMutation>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.OnBarSubscription>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services, serviceCollection);
@@ -1119,6 +1537,11 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.WebSockets.IWebSocketConnection>(services, sp =>
+            {
+                var sessionPool = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.ISessionPool>(parentServices);
+                return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(async ct => await sessionPool.CreateAsync("FooClient", ct));
+            });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
             {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
@@ -1126,6 +1549,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, global::Foo.Bar.GetBars_Bars_Bar>, global::Foo.Bar.State.GetBars_Bars_BarFromBarEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, global::Foo.Bar.SaveBars_SaveBar_Bar>, global::Foo.Bar.State.SaveBars_SaveBar_BarFromBarEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, global::Foo.Bar.OnBar_OnBar_Bar>, global::Foo.Bar.State.OnBar_OnBar_BarFromBarEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
@@ -1159,6 +1583,14 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.SaveBarsMutation>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.ISaveBarsMutation>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.SaveBarsMutation>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IOnBarResult>, global::Foo.Bar.State.OnBarResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IOnBarResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IOnBarSubscription>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IOnBarResult>, global::Foo.Bar.State.OnBarBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IOnBarResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IOnBarResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.IWebSocketConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IOnBarResult>>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IResultPatcher<global::System.Text.Json.JsonDocument>, global::StrawberryShake.Json.JsonResultPatcher>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.OnBarSubscription>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IOnBarSubscription>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.OnBarSubscription>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IFooClient>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(sp));
@@ -1216,6 +1648,23 @@ namespace Foo.Bar.Components
         protected override void OnParametersSet()
         {
             Subscribe(Operation.Watch(A, B, strategy: Strategy));
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.RazorSubscriptionGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial class UseOnBar : global::StrawberryShake.Razor.UseSubscription<global::Foo.Bar.IOnBarResult>
+    {
+        [global::Microsoft.AspNetCore.Components.InjectAttribute]
+        internal global::Foo.Bar.OnBarSubscription Operation { get; set; } = default !;
+        protected override void OnInitialized()
+        {
+            Subscribe(Operation.Watch(strategy: Strategy));
+        }
+
+        protected override void OnParametersSet()
+        {
+            Subscribe(Operation.Watch(strategy: Strategy));
         }
     }
 }

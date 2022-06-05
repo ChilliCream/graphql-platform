@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace StrawberryShake.Razor;
 
-public abstract class UseQuery<TResult> : ComponentBase, IDisposable where TResult : class
+public abstract class UseSubscription<TResult> : ComponentBase, IDisposable where TResult : class
 {
     private IDisposable? _subscription;
     private bool _isInitializing = true;
@@ -14,8 +14,6 @@ public abstract class UseQuery<TResult> : ComponentBase, IDisposable where TResu
     private TResult? _result;
     private IReadOnlyList<IClientError>? _errors;
     private bool _disposed;
-
-    [Parameter] public ExecutionStrategy? Strategy { get; set; }
 
     [Parameter] public RenderFragment<TResult>? ChildContent { get; set; }
 

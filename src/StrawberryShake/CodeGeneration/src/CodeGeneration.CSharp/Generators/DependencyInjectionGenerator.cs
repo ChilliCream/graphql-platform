@@ -89,7 +89,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .AddParameter(_profile)
                 .SetType(CreateProfileEnumReference(descriptor))
                 .SetDefault(CreateProfileEnumReference(descriptor) + "." +
-                            descriptor.TransportProfiles[0].Name);
+                    descriptor.TransportProfiles[0].Name);
         }
 
         foreach (TransportProfile profile in descriptor.TransportProfiles)

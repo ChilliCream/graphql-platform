@@ -26,13 +26,23 @@ public class RazorGeneratorTests
                     id
                     name
                 }
-                }",
+            }
+
+            subscription OnBar {
+                onBar {
+                    id
+                }
+            }",
             @"type Query {
                 bars(a: String!, b: String): [Bar]
             }
 
             type Mutation {
                 saveBar(a: String!, b: String): Bar
+            }
+
+            type Subscription {
+                onBar: Bar
             }
 
             type Bar {
