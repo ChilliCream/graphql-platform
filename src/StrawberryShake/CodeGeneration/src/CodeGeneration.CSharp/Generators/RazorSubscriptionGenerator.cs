@@ -97,9 +97,16 @@ public class RazorSubscriptionGenerator : CSharpSyntaxGenerator<OperationDescrip
             argumentList.Add(Argument(IdentifierName(GetPropertyName(argument.Name))));
         }
 
-        argumentList.Add(
-            Argument(IdentifierName("Strategy"))
-                .WithNameColon(NameColon(IdentifierName("strategy"))));
+        var invocation = InvocationExpression(
+            MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                IdentifierName("Operation"),
+                IdentifierName("Watch")));
+
+        if (argumentList.Count > 0)
+        {
+            invocation = invocation.WithArgumentList(ArgumentList(SeparatedList(argumentList)));
+        }
 
         SyntaxList<StatementSyntax> bodyStatements =
             SingletonList<StatementSyntax>(
@@ -109,15 +116,7 @@ public class RazorSubscriptionGenerator : CSharpSyntaxGenerator<OperationDescrip
                         .WithArgumentList(
                             ArgumentList(
                                 SingletonSeparatedList(
-                                    Argument(
-                                        InvocationExpression(
-                                                MemberAccessExpression(
-                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                    IdentifierName("Operation"),
-                                                    IdentifierName("Watch")))
-                                            .WithArgumentList(
-                                                ArgumentList(
-                                                    SeparatedList(argumentList)))))))));
+                                    Argument(invocation))))));
 
         return MethodDeclaration(
                 PredefinedType(Token(SyntaxKind.VoidKeyword)),

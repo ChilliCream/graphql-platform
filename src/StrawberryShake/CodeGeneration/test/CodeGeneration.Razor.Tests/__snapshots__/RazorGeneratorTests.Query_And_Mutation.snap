@@ -1659,12 +1659,12 @@ namespace Foo.Bar.Components
         internal global::Foo.Bar.OnBarSubscription Operation { get; set; } = default !;
         protected override void OnInitialized()
         {
-            Subscribe(Operation.Watch(strategy: Strategy));
+            Subscribe(Operation.Watch());
         }
 
         protected override void OnParametersSet()
         {
-            Subscribe(Operation.Watch(strategy: Strategy));
+            Subscribe(Operation.Watch());
         }
     }
 }
