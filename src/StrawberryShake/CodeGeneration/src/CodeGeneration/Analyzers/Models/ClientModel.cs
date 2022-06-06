@@ -38,11 +38,11 @@ public class ClientModel
         IReadOnlyList<InputObjectTypeModel> inputObjectTypes)
     {
         Operations = operations ??
-                     throw new ArgumentNullException(nameof(operations));
+            throw new ArgumentNullException(nameof(operations));
         LeafTypes = leafTypes ??
-                    throw new ArgumentNullException(nameof(leafTypes));
-        InputObjectTypes = inputObjectTypes ??
-                           throw new ArgumentNullException(nameof(inputObjectTypes));
+            throw new ArgumentNullException(nameof(leafTypes));
+        InputObjectTypes = inputObjectTypes ?? 
+            throw new ArgumentNullException(nameof(inputObjectTypes));
 
         Schema = schema;
 

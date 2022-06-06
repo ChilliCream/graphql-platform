@@ -15,7 +15,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
     private readonly HashSet<NameString> _takenNames = new();
     private readonly Dictionary<ISyntaxNode, HashSet<NameString>> _syntaxNodeNames = new();
     private readonly Dictionary<NameString, ITypeModel> _typeModels = new();
-    private readonly Dictionary<SelectionSetInfo, SelectionSetNode> _selectionSets = new();
+    private readonly Dictionary<SelectionSetKey, SelectionSetNode> _selectionSets = new();
     private readonly FieldCollector _fieldCollector;
 
     public DocumentAnalyzerContext(
@@ -48,7 +48,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 
     public IReadOnlyCollection<ITypeModel> TypeModels => _typeModels.Values;
 
-    public IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> SelectionSets =>
+    public IReadOnlyDictionary<SelectionSetKey, SelectionSetNode> SelectionSets =>
         _selectionSets;
 
     public SelectionSetVariants CollectFields() =>
@@ -119,10 +119,10 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         SelectionSetNode from,
         SelectionSetNode to)
     {
-        var key = new SelectionSetInfo(namedType, from);
+        var key = new SelectionSetKey(namedType, from);
 
-        if (_selectionSets.TryGetValue(key, out var selectionSet) && !
-                ReferenceEquals(selectionSet, to))
+        if (_selectionSets.TryGetValue(key, out var selectionSet) &&
+            !ReferenceEquals(selectionSet, to))
         {
             throw new GraphQLException("A selection-set lookup must be unique.");
         }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -16,17 +15,39 @@ public partial class DocumentAnalyzer
     {
         CollectEnumTypes(context);
         CollectInputObjectTypes(context);
+        var resultType = GetResultType(context);
+        var arguments = CreateOperationArguments(context);
+
+        var leafTypes = new List<LeafTypeModel>();
+        var inputTypes = new List<InputObjectTypeModel>();
+        var outputTypes = new List<OutputTypeModel>();
+
+        foreach (ITypeModel typeModel in context.TypeModels)
+        {
+            switch (typeModel)
+            {
+                case LeafTypeModel m:
+                    leafTypes.Add(m);
+                    break;
+                case InputObjectTypeModel m:
+                    inputTypes.Add(m);
+                    break;
+                case OutputTypeModel m:
+                    outputTypes.Add(m);
+                    break;
+            }
+        }
 
         return new(
             context.OperationName,
             context.OperationType,
             QueryDocumentRewriter.Rewrite(context.Document, context.Schema),
             context.OperationDefinition.Operation,
-            CreateOperationArguments(context),
-            GetResultType(context),
-            context.TypeModels.OfType<LeafTypeModel>().ToList(),
-            context.TypeModels.OfType<InputObjectTypeModel>().ToList(),
-            context.TypeModels.OfType<OutputTypeModel>().ToList(),
+            arguments,
+            resultType,
+            leafTypes,
+            inputTypes,
+            outputTypes,
             context.SelectionSets);
     }
 
@@ -36,7 +57,7 @@ public partial class DocumentAnalyzer
         Queue<FieldSelection> backlog = new();
         OutputTypeModel root = VisitOperationSelectionSet(context, backlog);
 
-        while (backlog.Any())
+        while (backlog.Count > 0)
         {
             FieldSelection current = backlog.Dequeue();
             INamedType namedType = current.Field.Type.NamedType();
@@ -66,7 +87,7 @@ public partial class DocumentAnalyzer
 
         EnqueueFields(selectionSetVariants, backlog);
 
-        return _selectionAnalyzer.AnalyzeOperation(
+        return InterfaceTypeSelectionSetAnalyzer.AnalyzeOperation(
             context,
             selectionSetVariants);
     }
@@ -86,19 +107,9 @@ public partial class DocumentAnalyzer
 
         EnqueueFields(selectionSetVariants, backlog);
 
-        if (namedType is UnionType or InterfaceType)
+        if (namedType.IsCompositeType())
         {
-            _selectionAnalyzer.Analyze(
-                context,
-                fieldSelection,
-                selectionSetVariants);
-        }
-        else if (namedType is ObjectType)
-        {
-            _selectionAnalyzer.Analyze(
-                context,
-                fieldSelection,
-                selectionSetVariants);
+            _selectionAnalyzer.Analyze(context, fieldSelection, selectionSetVariants);
         }
     }
 
@@ -108,7 +119,7 @@ public partial class DocumentAnalyzer
         var arguments = new List<ArgumentModel>();
 
         foreach (VariableDefinitionNode variableDefinition in
-                 context.OperationDefinition.VariableDefinitions)
+            context.OperationDefinition.VariableDefinitions)
         {
             INamedInputType namedInputType = context.Schema.GetType<INamedInputType>(
                 variableDefinition.Type.NamedType().Name.Value);

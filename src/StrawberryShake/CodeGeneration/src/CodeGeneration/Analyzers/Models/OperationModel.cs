@@ -10,7 +10,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
 public class OperationModel
 {
-    private readonly IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> _selectionSets;
+    private readonly IReadOnlyDictionary<SelectionSetKey, SelectionSetNode> _selectionSets;
 
     public OperationModel(
         NameString name,
@@ -22,26 +22,19 @@ public class OperationModel
         IReadOnlyList<LeafTypeModel> leafTypes,
         IReadOnlyList<InputObjectTypeModel> inputObjectTypes,
         IReadOnlyList<OutputTypeModel> outputTypeModels,
-        IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> selectionSets)
+        IReadOnlyDictionary<SelectionSetKey, SelectionSetNode> selectionSets)
     {
         Name = name.EnsureNotEmpty(nameof(name));
-        Type = type ??
-               throw new ArgumentNullException(nameof(type));
-        Document = document ??
-                   throw new ArgumentNullException(nameof(document));
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+        Document = document ?? throw new ArgumentNullException(nameof(document));
         OperationType = operationType;
-        Arguments = arguments ??
-                    throw new ArgumentNullException(nameof(arguments));
-        ResultType = resultType ??
-                     throw new ArgumentNullException(nameof(resultType));
-        LeafTypes = leafTypes ??
-                    throw new ArgumentNullException(nameof(leafTypes));
+        Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
+        ResultType = resultType ?? throw new ArgumentNullException(nameof(resultType));
+        LeafTypes = leafTypes ?? throw new ArgumentNullException(nameof(leafTypes));
         InputObjectTypes = inputObjectTypes ??
-                           throw new ArgumentNullException(nameof(inputObjectTypes));
-        OutputTypes = outputTypeModels ??
-                      throw new ArgumentNullException(nameof(outputTypeModels));
-        _selectionSets = selectionSets ??
-                         throw new ArgumentNullException(nameof(selectionSets));
+            throw new ArgumentNullException(nameof(inputObjectTypes));
+        OutputTypes = outputTypeModels ?? throw new ArgumentNullException(nameof(outputTypeModels));
+        _selectionSets = selectionSets ?? throw new ArgumentNullException(nameof(selectionSets));
     }
 
     public string Name { get; }
@@ -99,16 +92,24 @@ public class OperationModel
             throw new ArgumentNullException(nameof(fieldSyntax));
         }
 
-        if(!_selectionSets.TryGetValue(
-               new SelectionSetInfo(fieldNamedType, fieldSyntax.SelectionSet!),
-               out SelectionSetNode? selectionSetNode))
+        if (!_selectionSets.TryGetValue(
+            new SelectionSetKey(fieldNamedType, fieldSyntax.SelectionSet!),
+            out SelectionSetNode? selectionSet))
         {
-            selectionSetNode = fieldSyntax.SelectionSet;
+            selectionSet = fieldSyntax.SelectionSet;
         }
 
-        fieldType = OutputTypes.FirstOrDefault(
-            t => t.IsInterface && t.SelectionSet == selectionSetNode);
+        for (var i = 0; i < OutputTypes.Count; i++)
+        {
+            var type = OutputTypes[i];
+            if (type.IsInterface && ReferenceEquals(type.SelectionSet, selectionSet))
+            {
+                fieldType = type;
+                return true;
+            }
+        }
 
-        return fieldType is not null;
+        fieldType = null;
+        return false;
     }
 }

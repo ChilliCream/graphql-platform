@@ -467,10 +467,7 @@ public static partial class TypeDescriptorMapper
     {
         foreach (OperationModel operation in model.Operations)
         {
-            if (operation.TryGetFieldResultType(
-                    fieldSyntax,
-                    fieldNamedType,
-                    out OutputTypeModel? fieldType))
+            if (operation.TryGetFieldResultType(fieldSyntax, fieldNamedType, out var fieldType))
             {
                 return typeDescriptors.Values
                     .First(t => t.Model == fieldType)

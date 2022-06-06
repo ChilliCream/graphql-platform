@@ -27,7 +27,7 @@ public interface IDocumentAnalyzerContext
 
     IReadOnlyCollection<ITypeModel> TypeModels { get; }
 
-    IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> SelectionSets { get; }
+    IReadOnlyDictionary<SelectionSetKey, SelectionSetNode> SelectionSets { get; }
 
     NameString ResolveTypeName(
         NameString proposedName);
@@ -52,8 +52,8 @@ public interface IDocumentAnalyzerContext
     void RegisterType(INamedType type);
 
     void RegisterSelectionSet(
-        INamedType namedType, 
-        SelectionSetNode from, 
+        INamedType namedType,
+        SelectionSetNode from,
         SelectionSetNode to);
 
     IEnumerable<OutputTypeModel> GetImplementations(

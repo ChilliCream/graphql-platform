@@ -12,22 +12,19 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
     {
         var returnTypeFragmentName = FragmentHelper.GetReturnTypeName(fieldSelection);
 
-        if (returnTypeFragmentName is null)
-        {
-            return AnalyzeWithDefaults(
+        return returnTypeFragmentName is null
+            ? AnalyzeWithDefaults(
                 context,
                 fieldSelection,
-                selectionVariants);
-        }
-
-        return AnalyzeWithHoistedFragment(
-            context,
-            fieldSelection,
-            selectionVariants,
-            returnTypeFragmentName);
+                selectionVariants)
+            : AnalyzeWithHoistedFragment(
+                context,
+                fieldSelection,
+                selectionVariants,
+                returnTypeFragmentName);
     }
 
-    public OutputTypeModel AnalyzeOperation(
+    public static OutputTypeModel AnalyzeOperation(
         IDocumentAnalyzerContext context,
         SelectionSetVariants selectionSetVariants)
     {
@@ -56,7 +53,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
         return returnType;
     }
 
-    private OutputTypeModel AnalyzeWithDefaults(
+    private static OutputTypeModel AnalyzeWithDefaults(
         IDocumentAnalyzerContext context,
         FieldSelection fieldSelection,
         SelectionSetVariants selectionVariants)
@@ -109,7 +106,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
         return returnType;
     }
 
-    private OutputTypeModel AnalyzeWithHoistedFragment(
+    private static OutputTypeModel AnalyzeWithHoistedFragment(
         IDocumentAnalyzerContext context,
         FieldSelection fieldSelection,
         SelectionSetVariants selectionVariants,

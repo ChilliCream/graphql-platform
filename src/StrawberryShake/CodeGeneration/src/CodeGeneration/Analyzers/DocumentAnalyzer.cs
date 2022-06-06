@@ -46,7 +46,7 @@ public partial class DocumentAnalyzer
         List<OperationModel> operations = new();
         Dictionary<NameString, LeafTypeModel> leafTypes = new();
         Dictionary<NameString, InputObjectTypeModel> inputObjectType = new();
-        Dictionary<SelectionSetInfo, SelectionSetNode> selectionSets = new();
+        Dictionary<SelectionSetKey, SelectionSetNode> selectionSets = new();
 
         foreach (DocumentNode operation in operationDocuments.Operations.Values)
         {
@@ -68,7 +68,7 @@ public partial class DocumentAnalyzer
                 }
             }
 
-            foreach ((SelectionSetInfo key, SelectionSetNode? value) in context.SelectionSets)
+            foreach ((SelectionSetKey key, SelectionSetNode? value) in context.SelectionSets)
             {
                 if (selectionSets.TryGetValue(key, out SelectionSetNode? to) && to != value)
                 {

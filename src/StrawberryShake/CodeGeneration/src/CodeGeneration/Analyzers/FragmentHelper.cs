@@ -17,15 +17,15 @@ public static class FragmentHelper
 {
     public static string? GetReturnTypeName(FieldSelection fieldSelection)
     {
-        DirectiveNode? directive =
-            fieldSelection.SyntaxNode.Directives.FirstOrDefault(
-                t => t.Name.Value.Equals("returns"));
+        var directive = fieldSelection.SyntaxNode.Directives.FirstOrDefault(
+            t => t.Name.Value.EqualsOrdinal("returns"));
+
         if (directive is not null &&
             directive.Arguments.Count == 1 &&
             directive.Arguments[0] is
             {
-                Name: { Value: "fragment" },
-                Value: StringValueNode { Value: { Length: > 0 } } sv
+                Name.Value: "fragment",
+                Value: StringValueNode { Value.Length: > 0 } sv
             })
         {
             return sv.Value;
@@ -66,8 +66,8 @@ public static class FragmentHelper
 
         if (fragmentNode.Fragment.TypeCondition.IsInterfaceType())
         {
-            Fragment? objectFragment =
-                list.FirstOrDefault(t => t.Fragment.TypeCondition.IsObjectType())?.Fragment;
+            Fragment? objectFragment = list.Find(
+                t => t.Fragment.TypeCondition.IsObjectType())?.Fragment;
 
             if (objectFragment is not null)
             {
@@ -547,15 +547,13 @@ public static class FragmentHelper
             name += "_" + selectionSet.Type.NamedType().Name;
         }
 
-        var returnType = new FragmentNode(
+        return new FragmentNode(
             new Fragment(
                 name,
                 FragmentKind.Structure,
                 namedType,
                 selectionSet.SyntaxNode),
             selectionSet.FragmentNodes);
-
-        return returnType;
     }
 
     public static FragmentNode CreateFragmentNode(

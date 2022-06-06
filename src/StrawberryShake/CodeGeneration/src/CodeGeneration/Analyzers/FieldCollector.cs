@@ -338,6 +338,7 @@ internal sealed class FieldCollector
         }
 
         public NameString Name { get; }
+
         public string? Description => null;
 
         public IDirectiveCollection Directives => throw new NotImplementedException();
