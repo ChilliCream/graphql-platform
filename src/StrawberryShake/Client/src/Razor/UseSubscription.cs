@@ -21,12 +21,9 @@ public abstract class UseSubscription<TResult> : ComponentBase, IDisposable wher
 
     [Parameter] public RenderFragment? LoadingContent { get; set; }
 
-    [Parameter] public EventCallback<bool> Loading { get; set; }
-
     protected void Subscribe(IObservable<IOperationResult<TResult>> observable)
     {
         _subscription?.Dispose();
-        Loading.InvokeAsync(true);
 
         _subscription = observable
             .Subscribe(operationResult =>
@@ -36,7 +33,6 @@ public abstract class UseSubscription<TResult> : ComponentBase, IDisposable wher
                 _isErrorResult = operationResult.IsErrorResult();
                 _isSuccessResult = operationResult.IsSuccessResult();
                 _isInitializing = false;
-                Loading.InvokeAsync(false);
                 StateHasChanged();
             });
     }

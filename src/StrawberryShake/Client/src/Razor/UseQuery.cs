@@ -23,12 +23,9 @@ public abstract class UseQuery<TResult> : ComponentBase, IDisposable where TResu
 
     [Parameter] public RenderFragment? LoadingContent { get; set; }
 
-    [Parameter] public EventCallback<bool> Loading { get; set; }
-
     protected void Subscribe(IObservable<IOperationResult<TResult>> observable)
     {
         _subscription?.Dispose();
-        Loading.InvokeAsync(true);
 
         _subscription = observable
             .Subscribe(operationResult =>
@@ -38,7 +35,6 @@ public abstract class UseQuery<TResult> : ComponentBase, IDisposable where TResu
                 _isErrorResult = operationResult.IsErrorResult();
                 _isSuccessResult = operationResult.IsSuccessResult();
                 _isInitializing = false;
-                Loading.InvokeAsync(false);
                 StateHasChanged();
             });
     }
