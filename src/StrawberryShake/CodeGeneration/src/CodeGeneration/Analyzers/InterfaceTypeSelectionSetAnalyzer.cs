@@ -1,5 +1,8 @@
+using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using static StrawberryShake.CodeGeneration.Properties.CodeGenerationResources;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 

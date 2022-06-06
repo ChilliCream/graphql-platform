@@ -13,7 +13,7 @@ using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-public static class FragmentHelper
+internal static class FragmentHelper
 {
     public static string? GetReturnTypeName(FieldSelection fieldSelection)
     {

@@ -10,7 +10,7 @@ using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-public class DocumentAnalyzerContext : IDocumentAnalyzerContext
+internal sealed class DocumentAnalyzerContext : IDocumentAnalyzerContext
 {
     private readonly HashSet<NameString> _takenNames = new();
     private readonly Dictionary<ISyntaxNode, HashSet<NameString>> _syntaxNodeNames = new();

@@ -292,7 +292,7 @@ public partial class SyntaxVisitor<TContext>
 
         if (_options.VisitDirectives)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            for (var i = 0; i < node.Directives.Count; i++)
             {
                 if (Visit(node.Directives[i], node, context).IsBreak())
                 {
@@ -1139,15 +1139,15 @@ public partial class SyntaxVisitor<TContext>
             return Break;
         }
 
-        if(_options.VisitNames && 
-            node.MemberName is not null && 
+        if(_options.VisitNames &&
+            node.MemberName is not null &&
             Visit(node.MemberName, node, context).IsBreak())
         {
             return Break;
         }
 
-        if(_options.VisitNames && 
-            node.ArgumentName is not null && 
+        if(_options.VisitNames &&
+            node.ArgumentName is not null &&
             Visit(node.ArgumentName, node, context).IsBreak())
         {
             return Break;

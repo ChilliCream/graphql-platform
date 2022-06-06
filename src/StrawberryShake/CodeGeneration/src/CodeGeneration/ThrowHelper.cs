@@ -1,5 +1,6 @@
 using HotChocolate;
 using HotChocolate.Language;
+using StrawberryShake.CodeGeneration.Properties;
 using static StrawberryShake.CodeGeneration.Properties.CodeGenerationResources;
 
 namespace StrawberryShake.CodeGeneration;
@@ -36,4 +37,12 @@ internal static class ThrowHelper
             .SetSyntaxNode(syntaxNode)
             .Build());
 
+    public static GraphQLException FragmentNotUnique(string fragmentName)
+        => new(string.Format(FragmentIndexer_CollectFragments_NotUnique, fragmentName));
+
+    public static GraphQLException FragmentNotFound(string fragmentName)
+        => new(string.Format(ThrowHelper_FragmentNotFound, fragmentName));
+
+    public static GraphQLException FragmentInvalidTypeCondition(string fragmentName)
+        => new(string.Format(ThrowHelper_FragmentInvalidTypeCondition, fragmentName));
 }

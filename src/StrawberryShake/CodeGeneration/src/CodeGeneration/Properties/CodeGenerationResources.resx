@@ -54,4 +54,19 @@
   <data name="TypeDescriptorMapper_UnionTypeDataEntityMixed" xml:space="preserve">
     <value>A union type must consist of only entity types or only data types. Ensure that your @key directive correctly captures your entities.</value>
   </data>
+  <data name="FieldCollector_FieldDoesNotExist" xml:space="preserve">
+    <value>Field `{0}` does not exist in type `{1}`.</value>
+  </data>
+  <data name="FieldCollector_FragmentNotFound" xml:space="preserve">
+    <value>Could not resolve fragment {0}.</value>
+  </data>
+  <data name="FragmentIndexer_CollectFragments_NotUnique" xml:space="preserve">
+    <value>The fragment name `{0}` is not unique.</value>
+  </data>
+  <data name="ThrowHelper_FragmentNotFound" xml:space="preserve">
+    <value>Could not resolve the fragment `{0}`</value>
+  </data>
+  <data name="ThrowHelper_FragmentInvalidTypeCondition" xml:space="preserve">
+    <value>The type condition on the fragment `{0}` cannot be resolved.</value>
+  </data>
 </root>

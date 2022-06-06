@@ -1,0 +1,17 @@
+﻿public interface IAssetList_List
+{
+    // /AssetList_List/nodes
+    public [Asset!] Nodes { get; set; }
+}
+public interface IIndex_Symbols
+{
+    // /Index_Symbols/nodes
+    public [Asset!] Nodes { get; set; }
+}
+public interface INavigationControls_Page
+{
+    // /NavigationControls_Page/hasNextPage
+    public Boolean! HasNextPage { get; set; }
+    // /NavigationControls_Page/endCursor
+    public String EndCursor { get; set; }
+}

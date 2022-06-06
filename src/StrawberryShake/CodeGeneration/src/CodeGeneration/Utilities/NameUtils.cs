@@ -8,24 +8,16 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 public static class NameUtils
 {
     public static string GetInterfaceName(string typeName)
-    {
-        return 'I' + GetClassName(typeName);
-    }
+        => 'I' + GetClassName(typeName);
 
     public static string GetClassName(params string[] s)
-    {
-        return GetClassName(string.Join(string.Empty, s));
-    }
+        => GetClassName(string.Join(string.Empty, s));
 
     public static string GetClassName(string typeName)
-    {
-        return GetPropertyName(typeName);
-    }
+        => GetPropertyName(typeName);
 
     public static string GetClassName(NameString typeName)
-    {
-        return GetPropertyName(typeName);
-    }
+        => GetPropertyName(typeName);
 
     public static string GetPathName(Path path)
     {
@@ -92,30 +84,18 @@ public static class NameUtils
     }
 
     public static string GetFieldName(params string[] s)
-    {
-        return GetFieldName(string.Join(string.Empty, s));
-    }
+        => GetFieldName(string.Join(string.Empty, s));
 
     public static string GetFieldName(string fieldName)
-    {
-        return "_" + GetParamNameUnsafe(fieldName);
-    }
+        => "_" + GetParamNameUnsafe(fieldName);
 
     public static string GetLeftPropertyAssignment(string property)
-    {
-        if (property is { Length: >0 } && property[0] == '_')
-        {
-            return $"this.{property}";
-
-        }
-
-        return property;
-    }
+        => property is { Length: > 0 } && property[0] == '_'
+            ? $"this.{property}"
+            : property;
 
     public static string GetParameterName(string parameterName)
-    {
-        return Keywords.ToSafeName(GetParamNameUnsafe(parameterName));
-    }
+        => Keywords.ToSafeName(GetParamNameUnsafe(parameterName));
 
     public static string GetParamNameUnsafe(string parameterName)
     {

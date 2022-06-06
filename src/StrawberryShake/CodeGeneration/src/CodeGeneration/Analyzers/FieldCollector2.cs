@@ -7,85 +7,61 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static StrawberryShake.CodeGeneration.Properties.CodeGenerationResources;
-using static StrawberryShake.CodeGeneration.Utilities.TypeHelpers;
+using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-internal sealed class FieldCollector
+internal sealed class FieldCollector2
 {
-    private readonly Dictionary<string, Fragment> _fragments = new();
-    private readonly Cache _cache = new();
     private readonly ISchema _schema;
-    private readonly DocumentNode _document;
+    private readonly IReadOnlyDictionary<string, FragmentIndexEntry> _fragmentIndex;
+    private readonly IDictionary<string, Fragment> _fragmentCache;
 
-    public FieldCollector(ISchema schema, DocumentNode document)
+    public FieldCollector2(
+        ISchema schema,
+        IReadOnlyDictionary<string, FragmentIndexEntry> fragmentIndex,
+        IDictionary<string, Fragment> fragmentCache)
     {
-        _schema = schema ?? throw new ArgumentNullException(nameof(schema));
-        _document = document ?? throw new ArgumentNullException(nameof(document));
+        _schema = schema;
+        _fragmentIndex = fragmentIndex;
+        _fragmentCache = fragmentCache;
     }
 
-    public SelectionSetVariants CollectFields(
-        SelectionSetNode selectionSetSyntax,
-        INamedOutputType type,
-        Path path)
+    public IReadOnlyList<OutputTypeModel> CollectFragments(IDocumentAnalyzerContext context)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        var typeModels = new List<OutputTypeModel>();
 
-        if (selectionSetSyntax is null)
+        foreach (FragmentIndexEntry entry in _fragmentIndex.Values)
         {
-            throw new ArgumentNullException(nameof(selectionSetSyntax));
-        }
+            var fragmentName = entry.Name;
+            Path path = Path.New(entry.Name);
 
-        if (path is null)
-        {
-            throw new ArgumentNullException(nameof(path));
-        }
-
-        if (!_cache.TryGetValue(type, out SelectionCache? cache))
-        {
-            cache = new SelectionCache();
-            _cache.Add(type, cache);
-        }
-
-        if (!cache.TryGetValue(selectionSetSyntax, out SelectionSetVariants? variants))
-        {
-            SelectionSet returnType = CollectFieldsInternal(selectionSetSyntax, type, path);
-
-            if (type.IsAbstractType())
+            if (!_fragmentCache.TryGetValue(fragmentName, out Fragment? fragment))
             {
-                var list = new List<SelectionSet>();
-                var singleModelShape = true;
-
-                foreach (ObjectType objectType in _schema.GetPossibleTypes(type))
-                {
-                    SelectionSet objectSelection = CollectFieldsInternal(
-                        selectionSetSyntax,
-                        objectType,
-                        path);
-                    list.Add(objectSelection);
-
-                    // TODO : do we always want to generate all shapes?
-                    // if (!FieldSelectionsAreEqual(returnType.Fields, objectSelection.Fields))
-                    {
-                        singleModelShape = false;
-                    }
-                }
-
-                if (!singleModelShape)
-                {
-                    variants = new SelectionSetVariants(returnType, list);
-                }
+                fragment = entry.ToFragment();
+                _fragmentCache.Add(fragmentName, fragment);
             }
 
-            variants ??= new SelectionSetVariants(returnType);
-            cache.Add(selectionSetSyntax, variants);
+            SelectionSet selectionSet = CollectFragment(entry, fragment, path);
+            var fragmentNode = new FragmentNode(fragment, selectionSet.FragmentNodes);
+            typeModels.Add(FragmentHelper.CreateInterface(context, fragmentNode, path));
         }
 
-        return variants;
+        return typeModels;
+    }
+
+    private SelectionSet CollectFragment(FragmentIndexEntry entry, Fragment fragment, Path path)
+    {
+        var fields = new OrderedDictionary<string, FieldSelection>();
+        var fragmentNodes = new List<FragmentNode>();
+
+        CollectFields(fragment.SelectionSet, entry.TypeCondition, path, fields, fragmentNodes);
+
+        return new SelectionSet(
+            entry.TypeCondition,
+            fragment.SelectionSet,
+            fields.Values.ToArray(),
+            fragmentNodes);
     }
 
     private SelectionSet CollectFieldsInternal(
@@ -98,25 +74,21 @@ internal sealed class FieldCollector
 
         CollectFields(selectionSetSyntax, type, path, fields, fragmentNodes);
 
-        return new SelectionSet(
-            type,
-            selectionSetSyntax,
-            fields.Values.ToList(),
-            fragmentNodes);
+        return new SelectionSet(type, selectionSetSyntax, fields.Values.ToArray(), fragmentNodes);
     }
 
     private void CollectFields(
         SelectionSetNode selectionSetSyntax,
-        INamedOutputType type,
+        INamedOutputType selectionSetType,
         Path path,
         IDictionary<string, FieldSelection> fields,
         ICollection<FragmentNode> fragmentNodes)
     {
-        foreach (ISelectionNode selectionSyntax in selectionSetSyntax.Selections)
+        foreach (ISelectionNode selection in selectionSetSyntax.Selections)
         {
             ResolveFields(
-                selectionSyntax,
-                type,
+                selection,
+                selectionSetType,
                 path,
                 fields,
                 fragmentNodes);
@@ -125,43 +97,29 @@ internal sealed class FieldCollector
 
     private void ResolveFields(
         ISelectionNode selectionSyntax,
-        INamedOutputType type,
+        INamedOutputType declaringType,
         Path path,
         IDictionary<string, FieldSelection> fields,
         ICollection<FragmentNode> fragmentNodes)
     {
-        if (selectionSyntax is FieldNode fieldSyntax &&
-            type is IComplexOutputType complexOutputType)
+        if (selectionSyntax is FieldNode field &&
+            declaringType is IComplexOutputType complexType)
         {
-            ResolveFieldSelection(
-                fieldSyntax,
-                complexOutputType,
-                path,
-                fields);
+            ResolveFieldSelection(field, complexType, path, fields);
         }
-        else if (selectionSyntax is FragmentSpreadNode fragSpreadSyntax)
+        else if (selectionSyntax is FragmentSpreadNode fragmentSpread)
         {
-            ResolveFragmentSpread(
-                fragSpreadSyntax,
-                type,
-                path,
-                fields,
-                fragmentNodes);
+            ResolveFragmentSpread(fragmentSpread, declaringType, path, fields, fragmentNodes);
         }
-        else if (selectionSyntax is InlineFragmentNode inlineFragSyntax)
+        else if (selectionSyntax is InlineFragmentNode inlineFragment)
         {
-            ResolveInlineFragment(
-                inlineFragSyntax,
-                type,
-                path,
-                fields,
-                fragmentNodes);
+            ResolveInlineFragment(inlineFragment, declaringType, path, fields, fragmentNodes);
         }
     }
 
-    internal static void ResolveFieldSelection(
+    private static void ResolveFieldSelection(
         FieldNode fieldSyntax,
-        INamedOutputType type,
+        IComplexOutputType declaringType,
         Path path,
         IDictionary<string, FieldSelection> fields)
     {
@@ -169,8 +127,7 @@ internal sealed class FieldCollector
         NameString responseName = fieldSyntax.Alias?.Value ?? fieldSyntax.Name.Value;
         IOutputField? field = null;
 
-        if ((type is IComplexOutputType ct &&
-            ct.Fields.TryGetField(fieldName, out field)) ||
+        if (declaringType.Fields.TryGetField(fieldName, out field) ||
             fieldSyntax.Name.Value.EqualsOrdinal(WellKnownNames.TypeName))
         {
             field ??= TypeNameField.Default;
@@ -202,7 +159,7 @@ internal sealed class FieldCollector
         else
         {
             throw new CodeGeneratorException(
-                string.Format(FieldCollector_FieldDoesNotExist, fieldName, type.Name));
+                string.Format(Properties.CodeGenerationResources.FieldCollector_FieldDoesNotExist, fieldName, declaringType.Name));
         }
     }
 
@@ -215,25 +172,25 @@ internal sealed class FieldCollector
     {
         var fragmentName = fragmentSpreadSyntax.Name.Value;
 
-        if (!_fragments.TryGetValue(fragmentName, out Fragment? fragment))
+        if (!_fragmentIndex.TryGetValue(fragmentName, out FragmentIndexEntry? entry))
         {
-            fragment = CreateFragment(fragmentName);
-            _fragments.Add(fragmentName, fragment);
+            throw ThrowHelper.FragmentNotFound(fragmentName);
         }
 
-        if (DoesTypeApply(fragment.TypeCondition, type))
+        if (!_fragmentCache.TryGetValue(fragmentName, out Fragment? fragment))
         {
-            var deferDirective = fragmentSpreadSyntax.Directives.GetDeferDirective();
-            var nodes = new List<FragmentNode>();
-            var fragmentNode = new FragmentNode(fragment, nodes, deferDirective);
+            fragment = entry.ToFragment();
+            _fragmentCache.Add(fragmentName, fragment);
+        }
+
+        if (entry.TypeCondition.IsAssignableFrom(type))
+        {
+            DirectiveNode? deferDirective = fragmentSpreadSyntax.GetDeferDirective();
+            var childFragmentNodes = new List<FragmentNode>();
+            var fragmentNode = new FragmentNode(fragment, childFragmentNodes, deferDirective);
             fragmentNodes.Add(fragmentNode);
 
-            CollectFields(
-                fragment.SelectionSet,
-                type,
-                path,
-                fields,
-                nodes);
+            CollectFields(fragment.SelectionSet, type, path, fields, childFragmentNodes);
         }
     }
 
@@ -246,45 +203,15 @@ internal sealed class FieldCollector
     {
         Fragment fragment = GetOrCreateInlineFragment(inlineFragmentSyntax, type);
 
-        if (DoesTypeApply(fragment.TypeCondition, type))
+        if (fragment.TypeCondition.IsAssignableFrom(type))
         {
-            var deferDirective = inlineFragmentSyntax.Directives.GetDeferDirective();
-            var nodes = new List<FragmentNode>();
-            var fragmentNode = new FragmentNode(fragment, nodes, deferDirective);
+            DirectiveNode? deferDirective = inlineFragmentSyntax.GetDeferDirective();
+            var childFragmentNodes = new List<FragmentNode>();
+            var fragmentNode = new FragmentNode(fragment, childFragmentNodes, deferDirective);
             fragmentNodes.Add(fragmentNode);
 
-            CollectFields(
-                fragment.SelectionSet,
-                type,
-                path,
-                fields,
-                nodes);
+            CollectFields(fragment.SelectionSet, type, path, fields, childFragmentNodes);
         }
-    }
-
-    private Fragment CreateFragment(string fragmentName)
-    {
-        FragmentDefinitionNode? fragmentDefinitionSyntax =
-            _document.Definitions
-                .OfType<FragmentDefinitionNode>()
-                .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(fragmentName));
-
-        if (fragmentDefinitionSyntax is not null)
-        {
-            if (_schema.TryGetType<INamedType>(
-                    fragmentDefinitionSyntax.TypeCondition.Name.Value,
-                    out INamedType? type))
-            {
-                return new Fragment(
-                    fragmentName,
-                    FragmentKind.Named,
-                    type,
-                    fragmentDefinitionSyntax.SelectionSet);
-            }
-        }
-
-        throw new CodeGeneratorException(
-            string.Format(FieldCollector_FragmentNotFound, fragmentName));
     }
 
     private Fragment GetOrCreateInlineFragment(
@@ -293,10 +220,10 @@ internal sealed class FieldCollector
     {
         var fragmentName = CreateInlineFragmentName(inlineFragmentSyntax);
 
-        if (!_fragments.TryGetValue(fragmentName, out Fragment? fragment))
+        if (!_fragmentCache.TryGetValue(fragmentName, out Fragment? fragment))
         {
             fragment = CreateFragment(inlineFragmentSyntax, parentType);
-            _fragments[fragmentName] = fragment;
+            _fragmentCache.Add(fragmentName, fragment);
         }
 
         return fragment;
@@ -319,14 +246,6 @@ internal sealed class FieldCollector
 
     private static string CreateInlineFragmentName(InlineFragmentNode inlineFragmentSyntax) =>
         $"^{inlineFragmentSyntax.Location!.Start}_{inlineFragmentSyntax.Location.End}";
-
-    private sealed class Cache : Dictionary<INamedOutputType, SelectionCache>
-    {
-    }
-
-    private sealed class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>
-    {
-    }
 
     private sealed class TypeNameField : IOutputField
     {

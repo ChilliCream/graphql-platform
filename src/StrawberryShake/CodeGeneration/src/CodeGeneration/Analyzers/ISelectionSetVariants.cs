@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-public class SelectionSetVariants
+internal sealed class SelectionSetVariants
 {
     public SelectionSetVariants(
         SelectionSet returnType,

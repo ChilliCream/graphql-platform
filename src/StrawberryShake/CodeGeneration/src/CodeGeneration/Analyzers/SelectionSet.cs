@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-public class SelectionSet
+internal sealed class SelectionSet
 {
     public SelectionSet(
         INamedType type,

@@ -116,5 +116,35 @@ namespace StrawberryShake.CodeGeneration.Properties {
                 return ResourceManager.GetString("TypeDescriptorMapper_UnionTypeDataEntityMixed", resourceCulture);
             }
         }
+        
+        internal static string FieldCollector_FieldDoesNotExist {
+            get {
+                return ResourceManager.GetString("FieldCollector_FieldDoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string FieldCollector_FragmentNotFound {
+            get {
+                return ResourceManager.GetString("FieldCollector_FragmentNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string FragmentIndexer_CollectFragments_NotUnique {
+            get {
+                return ResourceManager.GetString("FragmentIndexer_CollectFragments_NotUnique", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_FragmentNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FragmentNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_FragmentInvalidTypeCondition {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FragmentInvalidTypeCondition", resourceCulture);
+            }
+        }
     }
 }

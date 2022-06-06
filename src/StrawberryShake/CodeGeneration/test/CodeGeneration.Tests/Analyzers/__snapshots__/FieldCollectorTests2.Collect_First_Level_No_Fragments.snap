@@ -1,0 +1,5 @@
+﻿public interface IDroid
+{
+    // /Droid/primaryFunction
+    public String PrimaryFunction { get; set; }
+}

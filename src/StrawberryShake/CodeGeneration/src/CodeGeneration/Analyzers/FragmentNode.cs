@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
-public class FragmentNode
+internal class FragmentNode
 {
     public FragmentNode(
         Fragment fragment,

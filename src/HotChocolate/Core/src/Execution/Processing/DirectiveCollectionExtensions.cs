@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using IHasDirectives = HotChocolate.Language.IHasDirectives;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -152,6 +153,10 @@ internal static class DirectiveCollectionExtensions
 
         return null;
     }
+
+    internal static DirectiveNode? GetDeferDirective(
+        this IHasDirectives container) =>
+        GetDirective(container.Directives, WellKnownDirectives.Defer);
 
     internal static DirectiveNode? GetDeferDirective(
         this IReadOnlyList<DirectiveNode> directives) =>
