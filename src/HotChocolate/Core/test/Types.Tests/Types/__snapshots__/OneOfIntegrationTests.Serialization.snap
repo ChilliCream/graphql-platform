@@ -1,0 +1,13 @@
+﻿{
+  "errors": [
+    {
+      "message": "More than one field of the Oneof Input Object \u0060ExampleInput\u0060 is set. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
+      "path": [
+        "input"
+      ],
+      "extensions": {
+        "code": "HC0055"
+      }
+    }
+  ]
+}

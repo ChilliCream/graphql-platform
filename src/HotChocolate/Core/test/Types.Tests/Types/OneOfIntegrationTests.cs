@@ -10,6 +10,7 @@ using Xunit;
 namespace HotChocolate.Types;
 
 #nullable enable
+using System.Collections.Generic;
 
 public class OneOfIntegrationTests : TypeValidationTestBase
 {
@@ -265,6 +266,29 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     }
 
     [Fact]
+    public async Task Serialization()
+    {
+        Snapshot.FullName();
+
+        // Error: Exactly one key must be specified
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ModifyOptions(o => o.EnableOneOf = true)
+            .BuildRequestExecutorAsync();
+
+            await executor.ExecuteAsync("query ExampleQuery($input: ExampleInput!) { example(input: $input) }", new Dictionary<string, object?>
+                {
+                    {
+                        "input", new ExampleInput
+                        {
+                            A = "A",
+                        }
+                    },
+                }).MatchSnapshotAsync();
+    }
+
+    [Fact]
     public void Oneof_Input_Objects_that_is_Valid()
         => ExpectValid(
             @"type Query {
@@ -348,20 +372,20 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 o.StrictValidation = true;
             })
             .ExecuteRequestAsync(
-                @"{ 
-                    oneof_input: __type(name: ""ExampleInput"") { 
+                @"{
+                    oneof_input: __type(name: ""ExampleInput"") {
                         # should be true
-                        oneOf 
+                        oneOf
                     }
 
-                    input: __type(name: ""StandardInput"") { 
+                    input: __type(name: ""StandardInput"") {
                         # should be false
-                        oneOf 
+                        oneOf
                     }
 
-                    object: __type(name: ""Query"") { 
+                    object: __type(name: ""Query"") {
                         # should be null
-                        oneOf 
+                        oneOf
                     }
                 }")
             .MatchSnapshotAsync();
@@ -379,7 +403,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             return "b: " + input.B;
         }
 
-        public string Standard(StandardInput input) 
+        public string Standard(StandardInput input)
             => "abc";
     }
 
