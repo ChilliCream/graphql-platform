@@ -15,6 +15,7 @@ internal static class InputObjectCompiler
 {
     private static readonly ParameterExpression _obj =
         Expression.Parameter(typeof(object), "obj");
+
     private static readonly ParameterExpression _fieldValues =
         Expression.Parameter(typeof(object?[]), "fieldValues");
 
@@ -41,7 +42,7 @@ internal static class InputObjectCompiler
         expressions.Add(Expression.Assign(variable, instance));
         CompileSetProperties(variable, fields.Values, _fieldValues, expressions);
         expressions.Add(Expression.Convert(variable, typeof(object)));
-        Expression body = Expression.Block(new[] { variable }, expressions);
+        Expression body = Expression.Block(new[] {variable}, expressions);
 
         return Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
     }
@@ -164,7 +165,21 @@ internal static class InputObjectCompiler
     }
 
     private static Dictionary<string, InputField> CreateFieldMap(InputObjectType type)
-        => type.Fields.ToDictionary(t => t.Property!.Name, StringComparer.OrdinalIgnoreCase);
+    {
+        try
+        {
+            return type.Fields.ToDictionary(t => t.Property!.Name, StringComparer.OrdinalIgnoreCase);
+        }
+        catch(ArgumentException ex)
+        {
+            ISchemaError? error = new SchemaErrorBuilder()
+                .SetException(ex)
+                .SetMessage($"You cannot have fields that differ only by case on {type.Name}")
+                .Build();
+
+            throw new SchemaException(error);
+        }
+    }
 
     private static Expression CreateOptional(Expression fieldValue, Type runtimeType)
     {
