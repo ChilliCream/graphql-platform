@@ -7,6 +7,11 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 /// </summary>
 public sealed class ConnectionStatus
 {
+    private static readonly ConnectionStatus _defaultAccepted =
+        new(true, "You connection was accepted.", null);
+    private static readonly ConnectionStatus _defaultRejected =
+        new(false, "Your connection was rejected.", null);
+
     private ConnectionStatus(
         bool accepted,
         string message,
@@ -39,7 +44,7 @@ public sealed class ConnectionStatus
     /// The connection accept status.
     /// </returns>
     public static ConnectionStatus Accept()
-        => new(true, "You connection was accepted.", null);
+        => _defaultAccepted;
 
     /// <summary>
     /// Reject the socket connection with a custom message.
@@ -86,7 +91,7 @@ public sealed class ConnectionStatus
     /// The connection reject status.
     /// </returns>
     public static ConnectionStatus Reject()
-        => Reject("Your connection was rejected.", null);
+        => _defaultRejected;
 
     /// <summary>
     /// Reject the socket connection with a custom message.
