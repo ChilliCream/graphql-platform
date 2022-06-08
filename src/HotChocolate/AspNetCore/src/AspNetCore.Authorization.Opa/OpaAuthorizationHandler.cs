@@ -36,6 +36,7 @@ public class OpaAuthorizationHandler : IAuthorizationHandler
 
         if (httpResponse is null) throw new InvalidOperationException("Opa response must not be null");
 
-        return await options.Value.GetResultHandlerFor(policyPath).HandleAsync(policyPath, httpResponse, context);
+        return await options.Value.GetResultHandlerFor(policyPath).HandleAsync(policyPath, httpResponse, context)
+            .ConfigureAwait(false);
     }
 }

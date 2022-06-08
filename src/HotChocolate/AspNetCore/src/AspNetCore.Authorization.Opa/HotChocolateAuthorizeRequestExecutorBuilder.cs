@@ -58,7 +58,8 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddOpaResultHandler<T>(this IRequestExecutorBuilder builder, string policyPath, Func<IServiceProvider, T?>? factory=null)
+    public static IRequestExecutorBuilder AddOpaResultHandler<T>(this IRequestExecutorBuilder builder,
+        string policyPath, Func<IServiceProvider, T?>? factory = null)
         where T : class, IPolicyResultHandler
     {
         if (factory is not null)
@@ -88,8 +89,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     public static IRequestExecutorBuilder AddOpaResultHandler<T>(this IRequestExecutorBuilder builder,
         string policyPath, Func<PolicyResultContext<T>, IOpaAuthzResult<T>> makeDecisionFunc,
         Action<IMiddlewareContext, IOpaAuthzResult<T>>? onAllowed = null
-
-        )
+    )
     {
         return builder.AddOpaResultHandler(policyPath,
             f =>
@@ -97,7 +97,8 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
                     ctx => Task.FromResult(makeDecisionFunc(ctx)),
                     f.GetRequiredService<IOptions<OpaOptions>>())
                 {
-                    OnAllowedFunc = onAllowed is not null ? (context, result) =>
+                    OnAllowedFunc = onAllowed is not null
+                        ? (context, result) =>
                         {
                             onAllowed(context, result);
                             return Task.CompletedTask;

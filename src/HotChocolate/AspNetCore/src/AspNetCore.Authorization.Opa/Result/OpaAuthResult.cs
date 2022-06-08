@@ -7,6 +7,7 @@ public class OpaAuthzResult<T> : IOpaAuthzResult<T>
         Result = result;
         Payload = payload;
     }
+
     public AuthorizeResult Result { get; }
     public T? Payload { get; }
 }
