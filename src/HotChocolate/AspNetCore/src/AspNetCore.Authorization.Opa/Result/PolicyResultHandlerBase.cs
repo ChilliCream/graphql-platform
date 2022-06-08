@@ -13,9 +13,15 @@ public abstract class PolicyResultHandlerBase<T> : IPolicyResultHandler
     protected abstract Task<IOpaAuthzResult<T>> MakeDecision(PolicyResultContext<T> context);
     protected virtual Task OnAllowed(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
     protected virtual Task OnNotAllowed(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
-    protected virtual Task OnPolicyNotFound(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
-    protected virtual Task OnNotAuthenticated(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
-    protected virtual Task OnNoDefaultPolicy(IMiddlewareContext context, IOpaAuthzResult<T> result) => Task.CompletedTask;
+
+    protected virtual Task OnPolicyNotFound(IMiddlewareContext context, IOpaAuthzResult<T> result) =>
+        Task.CompletedTask;
+
+    protected virtual Task OnNotAuthenticated(IMiddlewareContext context, IOpaAuthzResult<T> result) =>
+        Task.CompletedTask;
+
+    protected virtual Task OnNoDefaultPolicy(IMiddlewareContext context, IOpaAuthzResult<T> result) =>
+        Task.CompletedTask;
 
     public async Task<AuthorizeResult> HandleAsync(string policyPath, HttpResponseMessage response,
         IMiddlewareContext context)
@@ -24,9 +30,11 @@ public abstract class PolicyResultHandlerBase<T> : IPolicyResultHandler
             .FromJsonAsync<QueryResponse<T?>>(_options.Value.JsonSerializerOptions, context.RequestAborted)
             .ConfigureAwait(false);
 
-        if (responseObj is not { Result: var result } ) throw new InvalidOperationException("Opa deserialized response must not be null");
+        if (responseObj is not { Result: var result })
+            throw new InvalidOperationException("Opa deserialized response must not be null");
 
-        IOpaAuthzResult<T> opaAuthzResult = await MakeDecision(new PolicyResultContext<T>(policyPath, result, context));
+        IOpaAuthzResult<T> opaAuthzResult = await MakeDecision(new PolicyResultContext<T>(policyPath, result, context))
+            .ConfigureAwait(false);
 
         switch (opaAuthzResult.Result)
         {

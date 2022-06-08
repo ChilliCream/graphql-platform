@@ -21,12 +21,15 @@ public sealed class OpaOptions
         {
             return handler;
         }
-        KeyValuePair<string, IPolicyResultHandler> maybeHandler =  PolicyResultHandlers.SingleOrDefault(k =>
+
+        KeyValuePair<string, IPolicyResultHandler> maybeHandler = PolicyResultHandlers.SingleOrDefault(k =>
         {
             Regex regex = _handlerKeysRegexes.GetOrAdd(k.Key,
                 new Regex(k.Key, RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant));
             return regex.IsMatch(policyPath);
         });
-        return maybeHandler.Value is { } h ? h : throw new InvalidOperationException($"No result handler found for policy: {policyPath}");
+        return maybeHandler.Value is { } h
+            ? h
+            : throw new InvalidOperationException($"No result handler found for policy: {policyPath}");
     }
 }

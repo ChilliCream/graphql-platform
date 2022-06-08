@@ -18,11 +18,12 @@ public class DefaultQueryRequestFactory : IOpaQueryRequestFactory
         {
             Input = new Input
             {
-                Policy = new Policy
-                {
-                    Path = directive.Policy ?? string.Empty,
-                    Roles = directive.Roles is null ? Array.Empty<string>() : directive.Roles.ToArray()
-                },
+                Policy =
+                    new Policy
+                    {
+                        Path = directive.Policy ?? string.Empty,
+                        Roles = directive.Roles is null ? Array.Empty<string>() : directive.Roles.ToArray()
+                    },
                 Request = new OriginalRequest
                 {
                     Headers = http.Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString()),
@@ -34,13 +35,11 @@ public class DefaultQueryRequestFactory : IOpaQueryRequestFactory
                 },
                 Source = new IPAndPort
                 {
-                    IpAddress = connection.RemoteIpAddress.ToString(),
-                    Port = connection.RemotePort
+                    IpAddress = connection.RemoteIpAddress.ToString(), Port = connection.RemotePort
                 },
                 Destination = new IPAndPort
                 {
-                    IpAddress = connection.LocalIpAddress.ToString(),
-                    Port = connection.LocalPort
+                    IpAddress = connection.LocalIpAddress.ToString(), Port = connection.LocalPort
                 }
             }
         };

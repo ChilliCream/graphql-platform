@@ -10,6 +10,7 @@ public class PolicyResultContext<T>
         Result = result;
         MiddlewareContext = context;
     }
+
     public string PolicyPath { get; }
     public T? Result { get; }
     public IMiddlewareContext MiddlewareContext { get; }
