@@ -164,7 +164,7 @@ internal static class InputObjectCompiler
     }
 
     private static Dictionary<string, InputField> CreateFieldMap(InputObjectType type)
-        => type.Fields.ToDictionary(t => t.Property!.Name, StringComparer.Ordinal);
+        => type.Fields.ToDictionary(t => t.Property!.Name, StringComparer.OrdinalIgnoreCase);
 
     private static Expression CreateOptional(Expression fieldValue, Type runtimeType)
     {

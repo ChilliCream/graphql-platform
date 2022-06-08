@@ -108,28 +108,6 @@ internal static class InputObjectConstructorResolver
         [NotNullWhen(true)] out InputField? field)
     {
         string name = parameter.Name!;
-        string alternativeName = GetAlternativeParameterName(parameter.Name!);
-
-        if (fields.TryGetValue(alternativeName, out field) ||
-            fields.TryGetValue(name, out field))
-        {
-            return true;
-        }
-
-        var key = fields.Keys.SingleOrDefault(key => key.Equals(name,
-            StringComparison.OrdinalIgnoreCase));
-
-        if (key is null)
-        {
-            return false;
-        }
-
-        field = fields[key];
-        return true;
+        return fields.TryGetValue(name, out field);
     }
-
-    private static string GetAlternativeParameterName(string name)
-        => name.Length > 1
-            ? name.Substring(0, 1).ToUpperInvariant() + name.Substring(1)
-            : name.ToUpperInvariant();
 }
