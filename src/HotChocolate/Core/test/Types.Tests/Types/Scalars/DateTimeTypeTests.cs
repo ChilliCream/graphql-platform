@@ -357,7 +357,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void EnsureDateTimeTypeKindIsCorret()
+        public void EnsureDateTimeTypeKindIsCorrect()
         {
             // arrange
             var type = new DateTimeType();

@@ -81,7 +81,7 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
             {
                 await WriteResultAsync(result, outputStream, ct).ConfigureAwait(false);
 
-                if (result.HasNext ?? false)
+                if (result.HasNext ?? true)
                 {
                     await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
                     await outputStream.FlushAsync(ct).ConfigureAwait(false);

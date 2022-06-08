@@ -99,7 +99,7 @@ internal partial class BatchExecutor
                     .SetQuery(document)
                     .SetVariableValues(variableValues)
                     .AddExportedVariables(_exportedVariables)
-                    .SetQueryId(null) // TODO ... should we create a name here?
+                    .SetQueryId(null)
                     .SetQueryHash(null)
                     .Create();
 

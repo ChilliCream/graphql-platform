@@ -226,7 +226,11 @@ public record BookInput([property:DefaultValue("")]Optional<string> Title, strin
 
 Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null, all others being omitted. This is represented in introspection with the \_\_Type.oneField: Boolean field, and in SDL via the @oneOf directive on the input object.
 
-> ⚠️ Note: Oneof Input Objects is currently a proposed feature to the GraphQL spec. https://github.com/graphql/graphql-spec/pull/825
+> ⚠️ Note: Oneof Input Objects is currently a draft feature to the GraphQL spec. https://github.com/graphql/graphql-spec/pull/825
+
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/tztXm15grU0"frameborder="0" 
+allowfullscreen></iframe>
 
 This introduces a form of input polymorphism to GraphQL. For example, the following PetInput input object lets you choose between a number of potential input types:
 
