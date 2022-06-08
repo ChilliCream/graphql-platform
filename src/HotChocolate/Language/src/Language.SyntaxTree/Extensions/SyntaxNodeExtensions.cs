@@ -30,7 +30,7 @@ public static class SyntaxNodeExtensions
         }
 
         if (type.Kind is SyntaxKind.NonNullType &&
-            ((NonNullTypeNode)type).Kind is SyntaxKind.ListType)
+            ((NonNullTypeNode)type).Type.Kind is SyntaxKind.ListType)
         {
             return true;
         }
