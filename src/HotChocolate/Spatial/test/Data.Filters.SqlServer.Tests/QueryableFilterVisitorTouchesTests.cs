@@ -7,9 +7,9 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters.Spatial;
 
+[Collection("Postgres")]
 public class QueryableFilterVisitorTouchesTests
     : SchemaCache
-    , IClassFixture<PostgreSqlResource<PostgisConfig>>
 {
     private static readonly Polygon _truePolygon =
         new Polygon(new LinearRing(new[]
