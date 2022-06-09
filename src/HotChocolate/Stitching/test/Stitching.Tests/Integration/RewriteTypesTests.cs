@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,11 +77,11 @@ public class RewriteTypesTests : IClassFixture<StitchingTestContext>
         Assert.True(executor.Schema.TryGetDirectiveType("translatable", out _));
     }
 
-    private sealed class DocumentRewriter : SchemaSyntaxRewriter<object>
+    private sealed class DocumentRewriter : SyntaxRewriter<ISyntaxVisitorContext>
     {
         protected override FieldDefinitionNode RewriteFieldDefinition(
             FieldDefinitionNode node,
-            object context)
+            ISyntaxVisitorContext context)
         {
             if (node.Type.NamedType().Name.Value.EndsWith("Connection") &&
                 node.Arguments.Any(t => t.Name.Value.EqualsOrdinal("first") &&

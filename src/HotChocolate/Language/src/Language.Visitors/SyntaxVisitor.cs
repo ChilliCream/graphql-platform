@@ -2,15 +2,8 @@ using System;
 
 namespace HotChocolate.Language.Visitors;
 
-public delegate ISyntaxVisitorAction VisitSyntaxNode(
-    ISyntaxNode node,
-    ISyntaxVisitorContext context);
-
-public class SyntaxVisitor
-    : SyntaxVisitor<ISyntaxVisitorContext>
-    , ISyntaxVisitor
+public class SyntaxVisitor : SyntaxVisitor<ISyntaxVisitorContext>
 {
-
     public SyntaxVisitor(SyntaxVisitorOptions options = default)
         : base(options)
     {
@@ -23,29 +16,69 @@ public class SyntaxVisitor
     {
     }
 
-    public static ISyntaxVisitor Create(
+    public static ISyntaxVisitor<ISyntaxVisitorContext> Create(
         Func<ISyntaxNode, ISyntaxVisitorAction>? enter = null,
         Func<ISyntaxNode, ISyntaxVisitorAction>? leave = null,
         ISyntaxVisitorAction? defaultAction = null,
         SyntaxVisitorOptions options = default)
-    {
-        return new DelegateSyntaxVisitor(
-            enter is { }
-                ? new VisitSyntaxNode((n, c) => enter(n))
+        => new DelegateSyntaxVisitor<ISyntaxVisitorContext>(
+            enter is not null
+                ? new VisitSyntaxNode<ISyntaxVisitorContext>((n, _) => enter(n))
                 : null,
-            leave is { }
-                ? new VisitSyntaxNode((n, c) => leave(n))
+            leave is not null
+                ? new VisitSyntaxNode<ISyntaxVisitorContext>((n, _) => leave(n))
                 : null,
             defaultAction,
             options);
-    }
 
-    public static ISyntaxVisitor Create(
-        VisitSyntaxNode? enter = null,
-        VisitSyntaxNode? leave = null,
+    public static ISyntaxVisitor<TContext> Create<TContext>(
+        VisitSyntaxNode<TContext>? enter = null,
+        VisitSyntaxNode<TContext>? leave = null,
         ISyntaxVisitorAction? defaultAction = null,
         SyntaxVisitorOptions options = default)
+        where TContext : ISyntaxVisitorContext
     {
-        return new DelegateSyntaxVisitor(enter, leave, defaultAction, options);
+        defaultAction ??= Skip;
+
+        enter ??= (_, _) => defaultAction;
+        leave ??= (_, _) => defaultAction;
+
+        return new DelegateSyntaxVisitor<TContext>(enter, leave, defaultAction, options);
+    }
+
+    public static ISyntaxVisitor<TContext> CreateWithNavigator<TContext>(
+        VisitSyntaxNode<TContext>? enter = null,
+        VisitSyntaxNode<TContext>? leave = null,
+        ISyntaxVisitorAction? defaultAction = null,
+        SyntaxVisitorOptions options = default)
+        where TContext : INavigatorContext
+    {
+        defaultAction ??= Skip;
+
+        VisitSyntaxNode<TContext> enterFunc = enter is not null
+            ? (node, context) =>
+            {
+                context.Navigator.Push(node);
+                return enter(node, context);
+            }
+            : (node, context) =>
+            {
+                context.Navigator.Push(node);
+                return defaultAction;
+            };
+
+        VisitSyntaxNode<TContext> leaveFunc = leave is not null
+            ? (node, context) =>
+            {
+                context.Navigator.Pop();
+                return leave(node, context);
+            }
+            : (node, context) =>
+            {
+                context.Navigator.Pop();
+                return defaultAction;
+            };
+
+        return new DelegateSyntaxVisitor<TContext>(enterFunc, leaveFunc, defaultAction, options);
     }
 }

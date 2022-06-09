@@ -8,7 +8,7 @@ using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
-internal sealed class FragmentRewriter : QuerySyntaxRewriter<FragmentRewriter.Context>
+internal sealed class FragmentRewriter : SyntaxRewriter<FragmentRewriter.Context>
 {
     protected override FragmentDefinitionNode RewriteFragmentDefinition(
         FragmentDefinitionNode node,

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
@@ -10,7 +11,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Stitching.Processing;
 
 internal sealed partial class ExtractFieldQuerySyntaxRewriter
-    : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
+    : SyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
 {
     private readonly ISchema _schema;
     private readonly FieldDependencyResolver _dependencyResolver;
@@ -24,8 +25,6 @@ internal sealed partial class ExtractFieldQuerySyntaxRewriter
         _dependencyResolver = new FieldDependencyResolver(schema);
         _rewriters = rewriters.ToArray();
     }
-
-    protected override bool VisitFragmentDefinitions => false;
 
     public ExtractedField ExtractField(
         NameString sourceSchema,
@@ -86,7 +85,7 @@ internal sealed partial class ExtractFieldQuerySyntaxRewriter
     {
         sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
 
-        return RewriteValue(
+        return RewriteNode(
             value,
             new Context(sourceSchema, null, null, null)
             {
@@ -98,49 +97,49 @@ internal sealed partial class ExtractFieldQuerySyntaxRewriter
         FieldNode node,
         Context context)
     {
-        FieldNode current = node;
-
-        if (context.TypeContext is IComplexOutputType type
-            && type.Fields.TryGetField(current.Name.Value, out IOutputField? field))
+        if (context.TypeContext is IComplexOutputType type &&
+            type.Fields.TryGetField(node.Name.Value, out IOutputField? field))
         {
             Context cloned = context.Clone();
             cloned.OutputField = field;
 
-            current = RewriteFieldName(current, field, context);
-            current = Rewrite(current, current.Arguments, cloned,
-                (p, c) => RewriteMany(p, c, RewriteArgument),
-                current.WithArguments);
-            current = RewriteFieldSelectionSet(current, field, context);
-            current = Rewrite(current, current.Directives, context,
-                (p, c) => RewriteMany(p, c, RewriteDirective),
-                current.WithDirectives);
-            current = OnRewriteField(current, cloned);
-        }
+            NameNode name = RewriteNode(node.Name, context);
+            NameNode? alias = RewriteNodeOrNull(node.Alias, context);
+            INullabilityNode? required = RewriteNodeOrNull(node.Required, context);
+            IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+            IReadOnlyList<ArgumentNode> arguments = RewriteList(node.Arguments, context);
+            SelectionSetNode? selectionSet = RewriteNodeOrNull(node.SelectionSet, context);
 
-        return current;
-    }
-
-    private static FieldNode RewriteFieldName(
-        FieldNode node,
-        IOutputField field,
-        Context context)
-    {
-        FieldNode current = node;
-
-        if (field.TryGetSourceDirective(context.Schema,
-            out SourceDirective? sourceDirective))
-        {
-            if (current.Alias == null)
+            if (field.TryGetSourceDirective(context.Schema, out SourceDirective? sourceDirective))
             {
-                current = current.WithAlias(current.Name);
+                alias ??= name;
+                name = new NameNode(sourceDirective.Name);
             }
-            current = current.WithName(
-                new NameNode(sourceDirective.Name));
+
+            if (!ReferenceEquals(name, node.Name) ||
+                !ReferenceEquals(alias, node.Alias) ||
+                !ReferenceEquals(required, node.Required) ||
+                !ReferenceEquals(directives, node.Directives) ||
+                !ReferenceEquals(arguments, node.Arguments) ||
+                !ReferenceEquals(selectionSet, node.SelectionSet))
+            {
+                node = new FieldNode(
+                    node.Location,
+                    name,
+                    alias,
+                    required,
+                    directives,
+                    arguments,
+                    selectionSet);
+
+                node = OnRewriteField(node, cloned);
+            }
         }
 
-        return current;
+        return node;
     }
 
+    /*
     private FieldNode RewriteFieldSelectionSet(
         FieldNode node,
         IOutputField field,
@@ -166,6 +165,7 @@ internal sealed partial class ExtractFieldQuerySyntaxRewriter
 
         return current;
     }
+    */
 
     private FieldNode OnRewriteField(
         FieldNode node,
@@ -317,6 +317,7 @@ internal sealed partial class ExtractFieldQuerySyntaxRewriter
         }
     }
 
+    /*
     protected override DirectiveNode RewriteDirective(
         DirectiveNode node,
         Context context)
@@ -325,6 +326,7 @@ internal sealed partial class ExtractFieldQuerySyntaxRewriter
             node.Arguments, context,
             (p, c) => RewriteMany(p, c, RewriteArgument),
             node.WithArguments);
+    */
 
     private static bool IsDelegationField(IDirectiveCollection directives)
     {

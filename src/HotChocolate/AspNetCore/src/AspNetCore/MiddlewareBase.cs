@@ -14,6 +14,7 @@ public class MiddlewareBase : IDisposable
 {
     private readonly RequestDelegate _next;
     private readonly IHttpResultSerializer _resultSerializer;
+    private bool? _batching = null;
     private bool _disposed;
 
     protected MiddlewareBase(
@@ -141,13 +142,17 @@ public class MiddlewareBase : IDisposable
             requestBuilder.SetOperation(operationNames[i]);
 
             await requestInterceptor.OnCreateAsync(
-                context, requestExecutor, requestBuilder, context.RequestAborted);
+                context,
+                requestExecutor,
+                requestBuilder,
+                context.RequestAborted);
 
             requestBatch[i] = requestBuilder.Create();
         }
 
         return await requestExecutor.ExecuteBatchAsync(
-            requestBatch, cancellationToken: context.RequestAborted);
+            requestBatch,
+            cancellationToken: context.RequestAborted);
     }
 
     protected static async Task<IResponseStream> ExecuteBatchAsync(
@@ -172,7 +177,8 @@ public class MiddlewareBase : IDisposable
         }
 
         return await requestExecutor.ExecuteBatchAsync(
-            requestBatch, cancellationToken: context.RequestAborted);
+            requestBatch,
+            cancellationToken: context.RequestAborted);
     }
 
     protected static AllowedContentType ParseContentType(HttpContext context)
