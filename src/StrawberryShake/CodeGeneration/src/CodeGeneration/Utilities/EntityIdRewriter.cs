@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
-internal sealed class EntityIdRewriter : QuerySyntaxRewriter<EntityIdRewriter.Context>
+internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context>
 {
     protected override OperationDefinitionNode RewriteOperationDefinition(
         OperationDefinitionNode node,
@@ -114,7 +115,7 @@ internal sealed class EntityIdRewriter : QuerySyntaxRewriter<EntityIdRewriter.Co
         return rewriter.RewriteDocument(document, new Context(schema));
     }
 
-    public class Context
+    public class Context : ISyntaxVisitorContext
     {
         public Context(ISchema schema)
         {

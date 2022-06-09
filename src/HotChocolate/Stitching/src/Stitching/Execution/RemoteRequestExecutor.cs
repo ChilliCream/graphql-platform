@@ -48,8 +48,7 @@ internal sealed class RemoteRequestExecutor : IRequestExecutor
     }
 
     public Task<IResponseStream> ExecuteBatchAsync(
-        IEnumerable<IQueryRequest> requestBatch,
-        bool allowParallelExecution = false,
+        IReadOnlyList<IQueryRequest> requestBatch,
         CancellationToken cancellationToken = default)
         => _batchRequestHandler.ExecuteAsync(requestBatch, cancellationToken);
 }
