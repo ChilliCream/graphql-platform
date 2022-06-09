@@ -39,5 +39,5 @@ internal class GeoJsonResolvers
     }
 
     public int GetCrs([Parent] Geometry geometry) =>
-        geometry.SRID == 0 ? 4326 : geometry.SRID;
+        geometry.SRID is 0 or -1 ? 4326 : geometry.SRID;
 }
