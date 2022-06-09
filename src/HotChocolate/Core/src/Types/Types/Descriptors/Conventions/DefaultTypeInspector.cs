@@ -41,7 +41,8 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     public bool IgnoreRequiredAttribute { get; protected set; }
 
     /// <inheritdoc />
-    public virtual IEnumerable<MemberInfo> GetMembers(Type type) => GetMembers(type, false);
+    public virtual IEnumerable<MemberInfo> GetMembers(Type type)
+        => GetMembers(type, false);
 
     /// <inheritdoc />
     public virtual IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
@@ -65,9 +66,16 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         return member.IsDefined(typeof(GraphQLIgnoreAttribute));
     }
 
-    private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored) =>
-        type.GetMembers(Instance | Public)
-            .Where(m => CanBeHandled(m, includeIgnored));
+    private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored)
+    {
+        foreach (MemberInfo member in type.GetMembers(Instance | Public))
+        {
+            if (CanBeHandled(member, includeIgnored))
+            {
+                yield return member;
+            }
+        }
+    }
 
     /// <inheritdoc />
     public virtual ITypeReference GetReturnTypeRef(
@@ -766,23 +774,18 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             element.IsDefined(typeof(DescriptorAttribute), true);
 
     private static bool IsSystemMember(MemberInfo member)
-        => IsCloneMember(member) ||
-            IsToString(member) ||
-            IsGetHashCode(member) ||
-            IsEquals(member);
+    {
+        if (member is MethodInfo m &&
+            (m.Name.EqualsOrdinal(_toString) ||
+                m.Name.EqualsOrdinal(_getHashCode) ||
+                m.Name.EqualsOrdinal(_equals) ||
+                m.Name.EqualsOrdinal(_clone)))
+        {
+            return true;
+        }
 
-    private static bool IsToString(MemberInfo member)
-        => member is MethodInfo { Name: _toString };
-
-    private static bool IsGetHashCode(MemberInfo member)
-        => member is MethodInfo { Name: _getHashCode } m &&
-            m.GetParameters().Length == 0;
-
-    private static bool IsEquals(MemberInfo member)
-        => member is MethodInfo { Name: _equals };
-
-    private static bool IsCloneMember(MemberInfo member)
-        => member.Name.EqualsOrdinal(_clone);
+        return false;
+    }
 
     private IEnumerable<T> GetCustomAttributes<T>(
         ICustomAttributeProvider attributeProvider,

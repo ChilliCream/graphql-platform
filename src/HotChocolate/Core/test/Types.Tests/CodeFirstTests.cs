@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -138,6 +139,18 @@ namespace HotChocolate
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task Structureal_Equality_Is_Ignored()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryStructEquals>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
         public class Query
         {
             public string SayHello(string name) =>
@@ -256,6 +269,20 @@ namespace HotChocolate
         public interface IBar
         {
             string GetBar();
+        }
+
+        public class QueryStructEquals
+        {
+            public Example Foo(Example example) => example;
+        }
+
+        public class Example : IStructuralEquatable
+        {
+            public string Some { get; set; }
+
+            public bool Equals(object? other, IEqualityComparer comparer) => throw new NotImplementedException();
+
+            public int GetHashCode(IEqualityComparer comparer) => throw new NotImplementedException();
         }
     }
 }

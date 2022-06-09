@@ -269,20 +269,23 @@ public static class RequestExecutorServiceProviderExtensions
     /// The cancellation token.
     /// </param>
     /// <returns>
-    /// Returns the execution result of the given GraphQL <paramref name="query" />.
-    ///
+    /// <para>Returns the execution result of the given GraphQL <paramref name="query" />.</para>
+    /// <para>
     /// If the request operation is a simple query or mutation the result is a
     /// <see cref="IQueryResult" />.
-    ///
+    /// </para>
+    /// <para>
     /// If the request operation is a query or mutation where data is deferred, streamed or
     /// includes live data the result is a <see cref="IResponseStream" /> where each result
     /// that the <see cref="IResponseStream" /> yields is a
     /// <see cref="IQueryResult" />.
-    ///
+    /// </para>
+    /// <para>
     /// If the request operation is a subscription the result is a
     /// <see cref="IResponseStream" /> where each result that the
     /// <see cref="IResponseStream" /> yields is a
     /// <see cref="IQueryResult" />.
+    /// </para>
     /// </returns>
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IRequestExecutorBuilder builder,
@@ -322,8 +325,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async Task<IResponseStream> ExecuteBatchRequestAsync(
         this IServiceProvider services,
-        IEnumerable<IQueryRequest> requestBatch,
-        bool allowParallelExecution = false,
+        IReadOnlyList<IQueryRequest> requestBatch,
         NameString schemaName = default,
         CancellationToken cancellationToken = default)
     {
@@ -332,7 +334,7 @@ public static class RequestExecutorServiceProviderExtensions
                 .ConfigureAwait(false);
 
         return await executor
-            .ExecuteBatchAsync(requestBatch, allowParallelExecution, cancellationToken)
+            .ExecuteBatchAsync(requestBatch, cancellationToken)
             .ConfigureAwait(false);
     }
 }

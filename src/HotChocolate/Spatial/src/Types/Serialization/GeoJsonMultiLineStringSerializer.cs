@@ -69,15 +69,11 @@ internal class GeoJsonMultiLineStringSerializer
                 .CreateGeometry(type, parts[i], crs);
         }
 
-        if (crs is not null)
-        {
-            GeometryFactory factory =
-                NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
+        GeometryFactory factory = crs is null
+            ? NtsGeometryServices.Instance.CreateGeometryFactory()
+            : NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 
-            return factory.CreateMultiLineString(geometries);
-        }
-
-        return new MultiLineString(geometries);
+        return factory.CreateMultiLineString(geometries);
     }
 
     public override object CreateInstance(IType type, object?[] fieldValues)

@@ -38,15 +38,11 @@ internal class GeoJsonLineStringSerializer : GeoJsonInputObjectSerializer<LineSt
             throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
 
-        if (crs is not null)
-        {
-            GeometryFactory factory =
-                NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
+        GeometryFactory factory = crs is null
+            ? NtsGeometryServices.Instance.CreateGeometryFactory()
+            : NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 
-            return factory.CreateLineString(coords);
-        }
-
-        return new LineString(coords);
+        return factory.CreateLineString(coords);
     }
 
     public override object CreateInstance(IType type, object?[] fieldValues)
