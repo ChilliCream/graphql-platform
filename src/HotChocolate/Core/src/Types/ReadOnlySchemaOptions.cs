@@ -47,6 +47,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation;
         DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck;
         EnableOneOf = options.EnableOneOf;
+        DisableStreamDefer = options.DisableStreamDefer;
     }
 
     /// <summary>
@@ -145,4 +146,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc />
     public bool EnableOneOf { get; }
+
+    /// <inheritdoc />
+    public bool DisableStreamDefer { get; }
 }

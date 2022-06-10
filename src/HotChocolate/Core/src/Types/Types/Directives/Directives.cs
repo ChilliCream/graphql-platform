@@ -23,28 +23,27 @@ public static class Directives
         IDescriptorContext descriptorContext)
     {
         ITypeInspector typeInspector = descriptorContext.TypeInspector;
-
-        if (descriptorContext.Options.EnableOneOf)
-        {
-            return new ITypeReference[]
-            {
-                typeInspector.GetTypeRef(typeof(SkipDirectiveType)),
-                typeInspector.GetTypeRef(typeof(IncludeDirectiveType)),
-                typeInspector.GetTypeRef(typeof(DeferDirectiveType)),
-                typeInspector.GetTypeRef(typeof(StreamDirectiveType)),
-                typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)),
-                typeInspector.GetTypeRef(typeof(OneOfDirectiveType))
-            };
-        }
-
-        return new ITypeReference[]
+        var typeReferences = new List<ITypeReference>
         {
             typeInspector.GetTypeRef(typeof(SkipDirectiveType)),
             typeInspector.GetTypeRef(typeof(IncludeDirectiveType)),
-            typeInspector.GetTypeRef(typeof(DeferDirectiveType)),
-            typeInspector.GetTypeRef(typeof(StreamDirectiveType)),
-            typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType))
         };
+
+        if (!descriptorContext.Options.DisableStreamDefer)
+        {
+            typeReferences.Add(typeInspector.GetTypeRef(typeof(DeferDirectiveType)));
+            typeReferences.Add(typeInspector.GetTypeRef(typeof(StreamDirectiveType)));
+        }
+
+        typeReferences.Add(typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)));
+
+        if (descriptorContext.Options.EnableOneOf)
+        {
+            typeReferences.Add(typeInspector.GetTypeRef(typeof(OneOfDirectiveType)));
+            return typeReferences;
+        }
+
+        return typeReferences;
     }
 
 

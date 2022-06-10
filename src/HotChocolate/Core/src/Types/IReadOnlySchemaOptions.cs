@@ -112,4 +112,10 @@ public interface IReadOnlySchemaOptions
     /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
     /// </summary>
     bool EnableOneOf { get; }
+
+    /// <summary>
+    /// Disables stream & defer directives as they break Apollo federation
+    /// https://github.com/ChilliCream/hotchocolate/issues/4795
+    /// </summary>
+    bool DisableStreamDefer { get; }
 }
