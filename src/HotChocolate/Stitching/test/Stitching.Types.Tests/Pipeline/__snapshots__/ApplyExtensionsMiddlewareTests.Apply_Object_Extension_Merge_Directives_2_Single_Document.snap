@@ -3,5 +3,5 @@
 }
 
 type Foo @a @b {
-  abc: String @_hc_bind(to: "abc")
+  abc: String
 }

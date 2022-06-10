@@ -20,7 +20,7 @@ internal sealed class BindDirective
     {
         if (syntax.Name.Value.EqualsOrdinal("_hc_bind"))
         {
-            if (syntax.Arguments.Count <= 0 || syntax.Arguments.Count > 2)
+            if (syntax.Arguments.Count is <= 0 or > 2)
             {
                 bind = null;
                 return false;
@@ -68,6 +68,51 @@ internal sealed class BindDirective
         }
 
         bind = null;
+        return false;
+    }
+
+    public static bool IsOfType(DirectiveNode syntax)
+    {
+        if (syntax.Name.Value.EqualsOrdinal("_hc_bind"))
+        {
+            if (syntax.Arguments.Count is <= 0 or > 2)
+            {
+                return false;
+            }
+
+            bool hasTo = false, hasAs = false;
+
+            foreach (ArgumentNode argument in syntax.Arguments)
+            {
+                if (argument.Name.Value.EqualsOrdinal("to") &&
+                    argument.Value is StringValueNode { Value.Length: > 0 })
+                {
+                    hasTo = true;
+                }
+                else if (argument.Name.Value.EqualsOrdinal("as") &&
+                    argument.Value is StringValueNode { Value.Length: > 0 })
+                {
+                    hasAs = true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            if (hasAs && hasTo)
+            {
+                return true;
+            }
+
+            if (hasTo)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         return false;
     }
 

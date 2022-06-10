@@ -3,5 +3,5 @@
 }
 
 type Foo {
-  abc: String @directive @_hc_bind(to: "abc")
+  abc: String @directive
 }
