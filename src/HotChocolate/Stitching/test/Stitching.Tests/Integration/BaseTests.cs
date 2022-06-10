@@ -73,6 +73,70 @@ namespace HotChocolate.Stitching.Integration
         }
 
         [Fact]
+        public async Task LocalField_Execute()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddTypeExtension(new ObjectTypeExtension(d
+                        => d.Name("Query").Field("local").Resolve("I am local.")))
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    local
+                    allCustomers {
+                        id
+                        name
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Schema_AddResolver()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .AddResolver("Query", "local", "I am local")
+                    .AddTypeExtensionsFromString("extend type Query { local: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    local
+                    allCustomers {
+                        id
+                        name
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task AutoMerge_Execute_Inline_Fragment()
         {
             // arrange
@@ -195,9 +259,7 @@ namespace HotChocolate.Stitching.Integration
 
             var variables = new Dictionary<string, object>
             {
-                { "customerId", "Q3VzdG9tZXIKZDE=" },
-                { "deep", "deep" },
-                { "deeper", "deeper" }
+                { "customerId", "Q3VzdG9tZXIKZDE=" }, { "deep", "deep" }, { "deeper", "deeper" }
             };
 
             // act
@@ -586,10 +648,7 @@ namespace HotChocolate.Stitching.Integration
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .BuildRequestExecutorAsync();
 
-            var variables = new Dictionary<string, object>
-            {
-                { "v", new FloatValueNode(1.2f) }
-            };
+            var variables = new Dictionary<string, object> { { "v", new FloatValueNode(1.2f) } };
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(

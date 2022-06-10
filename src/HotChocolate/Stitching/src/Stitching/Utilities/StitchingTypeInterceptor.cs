@@ -6,6 +6,7 @@ using HotChocolate.Stitching.Delegation;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 using static HotChocolate.Stitching.WellKnownContextData;
 
 namespace HotChocolate.Stitching.Utilities
@@ -27,9 +28,9 @@ namespace HotChocolate.Stitching.Utilities
                     if (objectField.GetDirectives().Any(IsDelegatedField))
                     {
                         FieldMiddleware handleDictionary =
-                            FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
+                            Create<DictionaryResultMiddleware>();
                         FieldMiddleware delegateToSchema =
-                            FieldClassMiddlewareFactory.Create<DelegateToRemoteSchemaMiddleware>();
+                            Create<DelegateToRemoteSchemaMiddleware>();
 
                         objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
                         objectField.MiddlewareDefinitions.Insert(0, new(delegateToSchema));
@@ -62,15 +63,25 @@ namespace HotChocolate.Stitching.Utilities
             {
                 IReadOnlyDictionary<NameString, ISet<NameString>> externalFieldLookup =
                     completionContext.GetExternalFieldLookup();
-                if (externalFieldLookup.TryGetValue(objectType.Name, out ISet<NameString>? external))
+                if (externalFieldLookup.TryGetValue(objectType.Name,
+                        out ISet<NameString>? external))
                 {
                     foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
                     {
                         if (external.Contains(objectField.Name) &&
                             _handledExternalFields.Add((objectTypeDef.Name, objectField.Name)))
                         {
-                            objectField.Resolvers = new FieldResolverDelegates(
-                                pureResolver: RemoteFieldHelper.RemoteFieldResolver);
+                            if (objectField.Resolvers.HasResolvers)
+                            {
+                                FieldMiddleware handleDictionary =
+                                    Create<DictionaryResultMiddleware>();
+                                objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
+                            }
+                            else
+                            {
+                                objectField.Resolvers = new FieldResolverDelegates(
+                                    pureResolver: RemoteFieldHelper.RemoteFieldResolver);
+                            }
                         }
                     }
                 }
