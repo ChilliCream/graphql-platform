@@ -3,7 +3,6 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Language.Visitors</PackageId>
     <AssemblyName>HotChocolate.Language.Visitors</AssemblyName>
-    <RootNamespace>HotChocolate.Language</RootNamespace>
     <Description>This package contains the UTF8 based parsers of Hot Chocolate.</Description>
   </PropertyGroup>
 

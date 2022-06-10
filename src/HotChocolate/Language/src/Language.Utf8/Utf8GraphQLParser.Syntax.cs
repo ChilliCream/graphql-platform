@@ -30,6 +30,27 @@ public ref partial struct Utf8GraphQLParser
             new Utf8GraphQLParser(reader).ParseObjectTypeDefinition();
 
         /// <summary>
+        /// Parses a GraphQL object type definitions e.g. type Foo { bar: String }
+        /// </summary>
+        public static DirectiveDefinitionNode ParseDirectiveDefinition(
+            string sourceText) =>
+            Parse(sourceText, parser => parser.ParseDirectiveDefinition());
+
+        /// <summary>
+        /// Parses a GraphQL object type definitions e.g. type Foo { bar: String }
+        /// </summary>
+        public static DirectiveDefinitionNode ParseDirectiveDefinition(
+            ReadOnlySpan<byte> sourceText) =>
+            Parse(sourceText, parser => parser.ParseDirectiveDefinition());
+
+        /// <summary>
+        /// Parses a GraphQL object type definitions e.g. type Foo { bar: String }
+        /// </summary>
+        public static DirectiveDefinitionNode ParseDirectiveDefinition(
+            Utf8GraphQLReader reader) =>
+            new Utf8GraphQLParser(reader).ParseDirectiveDefinition();
+
+        /// <summary>
         /// Parses a GraphQL field selection string e.g. field(arg: "abc")
         /// </summary>
         public static FieldDefinitionNode ParseFieldDefinition(

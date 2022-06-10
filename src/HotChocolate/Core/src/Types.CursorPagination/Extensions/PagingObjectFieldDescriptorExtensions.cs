@@ -415,6 +415,6 @@ public static class PagingObjectFieldDescriptorExtensions
             return connectionName;
         }
 
-        return string.Concat(char.ToUpper(connectionName[0]), connectionName.Substring(1));
+        return string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName.Substring(1));
     }
 }

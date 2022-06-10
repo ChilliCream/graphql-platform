@@ -51,39 +51,22 @@ internal class GeoJsonPolygonSerializer
             throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
 
-        if (crs is not null)
+        GeometryFactory factory = crs is null
+            ? NtsGeometryServices.Instance.CreateGeometryFactory()
+            : NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
+
+        LinearRing ringSrid = factory.CreateLinearRing((Coordinate[])ringsCoordinates[0]);
+        LinearRing[] holes = Array.Empty<LinearRing>();
+        if (ringsCoordinates.Length > 1)
         {
-            GeometryFactory factory =
-                NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
-
-            LinearRing ringSrid = factory.CreateLinearRing((Coordinate[])ringsCoordinates[0]);
-            LinearRing[] holes = Array.Empty<LinearRing>();
-            if (ringsCoordinates.Length > 1)
+            holes = new LinearRing[ringsCoordinates.Length - 1];
+            for (var i = 0; i < ringsCoordinates.Length - 1; i++)
             {
-                holes = new LinearRing[ringsCoordinates.Length - 1];
-                for (var i = 0; i < ringsCoordinates.Length - 1; i++)
-                {
-                    holes[i] = factory.CreateLinearRing((Coordinate[])ringsCoordinates[i + 1]);
-                }
+                holes[i] = factory.CreateLinearRing((Coordinate[])ringsCoordinates[i + 1]);
             }
-
-            return factory.CreatePolygon(ringSrid, holes);
         }
-        else
-        {
-            var ring = new LinearRing((Coordinate[])ringsCoordinates[0]);
-            LinearRing[] holes = Array.Empty<LinearRing>();
-            if (ringsCoordinates.Length > 1)
-            {
-                holes = new LinearRing[ringsCoordinates.Length - 1];
-                for (var i = 0; i < ringsCoordinates.Length - 1; i++)
-                {
-                    holes[i] = new LinearRing((Coordinate[])ringsCoordinates[i + 1]);
-                }
-            }
 
-            return new Polygon(ring, holes);
-        }
+        return factory.CreatePolygon(ringSrid, holes);
     }
 
     public override object CreateInstance(IType type, object?[] fieldValues)

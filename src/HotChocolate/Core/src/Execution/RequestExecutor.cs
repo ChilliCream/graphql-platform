@@ -15,6 +15,7 @@ internal sealed class RequestExecutor : IRequestExecutor
     private readonly RequestDelegate _requestDelegate;
     private readonly BatchExecutor _batchExecutor;
     private readonly ObjectPool<RequestContext> _contextPool;
+    private readonly bool _parallelBatching;
 
     public RequestExecutor(
         ISchema schema,
@@ -103,8 +104,7 @@ internal sealed class RequestExecutor : IRequestExecutor
     }
 
     public Task<IResponseStream> ExecuteBatchAsync(
-        IEnumerable<IQueryRequest> requestBatch,
-        bool allowParallelExecution = false,
+        IReadOnlyList<IQueryRequest> requestBatch,
         CancellationToken cancellationToken = default)
     {
         if (requestBatch is null)

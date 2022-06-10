@@ -55,7 +55,7 @@ With this in mind, we can have a deeper dive into filtering. Buckle up, this mig
 At the core of the configuration API of filtering there sits a convention. The convention holds the whole
 configuration that filtering needs to create filter types and to translate them to the database.
 During schema creation, the schema builder asks the convention how the schema should look like.
-The convention defines the names and descriptions of types and fields and also what the type should be used for properties
+The convention defines the names and descriptions of types and fields and also what the type should be used for properties.
 The convention also defines what provider should be used to translate a GraphQL query to a database query.
 The provider is the only thing that is used after the schema is built.
 Every field or operation in a filter type has a handler annotated.  
