@@ -3,6 +3,6 @@
 }
 
 type Foo {
-  abc: String
-  def: String
+  abc: String @_hc_bind(to: "abc")
+  def: String @_hc_bind(to: "abc")
 }

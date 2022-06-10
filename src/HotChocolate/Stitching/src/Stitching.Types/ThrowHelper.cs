@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Stitching.Types;
 
-internal static class ExceptionHelper
+internal static class ThrowHelper
 {
     public static GraphQLException ApplyExtensionsMiddleware_ArgumentCountMismatch(
         string typeName,
@@ -50,5 +50,13 @@ internal static class ExceptionHelper
                 .SetExtension("argumentIndex", index)
                 .SetExtension("expectedArgumentType", argument.Type.ToString())
                 .SetExtension("argumentType", argumentExt.Type.ToString())
+                .Build());
+
+    public static GraphQLException RenameDirectiveInvalidStructure(
+        SchemaCoordinateNode schemaCoordinate)
+        => new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage("The `@rename` directive must have exactly 1 argument called `to` and this argument must be a valid GraphQL name string.")
+                .SetExtension("coordinate", schemaCoordinate.ToString())
                 .Build());
 }

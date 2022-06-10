@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Utilities;
 using static System.Array;
 
 namespace HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
 
 public sealed class ApplyExtensionsMiddleware
 {
-
     private const string _schema = "$schema";
 
     private readonly IApplyExtension[] _applyExtensions =
@@ -40,7 +42,7 @@ public sealed class ApplyExtensionsMiddleware
             }
 
             DocumentNode subgraph = ApplyExtensions(definitions, extensions);
-            context.Documents = context.Documents.Add(subgraph);
+            context.Documents = context.Documents.Add(new Document(configuration.Name, subgraph));
         }
 
         await _next(context);

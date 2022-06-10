@@ -15,7 +15,7 @@ public sealed class SchemaMergePipelineBuilder
 
     public MergeSchema Compile()
     {
-        MergeSchema next = context => default;
+        MergeSchema next = _ => default;
 
         for (var i = _pipeline.Count - 1; i >= 0; i--)
         {

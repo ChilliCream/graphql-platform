@@ -161,4 +161,71 @@ public class ApplyExtensionsMiddlewareTests
         // assert
         await Assert.ThrowsAsync<GraphQLException>(Error);
     }
+
+    [Fact]
+    public async Task Apply_Local_Remove()
+    {
+        // arrange
+        var middleware = new ApplyExtensionsMiddleware(_ => default);
+
+        var service = new ServiceConfiguration(
+            "abc",
+            Parse(@"
+                type Foo @a {
+                    abc: String
+                }
+
+                extend type Foo {
+                    abc: String @remove
+                }"));
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await middleware.InvokeAsync(context);
+
+        // assert
+        context.Documents.Single().ToString().MatchSnapshot();
+    }
+}
+
+public class ApplyRenamingMiddlewareTests
+{
+    [Fact]
+    public async Task Apply_Local_Rename()
+    {
+        // arrange
+        MergeSchema pipeline =
+            new SchemaMergePipelineBuilder()
+                .Use(next =>
+                {
+                    var middleware = new ApplyExtensionsMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Use(next =>
+                {
+                    var middleware = new ApplyRenamingMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Compile();
+
+        var service = new ServiceConfiguration(
+            "abc",
+            Parse(@"
+                type Foo @a {
+                    abc: String
+                }
+
+                extend type Foo {
+                    abc: String @rename(to: ""def"")
+                }"));
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().ToString().MatchSnapshot();
+    }
 }
