@@ -87,8 +87,17 @@ internal sealed class StitchingTypeInterceptor : TypeInterceptor
                     if (external.Contains(objectField.Name) &&
                         _handledExternalFields.Add((objectTypeDef.Name, objectField.Name)))
                     {
-                        objectField.Resolvers = new FieldResolverDelegates(
-                            pureResolver: RemoteFieldHelper.RemoteFieldResolver);
+                        if (objectField.Resolvers.HasResolvers)
+                        {
+                            FieldMiddleware handleDictionary =
+                                Create<DictionaryResultMiddleware>();
+                            objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
+                        }
+                        else
+                        {
+                            objectField.Resolvers = new FieldResolverDelegates(
+                                pureResolver: RemoteFieldHelper.RemoteFieldResolver);
+                        }
                     }
                 }
             }
