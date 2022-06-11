@@ -11,7 +11,7 @@ namespace HotChocolate.Language;
 /// </para>
 /// <para>The document can contain schema definition nodes or query nodes.</para>
 /// </summary>
-public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
+public sealed class DocumentNode : ISyntaxNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="DocumentNode"/>.
@@ -106,82 +106,7 @@ public sealed class DocumentNode : ISyntaxNode, IEquatable<DocumentNode>
         => new(Location, definitions);
 
     /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">
-    /// An object to compare with this object.
-    /// </param>
-    /// <returns>
-    /// true if the current object is equal to the <paramref name="other" /> parameter;
-    /// otherwise, false.
-    /// </returns>
-    public bool Equals(DocumentNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return EqualityHelper.Equals(Definitions, other.Definitions);
-    }
-
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object.
-    /// </summary>
-    /// <param name="obj">
-    /// The object to compare with the current object.
-    /// </param>
-    /// <returns>
-    /// true if the specified object  is equal to the current object; otherwise, false.
-    /// </returns>
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is DocumentNode other && Equals(other));
-
-    /// <summary>
-    /// Serves as the default hash function.
-    /// </summary>
-    /// <returns>
-    /// A hash code for the current object.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        var hashCode = new HashCode();
-        hashCode.Add(Kind);
-        hashCode.AddNodes(Definitions);
-        return hashCode.ToHashCode();
-    }
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(DocumentNode? left, DocumentNode? right)
-        => Equals(left, right);
-        
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(DocumentNode? left, DocumentNode? right)
-        => !Equals(left, right);
-
-    /// <summary>
     /// Gets an empty GraphQL document.
     /// </summary>
-    public static DocumentNode Empty { get; } =
-        new(null, Array.Empty<IDefinitionNode>());
+    public static DocumentNode Empty { get; } = new(null, Array.Empty<IDefinitionNode>());
 }

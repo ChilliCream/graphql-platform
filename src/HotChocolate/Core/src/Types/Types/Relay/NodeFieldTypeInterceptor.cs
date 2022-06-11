@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -5,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -15,8 +18,6 @@ using HotChocolate.Types.Introspection;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.WellKnownContextData;
-
-#nullable enable
 
 namespace HotChocolate.Types.Relay;
 
@@ -64,10 +65,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Node,
             Relay_NodeField_Description,
             node,
-            ResolveNodeAsync)
-        {
-            Arguments = { new(Id, Relay_NodeField_Id_Description, id) }
-        };
+            ResolveNodeAsync) { Arguments = { new(Id, Relay_NodeField_Id_Description, id) } };
 
         fields.Insert(index, field);
 
@@ -87,10 +85,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Nodes,
             Relay_NodesField_Description,
             nodes,
-            ResolveNodeAsync)
-        {
-            Arguments = { new(Ids, Relay_NodesField_Ids_Description, ids) }
-        };
+            ResolveNodeAsync) { Arguments = { new(Ids, Relay_NodesField_Ids_Description, ids) } };
 
         fields.Insert(index, field);
 
@@ -130,7 +125,6 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         {
             ListValueNode list = context.ArgumentLiteral<ListValueNode>(Ids);
             Task<object?>[] tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
-            tasks.AsSpan().Slice(0, list.Items.Count).Clear();
             var result = new object?[list.Items.Count];
 
             try
@@ -153,7 +147,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                         context.Schema.TryGetType<ObjectType>(typeName, out ObjectType? type) &&
                         type.ContextData.TryGetValue(NodeResolver, out var o) &&
                         o is FieldResolverDelegate resolver
-                            ? resolver.Invoke(context).AsTask()
+                            ? resolver.Invoke(new ResolverContextProxy(context)).AsTask()
                             : _nullTask;
                 }
 
@@ -192,7 +186,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             }
             finally
             {
-                ArrayPool<Task<object?>>.Shared.Return(tasks);
+                ArrayPool<Task<object?>>.Shared.Return(tasks, true);
             }
         }
         else
@@ -205,7 +199,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     private static void ReportError(IResolverContext context, int item, Exception ex)
     {
-        Path itemPath = context.Path.Append(item);
+        Path itemPath = PathFactory.Instance.Append(context.Path, item);
         context.ReportError(ex, error => error.SetPath(itemPath));
     }
 }

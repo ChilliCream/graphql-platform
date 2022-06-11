@@ -161,5 +161,12 @@ public readonly struct Optional<T>
     /// Creates a new generic optional from a non-generic optional.
     /// </summary>
     public static Optional<T> From(IOptional optional)
-        => new((T?)optional.Value, optional.HasValue);
+    {
+        if (optional.HasValue)
+        {
+            return new Optional<T>((T?)optional.Value);
+        }
+
+        return new Optional<T>();
+    }
 }

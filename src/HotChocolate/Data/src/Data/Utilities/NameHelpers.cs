@@ -11,10 +11,12 @@ internal static class NameHelpers
         {
             throw new ArgumentNullException(nameof(s));
         }
+
         s = s.Trim();
+
         if (s.Length < 1)
         {
-            throw new ArgumentException("Provided string was empty.", nameof(s));
+            throw new ArgumentException(DataResources.NameHelpers_UppercaseFirstLetter, nameof(s));
         }
 
         return $"{char.ToUpper(s[0], CultureInfo.InvariantCulture)}{s.Substring(1)}";

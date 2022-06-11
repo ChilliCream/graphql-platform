@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Utilities;
 using static StrawberryShake.CodeGeneration.WellKnownNames;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
-internal sealed class TypeNameQueryRewriter : QuerySyntaxRewriter<TypeNameQueryRewriter.Context>
+internal sealed class TypeNameQueryRewriter : SyntaxRewriter<TypeNameQueryRewriter.Context>
 {
     private static readonly FieldNode _typeNameField = new(
         null,
@@ -83,7 +84,7 @@ internal sealed class TypeNameQueryRewriter : QuerySyntaxRewriter<TypeNameQueryR
         return rewriter.RewriteDocument(document, new());
     }
 
-    public class Context
+    public class Context : ISyntaxVisitorContext
     {
         public Stack<ISyntaxNode> Nodes { get; } = new();
     }

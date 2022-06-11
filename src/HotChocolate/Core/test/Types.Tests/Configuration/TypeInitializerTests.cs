@@ -30,7 +30,6 @@ namespace HotChocolate.Configuration
                 },
                 null,
                 t => t is FooType ? RootTypeKind.Query : RootTypeKind.None,
-                () => null,
                 new SchemaOptions());
 
             // act
@@ -86,7 +85,6 @@ namespace HotChocolate.Configuration
                         _ => RootTypeKind.None
                     };
                 },
-                () => null,
                 new SchemaOptions());
 
             // act
@@ -117,40 +115,6 @@ namespace HotChocolate.Configuration
         }
 
         [Fact]
-        public void Initializer_SchemaResolver_Is_Null()
-        {
-            // arrange
-            var typeInterceptor = new AggregateTypeInterceptor();
-            typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
-            IDescriptorContext context = DescriptorContext.Create(
-                typeInterceptor: typeInterceptor);
-            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
-
-            // act
-            void Action() => new TypeInitializer(
-                context,
-                typeRegistry,
-                new List<ITypeReference>
-                {
-                    context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
-                },
-                null!,
-                t =>
-                {
-                    return t switch
-                    {
-                        ObjectType<Foo> => RootTypeKind.Query,
-                        _ => RootTypeKind.None
-                    };
-                },
-                null!,
-                new SchemaOptions());
-
-            // assert
-            Assert.Throws<ArgumentNullException>(Action);
-        }
-
-        [Fact]
         public void Initializer_SchemaOptions_Are_Null()
         {
             // arrange
@@ -177,7 +141,6 @@ namespace HotChocolate.Configuration
                         _ => RootTypeKind.None
                     };
                 },
-                () => null,
                 null!);
 
             // assert

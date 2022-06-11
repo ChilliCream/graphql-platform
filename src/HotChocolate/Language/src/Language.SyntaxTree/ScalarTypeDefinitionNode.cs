@@ -7,16 +7,13 @@ namespace HotChocolate.Language;
 /// <summary>
 /// <para>Represents the scalar definition syntax.</para>
 /// <para>
-/// Scalar types represent primitive leaf values in a GraphQL type system. 
+/// Scalar types represent primitive leaf values in a GraphQL type system.
 /// GraphQL responses take the form of a hierarchical tree;
 /// the leaves of this tree are typically GraphQL Scalar types
 /// (but may also be Enum types or null values).
 /// </para>
 /// </summary>
-public sealed class ScalarTypeDefinitionNode
-    : NamedSyntaxNode
-    , ITypeDefinitionNode
-    , IEquatable<ScalarTypeDefinitionNode>
+public sealed class ScalarTypeDefinitionNode : NamedSyntaxNode, ITypeDefinitionNode
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ScalarTypeDefinitionNode"/>.
@@ -141,72 +138,4 @@ public sealed class ScalarTypeDefinitionNode
     /// </returns>
     public ScalarTypeDefinitionNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
         => new(Location, Name, Description, directives);
-
-    /// <summary>
-    /// Determines whether the specified <see cref="ScalarTypeDefinitionNode"/>
-    /// is equal to the current <see cref="ScalarTypeDefinitionNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="ScalarTypeDefinitionNode"/> to compare with the current
-    /// <see cref="ScalarTypeDefinitionNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="ScalarTypeDefinitionNode"/> is equal
-    /// to the current <see cref="ScalarTypeDefinitionNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(ScalarTypeDefinitionNode? other)
-        => base.Equals(other) && Description.IsEqualTo(other.Description);
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="ScalarTypeDefinitionNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="ScalarTypeDefinitionNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="ScalarTypeDefinitionNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-        => Equals(obj as ScalarTypeDefinitionNode);
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="ScalarTypeDefinitionNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-       => HashCode.Combine(base.GetHashCode(), Kind, Description?.GetHashCode());
-
-    /// <summary>
-    /// The equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are equal.
-    /// </returns>
-    public static bool operator ==(
-        ScalarTypeDefinitionNode? left,
-        ScalarTypeDefinitionNode? right)
-        => Equals(left, right);
-
-    /// <summary>
-    /// The not equal operator.
-    /// </summary>
-    /// <param name="left">The left parameter</param>
-    /// <param name="right">The right parameter</param>
-    /// <returns>
-    /// <c>true</c> if <paramref name="left"/> and <paramref name="right"/> are not equal.
-    /// </returns>
-    public static bool operator !=(
-        ScalarTypeDefinitionNode? left,
-        ScalarTypeDefinitionNode? right)
-        => !Equals(left, right);
 }

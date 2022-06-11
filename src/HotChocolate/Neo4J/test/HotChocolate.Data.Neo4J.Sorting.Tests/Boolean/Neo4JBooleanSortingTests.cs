@@ -6,8 +6,8 @@ using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Sorting.Boolean;
 
+[Collection("Database")]
 public class Neo4JBooleanSortingTests
-    : IClassFixture<Neo4JFixture>
 {
     private readonly Neo4JFixture _fixture;
 
@@ -17,16 +17,16 @@ public class Neo4JBooleanSortingTests
     }
 
     private string _fooEntitiesCypher = @"
-            CREATE (:Foo {Bar: true}), (:Foo {Bar: false})
+            CREATE (:FooBool {Bar: true}), (:FooBool {Bar: false})
         ";
 
-    public class Foo
+    public class FooBool
     {
         public bool Bar { get; set; }
     }
 
-    public class FooSortType
-        : SortInputType<Foo>
+    public class FooBoolSortType
+        : SortInputType<FooBool>
     {
     }
 
@@ -35,7 +35,7 @@ public class Neo4JBooleanSortingTests
     {
         // arrange
         IRequestExecutor tester =
-            await _fixture.GetOrCreateSchema<Foo, FooSortType>(_fooEntitiesCypher);
+            await _fixture.GetOrCreateSchema<FooBool, FooBoolSortType>(_fooEntitiesCypher);
 
         // act
         IExecutionResult res1 = await tester.ExecuteAsync(

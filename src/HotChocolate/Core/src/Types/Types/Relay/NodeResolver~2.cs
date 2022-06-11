@@ -28,8 +28,7 @@ internal sealed class NodeResolver<TNode, TId> : INodeResolver
             return await ResolveAsync(context, c).ConfigureAwait(false);
         }
 
-        ITypeConverter typeConverter =
-            context.Service<IServiceProvider>().GetTypeConverter();
+        ITypeConverter typeConverter = context.Service<IServiceProvider>().GetTypeConverter();
         c = typeConverter.Convert<object, TId>(id);
         return await ResolveAsync(context, c).ConfigureAwait(false);
     }

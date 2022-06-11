@@ -1,9 +1,6 @@
 namespace HotChocolate.Language.Visitors;
 
-public interface ISyntaxVisitor<TContext>
-    where TContext : ISyntaxVisitorContext
+public interface ISyntaxVisitor<in TContext> where TContext : ISyntaxVisitorContext
 {
-    ISyntaxVisitorAction Visit(
-        ISyntaxNode node,
-        TContext context);
+    ISyntaxVisitorAction Visit(ISyntaxNode node, TContext context);
 }

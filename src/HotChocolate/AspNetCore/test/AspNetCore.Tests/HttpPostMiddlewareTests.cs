@@ -11,7 +11,11 @@ using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.AspNetCore.Instrumentation;
 using System;
+using System.Net;
+using System.Net.Http;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore;
 
@@ -137,6 +141,33 @@ public class HttpPostMiddlewareTests : ServerTestBase
     {
         // arrange
         TestServer server = CreateStarWarsServer();
+
+        // act
+        ClientQueryResult result =
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                    {
+                        HERO: hero {
+                            name
+                        }
+                    }"
+            });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Complexity_Exceeded()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer(
+            configureServices: c => c.AddGraphQLServer().ModifyRequestOptions(o=>
+            {
+                o.Complexity.Enable = true;
+                o.Complexity.MaximumAllowed = 1;
+            }));
 
         // act
         ClientQueryResult result =
@@ -778,6 +809,50 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }"
                     }
             });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task BatchRequest_GetHero_And_GetHuman_MultiPart()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer(
+            configureServices: sp => sp.AddHttpResultSerializer());
+
+        // act
+        HttpResponseMessage response =
+            await server.SendPostRequestAsync(
+                JsonConvert.SerializeObject(new List<ClientQueryRequest>
+                {
+                    new ClientQueryRequest
+                    {
+                        Query = @"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
+                            }"
+                    },
+                    new ClientQueryRequest
+                    {
+                        Query = @"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
+                    }
+                }),
+                "/graphql");
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new Exception("GraphQL endpoint not found.");
+        }
+
+        var result = await response.Content.ReadAsStringAsync();
 
         // assert
         result.MatchSnapshot();

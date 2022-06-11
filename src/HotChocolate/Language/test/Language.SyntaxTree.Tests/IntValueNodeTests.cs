@@ -17,7 +17,7 @@ public class IntValueNodeTests
         IValueNode b = new IntValueNode(value);
 
         // act
-        bool result = a.Equals(b);
+        var result = SyntaxComparer.BySyntax.Equals(a, b);
 
         // assert
         Assert.True(result);
@@ -36,7 +36,7 @@ public class IntValueNodeTests
         IValueNode b = new IntValueNode(bValue);
 
         // act
-        var result = a.Equals(b);
+        var result = SyntaxComparer.BySyntax.Equals(a, b);
 
         // assert
         Assert.False(result);
@@ -56,10 +56,10 @@ public class IntValueNodeTests
             2);
 
         // act
-        var abResult = a.Equals(b);
-        var aaResult = a.Equals(a);
-        var acResult = a.Equals(c);
-        var aNullResult = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
         Assert.True(abResult);
@@ -83,10 +83,10 @@ public class IntValueNodeTests
             2);
 
         // act
-        var abResult = a.Equals(b);
-        var aaResult = a.Equals(a);
-        var acResult = a.Equals(c);
-        var aNullResult = a.Equals(default);
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
 
         // assert
         Assert.True(abResult);
@@ -113,10 +113,10 @@ public class IntValueNodeTests
             2);
 
         // act
-        var aHash = a.GetHashCode();
-        var bHash = b.GetHashCode();
-        var cHash = c.GetHashCode();
-        var dHash = d.GetHashCode();
+        var aHash = SyntaxComparer.BySyntax.GetHashCode(a);
+        var bHash = SyntaxComparer.BySyntax.GetHashCode(b);
+        var cHash = SyntaxComparer.BySyntax.GetHashCode(c);
+        var dHash = SyntaxComparer.BySyntax.GetHashCode(d);
 
         // assert
         Assert.Equal(aHash, bHash);

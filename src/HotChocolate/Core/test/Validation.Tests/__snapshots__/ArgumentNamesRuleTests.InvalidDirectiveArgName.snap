@@ -3,13 +3,19 @@
     "Message": "The argument `unless` does not exist.",
     "Code": null,
     "Path": {
+      "Name": "isHouseTrained",
       "Parent": {
-        "Parent": null,
+        "Name": "dog",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
         "Depth": 0,
-        "Name": "dog"
+        "IsRoot": false
       },
       "Depth": 1,
-      "Name": "isHouseTrained"
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -57,13 +63,19 @@
     "Message": "The argument `if` is required.",
     "Code": null,
     "Path": {
+      "Name": "isHouseTrained",
       "Parent": {
-        "Parent": null,
+        "Name": "dog",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
         "Depth": 0,
-        "Name": "dog"
+        "IsRoot": false
       },
       "Depth": 1,
-      "Name": "isHouseTrained"
+      "IsRoot": false
     },
     "Locations": [
       {

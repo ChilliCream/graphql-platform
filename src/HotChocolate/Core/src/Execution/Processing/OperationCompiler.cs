@@ -486,8 +486,8 @@ public sealed partial class OperationCompiler
         IValueNode value,
         bool isDefaultValue)
     {
-        ArgumentNonNullValidator.ValidationResult validationResult =
-            ArgumentNonNullValidator.Validate(argument, value, Path.New(argument.Name));
+        ArgumentNonNullValidator.ValidationResult validationResult = ArgumentNonNullValidator
+            .Validate(argument, value, PathFactory.Instance.New(argument.Name));
 
         if (argumentValue is not null && validationResult.HasErrors)
         {
@@ -544,7 +544,7 @@ public sealed partial class OperationCompiler
                 return false;
 
             case SyntaxKind.ListValue:
-                ListValueNode list = (ListValueNode)valueLiteral;
+                var list = (ListValueNode)valueLiteral;
                 for (var i = 0; i < list.Items.Count; i++)
                 {
                     if (!CanBeCompiled(list.Items[i]))

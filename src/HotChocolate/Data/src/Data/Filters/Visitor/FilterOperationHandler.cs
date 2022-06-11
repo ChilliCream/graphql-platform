@@ -42,6 +42,7 @@ public abstract class FilterOperationHandler<TContext, T>
     /// <param name="context">The <see cref="IFilterVisitorContext{T}"/> of the visitor</param>
     /// <param name="field">The field that is currently being visited</param>
     /// <param name="node">The value node of this field</param>
+    /// <param name="result">Outputs the result when the operation was handled correctly</param>
     /// <returns>If <c>true</c> is returned the action is used for further processing</returns>
     public virtual bool TryHandleOperation(
         TContext context,

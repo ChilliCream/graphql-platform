@@ -9,9 +9,9 @@ namespace HotChocolate.Execution;
 /// The <see cref="RequestExecutorProxy"/> is a helper class that represents a executor for
 /// one specific schema and handles the resolving and hot-swapping the specific executor.
 /// </summary>
-public class RequestExecutorProxy : IDisposable
+public sealed class RequestExecutorProxy : IDisposable
 {
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly IRequestExecutorResolver _executorResolver;
     private readonly NameString _schemaName;
     private IRequestExecutor? _executor;
@@ -82,9 +82,6 @@ public class RequestExecutorProxy : IDisposable
     /// <param name="requestBatch">
     /// The GraphQL request batch.
     /// </param>
-    /// <param name="allowParallelExecution">
-    /// Defines if the executor is allowed to execute the batch in parallel.
-    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -92,8 +89,7 @@ public class RequestExecutorProxy : IDisposable
     /// Returns a stream of query results.
     /// </returns>
     public async Task<IResponseStream> ExecuteBatchAsync(
-        IEnumerable<IQueryRequest> requestBatch,
-        bool allowParallelExecution = false,
+        IReadOnlyList<IQueryRequest> requestBatch,
         CancellationToken cancellationToken = default)
     {
         if (requestBatch == null)
@@ -107,7 +103,7 @@ public class RequestExecutorProxy : IDisposable
 
         IResponseStream result =
             await executor
-                .ExecuteBatchAsync(requestBatch, allowParallelExecution, cancellationToken)
+                .ExecuteBatchAsync(requestBatch, cancellationToken)
                 .ConfigureAwait(false);
 
         return result;
@@ -196,13 +192,7 @@ public class RequestExecutorProxy : IDisposable
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed && disposing)
+        if (!_disposed)
         {
             _executor = null;
             _semaphore.Dispose();

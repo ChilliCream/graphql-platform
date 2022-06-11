@@ -812,6 +812,15 @@ Type: `{0}`</value>
   <data name="ConnectionType_Edges_Description" xml:space="preserve">
     <value>A list of edges.</value>
   </data>
+  <data name="CollectionSegmentType_PageInfo_Description" xml:space="preserve">
+    <value>Information to aid in pagination.</value>
+  </data>
+  <data name="CollectionSegmentType_Description" xml:space="preserve">
+    <value>A segment of a collection.</value>
+  </data>
+  <data name="CollectionSegmentType_Items_Description" xml:space="preserve">
+    <value>A flattened list of the items.</value>
+  </data>
   <data name="ConnectionType_Nodes_Description" xml:space="preserve">
     <value>A flattened list of the nodes.</value>
   </data>
@@ -848,5 +857,11 @@ Type: `{0}`</value>
   </data>
   <data name="ResolverContextExtensions_ContextData_KeyNotFound" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ContextData`</value>
+  </data>
+  <data name="SchemaTypes_GetType_DoesNotExist" xml:space="preserve">
+    <value>The specified type `{0}` does not exist or is not of the specified kind `{1}`.</value>
+  </data>
+  <data name="SchemaTypes_DefinitionInvalid" xml:space="preserve">
+    <value>The schema types definition is in an invalid state.</value>
   </data>
 </root>

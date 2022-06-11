@@ -82,7 +82,7 @@ public interface IFilterConvention : IConvention
     /// The member from which a field shall be inferred.
     /// </param>
     /// <returns>
-    /// Returns a <see cref="RuntimeTypeReference"/> that represents the field type.
+    /// Returns a <see cref="ExtendedTypeReference"/> that represents the field type.
     /// </returns>
     ExtendedTypeReference GetFieldType(MemberInfo member);
 
@@ -134,6 +134,14 @@ public interface IFilterConvention : IConvention
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition,
         [NotNullWhen(true)] out IFilterFieldHandler? handler);
+
+    /// <summary>
+    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// </summary>
+    IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition);
 
     /// <summary>
     /// Creates a middleware that represents the filter execution logic

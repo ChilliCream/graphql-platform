@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Stitching.Types</PackageId>
+    <AssemblyName>HotChocolate.Stitching.Types</AssemblyName>
+    <RootNamespace>HotChocolate.Stitching.Types</RootNamespace>
+    <Description>Contains the type merge logic for schema merging.</Description>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Stitching.Types.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+  </ItemGroup>
+
+</Project>

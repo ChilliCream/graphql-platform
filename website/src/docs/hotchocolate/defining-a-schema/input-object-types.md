@@ -195,11 +195,42 @@ We can also use record types, if we're on C# 9.0+. The equivalent to the above w
 public record BookingInput(string Title, string Author);
 ```
 
+## Optional Properties
+
+If we want our input type classes to contain optional properties, we can use the `Optional<T>` type or mark the properties of the class as `nullable`. It is important to also define a default value for any non-nullable property that is using the `Optional<T>` type by adding the `[DefaultValue]` attribute, otherwise the field will still be required when defining the input.
+
+```csharp
+public class BookInput
+{
+    [DefaultValue("")]
+    public Optional<string> Title { get; set; }
+    public string Author { get; set; }
+
+    public BookInput(string title, string author)
+    {
+        Title = title;
+        Author = author;
+    }
+}
+
+```
+
+Also with record types, the equivalent of the above would be:
+
+```csharp
+public record BookInput([property:DefaultValue("")]Optional<string> Title, string Author);
+
+```
+
 ## Oneof Input Objects
 
 Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null, all others being omitted. This is represented in introspection with the \_\_Type.oneField: Boolean field, and in SDL via the @oneOf directive on the input object.
 
-> ⚠️ Note: Oneof Input Objects is currently a proposed feature to the GraphQL spec. https://github.com/graphql/graphql-spec/pull/825
+> ⚠️ Note: Oneof Input Objects is currently a draft feature to the GraphQL spec. https://github.com/graphql/graphql-spec/pull/825
+
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/tztXm15grU0"frameborder="0" 
+allowfullscreen></iframe>
 
 This introduces a form of input polymorphism to GraphQL. For example, the following PetInput input object lets you choose between a number of potential input types:
 
