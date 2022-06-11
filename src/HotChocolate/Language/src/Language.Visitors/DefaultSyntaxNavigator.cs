@@ -22,12 +22,12 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     {
         get
         {
-            if (_ancestors.Count == 0)
+            if (_ancestors.Count < 2)
             {
                 return null;
             }
 
-            return _ancestors[_ancestors.Count - 1];
+            return _ancestors[_ancestors.Count - 2];
         }
     }
 
@@ -110,6 +110,19 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
 
         node = _ancestors[_ancestors.Count - 1];
         _ancestors.RemoveAt(_ancestors.Count - 1);
+        return true;
+    }
+
+    public bool TryPeek(int depth, [NotNullWhen(true)] out ISyntaxNode? node)
+    {
+        if (_ancestors.Count < depth)
+        {
+            node = default;
+            return false;
+        }
+
+        node = _ancestors[_ancestors.Count - 1 - depth];
+        _ancestors.RemoveAt(_ancestors.Count - 1 - depth);
         return true;
     }
 

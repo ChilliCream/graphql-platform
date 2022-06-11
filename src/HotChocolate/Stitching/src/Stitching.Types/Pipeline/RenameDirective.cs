@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
+namespace HotChocolate.Stitching.Types.Pipeline;
 
 internal sealed class RenameDirective
 {
@@ -33,6 +33,23 @@ internal sealed class RenameDirective
         }
 
         rename = null;
+        return false;
+    }
+
+    public static bool IsOfType(DirectiveNode syntax)
+    {
+        if (syntax.Name.Value.EqualsOrdinal("rename"))
+        {
+            if (syntax.Arguments.Count == 1)
+            {
+                ArgumentNode argument = syntax.Arguments[0];
+                if (argument.Name.Value.EqualsOrdinal("to"))
+                {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 

@@ -1,0 +1,59 @@
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+
+namespace HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
+
+internal sealed class RenameIndexer : SyntaxWalker<RewriteContext>
+{
+    protected override ISyntaxVisitorAction Enter(ISyntaxNode node, RewriteContext context)
+    {
+        context.Navigator.Push(node);
+
+        switch (node)
+        {
+            case ObjectTypeDefinitionNode type
+                when TryGetRenameInformation(type.Directives, context, out var dn, out var to):
+                context.RenamedTypes[type.Name.Value] = new RenameInfo(to, dn);
+                break;
+        }
+
+        return base.Enter(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Leave(ISyntaxNode node, RewriteContext context)
+    {
+        context.Navigator.Pop();
+        return base.Leave(node, context);
+    }
+
+    private bool TryGetRenameInformation(
+        IReadOnlyList<DirectiveNode> directives,
+        RewriteContext context,
+        [NotNullWhen(true)] out DirectiveNode? directive,
+        [NotNullWhen(true)] out string? to)
+    {
+        if (directives.Count == 0)
+        {
+            directive = null;
+            to = null;
+            return false;
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            DirectiveNode node = directives[0];
+            if (RenameDirective.TryParse(node, out RenameDirective? rename))
+            {
+                directive = node;
+                to = rename.To;
+                return true;
+            }
+        }
+
+        directive = null;
+        to = null;
+        return false;
+    }
+}

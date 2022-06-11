@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -10,46 +9,34 @@ namespace HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
 
 internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 {
+    protected override RewriteContext OnEnter(ISyntaxNode node, RewriteContext context)
+    {
+        context.Navigator.Push(node);
+        return base.OnEnter(node, context);
+    }
+
+    protected override void OnLeave(ISyntaxNode node, RewriteContext context)
+    {
+        context.Navigator.Pop();
+        base.OnLeave(node, context);
+    }
+
     protected override ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
         ObjectTypeDefinitionNode node,
         RewriteContext context)
     {
+        var originalName = node.Name.Value;
+
         node = base.RewriteObjectTypeDefinition(node, context);
 
-        TryRenameNode(
-            node,
-            context,
-            static (n, d, o)
-                => new ObjectTypeDefinitionNode(
-                    o.Location,
-                    n,
-                    o.Description,
-                    d,
-                    o.Interfaces,
-                    o.Fields),
-            out node);
-
-        return node;
-    }
-
-    protected override InterfaceTypeDefinitionNode RewriteInterfaceTypeDefinition(
-        InterfaceTypeDefinitionNode node,
-        RewriteContext context)
-    {
-        node = base.RewriteInterfaceTypeDefinition(node, context);
-
-        TryRenameNode(
-            node,
-            context,
-            static (n, d, o)
-                => new InterfaceTypeDefinitionNode(
-                    o.Location,
-                    n,
-                    o.Description,
-                    d,
-                    o.Interfaces,
-                    o.Fields),
-            out node);
+        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        {
+            node = ApplyBindDirective(
+                node,
+                context,
+                originalName,
+                static (n, d) => n.WithDirectives(d));
+        }
 
         return node;
     }
@@ -60,98 +47,60 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
     {
         node = base.RewriteFieldDefinition(node, context);
 
-        if (!TryRenameNode(
-            node,
-            context,
-            static (n, d, o)
-                => new FieldDefinitionNode(
-                    o.Location,
-                    n,
-                    o.Description,
-                    o.Arguments,
-                    o.Type,
-                    d),
-            out node))
-        {
-            if(node.Directives.Count == 0)
-            {
-                var directives = new DirectiveNode[]
-                {
-                    new BindDirective(context.SourceName)
-                };
-
-                return new FieldDefinitionNode(
-                    node.Location,
-                    node.Name,
-                    node.Description,
-                    node.Arguments,
-                    node.Type,
-                    directives);
-            }
-
-            if (node.Directives.All(static t => !BindDirective.IsOfType(t)))
-            {
-                var directives = node.Directives.ToList();
-                directives.Add(new BindDirective(context.SourceName));
-                return new FieldDefinitionNode(
-                    node.Location,
-                    node.Name,
-                    node.Description,
-                    node.Arguments,
-                    node.Type,
-                    directives);
-            }
-        }
-
         return node;
     }
 
-    private bool TryRenameNode<T>(
-        T node,
-        RewriteContext context,
-        Func<NameNode, IReadOnlyList<DirectiveNode>, T, T> createNode,
-        out T rewritten)
-        where T : INamedSyntaxNode
+    protected override NameNode RewriteName(NameNode node, RewriteContext context)
     {
-        if (TryRename(node.Directives, context, out var directive, out var to))
+        if ((context.Navigator.Parent?.Kind == SyntaxKind.ObjectTypeDefinition ||
+            context.Navigator.Parent?.Kind == SyntaxKind.InterfaceTypeDefinition ||
+            context.Navigator.Parent?.Kind == SyntaxKind.NamedType) &&
+            context.RenamedTypes.TryGetValue(node.Value, out RenameInfo? value))
         {
-            var directives = node.Directives.ToList();
-            directives.Remove(directive);
-            directives.Add(new BindDirective(context.SourceName, node.Name.Value));
-            rewritten = createNode(new NameNode(to), directives, node);
-            return true;
+            return node.WithValue(value.Name);
         }
 
-        rewritten = node;
-        return false;
+        context.Navigator.TryPeek(
+
+        if ((context.Navigator.Parent?.Kind == SyntaxKind.ObjectTypeDefinition ||
+            context.Navigator.Parent?.Kind == SyntaxKind.InterfaceTypeDefinition) &&
+                context.Navigator.Parent?.Kind == SyntaxKind.NamedType) &&
+            context.RenamedTypes.TryGetValue(node.Value, out RenameInfo? value))
+        {
+            return node.WithValue(value.Name);
+        }
+
+        return base.RewriteName(node, context);
     }
 
-    private bool TryRename(
-        IReadOnlyList<DirectiveNode> directives,
+    private T ApplyBindDirective<T>(
+        T node,
         RewriteContext context,
-        [NotNullWhen(true)] out DirectiveNode? directive,
-        [NotNullWhen(true)] out string? to)
+        string originalName,
+        Func<T, IReadOnlyList<DirectiveNode>, T> factory)
+        where T : IHasDirectives
     {
-        if (directives.Count == 0)
+        if (node.Directives.Count == 1)
         {
-            directive = null;
-            to = null;
-            return false;
+            return factory(
+                node,
+                new DirectiveNode[]
+                {
+                    new BindDirective(context.SourceName, originalName)
+                });
         }
 
-        for (var i = 0; i < directives.Count; i++)
+        var copy = node.Directives.ToList();
+
+        foreach (DirectiveNode directive in node.Directives)
         {
-            DirectiveNode node = directives[0];
-            if (RenameDirective.TryParse(node, out RenameDirective? rename))
+            if (RenameDirective.IsOfType(directive))
             {
-                directive = node;
-                to = rename.To;
-                return true;
+                copy.Remove(directive);
             }
         }
 
-        directive = null;
-        to = null;
-        return false;
+        copy.Add(new BindDirective(context.SourceName, originalName));
+        return factory(node, copy);
     }
 }

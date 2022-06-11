@@ -51,4 +51,86 @@ public class ApplyLocalRenamingMiddlewareTests
         // assert
         context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Apply_Local_Rename_Interface_Name()
+    {
+        // arrange
+        MergeSchema pipeline =
+            new SchemaMergePipelineBuilder()
+                .Use(next =>
+                {
+                    var middleware = new ApplyExtensionsMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Use(next =>
+                {
+                    var middleware = new ApplyLocalRenamingMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Compile();
+
+        var service = new ServiceConfiguration(
+            "abc",
+            Utf8GraphQLParser.Parse(@"
+                type Foo implements IFoo {
+                    abc: String
+                }
+
+                interface IFoo {
+                    abc: String
+                }
+
+                extend interface IFoo @rename(to: ""def"")"));
+
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Apply_Local_Rename_Object_And_Refactor_Usages()
+    {
+        // arrange
+        MergeSchema pipeline =
+            new SchemaMergePipelineBuilder()
+                .Use(next =>
+                {
+                    var middleware = new ApplyExtensionsMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Use(next =>
+                {
+                    var middleware = new ApplyLocalRenamingMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Compile();
+
+        var service = new ServiceConfiguration(
+            "abc",
+            Utf8GraphQLParser.Parse(@"
+                type Foo @rename(to: ""Bar"") {
+                    abc: String
+                }
+
+                type Baz {
+                    foo: Foo
+                }
+
+                extend interface IFoo @rename(to: ""def"")"));
+
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+    }
 }

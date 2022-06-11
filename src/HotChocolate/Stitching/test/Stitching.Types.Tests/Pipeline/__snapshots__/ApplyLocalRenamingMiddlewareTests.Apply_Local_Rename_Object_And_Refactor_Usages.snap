@@ -1,0 +1,15 @@
+﻿extend interface IFoo @rename(to: "def") {
+
+}
+
+schema @_hc_service(name: "abc") {
+
+}
+
+type Baz {
+  foo: Bar
+}
+
+type Bar @_hc_bind(to: "abc", as: "Foo") {
+  abc: String
+}

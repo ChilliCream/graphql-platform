@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
+namespace HotChocolate.Stitching.Types.Pipeline;
 
 internal sealed class BindDirective
 {
