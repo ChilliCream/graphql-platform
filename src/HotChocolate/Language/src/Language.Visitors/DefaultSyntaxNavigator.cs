@@ -22,12 +22,12 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     {
         get
         {
-            if (_ancestors.Count < 2)
+            if (_ancestors.Count < 1)
             {
                 return null;
             }
 
-            return _ancestors[_ancestors.Count - 2];
+            return _ancestors[_ancestors.Count - 1];
         }
     }
 
@@ -100,6 +100,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
         return true;
     }
 
+    /// <inheritdoc cref="ISyntaxNavigator.TryPeek(out HotChocolate.Language.ISyntaxNode?)"/>
     public bool TryPeek([NotNullWhen(true)] out ISyntaxNode? node)
     {
         if (_ancestors.Count == 0)
@@ -109,20 +110,19 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
         }
 
         node = _ancestors[_ancestors.Count - 1];
-        _ancestors.RemoveAt(_ancestors.Count - 1);
         return true;
     }
 
-    public bool TryPeek(int depth, [NotNullWhen(true)] out ISyntaxNode? node)
+    /// <inheritdoc cref="ISyntaxNavigator.TryPeek(int,out HotChocolate.Language.ISyntaxNode?)"/>
+    public bool TryPeek(int count, [NotNullWhen(true)] out ISyntaxNode? node)
     {
-        if (_ancestors.Count < depth)
+        if (_ancestors.Count < count)
         {
             node = default;
             return false;
         }
 
-        node = _ancestors[_ancestors.Count - 1 - depth];
-        _ancestors.RemoveAt(_ancestors.Count - 1 - depth);
+        node = _ancestors[_ancestors.Count - 1 - count];
         return true;
     }
 

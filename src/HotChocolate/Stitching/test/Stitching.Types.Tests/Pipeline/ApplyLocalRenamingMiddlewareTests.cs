@@ -81,7 +81,7 @@ public class ApplyLocalRenamingMiddlewareTests
                     abc: String
                 }
 
-                extend interface IFoo @rename(to: ""def"")"));
+                extend interface IFoo @rename(to: ""IDef"")"));
 
         var configurations = new List<ServiceConfiguration> { service };
         var context = new SchemaMergeContext(configurations);

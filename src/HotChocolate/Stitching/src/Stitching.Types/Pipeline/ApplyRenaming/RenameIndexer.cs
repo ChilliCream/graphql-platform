@@ -17,6 +17,11 @@ internal sealed class RenameIndexer : SyntaxWalker<RewriteContext>
                 when TryGetRenameInformation(type.Directives, context, out var dn, out var to):
                 context.RenamedTypes[type.Name.Value] = new RenameInfo(to, dn);
                 break;
+
+            case InterfaceTypeDefinitionNode type
+                when TryGetRenameInformation(type.Directives, context, out var dn, out var to):
+                context.RenamedTypes[type.Name.Value] = new RenameInfo(to, dn);
+                break;
         }
 
         return base.Enter(node, context);

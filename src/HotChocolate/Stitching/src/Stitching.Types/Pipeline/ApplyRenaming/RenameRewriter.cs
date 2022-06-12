@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
 
 namespace HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
 
@@ -41,6 +40,26 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
         return node;
     }
 
+    protected override InterfaceTypeDefinitionNode RewriteInterfaceTypeDefinition(
+        InterfaceTypeDefinitionNode node,
+        RewriteContext context)
+    {
+        var originalName = node.Name.Value;
+
+        node = base.RewriteInterfaceTypeDefinition(node, context);
+
+        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        {
+            node = ApplyBindDirective(
+                node,
+                context,
+                originalName,
+                static (n, d) => n.WithDirectives(d));
+        }
+
+        return node;
+    }
+
     protected override FieldDefinitionNode RewriteFieldDefinition(
         FieldDefinitionNode node,
         RewriteContext context)
@@ -52,20 +71,23 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 
     protected override NameNode RewriteName(NameNode node, RewriteContext context)
     {
-        if ((context.Navigator.Parent?.Kind == SyntaxKind.ObjectTypeDefinition ||
-            context.Navigator.Parent?.Kind == SyntaxKind.InterfaceTypeDefinition ||
-            context.Navigator.Parent?.Kind == SyntaxKind.NamedType) &&
+        if (!context.Navigator.TryPeek(1, out ISyntaxNode? parent))
+        {
+            return base.RewriteName(node, context);
+        }
+
+        if ((parent.Kind == SyntaxKind.ObjectTypeDefinition ||
+            parent.Kind == SyntaxKind.InterfaceTypeDefinition ||
+            parent.Kind == SyntaxKind.NamedType) &&
             context.RenamedTypes.TryGetValue(node.Value, out RenameInfo? value))
         {
             return node.WithValue(value.Name);
         }
 
-        context.Navigator.TryPeek(
-
-        if ((context.Navigator.Parent?.Kind == SyntaxKind.ObjectTypeDefinition ||
-            context.Navigator.Parent?.Kind == SyntaxKind.InterfaceTypeDefinition) &&
-                context.Navigator.Parent?.Kind == SyntaxKind.NamedType) &&
-            context.RenamedTypes.TryGetValue(node.Value, out RenameInfo? value))
+        if (context.Navigator.TryPeek(2, out ISyntaxNode? grandParent) &&
+            grandParent.Kind == SyntaxKind.ObjectTypeDefinition &&
+            parent.Kind == SyntaxKind.NamedType &&
+            context.RenamedTypes.TryGetValue(node.Value, out value))
         {
             return node.WithValue(value.Name);
         }
