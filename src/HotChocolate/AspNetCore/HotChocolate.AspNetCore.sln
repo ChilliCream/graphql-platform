@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29521.150
@@ -54,10 +54,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Transport.Sockets.Client.Tests", "test\Transport.Sockets.Client.Tests\HotChocolate.Transport.Sockets.Client.Tests.csproj", "{D9401ED9-D6BB-49C7-A92E-E0714D04590F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore.Tests.Utilities", "test\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj", "{8DC0428A-C7C6-4496-95AB-2612FA95BE9E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore.Authorization.Opa", "src\AspNetCore.Authorization.Opa\HotChocolate.AspNetCore.Authorization.Opa.csproj", "{128C8C65-F15E-49A3-86F3-1FE5A48BD546}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore.Authorization.Opa.Tests", "test\AspNetCore.Authorization.Opa.Tests\HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj", "{7D382D41-CD80-4E27-B973-3756806D0F78}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -309,30 +305,6 @@ Global
 		{8DC0428A-C7C6-4496-95AB-2612FA95BE9E}.Release|x64.Build.0 = Release|Any CPU
 		{8DC0428A-C7C6-4496-95AB-2612FA95BE9E}.Release|x86.ActiveCfg = Release|Any CPU
 		{8DC0428A-C7C6-4496-95AB-2612FA95BE9E}.Release|x86.Build.0 = Release|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Debug|x64.Build.0 = Debug|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Debug|x86.Build.0 = Debug|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Release|Any CPU.Build.0 = Release|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Release|x64.ActiveCfg = Release|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Release|x64.Build.0 = Release|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Release|x86.ActiveCfg = Release|Any CPU
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546}.Release|x86.Build.0 = Release|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Debug|x64.Build.0 = Debug|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Debug|x86.Build.0 = Debug|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Release|x64.ActiveCfg = Release|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Release|x64.Build.0 = Release|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Release|x86.ActiveCfg = Release|Any CPU
-		{7D382D41-CD80-4E27-B973-3756806D0F78}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -358,8 +330,6 @@ Global
 		{1284182A-3F75-4AF3-A1EE-7D7085C3545A} = {2E2070DF-95C2-48F2-A8DF-7FE3734817ED}
 		{D9401ED9-D6BB-49C7-A92E-E0714D04590F} = {936FF2E5-6576-4257-A7A3-F2093D44E6CD}
 		{8DC0428A-C7C6-4496-95AB-2612FA95BE9E} = {936FF2E5-6576-4257-A7A3-F2093D44E6CD}
-		{128C8C65-F15E-49A3-86F3-1FE5A48BD546} = {2E2070DF-95C2-48F2-A8DF-7FE3734817ED}
-		{7D382D41-CD80-4E27-B973-3756806D0F78} = {936FF2E5-6576-4257-A7A3-F2093D44E6CD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EAA92712-961A-4595-82AD-C031830477CC}
