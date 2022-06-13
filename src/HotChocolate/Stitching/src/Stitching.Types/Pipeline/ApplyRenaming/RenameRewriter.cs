@@ -60,6 +60,86 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
         return node;
     }
 
+    protected override UnionTypeDefinitionNode RewriteUnionTypeDefinition(
+        UnionTypeDefinitionNode node,
+        RewriteContext context)
+    {
+        var originalName = node.Name.Value;
+
+        node = base.RewriteUnionTypeDefinition(node, context);
+
+        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        {
+            node = ApplyBindDirective(
+                node,
+                context,
+                originalName,
+                static (n, d) => n.WithDirectives(d));
+        }
+
+        return node;
+    }
+
+    protected override InputObjectTypeDefinitionNode RewriteInputObjectTypeDefinition(
+        InputObjectTypeDefinitionNode node,
+        RewriteContext context)
+    {
+        var originalName = node.Name.Value;
+
+        node = base.RewriteInputObjectTypeDefinition(node, context);
+
+        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        {
+            node = ApplyBindDirective(
+                node,
+                context,
+                originalName,
+                static (n, d) => n.WithDirectives(d));
+        }
+
+        return node;
+    }
+
+    protected override EnumTypeDefinitionNode RewriteEnumTypeDefinition(
+        EnumTypeDefinitionNode node,
+        RewriteContext context)
+    {
+        var originalName = node.Name.Value;
+
+        node = base.RewriteEnumTypeDefinition(node, context);
+
+        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        {
+            node = ApplyBindDirective(
+                node,
+                context,
+                originalName,
+                static (n, d) => n.WithDirectives(d));
+        }
+
+        return node;
+    }
+
+    protected override ScalarTypeDefinitionNode RewriteScalarTypeDefinition(
+        ScalarTypeDefinitionNode node,
+        RewriteContext context)
+    {
+        var originalName = node.Name.Value;
+
+        node = base.RewriteScalarTypeDefinition(node, context);
+
+        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        {
+            node = ApplyBindDirective(
+                node,
+                context,
+                originalName,
+                static (n, d) => n.WithDirectives(d));
+        }
+
+        return node;
+    }
+
     protected override FieldDefinitionNode RewriteFieldDefinition(
         FieldDefinitionNode node,
         RewriteContext context)
@@ -78,6 +158,10 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 
         if ((parent.Kind == SyntaxKind.ObjectTypeDefinition ||
             parent.Kind == SyntaxKind.InterfaceTypeDefinition ||
+            parent.Kind == SyntaxKind.UnionTypeDefinition ||
+            parent.Kind == SyntaxKind.InputObjectTypeDefinition ||
+            parent.Kind == SyntaxKind.EnumTypeDefinition ||
+            parent.Kind == SyntaxKind.ScalarTypeDefinition ||
             parent.Kind == SyntaxKind.NamedType) &&
             context.RenamedTypes.TryGetValue(node.Value, out RenameInfo? value))
         {

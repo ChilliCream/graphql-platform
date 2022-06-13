@@ -17,20 +17,6 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     /// <inheritdoc cref="ISyntaxNavigator.Count"/>
     public int Count => _ancestors.Count;
 
-    /// <inheritdoc cref="ISyntaxNavigator.Parent"/>
-    public ISyntaxNode? Parent
-    {
-        get
-        {
-            if (_ancestors.Count < 1)
-            {
-                return null;
-            }
-
-            return _ancestors[_ancestors.Count - 1];
-        }
-    }
-
     /// <inheritdoc cref="ISyntaxNavigator.Push"/>
     public void Push(ISyntaxNode node)
     {

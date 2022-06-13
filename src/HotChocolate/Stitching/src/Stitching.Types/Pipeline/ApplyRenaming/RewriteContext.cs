@@ -15,7 +15,5 @@ internal sealed class RewriteContext : INavigatorContext
 
     public Dictionary<string, RenameInfo> RenamedTypes { get; } = new();
 
-    public Dictionary<string, RenameInfo> RenamedInterfaces { get; } = new();
-
     public ISyntaxNavigator Navigator { get; } = new DefaultSyntaxNavigator();
 }

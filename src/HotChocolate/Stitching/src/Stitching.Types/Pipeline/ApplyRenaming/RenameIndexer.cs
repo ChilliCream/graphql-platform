@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
 
@@ -20,6 +21,32 @@ internal sealed class RenameIndexer : SyntaxWalker<RewriteContext>
 
             case InterfaceTypeDefinitionNode type
                 when TryGetRenameInformation(type.Directives, context, out var dn, out var to):
+                context.RenamedTypes[type.Name.Value] = new RenameInfo(to, dn);
+                break;
+
+            case UnionTypeDefinitionNode type
+                when TryGetRenameInformation(type.Directives, context, out var dn, out var to):
+                context.RenamedTypes[type.Name.Value] = new RenameInfo(to, dn);
+                break;
+
+            case InputObjectTypeDefinitionNode type
+                when TryGetRenameInformation(type.Directives, context, out var dn, out var to):
+                context.RenamedTypes[type.Name.Value] = new RenameInfo(to, dn);
+                break;
+
+            case EnumTypeDefinitionNode type
+                when TryGetRenameInformation(type.Directives, context, out var dn, out var to):
+                context.RenamedTypes[type.Name.Value] = new RenameInfo(to, dn);
+                break;
+
+            case ScalarTypeDefinitionNode type
+                when TryGetRenameInformation(type.Directives, context, out var dn, out var to):
+                context.RenamedTypes[type.Name.Value] = new RenameInfo(to, dn);
+                break;
+
+            case ScalarTypeExtensionNode type
+                when Scalars.IsBuiltIn(type.Name.Value) &&
+                    TryGetRenameInformation(type.Directives, context, out var dn, out var to):
                 context.RenamedTypes[type.Name.Value] = new RenameInfo(to, dn);
                 break;
         }

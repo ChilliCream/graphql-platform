@@ -122,7 +122,55 @@ public class ApplyLocalRenamingMiddlewareTests
                     foo: Foo
                 }
 
-                extend interface IFoo @rename(to: ""def"")"));
+                union FooOrBaz = Foo | Baz"));
+
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Apply_Local_Rename_Scalar_And_Update_Usages()
+    {
+        // arrange
+        MergeSchema pipeline =
+            new SchemaMergePipelineBuilder()
+                .Use(next =>
+                {
+                    var middleware = new ApplyExtensionsMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Use(next =>
+                {
+                    var middleware = new ApplyLocalRenamingMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Compile();
+
+        var service = new ServiceConfiguration(
+            "abc",
+            Utf8GraphQLParser.Parse(@"
+                extend scalar String @rename(to: ""SpecialString"")
+
+                type Foo {
+                    abc(input: FooInput): String
+                }
+
+                type Baz {
+                    foo1(a: String): String
+                    foo2(a: String!): String!
+                    foo3(a: [String!]): [String!]
+                    foo4(a: [String!]!): [String!]!
+                }
+
+                input FooInput {
+                    a: [String!]!
+                }"));
 
         var configurations = new List<ServiceConfiguration> { service };
         var context = new SchemaMergeContext(configurations);

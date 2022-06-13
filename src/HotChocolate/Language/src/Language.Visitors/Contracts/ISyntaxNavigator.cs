@@ -11,11 +11,6 @@ namespace HotChocolate.Language.Visitors;
 public interface ISyntaxNavigator
 {
     /// <summary>
-    /// Returns the immediate parent of the current Syntax Node
-    /// </summary>
-    ISyntaxNode? Parent { get; }
-
-    /// <summary>
     /// Returns the count of items in the current path.
     /// </summary>
     int Count { get; }
