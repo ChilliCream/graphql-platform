@@ -57,15 +57,11 @@ internal class GeoJsonMultiPolygonSerializer
         goto Error;
 
 Success:
-        if (crs is not null)
-        {
-            GeometryFactory factory =
-                NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
+        GeometryFactory factory = crs is null
+            ? NtsGeometryServices.Instance.CreateGeometryFactory()
+            : NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 
-            return factory.CreateMultiPolygon(geometries);
-        }
-
-        return new MultiPolygon(geometries);
+        return factory.CreateMultiPolygon(geometries);
 
 Error:
         throw Serializer_Parse_CoordinatesIsInvalid(type);
