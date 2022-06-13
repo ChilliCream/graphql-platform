@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29521.150
@@ -41,11 +41,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.StarWars.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Subscriptions.InMemory", "..\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj", "{86C6C9FB-3AF3-4DB6-AEC2-0F3941FEA664}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Execution", "..\Core\src\Execution\HotChocolate.Execution.csproj", "{9957A20C-4DCC-4643-B97D-ACF00D75C702}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Execution", "..\Core\src\Execution\HotChocolate.Execution.csproj", "{9957A20C-4DCC-4643-B97D-ACF00D75C702}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore.Authorization", "src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj", "{3DA60297-97CB-4712-89C6-F71EB75F98EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore.Authorization", "src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj", "{3DA60297-97CB-4712-89C6-F71EB75F98EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore.Authorization.Tests", "test\AspNetCore.Authorization.Tests\HotChocolate.AspNetCore.Authorization.Tests.csproj", "{CBADBC3F-FACC-424C-8E7D-28A029F5C238}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore.Authorization.Tests", "test\AspNetCore.Authorization.Tests\HotChocolate.AspNetCore.Authorization.Tests.csproj", "{CBADBC3F-FACC-424C-8E7D-28A029F5C238}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore.Authorization.Opa", "src\AspNetCore.Authorization.Opa\HotChocolate.AspNetCore.Authorization.Opa.csproj", "{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore.Authorization.Opa.Tests", "test\AspNetCore.Authorization.Opa.Tests\HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj", "{30A5797F-205D-4FA4-976D-8F707139CE51}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Transport.Sockets", "src\Transport.Sockets\HotChocolate.Transport.Sockets.csproj", "{8E85603A-E36A-4133-BF04-7734BCD02D1F}"
 EndProject
@@ -257,6 +261,30 @@ Global
 		{CBADBC3F-FACC-424C-8E7D-28A029F5C238}.Release|x64.Build.0 = Release|Any CPU
 		{CBADBC3F-FACC-424C-8E7D-28A029F5C238}.Release|x86.ActiveCfg = Release|Any CPU
 		{CBADBC3F-FACC-424C-8E7D-28A029F5C238}.Release|x86.Build.0 = Release|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Debug|x64.Build.0 = Debug|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Debug|x86.Build.0 = Debug|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Release|x64.ActiveCfg = Release|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Release|x64.Build.0 = Release|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Release|x86.ActiveCfg = Release|Any CPU
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87}.Release|x86.Build.0 = Release|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Debug|x64.Build.0 = Debug|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Debug|x86.Build.0 = Debug|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Release|x64.ActiveCfg = Release|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Release|x64.Build.0 = Release|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Release|x86.ActiveCfg = Release|Any CPU
+		{30A5797F-205D-4FA4-976D-8F707139CE51}.Release|x86.Build.0 = Release|Any CPU
 		{8E85603A-E36A-4133-BF04-7734BCD02D1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8E85603A-E36A-4133-BF04-7734BCD02D1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E85603A-E36A-4133-BF04-7734BCD02D1F}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -326,6 +354,8 @@ Global
 		{9957A20C-4DCC-4643-B97D-ACF00D75C702} = {8A75EB03-3E25-4819-AE7D-1159D5AED817}
 		{3DA60297-97CB-4712-89C6-F71EB75F98EA} = {2E2070DF-95C2-48F2-A8DF-7FE3734817ED}
 		{CBADBC3F-FACC-424C-8E7D-28A029F5C238} = {936FF2E5-6576-4257-A7A3-F2093D44E6CD}
+		{6CFCB82F-4A89-496A-A261-3FEBDD8EEA87} = {2E2070DF-95C2-48F2-A8DF-7FE3734817ED}
+		{30A5797F-205D-4FA4-976D-8F707139CE51} = {936FF2E5-6576-4257-A7A3-F2093D44E6CD}
 		{8E85603A-E36A-4133-BF04-7734BCD02D1F} = {2E2070DF-95C2-48F2-A8DF-7FE3734817ED}
 		{1284182A-3F75-4AF3-A1EE-7D7085C3545A} = {2E2070DF-95C2-48F2-A8DF-7FE3734817ED}
 		{D9401ED9-D6BB-49C7-A92E-E0714D04590F} = {936FF2E5-6576-4257-A7A3-F2093D44E6CD}
