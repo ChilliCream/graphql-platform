@@ -99,51 +99,6 @@ public class DefaultSyntaxNavigatorTests
     }
 
     [Fact]
-    public void Parent_With_One()
-    {
-        // arrange
-        var node = new NameNode("abc");
-        var navigator = new DefaultSyntaxNavigator();
-        navigator.Push(node);
-
-        // act
-        ISyntaxNode? parent = navigator.Parent;
-
-        // assert
-        Assert.Same(node, parent);
-    }
-
-    [Fact]
-    public void Parent_With_Two()
-    {
-        // arrange
-        var one = new NameNode("abc");
-        var two = new NameNode("def");
-        var navigator = new DefaultSyntaxNavigator();
-        navigator.Push(one);
-        navigator.Push(two);
-
-        // act
-        ISyntaxNode? parent = navigator.Parent;
-
-        // assert
-        Assert.Same(two, parent);
-    }
-
-    [Fact]
-    public void Parent_With_Empty()
-    {
-        // arrange
-        var navigator = new DefaultSyntaxNavigator();
-
-        // act
-        ISyntaxNode? parent = navigator.Parent;
-
-        // assert
-        Assert.Null(parent);
-    }
-
-    [Fact]
     public void Peek()
     {
         // arrange

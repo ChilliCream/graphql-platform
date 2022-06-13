@@ -11,11 +11,6 @@ namespace HotChocolate.Language.Visitors;
 public interface ISyntaxNavigator
 {
     /// <summary>
-    /// Returns the immediate parent of the current Syntax Node
-    /// </summary>
-    ISyntaxNode? Parent { get; }
-
-    /// <summary>
     /// Returns the count of items in the current path.
     /// </summary>
     int Count { get; }
@@ -64,6 +59,15 @@ public interface ISyntaxNavigator
     /// <returns>True when a syntax node was successfully removed from the Syntax Navigator.
     /// False when a syntax node was not removed.</returns>
     bool TryPeek([NotNullWhen(true)] out ISyntaxNode? node);
+
+    /// <summary>
+    /// Attempts to return the current parent node from the Syntax Navigator without removing it.
+    /// </summary>
+    /// <param name="count">The ancestor level.</param>
+    /// <param name="node">The removed parent node.</param>
+    /// <returns>True when a syntax node was successfully removed from the Syntax Navigator.
+    /// False when a syntax node was not removed.</returns>
+    bool TryPeek(int count, [NotNullWhen(true)] out ISyntaxNode? node);
 
     /// <summary>
     /// Returns the first ancestor of the provided <see cref="TNode" /> type.

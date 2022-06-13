@@ -33,7 +33,7 @@ public class ApplyExtensionsMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // assert
-        context.Documents.Single().ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class ApplyExtensionsMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // assert
-        context.Documents.Single().ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class ApplyExtensionsMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // assert
-        context.Documents.Single().ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class ApplyExtensionsMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // assert
-        context.Documents.Single().ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class ApplyExtensionsMiddlewareTests
         await middleware.InvokeAsync(context);
 
         // assert
-        context.Documents.Single().ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -160,5 +160,31 @@ public class ApplyExtensionsMiddlewareTests
 
         // assert
         await Assert.ThrowsAsync<GraphQLException>(Error);
+    }
+
+    [Fact]
+    public async Task Apply_Local_Remove()
+    {
+        // arrange
+        var middleware = new ApplyExtensionsMiddleware(_ => default);
+
+        var service = new ServiceConfiguration(
+            "abc",
+            Parse(@"
+                type Foo @a {
+                    abc: String
+                }
+
+                extend type Foo {
+                    abc: String @remove
+                }"));
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await middleware.InvokeAsync(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
     }
 }

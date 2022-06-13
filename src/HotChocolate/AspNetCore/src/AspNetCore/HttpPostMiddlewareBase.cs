@@ -195,12 +195,12 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             DiagnosticEvents.HttpRequestError(context, error);
         }
 
-HANDLE_RESULT:
+        HANDLE_RESULT:
         IDisposable? formatScope = null;
 
         try
         {
-            // if cancellation is requested we will not try to attempt to write the result to the 
+            // if cancellation is requested we will not try to attempt to write the result to the
             // response stream.
             if (context.RequestAborted.IsCancellationRequested)
             {

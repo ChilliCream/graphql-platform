@@ -17,20 +17,6 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     /// <inheritdoc cref="ISyntaxNavigator.Count"/>
     public int Count => _ancestors.Count;
 
-    /// <inheritdoc cref="ISyntaxNavigator.Parent"/>
-    public ISyntaxNode? Parent
-    {
-        get
-        {
-            if (_ancestors.Count == 0)
-            {
-                return null;
-            }
-
-            return _ancestors[_ancestors.Count - 1];
-        }
-    }
-
     /// <inheritdoc cref="ISyntaxNavigator.Push"/>
     public void Push(ISyntaxNode node)
     {
@@ -100,6 +86,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
         return true;
     }
 
+    /// <inheritdoc cref="ISyntaxNavigator.TryPeek(out HotChocolate.Language.ISyntaxNode?)"/>
     public bool TryPeek([NotNullWhen(true)] out ISyntaxNode? node)
     {
         if (_ancestors.Count == 0)
@@ -109,7 +96,19 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
         }
 
         node = _ancestors[_ancestors.Count - 1];
-        _ancestors.RemoveAt(_ancestors.Count - 1);
+        return true;
+    }
+
+    /// <inheritdoc cref="ISyntaxNavigator.TryPeek(int,out HotChocolate.Language.ISyntaxNode?)"/>
+    public bool TryPeek(int count, [NotNullWhen(true)] out ISyntaxNode? node)
+    {
+        if (_ancestors.Count < count)
+        {
+            node = default;
+            return false;
+        }
+
+        node = _ancestors[_ancestors.Count - 1 - count];
         return true;
     }
 
