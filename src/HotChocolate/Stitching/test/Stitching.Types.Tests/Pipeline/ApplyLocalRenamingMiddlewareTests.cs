@@ -24,7 +24,7 @@ public class ApplyLocalRenamingMiddlewareTests
                 })
                 .Use(next =>
                 {
-                    var middleware = new ApplyLocalRenamingMiddleware(next);
+                    var middleware = new ApplyRenamingMiddleware(next);
                     return context => middleware.InvokeAsync(context);
                 })
                 .Compile();
@@ -65,7 +65,7 @@ public class ApplyLocalRenamingMiddlewareTests
                 })
                 .Use(next =>
                 {
-                    var middleware = new ApplyLocalRenamingMiddleware(next);
+                    var middleware = new ApplyRenamingMiddleware(next);
                     return context => middleware.InvokeAsync(context);
                 })
                 .Compile();
@@ -106,7 +106,7 @@ public class ApplyLocalRenamingMiddlewareTests
                 })
                 .Use(next =>
                 {
-                    var middleware = new ApplyLocalRenamingMiddleware(next);
+                    var middleware = new ApplyRenamingMiddleware(next);
                     return context => middleware.InvokeAsync(context);
                 })
                 .Compile();
@@ -147,7 +147,7 @@ public class ApplyLocalRenamingMiddlewareTests
                 })
                 .Use(next =>
                 {
-                    var middleware = new ApplyLocalRenamingMiddleware(next);
+                    var middleware = new ApplyRenamingMiddleware(next);
                     return context => middleware.InvokeAsync(context);
                 })
                 .Compile();
@@ -170,6 +170,98 @@ public class ApplyLocalRenamingMiddlewareTests
 
                 input FooInput {
                     a: [String!]!
+                }"));
+
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Apply_Local_Rename_Interface_Field()
+    {
+        // arrange
+        MergeSchema pipeline =
+            new SchemaMergePipelineBuilder()
+                .Use(next =>
+                {
+                    var middleware = new ApplyExtensionsMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Use(next =>
+                {
+                    var middleware = new ApplyRenamingMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Compile();
+
+        var service = new ServiceConfiguration(
+            "SchemaName",
+            Utf8GraphQLParser.Parse(@"
+                type Foo implements IFoo {
+                    abc: String
+                }
+
+                interface IFoo {
+                    abc: String
+                }
+
+                extend interface IFoo {
+                    abc: String @rename(to: ""newName"")
+                }"));
+
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Apply_Local_Rename_Interface_Field_2()
+    {
+        // arrange
+        MergeSchema pipeline =
+            new SchemaMergePipelineBuilder()
+                .Use(next =>
+                {
+                    var middleware = new ApplyExtensionsMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Use(next =>
+                {
+                    var middleware = new ApplyRenamingMiddleware(next);
+                    return context => middleware.InvokeAsync(context);
+                })
+                .Compile();
+
+        var service = new ServiceConfiguration(
+            "SchemaName",
+            Utf8GraphQLParser.Parse(@"
+                type Foo implements IFoo & IFooExt {
+                    abc: String
+                    def: String
+                }
+
+                interface IFoo {
+                    abc: String
+                }
+
+                interface IFooExt implements IFoo {
+                    abc: String
+                    def: String
+                }
+
+                extend interface IFoo {
+                    abc: String @rename(to: ""newName"")
                 }"));
 
         var configurations = new List<ServiceConfiguration> { service };

@@ -3,7 +3,7 @@
 }
 
 type Foo {
-  abc: String @rename(to: "def")
+  def: String @_hc_bind(to: "abc", as: "abc")
   def: Int
   ghi: Int @_hc_bind(to: "bar", as: "baz")
 }

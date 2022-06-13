@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using static HotChocolate.Language.SyntaxKind;
 
 namespace HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
 
-internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
+internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
 {
-    protected override RewriteContext OnEnter(ISyntaxNode node, RewriteContext context)
+    protected override RenameContext OnEnter(ISyntaxNode node, RenameContext context)
     {
         context.Navigator.Push(node);
         return base.OnEnter(node, context);
     }
 
-    protected override void OnLeave(ISyntaxNode node, RewriteContext context)
+    protected override void OnLeave(ISyntaxNode node, RenameContext context)
     {
         context.Navigator.Pop();
         base.OnLeave(node, context);
@@ -22,7 +23,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 
     protected override ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
         ObjectTypeDefinitionNode node,
-        RewriteContext context)
+        RenameContext context)
     {
         var originalName = node.Name.Value;
 
@@ -42,7 +43,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 
     protected override InterfaceTypeDefinitionNode RewriteInterfaceTypeDefinition(
         InterfaceTypeDefinitionNode node,
-        RewriteContext context)
+        RenameContext context)
     {
         var originalName = node.Name.Value;
 
@@ -62,7 +63,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 
     protected override UnionTypeDefinitionNode RewriteUnionTypeDefinition(
         UnionTypeDefinitionNode node,
-        RewriteContext context)
+        RenameContext context)
     {
         var originalName = node.Name.Value;
 
@@ -82,7 +83,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 
     protected override InputObjectTypeDefinitionNode RewriteInputObjectTypeDefinition(
         InputObjectTypeDefinitionNode node,
-        RewriteContext context)
+        RenameContext context)
     {
         var originalName = node.Name.Value;
 
@@ -102,7 +103,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 
     protected override EnumTypeDefinitionNode RewriteEnumTypeDefinition(
         EnumTypeDefinitionNode node,
-        RewriteContext context)
+        RenameContext context)
     {
         var originalName = node.Name.Value;
 
@@ -122,7 +123,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 
     protected override ScalarTypeDefinitionNode RewriteScalarTypeDefinition(
         ScalarTypeDefinitionNode node,
-        RewriteContext context)
+        RenameContext context)
     {
         var originalName = node.Name.Value;
 
@@ -142,35 +143,66 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 
     protected override FieldDefinitionNode RewriteFieldDefinition(
         FieldDefinitionNode node,
-        RewriteContext context)
+        RenameContext context)
     {
         node = base.RewriteFieldDefinition(node, context);
+
+        if (context.Navigator.TryPeek(1, out ISyntaxNode? parent) &&
+            parent.Kind is SyntaxKind.ObjectTypeDefinition or InterfaceTypeDefinition &&
+            context.TypesWithFieldRenames.Contains(((INamedSyntaxNode)parent).Name.Value))
+        {
+            var coordinate = context.Navigator.CreateCoordinate();
+            if (context.RenamedFields.TryGetValue(coordinate, out var value))
+            {
+                var location = node.Location;
+                var name = new NameNode(value.Name);
+                var description = node.Description;
+                var arguments = node.Arguments;
+                var type = node.Type;
+                var directives = node.Directives.ToList();
+                directives.Remove(value.RenameDirective);
+                directives.Add(new BindDirective(context.SourceName, node.Name.Value));
+
+                node = new FieldDefinitionNode(
+                    location,
+                    name,
+                    description,
+                    arguments,
+                    type,
+                    directives);
+            }
+        }
 
         return node;
     }
 
-    protected override NameNode RewriteName(NameNode node, RewriteContext context)
+    protected override NameNode RewriteName(NameNode node, RenameContext context)
     {
         if (!context.Navigator.TryPeek(1, out ISyntaxNode? parent))
         {
             return base.RewriteName(node, context);
         }
 
-        if ((parent.Kind == SyntaxKind.ObjectTypeDefinition ||
-            parent.Kind == SyntaxKind.InterfaceTypeDefinition ||
-            parent.Kind == SyntaxKind.UnionTypeDefinition ||
-            parent.Kind == SyntaxKind.InputObjectTypeDefinition ||
-            parent.Kind == SyntaxKind.EnumTypeDefinition ||
-            parent.Kind == SyntaxKind.ScalarTypeDefinition ||
-            parent.Kind == SyntaxKind.NamedType) &&
+        if (parent.Kind is SyntaxKind.ObjectTypeDefinition or
+                InterfaceTypeDefinition or
+                UnionTypeDefinition or
+                InputObjectTypeDefinition or
+                EnumTypeDefinition or
+                ScalarTypeDefinition or
+                NamedType &&
             context.RenamedTypes.TryGetValue(node.Value, out RenameInfo? value))
         {
             return node.WithValue(value.Name);
         }
 
-        if (context.Navigator.TryPeek(2, out ISyntaxNode? grandParent) &&
-            grandParent.Kind == SyntaxKind.ObjectTypeDefinition &&
-            parent.Kind == SyntaxKind.NamedType &&
+        if (!context.Navigator.TryPeek(2, out ISyntaxNode? grandParent))
+        {
+            return base.RewriteName(node, context);
+        }
+
+        // rename interface implements
+        if (grandParent.Kind is SyntaxKind.ObjectTypeDefinition or InterfaceTypeDefinition  &&
+            parent.Kind is NamedType &&
             context.RenamedTypes.TryGetValue(node.Value, out value))
         {
             return node.WithValue(value.Name);
@@ -181,7 +213,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RewriteContext>
 
     private T ApplyBindDirective<T>(
         T node,
-        RewriteContext context,
+        RenameContext context,
         string originalName,
         Func<T, IReadOnlyList<DirectiveNode>, T> factory)
         where T : IHasDirectives
