@@ -36,29 +36,6 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
     [Theory]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
-    public async Task DefaultPolicy_NotFound(Action<IRequestExecutorBuilder> configure)
-    {
-        // arrange
-        TestServer server = CreateTestServer(
-            builder =>
-            {
-                configure(builder);
-                builder.Services.AddAuthorization();
-            },
-            SetUpHttpContext);
-
-        // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
-
-        // assert
-        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        result.MatchSnapshot();
-    }
-
-    [Theory]
-    [ClassData(typeof(AuthorizationTestData))]
-    [ClassData(typeof(AuthorizationAttributeTestData))]
     public async Task Policy_NotFound(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
