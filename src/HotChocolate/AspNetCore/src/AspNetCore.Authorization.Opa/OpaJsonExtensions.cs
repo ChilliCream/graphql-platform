@@ -20,7 +20,7 @@ internal static class OpaJsonExtensions
 #endif
     }
 
-    internal static async Task<T> FromJsonAsync<T>(this HttpContent content, JsonSerializerOptions options,
+    internal static async Task<T?> FromJsonAsync<T>(this HttpContent content, JsonSerializerOptions options,
         CancellationToken token)
     {
 #if NET6_0

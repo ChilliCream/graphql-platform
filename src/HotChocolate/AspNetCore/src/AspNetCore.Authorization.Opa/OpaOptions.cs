@@ -28,8 +28,6 @@ public sealed class OpaOptions
                 new Regex(k.Key, RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant));
             return regex.IsMatch(policyPath);
         });
-        return maybeHandler.Value is { } h
-            ? h
-            : throw new InvalidOperationException($"No result handler found for policy: {policyPath}");
+        return maybeHandler.Value ?? throw new InvalidOperationException($"No result handler found for policy: {policyPath}");
     }
 }
