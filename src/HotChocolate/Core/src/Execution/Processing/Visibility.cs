@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Execution.Pipeline.Complexity;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -39,11 +38,11 @@ public readonly struct Visibility : IEquatable<Visibility>
 
         if (Include.Kind is SyntaxKind.BooleanValue)
         {
-            include = ((BooleanValueNode)Skip).Value;
+            include = ((BooleanValueNode)Include).Value;
         }
         else if (Include.Kind is SyntaxKind.Variable)
         {
-            include = variables.GetVariable<bool>(((VariableNode)Skip).Name.Value);
+            include = variables.GetVariable<bool>(((VariableNode)Include).Name.Value);
         }
 
         return !skip && include;
