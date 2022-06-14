@@ -1,189 +1,203 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
+using HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
 using HotChocolate.Stitching.Types.Pipeline.PrepareDocuments;
 using Snapshooter.Xunit;
 using Xunit;
-using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Stitching.Types.Pipeline;
 
-public class ApplyExtensionsMiddlewareTests
+public class ApplyLocalRenamingMiddlewareTests
 {
     [Fact]
-    public async Task Apply_Object_Extension_Single_Document()
+    public async Task Apply_Local_Rename()
     {
         // arrange
         MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
-            Parse(@"
+            Utf8GraphQLParser.Parse(@"
                 type Foo {
                     abc: String
                 }
 
                 extend type Foo {
+                    abc: String @rename(to: ""def"")
+                    def: Int
+                    ghi: Int @_hc_bind(to: ""bar"" as: ""baz"")
+                }"));
+
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Apply_Local_Rename_Interface_Name()
+    {
+        // arrange
+        MergeSchema pipeline = CreatePipeline();
+
+        var service = new ServiceConfiguration(
+            "abc",
+            Utf8GraphQLParser.Parse(@"
+                type Foo implements IFoo {
+                    abc: String
+                }
+
+                interface IFoo {
+                    abc: String
+                }
+
+                extend interface IFoo @rename(to: ""IDef"")"));
+
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Apply_Local_Rename_Object_And_Refactor_Usages()
+    {
+        // arrange
+        MergeSchema pipeline = CreatePipeline();
+
+        var service = new ServiceConfiguration(
+            "abc",
+            Utf8GraphQLParser.Parse(@"
+                type Foo @rename(to: ""Bar"") {
+                    abc: String
+                }
+
+                type Baz {
+                    foo: Foo
+                }
+
+                union FooOrBaz = Foo | Baz"));
+
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Apply_Local_Rename_Scalar_And_Update_Usages()
+    {
+        // arrange
+        MergeSchema pipeline = CreatePipeline();
+
+        var service = new ServiceConfiguration(
+            "abc",
+            Utf8GraphQLParser.Parse(@"
+                extend scalar String @rename(to: ""SpecialString"")
+
+                type Foo {
+                    abc(input: FooInput): String
+                }
+
+                type Baz {
+                    foo1(a: String): String
+                    foo2(a: String!): String!
+                    foo3(a: [String!]): [String!]
+                    foo4(a: [String!]!): [String!]!
+                }
+
+                input FooInput {
+                    a: [String!]!
+                }"));
+
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Apply_Local_Rename_Interface_Field()
+    {
+        // arrange
+        MergeSchema pipeline = CreatePipeline();
+
+        var service = new ServiceConfiguration(
+            "SchemaName",
+            Utf8GraphQLParser.Parse(@"
+                type Foo implements IFoo {
+                    abc: String
+                }
+
+                interface IFoo {
+                    abc: String
+                }
+
+                extend interface IFoo {
+                    abc: String @rename(to: ""newName"")
+                }"));
+
+        var configurations = new List<ServiceConfiguration> { service };
+        var context = new SchemaMergeContext(configurations);
+
+        // act
+        await pipeline.Invoke(context);
+
+        // assert
+        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Apply_Local_Rename_Interface_Field_2()
+    {
+        // arrange
+        MergeSchema pipeline = CreatePipeline();
+
+        var service = new ServiceConfiguration(
+            "SchemaName",
+            Utf8GraphQLParser.Parse(@"
+                type Foo implements IFoo & IFooExt {
+                    abc: String
                     def: String
-                }"));
-        var configurations = new List<ServiceConfiguration> { service };
-        var context = new SchemaMergeContext(configurations);
+                }
 
-        // act
-        await pipeline(context);
-
-        // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Apply_Object_Extension_Is_Preserved()
-    {
-        // arrange
-        MergeSchema pipeline = CreatePipeline();
-
-        var service = new ServiceConfiguration(
-            "abc",
-            Parse(@"
-                type Foo {
+                interface IFoo {
                     abc: String
                 }
 
-                extend type Bar {
+                interface IFooExt implements IFoo {
+                    abc: String
                     def: String
+                }
+
+                extend interface IFoo {
+                    abc: String @rename(to: ""newName"")
                 }"));
+
         var configurations = new List<ServiceConfiguration> { service };
         var context = new SchemaMergeContext(configurations);
 
         // act
-        await pipeline(context);
-
-        // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Apply_Object_Extension_Merge_Field_Directives_Single_Document()
-    {
-        // arrange
-        MergeSchema pipeline = CreatePipeline();
-
-        var service = new ServiceConfiguration(
-            "abc",
-            Parse(@"
-                type Foo {
-                    abc: String
-                }
-
-                extend type Foo {
-                    abc: String @directive
-                }"));
-        var configurations = new List<ServiceConfiguration> { service };
-        var context = new SchemaMergeContext(configurations);
-
-        // act
-        await pipeline(context);
-
-        // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Apply_Object_Extension_Merge_Directives_Single_Document()
-    {
-        // arrange
-        MergeSchema pipeline = CreatePipeline();
-
-        var service = new ServiceConfiguration(
-            "abc",
-            Parse(@"
-                type Foo {
-                    abc: String
-                }
-
-                extend type Foo @directive"));
-        var configurations = new List<ServiceConfiguration> { service };
-        var context = new SchemaMergeContext(configurations);
-
-        // act
-        await pipeline(context);
-
-        // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Apply_Object_Extension_Merge_Directives_2_Single_Document()
-    {
-        // arrange
-        MergeSchema pipeline = CreatePipeline();
-
-        var service = new ServiceConfiguration(
-            "abc",
-            Parse(@"
-                type Foo @a {
-                    abc: String
-                }
-
-                extend type Foo @b"));
-        var configurations = new List<ServiceConfiguration> { service };
-        var context = new SchemaMergeContext(configurations);
-
-        // act
-        await pipeline(context);
-
-        // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Apply_Object_Extension_Field_Type_Mismatch()
-    {
-        // arrange
-        MergeSchema pipeline = CreatePipeline();
-
-        var service = new ServiceConfiguration(
-            "abc",
-            Parse(@"
-                type Foo {
-                    abc: String
-                }
-
-                extend type Foo {
-                    abc: Int
-                }"));
-        var configurations = new List<ServiceConfiguration> { service };
-        var context = new SchemaMergeContext(configurations);
-
-        // act
-        async Task Error() => await pipeline(context);
-
-        // assert
-        await Assert.ThrowsAsync<GraphQLException>(Error);
-    }
-
-    [Fact]
-    public async Task Apply_Local_Remove()
-    {
-        // arrange
-        MergeSchema pipeline = CreatePipeline();
-
-        var service = new ServiceConfiguration(
-            "abc",
-            Parse(@"
-                type Foo @a {
-                    abc: String
-                }
-
-                extend type Foo {
-                    abc: String @remove
-                }"));
-        var configurations = new List<ServiceConfiguration> { service };
-        var context = new SchemaMergeContext(configurations);
-
-        // act
-        await pipeline(context);
+        await pipeline.Invoke(context);
 
         // assert
         context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
@@ -199,6 +213,11 @@ public class ApplyExtensionsMiddlewareTests
             .Use(next =>
             {
                 var middleware = new ApplyExtensionsMiddleware(next);
+                return context => middleware.InvokeAsync(context);
+            })
+            .Use(next =>
+            {
+                var middleware = new ApplyRenamingMiddleware(next);
                 return context => middleware.InvokeAsync(context);
             })
             .Compile();

@@ -542,7 +542,7 @@ public class SyntaxRewriter<TContext>
         NamedTypeNode node,
         TContext context)
     {
-        NameNode name = RewriteName(node.Name, context);
+        NameNode name = RewriteNode(node.Name, context);
 
         if (!ReferenceEquals(name, node.Name))
         {
