@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
-using HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
 using HotChocolate.Stitching.Types.Pipeline.PrepareDocuments;
 using Snapshooter.Xunit;
 using Xunit;

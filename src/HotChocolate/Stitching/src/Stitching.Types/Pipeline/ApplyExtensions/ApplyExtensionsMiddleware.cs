@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
-using HotChocolate.Utilities;
-using static System.Array;
 
 namespace HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
 
@@ -40,6 +36,9 @@ public sealed class ApplyExtensionsMiddleware
             DocumentNode rewritten = ApplyExtensions(definitions, extensions);
             document = new Document(document.Name, rewritten);
             context.Documents = context.Documents.SetItem(i, document);
+
+            definitions.Clear();
+            extensions.Clear();
         }
 
         await _next(context);
