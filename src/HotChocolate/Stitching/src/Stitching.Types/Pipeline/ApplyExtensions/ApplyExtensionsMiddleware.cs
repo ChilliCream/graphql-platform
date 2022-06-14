@@ -31,18 +31,15 @@ public sealed class ApplyExtensionsMiddleware
         var definitions = new Dictionary<string, ITypeSystemDefinitionNode>();
         var extensions = new List<ITypeSystemExtensionNode>();
 
-        foreach (ServiceConfiguration configuration in context.Configurations)
+        for (var i = 0; i < context.Documents.Count; i++)
         {
-            RegisterServiceInfo(extensions, configuration);
+            Document document = context.Documents[i];
+            CollectTypeDefinitions(definitions, extensions, document.SyntaxTree);
+            CollectTypeExtensions(extensions, document.SyntaxTree);
 
-            foreach (DocumentNode document in configuration.Documents)
-            {
-                CollectTypeDefinitions(definitions, extensions, document);
-                CollectTypeExtensions(extensions, document);
-            }
-
-            DocumentNode subgraph = ApplyExtensions(definitions, extensions);
-            context.Documents = context.Documents.Add(new Document(configuration.Name, subgraph));
+            DocumentNode rewritten = ApplyExtensions(definitions, extensions);
+            document = new Document(document.Name, rewritten);
+            context.Documents = context.Documents.SetItem(i, document);
         }
 
         await _next(context);
@@ -86,22 +83,6 @@ public sealed class ApplyExtensionsMiddleware
                 extensions.Add(typeExt);
             }
         }
-    }
-
-    private static void RegisterServiceInfo(
-        List<ITypeSystemExtensionNode> extensions,
-        ServiceConfiguration configuration)
-    {
-        var serviceName = new DirectiveNode(
-            "_hc_service",
-            new ArgumentNode("name", configuration.Name));
-
-        var serviceInfo = new SchemaExtensionNode(
-            null,
-            new[] { serviceName },
-            Empty<OperationTypeDefinitionNode>());
-
-        extensions.Add(serviceInfo);
     }
 
     private DocumentNode ApplyExtensions(

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
+using HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
+using HotChocolate.Stitching.Types.Pipeline.PrepareDocuments;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser;
@@ -14,7 +16,7 @@ public class ApplyExtensionsMiddlewareTests
     public async Task Apply_Object_Extension_Single_Document()
     {
         // arrange
-        var middleware = new ApplyExtensionsMiddleware(_ => default);
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -30,7 +32,7 @@ public class ApplyExtensionsMiddlewareTests
         var context = new SchemaMergeContext(configurations);
 
         // act
-        await middleware.InvokeAsync(context);
+        await pipeline(context);
 
         // assert
         context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
@@ -40,7 +42,7 @@ public class ApplyExtensionsMiddlewareTests
     public async Task Apply_Object_Extension_Is_Preserved()
     {
         // arrange
-        var middleware = new ApplyExtensionsMiddleware(_ => default);
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -56,7 +58,7 @@ public class ApplyExtensionsMiddlewareTests
         var context = new SchemaMergeContext(configurations);
 
         // act
-        await middleware.InvokeAsync(context);
+        await pipeline(context);
 
         // assert
         context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
@@ -66,7 +68,7 @@ public class ApplyExtensionsMiddlewareTests
     public async Task Apply_Object_Extension_Merge_Field_Directives_Single_Document()
     {
         // arrange
-        var middleware = new ApplyExtensionsMiddleware(_ => default);
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -82,7 +84,7 @@ public class ApplyExtensionsMiddlewareTests
         var context = new SchemaMergeContext(configurations);
 
         // act
-        await middleware.InvokeAsync(context);
+        await pipeline(context);
 
         // assert
         context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
@@ -92,7 +94,7 @@ public class ApplyExtensionsMiddlewareTests
     public async Task Apply_Object_Extension_Merge_Directives_Single_Document()
     {
         // arrange
-        var middleware = new ApplyExtensionsMiddleware(_ => default);
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -106,7 +108,7 @@ public class ApplyExtensionsMiddlewareTests
         var context = new SchemaMergeContext(configurations);
 
         // act
-        await middleware.InvokeAsync(context);
+        await pipeline(context);
 
         // assert
         context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
@@ -116,7 +118,7 @@ public class ApplyExtensionsMiddlewareTests
     public async Task Apply_Object_Extension_Merge_Directives_2_Single_Document()
     {
         // arrange
-        var middleware = new ApplyExtensionsMiddleware(_ => default);
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -130,7 +132,7 @@ public class ApplyExtensionsMiddlewareTests
         var context = new SchemaMergeContext(configurations);
 
         // act
-        await middleware.InvokeAsync(context);
+        await pipeline(context);
 
         // assert
         context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
@@ -140,7 +142,7 @@ public class ApplyExtensionsMiddlewareTests
     public async Task Apply_Object_Extension_Field_Type_Mismatch()
     {
         // arrange
-        var middleware = new ApplyExtensionsMiddleware(_ => default);
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -156,7 +158,7 @@ public class ApplyExtensionsMiddlewareTests
         var context = new SchemaMergeContext(configurations);
 
         // act
-        async Task Error() => await middleware.InvokeAsync(context);
+        async Task Error() => await pipeline(context);
 
         // assert
         await Assert.ThrowsAsync<GraphQLException>(Error);
@@ -166,7 +168,7 @@ public class ApplyExtensionsMiddlewareTests
     public async Task Apply_Local_Remove()
     {
         // arrange
-        var middleware = new ApplyExtensionsMiddleware(_ => default);
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -182,9 +184,23 @@ public class ApplyExtensionsMiddlewareTests
         var context = new SchemaMergeContext(configurations);
 
         // act
-        await middleware.InvokeAsync(context);
+        await pipeline(context);
 
         // assert
         context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
     }
+
+    private MergeSchema CreatePipeline()
+        => new SchemaMergePipelineBuilder()
+            .Use(next =>
+            {
+                var middleware = new PrepareDocumentsMiddleware(next);
+                return context => middleware.InvokeAsync(context);
+            })
+            .Use(next =>
+            {
+                var middleware = new ApplyExtensionsMiddleware(next);
+                return context => middleware.InvokeAsync(context);
+            })
+            .Compile();
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
 using HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
+using HotChocolate.Stitching.Types.Pipeline.PrepareDocuments;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -15,19 +16,7 @@ public class ApplyLocalRenamingMiddlewareTests
     public async Task Apply_Local_Rename()
     {
         // arrange
-        MergeSchema pipeline =
-            new SchemaMergePipelineBuilder()
-                .Use(next =>
-                {
-                    var middleware = new ApplyExtensionsMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Use(next =>
-                {
-                    var middleware = new ApplyRenamingMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Compile();
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -56,19 +45,7 @@ public class ApplyLocalRenamingMiddlewareTests
     public async Task Apply_Local_Rename_Interface_Name()
     {
         // arrange
-        MergeSchema pipeline =
-            new SchemaMergePipelineBuilder()
-                .Use(next =>
-                {
-                    var middleware = new ApplyExtensionsMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Use(next =>
-                {
-                    var middleware = new ApplyRenamingMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Compile();
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -97,19 +74,7 @@ public class ApplyLocalRenamingMiddlewareTests
     public async Task Apply_Local_Rename_Object_And_Refactor_Usages()
     {
         // arrange
-        MergeSchema pipeline =
-            new SchemaMergePipelineBuilder()
-                .Use(next =>
-                {
-                    var middleware = new ApplyExtensionsMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Use(next =>
-                {
-                    var middleware = new ApplyRenamingMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Compile();
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -138,19 +103,7 @@ public class ApplyLocalRenamingMiddlewareTests
     public async Task Apply_Local_Rename_Scalar_And_Update_Usages()
     {
         // arrange
-        MergeSchema pipeline =
-            new SchemaMergePipelineBuilder()
-                .Use(next =>
-                {
-                    var middleware = new ApplyExtensionsMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Use(next =>
-                {
-                    var middleware = new ApplyRenamingMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Compile();
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "abc",
@@ -186,19 +139,7 @@ public class ApplyLocalRenamingMiddlewareTests
     public async Task Apply_Local_Rename_Interface_Field()
     {
         // arrange
-        MergeSchema pipeline =
-            new SchemaMergePipelineBuilder()
-                .Use(next =>
-                {
-                    var middleware = new ApplyExtensionsMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Use(next =>
-                {
-                    var middleware = new ApplyRenamingMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Compile();
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "SchemaName",
@@ -229,19 +170,7 @@ public class ApplyLocalRenamingMiddlewareTests
     public async Task Apply_Local_Rename_Interface_Field_2()
     {
         // arrange
-        MergeSchema pipeline =
-            new SchemaMergePipelineBuilder()
-                .Use(next =>
-                {
-                    var middleware = new ApplyExtensionsMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Use(next =>
-                {
-                    var middleware = new ApplyRenamingMiddleware(next);
-                    return context => middleware.InvokeAsync(context);
-                })
-                .Compile();
+        MergeSchema pipeline = CreatePipeline();
 
         var service = new ServiceConfiguration(
             "SchemaName",
@@ -273,4 +202,23 @@ public class ApplyLocalRenamingMiddlewareTests
         // assert
         context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
     }
+
+    private MergeSchema CreatePipeline()
+        => new SchemaMergePipelineBuilder()
+            .Use(next =>
+            {
+                var middleware = new PrepareDocumentsMiddleware(next);
+                return context => middleware.InvokeAsync(context);
+            })
+            .Use(next =>
+            {
+                var middleware = new ApplyExtensionsMiddleware(next);
+                return context => middleware.InvokeAsync(context);
+            })
+            .Use(next =>
+            {
+                var middleware = new ApplyRenamingMiddleware(next);
+                return context => middleware.InvokeAsync(context);
+            })
+            .Compile();
 }
