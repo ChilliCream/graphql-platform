@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
@@ -44,11 +46,13 @@ public class ElasticSearchStringContainsOperationHandler
             throw ThrowHelper.Filtering_WrongValueProvided(field);
         }
 
-        IElasticFilterMetadata metadata = field.GetElasticMetadata();
+        IElasticFilterMetadata metadata     = field.GetElasticMetadata();
+
+        var                    sanitizedVal = val.Replace("*", @"\*").Replace("?",@"\?");
 
         return new WildcardOperation(
             context.GetPath(),
             metadata.Kind,
-            $"*{val}*");
+            $"*{sanitizedVal}*");
     }
 }
