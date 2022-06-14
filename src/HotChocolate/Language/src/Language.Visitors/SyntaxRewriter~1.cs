@@ -14,10 +14,10 @@ public class SyntaxRewriter<TContext>
     : ISyntaxRewriter<TContext>
     where TContext : ISyntaxVisitorContext
 {
-    public virtual ISyntaxNode Rewrite(ISyntaxNode node, TContext context)
+    public virtual ISyntaxNode? Rewrite(ISyntaxNode node, TContext context)
     {
         TContext newContext = OnEnter(node, context);
-        ISyntaxNode rewrittenNode = OnRewrite(node, context);
+        ISyntaxNode? rewrittenNode = OnRewrite(node, context);
         OnLeave(rewrittenNode, newContext);
         return rewrittenNode;
     }
@@ -25,7 +25,7 @@ public class SyntaxRewriter<TContext>
     protected virtual TContext OnEnter(ISyntaxNode node, TContext context)
         => context;
 
-    protected virtual ISyntaxNode OnRewrite(ISyntaxNode node, TContext context)
+    protected virtual ISyntaxNode? OnRewrite(ISyntaxNode node, TContext context)
         => node switch
         {
             ArgumentNode n => RewriteArgument(n, context),
@@ -79,12 +79,12 @@ public class SyntaxRewriter<TContext>
         };
 
     protected virtual void OnLeave(
-        ISyntaxNode node,
+        ISyntaxNode? node,
         TContext context)
     {
     }
 
-    protected virtual ArgumentNode RewriteArgument(
+    protected virtual ArgumentNode? RewriteArgument(
         ArgumentNode node,
         TContext context)
     {
@@ -105,7 +105,7 @@ public class SyntaxRewriter<TContext>
         TContext context)
         => node;
 
-    protected virtual DirectiveDefinitionNode RewriteDirectiveDefinition(
+    protected virtual DirectiveDefinitionNode? RewriteDirectiveDefinition(
         DirectiveDefinitionNode node,
         TContext context)
     {
@@ -131,7 +131,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual DirectiveNode RewriteDirective(
+    protected virtual DirectiveNode? RewriteDirective(
         DirectiveNode node,
         TContext context)
         => node;
@@ -152,7 +152,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual EnumTypeDefinitionNode RewriteEnumTypeDefinition(
+    protected virtual EnumTypeDefinitionNode? RewriteEnumTypeDefinition(
         EnumTypeDefinitionNode node,
         TContext context)
     {
@@ -178,7 +178,7 @@ public class SyntaxRewriter<TContext>
     }
 
 
-    protected virtual EnumTypeExtensionNode RewriteEnumTypeExtension(
+    protected virtual EnumTypeExtensionNode? RewriteEnumTypeExtension(
         EnumTypeExtensionNode node,
         TContext context)
     {
@@ -200,7 +200,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual EnumValueDefinitionNode RewriteEnumValueDefinition(
+    protected virtual EnumValueDefinitionNode? RewriteEnumValueDefinition(
         EnumValueDefinitionNode node,
         TContext context)
     {
@@ -227,7 +227,7 @@ public class SyntaxRewriter<TContext>
         TContext context)
         => node;
 
-    protected virtual FieldDefinitionNode RewriteFieldDefinition(
+    protected virtual FieldDefinitionNode? RewriteFieldDefinition(
         FieldDefinitionNode node,
         TContext context)
     {
@@ -291,7 +291,7 @@ public class SyntaxRewriter<TContext>
         TContext context)
         => node;
 
-    protected virtual FragmentDefinitionNode RewriteFragmentDefinition(
+    protected virtual FragmentDefinitionNode? RewriteFragmentDefinition(
         FragmentDefinitionNode node,
         TContext context)
     {
@@ -320,7 +320,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual FragmentSpreadNode RewriteFragmentSpread(
+    protected virtual FragmentSpreadNode? RewriteFragmentSpread(
         FragmentSpreadNode node,
         TContext context)
     {
@@ -339,7 +339,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual InlineFragmentNode RewriteInlineFragment(
+    protected virtual InlineFragmentNode? RewriteInlineFragment(
         InlineFragmentNode node,
         TContext context)
     {
@@ -361,7 +361,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual InputObjectTypeDefinitionNode RewriteInputObjectTypeDefinition(
+    protected virtual InputObjectTypeDefinitionNode? RewriteInputObjectTypeDefinition(
         InputObjectTypeDefinitionNode node,
         TContext context)
     {
@@ -386,7 +386,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual InputObjectTypeExtensionNode RewriteInputObjectTypeExtension(
+    protected virtual InputObjectTypeExtensionNode? RewriteInputObjectTypeExtension(
         InputObjectTypeExtensionNode node,
         TContext context)
     {
@@ -408,7 +408,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual InputValueDefinitionNode RewriteInputValueDefinition(
+    protected virtual InputValueDefinitionNode? RewriteInputValueDefinition(
         InputValueDefinitionNode node,
         TContext context)
     {
@@ -436,7 +436,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual InterfaceTypeDefinitionNode RewriteInterfaceTypeDefinition(
+    protected virtual InterfaceTypeDefinitionNode? RewriteInterfaceTypeDefinition(
         InterfaceTypeDefinitionNode node,
         TContext context)
     {
@@ -464,7 +464,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual InterfaceTypeExtensionNode RewriteInterfaceTypeExtension(
+    protected virtual InterfaceTypeExtensionNode? RewriteInterfaceTypeExtension(
         InterfaceTypeExtensionNode node,
         TContext context)
     {
@@ -592,7 +592,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
+    protected virtual ObjectTypeDefinitionNode? RewriteObjectTypeDefinition(
         ObjectTypeDefinitionNode node,
         TContext context)
     {
@@ -620,7 +620,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual ObjectTypeExtensionNode RewriteObjectTypeExtension(
+    protected virtual ObjectTypeExtensionNode? RewriteObjectTypeExtension(
         ObjectTypeExtensionNode node,
         TContext context)
     {
@@ -659,7 +659,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual OperationDefinitionNode RewriteOperationDefinition(
+    protected virtual OperationDefinitionNode? RewriteOperationDefinition(
         OperationDefinitionNode node,
         TContext context)
     {
@@ -686,7 +686,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual OperationTypeDefinitionNode RewriteOperationTypeDefinition(
+    protected virtual OperationTypeDefinitionNode? RewriteOperationTypeDefinition(
         OperationTypeDefinitionNode node,
         TContext context)
     {
@@ -735,7 +735,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual ScalarTypeDefinitionNode RewriteScalarTypeDefinition(
+    protected virtual ScalarTypeDefinitionNode? RewriteScalarTypeDefinition(
         ScalarTypeDefinitionNode node,
         TContext context)
     {
@@ -757,7 +757,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual ScalarTypeExtensionNode RewriteScalarTypeExtension(
+    protected virtual ScalarTypeExtensionNode? RewriteScalarTypeExtension(
         ScalarTypeExtensionNode node,
         TContext context)
     {
@@ -799,7 +799,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual SchemaDefinitionNode RewriteSchemaDefinition(
+    protected virtual SchemaDefinitionNode? RewriteSchemaDefinition(
         SchemaDefinitionNode node,
         TContext context)
     {
@@ -822,7 +822,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual SchemaExtensionNode RewriteSchemaExtension(
+    protected virtual SchemaExtensionNode? RewriteSchemaExtension(
         SchemaExtensionNode node,
         TContext context)
     {
@@ -861,7 +861,7 @@ public class SyntaxRewriter<TContext>
         TContext context)
         => node;
 
-    protected virtual UnionTypeDefinitionNode RewriteUnionTypeDefinition(
+    protected virtual UnionTypeDefinitionNode? RewriteUnionTypeDefinition(
         UnionTypeDefinitionNode node,
         TContext context)
     {
@@ -886,7 +886,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual UnionTypeExtensionNode RewriteUnionTypeExtension(
+    protected virtual UnionTypeExtensionNode? RewriteUnionTypeExtension(
         UnionTypeExtensionNode node,
         TContext context)
     {
@@ -908,7 +908,7 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-    protected virtual VariableDefinitionNode RewriteVariableDefinition(
+    protected virtual VariableDefinitionNode? RewriteVariableDefinition(
         VariableDefinitionNode node,
         TContext context)
     {
@@ -948,20 +948,21 @@ public class SyntaxRewriter<TContext>
     }
 
     protected T RewriteNode<T>(T node, TContext context) where T : ISyntaxNode
-        => (T)Rewrite(node, context);
+        => (T?)Rewrite(node, context) ?? throw new ArgumentNullException(nameof(node));
 
     protected T? RewriteNodeOrNull<T>(T? node, TContext context) where T : ISyntaxNode
-        => node is null ? default : (T)Rewrite(node, context);
+        => node is null ? default : (T?)Rewrite(node, context);
 
     protected IReadOnlyList<T> RewriteList<T>(IReadOnlyList<T> nodes, TContext context)
         where T : ISyntaxNode
     {
         T[]? rewrittenList = null;
 
+        // todo here: Handle null by excluding from list (on create) or removing from list.
         for (var i = 0; i < nodes.Count; i++)
         {
             T originalNode = nodes[i];
-            T rewrittenNode = RewriteNode(originalNode, context);
+            T? rewrittenNode = RewriteNodeOrNull(originalNode, context);
 
             if (rewrittenList is null)
             {

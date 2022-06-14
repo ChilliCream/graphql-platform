@@ -25,11 +25,16 @@ internal sealed class DelegateSyntaxRewriter<TContext>
         TContext context)
         => _enter(node, context);
 
-    protected override ISyntaxNode OnRewrite(
+    protected override ISyntaxNode? OnRewrite(
         ISyntaxNode node,
         TContext context)
     {
-        ISyntaxNode rewrittenNode = base.OnRewrite(node, context);
+        ISyntaxNode? rewrittenNode = base.OnRewrite(node, context);
+        if (rewrittenNode is null)
+        {
+            return default;
+        }
+
         return _rewrite(rewrittenNode, context);
     }
 
