@@ -1,0 +1,11 @@
+﻿extend schema @_hc_service(name: "abc") {
+
+}
+
+type Foo {
+  abc: String
+}
+
+extend type Foo {
+  abc: String @remove
+}
