@@ -39,13 +39,13 @@ public class InterfaceFieldDescriptor
 
         Definition.Name = context.Naming.GetMemberName(
             member,
-            MemberKind.InputObjectField);
+            MemberKind.InterfaceField);
         Definition.Description = context.Naming.GetMemberDescription(
             member,
-            MemberKind.InputObjectField);
+            MemberKind.InterfaceField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
-        if (context.Naming.IsDeprecated(member, out string reason))
+        if (context.Naming.IsDeprecated(member, out var reason))
         {
             Deprecated(reason);
         }
