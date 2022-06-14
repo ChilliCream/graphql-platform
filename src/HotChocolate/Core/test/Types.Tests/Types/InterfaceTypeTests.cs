@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -724,6 +727,43 @@ namespace HotChocolate.Types
             // assert
             SchemaException ex = await Assert.ThrowsAsync<SchemaException>(call);
             ex.Errors[0].ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Ensure_Interface_Field_Is_Requested_When_Applying_NamingConvention()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddConvention<INamingConventions, SnakeCaseNamingConventions>()
+                .AddQueryType(x => x
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<InterfaceType<IFooNaming>>()
+                    .Resolve(() => null))
+                .AddResolver("Foo", "bar", x => 1)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        private sealed class SnakeCaseNamingConventions : DefaultNamingConventions
+        {
+            public override NameString GetMemberName(MemberInfo member, MemberKind kind)
+            {
+                if (kind == MemberKind.InterfaceField)
+                {
+                    var pattern = new Regex(
+                        @"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+");
+                    return string.Join("_", pattern.Matches(member.Name)).ToLower();
+                }
+
+                return base.GetMemberName(member, kind);
+            }
+        }
+
+        private interface IFooNaming
+        {
+            string FooBarBaz { get; }
         }
 
         public interface IFoo
