@@ -956,9 +956,9 @@ public class SyntaxRewriter<TContext>
     protected IReadOnlyList<T> RewriteList<T>(IReadOnlyList<T> nodes, TContext context)
         where T : ISyntaxNode
     {
-        T[]? rewrittenList = null;
+        T?[]? rewrittenList = null;
 
-        // todo here: Handle null by excluding from list (on create) or removing from list.
+        var removedNodes = 0;
         for (var i = 0; i < nodes.Count; i++)
         {
             T originalNode = nodes[i];
@@ -971,21 +971,30 @@ public class SyntaxRewriter<TContext>
                     continue;
                 }
 
-                rewrittenList = new T[nodes.Count];
+                rewrittenList = new T[nodes.Count - removedNodes];
 
                 for (var j = 0; j < i; j++)
                 {
                     rewrittenList[j] = nodes[j];
                 }
+            }
 
-                rewrittenList[i] = rewrittenNode;
+            if (rewrittenNode is null)
+            {
+                removedNodes++;
             }
             else
             {
-                rewrittenList[i] = rewrittenNode;
+                rewrittenList[i - removedNodes] = rewrittenNode;
             }
         }
 
-        return rewrittenList ?? nodes;
+        if (rewrittenList is null)
+        {
+            return nodes;
+        }
+
+        Array.Resize(ref rewrittenList, nodes.Count - removedNodes);
+        return rewrittenList!;
     }
 }
