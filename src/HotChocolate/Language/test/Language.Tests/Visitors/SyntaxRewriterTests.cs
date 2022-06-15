@@ -78,4 +78,33 @@ type Bar {
         schema = (DocumentNode)rewriter.Rewrite(schema, new NavigatorContext());
         schema.Print().MatchSnapshot();
     }
+
+    [Fact]
+    public void Remove_StringValueField_ExceptionThrown()
+    {
+        // arrange
+        DocumentNode schema = Parse(@"
+type Foo {
+   abc : String
+}
+");
+
+        // act
+        ISyntaxRewriter<NavigatorContext> rewriter =
+            SyntaxRewriter.CreateWithNavigator(
+                (node, context) =>
+                {
+                    if (node?.Kind is SyntaxKind.Name
+                        && "Foo".Equals(context.Navigator.GetAncestor<ObjectTypeDefinitionNode>()?.Name.Value))
+                    {
+                        return default;
+                    }
+
+                    return node;
+                });
+
+        // assert
+        DocumentNode Fail() => (DocumentNode)rewriter.Rewrite(schema, new NavigatorContext());
+        Assert.Throws<SyntaxNodeCannotBeNullException>(Fail);
+    }
 }
