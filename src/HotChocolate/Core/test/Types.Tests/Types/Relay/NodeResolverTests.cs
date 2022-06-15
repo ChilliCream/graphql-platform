@@ -3,22 +3,20 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
-using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Relay
 {
     public class NodeResolverTests
     {
-        [Obsolete]
         [Fact]
         public async Task NodeResolver_ResolveNode()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
                 .Create();
@@ -90,18 +88,17 @@ namespace HotChocolate.Types
             result.ToJson().MatchSnapshot();
         }
 
-        [Obsolete]
         [Fact]
         public async Task NodeResolverObject_ResolveNode_DynamicField()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .AddObjectType(d =>
                 {
                     d.Name("Entity");
-                    d.AsNode()
-                        .NodeResolver<string>((ctx, id) =>
+                    d.ImplementsNode()
+                        .ResolveNode<string>((ctx, id) =>
                             Task.FromResult<object>(new Entity { Name = id }))
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
@@ -173,6 +170,7 @@ namespace HotChocolate.Types
 
             await new ServiceCollection()
                 .AddGraphQL()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Query>()
                 .AddTypeExtension<EntityExtension>()
                 .BuildSchemaAsync()
@@ -186,6 +184,7 @@ namespace HotChocolate.Types
 
             await new ServiceCollection()
                 .AddGraphQL()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Query>()
                 .AddTypeExtension<EntityExtension2>()
                 .BuildSchemaAsync()
@@ -199,6 +198,7 @@ namespace HotChocolate.Types
 
             await new ServiceCollection()
                 .AddGraphQL()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Query>()
                 .AddTypeExtension<EntityExtension3>()
                 .BuildSchemaAsync()
@@ -212,13 +212,36 @@ namespace HotChocolate.Types
 
             await new ServiceCollection()
                 .AddGraphQL()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Query>()
                 .AddTypeExtension<EntityExtension4>()
                 .BuildSchemaAsync()
                 .MatchSnapshotAsync();
         }
 
-        [Obsolete]
+        [Fact]
+        public async Task NodeAttribute_Fetch_CustomId_Through_Node_Field()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddTypeExtension<CustomIdEntityExtension>()
+                .AddTypeConverter<int, CustomId>(i => new CustomId(i))
+                .BindRuntimeType<CustomId, IntType>()
+                .AddGlobalObjectIdentification()
+                .ExecuteRequestAsync(
+                    @"{
+                        node(id: ""RW50aXR5CmkxMjM="") {
+                            ... on Entity {
+                                name
+                            }
+                        }
+                    }")
+                .MatchSnapshotAsync();
+        }
+
         [Fact]
         public async Task NodeAttribute_On_Extension_Fetch_Through_Node_Field()
         {
@@ -228,7 +251,7 @@ namespace HotChocolate.Types
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddTypeExtension<EntityExtension>()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .ExecuteRequestAsync(
                     @"{
                         node(id: ""RW50aXR5CmRhYmM="") {
@@ -247,16 +270,15 @@ namespace HotChocolate.Types
             public Entity2 GetEntity2(string name) => new Entity2 { Name = name };
         }
 
-        [Obsolete]
         public class EntityType
                     : ObjectType<Entity>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Entity> descriptor)
             {
-                descriptor.AsNode()
+                descriptor.ImplementsNode()
                     .IdField(t => t.Id)
-                    .NodeResolver((ctx, id) =>
+                    .ResolveNode((ctx, id) =>
                         Task.FromResult(new Entity { Name = id }));
             }
         }
@@ -303,6 +325,13 @@ namespace HotChocolate.Types
         public class EntityExtension4
         {
             public Entity GetEntity(string id) => new() { Name = id };
+        }
+
+        [Node]
+        [ExtendObjectType(typeof(Entity))]
+        public class CustomIdEntityExtension
+        {
+            public Entity GetEntity(CustomId id) => new() { Name = id.Value.ToString() };
         }
     }
 }

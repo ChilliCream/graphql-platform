@@ -20,7 +20,22 @@ We could try and enforce unique identifiers for our Ids. Still, as soon as we in
 
 Fortunately there is an easier, more integrated way to go about solving this problem in Hot Chocolate: Global identifiers.
 
-With Global Identifiers, Hot Chocolate adds a middleware that automatically serializes our identifiers to be unique within the schema. The concern of globally unique identifiers is therefore kept separate from our business domain and we can continue using the "real" identifiers within our business code, without worrying about uniqueness for a client.
+With Global Identifiers, Hot Chocolate adds a middleware that automatically serializes our identifiers to be unique within the schema. The concern of globally unique identifiers is therefore kept separate from our business domain and we can continue using the "real" identifiers within our business code, without worrying about uniqueness for a client. 
+
+In order to opt into this behavior, call `AddGlobalObjectIdentification()` on the `IRequestExecutorBuilder`.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification()
+    .AddQueryType<Query>();
+```
+
+If you only want unique Ids, without [global object identification](#global-object-identification), you can opt out by setting the `registerNodeInterface` parameter on the `AddGlobalObjectIdentification()` method to `false`:
+
+```csharp
+AddGlobalObjectIdentification(registerNodeInterface: false)
+```
 
 ## Usage in Output Types
 
@@ -165,6 +180,38 @@ The approach of either Annotation-based or Code-first can be used in conjunction
 </Schema>
 </ExampleTabs>
 
+## Usage with custom Ids
+
+If you are doing Domain-Driven-Design, you might be using strongly typed Ids, like the following:
+
+```csharp
+public struct OrderId
+{
+    public OrderId(int value)
+    {
+        Value = value;
+    }
+
+    public int Value { get; }
+}
+```
+
+Without any additional work these Ids can not be correctly serialized or deserialized as global identifiers.
+
+We need to register [converters](/docs/hotchocolate/defining-a-schema/scalars#custom-converters) to tell the GraphQL server how to handle these "complex" Ids (we would also have to do this without using the global identifiers feature):
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification()
+    // If the OrderId type is encountered when building the schema,
+    // treat it as an IntType in the schema.
+    .BindRuntimeType<OrderId, IntType>()
+    // How to convert between OrderId and the int primitive:
+    .AddTypeConverter<OrderId, int>(x => x.Value)
+    .AddTypeConverter<int, OrderId>(x => new OrderId(x));
+```
+
 ## Id Serializer
 
 Unique (or global) Ids are generated using the `IIdSerializer`. We can access it like any other service and use it to serialize or deserialize global Ids ourselves.
@@ -224,16 +271,10 @@ type Query {
 In Hot Chocolate we can enable Global Object Identification, by calling `AddGlobalObjectIdentification()` on the `IRequestExecutorBuilder`.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Query>();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification()
+    .AddQueryType<Query>();
 ```
 
 This registers the `Node` interface type and adds the `node(id: ID!): Node` and the `nodes(ids: [ID!]!): [Node]!` field to our query type. At least one type in our schema needs to implement the `Node` interface or an exception is raised.
@@ -258,7 +299,7 @@ There also needs to be a method, a _node resolver_, responsible for the acutal r
 - `GetProduct`
 - `GetProductAsync`
 
-The method is expected to have a return type of either `Product` or `Task<Product>`. Furthermore the first argument of this method is expected to be of the same type as the `Id` property. At runtime Hot Chocolate will invoke this method with the `id` of the object that should be refetched. Special types, such as services, can be injected as arguments as well.
+The method is expected to have a return type of either `Product` or `Task<Product>`. Furthermore the first argument of this method is expected to be called `id` and be of the same type as the `Id` property. At runtime Hot Chocolate will invoke this method with the `id` of the object that should be refetched. Special types, such as services, can be injected as arguments as well.
 
 ```csharp
 [Node]
@@ -513,15 +554,9 @@ mutation {
 Hot Chocolate allows us to automatically add this `query` field to all of our mutation payload types:
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryFieldToMutationPayloads();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryFieldToMutationPayloads();
 ```
 
 By default, this will add a field of type `Query` called `query` to each top-level mutation field type, whose name ends in `Payload`.

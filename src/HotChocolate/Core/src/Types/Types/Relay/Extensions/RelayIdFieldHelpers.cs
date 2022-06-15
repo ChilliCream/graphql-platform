@@ -8,6 +8,7 @@ using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.WellKnownContextData;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -15,7 +16,8 @@ namespace HotChocolate.Types.Relay;
 
 internal static class RelayIdFieldHelpers
 {
-    private static IdSerializer? _idSerializer;
+    private static IIdSerializer? _idSerializer;
+    private static ITypeConverter? _typeConverter;
 
     /// <summary>
     /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
@@ -236,10 +238,15 @@ internal static class RelayIdFieldHelpers
             completionContext.Services.GetService<IIdSerializer>() ??
             (_idSerializer ??= new IdSerializer());
 
+        ITypeConverter typeConverter =
+            completionContext.Services.GetService<ITypeConverter>() ??
+            (_typeConverter ??= new DefaultTypeConverter());
+
         return new GlobalIdInputValueFormatter(
             typeName.HasValue ? typeName : completionContext.Type.Name,
             serializer,
             resultType,
-            typeName.HasValue);
+            typeName.HasValue,
+            typeConverter);
     }
 }

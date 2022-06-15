@@ -8,6 +8,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -30,13 +31,13 @@ namespace HotChocolate.Types.Relay
 
             // act
             IExecutionResult result =
-                await SchemaBuilder.New()
+                await new ServiceCollection()
+                    .AddGraphQL()
                     .AddQueryType<Query>()
                     .AddType<FooPayload>()
+                    .AddTypeConverter<int, CustomId>(s => new CustomId(s))
                     .AddGlobalObjectIdentification(false)
-                    .Create()
-                    .MakeExecutable()
-                    .ExecuteAsync(
+                    .ExecuteRequestAsync(
                         QueryRequestBuilder.New()
                             .SetQuery(@"query foo (
                                 $intId: ID!
@@ -44,7 +45,9 @@ namespace HotChocolate.Types.Relay
                                 $stringId: ID!
                                 $nullStringId: ID = null
                                 $guidId: ID!
-                                $nullGuidId: ID = null)
+                                $nullGuidId: ID = null
+                                $customId: ID!
+                                $nullCustomId: ID = null)
                             {
                                 intId(id: $intId)
                                 nullableIntId(id: $intId)
@@ -61,10 +64,19 @@ namespace HotChocolate.Types.Relay
                                 nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
                                 guidIdList(id: [$guidId $guidId])
                                 nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
+                                customId(id: $customId)
+                                nullableCustomId(id: $customId)
+                                nullableCustomIdGivenNull: nullableCustomId(id: $nullCustomId)
+                                customIdList(id: [$customId $customId])
+                                nullableCustomIdList(id: [$customId $nullCustomId $customId])
+                                
                             }")
                             .SetVariableValue("intId", intId)
                             .SetVariableValue("stringId", stringId)
                             .SetVariableValue("guidId", guidId)
+                            // When a custom ID was correctly serialized,
+                            // it will look like an ID of the underlying primitive type.
+                            .SetVariableValue("customId", intId)
                             .Create());
 
             // assert
@@ -363,6 +375,14 @@ namespace HotChocolate.Types.Relay
             public string NullableGuidId([ID] Guid? id) => id?.ToString() ?? "null";
             public string NullableGuidIdList([ID] IReadOnlyList<Guid?> id) =>
                 string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+
+            public string CustomId([ID] CustomId id) => id.Value.ToString();
+            public string CustomIdList([ID] IReadOnlyList<CustomId> id) =>
+                string.Join(", ", id.Select(i => i.Value));
+
+            public string NullableCustomId([ID] CustomId? id) => id?.Value.ToString() ?? "null";
+            public string NullableCustomIdList([ID] IReadOnlyList<CustomId?> id) =>
+                string.Join(", ", id.Select(i => i?.Value.ToString() ?? "null"));
 
             public string InterceptedId([InterceptedID] [ID] int id) => id.ToString();
 

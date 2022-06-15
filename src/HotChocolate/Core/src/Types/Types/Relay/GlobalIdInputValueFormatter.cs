@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -15,17 +16,22 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
     private readonly NameString _typeName;
     private readonly IIdSerializer _idSerializer;
     private readonly bool _validateType;
+    private readonly ITypeConverter _typeConverter;
     private readonly Func<IList> _createList;
+    private readonly Type? _sourceType;
 
     public GlobalIdInputValueFormatter(
         NameString typeName,
         IIdSerializer idSerializer,
         IExtendedType resultType,
-        bool validateType)
+        bool validateType,
+        ITypeConverter typeConverter)
     {
         _typeName = typeName;
         _idSerializer = idSerializer;
         _validateType = validateType;
+        _typeConverter = typeConverter;
+        _sourceType = resultType.ElementType?.Source;
         _createList = CreateListFactory(resultType);
     }
 
@@ -96,7 +102,16 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
             {
                 if (!_validateType || _typeName.Equals(idv.TypeName))
                 {
-                    list.Add(idv.Value);
+                    if (_sourceType is not null &&
+                        _typeConverter.TryConvert(_sourceType, idv.Value,
+                            out var converterdValue))
+                    {
+                        list.Add(converterdValue);
+                    }
+                    else
+                    {
+                        list.Add(idv.Value);
+                    }
                 }
             }
 
@@ -121,7 +136,16 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
 
                     if (!_validateType || _typeName.Equals(id.TypeName))
                     {
-                        list.Add(id.Value);
+                        if (_sourceType is not null &&
+                            _typeConverter.TryConvert(_sourceType, id.Value,
+                                out var converterdValue))
+                        {
+                            list.Add(converterdValue);
+                        }
+                        else
+                        {
+                            list.Add(id.Value);
+                        }
                     }
                 }
 
