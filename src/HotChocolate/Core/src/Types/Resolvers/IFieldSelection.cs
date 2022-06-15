@@ -33,9 +33,4 @@ public interface IFieldSelection
     /// Gets the field selection syntax node.
     /// </summary>
     FieldNode SyntaxNode { get; }
-
-    /// <summary>
-    /// Gets the merged field selections.
-    /// </summary>
-    IReadOnlyList<FieldNode> SyntaxNodes { get; }
 }

@@ -38,3 +38,16 @@ public interface IOptionalSelection
     /// </returns>
     bool IsIncluded(IVariableValueCollection variableValues, bool allowInternals = false);
 }
+
+/// <summary>
+/// Represents selections with inclusion conditions.
+/// </summary>
+public interface IOptionalSelection2
+{
+    /// <summary>
+    /// Defines that this selection is only needed for internal processing.
+    /// </summary>
+    public bool IsInternal { get; }
+
+    bool IsIncluded(long includeFlags, bool allowInternals = false);
+}

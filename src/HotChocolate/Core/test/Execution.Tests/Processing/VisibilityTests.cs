@@ -14,10 +14,10 @@ public class VisibilityTests
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
 
         // act
-        Visibility.TryExtract(field, out Visibility visibility);
+        IncludeCondition.FromSelection(field, out IncludeCondition visibility);
 
         // assert
-        Assert.False(visibility.IsVisible(variables.Object));
+        Assert.False(visibility.IsIncluded(variables.Object));
     }
 
     [Fact]
@@ -28,8 +28,8 @@ public class VisibilityTests
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
 
         // act
-        Visibility.TryExtract(fieldA, out Visibility visibilityA);
-        Visibility.TryExtract(fieldB, out Visibility visibilityB);
+        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
+        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
 
         // assert
         Assert.True(visibilityA.Equals(visibilityB));
@@ -43,8 +43,8 @@ public class VisibilityTests
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
 
         // act
-        Visibility.TryExtract(fieldA, out Visibility visibilityA);
-        Visibility.TryExtract(fieldB, out Visibility visibilityB);
+        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
+        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
 
         // assert
         Assert.True(visibilityA.Equals(visibilityB));
@@ -58,8 +58,8 @@ public class VisibilityTests
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
 
         // act
-        Visibility.TryExtract(fieldA, out Visibility visibilityA);
-        Visibility.TryExtract(fieldB, out Visibility visibilityB);
+        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
+        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
 
         // assert
         Assert.False(visibilityA.Equals(visibilityB));
@@ -73,8 +73,8 @@ public class VisibilityTests
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
 
         // act
-        Visibility.TryExtract(fieldA, out Visibility visibilityA);
-        Visibility.TryExtract(fieldB, out Visibility visibilityB);
+        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
+        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
 
         // assert
         Assert.False(visibilityA.Equals(visibilityB));
@@ -88,11 +88,11 @@ public class VisibilityTests
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @test(test: true)");
 
         // act
-        var success = Visibility.TryExtract(field, out Visibility visibility);
+        var success = IncludeCondition.FromSelection(field, out IncludeCondition visibility);
 
         // assert
         Assert.False(success);
-        Assert.True(visibility.IsVisible(variables.Object));
+        Assert.True(visibility.IsIncluded(variables.Object));
     }
 
     [Fact]
@@ -103,11 +103,11 @@ public class VisibilityTests
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field");
 
         // act
-        var success = Visibility.TryExtract(field, out Visibility visibility);
+        var success = IncludeCondition.FromSelection(field, out IncludeCondition visibility);
 
         // assert
         Assert.False(success);
-        Assert.True(visibility.IsVisible(variables.Object));
+        Assert.True(visibility.IsIncluded(variables.Object));
     }
 
     [Fact]
@@ -118,11 +118,11 @@ public class VisibilityTests
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
 
         // act
-        var success = Visibility.TryExtract(field, out Visibility visibility);
+        var success = IncludeCondition.FromSelection(field, out IncludeCondition visibility);
 
         // assert
         Assert.True(success);
-        Assert.False(visibility.IsVisible(variables.Object));
+        Assert.False(visibility.IsIncluded(variables.Object));
     }
 
     [Fact]
@@ -132,8 +132,8 @@ public class VisibilityTests
         FieldNode fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
 
-        Visibility.TryExtract(fieldA, out Visibility visibilityA);
-        Visibility.TryExtract(fieldB, out Visibility visibilityB);
+        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
+        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
 
         // act
         var hashCodeA = visibilityA.GetHashCode();
@@ -150,8 +150,8 @@ public class VisibilityTests
         FieldNode fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
 
-        Visibility.TryExtract(fieldA, out Visibility visibilityA);
-        Visibility.TryExtract(fieldB, out Visibility visibilityB);
+        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
+        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
 
         // act
         var hashCodeA = visibilityA.GetHashCode();
@@ -168,10 +168,10 @@ public class VisibilityTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: $a)");
-        Visibility.TryExtract(field, out Visibility visibility);
+        IncludeCondition.FromSelection(field, out IncludeCondition visibility);
 
         // act
-        var visible = visibility.IsVisible(variables.Object);
+        var visible = visibility.IsIncluded(variables.Object);
 
         // assert
         Assert.True(visible);
@@ -184,10 +184,10 @@ public class VisibilityTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(true);
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: $a)");
-        Visibility.TryExtract(field, out Visibility visibility);
+        IncludeCondition.FromSelection(field, out IncludeCondition visibility);
 
         // act
-        var visible = visibility.IsVisible(variables.Object);
+        var visible = visibility.IsIncluded(variables.Object);
 
         // assert
         Assert.True(visible);
@@ -199,10 +199,10 @@ public class VisibilityTests
         // arrange
         var variables = new Mock<IVariableValueCollection>();
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: true)");
-        Visibility.TryExtract(field, out Visibility visibility);
+        IncludeCondition.FromSelection(field, out IncludeCondition visibility);
 
         // act
-        var visible = visibility.IsVisible(variables.Object);
+        var visible = visibility.IsIncluded(variables.Object);
 
         // assert
         Assert.True(visible);
