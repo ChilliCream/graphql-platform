@@ -41,23 +41,23 @@ public class SyntaxRewriterTests
     {
         // arrange
         DocumentNode schema = Parse(@"
-schema {
-  query: QueryType
-  mutation: MutationType
-}
+            schema {
+              query: QueryType
+              mutation: MutationType
+            }
 
-type Foo {
-  one: String!
-  two: Int
-  three: String!
-}
+            type Foo {
+              one: String!
+              two: Int
+              three: String!
+            }
 
-type Bar {
-  one: String!
-  two: Int
-  three: String!
-}
-");
+            type Bar {
+              one: String!
+              two: Int
+              three: String!
+            }
+            ");
 
         // act
         ISyntaxRewriter<NavigatorContext> rewriter =
@@ -84,10 +84,10 @@ type Bar {
     {
         // arrange
         DocumentNode schema = Parse(@"
-type Foo {
-   abc : String
-}
-");
+            type Foo {
+               abc : String
+            }
+            ");
 
         // act
         ISyntaxRewriter<NavigatorContext> rewriter =

@@ -958,7 +958,7 @@ public class SyntaxRewriter<TContext>
     {
         T?[]? rewrittenList = null;
 
-        var removedNodes = 0;
+        var includedNodes = 0;
         for (var i = 0; i < nodes.Count; i++)
         {
             T originalNode = nodes[i];
@@ -971,22 +971,22 @@ public class SyntaxRewriter<TContext>
                     continue;
                 }
 
-                rewrittenList = new T[nodes.Count - removedNodes];
+                rewrittenList = new T[nodes.Count];
 
                 for (var j = 0; j < i; j++)
                 {
-                    rewrittenList[j] = nodes[j];
+                    rewrittenList[includedNodes] = nodes[j];
+                    includedNodes++;
                 }
             }
 
             if (rewrittenNode is null)
             {
-                removedNodes++;
+                continue;
             }
-            else
-            {
-                rewrittenList[i - removedNodes] = rewrittenNode;
-            }
+
+            rewrittenList[includedNodes] = rewrittenNode;
+            includedNodes++;
         }
 
         if (rewrittenList is null)
@@ -994,7 +994,7 @@ public class SyntaxRewriter<TContext>
             return nodes;
         }
 
-        Array.Resize(ref rewrittenList, nodes.Count - removedNodes);
+        Array.Resize(ref rewrittenList, includedNodes);
         return rewrittenList!;
     }
 }
