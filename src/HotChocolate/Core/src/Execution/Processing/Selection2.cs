@@ -71,6 +71,8 @@ public class Selection2 : ISelection2
     /// <inheritdoc />
     public FieldNode SyntaxNode { get; private set; }
 
+    public int SelectionSetId { get; private set; }
+
     /// <inheritdoc />
     public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
 
@@ -90,6 +92,9 @@ public class Selection2 : ISelection2
 
     /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
+
+    /// <inheritdoc />
+    public bool IsConditional => _includeConditions.Length > 0;
 
     public bool IsIncluded(long includeFlags, bool allowInternals = false)
     {
@@ -211,10 +216,11 @@ public class Selection2 : ISelection2
             selectionSet);
     }
 
-    internal void Seal()
+    internal void Seal(int selectionSetId)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
+            SelectionSetId = selectionSetId;
             _flags |= Flags.Sealed;
         }
     }

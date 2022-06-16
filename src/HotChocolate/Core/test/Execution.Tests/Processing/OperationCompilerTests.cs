@@ -1271,4 +1271,42 @@ namespace HotChocolate.Execution.Processing
             }
         }
     }
+
+    public class OperationCompilerTests2
+    {
+        [Fact]
+        public void Prepare_Inline_Fragment()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"{
+                hero(episode: EMPIRE) {
+                    name
+                    ... on Droid {
+                        primaryFunction
+                    }
+                    ... on Human {
+                        homePlanet
+                    }
+                }
+             }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+            var fragments = new FragmentCollection(schema, document);
+
+
+
+            // act
+            var compiler = new OperationCompiler2(schema, fragments, new InputParser());
+            compiler.Compile(schema.QueryType, operationDefinition);
+
+            // assert
+
+        }
+    }
 }

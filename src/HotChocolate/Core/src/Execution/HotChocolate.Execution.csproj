@@ -36,6 +36,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Processing\OperationCompiler2.ArgumentValues.cs">
+      <DependentUpon>OperationCompiler2.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

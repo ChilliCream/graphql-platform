@@ -14,10 +14,10 @@ public class VisibilityTests
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
 
         // act
-        IncludeCondition.FromSelection(field, out IncludeCondition visibility);
+        var includeCondition = IncludeCondition.FromSelection(field);
 
         // assert
-        Assert.False(visibility.IsIncluded(variables.Object));
+        Assert.False(includeCondition.IsIncluded(variables.Object));
     }
 
     [Fact]
@@ -28,11 +28,11 @@ public class VisibilityTests
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
 
         // act
-        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
-        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
+        var includeConditionA = IncludeCondition.FromSelection(fieldA);
+        var includeConditionB = IncludeCondition.FromSelection(fieldB);
 
         // assert
-        Assert.True(visibilityA.Equals(visibilityB));
+        Assert.True(includeConditionA.Equals(includeConditionB));
     }
 
     [Fact]
@@ -43,11 +43,11 @@ public class VisibilityTests
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
 
         // act
-        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
-        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
+        var includeConditionA = IncludeCondition.FromSelection(fieldA);
+        var includeConditionB = IncludeCondition.FromSelection(fieldB);
 
         // assert
-        Assert.True(visibilityA.Equals(visibilityB));
+        Assert.True(includeConditionA.Equals(includeConditionB));
     }
 
     [Fact]
@@ -58,11 +58,11 @@ public class VisibilityTests
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
 
         // act
-        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
-        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
+        var includeConditionA = IncludeCondition.FromSelection(fieldA);
+        var includeConditionB = IncludeCondition.FromSelection(fieldB);
 
         // assert
-        Assert.False(visibilityA.Equals(visibilityB));
+        Assert.True(includeConditionA.Equals(includeConditionB));
     }
 
     [Fact]
@@ -73,11 +73,11 @@ public class VisibilityTests
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
 
         // act
-        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
-        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
+        var includeConditionA = IncludeCondition.FromSelection(fieldA);
+        var includeConditionB = IncludeCondition.FromSelection(fieldB);
 
         // assert
-        Assert.False(visibilityA.Equals(visibilityB));
+        Assert.True(includeConditionA.Equals(includeConditionB));
     }
 
     [Fact]
@@ -88,11 +88,10 @@ public class VisibilityTests
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @test(test: true)");
 
         // act
-        var success = IncludeCondition.FromSelection(field, out IncludeCondition visibility);
+        var includeCondition = IncludeCondition.FromSelection(field);
 
         // assert
-        Assert.False(success);
-        Assert.True(visibility.IsIncluded(variables.Object));
+        Assert.True(includeCondition.IsIncluded(variables.Object));
     }
 
     [Fact]
@@ -103,11 +102,10 @@ public class VisibilityTests
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field");
 
         // act
-        var success = IncludeCondition.FromSelection(field, out IncludeCondition visibility);
+        var includeCondition = IncludeCondition.FromSelection(field);
 
         // assert
-        Assert.False(success);
-        Assert.True(visibility.IsIncluded(variables.Object));
+        Assert.True(includeCondition.IsIncluded(variables.Object));
     }
 
     [Fact]
@@ -118,11 +116,10 @@ public class VisibilityTests
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
 
         // act
-        var success = IncludeCondition.FromSelection(field, out IncludeCondition visibility);
+        var includeCondition = IncludeCondition.FromSelection(field);
 
         // assert
-        Assert.True(success);
-        Assert.False(visibility.IsIncluded(variables.Object));
+        Assert.False(includeCondition.IsIncluded(variables.Object));
     }
 
     [Fact]
@@ -132,12 +129,12 @@ public class VisibilityTests
         FieldNode fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
 
-        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
-        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
+        var includeConditionA = IncludeCondition.FromSelection(fieldA);
+        var includeConditionB = IncludeCondition.FromSelection(fieldB);
 
         // act
-        var hashCodeA = visibilityA.GetHashCode();
-        var hashCodeB = visibilityB.GetHashCode();
+        var hashCodeA = includeConditionA.GetHashCode();
+        var hashCodeB = includeConditionB.GetHashCode();
 
         // assert
         Assert.Equal(hashCodeA, hashCodeB);
@@ -150,12 +147,12 @@ public class VisibilityTests
         FieldNode fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
         FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
 
-        IncludeCondition.FromSelection(fieldA, out IncludeCondition visibilityA);
-        IncludeCondition.FromSelection(fieldB, out IncludeCondition visibilityB);
+        var includeConditionA = IncludeCondition.FromSelection(fieldA);
+        var includeConditionB = IncludeCondition.FromSelection(fieldB);
 
         // act
-        var hashCodeA = visibilityA.GetHashCode();
-        var hashCodeB = visibilityB.GetHashCode();
+        var hashCodeA = includeConditionA.GetHashCode();
+        var hashCodeB = includeConditionB.GetHashCode();
 
         // assert
         Assert.NotEqual(hashCodeA, hashCodeB);
@@ -168,10 +165,10 @@ public class VisibilityTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: $a)");
-        IncludeCondition.FromSelection(field, out IncludeCondition visibility);
+        var includeCondition = IncludeCondition.FromSelection(field);
 
         // act
-        var visible = visibility.IsIncluded(variables.Object);
+        var visible = includeCondition.IsIncluded(variables.Object);
 
         // assert
         Assert.True(visible);
@@ -184,10 +181,10 @@ public class VisibilityTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(true);
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: $a)");
-        IncludeCondition.FromSelection(field, out IncludeCondition visibility);
+        var includeCondition = IncludeCondition.FromSelection(field);
 
         // act
-        var visible = visibility.IsIncluded(variables.Object);
+        var visible = includeCondition.IsIncluded(variables.Object);
 
         // assert
         Assert.True(visible);
@@ -199,10 +196,10 @@ public class VisibilityTests
         // arrange
         var variables = new Mock<IVariableValueCollection>();
         FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: true)");
-        IncludeCondition.FromSelection(field, out IncludeCondition visibility);
+        var includeCondition = IncludeCondition.FromSelection(field);
 
         // act
-        var visible = visibility.IsIncluded(variables.Object);
+        var visible = includeCondition.IsIncluded(variables.Object);
 
         // assert
         Assert.True(visible);

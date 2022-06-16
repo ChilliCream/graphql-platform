@@ -49,5 +49,10 @@ public interface IOptionalSelection2
     /// </summary>
     public bool IsInternal { get; }
 
+    /// <summary>
+    /// Defines that this selection is conditional and will not always be included.
+    /// </summary>
+    public bool IsConditional { get; }
+
     bool IsIncluded(long includeFlags, bool allowInternals = false);
 }
