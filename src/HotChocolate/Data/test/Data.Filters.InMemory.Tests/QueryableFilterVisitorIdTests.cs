@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Data.Filters;
@@ -34,6 +36,21 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         new() { BarShort = null },
         new() { BarShort = 14 },
         new() { BarShort = 13 }
+    };
+
+    private static readonly FooCustomId[] _fooCustomIdEntities =
+    {
+        new() { BarCustomId = new CustomId(12) },
+        new() { BarCustomId = new CustomId(14) },
+        new() { BarCustomId = new CustomId(13) }
+    };
+
+    private static readonly FooCustomIdNullable[] _fooCustomIdNullableEntities =
+    {
+        new() { BarCustomId = new CustomId(12) },
+        new() { BarCustomId = null },
+        new() { BarCustomId = new CustomId(14) },
+        new() { BarCustomId = new CustomId(13) }
     };
 
     private readonly SchemaCache _cache;
@@ -657,12 +674,341 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         res3.MatchSnapshot("13andNull");
     }
 
+    [Fact]
+    public async Task Create_CustomIdEqual_Expression()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema<FooCustomId, FooCustomIdFilterInput>(
+            _fooCustomIdEntities,
+            configure: sb => sb.AddGlobalObjectIdentification(false));
+
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { eq: \"Rm9vCnMxMg==\"}}){ barCustomId}}")
+                .Create());
+
+        res1.MatchSnapshot("12");
+
+        IExecutionResult res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { eq: \"Rm9vCnMxMw==\"}}){ barCustomId}}")
+                .Create());
+
+        res2.MatchSnapshot("13");
+
+        IExecutionResult res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { eq: null}}){ barCustomId}}")
+                .Create());
+
+        res3.MatchSnapshot("null");
+    }
+
+    [Fact]
+    public async Task Create_CustomIdNotEqual_Expression()
+    {
+        IRequestExecutor tester = _cache.CreateSchema<FooCustomId, FooCustomIdFilterInput>(
+            _fooCustomIdEntities,
+            configure: sb => sb.AddGlobalObjectIdentification(false));
+
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { neq: \"Rm9vCnMxMg==\"}}){ barCustomId}}")
+                .Create());
+
+        res1.MatchSnapshot("12");
+
+        IExecutionResult res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { neq: \"Rm9vCnMxMw==\"}}){ barCustomId}}")
+                .Create());
+
+        res2.MatchSnapshot("13");
+
+        IExecutionResult res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { neq: null}}){ barCustomId}}")
+                .Create());
+
+        res3.MatchSnapshot("null");
+    }
+
+    [Fact]
+    public async Task Create_CustomIdNullableEqual_Expression()
+    {
+        // arrange
+        IRequestExecutor tester =
+            _cache.CreateSchema<FooCustomIdNullable, FooCustomIdNullableFilterInput>(
+                _fooCustomIdNullableEntities,
+                configure: sb => sb.AddGlobalObjectIdentification(false));
+
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { eq: \"Rm9vCnMxMg==\"}}){ barCustomId}}")
+                .Create());
+
+        res1.MatchSnapshot("12");
+
+        IExecutionResult res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { eq: \"Rm9vCnMxMw==\"}}){ barCustomId}}")
+                .Create());
+
+        res2.MatchSnapshot("13");
+
+        IExecutionResult res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { eq: null}}){ barCustomId}}")
+                .Create());
+
+        res3.MatchSnapshot("null");
+    }
+
+    [Fact]
+    public async Task Create_CustomIdNullableNotEqual_Expression()
+    {
+        IRequestExecutor tester =
+            _cache.CreateSchema<FooCustomIdNullable, FooCustomIdNullableFilterInput>(
+                _fooCustomIdNullableEntities,
+                configure: sb => sb.AddGlobalObjectIdentification(false));
+
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { neq: \"Rm9vCnMxMg==\"}}){ barCustomId}}")
+                .Create());
+
+        res1.MatchSnapshot("12");
+
+        IExecutionResult res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { neq: \"Rm9vCnMxMw==\"}}){ barCustomId}}")
+                .Create());
+
+        res2.MatchSnapshot("13");
+
+        IExecutionResult res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barCustomId: { neq: null}}){ barCustomId}}")
+                .Create());
+
+        res3.MatchSnapshot("null");
+    }
+
+    [Fact]
+    public async Task Create_CustomIdIn_Expression()
+    {
+        IRequestExecutor tester = _cache.CreateSchema<FooCustomId, FooCustomIdFilterInput>(
+            _fooCustomIdEntities,
+            configure: sb => sb.AddGlobalObjectIdentification(false));
+
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                            root(where: {
+                                barCustomId: {
+                                    in: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
+                                }
+                            }){
+                                barCustomId
+                            }
+                        }")
+                .Create());
+
+        res1.MatchSnapshot("12and13");
+
+        IExecutionResult res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                            root(where: {
+                                barCustomId: {
+                                    in: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
+                                }
+                            }){
+                                barCustomId
+                            }
+                        }")
+                .Create());
+
+        res2.MatchSnapshot("13and14");
+
+        IExecutionResult res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { barCustomId: { in: [ null, \"Rm9vCnMxNA==\"]}}){ barCustomId}}")
+                .Create());
+
+        res3.MatchSnapshot("nullAnd14");
+    }
+
+    [Fact]
+    public async Task Create_CustomIdNotIn_Expression()
+    {
+        IRequestExecutor tester = _cache.CreateSchema<FooCustomId, FooCustomIdFilterInput>(
+            _fooCustomIdEntities,
+            configure: sb => sb.AddGlobalObjectIdentification(false));
+
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                            root(where: {
+                                barCustomId: {
+                                    nin: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
+                                }
+                            }){
+                                barCustomId
+                            }
+                        }")
+                .Create());
+
+        res1.MatchSnapshot("12and13");
+
+        IExecutionResult res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { barCustomId: { nin: [ null, \"Rm9vCnMxNA==\"]}}){ barCustomId}}")
+                .Create());
+
+        res2.MatchSnapshot("13and14");
+
+        IExecutionResult res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { barCustomId: { nin: [ null, \"Rm9vCnMxNA==\"]}}){ barCustomId}}")
+                .Create());
+
+        res3.MatchSnapshot("nullAnd14");
+    }
+
+    [Fact]
+    public async Task Create_CustomIdNullableIn_Expression()
+    {
+        IRequestExecutor tester =
+            _cache.CreateSchema<FooCustomIdNullable, FooCustomIdNullableFilterInput>(
+                _fooCustomIdNullableEntities,
+                configure: sb => sb.AddGlobalObjectIdentification(false));
+
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                            root(where: {
+                                barCustomId: {
+                                    in: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
+                                }
+                            }){
+                                barCustomId
+                            }
+                        }")
+                .Create());
+
+        res1.MatchSnapshot("12and13");
+
+        IExecutionResult res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{ root(where: {
+                                barCustomId: {
+                                    in: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
+                                }
+                            }){
+                                barCustomId
+                            }
+                        }")
+                .Create());
+
+        res2.MatchSnapshot("13and14");
+
+        IExecutionResult res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { barCustomId: { in: [ \"Rm9vCnMxMw==\", null ]}}){ barCustomId}}")
+                .Create());
+
+        res3.MatchSnapshot("13andNull");
+    }
+
+    [Fact]
+    public async Task Create_CustomIdullableNotIn_Expression()
+    {
+        IRequestExecutor tester =
+            _cache.CreateSchema<FooCustomIdNullable, FooCustomIdNullableFilterInput>(
+                _fooCustomIdNullableEntities,
+                configure: sb => sb.AddGlobalObjectIdentification(false));
+
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                            root(where: {
+                                barCustomId: {
+                                    nin: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
+                                }
+                            }){
+                                barCustomId
+                            }
+                        }")
+                .Create());
+
+        res1.MatchSnapshot("12and13");
+
+        IExecutionResult res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                            root(where: {
+                                barCustomId: {
+                                    nin: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
+                                }
+                            }){
+                                barCustomId
+                            }
+                        }")
+                .Create());
+
+        res2.MatchSnapshot("13and14");
+
+        IExecutionResult res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                            root(where: {
+                                barCustomId: {
+                                    nin: [ ""Rm9vCnMxMw=="", null ]
+                                }
+                            }){
+                                barCustomId
+                            }
+                        }")
+                .Create());
+
+        res3.MatchSnapshot("13andNull");
+    }
+
     public class Foo
     {
         public int Id { get; set; }
 
         [ID]
         public string Bar { get; set; } = null!;
+    }
+
+    public class FooNullable
+    {
+        public int Id { get; set; }
+
+        [ID]
+        public string? Bar { get; set; }
     }
 
     public class FooShort
@@ -681,12 +1027,36 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         public short? BarShort { get; set; }
     }
 
-    public class FooNullable
+    public class FooCustomId
     {
         public int Id { get; set; }
 
         [ID]
-        public string? Bar { get; set; }
+        public CustomId BarCustomId { get; set; }
+    }
+
+    public class FooCustomIdNullable
+    {
+        public int Id { get; set; }
+
+        [ID]
+        public CustomId? BarCustomId { get; set; }
+    }
+
+    public class FooFilterInput : FilterInputType<Foo>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
+        {
+            descriptor.Field(t => t.Bar);
+        }
+    }
+
+    public class FooNullableFilterInput : FilterInputType<FooNullable>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<FooNullable> descriptor)
+        {
+            descriptor.Field(t => t.Bar);
+        }
     }
 
     public class FooShortFilterInput : FilterInputType<FooShort>
@@ -705,20 +1075,19 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
             descriptor.Field(t => t.BarShort);
         }
     }
-
-    public class FooFilterInput : FilterInputType<Foo>
+    public class FooCustomIdFilterInput : FilterInputType<FooCustomId>
     {
-        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
+        protected override void Configure(IFilterInputTypeDescriptor<FooCustomId> descriptor)
         {
-            descriptor.Field(t => t.Bar);
+            descriptor.Field(t => t.BarCustomId);
         }
     }
 
-    public class FooNullableFilterInput : FilterInputType<FooNullable>
+    public class FooCustomIdNullableFilterInput : FilterInputType<FooCustomIdNullable>
     {
-        protected override void Configure(IFilterInputTypeDescriptor<FooNullable> descriptor)
+        protected override void Configure(IFilterInputTypeDescriptor<FooCustomIdNullable> descriptor)
         {
-            descriptor.Field(t => t.Bar);
+            descriptor.Field(t => t.BarCustomId);
         }
     }
 }
