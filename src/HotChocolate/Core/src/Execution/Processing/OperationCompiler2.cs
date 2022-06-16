@@ -3,33 +3,39 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
+using static System.StringComparer;
+using static HotChocolate.Execution.Properties.Resources;
 using static HotChocolate.Execution.ThrowHelper;
+using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler2
 {
-    private readonly ISchema _schema;
-    private readonly FragmentCollection _fragments;
     private readonly InputParser _parser;
     private readonly Stack<BacklogItem> _backlog = new();
     private readonly Dictionary<Selection2, SelectionSetInfo[]> _selectionLookup = new();
-    private readonly Dictionary<SelectionSetNode, int> _selectionSetIdLookup =
-        new(SyntaxComparer.BySyntax);
+    private readonly Dictionary<SelectionSetNode, int> _selectionSetIdLookup = new(BySyntax);
     private readonly Dictionary<int, SelectionVariants2> _selectionVariants = new();
+    private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = new(Ordinal);
     private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
+    private CompilerContext? _deferContext;
     private int _nextSelectionId;
     private int _nextSelectionSetId;
     private int _nextFragmentId;
 
-    internal OperationCompiler2(ISchema schema, FragmentCollection fragments, InputParser parser)
+    internal OperationCompiler2(InputParser parser)
     {
-        _schema = schema ?? throw new ArgumentNullException(nameof(schema));
-        _fragments = fragments ?? throw new ArgumentNullException(nameof(fragments));
         _parser = parser ?? throw new ArgumentNullException(nameof(parser));
     }
 
-    public void Compile(ObjectType operationType, OperationDefinitionNode operationDefinition)
+    public IPreparedOperation Compile(
+        OperationDefinitionNode operationDefinition,
+        ObjectType operationType,
+        string operationId,
+        DocumentNode document,
+        ISchema schema)
     {
         try
         {
@@ -37,18 +43,26 @@ public sealed partial class OperationCompiler2
             var selectionSetId = GetOrCreateSelectionSetId(operationDefinition.SelectionSet);
             SelectionSetInfo[] selectionSetInfos = { new(operationDefinition.SelectionSet, 0) };
 
-            var context = new CompilerContext();
+            var context = new CompilerContext(schema, document);
             context.Initialize(operationType, selectionSetId, selectionSetInfos);
             CompileSelectionSet(context);
 
             // process consecutive selections
             while (_backlog.Count > 0)
             {
-                BacklogItem current = _backlog.Pop();
+                var current = _backlog.Pop();
                 selectionSetInfos = _selectionLookup[current.Selection];
                 context.Initialize(current.Type,  current.SelectionSetId, selectionSetInfos);
                 CompileSelectionSet(context);
             }
+
+            var operation = new Operation(
+                operationId,
+                document,
+                operationDefinition,
+                operationType,
+
+                )
         }
         finally
         {
@@ -56,11 +70,14 @@ public sealed partial class OperationCompiler2
             _nextSelectionSetId = 0;
             _nextFragmentId = 0;
 
-            _selectionSetIdLookup.Clear();
             _backlog.Clear();
             _selectionLookup.Clear();
+            _selectionSetIdLookup.Clear();
             _selectionVariants.Clear();
+            _fragmentDefinitions.Clear();
+
             _includeConditions = Array.Empty<IncludeCondition>();
+            _deferContext = null;
         }
     }
 
@@ -106,17 +123,17 @@ public sealed partial class OperationCompiler2
                 {
                     // composite fields always have to have a selection-set
                     // otherwise we need to throw.
-                    throw ThrowHelper.QueryCompiler_CompositeTypeSelectionSet(selection.SyntaxNode);
+                    throw QueryCompiler_CompositeTypeSelectionSet(selection.SyntaxNode);
                 }
 
                 selectionSetId = GetOrCreateSelectionSetId(selection.SelectionSet);
                 selectionVariants = GetOrCreateSelectionVariants(selectionSetId);
-                var possibleTypes = _schema.GetPossibleTypes(fieldType);
+                var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
                 for (var i = possibleTypes.Count - 1; i >= 0; i--)
                 {
                     var objectType = possibleTypes[i];
-                    if (selectionVariants.ContainsSelectionSet(objectType))
+                    if (!selectionVariants.ContainsSelectionSet(objectType))
                     {
                         _backlog.Push(new BacklogItem(objectType, selectionSetId, selection));
                     }
@@ -179,12 +196,10 @@ public sealed partial class OperationCompiler2
                 break;
 
             case SyntaxKind.InlineFragment:
-                /*
                 ResolveInlineFragment(
                     context,
                     (InlineFragmentNode)selection,
                     includeCondition);
-                    */
                 break;
 
             case SyntaxKind.FragmentSpread:
@@ -242,7 +257,7 @@ public sealed partial class OperationCompiler2
                         : selection,
                     responseName: responseName,
                     // FIX: selection must be bound later
-                    resolverPipeline: CreateFieldMiddleware(field, selection),
+                    resolverPipeline: CreateFieldMiddleware(context.Schema, field, selection),
                     pureResolver: TryCreatePureField(field, selection),
                     strategy: field.IsParallelExecutable
                         ? SelectionExecutionStrategy.Default
@@ -267,43 +282,74 @@ public sealed partial class OperationCompiler2
         }
     }
 
+    private void ResolveInlineFragment(
+        CompilerContext context,
+        InlineFragmentNode inlineFragment,
+        long includeCondition)
+    {
+        ResolveFragment(
+            context,
+            inlineFragment,
+            inlineFragment.TypeCondition,
+            inlineFragment.SelectionSet,
+            inlineFragment.Directives,
+            includeCondition);
+    }
+
     private void ResolveFragmentSpread(
         CompilerContext context,
         FragmentSpreadNode fragmentSpread,
         long includeCondition)
     {
-        if (_fragments.GetFragment(fragmentSpread.Name.Value) is { } fragmentInfo &&
-            DoesTypeApply(fragmentInfo.TypeCondition, context.Type))
+        FragmentDefinitionNode fragmentDef =
+            GetFragmentDefinition(context, fragmentSpread);
+
+        ResolveFragment(
+            context,
+            fragmentSpread,
+            fragmentDef.TypeCondition,
+            fragmentDef.SelectionSet,
+            fragmentSpread.Directives,
+            includeCondition);
+    }
+
+    private void ResolveFragment(
+        CompilerContext context,
+        ISelectionNode selection,
+        NamedTypeNode typeCondition,
+        SelectionSetNode selectionSet,
+        IReadOnlyList<DirectiveNode> directives,
+        long includeCondition)
+    {
+        if (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
+            DoesTypeApply(typeCon, context.Type))
         {
-            FragmentDefinitionNode fragmentDefinition = fragmentInfo.FragmentDefinition!;
-            includeCondition = GetSelectionIncludeCondition(fragmentSpread, includeCondition);
+            includeCondition |= GetSelectionIncludeCondition(selection, includeCondition);
 
-            if (fragmentDefinition.SelectionSet.Selections.Count == 0)
+            if (directives.IsDeferrable())
             {
-                throw OperationCompiler_FragmentNoSelections(fragmentDefinition);
-            }
+                var id = GetOrCreateSelectionSetId(selectionSet);
+                var variants = GetOrCreateSelectionVariants(id);
+                var infos = new SelectionSetInfo[] { new(selectionSet, id) };
 
-            if (fragmentSpread.IsDeferrable())
-            {
-                var selectionSetId = GetOrCreateSelectionSetId(fragmentDefinition.SelectionSet);
-                var selectionVariants = GetOrCreateSelectionVariants(selectionSetId);
-                SelectionSetInfo[] selectionSetInfos = { new(fragmentDefinition.SelectionSet, 0) };
-
-                var deferContext = new CompilerContext();
-                deferContext.Initialize(context.Type, selectionSetId, selectionSetInfos);
+                var deferContext = RentContext(context);
+                deferContext.Initialize(context.Type, id, infos);
                 CompileSelectionSet(deferContext);
+                ReturnContext(deferContext);
 
-                context.Fragments.Add(new Fragment2(
+                var fragment = new Fragment2(
                     GetNextFragmentId(),
                     context.Type,
-                    fragmentSpread,
-                    fragmentDefinition.Directives,
-                    selectionVariants.GetSelectionSet(context.Type),
-                    includeCondition));
+                    selection,
+                    directives,
+                    variants.GetSelectionSet(context.Type),
+                    includeCondition);
+
+                context.Fragments.Add(fragment);
             }
             else
             {
-                CollectFields(context, fragmentDefinition.SelectionSet, includeCondition);
+                CollectFields(context, selectionSet, includeCondition);
             }
         }
     }
@@ -316,6 +362,36 @@ public sealed partial class OperationCompiler2
             TypeKind.Union => ((UnionType)typeCondition).Types.ContainsKey(current.Name),
             _ => false
         };
+
+    private FragmentDefinitionNode GetFragmentDefinition(
+        CompilerContext context,
+        FragmentSpreadNode fragmentSpread)
+    {
+        var fragmentName = fragmentSpread.Name.Value;
+
+        if (!_fragmentDefinitions.TryGetValue(fragmentName, out FragmentDefinitionNode? value))
+        {
+            DocumentNode document = context.Document;
+
+            for (var i = 0; i < document.Definitions.Count; i++)
+            {
+                if (document.Definitions[i] is FragmentDefinitionNode fragmentDefinition &&
+                    fragmentDefinition.Name.Value.EqualsOrdinal(fragmentName))
+                {
+                    value = fragmentDefinition;
+                    _fragmentDefinitions.Add(fragmentName, value);
+                    goto EXIT;
+                }
+            }
+
+            throw new InvalidOperationException(string.Format(
+                OperationCompiler_FragmentNotFound,
+                fragmentName));
+        }
+
+        EXIT:
+        return value;
+    }
 
     private int GetNextSelectionId() => _nextSelectionId++;
 
@@ -387,14 +463,44 @@ public sealed partial class OperationCompiler2
         return parentIncludeCondition;
     }
 
+    private CompilerContext RentContext(CompilerContext context)
+    {
+        if (_deferContext is null)
+        {
+            return new CompilerContext(context.Schema, context.Document);
+        }
+
+        var temp = _deferContext;
+        _deferContext = null;
+        return temp;
+    }
+
+    private void ReturnContext(CompilerContext context)
+    {
+        if (_deferContext is null)
+        {
+            _deferContext = context;
+        }
+    }
+
     private class CompilerContext
     {
+        public CompilerContext(ISchema schema, DocumentNode document)
+        {
+            Schema = schema;
+            Document = document;
+        }
+
+        public ISchema Schema { get; }
+
+        public DocumentNode Document { get; }
+
         public IObjectType Type { get; private set; } = default!;
 
         public SelectionSetInfo[] SelectionInfos { get; private set; } = default!;
 
         public Dictionary<string, Selection2> Fields { get; } =
-            new(StringComparer.Ordinal);
+            new(Ordinal);
 
         public List<IFragment2> Fragments { get; } = new();
 

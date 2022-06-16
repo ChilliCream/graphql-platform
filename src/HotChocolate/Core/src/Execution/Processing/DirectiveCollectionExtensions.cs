@@ -21,10 +21,13 @@ internal static class DirectiveCollectionExtensions
     }
 
     public static bool IsDeferrable(this InlineFragmentNode fragmentNode) =>
-        fragmentNode.Directives.GetDeferDirective() is not null;
+        fragmentNode.Directives.IsDeferrable();
 
     public static bool IsDeferrable(this FragmentSpreadNode fragmentSpreadNode) =>
-        fragmentSpreadNode.Directives.GetDeferDirective() is not null;
+        fragmentSpreadNode.Directives.IsDeferrable();
+
+    public static bool IsDeferrable(this IReadOnlyList<DirectiveNode> directives) =>
+        directives.GetDeferDirective() is not null;
 
     public static bool IsStreamable(this FieldNode field) =>
         field.Directives.GetStreamDirective() is not null;

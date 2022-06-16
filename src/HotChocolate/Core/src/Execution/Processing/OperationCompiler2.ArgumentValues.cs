@@ -135,7 +135,8 @@ public sealed partial class OperationCompiler2
         return true;
     }
 
-    internal FieldDelegate CreateFieldMiddleware(
+    private static FieldDelegate CreateFieldMiddleware(
+        ISchema schema,
         IObjectField field,
         FieldNode selection)
     {
@@ -146,7 +147,7 @@ public sealed partial class OperationCompiler2
             return pipeline;
         }
 
-        IReadOnlyList<IDirective> directives = CollectDirectives(field, selection);
+        IReadOnlyList<IDirective> directives = CollectDirectives(schema, field, selection);
 
         if (directives.Count > 0)
         {
@@ -156,7 +157,7 @@ public sealed partial class OperationCompiler2
         return pipeline;
     }
 
-    private PureFieldDelegate? TryCreatePureField(
+    private static PureFieldDelegate? TryCreatePureField(
         IObjectField field,
         FieldNode selection)
     {
@@ -168,7 +169,8 @@ public sealed partial class OperationCompiler2
         return null;
     }
 
-    private IReadOnlyList<IDirective> CollectDirectives(
+    private static IReadOnlyList<IDirective> CollectDirectives(
+        ISchema schema,
         IObjectField field,
         FieldNode selection)
     {
@@ -181,6 +183,7 @@ public sealed partial class OperationCompiler2
             field);
 
         CollectQueryDirectives(
+            schema,
             processed,
             directives,
             field,
@@ -189,13 +192,14 @@ public sealed partial class OperationCompiler2
         return directives.AsReadOnly();
     }
 
-    private void CollectQueryDirectives(
+    private static void CollectQueryDirectives(
+        ISchema schema,
         HashSet<string> processed,
         List<IDirective> directives,
         IObjectField field,
         FieldNode selection)
     {
-        foreach (IDirective directive in GetFieldSelectionDirectives(field, selection))
+        foreach (IDirective directive in GetFieldSelectionDirectives(schema, field, selection))
         {
             if (!directive.Type.IsRepeatable && !processed.Add(directive.Name))
             {
@@ -205,14 +209,15 @@ public sealed partial class OperationCompiler2
         }
     }
 
-    private IEnumerable<IDirective> GetFieldSelectionDirectives(
+    private static IEnumerable<IDirective> GetFieldSelectionDirectives(
+        ISchema schema,
         IObjectField field,
         FieldNode selection)
     {
         for (var i = 0; i < selection.Directives.Count; i++)
         {
             DirectiveNode directive = selection.Directives[i];
-            if (_schema.TryGetDirectiveType(directive.Name.Value,
+            if (schema.TryGetDirectiveType(directive.Name.Value,
                 out DirectiveType? directiveType)
                 && directiveType.HasMiddleware)
             {

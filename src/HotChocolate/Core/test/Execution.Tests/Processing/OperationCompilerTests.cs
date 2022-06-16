@@ -1297,13 +1297,10 @@ namespace HotChocolate.Execution.Processing
 
             OperationDefinitionNode operationDefinition =
                 document.Definitions.OfType<OperationDefinitionNode>().Single();
-            var fragments = new FragmentCollection(schema, document);
-
-
 
             // act
-            var compiler = new OperationCompiler2(schema, fragments, new InputParser());
-            compiler.Compile(schema.QueryType, operationDefinition);
+            var compiler = new OperationCompiler2(new InputParser());
+            compiler.Compile(operationDefinition, schema.QueryType, document, schema);
 
             // assert
 
