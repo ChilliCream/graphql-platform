@@ -18,7 +18,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
     private readonly bool _validateType;
     private readonly ITypeConverter _typeConverter;
     private readonly Func<IList> _createList;
-    private readonly Type? _sourceType;
+    private readonly Type? _targetType;
 
     public GlobalIdInputValueFormatter(
         NameString typeName,
@@ -31,7 +31,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
         _idSerializer = idSerializer;
         _validateType = validateType;
         _typeConverter = typeConverter;
-        _sourceType = resultType.ElementType?.Source;
+        _targetType = resultType.ElementType?.Source;
         _createList = CreateListFactory(resultType);
     }
 
@@ -97,13 +97,20 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
         if (runtimeValue is IEnumerable<IdValue> idEnumerable)
         {
             IList list = _createList();
+            Type? sourceType = null;
 
             foreach (IdValue idv in idEnumerable)
             {
                 if (!_validateType || _typeName.Equals(idv.TypeName))
                 {
-                    if (_sourceType is not null &&
-                        _typeConverter.TryConvert(_sourceType, idv.Value,
+                    if (sourceType is null)
+                    {
+                        // We only reflect the source type once
+                        // for the entire list.
+                        sourceType = idv.Value.GetType();
+                    }
+
+                    if (_typeConverter.TryConvert(sourceType, _targetType!, idv.Value,
                             out var converterdValue))
                     {
                         list.Add(converterdValue);
@@ -123,6 +130,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
             try
             {
                 IList list = _createList();
+                Type? sourceType = null;
 
                 foreach (string? sv in stringEnumerable)
                 {
@@ -136,8 +144,14 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
 
                     if (!_validateType || _typeName.Equals(id.TypeName))
                     {
-                        if (_sourceType is not null &&
-                            _typeConverter.TryConvert(_sourceType, id.Value,
+                        if (sourceType is null)
+                        {
+                            // We only reflect the source type once
+                            // for the entire list.
+                            sourceType = id.Value.GetType();
+                        }
+
+                        if (_typeConverter.TryConvert(sourceType, _targetType!, id.Value,
                                 out var converterdValue))
                         {
                             list.Add(converterdValue);
