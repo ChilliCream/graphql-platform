@@ -23,10 +23,10 @@ public sealed partial class OperationCompiler2
 
         for (var i = 0; i < selection.Arguments.Count; i++)
         {
-            ArgumentNode argumentValue = selection.Arguments[i];
+            var argumentValue = selection.Arguments[i];
             if (field.Arguments.TryGetField(
                 argumentValue.Name.Value,
-                out IInputField? argument))
+                out var argument))
             {
                 arguments[argument.Name.Value] =
                     CreateArgumentValue(
@@ -40,7 +40,7 @@ public sealed partial class OperationCompiler2
 
         for (var i = 0; i < field.Arguments.Count; i++)
         {
-            IInputField argument = field.Arguments[i];
+            var argument = field.Arguments[i];
             if (!arguments.ContainsKey(argument.Name))
             {
                 arguments[argument.Name.Value] =
@@ -63,8 +63,11 @@ public sealed partial class OperationCompiler2
         IValueNode value,
         bool isDefaultValue)
     {
-        ArgumentNonNullValidator.ValidationResult validationResult = ArgumentNonNullValidator
-            .Validate(argument, value, PathFactory.Instance.New(argument.Name));
+        var validationResult =
+            ArgumentNonNullValidator.Validate(
+                argument,
+                value,
+                PathFactory.Instance.New(argument.Name));
 
         if (argumentValue is not null && validationResult.HasErrors)
         {
@@ -140,14 +143,14 @@ public sealed partial class OperationCompiler2
         IObjectField field,
         FieldNode selection)
     {
-        FieldDelegate pipeline = field.Middleware;
+        var pipeline = field.Middleware;
 
         if (field.ExecutableDirectives.Count == 0 && selection.Directives.Count == 0)
         {
             return pipeline;
         }
 
-        IReadOnlyList<IDirective> directives = CollectDirectives(schema, field, selection);
+        var directives = CollectDirectives(schema, field, selection);
 
         if (directives.Count > 0)
         {
@@ -199,7 +202,7 @@ public sealed partial class OperationCompiler2
         IObjectField field,
         FieldNode selection)
     {
-        foreach (IDirective directive in GetFieldSelectionDirectives(schema, field, selection))
+        foreach (var directive in GetFieldSelectionDirectives(schema, field, selection))
         {
             if (!directive.Type.IsRepeatable && !processed.Add(directive.Name))
             {
@@ -216,9 +219,9 @@ public sealed partial class OperationCompiler2
     {
         for (var i = 0; i < selection.Directives.Count; i++)
         {
-            DirectiveNode directive = selection.Directives[i];
+            var directive = selection.Directives[i];
             if (schema.TryGetDirectiveType(directive.Name.Value,
-                out DirectiveType? directiveType)
+                out var directiveType)
                 && directiveType.HasMiddleware)
             {
                 yield return Directive.FromDescription(
@@ -236,7 +239,7 @@ public sealed partial class OperationCompiler2
     {
         for (var i = 0; i < field.ExecutableDirectives.Count; i++)
         {
-            IDirective directive = field.ExecutableDirectives[i];
+            var directive = field.ExecutableDirectives[i];
             if (!directive.Type.IsRepeatable && !processed.Add(directive.Name))
             {
                 directives.Remove(directives.First(t => t.Type == directive.Type));
@@ -249,7 +252,7 @@ public sealed partial class OperationCompiler2
         FieldDelegate fieldPipeline,
         IReadOnlyList<IDirective> directives)
     {
-        FieldDelegate next = fieldPipeline;
+        var next = fieldPipeline;
 
         for (var i = directives.Count - 1; i >= 0; i--)
         {
@@ -264,12 +267,12 @@ public sealed partial class OperationCompiler2
 
     private static FieldDelegate BuildComponent(IDirective directive, FieldDelegate first)
     {
-        FieldDelegate next = first;
+        var next = first;
         IReadOnlyList<DirectiveMiddleware> components = directive.MiddlewareComponents;
 
         for (var i = components.Count - 1; i >= 0; i--)
         {
-            DirectiveDelegate component = components[i].Invoke(next);
+            var component = components[i].Invoke(next);
             next = context => HasNoErrors(context.Result)
                 ? component.Invoke(new DirectiveContext(context, directive))
                 : default;
