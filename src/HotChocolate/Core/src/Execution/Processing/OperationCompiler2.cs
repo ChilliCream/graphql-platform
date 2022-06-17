@@ -236,11 +236,11 @@ public sealed partial class OperationCompiler2
         var fieldName = selection.Name.Value;
         var responseName = selection.Alias?.Value ?? fieldName;
 
-        if (context.Type.Fields.TryGetField(fieldName, out IObjectField? field))
+        if (context.Type.Fields.TryGetField(fieldName, out var field))
         {
-            IType fieldType = field.Type.RewriteNullability(selection.Required);
+            var fieldType = field.Type.RewriteNullability(selection.Required);
 
-            if (context.Fields.TryGetValue(responseName, out Selection2? preparedSelection))
+            if (context.Fields.TryGetValue(responseName, out var preparedSelection))
             {
                 preparedSelection.AddSelection(selection, includeCondition);
 
@@ -305,7 +305,7 @@ public sealed partial class OperationCompiler2
         ResolveFragment(
             context,
             inlineFragment,
-            inlineFragment.TypeCondition, // THIS IS A BUG
+            inlineFragment.TypeCondition,
             inlineFragment.SelectionSet,
             inlineFragment.Directives,
             includeCondition);
@@ -316,8 +316,7 @@ public sealed partial class OperationCompiler2
         FragmentSpreadNode fragmentSpread,
         long includeCondition)
     {
-        FragmentDefinitionNode fragmentDef =
-            GetFragmentDefinition(context, fragmentSpread);
+        var fragmentDef = GetFragmentDefinition(context, fragmentSpread);
 
         ResolveFragment(
             context,
@@ -336,7 +335,7 @@ public sealed partial class OperationCompiler2
         IReadOnlyList<DirectiveNode> directives,
         long includeCondition)
     {
-        if (typeCondition is null || 
+        if (typeCondition is null ||
             (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
             DoesTypeApply(typeCon, context.Type)))
         {
@@ -361,6 +360,7 @@ public sealed partial class OperationCompiler2
                     context.Type,
                     selection,
                     directives,
+                    selectionSetId: id,
                     variants.GetSelectionSet(context.Type),
                     includeCondition);
 
@@ -388,9 +388,9 @@ public sealed partial class OperationCompiler2
     {
         var fragmentName = fragmentSpread.Name.Value;
 
-        if (!_fragmentDefinitions.TryGetValue(fragmentName, out FragmentDefinitionNode? value))
+        if (!_fragmentDefinitions.TryGetValue(fragmentName, out var value))
         {
-            DocumentNode document = context.Document;
+            var document = context.Document;
 
             for (var i = 0; i < document.Definitions.Count; i++)
             {
@@ -428,7 +428,7 @@ EXIT:
 
     private SelectionVariants2 GetOrCreateSelectionVariants(int selectionSetId)
     {
-        if (!_selectionVariants.TryGetValue(selectionSetId, out SelectionVariants2? variants))
+        if (!_selectionVariants.TryGetValue(selectionSetId, out var variants))
         {
             variants = new SelectionVariants2(selectionSetId);
             _selectionVariants.Add(selectionSetId, variants);

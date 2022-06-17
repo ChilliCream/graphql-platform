@@ -18,7 +18,7 @@
       }
       ... on Droid {
         name @__execute(id: 3, kind: DEFAULT, type: LEAF)
-        ... Fragment_1 @defer
+        ... Fragment_0 @defer
       }
     }
   }
@@ -26,8 +26,4 @@
 
 fragment Fragment_0 on Human {
   id @conditional @__execute(id: 2, kind: DEFAULT, type: LEAF)
-}
-
-fragment Fragment_1 on Droid {
-  id @conditional @__execute(id: 4, kind: DEFAULT, type: LEAF)
 }

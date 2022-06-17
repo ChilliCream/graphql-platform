@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
+/// <summary>
+/// This operation printer is made for testing purposes.
+/// </summary>
 internal static class OperationPrinter
 {
     public static string Print(IPreparedOperation2 operation)
@@ -74,21 +76,25 @@ internal static class OperationPrinter
 
             foreach (var fragment in selectionSet.Fragments)
             {
-                var fragmentName = context.CreateFragmentName();
+                if (context.GetOrCreateFragmentName(fragment.SelectionSetId, out var fragmentName))
+                {
+                    var index = context.Definitions.Count;
+                    context.Definitions.Add(default!);
+
+                    context.Definitions[index] =
+                        new FragmentDefinitionNode(
+                            null,
+                            new(fragmentName),
+                            Array.Empty<VariableDefinitionNode>(),
+                            new NamedTypeNode(typeContext.Name),
+                            Array.Empty<DirectiveNode>(),
+                            CreateSelectionSet(context, fragment.SelectionSet, new()));
+                }
 
                 selections.Add(new FragmentSpreadNode(
                     null,
                     new(fragmentName),
                     new[] { new DirectiveNode("defer") }));
-
-                context.Definitions.Add(
-                    new FragmentDefinitionNode(
-                        null,
-                        new(fragmentName),
-                        Array.Empty<VariableDefinitionNode>(),
-                        new NamedTypeNode(typeContext.Name),
-                        Array.Empty<DirectiveNode>(),
-                        CreateSelectionSet(context, fragment.SelectionSet, new())));
             }
         }
 
@@ -176,8 +182,7 @@ internal static class OperationPrinter
 
     private sealed class PrintContext
     {
-        private readonly PrintContext _root;
-        private int _fragmentId;
+        private readonly GlobalState _state;
 
         public PrintContext(
             IPreparedOperation2 operation,
@@ -187,19 +192,19 @@ internal static class OperationPrinter
             Operation = operation;
             SelectionVariants = selectionVariants;
             Definitions = definitions;
-            _root = this;
+            _state = new();
         }
 
         private PrintContext(
             IPreparedOperation2 operation,
             ISelectionVariants2 selectionVariants,
             List<IDefinitionNode> definitions,
-            PrintContext root)
+            GlobalState state)
         {
             Operation = operation;
             SelectionVariants = selectionVariants;
             Definitions = definitions;
-            _root = root;
+            _state = state;
         }
 
         public IPreparedOperation2 Operation { get; }
@@ -208,10 +213,27 @@ internal static class OperationPrinter
 
         public List<IDefinitionNode> Definitions { get; }
 
-        public string CreateFragmentName()
-            => $"Fragment_{_root._fragmentId++}";
+        public bool GetOrCreateFragmentName(int selectionSetId, out string fragmentName)
+        {
+            if (!_state.FragmentNames.TryGetValue(selectionSetId, out var name))
+            {
+                name = $"Fragment_{_state.FragmentId++}";
+                _state.FragmentNames.Add(selectionSetId, name);
+                fragmentName = name;
+                return true;
+            }
+
+            fragmentName = name;
+            return false;
+        }
 
         public PrintContext Branch(ISelectionVariants2 selectionVariants)
-            => new(Operation, selectionVariants, Definitions, _root);
+            => new(Operation, selectionVariants, Definitions, _state);
+
+        private sealed class GlobalState
+        {
+            public int FragmentId;
+            public readonly Dictionary<int, string> FragmentNames = new();
+        }
     }
 }

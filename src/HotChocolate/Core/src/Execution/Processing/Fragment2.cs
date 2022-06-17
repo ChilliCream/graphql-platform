@@ -7,13 +7,14 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed class Fragment2 : IFragment2
 {
-    private long _includeCondition;
+    private readonly long _includeCondition;
 
     public Fragment2(
         int id,
         IObjectType typeCondition,
         ISyntaxNode syntaxNode,
         IReadOnlyList<DirectiveNode> directives,
+        int selectionSetId,
         ISelectionSet2 selectionSet,
         long includeCondition,
         bool isInternal = false)
@@ -22,6 +23,7 @@ public sealed class Fragment2 : IFragment2
         TypeCondition = typeCondition;
         SyntaxNode = syntaxNode;
         Directives = directives;
+        SelectionSetId = selectionSetId;
         SelectionSet = selectionSet;
         _includeCondition = includeCondition;
         IsInternal = isInternal;
@@ -34,6 +36,8 @@ public sealed class Fragment2 : IFragment2
     public ISyntaxNode SyntaxNode { get; }
 
     public IReadOnlyList<DirectiveNode> Directives { get; }
+
+    public int SelectionSetId { get; }
 
     public ISelectionSet2 SelectionSet { get; }
 
