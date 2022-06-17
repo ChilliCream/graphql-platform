@@ -331,13 +331,14 @@ public sealed partial class OperationCompiler2
     private void ResolveFragment(
         CompilerContext context,
         ISelectionNode selection,
-        NamedTypeNode typeCondition,
+        NamedTypeNode? typeCondition,
         SelectionSetNode selectionSet,
         IReadOnlyList<DirectiveNode> directives,
         long includeCondition)
     {
-        if (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
-            DoesTypeApply(typeCon, context.Type))
+        if (typeCondition is null || 
+            (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
+            DoesTypeApply(typeCon, context.Type)))
         {
             includeCondition |= GetSelectionIncludeCondition(selection, includeCondition);
 
@@ -347,10 +348,13 @@ public sealed partial class OperationCompiler2
                 var variants = GetOrCreateSelectionVariants(id);
                 var infos = new SelectionSetInfo[] { new(selectionSet, id) };
 
-                var deferContext = RentContext(context);
-                deferContext.Initialize(context.Type, variants, infos);
-                CompileSelectionSet(deferContext);
-                ReturnContext(deferContext);
+                if (!variants.ContainsSelectionSet(context.Type))
+                {
+                    var deferContext = RentContext(context);
+                    deferContext.Initialize(context.Type, variants, infos);
+                    CompileSelectionSet(deferContext);
+                    ReturnContext(deferContext);
+                }
 
                 var fragment = new Fragment2(
                     GetNextFragmentId(),

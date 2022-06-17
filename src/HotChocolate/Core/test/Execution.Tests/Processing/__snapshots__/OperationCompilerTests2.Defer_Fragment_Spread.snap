@@ -19,7 +19,12 @@ fragment Foo on Droid {
       }
       ... on Droid {
         name @__execute(id: 2, kind: DEFAULT, type: LEAF)
+        ... Fragment_0 @defer
       }
     }
   }
+}
+
+fragment Fragment_0 on Droid {
+  id @conditional @__execute(id: 3, kind: DEFAULT, type: LEAF)
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -38,7 +39,10 @@ internal static class OperationPrinter
             }
         }
 
-        var selectionSet = Visit(operation, operation.SelectionVariants[0]);
+        var definitions = new List<IDefinitionNode>();
+        var context = new PrintContext(operation, operation.SelectionVariants[0], definitions);
+
+        var selectionSet = Visit(context);
 
         var operationDefinition = new OperationDefinitionNode(
             operation.Definition.Location,
@@ -47,41 +51,75 @@ internal static class OperationPrinter
             operation.Definition.VariableDefinitions,
             directives,
             selectionSet);
+        definitions.Insert(0, operationDefinition);
 
-        return new DocumentNode(new[] { operationDefinition }).ToString();
+        return new DocumentNode(definitions).ToString();
     }
 
-    private static SelectionSetNode Visit(IPreparedOperation2 operation, ISelectionVariants2 selectionVariants)
+    private static SelectionSetNode Visit(PrintContext context)
     {
         var fragments = new List<InlineFragmentNode>();
 
-        foreach (IObjectType objectType in selectionVariants.GetPossibleTypes())
+        foreach (var objectType in context.SelectionVariants.GetPossibleTypes())
         {
             var typeContext = (ObjectType)objectType;
+            var selectionSet = context.SelectionVariants.GetSelectionSet(typeContext);
             var selections = new List<ISelectionNode>();
-
-            foreach (var selection in selectionVariants.GetSelectionSet(typeContext).Selections)
-            {
-                var selectionSetId = ((Selection2)selection).SelectionSetId;
-
-                SelectionSetNode? selectionSetNode =
-                    selection.SelectionSet is not null
-                        ? Visit(operation, operation.SelectionVariants[selectionSetId])
-                        : null;
-                selections.Add(CreateSelection(selection, selectionSetNode));
-            }
 
             fragments.Add(new InlineFragmentNode(
                 null,
                 new NamedTypeNode(typeContext.Name),
                 Array.Empty<DirectiveNode>(),
-                new SelectionSetNode(selections)));
+                CreateSelectionSet(context, selectionSet, selections)));
+
+            foreach (var fragment in selectionSet.Fragments)
+            {
+                var fragmentName = context.CreateFragmentName();
+
+                selections.Add(new FragmentSpreadNode(
+                    null,
+                    new(fragmentName),
+                    new[] { new DirectiveNode("defer") }));
+
+                context.Definitions.Add(
+                    new FragmentDefinitionNode(
+                        null,
+                        new(fragmentName),
+                        Array.Empty<VariableDefinitionNode>(),
+                        new NamedTypeNode(typeContext.Name),
+                        Array.Empty<DirectiveNode>(),
+                        CreateSelectionSet(context, fragment.SelectionSet, new())));
+            }
         }
 
         return new SelectionSetNode(fragments);
     }
 
-    private static FieldNode CreateSelection(ISelection2 selection, SelectionSetNode? selectionSet)
+    private static SelectionSetNode CreateSelectionSet(
+        PrintContext context,
+        ISelectionSet2 selectionSet,
+        List<ISelectionNode> selections)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            var selectionSetId = ((Selection2)selection).SelectionSetId;
+            SelectionSetNode? selectionSetNode = null;
+
+            if (selection.SelectionSet is not null)
+            {
+                var childSelectionSet = context.Operation.SelectionVariants[selectionSetId];
+                selectionSetNode = Visit(context.Branch(childSelectionSet));
+            }
+
+            selections.Add(CreateSelection(selection, selectionSetNode));
+        }
+
+        return new SelectionSetNode(selections);
+    }
+
+    private static FieldNode CreateSelection(
+        ISelection2 selection,
+        SelectionSetNode? selectionSet)
     {
         var directives = new List<DirectiveNode>();
 
@@ -134,5 +172,46 @@ internal static class OperationPrinter
         }
 
         return new DirectiveNode("__execute", arguments);
+    }
+
+    private sealed class PrintContext
+    {
+        private readonly PrintContext _root;
+        private int _fragmentId;
+
+        public PrintContext(
+            IPreparedOperation2 operation,
+            ISelectionVariants2 selectionVariants,
+            List<IDefinitionNode> definitions)
+        {
+            Operation = operation;
+            SelectionVariants = selectionVariants;
+            Definitions = definitions;
+            _root = this;
+        }
+
+        private PrintContext(
+            IPreparedOperation2 operation,
+            ISelectionVariants2 selectionVariants,
+            List<IDefinitionNode> definitions,
+            PrintContext root)
+        {
+            Operation = operation;
+            SelectionVariants = selectionVariants;
+            Definitions = definitions;
+            _root = root;
+        }
+
+        public IPreparedOperation2 Operation { get; }
+
+        public ISelectionVariants2 SelectionVariants { get; }
+
+        public List<IDefinitionNode> Definitions { get; }
+
+        public string CreateFragmentName()
+            => $"Fragment_{_root._fragmentId++}";
+
+        public PrintContext Branch(ISelectionVariants2 selectionVariants)
+            => new(Operation, selectionVariants, Definitions, _root);
     }
 }
