@@ -1,5 +1,10 @@
+using System.Reflection.Metadata;
+using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -7,8 +12,15 @@ using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
+
+// todo: where to put this
+#if NET6_0_OR_GREATER
+[assembly: MetadataUpdateHandler(typeof(ApplicationUpdateHandler))]
+#endif
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -149,6 +161,8 @@ public static class RequestExecutorServiceCollectionExtensions
 
         builder.TryAddNoOpTransactionScopeHandler();
 
+        builder.AddTypeModule(_ => new HotReloadTypeModule());
+
         return builder;
     }
 
@@ -231,5 +245,37 @@ public static class RequestExecutorServiceCollectionExtensions
         services.RemoveAll<IBatchScheduler>();
         services.TryAddDefaultBatchDispatcher();
         return services;
+    }
+}
+
+// todo: where to put all of this
+internal static class ApplicationUpdateHandler
+{
+    public static event EventHandler? ApplicationUpdated;
+
+    public static void UpdateApplication(Type[]? updatedTypes)
+    {
+        ApplicationUpdated?.Invoke(null, EventArgs.Empty);
+    }
+}
+
+internal sealed class HotReloadTypeModule : ITypeModule
+{
+    public HotReloadTypeModule()
+    {
+        ApplicationUpdateHandler.ApplicationUpdated +=
+            (s, e) => TypesChanged?.Invoke(this, EventArgs.Empty);
+        ;
+    }
+
+    public event EventHandler<EventArgs>? TypesChanged;
+
+    public ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
+        IDescriptorContext context, CancellationToken cancellationToken)
+    {
+        // We do not generate any types here, as we just want to evict the
+        // RequestExecutor and rebuild the original schema, by invoking TypesChanged.
+        return ValueTask.FromResult<IReadOnlyCollection<ITypeSystemMember>>(
+            Array.Empty<ITypeSystemMember>());
     }
 }
