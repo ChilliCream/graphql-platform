@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static System.StringComparer;
@@ -30,39 +29,52 @@ public sealed partial class OperationCompiler2
         _parser = parser ?? throw new ArgumentNullException(nameof(parser));
     }
 
-    public IPreparedOperation Compile(
+    public IPreparedOperation2 Compile(
+        string operationId,
         OperationDefinitionNode operationDefinition,
         ObjectType operationType,
-        string operationId,
         DocumentNode document,
         ISchema schema)
     {
         try
         {
             // collect root fields
-            var selectionSetId = GetOrCreateSelectionSetId(operationDefinition.SelectionSet);
-            SelectionSetInfo[] selectionSetInfos = { new(operationDefinition.SelectionSet, 0) };
+            var id = GetOrCreateSelectionSetId(operationDefinition.SelectionSet);
+            var variants = GetOrCreateSelectionVariants(id);
+            SelectionSetInfo[] infos = { new(operationDefinition.SelectionSet, 0) };
 
             var context = new CompilerContext(schema, document);
-            context.Initialize(operationType, selectionSetId, selectionSetInfos);
+            context.Initialize(operationType, variants, infos);
             CompileSelectionSet(context);
 
             // process consecutive selections
             while (_backlog.Count > 0)
             {
                 var current = _backlog.Pop();
-                selectionSetInfos = _selectionLookup[current.Selection];
-                context.Initialize(current.Type,  current.SelectionSetId, selectionSetInfos);
-                CompileSelectionSet(context);
+                variants = GetOrCreateSelectionVariants(current.SelectionSetId);
+                if (!variants.ContainsSelectionSet(current.Type))
+                {
+                    infos = _selectionLookup[current.Selection];
+                    context.Initialize(current.Type, variants, infos);
+                    CompileSelectionSet(context);
+                }
             }
 
-            var operation = new Operation(
+            // create operation
+            var selectionVariants = new SelectionVariants2[_selectionVariants.Count];
+
+            foreach (var item in _selectionVariants)
+            {
+                selectionVariants[item.Key] = item.Value;
+            }
+
+            return new Operation2(
                 operationId,
                 document,
                 operationDefinition,
                 operationType,
-
-                )
+                selectionVariants,
+                _includeConditions);
         }
         finally
         {
@@ -153,8 +165,11 @@ public sealed partial class OperationCompiler2
             }
         }
 
-        selectionVariants = GetOrCreateSelectionVariants(context.SelectionSetId);
-        selectionVariants.AddSelectionSet(context.Type, selections, fragments, isConditional);
+        context.SelectionVariants.AddSelectionSet(
+            context.Type,
+            selections,
+            fragments,
+            isConditional);
     }
 
     private void CollectFields(CompilerContext context)
@@ -234,7 +249,7 @@ public sealed partial class OperationCompiler2
                     var selectionSetInfo = new SelectionSetInfo(
                         selection.SelectionSet!,
                         includeCondition);
-                    SelectionSetInfo[] selectionInfos = _selectionLookup[preparedSelection];
+                    var selectionInfos = _selectionLookup[preparedSelection];
                     var next = selectionInfos.Length;
                     Array.Resize(ref selectionInfos, next + 1);
                     selectionInfos[next] = selectionSetInfo;
@@ -290,7 +305,7 @@ public sealed partial class OperationCompiler2
         ResolveFragment(
             context,
             inlineFragment,
-            inlineFragment.TypeCondition,
+            inlineFragment.TypeCondition, // THIS IS A BUG
             inlineFragment.SelectionSet,
             inlineFragment.Directives,
             includeCondition);
@@ -333,7 +348,7 @@ public sealed partial class OperationCompiler2
                 var infos = new SelectionSetInfo[] { new(selectionSet, id) };
 
                 var deferContext = RentContext(context);
-                deferContext.Initialize(context.Type, id, infos);
+                deferContext.Initialize(context.Type, variants, infos);
                 CompileSelectionSet(deferContext);
                 ReturnContext(deferContext);
 
@@ -389,7 +404,7 @@ public sealed partial class OperationCompiler2
                 fragmentName));
         }
 
-        EXIT:
+EXIT:
         return value;
     }
 
@@ -483,7 +498,7 @@ public sealed partial class OperationCompiler2
         }
     }
 
-    private class CompilerContext
+    private sealed class CompilerContext
     {
         public CompilerContext(ISchema schema, DocumentNode document)
         {
@@ -504,15 +519,15 @@ public sealed partial class OperationCompiler2
 
         public List<IFragment2> Fragments { get; } = new();
 
-        public int SelectionSetId { get; private set; }
+        public SelectionVariants2 SelectionVariants { get; private set; }
 
         public void Initialize(
             IObjectType type,
-            int selectionSetId,
+            SelectionVariants2 selectionVariants,
             SelectionSetInfo[] selectionInfos)
         {
             Type = type;
-            SelectionSetId = selectionSetId;
+            SelectionVariants = selectionVariants;
             SelectionInfos = selectionInfos;
             Fields.Clear();
             Fragments.Clear();

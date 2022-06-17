@@ -102,6 +102,12 @@ internal sealed class SelectionVariants2 : ISelectionVariants2
             }
             else if (_secondType is null)
             {
+                if (typeContext == _firstType)
+                {
+                    throw new InvalidOperationException(
+                        $"The type {typeContext.Name} was already added.");
+                }
+
                 _secondType = typeContext;
                 _secondSelections = selectionSet;
             }

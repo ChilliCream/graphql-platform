@@ -225,6 +225,7 @@ public sealed partial class SyntaxSerializer
 
         if (node.Directives.Count > 0)
         {
+            writer.WriteSpace();
             writer.WriteMany(node.Directives,
                 (n, w) => w.WriteDirective(n),
                 w => w.WriteSpace());

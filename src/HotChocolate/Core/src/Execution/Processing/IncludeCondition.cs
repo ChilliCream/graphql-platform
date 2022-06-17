@@ -9,12 +9,6 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public readonly struct IncludeCondition : IEquatable<IncludeCondition>
 {
-    public IncludeCondition()
-    {
-        Skip = NullValueNode.Default;
-        Include = NullValueNode.Default;
-    }
-
     private IncludeCondition(IValueNode skip, IValueNode include)
     {
         Skip = skip;
@@ -32,8 +26,8 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     public IValueNode Include { get; }
 
     public bool IsDefault
-        => ReferenceEquals(Skip, NullValueNode.Default) &&
-            ReferenceEquals(Include, NullValueNode.Default);
+        => ReferenceEquals(Skip, null) &&
+            ReferenceEquals(Include, null);
 
     /// <summary>
     /// Specifies if selections with this include condition are included with the
