@@ -356,7 +356,7 @@ public sealed partial class OperationCompiler
             {
                 var id = GetOrCreateSelectionSetId(selectionSet);
                 var variants = GetOrCreateSelectionVariants(id);
-                var infos = new SelectionSetInfo[] { new(selectionSet, id) };
+                var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition) };
 
                 if (!variants.ContainsSelectionSet(context.Type))
                 {

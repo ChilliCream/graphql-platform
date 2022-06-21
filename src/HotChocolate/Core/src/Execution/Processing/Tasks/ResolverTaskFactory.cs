@@ -23,10 +23,10 @@ internal static class ResolverTaskFactory
         var selections = selectionSet.Selections;
         var resultMap = operationContext.Result.RentResultMap(selections.Count);
         var scheduler = operationContext.Scheduler;
+        var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
         var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
-        var includeFlags = operationContext.IncludeFlags;
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
         try

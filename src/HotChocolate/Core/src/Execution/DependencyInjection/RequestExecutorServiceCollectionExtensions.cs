@@ -33,7 +33,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
         services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
         {
-            ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new StringBuilderPooledObjectPolicy();
             return provider.Create(policy);
         });
@@ -59,7 +59,8 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddResolverTaskPool()
             .TryAddOperationContextPool()
             .TryAddDataLoaderTaskCachePool()
-            .TryAddPathSegmentPool();
+            .TryAddPathSegmentPool()
+            .TryAddOperationCompilerPool();
 
         // global executor services
         services

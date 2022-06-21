@@ -17,14 +17,14 @@ namespace HotChocolate.Execution.Instrumentation
         {
             // arrange
             var listener = new TestListener();
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
+            var executor = await CreateExecutorAsync(c => c
                .AddDiagnosticEventListener(_ => listener)
                .AddStarWarsTypes()
                .Services
                .AddStarWarsRepositories());
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync("{ hero { name } }");
+            var result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
             Assert.Null(Assert.IsType<QueryResult>(result).Errors);
@@ -35,7 +35,7 @@ namespace HotChocolate.Execution.Instrumentation
         public async Task Intercept_Resolver_Result_With_Listener_2()
         {
             // arrange
-            ServiceProvider services = new ServiceCollection()
+            var services = new ServiceCollection()
                 .AddSingleton<Touched>()
                 .AddGraphQL()
                 .AddDiagnosticEventListener<TouchedListener>()
@@ -56,7 +56,7 @@ namespace HotChocolate.Execution.Instrumentation
             // arrange
             var listenerA = new TestListener();
             var listenerB = new TestListener();
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
+            var executor = await CreateExecutorAsync(c => c
                .AddDiagnosticEventListener(_ => listenerA)
                .AddDiagnosticEventListener(_ => listenerB)
                .AddStarWarsTypes()
@@ -64,7 +64,7 @@ namespace HotChocolate.Execution.Instrumentation
                .AddStarWarsRepositories());
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync("{ hero { name } }");
+            var result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
             Assert.Null(Assert.IsType<QueryResult>(result).Errors);

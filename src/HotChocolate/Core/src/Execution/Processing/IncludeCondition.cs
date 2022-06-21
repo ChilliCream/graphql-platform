@@ -25,6 +25,10 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// </summary>
     public IValueNode Include { get; }
 
+    /// <summary>
+    /// If <see cref="Skip"/> and <see cref="Include"/> are null then
+    /// there is no valid include condition.
+    /// </summary>
     public bool IsDefault
         => ReferenceEquals(Skip, null) &&
             ReferenceEquals(Include, null);
@@ -118,9 +122,6 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// <param name="selection">
     /// The selection to extract the include condition from.
     /// </param>
-    /// <param name="includeCondition">
-    /// The visibility configuration extracted from the selection.
-    /// </param>
     /// <returns>
     /// Returns true if the selection has a custom visibility configuration.
     /// </returns>
@@ -136,7 +137,7 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
 
         for (var i = 0; i < selection.Directives.Count; i++)
         {
-            DirectiveNode directive = selection.Directives[i];
+            var directive = selection.Directives[i];
 
             if (directive.Arguments.Count != 1)
             {

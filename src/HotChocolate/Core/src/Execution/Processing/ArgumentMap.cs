@@ -19,7 +19,7 @@ internal sealed class ArgumentMap : IArgumentMap
 
         if (_arguments.Count > 0)
         {
-            foreach (ArgumentValue argument in arguments.Values)
+            foreach (var argument in arguments.Values)
             {
                 if (!argument.IsFullyCoerced)
                 {
@@ -52,11 +52,11 @@ internal sealed class ArgumentMap : IArgumentMap
 
     public bool ContainsKey(NameString key) => _arguments.ContainsKey(key);
 
-    public bool TryGetValue(NameString key, [MaybeNullWhen(false)] out ArgumentValue value) =>
-        _arguments.TryGetValue(key, out value);
+    public bool TryGetValue(NameString key, [MaybeNullWhen(false)] out ArgumentValue value)
+        => _arguments.TryGetValue(key, out value);
 
-    public IEnumerator<KeyValuePair<NameString, ArgumentValue>> GetEnumerator() =>
-        _arguments.GetEnumerator();
+    public IEnumerator<KeyValuePair<NameString, ArgumentValue>> GetEnumerator()
+        => _arguments.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

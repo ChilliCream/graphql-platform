@@ -29,8 +29,7 @@ public static class InternalSchemaServiceCollectionExtensions
     {
         services.TryAddSingleton<IExecutionDiagnosticEvents>(sp =>
         {
-            IExecutionDiagnosticEventListener[] listeners =
-                sp.GetServices<IExecutionDiagnosticEventListener>().ToArray();
+            var listeners = sp.GetServices<IExecutionDiagnosticEventListener>().ToArray();
             return listeners.Length switch
             {
                 0 => new NoopExecutionDiagnosticEvents(),
