@@ -4,6 +4,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using static HotChocolate.Data.ThrowHelper;
 
 #nullable enable
 
@@ -19,9 +20,7 @@ public sealed class SelectedField
     /// <summary>
     /// Creates a new instance of <see cref="SelectedField"/>
     /// </summary>
-    internal SelectedField(
-        IResolverContext resolverContext,
-        ISelection selection)
+    internal SelectedField(IResolverContext resolverContext, ISelection selection)
     {
         _resolverContext = resolverContext;
         _selection = selection;
@@ -44,7 +43,7 @@ public sealed class SelectedField
         ObjectType? type = null,
         bool allowInternals = false)
     {
-        IReadOnlyList<IFieldSelection>? fields = GetFieldSelections(type, allowInternals);
+        var fields = GetFieldSelections(type, allowInternals);
 
         if (fields is null)
         {
@@ -70,7 +69,7 @@ public sealed class SelectedField
         ObjectType? type = null,
         bool allowInternals = false)
     {
-        IReadOnlyList<IFieldSelection>? fields = GetFieldSelections(type, allowInternals);
+        var fields = GetFieldSelections(type, allowInternals);
 
         if (fields is null)
         {
@@ -92,11 +91,9 @@ public sealed class SelectedField
         ObjectType? type = null,
         bool allowInternals = false)
     {
-        INamedType namedType = Field.Type.NamedType();
+        var namedType = Field.Type.NamedType();
 
-        SelectionSetNode? selectionSet = _selection.SelectionSet;
-
-        if (selectionSet is null)
+        if (_selection.SelectionSet is null)
         {
             return null;
         }
@@ -109,14 +106,11 @@ public sealed class SelectedField
             }
             else
             {
-                IEnumerable<ObjectType> possibleTypes =
-                    _resolverContext.Schema.GetPossibleTypes(namedType);
-
-                throw ThrowHelper
-                    .SelectionContext_NoTypeForAbstractFieldProvided(namedType, possibleTypes);
+                var possibleTypes = _resolverContext.Schema.GetPossibleTypes(namedType);
+                throw SelectionContext_NoTypeForAbstractFieldProvided(namedType, possibleTypes);
             }
         }
 
-        return _resolverContext.GetSelections(type, selectionSet, allowInternals);
+        return _resolverContext.GetSelections(type, _selection, allowInternals);
     }
 }

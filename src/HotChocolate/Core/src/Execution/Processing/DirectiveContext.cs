@@ -155,9 +155,9 @@ internal sealed class DirectiveContext : IDirectiveContext
 
     public IReadOnlyList<IFieldSelection> GetSelections(
         ObjectType typeContext,
-        SelectionSetNode? selectionSet = null,
+        IFieldSelection? fieldSelection = null,
         bool allowInternals = false) =>
-        _middlewareContext.GetSelections(typeContext, selectionSet, allowInternals);
+        _middlewareContext.GetSelections(typeContext, fieldSelection, allowInternals);
 
     public T GetQueryRoot<T>() => _middlewareContext.GetQueryRoot<T>();
 }

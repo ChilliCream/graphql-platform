@@ -32,10 +32,9 @@ internal sealed class QueryExecutor
         IOperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        ISelectionSet rootSelections =
-            operationContext.Operation.GetRootSelectionSet();
+        var rootSelections = operationContext.Operation.RootSelectionSet;
 
-        ResultMap resultMap = EnqueueResolverTasks(
+        var resultMap = EnqueueResolverTasks(
             operationContext,
             rootSelections,
             operationContext.RootValue,

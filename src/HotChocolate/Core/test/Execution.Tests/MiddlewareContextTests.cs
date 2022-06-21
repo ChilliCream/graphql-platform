@@ -17,20 +17,20 @@ namespace HotChocolate.Execution
         public async Task AccessVariables()
         {
             // arrange
-            ISchema schema = SchemaBuilder.New()
+            var schema = SchemaBuilder.New()
                 .AddDocumentFromString(
                     "type Query { foo(bar: String) : String }")
                 .AddResolver("Query", "foo", ctx =>
                     ctx.Variables.GetVariable<string>("abc"))
                 .Create();
 
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+            var request = QueryRequestBuilder.New()
                 .SetQuery("query abc($abc: String){ foo(bar: $abc) }")
                 .SetVariableValue("abc", "def")
                 .Create();
 
             // act
-            IExecutionResult result =
+            var result =
                 await schema.MakeExecutable().ExecuteAsync(request);
 
             // assert
@@ -41,20 +41,20 @@ namespace HotChocolate.Execution
         public async Task AccessVariables_Fails_When_Variable_Not_Exists()
         {
             // arrange
-            ISchema schema = SchemaBuilder.New()
+            var schema = SchemaBuilder.New()
                 .AddDocumentFromString(
                     "type Query { foo(bar: String) : String }")
                 .AddResolver("Query", "foo", ctx =>
                     ctx.Variables.GetVariable<string>("abc"))
                 .Create();
 
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+            var request = QueryRequestBuilder.New()
                 .SetQuery("query abc($def: String){ foo(bar: $def) }")
                 .SetVariableValue("def", "ghi")
                 .Create();
 
             // act
-            IExecutionResult result =
+            var result =
                 await schema.MakeExecutable().ExecuteAsync(request);
 
             // assert
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution
             // arrange
             var list = new List<IFieldSelection>();
 
-            ISchema schema = SchemaBuilder.New()
+            var schema = SchemaBuilder.New()
                 .AddDocumentFromString(
                     @"
                     type Query {
@@ -85,7 +85,7 @@ namespace HotChocolate.Execution
                 {
                     if (context.Selection.Type.NamedType() is ObjectType type)
                     {
-                        foreach (IFieldSelection selection in context.GetSelections(type))
+                        foreach (var selection in context.GetSelections(type))
                         {
                             CollectSelections(context, selection, list);
                         }
@@ -148,8 +148,7 @@ namespace HotChocolate.Execution
 
             if (selection.Type.NamedType() is ObjectType objectType)
             {
-                foreach (IFieldSelection child in context.GetSelections(
-                    objectType, selection.SyntaxNode.SelectionSet))
+                foreach (var child in context.GetSelections(objectType, selection))
                 {
                     CollectSelections(context, child, collected);
                 }

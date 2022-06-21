@@ -1010,6 +1010,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             SyntaxKind.BooleanValue => GetHashCode((BooleanValueNode)node),
             SyntaxKind.EnumValue => GetHashCode((EnumValueNode)node),
             SyntaxKind.ObjectValue => GetHashCode((ObjectValueNode)node),
+            SyntaxKind.ListValue => GetHashCode((ListValueNode)node),
             SyntaxKind.NullValue => GetHashCode((NullValueNode)node),
             SyntaxKind.Variable => GetHashCode((VariableNode)node),
             _ => throw new ArgumentOutOfRangeException()

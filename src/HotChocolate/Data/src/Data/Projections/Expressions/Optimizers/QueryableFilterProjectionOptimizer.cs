@@ -15,7 +15,7 @@ public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
         SelectionOptimizerContext context,
         Selection selection)
     {
-        FieldDelegate resolverPipeline =
+        var resolverPipeline =
             selection.ResolverPipeline ??
             context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
 
@@ -35,10 +35,12 @@ public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
             context.GetNextId(),
             context.Type,
             selection.Field,
+            selection.Field.Type,
             selection.SyntaxNode,
+            selection.ResponseName,
             resolverPipeline,
             arguments: selection.Arguments,
-            internalSelection: false);
+            isInternal: false);
 
         context.Fields[compiledSelection.ResponseName] = compiledSelection;
         return compiledSelection;

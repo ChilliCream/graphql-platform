@@ -10,12 +10,12 @@ internal static partial class QueryPlanBuilder
     {
         public static OperationNode Build(QueryPlanContext context)
         {
-            QueryPlanNode root = Build(context, context.Operation.GetRootSelectionSet());
+            var root = Build(context, context.Operation.RootSelectionSet);
             var operationNode = new OperationNode(root);
 
             if (context.Deferred.Count > 0)
             {
-                foreach (QueryPlanNode? deferred in BuildDeferred(context))
+                foreach (var deferred in BuildDeferred(context))
                 {
                     operationNode.Deferred.Add(deferred);
                 }
@@ -31,7 +31,7 @@ internal static partial class QueryPlanBuilder
 
         public static QueryPlanNode Build(QueryPlanContext context, ISelectionSet selectionSet)
         {
-            foreach (ISelection selection in selectionSet.Selections)
+            foreach (var selection in selectionSet.Selections)
             {
                 Visit(selection, context);
             }
@@ -45,7 +45,7 @@ internal static partial class QueryPlanBuilder
         {
             var processed = new HashSet<int>();
 
-            while (context.Deferred.TryPop(out IFragment? fragment) &&
+            while (context.Deferred.TryPop(out var fragment) &&
                 processed.Add(fragment.Id))
             {
                 yield return Build(context, fragment.SelectionSet);
@@ -54,9 +54,9 @@ internal static partial class QueryPlanBuilder
 
         private static void Visit(ISelection selection, QueryPlanContext context)
         {
-            if (selection.IsStreamable && selection.SelectionSet is not null)
+            if (selection.SelectionSet is not null)
             {
-                QueryPlanContext streamContext = context.Branch();
+                var streamContext = context.Branch();
 
                 VisitChildren(selection, streamContext);
 
@@ -68,7 +68,7 @@ internal static partial class QueryPlanBuilder
 
                 if (streamContext.Streams.Count > 0)
                 {
-                    foreach (StreamPlanNode streamPlan in streamContext.Streams.Values)
+                    foreach (var streamPlan in streamContext.Streams.Values)
                     {
                         if (!context.Streams.ContainsKey(selection.Id))
                         {
@@ -85,7 +85,7 @@ internal static partial class QueryPlanBuilder
             }
             else
             {
-                QueryPlanNode parent = context.NodePath.Peek();
+                var parent = context.NodePath.Peek();
 
                 if (selection.Strategy == SelectionExecutionStrategy.Serial)
                 {
@@ -94,7 +94,7 @@ internal static partial class QueryPlanBuilder
                         p.Selections.Add(selection);
                     }
                     else if (context.SelectionPath.Count > 0 &&
-                        context.NodePath.TryPeek(2, out QueryPlanNode? grandParent) &&
+                        context.NodePath.TryPeek(2, out var grandParent) &&
                         grandParent is ResolverNode { Strategy: ExecutionStrategy.Serial } gp &&
                         gp.Selections.Contains(context.SelectionPath.PeekOrDefault()!))
                     {
@@ -117,7 +117,7 @@ internal static partial class QueryPlanBuilder
                         p.Selections.Add(selection);
                     }
                     else if (context.SelectionPath.Count > 0 &&
-                        context.NodePath.TryPeek(2, out QueryPlanNode? grandParent) &&
+                        context.NodePath.TryPeek(2, out var grandParent) &&
                         grandParent is ResolverNode { Strategy: ExecutionStrategy.Parallel } gp &&
                         gp.Selections.Contains(context.SelectionPath.PeekOrDefault()!))
                     {
@@ -149,17 +149,16 @@ internal static partial class QueryPlanBuilder
 
         internal static void VisitChildren(ISelection selection, QueryPlanContext context)
         {
-            if (selection.SelectionSet is { } selectionSetNode)
+            if (selection.SelectionSet is not null)
             {
                 var depth = context.NodePath.Count;
                 context.SelectionPath.Push(selection);
 
-                foreach (Types.IObjectType? objectType in context.Operation.GetPossibleTypes(selectionSetNode))
+                foreach (var objectType in context.Operation.GetPossibleTypes(selection))
                 {
-                    ISelectionSet selectionSet = context.Operation.GetSelectionSet(
-                        selectionSetNode, objectType);
+                    var selectionSet = context.Operation.GetSelectionSet(selection, objectType);
 
-                    foreach (ISelection? child in selectionSet.Selections)
+                    foreach (var child in selectionSet.Selections)
                     {
                         Visit(child, context);
                     }
@@ -181,7 +180,7 @@ internal static partial class QueryPlanBuilder
         {
             if (selectionSet.Fragments.Count > 0)
             {
-                foreach (IFragment fragment in selectionSet.Fragments)
+                foreach (var fragment in selectionSet.Fragments)
                 {
                     context.Deferred.Add(fragment);
                 }
@@ -197,7 +196,7 @@ internal static partial class QueryPlanBuilder
 
             if (node.Nodes.Count == 1)
             {
-                QueryPlanNode child = node.Nodes[0];
+                var child = node.Nodes[0];
                 node.RemoveNode(child);
                 child = Optimize(child);
 
@@ -214,7 +213,7 @@ internal static partial class QueryPlanBuilder
             SequenceNode? seq = null;
             ParallelNode? par = null;
 
-            while (node.TryTakeNode(out QueryPlanNode? child))
+            while (node.TryTakeNode(out var child))
             {
                 child = Optimize(child);
 
@@ -228,7 +227,7 @@ internal static partial class QueryPlanBuilder
                     }
                     else if (seq is not null)
                     {
-                        foreach (QueryPlanNode? c in s.Nodes)
+                        foreach (var c in s.Nodes)
                         {
                             seq.AddNode(c);
                         }
@@ -249,7 +248,7 @@ internal static partial class QueryPlanBuilder
                     }
                     else if (par is not null)
                     {
-                        foreach (QueryPlanNode? c in p.Nodes)
+                        foreach (var c in p.Nodes)
                         {
                             par.AddNode(c);
                         }
@@ -268,7 +267,7 @@ internal static partial class QueryPlanBuilder
                 }
             }
 
-            foreach (QueryPlanNode? child in children)
+            foreach (var child in children)
             {
                 node.AddNode(child);
             }

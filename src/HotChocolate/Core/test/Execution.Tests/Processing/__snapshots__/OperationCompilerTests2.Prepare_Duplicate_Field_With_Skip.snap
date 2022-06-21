@@ -1,0 +1,12 @@
+﻿{
+  foo @skip(if: true)
+  foo @skip(if: false)
+}
+
+---------------------------------------------------------
+
+query @includeCondition(flag: 2, skip: true) @includeCondition(flag: 3, skip: false) {
+  ... on Query {
+    foo @conditional @__execute(id: 0, kind: DEFAULT, type: LEAF)
+  }
+}

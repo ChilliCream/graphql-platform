@@ -18,7 +18,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
         Selection selection)
     {
         if (!(context.Type is ObjectType type &&
-            type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out object? fieldsObj) &&
+            type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var fieldsObj) &&
             fieldsObj is string[] fields))
         {
             return selection;
@@ -29,7 +29,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
             var alias = "__projection_alias_" + i;
 
             // if the field is already in the selection set we do not need to project it
-            if (context.Fields.TryGetValue(fields[i], out Selection? field) &&
+            if (context.Fields.TryGetValue(fields[i], out var field) &&
                 field.Field.Name == fields[i])
             {
                 continue;
@@ -52,17 +52,18 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
                 Array.Empty<ArgumentNode>(),
                 null);
 
-            FieldDelegate nodesPipeline =
-                context.CompileResolverPipeline(nodesField, nodesFieldNode);
+            var nodesPipeline = context.CompileResolverPipeline(nodesField, nodesFieldNode);
 
             var compiledSelection = new Selection(
                 context.GetNextId(),
                 context.Type,
                 nodesField,
+                nodesField.Type,
                 nodesFieldNode,
+                alias,
                 nodesPipeline,
                 arguments: selection.Arguments,
-                internalSelection: true);
+                isInternal: true);
 
             context.Fields[alias] = compiledSelection;
         }

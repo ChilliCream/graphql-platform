@@ -34,11 +34,12 @@ internal sealed class ResolverStep : ExecutionStep
 
     public override bool TryActivate(IQueryPlanState state)
     {
-        IVariableValueCollection variables = state.Context.Variables;
+        var includeFlags = state.Context.IncludeFlags;
 
-        foreach (ISelection? selection in _selections)
+        foreach (var selection in _selections)
         {
-            if (state.Selections.Contains(selection.Id) && selection.IsIncluded(variables))
+            if (state.Selections.Contains(selection.Id) &&
+                selection.IsIncluded(includeFlags))
             {
                 return true;
             }
@@ -51,9 +52,9 @@ internal sealed class ResolverStep : ExecutionStep
     {
         Debug.Assert(ReferenceEquals(task.State, this), "The task must be part of this step.");
 
-        if (task is ResolverTask { ChildTasks: { Count: > 0 } } resolverTask)
+        if (task is ResolverTask { ChildTasks.Count: > 0 } resolverTask)
         {
-            foreach (ResolverTask? childTask in resolverTask.ChildTasks)
+            foreach (var childTask in resolverTask.ChildTasks)
             {
                 state.Selections.Add(childTask.Selection.Id);
             }

@@ -40,7 +40,7 @@ internal partial class MiddlewareContext
 
     public IReadOnlyList<IFieldSelection> GetSelections(
         ObjectType typeContext,
-        SelectionSetNode? selectionSet = null,
+        IFieldSelection? fieldSelection = null,
         bool allowInternals = false)
     {
         if (typeContext is null)
@@ -48,15 +48,14 @@ internal partial class MiddlewareContext
             throw new ArgumentNullException(nameof(typeContext));
         }
 
-        selectionSet ??= _selection.SelectionSet;
+        var selection = GetSelection(fieldSelection);
 
-        if (selectionSet is null)
+        if (selection.SelectionSet is null)
         {
             return Array.Empty<IFieldSelection>();
         }
 
-        ISelectionSet fields =
-            _operationContext.CollectFields(selectionSet, typeContext);
+        var fields = _operationContext.CollectFields(selection, typeContext);
 
         if (fields.IsConditional)
         {
@@ -64,10 +63,10 @@ internal partial class MiddlewareContext
 
             for (var i = 0; i < fields.Selections.Count; i++)
             {
-                ISelection selection = fields.Selections[i];
-                if (selection.IsIncluded(_operationContext.Variables, allowInternals))
+                var childSelection = fields.Selections[i];
+                if (childSelection.IsIncluded(_operationContext.IncludeFlags, allowInternals))
                 {
-                    finalFields.Add(selection);
+                    finalFields.Add(childSelection);
                 }
             }
 
@@ -75,6 +74,21 @@ internal partial class MiddlewareContext
         }
 
         return fields.Selections;
+    }
+
+    private ISelection GetSelection(IFieldSelection? fieldSelection)
+    {
+        if (fieldSelection is null)
+        {
+            return _selection;
+        }
+
+        if (fieldSelection is ISelection selection)
+        {
+            return selection;
+        }
+
+        throw new ArgumentException("Invalid selection type.");
     }
 
     public void ReportError(string errorMessage)
@@ -102,21 +116,21 @@ internal partial class MiddlewareContext
 
         if (exception is GraphQLException graphQLException)
         {
-            foreach (IError error in graphQLException.Errors)
+            foreach (var error in graphQLException.Errors)
             {
                 ReportError(error);
             }
         }
         else if (exception is AggregateException aggregateException)
         {
-            foreach (Exception innerException in aggregateException.InnerExceptions)
+            foreach (var innerException in aggregateException.InnerExceptions)
             {
                 ReportError(innerException);
             }
         }
         else
         {
-            IErrorBuilder errorBuilder = _operationContext.ErrorHandler
+            var errorBuilder = _operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(Path)
                 .AddLocation(_selection.SyntaxNode);
@@ -136,7 +150,7 @@ internal partial class MiddlewareContext
 
         if (error is AggregateError aggregateError)
         {
-            foreach (IError? innerError in aggregateError.Errors)
+            foreach (var innerError in aggregateError.Errors)
             {
                 ReportSingle(innerError);
             }
@@ -156,7 +170,7 @@ internal partial class MiddlewareContext
         {
             if (processed is AggregateError ar)
             {
-                foreach (IError? ie in ar.Errors)
+                foreach (var ie in ar.Errors)
                 {
                     _operationContext.Result.AddError(ie, _selection.SyntaxNode);
                     _operationContext.DiagnosticEvents.ResolverError(this, ie);

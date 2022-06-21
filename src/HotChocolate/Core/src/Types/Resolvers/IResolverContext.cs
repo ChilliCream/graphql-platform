@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -151,19 +150,19 @@ public interface IResolverContext : IPureResolverContext
     /// <param name="typeContext">
     /// The object type context.
     /// </param>
-    /// <param name="selectionSet">
-    /// The selection-set for which the pre-compiled selections shall be returned.
+    /// <param name="fieldSelection">
+    /// The selection for which the pre-compiled child selections shall be returned.
     /// </param>
     /// <param name="allowInternals">
     /// Include also internal selections that shall not be included into the result set.
     /// </param>
     /// <returns>
-    /// Returns the pre-compiled selections for the <paramref name="selectionSet" />
+    /// Returns the pre-compiled selections for the <paramref name="fieldSelection" />
     /// with the specified <paramref name="typeContext" />.
     /// </returns>
     IReadOnlyList<IFieldSelection> GetSelections(
         ObjectType typeContext,
-        SelectionSetNode? selectionSet = null,
+        IFieldSelection? fieldSelection = null,
         bool allowInternals = false);
 
     /// <summary>

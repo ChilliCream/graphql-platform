@@ -85,9 +85,9 @@ internal sealed class ResolverContextProxy : IResolverContext
 
     public IReadOnlyList<IFieldSelection> GetSelections(
         ObjectType typeContext,
-        SelectionSetNode? selectionSet = null,
+        IFieldSelection? selection = null,
         bool allowInternals = false)
-        => _resolverContext.GetSelections(typeContext, selectionSet, allowInternals);
+        => _resolverContext.GetSelections(typeContext, selection, allowInternals);
 
     public T GetQueryRoot<T>()
         => _resolverContext.GetQueryRoot<T>();

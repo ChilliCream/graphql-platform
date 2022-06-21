@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -23,42 +23,52 @@ public interface IPreparedOperation : IOperation
     /// <returns>
     /// Returns the prepared root selections for this operation.
     /// </returns>
-    ISelectionSet GetRootSelectionSet();
-
-    /// <summary>
-    /// Gets the prepared selections for the specified
-    /// selection set under the specified type context.
-    /// </summary>
-    /// <param name="selectionSet">
-    /// The selection set for which the selections shall be collected.
-    /// </param>
-    /// <param name="typeContext">
-    /// The type context under which the selections shall be collected.
-    /// </param>
-    /// <returns>
-    /// Returns the prepared selections for the specified
-    /// selection set under the specified type context.
-    /// </returns>
-    ISelectionSet GetSelectionSet(
-        SelectionSetNode selectionSet,
-        IObjectType typeContext);
-
-    /// <summary>
-    /// Gets the types that are possible for the specified <paramref name="selectionSet"/>.
-    /// </summary>
-    /// <param name="selectionSet">
-    /// The selection set for which the possible types shall be inspected.
-    /// </param>
-    /// <returns>
-    /// Returns the types that are possible for the specified <paramref name="selectionSet"/>.
-    /// </returns>
-    IEnumerable<IObjectType> GetPossibleTypes(
-        SelectionSetNode selectionSet);
+    ISelectionSet RootSelectionSet { get; }
 
     /// <summary>
     /// Gets all selection variants of this operation.
     /// </summary>
-    IEnumerable<ISelectionVariants> SelectionVariants { get; }
+    IReadOnlyList<ISelectionVariants> SelectionVariants { get; }
+
+    /// <summary>
+    /// Gets the list of include conditions associated with this operation.
+    /// </summary>
+    IReadOnlyList<IncludeCondition> IncludeConditions { get; }
+
+    /// <summary>
+    /// Gets the selection set for the specified <paramref name="selection"/> and
+    /// <paramref name="typeContext"/>.
+    /// </summary>
+    /// <param name="selection">
+    /// The selection set for which the selection set shall be resolved.
+    /// </param>
+    /// <param name="typeContext">
+    /// The result type context.
+    /// </param>
+    /// <returns>
+    /// Returns the selection set for the specified <paramref name="selection"/> and
+    /// <paramref name="typeContext"/>.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// The specified <paramref name="selection"/> has no selection set.
+    /// </exception>
+    ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext);
+
+    /// <summary>
+    /// Gets the possible return types for the <paramref name="selection"/>.
+    /// </summary>
+    /// <param name="selection">
+    /// The selection for which the possible result types shall be returned.
+    /// </param>
+    /// <returns>
+    /// Returns the possible return types for the specified <paramref name="selection"/>.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// The specified <paramref name="selection"/> has no selection set.
+    /// </exception>
+    IEnumerable<IObjectType> GetPossibleTypes(ISelection selection);
+
+    long CreateIncludeContext(IVariableValueCollection variables);
 
     /// <summary>
     /// Prints the prepared operation.

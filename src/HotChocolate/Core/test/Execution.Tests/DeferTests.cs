@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task NoOptimization_Defer_Single_Scalar_Field()
         {
-            IExecutionResult result =
+            var result =
                 await new ServiceCollection()
                     .AddStarWarsRepositories()
                     .AddGraphQL()
@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
 
             var results = new StringBuilder();
 
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
+            await foreach (var payload in stream.ReadResultsAsync())
             {
                 results.AppendLine(payload.ToJson());
                 results.AppendLine();
@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task NoOptimization_Defer_Only_Root()
         {
-            IExecutionResult result =
+            var result =
                 await new ServiceCollection()
                     .AddStarWarsRepositories()
                     .AddGraphQL()
@@ -59,13 +59,13 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            Assert.IsType<QueryResult>(result).MatchSnapshot();
+            await Assert.IsType<QueryResult>(result).MatchSnapshotAsync();
         }
 
         [Fact]
         public async Task NoOptimization_Defer_One_Root()
         {
-            IExecutionResult result =
+            var result =
                 await new ServiceCollection()
                     .AddStarWarsRepositories()
                     .AddGraphQL()
@@ -88,7 +88,7 @@ namespace HotChocolate.Execution
 
             var results = new StringBuilder();
 
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
+            await foreach (var payload in stream.ReadResultsAsync())
             {
                 results.AppendLine(payload.ToJson());
                 results.AppendLine();
@@ -100,7 +100,7 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task NoOptimization_Nested_Defer()
         {
-            IExecutionResult result =
+            var result =
                 await new ServiceCollection()
                     .AddStarWarsRepositories()
                     .AddGraphQL()
@@ -126,7 +126,7 @@ namespace HotChocolate.Execution
 
             var results = new StringBuilder();
 
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
+            await foreach (var payload in stream.ReadResultsAsync())
             {
                 results.AppendLine(payload.ToJson());
                 results.AppendLine();
@@ -138,7 +138,7 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task NoOptimization_Spread_Defer()
         {
-            IExecutionResult result =
+            var result =
                 await new ServiceCollection()
                     .AddStarWarsRepositories()
                     .AddGraphQL()
@@ -163,7 +163,7 @@ namespace HotChocolate.Execution
 
             var results = new StringBuilder();
 
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
+            await foreach (var payload in stream.ReadResultsAsync())
             {
                 results.AppendLine(payload.ToJson());
                 results.AppendLine();
@@ -175,7 +175,7 @@ namespace HotChocolate.Execution
         [Fact(Skip = "needs to be fixed.")]
         public async Task Do_Not_Defer()
         {
-            IExecutionResult result =
+            var result =
                 await new ServiceCollection()
                     .AddStarWarsRepositories()
                     .AddGraphQL()

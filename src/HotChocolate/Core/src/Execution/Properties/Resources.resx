@@ -279,4 +279,10 @@
   <data name="ExecutionResultExtensions_OnlyQueryResults" xml:space="preserve">
     <value>Only query results are supported.</value>
   </data>
+  <data name="SelectionVariants_ReadOnly" xml:space="preserve">
+    <value>This SelectionVariants instance is read-only.</value>
+  </data>
+  <data name="OperationCompiler_FragmentNotFound" xml:space="preserve">
+    <value>The document did not contain a fragment definition with the name `{0}`.</value>
+  </data>
 </root>

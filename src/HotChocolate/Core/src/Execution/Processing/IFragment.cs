@@ -14,6 +14,8 @@ public interface IFragment : IOptionalSelection
 
     IReadOnlyList<DirectiveNode> Directives { get; }
 
+    int SelectionSetId { get; }
+
     ISelectionSet SelectionSet { get; }
 
     string? GetLabel(IVariableValueCollection variables);

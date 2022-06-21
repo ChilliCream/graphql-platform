@@ -368,5 +368,17 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ExecutionResultExtensions_OnlyQueryResults", resourceCulture);
             }
         }
+        
+        internal static string SelectionVariants_ReadOnly {
+            get {
+                return ResourceManager.GetString("SelectionVariants_ReadOnly", resourceCulture);
+            }
+        }
+        
+        internal static string OperationCompiler_FragmentNotFound {
+            get {
+                return ResourceManager.GetString("OperationCompiler_FragmentNotFound", resourceCulture);
+            }
+        }
     }
 }
