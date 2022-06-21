@@ -11,6 +11,7 @@ public class WebSocketSession : ISocketSession
 {
     private readonly Pipe _pipe = new();
     private readonly ISocketConnection _connection;
+    private readonly CancellationToken _applicationStopping;
     private readonly KeepConnectionAliveJob _keepAlive;
     private readonly MessageProcessor _messageProcessor;
     private readonly MessageReceiver _messageReceiver;
@@ -22,9 +23,11 @@ public class WebSocketSession : ISocketSession
         ISocketSessionInterceptor sessionInterceptor,
         ISocketConnection connection,
         IMessagePipeline messagePipeline,
+        CancellationToken applicationStopping,
         bool disposeConnection)
     {
         _connection = connection;
+        _applicationStopping = applicationStopping;
         _disposeConnection = disposeConnection;
         _sessionInterceptor = sessionInterceptor;
 
@@ -35,7 +38,7 @@ public class WebSocketSession : ISocketSession
 
     public async Task HandleAsync(CancellationToken cancellationToken)
     {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _applicationStopping);
 
         if (await _connection.TryOpenAsync())
         {
@@ -97,7 +100,8 @@ public class WebSocketSession : ISocketSession
     public static WebSocketSession New(
         HttpContext httpContext,
         IMessagePipeline messagePipeline,
-        ISocketSessionInterceptor socketSessionInterceptor)
+        ISocketSessionInterceptor socketSessionInterceptor,
+        CancellationToken applicationStopping)
     {
         if (httpContext is null)
         {
@@ -119,6 +123,7 @@ public class WebSocketSession : ISocketSession
             socketSessionInterceptor,
             connection,
             messagePipeline,
+            applicationStopping,
             true);
     }
 }
