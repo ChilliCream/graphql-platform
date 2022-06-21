@@ -9,7 +9,6 @@ public partial class OperationCompiler
 {
     private void OptimizeSelectionSet(CompilerContext context)
     {
-        /*
         if (context.Optimizers.Count == 0)
         {
             return;
@@ -27,8 +26,6 @@ public partial class OperationCompiler
         {
             context.Optimizers[i].OptimizeSelectionSet(optimizerContext);
         }
-
-        */
     }
 
     private static IImmutableList<ISelectionOptimizer> ResolveOptimizers(
