@@ -61,6 +61,7 @@ internal sealed partial class ExtractFieldQuerySyntaxRewriter
 
         var syntaxNodes = new List<FieldNode>();
 
+        /*
         foreach (FieldNode syntaxNode in selection.SyntaxNodes)
         {
             FieldNode field = RewriteField(syntaxNode, context);
@@ -71,6 +72,7 @@ internal sealed partial class ExtractFieldQuerySyntaxRewriter
                 syntaxNodes.Add(field);
             }
         }
+        */
 
         return new ExtractedField(
             syntaxNodes,

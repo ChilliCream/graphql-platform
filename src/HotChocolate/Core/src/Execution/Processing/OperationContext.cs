@@ -2,7 +2,6 @@ using System;
 using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Execution.Properties;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
 
@@ -52,6 +51,8 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
+    public long IncludeFlags { get; private set; }
+
     public IServiceProvider Services
     {
         get
@@ -97,12 +98,10 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
-    public ISelectionSet CollectFields(
-        SelectionSetNode selectionSet,
-        ObjectType objectType)
+    public ISelectionSet CollectFields(ISelection selection, ObjectType objectType)
     {
         AssertInitialized();
-        return Operation.GetSelectionSet(selectionSet, objectType);
+        return Operation.GetSelectionSet(selection, objectType);
     }
 
     public void RegisterForCleanup(Action action)

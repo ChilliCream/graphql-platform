@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -21,20 +20,21 @@ internal static class ResolverTaskFactory
         IImmutableDictionary<string, object?> scopedContext)
     {
         var responseIndex = 0;
-        IReadOnlyList<ISelection> selections = selectionSet.Selections;
-        ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
-        IWorkScheduler scheduler = operationContext.Scheduler;
+        var selections = selectionSet.Selections;
+        var resultMap = operationContext.Result.RentResultMap(selections.Count);
+        var scheduler = operationContext.Scheduler;
         var final = !selectionSet.IsConditional;
 
-        List<ResolverTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+        var includeFlags = operationContext.IncludeFlags;
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
         try
         {
             for (var i = 0; i < selections.Count; i++)
             {
-                ISelection selection = selections[i];
-                if (final || selection.IsIncluded(operationContext.Variables))
+                var selection = selections[i];
+                if (final || selection.IsIncluded(includeFlags))
                 {
                     bufferedTasks.Add(CreateResolverTask(
                         operationContext,
@@ -83,12 +83,12 @@ internal static class ResolverTaskFactory
         IAsyncEnumerator<object?> value,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        ResultMap resultMap = operationContext.Result.RentResultMap(1);
+        var resultMap = operationContext.Result.RentResultMap(1);
 
-        List<ResolverTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
-        ResolverTask resolverTask = CreateResolverTask(
+        var resolverTask = CreateResolverTask(
             operationContext,
             selection,
             parent,
@@ -129,16 +129,16 @@ internal static class ResolverTaskFactory
         List<ResolverTask> bufferedTasks)
     {
         var responseIndex = 0;
-        IReadOnlyList<ISelection> selections = selectionSet.Selections;
-        ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
-        IVariableValueCollection variables = operationContext.Variables;
+        var selections = selectionSet.Selections;
+        var resultMap = operationContext.Result.RentResultMap(selections.Count);
+        var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
         for (var i = 0; i < selections.Count; i++)
         {
-            ISelection selection = selections[i];
+            var selection = selections[i];
 
-            if (final || selection.IsIncluded(variables))
+            if (final || selection.IsIncluded(includeFlags))
             {
                 if (selection.Strategy is SelectionExecutionStrategy.Pure)
                 {
@@ -248,7 +248,7 @@ internal static class ResolverTaskFactory
             {
                 if (resolverContext.TryCreatePureContext(
                     selection, path, parentType, parent,
-                    out IPureResolverContext? childContext))
+                    out var childContext))
                 {
                     result = selection.PureResolver!(childContext);
                     return true;
@@ -371,7 +371,7 @@ internal static class ResolverTaskFactory
         object parent,
         ResultMap resultMap)
     {
-        ResolverTask task = operationContext.ResolverTasks.Get();
+        var task = operationContext.ResolverTasks.Get();
 
         task.Initialize(
             operationContext,
@@ -394,7 +394,7 @@ internal static class ResolverTaskFactory
         ResultMap resultMap,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        ResolverTask task = operationContext.ResolverTasks.Get();
+        var task = operationContext.ResolverTasks.Get();
 
         task.Initialize(
             operationContext,
@@ -417,11 +417,13 @@ internal static class ResolverTaskFactory
     {
         if (selectionSet.Fragments.Count > 0)
         {
-            IReadOnlyList<IFragment> fragments = selectionSet.Fragments;
+            var fragments = selectionSet.Fragments;
+            var includeFlags = operationContext.IncludeFlags;
+
             for (var i = 0; i < fragments.Count; i++)
             {
-                IFragment fragment = fragments[i];
-                if (!fragment.IsConditional || fragment.IsIncluded(operationContext.Variables))
+                var fragment = fragments[i];
+                if (!fragment.IsConditional || fragment.IsIncluded(includeFlags))
                 {
                     operationContext.Scheduler.DeferredWork.Register(
                         new DeferredFragment(

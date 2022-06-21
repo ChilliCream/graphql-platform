@@ -36,8 +36,26 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Update="Processing\OperationCompiler2.ArgumentValues.cs">
-      <DependentUpon>OperationCompiler2.cs</DependentUpon>
+    <Compile Update="Processing\OperationCompiler.ArgumentValues.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationCompiler.BacklogItem.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationCompiler.CompilerContext.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationCompiler.Optimizers.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.IExecutionTaskContext.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Pooling.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Request.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

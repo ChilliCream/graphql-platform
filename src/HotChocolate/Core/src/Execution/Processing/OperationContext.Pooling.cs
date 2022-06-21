@@ -57,6 +57,7 @@ internal sealed partial class OperationContext
         _resolveQueryRootValue = resolveQueryRootValue;
         _isInitialized = true;
 
+        IncludeFlags = _operation.CreateIncludeContext(variables);
         _workScheduler.Initialize(batchDispatcher);
     }
 

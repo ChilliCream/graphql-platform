@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -28,12 +29,7 @@ public readonly ref struct SelectionOptimizerContext
     /// <summary>
     /// Gets the schema for which the query is compiled.
     /// </summary>
-    public ISchema Schema => _compiler.Schema;
-
-    /// <summary>
-    /// Gets the field execution stack.
-    /// </summary>
-    public IImmutableStack<IObjectField> Path => _compilerContext.Path;
+    public ISchema Schema => _compilerContext.Schema;
 
     /// <summary>
     /// Gets the type context of the current selection-set.
@@ -43,7 +39,8 @@ public readonly ref struct SelectionOptimizerContext
     /// <summary>
     /// Gets the selection-set.
     /// </summary>
-    public SelectionSetNode SelectionSet => _compilerContext.SelectionSet;
+    public IEnumerable<SelectionSetNode> SelectionSets
+        => _compilerContext.SelectionInfos.Select(t => t.SelectionSet);
 
     /// <summary>
     /// Gets the field set representing the compiled selection-set.
@@ -62,10 +59,10 @@ public readonly ref struct SelectionOptimizerContext
     public FieldDelegate CompileResolverPipeline(
         IObjectField field,
         FieldNode selection) =>
-        _compiler.CreateFieldMiddleware(field, selection);
+        OperationCompiler.CreateFieldMiddleware(Schema, field, selection);
 
     /// <summary>
     /// Gets the next operation unique selection id.
     /// </summary>
-    public int GetNextId() => _compiler.GetNextId();
+    public int GetNextId() => _compiler.GetNextSelectionId();
 }

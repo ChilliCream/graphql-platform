@@ -4,7 +4,6 @@ using System.Linq;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using static HotChocolate.Data.Projections.WellKnownProjectionFields;
@@ -29,7 +28,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
                     selection.Field);
         }
 
-        IReadOnlyList<ISelectionNode> selections = CollectSelection(context);
+        var selections = CollectSelection(context);
 
         context.Fields[CombinedEdgeField] =
             CreateCombinedSelection(context,
@@ -48,7 +47,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         IPageType pageType,
         IReadOnlyList<ISelectionNode> selections)
     {
-        (var fieldName, IObjectField? nodesField) = TryGetObjectField(pageType);
+        var (fieldName, nodesField) = TryGetObjectField(pageType);
 
         var combinedField = new FieldNode(
             null,
@@ -59,7 +58,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             Array.Empty<ArgumentNode>(),
             new SelectionSetNode(selections));
 
-        FieldDelegate nodesPipeline =
+        var nodesPipeline =
             selection.ResolverPipeline ??
             context.CompileResolverPipeline(nodesField, combinedField);
 
@@ -67,10 +66,12 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             context.GetNextId(),
             declaringType,
             nodesField,
+            nodesField.Type,
             combinedField,
+            CombinedEdgeField,
             nodesPipeline,
             arguments: selection.Arguments,
-            internalSelection: true);
+            isInternal: true);
     }
 
     private static (string filedName, IObjectField field) TryGetObjectField(IPageType type)
@@ -107,13 +108,13 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         if (context.Fields.Values
             .FirstOrDefault(x => x.Field.Name == "edges") is { } edgeSelection)
         {
-            foreach (ISelectionNode? edgeSubField in edgeSelection.SelectionSet!.Selections)
+            foreach (var edgeSubField in edgeSelection.SelectionSet!.Selections)
             {
                 if (edgeSubField is FieldNode edgeSubFieldNode &&
                     edgeSubFieldNode.Name.Value is "node" &&
                     edgeSubFieldNode.SelectionSet?.Selections is not null)
                 {
-                    foreach (ISelectionNode? nodeField in edgeSubFieldNode.SelectionSet.Selections)
+                    foreach (var nodeField in edgeSubFieldNode.SelectionSet.Selections)
                     {
                         selections.Add(_cloneSelectionSetRewriter.Rewrite(nodeField));
                     }
@@ -129,7 +130,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         if (context.Fields.Values
             .FirstOrDefault(x => x.Field.Name == "items") is { } itemSelection)
         {
-            foreach (ISelectionNode? nodeField in itemSelection.SelectionSet!.Selections)
+            foreach (var nodeField in itemSelection.SelectionSet!.Selections)
             {
                 selections.Add(_cloneSelectionSetRewriter.Rewrite(nodeField));
             }
@@ -143,7 +144,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         if (context.Fields.Values
             .FirstOrDefault(x => x.Field.Name == "nodes") is { } nodeSelection)
         {
-            foreach (ISelectionNode? nodeField in nodeSelection.SelectionSet!.Selections)
+            foreach (var nodeField in nodeSelection.SelectionSet!.Selections)
             {
                 selections.Add(_cloneSelectionSetRewriter.Rewrite(nodeField));
             }

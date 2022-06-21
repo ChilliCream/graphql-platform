@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Execution.Processing;
 
-public sealed partial class OperationCompiler2
+public sealed partial class OperationCompiler
 {
     private IArgumentMap? CoerceArgumentValues(
         IObjectField field,
@@ -138,7 +138,7 @@ public sealed partial class OperationCompiler2
         return true;
     }
 
-    private static FieldDelegate CreateFieldMiddleware(
+    internal static FieldDelegate CreateFieldMiddleware(
         ISchema schema,
         IObjectField field,
         FieldNode selection)

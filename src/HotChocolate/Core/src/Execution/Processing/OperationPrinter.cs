@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 internal static class OperationPrinter
 {
-    public static string Print(IPreparedOperation2 operation)
+    public static string Print(IPreparedOperation operation)
     {
         var directives = operation.Definition.Directives;
 
@@ -103,12 +103,12 @@ internal static class OperationPrinter
 
     private static SelectionSetNode CreateSelectionSet(
         PrintContext context,
-        ISelectionSet2 selectionSet,
+        ISelectionSet selectionSet,
         List<ISelectionNode> selections)
     {
         foreach (var selection in selectionSet.Selections)
         {
-            var selectionSetId = ((Selection2)selection).SelectionSetId;
+            var selectionSetId = ((Selection)selection).SelectionSetId;
             SelectionSetNode? selectionSetNode = null;
 
             if (selection.SelectionSet is not null)
@@ -124,7 +124,7 @@ internal static class OperationPrinter
     }
 
     private static FieldNode CreateSelection(
-        ISelection2 selection,
+        ISelection selection,
         SelectionSetNode? selectionSet)
     {
         var directives = new List<DirectiveNode>();
@@ -146,7 +146,7 @@ internal static class OperationPrinter
             selectionSet);
     }
 
-    private static DirectiveNode CreateExecutionInfo(ISelection2 selection)
+    private static DirectiveNode CreateExecutionInfo(ISelection selection)
     {
         var arguments = new ArgumentNode[selection.IsInternal ? 4 : 3];
         arguments[0] = new ArgumentNode("id", new IntValueNode(selection.Id));
@@ -185,8 +185,8 @@ internal static class OperationPrinter
         private readonly GlobalState _state;
 
         public PrintContext(
-            IPreparedOperation2 operation,
-            ISelectionVariants2 selectionVariants,
+            IPreparedOperation operation,
+            ISelectionVariants selectionVariants,
             List<IDefinitionNode> definitions)
         {
             Operation = operation;
@@ -196,8 +196,8 @@ internal static class OperationPrinter
         }
 
         private PrintContext(
-            IPreparedOperation2 operation,
-            ISelectionVariants2 selectionVariants,
+            IPreparedOperation operation,
+            ISelectionVariants selectionVariants,
             List<IDefinitionNode> definitions,
             GlobalState state)
         {
@@ -207,9 +207,9 @@ internal static class OperationPrinter
             _state = state;
         }
 
-        public IPreparedOperation2 Operation { get; }
+        public IPreparedOperation Operation { get; }
 
-        public ISelectionVariants2 SelectionVariants { get; }
+        public ISelectionVariants SelectionVariants { get; }
 
         public List<IDefinitionNode> Definitions { get; }
 
@@ -227,7 +227,7 @@ internal static class OperationPrinter
             return false;
         }
 
-        public PrintContext Branch(ISelectionVariants2 selectionVariants)
+        public PrintContext Branch(ISelectionVariants selectionVariants)
             => new(Operation, selectionVariants, Definitions, _state);
 
         private sealed class GlobalState

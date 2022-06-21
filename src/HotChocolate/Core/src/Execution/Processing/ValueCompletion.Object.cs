@@ -29,11 +29,10 @@ internal static partial class ValueCompletion
             path,
             fieldType,
             result,
-            out ObjectType? objectType))
+            out var objectType))
         {
-            SelectionSetNode selectionSet = selection.SyntaxNode.SelectionSet!;
-            ISelectionSet selections = operationContext.CollectFields(selectionSet, objectType);
-            Type runtimeType = objectType.RuntimeType;
+            var selectionSet = operationContext.CollectFields(selection, objectType);
+            var runtimeType = objectType.RuntimeType;
 
             if (!runtimeType.IsInstanceOfType(result) &&
                 operationContext.Converter.TryConvert(runtimeType, result, out var converted))
@@ -47,7 +46,7 @@ internal static partial class ValueCompletion
                 path,
                 objectType,
                 result,
-                selections,
+                selectionSet,
                 bufferedTasks);
             return true;
         }

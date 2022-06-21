@@ -1,12 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -16,162 +17,10 @@ namespace HotChocolate.Execution.Processing;
 public class OperationCompilerTests
 {
     [Fact]
-    public void Compile_OperationId_Null()
-    {
-        // arrange
-        ISchema schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("foo"))
-            .Create();
-
-        DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
-
-        OperationDefinitionNode operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
-        // act
-        void Action() =>
-            OperationCompiler.Compile(
-                null!,
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void Compile_Document_Null()
-    {
-        // arrange
-        ISchema schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("foo"))
-            .Create();
-
-        DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
-
-        OperationDefinitionNode operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
-        // act
-        void Action() =>
-            OperationCompiler.Compile(
-                "a",
-                null!,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void Compile_Operation_Null()
-    {
-        // arrange
-        ISchema schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("foo"))
-            .Create();
-
-        DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
-
-        // act
-        void Action() =>
-            OperationCompiler.Compile(
-                "a",
-                document,
-                null!,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void Compile_Schema_Null()
-    {
-        // arrange
-        ISchema schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("foo"))
-            .Create();
-
-        DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
-
-        OperationDefinitionNode operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
-        // act
-        void Action() =>
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                null!,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void Compile_OperationType_Null()
-    {
-        // arrange
-        ISchema schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("foo"))
-            .Create();
-
-        DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
-
-        OperationDefinitionNode operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
-        // act
-        void Action() =>
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                null!,
-                new(new DefaultTypeConverter()));
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
     public void Prepare_One_Field()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -179,38 +28,28 @@ public class OperationCompilerTests
                 .Resolve("foo"))
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
+        var document = Utf8GraphQLParser.Parse("{ foo }");
 
-        OperationDefinitionNode operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        IPreparedOperation operation =
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        Assert.Collection(
-            operation.SelectionVariants,
-            selectionSet =>
-            {
-                Assert.Equal(operationDefinition.SelectionSet, selectionSet.SelectionSet);
-                Assert.Collection(
-                    selectionSet.GetSelectionSet(schema.QueryType).Selections,
-                    selection => Assert.Equal("foo", selection.ResponseName));
-            });
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
     public void Prepare_Duplicate_Field()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -218,38 +57,29 @@ public class OperationCompilerTests
                 .Resolve("foo"))
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse("{ foo foo }");
+        var document = Utf8GraphQLParser.Parse("{ foo foo }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        IPreparedOperation operation =
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        Assert.Collection(
-            operation.SelectionVariants,
-            selectionSet =>
-            {
-                Assert.Equal(operationDefinition.SelectionSet, selectionSet.SelectionSet);
-                Assert.Collection(
-                    selectionSet.GetSelectionSet(schema.QueryType).Selections,
-                    selection => Assert.Equal("foo", selection.ResponseName));
-            });
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
     public void Prepare_Empty_Operation_SelectionSet()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -257,34 +87,33 @@ public class OperationCompilerTests
                 .Resolve("foo"))
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse("{ }");
+        var document = Utf8GraphQLParser.Parse("{ }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        void Action() =>
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        Assert.Throws<GraphQLException>(Action);
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
     public void Prepare_Inline_Fragment()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"{
                 hero(episode: EMPIRE) {
                     name
@@ -297,47 +126,31 @@ public class OperationCompilerTests
                 }
              }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        IPreparedOperation operation =
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        ISelection hero = operation.GetRootSelectionSet().Selections.Single();
-        Assert.Equal("hero", hero.ResponseName);
-
-        Assert.Collection(
-            operation.GetSelectionSet(hero.SelectionSet!, schema.GetType<ObjectType>("Droid"))
-                .Selections,
-            selection => Assert.Equal("name", selection.ResponseName),
-            selection => Assert.Equal("primaryFunction", selection.ResponseName));
-
-        Assert.Collection(
-            operation.GetSelectionSet(hero.SelectionSet, schema.GetType<ObjectType>("Human"))
-                .Selections,
-            selection => Assert.Equal("name", selection.ResponseName),
-            selection => Assert.Equal("homePlanet", selection.ResponseName));
-
-        operation.Print().MatchSnapshot();
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
     public void Prepare_Fragment_Definition()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"{
                 hero(episode: EMPIRE) {
                     name
@@ -355,28 +168,27 @@ public class OperationCompilerTests
               }
              ");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        IPreparedOperation operation =
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        operation.Print().MatchSnapshot();
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
     public void Prepare_Duplicate_Field_With_Skip()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -384,38 +196,29 @@ public class OperationCompilerTests
                 .Resolve("foo"))
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse("{ foo @skip(if: true) foo @skip(if: false) }");
+        var document = Utf8GraphQLParser.Parse(
+            "{ foo @skip(if: true) foo @skip(if: false) }");
 
-        OperationDefinitionNode operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        IPreparedOperation operation =
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        Assert.Collection(
-            operation.SelectionVariants,
-            selectionSet =>
-            {
-                Assert.Equal(operationDefinition.SelectionSet, selectionSet.SelectionSet);
-                Assert.Collection(
-                    selectionSet.GetSelectionSet(schema.QueryType).Selections,
-                    selection => Assert.Equal("foo", selection.ResponseName));
-            });
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
     public void Field_Does_Not_Exist()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -423,20 +226,17 @@ public class OperationCompilerTests
                 .Resolve("foo"))
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse("{ foo bar }");
+        var document = Utf8GraphQLParser.Parse("{ foo bar }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        void Action() =>
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        void Action()
+        {
+            var compiler = new OperationCompiler(new InputParser());
+            compiler.Compile("opid", operationDefinition, schema.QueryType, document, schema);
+        }
 
         // assert
         Assert.Equal(
@@ -451,13 +251,13 @@ public class OperationCompilerTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        ObjectType droid = schema.GetType<ObjectType>("Droid");
+        var droid = schema.GetType<ObjectType>("Droid");
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
                     hero(episode: EMPIRE) {
                         name
@@ -469,30 +269,20 @@ public class OperationCompilerTests
                     name
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        ISelectionSet rootSelections =
-            operation.RootSelectionVariants.GetSelectionSet(
-                operation.RootSelectionVariants.GetPossibleTypes().First());
-        ISelectionSet droidSelections =
-            operation.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
-
-        Assert.Equal("name", droidSelections.Selections[0].ResponseName);
-        Assert.False(droidSelections.Selections[0].IsConditional);
-        Assert.True(droidSelections.Selections[0].IsIncluded(variables.Object));
-        Assert.False(droidSelections.IsConditional);
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -502,13 +292,13 @@ public class OperationCompilerTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        ObjectType droid = schema.GetType<ObjectType>("Droid");
+        var droid = schema.GetType<ObjectType>("Droid");
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
                     hero(episode: EMPIRE) {
                         name @include(if: $v)
@@ -520,30 +310,20 @@ public class OperationCompilerTests
                     name
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        ISelectionSet rootSelections =
-            operation.RootSelectionVariants.GetSelectionSet(
-                operation.RootSelectionVariants.GetPossibleTypes().First());
-        ISelectionSet droidSelections =
-            operation.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
-
-        Assert.Equal("name", droidSelections.Selections[0].ResponseName);
-        Assert.False(droidSelections.Selections[0].IsConditional);
-        Assert.True(droidSelections.Selections[0].IsIncluded(variables.Object));
-        Assert.False(droidSelections.IsConditional);
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -554,13 +334,13 @@ public class OperationCompilerTests
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
             .Returns((NameString name) => name.Equals("q"));
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        ObjectType droid = schema.GetType<ObjectType>("Droid");
+        var droid = schema.GetType<ObjectType>("Droid");
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean, $q: Boolean){
                     hero(episode: EMPIRE) {
                         name @include(if: $v)
@@ -572,30 +352,20 @@ public class OperationCompilerTests
                     name
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        ISelectionSet rootSelections =
-            operation.RootSelectionVariants.GetSelectionSet(
-                operation.RootSelectionVariants.GetPossibleTypes().First());
-        ISelectionSet droidSelections =
-            operation.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
-
-        Assert.Equal("name", droidSelections.Selections[0].ResponseName);
-        Assert.True(droidSelections.Selections[0].IsConditional);
-        Assert.True(droidSelections.Selections[0].IsIncluded(variables.Object));
-        Assert.True(droidSelections.IsConditional);
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -605,13 +375,13 @@ public class OperationCompilerTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        ObjectType droid = schema.GetType<ObjectType>("Droid");
+        var droid = schema.GetType<ObjectType>("Droid");
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
                     hero(episode: EMPIRE) {
                         name @include(if: $v)
@@ -626,30 +396,20 @@ public class OperationCompilerTests
                     }
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        ISelectionSet rootSelections =
-            operation.RootSelectionVariants.GetSelectionSet(
-                operation.RootSelectionVariants.GetPossibleTypes().First());
-        ISelectionSet droidSelections =
-            operation.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
-
-        Assert.Equal("name", droidSelections.Selections[0].ResponseName);
-        Assert.False(droidSelections.Selections[0].IsConditional);
-        Assert.True(droidSelections.Selections[0].IsIncluded(variables.Object));
-        Assert.False(droidSelections.IsConditional);
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -662,13 +422,13 @@ public class OperationCompilerTests
         var vTrue = new Mock<IVariableValueCollection>();
         vTrue.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(true);
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        ObjectType droid = schema.GetType<ObjectType>("Droid");
+        var droid = schema.GetType<ObjectType>("Droid");
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean) {
                     hero(episode: EMPIRE) @include(if: $v) {
                         name
@@ -685,37 +445,20 @@ public class OperationCompilerTests
                     }
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        ISelectionSet rootSelections =
-            operation.RootSelectionVariants.GetSelectionSet(
-                operation.RootSelectionVariants.GetPossibleTypes().First());
-        ISelectionSet droidSelections =
-            operation.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
-
-        Assert.Collection(
-            droidSelections.Selections.Where(t => t.IsIncluded(vFalse.Object)),
-            t => Assert.Equal("id", t.ResponseName));
-
-        Assert.Collection(
-            droidSelections.Selections.Where(t => t.IsIncluded(vTrue.Object)),
-            t => Assert.Equal("name", t.ResponseName),
-            t => Assert.Equal("id", t.ResponseName),
-            t => Assert.Equal("height", t.ResponseName));
-
-        operation.Print().MatchSnapshot();
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -728,11 +471,11 @@ public class OperationCompilerTests
         var vTrue = new Mock<IVariableValueCollection>();
         vTrue.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(true);
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"
                 query ($if: Boolean!) {
                     human(id: ""1000"") {
@@ -780,21 +523,20 @@ public class OperationCompilerTests
                 }
                 ");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        operation.Print().MatchSnapshot();
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -805,13 +547,13 @@ public class OperationCompilerTests
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
             .Returns((NameString name) => name.Equals("v"));
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        ObjectType droid = schema.GetType<ObjectType>("Droid");
+        var droid = schema.GetType<ObjectType>("Droid");
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean, $q: Boolean) {
                     hero(episode: EMPIRE) @include(if: $v) {
                         name @include(if: $q)
@@ -828,32 +570,20 @@ public class OperationCompilerTests
                     }
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        ISelectionSet rootSelections =
-            operation.RootSelectionVariants.GetSelectionSet(
-                operation.RootSelectionVariants.GetPossibleTypes().First());
-        ISelectionSet droidSelections =
-            operation.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
-
-        Assert.Collection(
-            droidSelections.Selections.Where(t => t.IsIncluded(variables.Object)),
-            t => Assert.Equal("id", t.ResponseName),
-            t => Assert.Equal("height", t.ResponseName));
-
-        operation.Print().MatchSnapshot();
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -864,42 +594,33 @@ public class OperationCompilerTests
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
             .Returns((NameString name) => name.Equals("v"));
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        ObjectType droid = schema.GetType<ObjectType>("Droid");
+        var droid = schema.GetType<ObjectType>("Droid");
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean, $q: Boolean) {
                     hero(episode: EMPIRE) @include(if: $v) {
                         name @include(if: $q)
                     }
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        ISelectionSet rootSelections =
-            operation.RootSelectionVariants.GetSelectionSet(
-                operation.RootSelectionVariants.GetPossibleTypes().First());
-        ISelectionSet droidSelections =
-            operation.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
-
-        Assert.Empty(droidSelections.Selections.Where(t => t.IsIncluded(variables.Object)));
-
-        operation.Print().MatchSnapshot();
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -910,7 +631,7 @@ public class OperationCompilerTests
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
             .Returns((NameString name) => name.Equals("v"));
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("Query")
                 .Field("root")
@@ -918,7 +639,7 @@ public class OperationCompilerTests
                 .UseOptimizer(new SimpleOptimizer()))
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"{
                     root {
                         bar {
@@ -927,35 +648,33 @@ public class OperationCompilerTests
                     }
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-        var optimizers = new List<NoopOptimizer> { new() };
+        var optimizers = new List<NoopOptimizer> { new NoopOptimizer() };
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()),
-                optimizers);
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        operation.Print().MatchSnapshot();
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
     public void Defer_Inline_Fragment()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"{
                     hero(episode: EMPIRE) {
                         name
@@ -965,56 +684,31 @@ public class OperationCompilerTests
                     }
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        ISelection rootField = operation.GetRootSelectionSet().Selections.Single();
-
-        ObjectType droid = schema.GetType<ObjectType>("Droid");
-
-        Assert.Collection(
-            operation.GetSelectionSet(rootField.SelectionSet!, droid).Fragments,
-            f =>
-            {
-                Assert.Equal(SyntaxKind.InlineFragment, f.SyntaxNode.Kind);
-                Assert.Collection(
-                    f.SelectionSet.Selections,
-                    s => Assert.Equal("id", s.ResponseName));
-            });
-
-        ObjectType human = schema.GetType<ObjectType>("Human");
-
-        Assert.Collection(
-            operation.GetSelectionSet(rootField.SelectionSet, human).Fragments,
-            f =>
-            {
-                Assert.Equal(SyntaxKind.InlineFragment, f.SyntaxNode.Kind);
-                Assert.Collection(
-                    f.SelectionSet.Selections,
-                    s => Assert.Equal("id", s.ResponseName));
-            });
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
     public void Defer_Fragment_Spread()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"{
                     hero(episode: EMPIRE) {
                         name
@@ -1027,48 +721,31 @@ public class OperationCompilerTests
                 }
                 ");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        var operation =
-            (Operation)OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        ISelection rootField = operation.GetRootSelectionSet().Selections.Single();
-
-        ObjectType droid = schema.GetType<ObjectType>("Droid");
-
-        Assert.Collection(
-            operation.GetSelectionSet(rootField.SelectionSet!, droid).Fragments,
-            f =>
-            {
-                Assert.Equal(SyntaxKind.FragmentDefinition, f.SyntaxNode.Kind);
-                Assert.Collection(
-                    f.SelectionSet.Selections,
-                    s => Assert.Equal("id", s.ResponseName));
-            });
-
-        ObjectType human = schema.GetType<ObjectType>("Human");
-
-        Assert.Empty(operation.GetSelectionSet(rootField.SelectionSet, human).Fragments);
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
     public void Reuse_Selection()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query Hero($episode: Episode, $withFriends: Boolean!) {
                     hero(episode: $episode) {
                         name
@@ -1080,23 +757,20 @@ public class OperationCompilerTests
                     }
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        IPreparedOperation operation =
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        operation
-            .Print()
-            .MatchSnapshot();
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -1106,11 +780,11 @@ public class OperationCompilerTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
                     hero(episode: EMPIRE) {
                         name @include(if: $v)
@@ -1120,21 +794,20 @@ public class OperationCompilerTests
 
                 fragment abc on Droid { }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        void Action() =>
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        Assert.Throws<GraphQLException>(Action);
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -1144,11 +817,11 @@ public class OperationCompilerTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
                     hero(episode: EMPIRE) {
                         name @include(if: $v)
@@ -1156,21 +829,20 @@ public class OperationCompilerTests
                     }
                 }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        void Action() =>
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        Assert.Throws<GraphQLException>(Action);
+        MatchSnapshot(document, operation);
     }
 
     [Fact]
@@ -1180,30 +852,135 @@ public class OperationCompilerTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean) {
-                    hero(episode: EMPIRE) { }
-                }");
+                hero(episode: EMPIRE) { }
+            }");
 
-        OperationDefinitionNode operationDefinition =
+        var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
 
         // act
-        void Action() =>
-            OperationCompiler.Compile(
-                "a",
-                document,
-                operationDefinition,
-                schema,
-                schema.QueryType,
-                new(new DefaultTypeConverter()));
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
 
         // assert
-        Assert.Throws<GraphQLException>(Action);
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Large_Query_Test()
+    {
+        // arrange
+        var variables = new Mock<IVariableValueCollection>();
+
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWarsTypes()
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            FileResource.Open("LargeQuery.graphql"));
+
+        var operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Crypto_Details_Test()
+    {
+        // arrange
+        var variables = new Mock<IVariableValueCollection>();
+
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            FileResource.Open("CryptoDetailQuery.graphql"));
+
+        var operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Crypto_List_Test()
+    {
+        // arrange
+        var variables = new Mock<IVariableValueCollection>();
+
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            FileResource.Open("CryptoQuery.graphql"));
+
+        var operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    private static void MatchSnapshot(DocumentNode original, IPreparedOperation compiled)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine(original.ToString());
+        sb.AppendLine();
+        sb.AppendLine("---------------------------------------------------------");
+        sb.AppendLine();
+        sb.AppendLine(compiled.ToString());
+        sb.ToString().Replace("\r", "").MatchSnapshot();
     }
 
     public class Foo
@@ -1252,11 +1029,12 @@ public class OperationCompilerTests
 
         public void OptimizeSelectionSet(SelectionOptimizerContext context)
         {
+            /*
             if (!context.Path.IsEmpty && context.Path.Peek() is { Name.Value: "bar" })
             {
-                IObjectField baz = context.Type.Fields["baz"];
-                FieldNode bazSelection = Utf8GraphQLParser.Syntax.ParseField("baz { text }");
-                FieldDelegate bazPipeline = context.CompileResolverPipeline(baz, bazSelection);
+                var baz = context.Type.Fields["baz"];
+                var bazSelection = Utf8GraphQLParser.Syntax.ParseField("baz { text }");
+                var bazPipeline = context.CompileResolverPipeline(baz, bazSelection);
 
                 var compiledSelection = new Selection(
                     context.GetNextId(),
@@ -1265,10 +1043,11 @@ public class OperationCompilerTests
                     baz.Type,
                     bazSelection,
                     bazPipeline,
-                    internalSelection: true);
+                    isInternal: true);
 
                 context.Fields[compiledSelection.ResponseName] = compiledSelection;
             }
+            */
         }
     }
 }

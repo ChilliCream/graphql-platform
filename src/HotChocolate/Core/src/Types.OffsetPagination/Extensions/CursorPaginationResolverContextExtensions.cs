@@ -18,10 +18,9 @@ internal static class CursorPaginationResolverContextExtensions
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
         if (context.Selection.Type is ObjectType objectType &&
-            context.Selection.SyntaxNode.SelectionSet is { } selectionSet)
+            context.Selection.SyntaxNode.SelectionSet is not null)
         {
-            IReadOnlyList<IFieldSelection> selections =
-                context.GetSelections(objectType, selectionSet, true);
+            var selections = context.GetSelections(objectType, null, true);
 
             for (var i = 0; i < selections.Count; i++)
             {

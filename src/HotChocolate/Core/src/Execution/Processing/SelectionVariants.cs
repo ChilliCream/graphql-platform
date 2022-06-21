@@ -1,5 +1,6 @@
+using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
+using HotChocolate.Execution.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
@@ -11,41 +12,35 @@ internal sealed class SelectionVariants : ISelectionVariants
     private IObjectType? _secondType;
     private ISelectionSet? _secondSelections;
     private Dictionary<IObjectType, ISelectionSet>? _map;
+    private bool _readOnly;
 
-    public SelectionVariants(SelectionSetNode selectionSet)
+    public SelectionVariants(int id)
     {
-        SelectionSet = selectionSet;
+        Id = id;
     }
 
-    public SelectionSetNode SelectionSet { get; }
+    public int Id { get; }
 
     public IEnumerable<IObjectType> GetPossibleTypes()
-    {
-        if (_map is { })
-        {
-            foreach (IObjectType possibleType in _map.Keys)
-            {
-                yield return possibleType;
-            }
-        }
-        else
-        {
-            yield return _firstType!;
+        => _map?.Keys ?? GetPossibleTypesLazy();
 
-            if (_secondType is { })
-            {
-                yield return _secondType;
-            }
+    private IEnumerable<IObjectType> GetPossibleTypesLazy()
+    {
+        yield return _firstType!;
+
+        if (_secondType is not null)
+        {
+            yield return _secondType;
         }
     }
 
     public ISelectionSet GetSelectionSet(IObjectType typeContext)
     {
-        if (_map is { })
+        if (_map is not null)
         {
             return _map.TryGetValue(typeContext, out ISelectionSet? selections)
                 ? selections
-                : Processing.SelectionSet.Empty;
+                : SelectionSet.Empty;
         }
 
         if (ReferenceEquals(_firstType, typeContext))
@@ -58,18 +53,43 @@ internal sealed class SelectionVariants : ISelectionVariants
             return _secondSelections!;
         }
 
-        return Processing.SelectionSet.Empty;
+        return SelectionSet.Empty;
     }
 
-    public void AddSelectionSet(
+    internal bool ContainsSelectionSet(IObjectType typeContext)
+    {
+        if (_map is not null)
+        {
+            return _map.ContainsKey(typeContext);
+        }
+
+        if (ReferenceEquals(_firstType, typeContext))
+        {
+            return true;
+        }
+
+        if (ReferenceEquals(_secondType, typeContext))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    internal void AddSelectionSet(
         IObjectType typeContext,
         IReadOnlyList<ISelection> selections,
         IReadOnlyList<IFragment>? fragments,
         bool isConditional)
     {
+        if (_readOnly)
+        {
+            throw new NotSupportedException(Resources.SelectionVariants_ReadOnly);
+        }
+
         var selectionSet = new SelectionSet(selections, fragments, isConditional);
 
-        if (_map is { })
+        if (_map is not null)
         {
             _map[typeContext] = selectionSet;
         }
@@ -82,17 +102,23 @@ internal sealed class SelectionVariants : ISelectionVariants
             }
             else if (_secondType is null)
             {
+                if (typeContext == _firstType)
+                {
+                    throw new InvalidOperationException(
+                        $"The type {typeContext.Name} was already added.");
+                }
+
                 _secondType = typeContext;
                 _secondSelections = selectionSet;
             }
             else
             {
                 _map = new Dictionary<IObjectType, ISelectionSet>
-                    {
-                        { _firstType, _firstSelections! },
-                        { _secondType, _secondSelections! },
-                        { typeContext, selectionSet }
-                    };
+                {
+                    { _firstType, _firstSelections! },
+                    { _secondType, _secondSelections! },
+                    { typeContext, selectionSet }
+                };
 
                 _firstType = null;
                 _firstSelections = null;
@@ -102,21 +128,8 @@ internal sealed class SelectionVariants : ISelectionVariants
         }
     }
 
-    public void ReplaceSelectionSet(IObjectType typeContext, ISelectionSet selectionSet)
+    public void Seal()
     {
-        if (_map is not null)
-        {
-            _map[typeContext] = selectionSet;
-        }
-
-        if (ReferenceEquals(_firstType, typeContext))
-        {
-            _firstSelections = selectionSet;
-        }
-
-        if (ReferenceEquals(_secondType, typeContext))
-        {
-            _secondSelections = selectionSet;
-        }
+        _readOnly = true;
     }
 }

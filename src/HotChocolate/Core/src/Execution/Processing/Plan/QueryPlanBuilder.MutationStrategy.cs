@@ -13,7 +13,7 @@ internal static partial class QueryPlanBuilder
             context.Root = root;
             context.NodePath.Push(root);
 
-            foreach (ISelection mutation in context.Operation.GetRootSelectionSet().Selections)
+            foreach (var mutation in context.Operation.RootSelectionSet.Selections)
             {
                 context.SelectionPath.Push(mutation);
 
@@ -29,12 +29,12 @@ internal static partial class QueryPlanBuilder
 
             context.NodePath.Pop();
 
-            QueryPlanNode optimized = QueryStrategy.Optimize(context.Root);
+            var optimized = QueryStrategy.Optimize(context.Root);
             var operationNode = new OperationNode(optimized);
 
             if (context.Deferred.Count > 0)
             {
-                foreach (QueryPlanNode? deferred in QueryStrategy.BuildDeferred(context))
+                foreach (var deferred in QueryStrategy.BuildDeferred(context))
                 {
                     operationNode.Deferred.Add(deferred);
                 }

@@ -549,7 +549,7 @@ namespace HotChocolate.Types.Pagination
 
             public IReadOnlyList<IFieldSelection> GetSelections(
                 ObjectType typeContext,
-                SelectionSetNode? selectionSet = null,
+                IFieldSelection? selection = null,
                 bool allowInternals = false)
             {
                 throw new NotImplementedException();

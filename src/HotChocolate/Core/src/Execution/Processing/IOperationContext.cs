@@ -3,7 +3,6 @@ using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
@@ -53,6 +52,11 @@ internal interface IOperationContext : IHasContextData
     object? RootValue { get; }
 
     /// <summary>
+    /// Gets the include flags for the current request.
+    /// </summary>
+    long IncludeFlags { get; }
+
+    /// <summary>
     /// Gets the coerced variable values for the current operation.
     /// </summary>
     IVariableValueCollection Variables { get; }
@@ -98,15 +102,15 @@ internal interface IOperationContext : IHasContextData
     /// Get the fields for the specified selection set according to the execution plan.
     /// The selection set will show all possibilities and needs to be pre-processed.
     /// </summary>
-    /// <param name="selectionSet">
-    /// The selection set syntax for which we want to get the compiled selection set.
+    /// <param name="selection">
+    /// The selection for which we want to get the compiled selection set.
     /// </param>
     /// <param name="typeContext">
     /// The type context.
     /// </param>
     /// <returns></returns>
     ISelectionSet CollectFields(
-        SelectionSetNode selectionSet,
+        ISelection selection,
         ObjectType typeContext);
 
     /// <summary>
