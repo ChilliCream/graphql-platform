@@ -35,9 +35,9 @@ internal class VariableValueCollection : IVariableValueCollection
 
     public bool TryGetVariable<T>(NameString name, out T? value)
     {
-        if (_coercedValues.TryGetValue(name.Value, out VariableValueOrLiteral variableValue))
+        if (_coercedValues.TryGetValue(name.Value, out var variableValue))
         {
-            Type requestedType = typeof(T);
+            var requestedType = typeof(T);
 
             if (requestedType == typeof(IValueNode))
             {
@@ -82,10 +82,10 @@ internal class VariableValueCollection : IVariableValueCollection
 
     public IEnumerator<VariableValue> GetEnumerator()
     {
-        foreach (KeyValuePair<string, VariableValueOrLiteral> item in _coercedValues)
+        foreach (var item in _coercedValues)
         {
-            IInputType type = item.Value.Type;
-            IValueNode value = item.Value.ValueLiteral;
+            var type = item.Value.Type;
+            var value = item.Value.ValueLiteral;
             yield return new VariableValue(item.Key, type, value);
         }
     }

@@ -32,7 +32,7 @@ public sealed class ResultMap
     {
         get
         {
-            ResultValue value = GetValue(key, out var index);
+            var value = GetValue(key, out var index);
 
             if (index == -1)
             {
@@ -49,7 +49,7 @@ public sealed class ResultMap
         {
             for (var i = 0; i < _capacity; i++)
             {
-                ResultValue value = _buffer[i];
+                var value = _buffer[i];
 
                 if (value.IsInitialized)
                 {
@@ -65,7 +65,7 @@ public sealed class ResultMap
         {
             for (var i = 0; i < _capacity; i++)
             {
-                ResultValue value = _buffer[i];
+                var value = _buffer[i];
 
                 if (value.IsInitialized)
                 {
@@ -99,7 +99,7 @@ public sealed class ResultMap
 
         var i = (IntPtr)0;
         var length = _capacity;
-        ref ResultValue searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
+        ref var searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
 
         while (length > 0)
         {
@@ -155,7 +155,7 @@ public sealed class ResultMap
     {
         for (var i = 0; i < _capacity; i++)
         {
-            ResultValue value = _buffer[i];
+            var value = _buffer[i];
 
             if (value.IsInitialized)
             {
@@ -171,7 +171,7 @@ public sealed class ResultMap
     {
         for (var i = 0; i < _capacity; i++)
         {
-            ResultValue value = _buffer[i];
+            var value = _buffer[i];
 
             if (value.IsInitialized)
             {

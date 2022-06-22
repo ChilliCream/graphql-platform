@@ -64,8 +64,6 @@ internal sealed class DeferredFragment : IDeferredExecutionTask
     /// <inheritdoc/>
     public async Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext)
     {
-        operationContext.QueryPlan = operationContext.QueryPlan.GetDeferredPlan(Fragment.Id);
-
         var resultMap = EnqueueResolverTasks(
             operationContext,
             Fragment.SelectionSet,

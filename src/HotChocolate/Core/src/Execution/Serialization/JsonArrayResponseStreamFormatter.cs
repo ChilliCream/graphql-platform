@@ -78,7 +78,7 @@ public sealed class JsonArrayResponseStreamFormatter : IResponseStreamFormatter
 
         await outputStream.WriteAsync(new[] { _leftBracket }, 0, 1, ct).ConfigureAwait(false);
 
-        await foreach (IQueryResult result in
+        await foreach (var result in
             responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
         {
             try

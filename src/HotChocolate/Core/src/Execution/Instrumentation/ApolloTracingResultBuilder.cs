@@ -88,7 +88,7 @@ internal class ApolloTracingResultBuilder
         var i = 0;
         var results = new ResultMap[_resolverRecords.Count];
 
-        foreach (ApolloTracingResolverRecord record in _resolverRecords)
+        foreach (var record in _resolverRecords)
         {
             var result = new ResultMap();
             result.EnsureCapacity(6);

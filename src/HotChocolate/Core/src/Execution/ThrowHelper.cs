@@ -45,7 +45,7 @@ internal static class ThrowHelper
             ? serializationException.Message
             : null;
 
-        IErrorBuilder errorBuilder = ErrorBuilder.New()
+        var errorBuilder = ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_VariableValueInvalidType_Message,
                 variableDefinition.Variable.Name.Value)

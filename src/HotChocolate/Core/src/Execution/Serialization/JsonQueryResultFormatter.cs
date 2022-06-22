@@ -277,7 +277,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
         writer.WriteStartArray();
 
-        IReadOnlyList<object> list = path.ToList();
+        var list = path.ToList();
 
         for (var i = 0; i < list.Count; i++)
         {
@@ -329,7 +329,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
     {
         writer.WriteStartObject();
 
-        foreach (KeyValuePair<string, object?> item in dict)
+        foreach (var item in dict)
         {
             writer.WritePropertyName(item.Key);
             WriteFieldValue(writer, item.Value);
@@ -346,7 +346,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
         for (var i = 0; i < resultMap.Count; i++)
         {
-            ResultValue value = resultMap[i];
+            var value = resultMap[i];
             if (value.IsInitialized)
             {
                 writer.WritePropertyName(value.Name);

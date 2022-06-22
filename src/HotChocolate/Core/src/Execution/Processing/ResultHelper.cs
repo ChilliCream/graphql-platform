@@ -40,7 +40,7 @@ internal sealed partial class ResultHelper : IResultHelper
 
         lock (_syncMap)
         {
-            if (!_resultOwner.ResultMaps.TryPeek(out ResultObjectBuffer<ResultMap>? buffer) ||
+            if (!_resultOwner.ResultMaps.TryPeek(out var buffer) ||
                 !buffer.TryPop(out map))
             {
                 buffer = _resultPool.GetResultMap();
@@ -60,7 +60,7 @@ internal sealed partial class ResultHelper : IResultHelper
         lock (_syncMapList)
         {
             if (!_resultOwner.ResultMapLists.TryPeek(
-                out ResultObjectBuffer<ResultMapList>? buffer) ||
+                out var buffer) ||
                 !buffer.TryPop(out mapList))
             {
                 buffer = _resultPool.GetResultMapList();
@@ -78,7 +78,7 @@ internal sealed partial class ResultHelper : IResultHelper
 
         lock (_syncList)
         {
-            if (!_resultOwner.ResultLists.TryPeek(out ResultObjectBuffer<ResultList>? buffer) ||
+            if (!_resultOwner.ResultLists.TryPeek(out var buffer) ||
                 !buffer.TryPop(out list))
             {
                 buffer = _resultPool.GetResultList();
@@ -158,9 +158,9 @@ internal sealed partial class ResultHelper : IResultHelper
 
     public IQueryResult BuildResult()
     {
-        while (_data != null && _nonNullViolations.TryPop(out NonNullViolation violation))
+        while (_data != null && _nonNullViolations.TryPop(out var violation))
         {
-            Path? path = violation.Path;
+            var path = violation.Path;
             IResultData? parent = violation.Parent;
 
             if (!_fieldErrors.Contains(violation.Selection))
@@ -172,7 +172,7 @@ internal sealed partial class ResultHelper : IResultHelper
             {
                 if (parent is ResultMap map && path is NamePathSegment nameSegment)
                 {
-                    ResultValue value = map.GetValue(nameSegment.Name.Value, out var index);
+                    var value = map.GetValue(nameSegment.Name.Value, out var index);
 
                     if (value.IsNullable)
                     {
@@ -261,7 +261,7 @@ internal sealed partial class ResultHelper : IResultHelper
 
         if (data.Count == 1)
         {
-            KeyValuePair<string, object?> value = data.Single();
+            var value = data.Single();
             return new SingleValueExtensionData(value.Key, value.Value);
         }
 

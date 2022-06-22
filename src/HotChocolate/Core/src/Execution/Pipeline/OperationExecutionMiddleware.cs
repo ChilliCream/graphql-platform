@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +15,6 @@ internal sealed class OperationExecutionMiddleware
     private readonly ObjectPool<OperationContext> _operationContextPool;
     private readonly QueryExecutor _queryExecutor;
     private readonly SubscriptionExecutor _subscriptionExecutor;
-    private readonly IQueryPlanCache _queryPlanCache;
     private readonly ITransactionScopeHandler _transactionScopeHandler;
     private object? _cachedQuery;
     private object? _cachedMutation;
@@ -28,7 +24,6 @@ internal sealed class OperationExecutionMiddleware
         ObjectPool<OperationContext> operationContextPool,
         QueryExecutor queryExecutor,
         SubscriptionExecutor subscriptionExecutor,
-        IQueryPlanCache queryPlanCache,
         [SchemaService] ITransactionScopeHandler transactionScopeHandler)
     {
         _next = next ??
@@ -39,8 +34,6 @@ internal sealed class OperationExecutionMiddleware
             throw new ArgumentNullException(nameof(queryExecutor));
         _subscriptionExecutor = subscriptionExecutor ??
             throw new ArgumentNullException(nameof(subscriptionExecutor));
-        _queryPlanCache = queryPlanCache ??
-            throw new ArgumentNullException(nameof(queryPlanCache));
         _transactionScopeHandler = transactionScopeHandler ??
             throw new ArgumentNullException(nameof(transactionScopeHandler));
     }
@@ -58,8 +51,6 @@ internal sealed class OperationExecutionMiddleware
         {
             if (IsOperationAllowed(context))
             {
-                var queryPlan = GetQueryPlan(context);
-
                 using (context.DiagnosticEvents.ExecuteOperation(context))
                 {
                     await ExecuteOperationAsync(context, batchDispatcher, context.Operation)
@@ -178,7 +169,6 @@ internal sealed class OperationExecutionMiddleware
                 context.Services,
                 batchDispatcher,
                 operation,
-                queryPlan,
                 context.Variables!,
                 mutation,
                 () => GetQueryRootValue(context));
@@ -189,17 +179,6 @@ internal sealed class OperationExecutionMiddleware
 
             transactionScope.Complete();
         }
-    }
-
-    private QueryPlan GetQueryPlan(IRequestContext context)
-    {
-        if (!_queryPlanCache.TryGetQueryPlan(context.OperationId!, out var queryPlan))
-        {
-            queryPlan = QueryPlanBuilder.Build(context.Operation!);
-            _queryPlanCache.TryAddQueryPlan(context.OperationId!, queryPlan);
-        }
-
-        return queryPlan;
     }
 
     private object? GetQueryRootValue(IRequestContext context) =>
@@ -241,28 +220,5 @@ internal sealed class OperationExecutionMiddleware
         }
 
         return false;
-    }
-
-    private sealed class StreamSession : IDisposable
-    {
-        private readonly IDisposable[] _disposables;
-        private bool _disposed;
-
-        public StreamSession(IDisposable[] disposables)
-        {
-            _disposables = disposables;
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                foreach (var disposable in _disposables)
-                {
-                    disposable.Dispose();
-                }
-                _disposed = true;
-            }
-        }
     }
 }

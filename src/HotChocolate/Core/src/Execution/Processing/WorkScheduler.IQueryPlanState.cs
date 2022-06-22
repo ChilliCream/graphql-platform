@@ -14,13 +14,13 @@ internal partial class WorkScheduler : IQueryPlanState
     {
         for (var i = 0; i < tasks.Count; i++)
         {
-            IExecutionTask task = tasks[i];
+            var task = tasks[i];
             _stateMachine.TryInitializeTask(task);
             task.IsRegistered = true;
 
             if (_stateMachine.RegisterTask(task))
             {
-                WorkQueue work = task.IsSerial ? _serial : _work;
+                var work = task.IsSerial ? _serial : _work;
                 work.Push(task);
             }
             else

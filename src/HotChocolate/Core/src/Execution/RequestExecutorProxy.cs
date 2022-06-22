@@ -64,11 +64,11 @@ public sealed class RequestExecutorProxy : IDisposable
             throw new ArgumentNullException(nameof(request));
         }
 
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-        IExecutionResult result =
+        var result =
             await executor
                 .ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);
@@ -97,11 +97,11 @@ public sealed class RequestExecutorProxy : IDisposable
             throw new ArgumentNullException(nameof(requestBatch));
         }
 
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-        IResponseStream result =
+        var result =
             await executor
                 .ExecuteBatchAsync(requestBatch, cancellationToken)
                 .ConfigureAwait(false);
@@ -121,7 +121,7 @@ public sealed class RequestExecutorProxy : IDisposable
     public async ValueTask<ISchema> GetSchemaAsync(
         CancellationToken cancellationToken)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
         return executor.Schema;
@@ -139,7 +139,7 @@ public sealed class RequestExecutorProxy : IDisposable
     public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
         CancellationToken cancellationToken)
     {
-        IRequestExecutor? executor = _executor;
+        var executor = _executor;
 
         if (executor is null)
         {

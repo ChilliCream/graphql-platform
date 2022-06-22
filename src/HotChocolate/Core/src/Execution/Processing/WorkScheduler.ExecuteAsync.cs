@@ -16,7 +16,7 @@ internal partial class WorkScheduler
             _suspended.CopyTo(_work, _serial, _stateMachine);
         }
 
-        IExecutionTask?[] buffer = _buffer;
+        var buffer = _buffer;
 
 RESTART:
         lock (_sync)
@@ -50,7 +50,7 @@ RESTART:
 
                             for (var i = 0; i < work; i++)
                             {
-                                IExecutionTask task = buffer[i]!;
+                                var task = buffer[i]!;
                                 task.BeginExecute(_requestAborted);
                                 await task.WaitForCompletionAsync(_requestAborted)
                                     .ConfigureAwait(false);
@@ -91,7 +91,7 @@ RESTART:
 
     private void HandleError(Exception exception)
     {
-        IError error =
+        var error =
             _errorHandler
                 .CreateUnexpectedError(exception)
                 .SetCode(ErrorCodes.Execution.TaskProcessingError)
@@ -101,7 +101,7 @@ RESTART:
 
         if (error is AggregateError aggregateError)
         {
-            foreach (IError? innerError in aggregateError.Errors)
+            foreach (var innerError in aggregateError.Errors)
             {
                 _result.AddError(innerError);
             }

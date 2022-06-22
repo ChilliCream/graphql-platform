@@ -53,7 +53,7 @@ internal sealed class RequestExecutorResolver
     {
         schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
-        if (!_executors.TryGetValue(schemaName, out RegisteredExecutor? re))
+        if (!_executors.TryGetValue(schemaName, out var re))
         {
             await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -77,13 +77,13 @@ internal sealed class RequestExecutorResolver
     {
         schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
-        if (!_executors.TryGetValue(schemaName, out RegisteredExecutor? re))
+        if (!_executors.TryGetValue(schemaName, out var re))
         {
-            RequestExecutorSetup options =
+            var options =
                 await _optionsMonitor.GetAsync(schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
-            IServiceProvider schemaServices =
+            var schemaServices =
                 await CreateSchemaServicesAsync(schemaName, options, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -94,7 +94,7 @@ internal sealed class RequestExecutorResolver
                 options,
                 schemaServices.GetRequiredService<TypeModuleChangeMonitor>());
 
-            foreach (OnRequestExecutorCreatedAction action in options.OnRequestExecutorCreated)
+            foreach (var action in options.OnRequestExecutorCreated)
             {
                 action.Action?.Invoke(re.Executor);
 
@@ -116,7 +116,7 @@ internal sealed class RequestExecutorResolver
     {
         schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
-        if (_executors.TryRemove(schemaName, out RegisteredExecutor? re))
+        if (_executors.TryRemove(schemaName, out var re))
         {
             re.DiagnosticEvents.ExecutorEvicted(schemaName, re.Executor);
 
@@ -140,7 +140,7 @@ internal sealed class RequestExecutorResolver
             {
                 try
                 {
-                    foreach (OnRequestExecutorEvictedAction action in
+                    foreach (var action in
                         registeredExecutor.Setup.OnRequestExecutorEvicted)
                     {
                         action.Action?.Invoke(registeredExecutor.Executor);
@@ -180,7 +180,7 @@ internal sealed class RequestExecutorResolver
         var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, schemaName);
         var lazy = new SchemaBuilder.LazySchema();
 
-        RequestExecutorOptions executorOptions =
+        var executorOptions =
             await CreateExecutorOptionsAsync(options, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -188,7 +188,7 @@ internal sealed class RequestExecutorResolver
         // type module change monitor.
         // The module will track if type modules signal changes to the schema and
         // start a schema eviction.
-        foreach (ITypeModule? typeModule in options.TypeModules)
+        foreach (var typeModule in options.TypeModules)
         {
             typeModuleChangeMonitor.Register(typeModule);
         }
@@ -217,13 +217,13 @@ internal sealed class RequestExecutorResolver
         serviceCollection.TryAddTimespanProvider();
 
         // register global error filters
-        foreach (IErrorFilter errorFilter in _applicationServices.GetServices<IErrorFilter>())
+        foreach (var errorFilter in _applicationServices.GetServices<IErrorFilter>())
         {
             serviceCollection.AddSingleton(errorFilter);
         }
 
         // register global diagnostic listener
-        foreach (IExecutionDiagnosticEventListener diagnosticEventListener in
+        foreach (var diagnosticEventListener in
             _applicationServices.GetServices<IExecutionDiagnosticEventListener>())
         {
             serviceCollection.AddSingleton(diagnosticEventListener);
@@ -248,7 +248,7 @@ internal sealed class RequestExecutorResolver
 
         serviceCollection.TryAddSingleton<ObjectPool<RequestContext>>(sp =>
         {
-            ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new RequestContextPooledObjectPolicy(
                 sp.GetRequiredService<ISchema>(),
                 sp.GetRequiredService<IErrorHandler>(),
@@ -270,13 +270,13 @@ internal sealed class RequestExecutorResolver
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
                 version));
 
-        foreach (Action<IServiceCollection> configureServices in options.SchemaServices)
+        foreach (var configureServices in options.SchemaServices)
         {
             configureServices(serviceCollection);
         }
 
-        ServiceProvider schemaServices = serviceCollection.BuildServiceProvider();
-        IServiceProvider combinedServices = schemaServices.Include(_applicationServices);
+        var schemaServices = serviceCollection.BuildServiceProvider();
+        var combinedServices = schemaServices.Include(_applicationServices);
 
         lazy.Schema =
             await CreateSchemaAsync(
@@ -305,17 +305,17 @@ internal sealed class RequestExecutorResolver
             return options.Schema;
         }
 
-        ISchemaBuilder schemaBuilder = options.SchemaBuilder ?? new SchemaBuilder();
-        ComplexityAnalyzerSettings complexitySettings = executorOptions.Complexity;
+        var schemaBuilder = options.SchemaBuilder ?? new SchemaBuilder();
+        var complexitySettings = executorOptions.Complexity;
 
         schemaBuilder
             .AddServices(serviceProvider)
             .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions)
             .SetContextData(typeof(ComplexityAnalyzerSettings).FullName!, complexitySettings);
 
-        IDescriptorContext context = schemaBuilder.CreateContext();
+        var context = schemaBuilder.CreateContext();
 
-        await foreach (ITypeSystemMember member in
+        await foreach (var member in
             typeModuleChangeMonitor.CreateTypesAsync(context)
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
@@ -332,7 +332,7 @@ internal sealed class RequestExecutorResolver
             }
         }
 
-        foreach (SchemaBuilderAction action in options.SchemaBuilderActions)
+        foreach (var action in options.SchemaBuilderActions)
         {
             if (action.Action is { } configure)
             {
@@ -348,7 +348,7 @@ internal sealed class RequestExecutorResolver
 
         schemaBuilder.TryAddTypeInterceptor(new SetSchemaNameInterceptor(schemaName));
 
-        ISchema schema = schemaBuilder.Create(context);
+        var schema = schemaBuilder.Create(context);
         AssertSchemaNameValid(schema, schemaName);
         return schema;
     }
@@ -367,11 +367,11 @@ internal sealed class RequestExecutorResolver
         RequestExecutorSetup options,
         CancellationToken cancellationToken)
     {
-        RequestExecutorOptions executorOptions =
+        var executorOptions =
             options.RequestExecutorOptions ??
                 new RequestExecutorOptions();
 
-        foreach (RequestExecutorOptionsAction action in options.RequestExecutorOptionsActions)
+        foreach (var action in options.RequestExecutorOptionsActions)
         {
             if (action.Action is { } configure)
             {
@@ -518,7 +518,7 @@ internal sealed class RequestExecutorResolver
         {
             if (!_disposed)
             {
-                foreach (ITypeModule? typeModule in _typeModules)
+                foreach (var typeModule in _typeModules)
                 {
                     typeModule.TypesChanged -= EvictRequestExecutor;
                 }
@@ -544,13 +544,13 @@ internal sealed class RequestExecutorResolver
             public async IAsyncEnumerator<ITypeSystemMember> GetAsyncEnumerator(
                 CancellationToken cancellationToken = default)
             {
-                foreach (ITypeModule? typeModule in _typeModules)
+                foreach (var typeModule in _typeModules)
                 {
-                    IReadOnlyCollection<ITypeSystemMember> types =
+                    var types =
                         await typeModule.CreateTypesAsync(_context, cancellationToken)
                             .ConfigureAwait(false);
 
-                    foreach (ITypeSystemMember type in types)
+                    foreach (var type in types)
                     {
                         yield return type;
                     }

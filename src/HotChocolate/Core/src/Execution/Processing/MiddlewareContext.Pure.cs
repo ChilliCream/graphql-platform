@@ -42,7 +42,7 @@ internal partial class MiddlewareContext
 
             if (selection.Arguments.TryCoerceArguments(
                 _parentContext,
-                out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
+                out var coercedArgs))
             {
                 _argumentValues = coercedArgs;
                 return true;
@@ -91,7 +91,7 @@ internal partial class MiddlewareContext
 
         public T ArgumentValue<T>(NameString name)
         {
-            if (!_argumentValues.TryGetValue(name, out ArgumentValue? argument))
+            if (!_argumentValues.TryGetValue(name, out var argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
             }
@@ -102,12 +102,12 @@ internal partial class MiddlewareContext
         public TValueNode ArgumentLiteral<TValueNode>(NameString name)
             where TValueNode : IValueNode
         {
-            if (!_argumentValues.TryGetValue(name, out ArgumentValue? argument))
+            if (!_argumentValues.TryGetValue(name, out var argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
             }
 
-            IValueNode literal = argument.ValueLiteral!;
+            var literal = argument.ValueLiteral!;
 
             if (literal is TValueNode castedLiteral)
             {
@@ -120,7 +120,7 @@ internal partial class MiddlewareContext
 
         public Optional<T> ArgumentOptional<T>(NameString name)
         {
-            if (!_argumentValues.TryGetValue(name, out ArgumentValue? argument))
+            if (!_argumentValues.TryGetValue(name, out var argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
             }
@@ -132,7 +132,7 @@ internal partial class MiddlewareContext
 
         public ValueKind ArgumentKind(NameString name)
         {
-            if (!_argumentValues.TryGetValue(name, out ArgumentValue? argument))
+            if (!_argumentValues.TryGetValue(name, out var argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
             }
@@ -166,7 +166,7 @@ internal partial class MiddlewareContext
                 return default!;
             }
 
-            ITypeConverter converter = _parentContext.GetTypeConverter();
+            var converter = _parentContext.GetTypeConverter();
 
             if (value is T castedValue ||
                 converter.TryConvert(value, out castedValue))
@@ -191,7 +191,7 @@ internal partial class MiddlewareContext
 
                 if (typeof(T).IsInterface)
                 {
-                    object o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);
+                    var o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);
                     if (o is T c)
                     {
                         return c;

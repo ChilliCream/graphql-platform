@@ -19,7 +19,7 @@ internal static partial class ValueCompletion
         List<ResolverTask> bufferedTasks,
         out object? completedResult)
     {
-        TypeKind typeKind = fieldType.Kind;
+        var typeKind = fieldType.Kind;
 
         if (typeKind is TypeKind.NonNull)
         {

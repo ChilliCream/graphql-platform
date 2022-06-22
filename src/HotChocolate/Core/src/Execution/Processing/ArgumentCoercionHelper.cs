@@ -23,7 +23,7 @@ public static class ArgumentCoercionHelper
         // signal that this resolver task has errors and shall end.
         if (arguments.HasErrors)
         {
-            foreach (ArgumentValue argument in arguments.Values)
+            foreach (var argument in arguments.Values)
             {
                 if (argument.HasError)
                 {
@@ -39,7 +39,7 @@ public static class ArgumentCoercionHelper
         // rewrite the arguments that need variable replacement.
         var args = new Dictionary<NameString, ArgumentValue>();
 
-        foreach (ArgumentValue argument in arguments.Values)
+        foreach (var argument in arguments.Values)
         {
             if (argument.IsFullyCoerced)
             {
@@ -47,7 +47,7 @@ public static class ArgumentCoercionHelper
             }
             else
             {
-                IValueNode literal = VariableRewriter.Rewrite(
+                var literal = VariableRewriter.Rewrite(
                     argument.ValueLiteral!,
                     argument.Type,
                     argument.DefaultValue,
@@ -55,7 +55,7 @@ public static class ArgumentCoercionHelper
 
                 args.Add(argument.Name, new ArgumentValue(
                     argument,
-                    literal.TryGetValueKind(out ValueKind kind)
+                    literal.TryGetValueKind(out var kind)
                         ? kind
                         : ValueKind.Unknown,
                     argument.IsFullyCoerced,

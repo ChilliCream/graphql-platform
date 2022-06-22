@@ -107,7 +107,7 @@ public interface IRequestContext : IHasContextData
     /// <summary>
     /// Gets or sets the prepared operation.
     /// </summary>
-    IPreparedOperation? Operation { get; set; }
+    IOperation? Operation { get; set; }
 
     /// <summary>
     /// Gets or sets the coerced variable values.

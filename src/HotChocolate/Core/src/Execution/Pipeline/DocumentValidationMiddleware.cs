@@ -50,7 +50,7 @@ internal sealed class DocumentValidationMiddleware
                         // if the validation failed we will report errors within the validation
                         // span and we will complete the pipeline since we do not have a valid
                         // GraphQL request.
-                        DocumentValidatorResult validationResult = context.ValidationResult;
+                        var validationResult = context.ValidationResult;
 
                         context.Result = QueryResultBuilder.CreateError(
                             validationResult.Errors,

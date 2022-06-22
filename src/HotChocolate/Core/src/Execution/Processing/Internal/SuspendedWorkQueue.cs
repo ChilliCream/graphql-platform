@@ -16,12 +16,12 @@ internal sealed class SuspendedWorkQueue
 
     public void CopyTo(WorkQueue work, WorkQueue serial, QueryPlanStateMachine stateMachine)
     {
-        IExecutionTask? head = _head;
+        var head = _head;
         _head = null;
 
         while (head is not null)
         {
-            IExecutionTask current = head;
+            var current = head;
             head = head.Next;
             current.Next = null;
 

@@ -12,7 +12,7 @@ internal static partial class ValueCompletion
     {
         if (error is AggregateError aggregateError)
         {
-            foreach (IError? innerError in aggregateError.Errors)
+            foreach (var innerError in aggregateError.Errors)
             {
                 ReportSingle(innerError);
             }
@@ -31,7 +31,7 @@ internal static partial class ValueCompletion
         {
             if (processed is AggregateError ar)
             {
-                foreach (IError? ie in ar.Errors)
+                foreach (var ie in ar.Errors)
                 {
                     operationContext.Result.AddError(ie, selection.SyntaxNode);
                     operationContext.DiagnosticEvents.ResolverError(resolverContext, ie);
@@ -59,14 +59,14 @@ internal static partial class ValueCompletion
 
         if (exception is GraphQLException graphQLException)
         {
-            foreach (IError error in graphQLException.Errors)
+            foreach (var error in graphQLException.Errors)
             {
                 ReportError(operationContext, resolverContext, selection, error);
             }
         }
         else
         {
-            IError error = operationContext.ErrorHandler
+            var error = operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(path)
                 .AddLocation(selection.SyntaxNode)

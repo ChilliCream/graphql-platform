@@ -40,9 +40,9 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
 
         if (_configs.TryGetValue(
             schemaName,
-            out List<IConfigureRequestExecutorSetup>? configurations))
+            out var configurations))
         {
-            foreach (IConfigureRequestExecutorSetup configuration in configurations)
+            foreach (var configuration in configurations)
             {
                 configuration.Configure(options);
             }
@@ -61,19 +61,19 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
             {
                 _configs.Clear();
 
-                foreach (IRequestExecutorOptionsProvider provider in _optionsProviders)
+                foreach (var provider in _optionsProviders)
                 {
                     _disposables.Add(provider.OnChange(OnChange));
 
-                    IEnumerable<IConfigureRequestExecutorSetup> allConfigurations =
+                    var allConfigurations =
                         await provider.GetOptionsAsync(cancellationToken)
                             .ConfigureAwait(false);
 
-                    foreach (IConfigureRequestExecutorSetup configuration in allConfigurations)
+                    foreach (var configuration in allConfigurations)
                     {
                         if (!_configs.TryGetValue(
                             configuration.SchemaName,
-                            out List<IConfigureRequestExecutorSetup>? configurations))
+                            out var configurations))
                         {
                             configurations = new List<IConfigureRequestExecutorSetup>();
                             _configs.Add(configuration.SchemaName, configurations);
@@ -99,7 +99,7 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
 
         lock (_listeners)
         {
-            foreach (Action<NameString> listener in _listeners)
+            foreach (var listener in _listeners)
             {
                 listener.Invoke(changes.SchemaName);
             }
@@ -112,7 +112,7 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
         {
             _semaphore.Dispose();
 
-            foreach (IDisposable disposable in _disposables)
+            foreach (var disposable in _disposables)
             {
                 disposable.Dispose();
             }

@@ -59,7 +59,7 @@ public static partial class RequestExecutorBuilderExtensions
             foreach (var attribute in
                 typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
             {
-                Type listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
                 builder.Services.AddSingleton(listener, s => s.GetService<T>());
             }
         }
@@ -103,7 +103,7 @@ public static partial class RequestExecutorBuilderExtensions
             foreach (var attribute in
                 typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
             {
-                Type listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
                 builder.Services.AddSingleton(listener, diagnosticEventListener);
             }
         }

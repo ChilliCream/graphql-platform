@@ -21,7 +21,7 @@ internal static partial class ValueCompletion
         List<ResolverTask> bufferedTasks,
         out object? completedValue)
     {
-        IType elementType = fieldType.InnerType();
+        var elementType = fieldType.InnerType();
 
         if (elementType.Kind is TypeKind.NonNull)
         {
@@ -68,8 +68,8 @@ internal static partial class ValueCompletion
         List<ResolverTask> bufferedTasks,
         out object? completedResult)
     {
-        ResultMapList resultList = operationContext.Result.RentResultMapList();
-        IType elementType = fieldType.InnerType();
+        var resultList = operationContext.Result.RentResultMapList();
+        var elementType = fieldType.InnerType();
         resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
 
         if (result is Array array)
@@ -174,8 +174,8 @@ internal static partial class ValueCompletion
         List<ResolverTask> bufferedTasks,
         out object? completedResult)
     {
-        ResultList resultList = operationContext.Result.RentResultList();
-        IType elementType = fieldType.InnerType();
+        var resultList = operationContext.Result.RentResultList();
+        var elementType = fieldType.InnerType();
         resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
         var isElementList = elementType.IsListType();
 

@@ -50,7 +50,7 @@ internal partial class WorkScheduler : IWorkScheduler
         {
             if (_stateMachine.RegisterTask(task))
             {
-                WorkQueue work = task.IsSerial ? _serial : _work;
+                var work = task.IsSerial ? _serial : _work;
                 work.Push(task);
                 start = ShouldStartProcessing();
             }
@@ -87,7 +87,7 @@ internal partial class WorkScheduler : IWorkScheduler
         // interact with the task object itself.
         for (var i = 0; i < tasks.Count; i++)
         {
-            IExecutionTask task = tasks[i];
+            var task = tasks[i];
             _stateMachine.TryInitializeTask(task);
             task.IsRegistered = true;
         }
@@ -96,11 +96,11 @@ internal partial class WorkScheduler : IWorkScheduler
         {
             for (var i = 0; i < tasks.Count; i++)
             {
-                IExecutionTask task = tasks[i];
+                var task = tasks[i];
 
                 if (_stateMachine.RegisterTask(task))
                 {
-                    WorkQueue work = task.IsSerial ? _serial : _work;
+                    var work = task.IsSerial ? _serial : _work;
                     work.Push(task);
                     start = true;
                 }
@@ -148,7 +148,7 @@ internal partial class WorkScheduler : IWorkScheduler
             if (task.IsRegistered)
             {
                 // determine the work queue.
-                WorkQueue work = task.IsSerial ? _serial : _work;
+                var work = task.IsSerial ? _serial : _work;
 
                 // now we complete the work queue which will signal to the execution context
                 // that work has been completed if it has no more tasks enqueued or marked
@@ -204,11 +204,11 @@ internal partial class WorkScheduler : IWorkScheduler
 
         lock (_sync)
         {
-            WorkQueue work = _stateMachine.IsSerial ? _serial : _work;
+            var work = _stateMachine.IsSerial ? _serial : _work;
 
             for (var i = 0; i < buffer.Length; i++)
             {
-                if (!work.TryTake(out IExecutionTask? task))
+                if (!work.TryTake(out var task))
                 {
                     break;
                 }
@@ -327,7 +327,7 @@ internal partial class WorkScheduler : IWorkScheduler
 
         void CancelTasks(WorkQueue queue)
         {
-            while (queue.TryTake(out IExecutionTask? task))
+            while (queue.TryTake(out var task))
             {
                 if (task is ResolverTask resolverTask)
                 {
@@ -338,7 +338,7 @@ internal partial class WorkScheduler : IWorkScheduler
 
         void CancelSuspendedTasks(SuspendedWorkQueue queue)
         {
-            while (queue.TryDequeue(out IExecutionTask? task))
+            while (queue.TryDequeue(out var task))
             {
                 if (task is ResolverTask resolverTask)
                 {

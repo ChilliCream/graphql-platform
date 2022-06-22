@@ -32,7 +32,7 @@ public sealed partial class OperationCompiler
         _parser = parser ?? throw new ArgumentNullException(nameof(parser));
     }
 
-    public IPreparedOperation Compile(
+    public IOperation Compile(
         string operationId,
         OperationDefinitionNode operationDefinition,
         ObjectType operationType,

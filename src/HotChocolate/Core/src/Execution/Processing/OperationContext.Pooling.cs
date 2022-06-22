@@ -63,7 +63,7 @@ internal sealed partial class OperationContext
         {
             if (!_cleanupActions.IsEmpty)
             {
-                while (_cleanupActions.TryTake(out Action? clean))
+                while (_cleanupActions.TryTake(out var clean))
                 {
                     clean();
                 }
