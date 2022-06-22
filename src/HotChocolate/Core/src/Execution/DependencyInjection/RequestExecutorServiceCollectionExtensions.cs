@@ -168,13 +168,10 @@ public static class RequestExecutorServiceCollectionExtensions
         int capacity = 100)
     {
         services.RemoveAll<IPreparedOperationCache>();
-        services.RemoveAll<IQueryPlanCache>();
         services.RemoveAll<IComplexityAnalyzerCache>();
 
         services.AddSingleton<IPreparedOperationCache>(
             sp => new DefaultPreparedOperationCache(capacity));
-        services.AddSingleton<IQueryPlanCache>(
-            sp => new DefaultQueryPlanCache(capacity));
         services.AddSingleton<IComplexityAnalyzerCache>(
             _ => new DefaultComplexityAnalyzerCache(capacity));
 

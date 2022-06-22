@@ -8,10 +8,10 @@ namespace HotChocolate.Execution.Processing;
 internal sealed class SelectionVariants : ISelectionVariants
 {
     private IObjectType? _firstType;
-    private ISelectionSet? _firstSelections;
+    private SelectionSet? _firstSelections;
     private IObjectType? _secondType;
-    private ISelectionSet? _secondSelections;
-    private Dictionary<IObjectType, ISelectionSet>? _map;
+    private SelectionSet? _secondSelections;
+    private Dictionary<IObjectType, SelectionSet>? _map;
     private bool _readOnly;
 
     public SelectionVariants(int id)
@@ -38,7 +38,7 @@ internal sealed class SelectionVariants : ISelectionVariants
     {
         if (_map is not null)
         {
-            return _map.TryGetValue(typeContext, out ISelectionSet? selections)
+            return _map.TryGetValue(typeContext, out var selections)
                 ? selections
                 : SelectionSet.Empty;
         }
@@ -77,9 +77,9 @@ internal sealed class SelectionVariants : ISelectionVariants
     }
 
     internal void AddSelectionSet(
-        IObjectType typeContext,
-        IReadOnlyList<ISelection> selections,
-        IReadOnlyList<IFragment>? fragments,
+        ObjectType typeContext,
+        IReadOnlyList<Selection> selections,
+        IReadOnlyList<Fragment>? fragments,
         bool isConditional)
     {
         if (_readOnly)
@@ -113,7 +113,7 @@ internal sealed class SelectionVariants : ISelectionVariants
             }
             else
             {
-                _map = new Dictionary<IObjectType, ISelectionSet>
+                _map = new Dictionary<IObjectType, SelectionSet>
                 {
                     { _firstType, _firstSelections! },
                     { _secondType, _secondSelections! },
@@ -128,8 +128,16 @@ internal sealed class SelectionVariants : ISelectionVariants
         }
     }
 
-    public void Seal()
+    internal void Seal()
     {
         _readOnly = true;
+
+        if (_map is not null)
+        {
+            foreach (var selectionSet in _map.Values)
+            {
+                selectionSet.Seal(Id);
+            }
+        }
     }
 }

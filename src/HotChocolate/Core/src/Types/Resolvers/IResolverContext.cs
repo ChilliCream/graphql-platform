@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -21,49 +22,21 @@ public interface IResolverContext : IPureResolverContext
     IServiceProvider Services { get; set; }
 
     /// <summary>
-    /// Gets the field on which the field resolver is being executed.
-    /// </summary>
-    [Obsolete("Use Selection.Field or Selection.Type.")]
-    IObjectField Field { get; }
-
-    /// <summary>
-    /// Gets the parsed query document that is being executed.
-    /// </summary>
-    DocumentNode Document { get; }
-
-    /// <summary>
-    /// Gets the operation from the query that is being executed.
-    /// </summary>
-    OperationDefinitionNode Operation { get; }
-
-    /// <summary>
-    /// Gets the merged field selection for which a field resolver is
-    /// being executed.
-    /// </summary>
-    [Obsolete("Use Selection.SyntaxNode")]
-    FieldNode FieldSelection { get; }
-
-    /// <summary>
     /// Gets the name that the field will have in the response map.
     /// </summary>
     /// <value></value>
     NameString ResponseName { get; }
 
     /// <summary>
-    /// Gets the current execution path.
-    /// </summary>
-    // note: this needs to stay here for compatibility reasons.
-    new Path Path { get; }
-
-    /// <summary>
-    /// Indicates that the context has errors. To report new errors use <see cref="ReportError(IError)"/>
+    /// Indicates that the context has errors. To report new errors use
+    /// <see cref="ReportError(IError)"/>
     /// </summary>
     bool HasErrors { get; }
 
     /// <summary>
     /// The scoped context data dictionary can be used by middlewares and
     /// resolvers to store and retrieve data during execution scoped to the
-    /// hierarchy
+    /// hierarchy.
     /// </summary>
     IImmutableDictionary<string, object?> ScopedContextData { get; set; }
 
@@ -79,23 +52,6 @@ public interface IResolverContext : IPureResolverContext
     /// and thus request operations should be cancelled.
     /// </summary>
     CancellationToken RequestAborted { get; }
-
-    /// <summary>
-    /// Gets a specific field argument.
-    /// </summary>
-    /// <param name="name">
-    /// The argument name.
-    /// </param>
-    /// <typeparam name="T">
-    /// The type to which the argument shall be casted to.
-    /// </typeparam>
-    /// <returns>
-    /// Returns the value of the specified field argument.
-    /// </returns>
-    [Obsolete("Use ArgumentValue<T>(name) or " +
-              "ArgumentLiteral<TValueNode>(name) or " +
-              "ArgumentOptional<T>(name).")]
-    T? Argument<T>(NameString name);
 
     /// <summary>
     /// Gets as required service from the dependency injection container.
@@ -160,9 +116,9 @@ public interface IResolverContext : IPureResolverContext
     /// Returns the pre-compiled selections for the <paramref name="fieldSelection" />
     /// with the specified <paramref name="typeContext" />.
     /// </returns>
-    IReadOnlyList<IFieldSelection> GetSelections(
+    IReadOnlyList<ISelection> GetSelections(
         ObjectType typeContext,
-        IFieldSelection? fieldSelection = null,
+        ISelection? fieldSelection = null,
         bool allowInternals = false);
 
     /// <summary>

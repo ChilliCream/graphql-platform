@@ -20,30 +20,30 @@ public sealed partial class OperationCompiler
 
         public DocumentNode Document { get; }
 
-        public IObjectType Type { get; private set; } = default!;
+        public ObjectType Type { get; private set; } = default!;
 
         public SelectionSetInfo[] SelectionInfos { get; private set; } = default!;
 
         public Dictionary<string, Selection> Fields { get; } =
             new(Ordinal);
 
-        public List<IFragment> Fragments { get; } = new();
+        public List<Fragment> Fragments { get; } = new();
 
         public SelectionVariants SelectionVariants { get; private set; } = default!;
 
-        public IImmutableList<ISelectionOptimizer> Optimizers { get; private set; } =
-            ImmutableList<ISelectionOptimizer>.Empty;
+        public IImmutableList<ISelectionSetOptimizer> Optimizers { get; private set; } =
+            ImmutableList<ISelectionSetOptimizer>.Empty;
 
         public void Initialize(
-            IObjectType type,
+            ObjectType type,
             SelectionVariants selectionVariants,
             SelectionSetInfo[] selectionInfos,
-            IImmutableList<ISelectionOptimizer>? optimizers = null)
+            IImmutableList<ISelectionSetOptimizer>? optimizers = null)
         {
             Type = type;
             SelectionVariants = selectionVariants;
             SelectionInfos = selectionInfos;
-            Optimizers = optimizers ?? ImmutableList<ISelectionOptimizer>.Empty;
+            Optimizers = optimizers ?? ImmutableList<ISelectionSetOptimizer>.Empty;
             Fields.Clear();
             Fragments.Clear();
         }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -20,84 +21,23 @@ internal sealed class ResolverContextProxy : IResolverContext
         LocalContextData = resolverContext.LocalContextData;
     }
 
-    public IDictionary<string, object?> ContextData => _resolverContext.ContextData;
-
     public ISchema Schema => _resolverContext.Schema;
-
-    public IObjectType RootType => _resolverContext.RootType;
 
     public IObjectType ObjectType => _resolverContext.ObjectType;
 
-    public IServiceProvider Services
-    {
-        get => _resolverContext.Services;
-        set => _resolverContext.Services = value;
-    }
+    public IOperation Operation => _resolverContext.Operation;
 
-    [Obsolete]
-    public IObjectField Field => _resolverContext.Field;
-
-    public DocumentNode Document => _resolverContext.Document;
-
-    public OperationDefinitionNode Operation => _resolverContext.Operation;
-
-    [Obsolete]
-    public FieldNode FieldSelection => _resolverContext.FieldSelection;
-
-    public NameString ResponseName => _resolverContext.ResponseName;
-
-    public Path Path => _resolverContext.Path;
-
-    public bool HasErrors => _resolverContext.HasErrors;
-
-    public IFieldSelection Selection => _resolverContext.Selection;
+    public ISelection Selection => _resolverContext.Selection;
 
     public IVariableValueCollection Variables => _resolverContext.Variables;
 
-
-    public IImmutableDictionary<string, object?> ScopedContextData
-    {
-        get;
-        set;
-    }
-
-    public IImmutableDictionary<string, object?> LocalContextData
-    {
-        get;
-        set;
-    }
-
-    public CancellationToken RequestAborted => _resolverContext.RequestAborted;
-
-    [Obsolete("Use ArgumentValue<T>(name) or " +
-        "ArgumentLiteral<TValueNode>(name) or " +
-        "ArgumentOptional<T>(name).")]
-    public T? Argument<T>(NameString name) => _resolverContext.Argument<T>(name);
-
-    public object Service(Type service) => _resolverContext.Service(service);
-
-    public void ReportError(string errorMessage) => _resolverContext.ReportError(errorMessage);
-
-    public void ReportError(IError error) => _resolverContext.ReportError(error);
-
-    public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
-        => _resolverContext.ReportError(exception, configure);
-
-    public IReadOnlyList<IFieldSelection> GetSelections(
-        ObjectType typeContext,
-        IFieldSelection? selection = null,
-        bool allowInternals = false)
-        => _resolverContext.GetSelections(typeContext, selection, allowInternals);
-
-    public T GetQueryRoot<T>()
-        => _resolverContext.GetQueryRoot<T>();
+    public Path Path => _resolverContext.Path;
 
     public T Parent<T>() => _resolverContext.Parent<T>();
 
     public T ArgumentValue<T>(NameString name) => _resolverContext.ArgumentValue<T>(name);
 
-    public TValueNode ArgumentLiteral<TValueNode>(NameString name)
-        where TValueNode : IValueNode
+    public TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode
         => _resolverContext.ArgumentLiteral<TValueNode>(name);
 
     public Optional<T> ArgumentOptional<T>(NameString name)
@@ -108,4 +48,39 @@ internal sealed class ResolverContextProxy : IResolverContext
     public T Service<T>() => _resolverContext.Service<T>();
 
     public T Resolver<T>() => _resolverContext.Resolver<T>();
+
+    public IServiceProvider Services
+    {
+        get => _resolverContext.Services;
+        set => _resolverContext.Services = value;
+    }
+
+    public NameString ResponseName => _resolverContext.ResponseName;
+
+    public bool HasErrors => _resolverContext.HasErrors;
+
+    public IDictionary<string, object?> ContextData => _resolverContext.ContextData;
+
+    public IImmutableDictionary<string, object?> ScopedContextData { get; set; }
+
+    public IImmutableDictionary<string, object?> LocalContextData { get; set; }
+
+    public CancellationToken RequestAborted => _resolverContext.RequestAborted;
+
+    public object Service(Type service) => _resolverContext.Service(service);
+
+    public void ReportError(string errorMessage) => _resolverContext.ReportError(errorMessage);
+
+    public void ReportError(IError error) => _resolverContext.ReportError(error);
+
+    public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+        => _resolverContext.ReportError(exception, configure);
+
+    public IReadOnlyList<ISelection> GetSelections(
+        ObjectType typeContext,
+        ISelection? fieldSelection = null,
+        bool allowInternals = false)
+        => _resolverContext.GetSelections(typeContext, fieldSelection, allowInternals);
+
+    public T GetQueryRoot<T>() => _resolverContext.GetQueryRoot<T>();
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
@@ -16,8 +15,7 @@ internal sealed partial class OperationContext
     private readonly ResultHelper _resultHelper;
     private readonly PooledPathFactory _pathFactory;
     private IRequestContext _requestContext = default!;
-    private IPreparedOperation _operation = default!;
-    private QueryPlan _queryPlan = default!;
+    private IOperation _operation = default!;
     private IVariableValueCollection _variables = default!;
     private IServiceProvider _services = default!;
     private Func<object?> _resolveQueryRootValue = default!;
@@ -42,22 +40,20 @@ internal sealed partial class OperationContext
         IRequestContext requestContext,
         IServiceProvider scopedServices,
         IBatchDispatcher batchDispatcher,
-        IPreparedOperation operation,
-        QueryPlan queryPlan,
+        IOperation operation,
         IVariableValueCollection variables,
         object? rootValue,
         Func<object?> resolveQueryRootValue)
     {
         _requestContext = requestContext;
         _operation = operation;
-        _queryPlan = queryPlan;
         _variables = variables;
         _services = scopedServices;
         _rootValue = rootValue;
         _resolveQueryRootValue = resolveQueryRootValue;
         _isInitialized = true;
 
-        IncludeFlags = _operation.CreateIncludeContext(variables);
+        IncludeFlags = _operation.CreateIncludeFlags(variables);
         _workScheduler.Initialize(batchDispatcher);
     }
 
@@ -78,7 +74,6 @@ internal sealed partial class OperationContext
             _resultHelper.Clear();
             _requestContext = default!;
             _operation = default!;
-            _queryPlan = default!;
             _variables = default!;
             _services = default!;
             _rootValue = null;

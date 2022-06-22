@@ -1,21 +1,45 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
-/// <summary>
-/// A prepared operations is an already compiled and optimized variant
-/// of the operation specified in the query document that was provided
-/// in the request.
-/// </summary>
-public interface IPreparedOperation : IOperation
+public interface IOperation : IHasReadOnlyContextData
 {
     /// <summary>
     /// Gets the internal unique identifier for this operation.
     /// </summary>
     string Id { get; }
+
+    /// <summary>
+    /// Gets the parsed query document that contains the
+    /// operation-<see cref="Definition" />.
+    /// </summary>
+    DocumentNode Document { get; }
+
+    /// <summary>
+    /// Gets the syntax node representing the operation definition.
+    /// </summary>
+    OperationDefinitionNode Definition { get; }
+
+    /// <summary>
+    /// Gets the root type on which the operation is executed.
+    /// </summary>
+    ObjectType RootType { get; }
+
+    /// <summary>
+    /// Gets the name of the operation.
+    /// </summary>
+    NameString? Name { get; }
+
+    /// <summary>
+    /// Gets the operation type (Query, Mutation, Subscription).
+    /// </summary>
+    OperationType Type { get; }
 
     /// <summary>
     /// Gets the prepared root selections for this operation.
@@ -29,11 +53,6 @@ public interface IPreparedOperation : IOperation
     /// Gets all selection variants of this operation.
     /// </summary>
     IReadOnlyList<ISelectionVariants> SelectionVariants { get; }
-
-    /// <summary>
-    /// Gets the list of include conditions associated with this operation.
-    /// </summary>
-    IReadOnlyList<IncludeCondition> IncludeConditions { get; }
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
@@ -68,10 +87,14 @@ public interface IPreparedOperation : IOperation
     /// </exception>
     IEnumerable<IObjectType> GetPossibleTypes(ISelection selection);
 
-    long CreateIncludeContext(IVariableValueCollection variables);
-
     /// <summary>
-    /// Prints the prepared operation.
+    /// Creates the include flags for the specified variable values.
     /// </summary>
-    string Print();
+    /// <param name="variables">
+    /// The variable values.
+    /// </param>
+    /// <returns>
+    /// Returns the include flags for the specified variable values.
+    /// </returns>
+    long CreateIncludeFlags(IVariableValueCollection variables);
 }

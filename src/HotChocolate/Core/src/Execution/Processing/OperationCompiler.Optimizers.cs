@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Types;
@@ -14,7 +13,7 @@ public partial class OperationCompiler
             return;
         }
 
-        var optimizerContext = new SelectionOptimizerContext(this, context);
+        var optimizerContext = new SelectionSetOptimizerContext(this, context, _selectionLookup);
 
         if (context.Optimizers.Count == 1)
         {
@@ -28,16 +27,18 @@ public partial class OperationCompiler
         }
     }
 
-    private static IImmutableList<ISelectionOptimizer> ResolveOptimizers(
-        IImmutableList<ISelectionOptimizer> optimizers,
+    private IImmutableList<ISelectionSetOptimizer> ResolveOptimizers(
+        IImmutableList<ISelectionSetOptimizer> optimizers,
         IObjectField field)
     {
-        if (!SelectionOptimizerHelper.TryGetOptimizers(field.ContextData, out var fieldOptimizers))
+        if (!OperationCompilerOptimizerHelper.TryGetOptimizers(field.ContextData, out var fieldOptimizers))
         {
             return optimizers;
         }
 
-        foreach (var optimizer in fieldOptimizers)
+        PrepareOptimizers(fieldOptimizers);
+
+        foreach (var optimizer in _selectionSetOptimizers)
         {
             if (!optimizers.Contains(optimizer))
             {

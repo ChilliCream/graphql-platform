@@ -7,7 +7,7 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.Projections.ProjectionProvider;
-using static HotChocolate.Execution.Processing.SelectionOptimizerHelper;
+using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 
 namespace HotChocolate.Types;
 

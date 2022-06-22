@@ -58,15 +58,11 @@ internal sealed class OperationExecutionMiddleware
         {
             if (IsOperationAllowed(context))
             {
-                QueryPlan queryPlan = GetQueryPlan(context);
+                var queryPlan = GetQueryPlan(context);
 
                 using (context.DiagnosticEvents.ExecuteOperation(context))
                 {
-                    await ExecuteOperationAsync(
-                        context,
-                        batchDispatcher,
-                        context.Operation,
-                        queryPlan)
+                    await ExecuteOperationAsync(context, batchDispatcher, context.Operation)
                         .ConfigureAwait(false);
                 }
             }
@@ -84,49 +80,32 @@ internal sealed class OperationExecutionMiddleware
     private async Task ExecuteOperationAsync(
         IRequestContext context,
         IBatchDispatcher batchDispatcher,
-        IPreparedOperation operation,
-        QueryPlan queryPlan)
+        IOperation operation)
     {
         if (operation.Definition.Operation == OperationType.Subscription)
         {
             // since the context is pooled we need to clone the context for
             // long running executions.
-            IRequestContext clonedContext = context.Clone();
+            var cloned = context.Clone();
 
-            DefaultRequestContextAccessor accessor =
-                clonedContext.Services.GetRequiredService<DefaultRequestContextAccessor>();
-            accessor.RequestContext = clonedContext;
+            var accessor = cloned.Services.GetRequiredService<DefaultRequestContextAccessor>();
+            accessor.RequestContext = cloned;
 
             context.Result = await _subscriptionExecutor
-                .ExecuteAsync(clonedContext, queryPlan, () => GetQueryRootValue(clonedContext))
+                .ExecuteAsync(cloned, () => GetQueryRootValue(cloned))
                 .ConfigureAwait(false);
 
-            await _next(clonedContext).ConfigureAwait(false);
+            await _next(cloned).ConfigureAwait(false);
         }
         else
         {
-            OperationContext? operationContext = _operationContextPool.Get();
+            var operationContext = _operationContextPool.Get();
 
             try
             {
                 await ExecuteQueryOrMutationAsync(
-                    context, batchDispatcher, operation, queryPlan, operationContext)
+                    context, batchDispatcher, operation, operationContext)
                     .ConfigureAwait(false);
-
-                if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan) &&
-                    context.Result is IQueryResult original)
-                {
-                    var serializedQueryPlan = new Dictionary<string, object?>
-                        {
-                            { "flow", QueryPlanBuilder.Prepare(operation).Serialize() },
-                            { "selections", operation.Print() }
-                        };
-
-                    context.Result = QueryResultBuilder
-                        .FromResult(original)
-                        .AddExtension("queryPlan", serializedQueryPlan)
-                        .Create();
-                }
 
                 if (operationContext.Scheduler.DeferredWork.HasWork &&
                     context.Result is IQueryResult result)
@@ -136,15 +115,6 @@ internal sealed class OperationExecutionMiddleware
                     // once we handled all deferred tasks.
                     var operationContextOwner = new OperationContextOwner(
                         operationContext, _operationContextPool);
-
-                    var streamSession = new StreamSession(
-                        new IDisposable[]
-                        {
-                            operationContextOwner,
-
-                            // the diagnostic scope needs to be last to be disposed last.
-                            context.DiagnosticEvents.ExecuteStream(context)
-                        });
 
                     // since the context is pooled we need to clone the context for
                     // long running executions.
@@ -176,8 +146,7 @@ internal sealed class OperationExecutionMiddleware
     private async Task ExecuteQueryOrMutationAsync(
         IRequestContext context,
         IBatchDispatcher batchDispatcher,
-        IPreparedOperation operation,
-        QueryPlan queryPlan,
+        IOperation operation,
         OperationContext operationContext)
     {
         if (operation.Definition.Operation == OperationType.Query)
@@ -189,7 +158,6 @@ internal sealed class OperationExecutionMiddleware
                 context.Services,
                 batchDispatcher,
                 operation,
-                queryPlan,
                 context.Variables!,
                 query,
                 () => query);
@@ -200,7 +168,7 @@ internal sealed class OperationExecutionMiddleware
         }
         else if (operation.Definition.Operation == OperationType.Mutation)
         {
-            using ITransactionScope transactionScope =
+            using var transactionScope =
                 _transactionScopeHandler.Create(context);
 
             var mutation = GetMutationRootValue(context);
@@ -225,7 +193,7 @@ internal sealed class OperationExecutionMiddleware
 
     private QueryPlan GetQueryPlan(IRequestContext context)
     {
-        if (!_queryPlanCache.TryGetQueryPlan(context.OperationId!, out QueryPlan? queryPlan))
+        if (!_queryPlanCache.TryGetQueryPlan(context.OperationId!, out var queryPlan))
         {
             queryPlan = QueryPlanBuilder.Build(context.Operation!);
             _queryPlanCache.TryAddQueryPlan(context.OperationId!, queryPlan);
@@ -250,7 +218,7 @@ internal sealed class OperationExecutionMiddleware
 
     private bool IsOperationAllowed(IRequestContext context)
     {
-        OperationType[]? allowedOps = context.Request.AllowedOperations;
+        var allowedOps = context.Request.AllowedOperations;
 
         if (allowedOps is null ||
             allowedOps.Length == 0)
@@ -289,7 +257,7 @@ internal sealed class OperationExecutionMiddleware
         {
             if (!_disposed)
             {
-                foreach (IDisposable disposable in _disposables)
+                foreach (var disposable in _disposables)
                 {
                     disposable.Dispose();
                 }

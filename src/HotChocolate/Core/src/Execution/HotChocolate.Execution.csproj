@@ -57,6 +57,9 @@
     <Compile Update="Processing\OperationContext.Request.cs">
       <DependentUpon>OperationContext.cs</DependentUpon>
     </Compile>
+    <Compile Update="Processing\OperationCompiler.SelectionSetInfo.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

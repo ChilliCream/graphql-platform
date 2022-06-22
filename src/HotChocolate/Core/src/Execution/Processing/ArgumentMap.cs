@@ -15,7 +15,7 @@ internal sealed class ArgumentMap : IArgumentMap
     {
         _arguments = arguments;
 
-        IsFinalNoErrors = arguments.Count == 0;
+        IsFinal = arguments.Count == 0;
 
         if (_arguments.Count > 0)
         {
@@ -31,16 +31,14 @@ internal sealed class ArgumentMap : IArgumentMap
                     HasErrors = true;
                 }
             }
-
-            IsFinalNoErrors = IsFinal && !HasErrors;
         }
     }
 
     public ArgumentValue this[NameString key] => _arguments[key];
 
-    public bool IsFinalNoErrors { get; }
+    public bool IsFinalNoErrors => IsFinal && !HasErrors;
 
-    public bool IsFinal { get; } = true;
+    public bool IsFinal { get; }
 
     public bool HasErrors { get; }
 

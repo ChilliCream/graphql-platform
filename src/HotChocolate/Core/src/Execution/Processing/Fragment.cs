@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
-public sealed class Fragment : IFragment
+internal sealed class Fragment : IFragment
 {
     private readonly long _includeCondition;
 

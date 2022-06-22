@@ -8,9 +8,12 @@ namespace HotChocolate.Execution.Processing;
 /// When needed a selection set can preserve fragments so that the execution engine
 /// can branch the processing of these fragments.
 /// </summary>
-internal class SelectionSet : ISelectionSet
+internal sealed class SelectionSet : ISelectionSet
 {
-    private static readonly IFragment[] _empty = Array.Empty<IFragment>();
+    private static readonly Fragment[] _empty = Array.Empty<Fragment>();
+    private readonly IReadOnlyList<Selection> _selections;
+    private readonly IReadOnlyList<Fragment> _fragments;
+    private Flags _flags;
 
     /// <summary>
     /// Initializes a new instance of <see cref="SelectionSet"/>.
@@ -22,12 +25,12 @@ internal class SelectionSet : ISelectionSet
     /// Defines if this list needs post processing for skip and include.
     /// </param>
     public SelectionSet(
-        IReadOnlyList<ISelection> selections,
+        IReadOnlyList<Selection> selections,
         bool isConditional)
     {
-        Selections = selections;
-        Fragments = _empty;
-        IsConditional = isConditional;
+        _selections = selections;
+        _fragments = _empty;
+        _flags = isConditional ? Flags.Conditional : Flags.None;
     }
 
     /// <summary>
@@ -44,26 +47,47 @@ internal class SelectionSet : ISelectionSet
     /// Defines if this list needs post processing for skip and include.
     /// </param>
     public SelectionSet(
-        IReadOnlyList<ISelection> selections,
-        IReadOnlyList<IFragment>? fragments,
+        IReadOnlyList<Selection> selections,
+        IReadOnlyList<Fragment>? fragments,
         bool isConditional)
     {
-        Selections = selections;
-        Fragments = fragments ?? _empty;
-        IsConditional = isConditional;
+        _selections = selections;
+        _fragments = fragments ?? _empty;
+        _flags = isConditional ? Flags.Conditional : Flags.None;
     }
 
     /// <inheritdoc />
-    public bool IsConditional { get; }
+    public bool IsConditional => (_flags & Flags.Conditional) != Flags.Conditional;
 
     /// <inheritdoc />
-    public IReadOnlyList<ISelection> Selections { get; }
+    public IReadOnlyList<ISelection> Selections => _selections;
 
     /// <inheritdoc />
-    public IReadOnlyList<IFragment> Fragments { get; }
+    public IReadOnlyList<IFragment> Fragments => _fragments;
 
     /// <summary>
     /// Gets an empty selection set.
     /// </summary>
-    public static SelectionSet Empty { get; } = new(Array.Empty<ISelection>(), false);
+    public static SelectionSet Empty { get; } = new(Array.Empty<Selection>(), false);
+
+    internal void Seal(int selectionSetId)
+    {
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        {
+            for (var i = 0; i < _selections.Count; i++)
+            {
+                _selections[i].Seal(selectionSetId);
+            }
+
+            _flags |= Flags.Sealed;
+        }
+    }
+
+    [Flags]
+    private enum Flags
+    {
+        None = 0,
+        Conditional = 1,
+        Sealed = 2
+    }
 }

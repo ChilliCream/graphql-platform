@@ -380,5 +380,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("OperationCompiler_FragmentNotFound", resourceCulture);
             }
         }
+        
+        internal static string SelectionSetOptimizerContext_InvalidFieldName {
+            get {
+                return ResourceManager.GetString("SelectionSetOptimizerContext_InvalidFieldName", resourceCulture);
+            }
+        }
     }
 }

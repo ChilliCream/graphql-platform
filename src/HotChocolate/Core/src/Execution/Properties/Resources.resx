@@ -285,4 +285,7 @@
   <data name="OperationCompiler_FragmentNotFound" xml:space="preserve">
     <value>The document did not contain a fragment definition with the name `{0}`.</value>
   </data>
+  <data name="SelectionSetOptimizerContext_InvalidFieldName" xml:space="preserve">
+    <value>The `{0}` is not a valid GraphQL field name.</value>
+  </data>
 </root>

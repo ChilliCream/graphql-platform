@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Types;
@@ -9,27 +8,12 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class OperationContext : IOperationContext
 {
-    public IPreparedOperation Operation
+    public IOperation Operation
     {
         get
         {
             AssertInitialized();
             return _operation;
-        }
-    }
-
-    public QueryPlan QueryPlan
-    {
-        get
-        {
-            AssertInitialized();
-            return _queryPlan;
-        }
-        set
-        {
-            AssertInitialized();
-            _queryPlan = value;
-            _workScheduler.ResetStateMachine();
         }
     }
 

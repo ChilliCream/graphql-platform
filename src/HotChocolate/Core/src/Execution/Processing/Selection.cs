@@ -26,12 +26,12 @@ public class Selection : ISelection
         IType type,
         FieldNode syntaxNode,
         NameString responseName,
-        FieldDelegate? resolverPipeline,
-        PureFieldDelegate? pureResolver = null,
         SelectionExecutionStrategy strategy = SelectionExecutionStrategy.Default,
         IArgumentMap? arguments = null,
         long includeCondition = 0,
-        bool isInternal = false)
+        bool isInternal = false,
+        FieldDelegate? resolverPipeline = null,
+        PureFieldDelegate? pureResolver = null)
     {
         Id = id;
         Strategy = strategy;
@@ -40,8 +40,6 @@ public class Selection : ISelection
         Type = type;
         SyntaxNode = syntaxNode;
         ResponseName = responseName;
-        ResolverPipeline = resolverPipeline;
-        PureResolver = pureResolver;
         Arguments = arguments ?? _emptyArguments;
 
         _includeConditions = includeCondition is 0
@@ -106,10 +104,10 @@ public class Selection : ISelection
     public NameString ResponseName { get; }
 
     /// <inheritdoc />
-    public FieldDelegate? ResolverPipeline { get; }
+    public FieldDelegate? ResolverPipeline { get; private set; }
 
     /// <inheritdoc />
-    public PureFieldDelegate? PureResolver { get; }
+    public PureFieldDelegate? PureResolver { get; private set; }
 
     /// <inheritdoc />
     public IArgumentMap Arguments { get; }
@@ -240,6 +238,19 @@ public class Selection : ISelection
             directives,
             first.Arguments,
             selectionSet);
+    }
+
+    internal void SetResolvers(
+        FieldDelegate? resolverPipeline = null,
+        PureFieldDelegate? pureResolver = null)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        ResolverPipeline = resolverPipeline;
+        PureResolver = pureResolver;
     }
 
     internal void Seal(int selectionSetId)

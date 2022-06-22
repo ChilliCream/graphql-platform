@@ -38,9 +38,9 @@ internal partial class MiddlewareContext
 
     public CancellationToken RequestAborted { get; private set; }
 
-    public IReadOnlyList<IFieldSelection> GetSelections(
+    public IReadOnlyList<ISelection> GetSelections(
         ObjectType typeContext,
-        IFieldSelection? fieldSelection = null,
+        ISelection? fieldSelection = null,
         bool allowInternals = false)
     {
         if (typeContext is null)
@@ -52,14 +52,14 @@ internal partial class MiddlewareContext
 
         if (selection.SelectionSet is null)
         {
-            return Array.Empty<IFieldSelection>();
+            return Array.Empty<ISelection>();
         }
 
         var fields = _operationContext.CollectFields(selection, typeContext);
 
         if (fields.IsConditional)
         {
-            var finalFields = new List<IFieldSelection>();
+            var finalFields = new List<ISelection>();
 
             for (var i = 0; i < fields.Selections.Count; i++)
             {
@@ -76,7 +76,7 @@ internal partial class MiddlewareContext
         return fields.Selections;
     }
 
-    private ISelection GetSelection(IFieldSelection? fieldSelection)
+    private ISelection GetSelection(ISelection? fieldSelection)
     {
         if (fieldSelection is null)
         {

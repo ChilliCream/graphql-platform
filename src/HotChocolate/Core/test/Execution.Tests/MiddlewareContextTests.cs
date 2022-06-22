@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -65,7 +66,7 @@ namespace HotChocolate.Execution
         public async Task CollectFields()
         {
             // arrange
-            var list = new List<IFieldSelection>();
+            var list = new List<ISelection>();
 
             var schema = SchemaBuilder.New()
                 .AddDocumentFromString(
@@ -138,8 +139,8 @@ namespace HotChocolate.Execution
 
         private static void CollectSelections(
             IResolverContext context,
-            IFieldSelection selection,
-            ICollection<IFieldSelection> collected)
+            ISelection selection,
+            ICollection<ISelection> collected)
         {
             if (selection.Type.IsLeafType())
             {

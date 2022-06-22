@@ -90,7 +90,7 @@ internal static class InternalServiceCollectionExtensions
     {
         services.TryAddSingleton(sp =>
         {
-            ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new OperationContextPooledObjectPolicy(
                 sp.GetRequiredService<ObjectPool<ResolverTask>>(),
                 sp.GetRequiredService<ResultPool>(),
@@ -118,8 +118,7 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton<IDataLoaderDiagnosticEvents>(
             sp =>
             {
-                IDataLoaderDiagnosticEventListener[] listeners =
-                    sp.GetServices<IDataLoaderDiagnosticEventListener>().ToArray();
+                var listeners = sp.GetServices<IDataLoaderDiagnosticEventListener>().ToArray();
 
                 return listeners.Length switch
                 {
@@ -182,8 +181,6 @@ internal static class InternalServiceCollectionExtensions
             _ => new DefaultPreparedOperationCache());
         services.TryAddSingleton<IComplexityAnalyzerCache>(
             _ => new DefaultComplexityAnalyzerCache());
-        services.TryAddSingleton<IQueryPlanCache>(
-            _ => new DefaultQueryPlanCache());
         return services;
     }
 

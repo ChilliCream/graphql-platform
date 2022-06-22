@@ -8,10 +8,10 @@ public sealed partial class OperationCompiler
     private readonly struct BacklogItem
     {
         public BacklogItem(
-            IObjectType type,
+            ObjectType type,
             int selectionSetId,
             Selection selection,
-            IImmutableList<ISelectionOptimizer> optimizers)
+            IImmutableList<ISelectionSetOptimizer> optimizers)
         {
             Type = type;
             SelectionSetId = selectionSetId;
@@ -19,12 +19,12 @@ public sealed partial class OperationCompiler
             Optimizers = optimizers;
         }
 
-        public IObjectType Type { get; }
+        public ObjectType Type { get; }
 
         public int SelectionSetId { get; }
 
         public Selection Selection { get; }
 
-        public IImmutableList<ISelectionOptimizer> Optimizers { get; }
+        public IImmutableList<ISelectionSetOptimizer> Optimizers { get; }
     }
 }

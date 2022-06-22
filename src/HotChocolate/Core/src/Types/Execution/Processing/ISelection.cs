@@ -1,3 +1,5 @@
+#nullable enable
+
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -7,9 +9,7 @@ namespace HotChocolate.Execution.Processing;
 /// <summary>
 /// Represents a field selection during execution.
 /// </summary>
-public interface ISelection
-    : IFieldSelection
-    , IOptionalSelection
+public interface ISelection : IOptionalSelection
 {
     /// <summary>
     /// Gets an operation unique identifier of this selection.
@@ -17,14 +17,34 @@ public interface ISelection
     int Id { get; }
 
     /// <summary>
-    /// Gets the execution kind.
+    /// Gets the name this field will have in the response map.
     /// </summary>
-    SelectionExecutionStrategy Strategy { get; }
+    NameString ResponseName { get; }
+
+    /// <summary>
+    /// Gets the field that was selected.
+    /// </summary>
+    IObjectField Field { get; }
+
+    /// <summary>
+    /// Gets the type of the selection.
+    /// </summary>
+    IType Type { get; }
 
     /// <summary>
     /// The type that declares the field that is selected by this selection.
     /// </summary>
     IObjectType DeclaringType { get; }
+
+    /// <summary>
+    /// Gets the type kind of the selection.
+    /// </summary>
+    TypeKind TypeKind { get; }
+
+    /// <summary>
+    /// Gets the field selection syntax node.
+    /// </summary>
+    FieldNode SyntaxNode { get; }
 
     /// <summary>
     /// If this selection selects a field that returns a composite type
@@ -35,6 +55,11 @@ public interface ISelection
     /// selection set will be <c>null</c>.
     /// </summary>
     SelectionSetNode? SelectionSet { get; }
+
+    /// <summary>
+    /// Gets the execution kind.
+    /// </summary>
+    SelectionExecutionStrategy Strategy { get; }
 
     /// <summary>
     /// The compiled resolver pipeline for this selection.

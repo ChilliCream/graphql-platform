@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -38,16 +37,11 @@ internal interface IOperationContext : IHasContextData
     /// <summary>
     /// Gets the operation that is being executed.
     /// </summary>
-    IPreparedOperation Operation { get; }
-
-    /// <summary>
-    /// Gets the query execution plan.
-    /// </summary>
-    QueryPlan QueryPlan { get; set; }
+    IOperation Operation { get; }
 
     /// <summary>
     /// Gets the value representing the instance of the
-    /// <see cref="IPreparedOperation.RootType" />
+    /// <see cref="IOperation.RootType" />
     /// </summary>
     object? RootValue { get; }
 

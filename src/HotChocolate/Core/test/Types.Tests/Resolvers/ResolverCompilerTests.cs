@@ -452,7 +452,7 @@ namespace HotChocolate.Resolvers
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
-            var selection = new Mock<IFieldSelection>();
+            var selection = new Mock<ISelection>();
 
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
@@ -510,7 +510,7 @@ namespace HotChocolate.Resolvers
                 Array.Empty<ArgumentNode>(),
                 null);
 
-            var selection = new Mock<IFieldSelection>();
+            var selection = new Mock<ISelection>();
             selection.SetupGet(t => t.SyntaxNode).Returns(fieldSyntax);
 
             var context = new Mock<IResolverContext>();
@@ -597,7 +597,7 @@ namespace HotChocolate.Resolvers
 
             ObjectType queryType = schema.GetType<ObjectType>("Query");
 
-            var selection = new Mock<IFieldSelection>();
+            var selection = new Mock<ISelection>();
             selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
 
             var context = new Mock<IResolverContext>();
@@ -627,7 +627,7 @@ namespace HotChocolate.Resolvers
 
             ObjectType queryType = schema.GetType<ObjectType>("Query");
 
-            var selection = new Mock<IFieldSelection>();
+            var selection = new Mock<ISelection>();
             selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
 
             var context = new Mock<IResolverContext>();
@@ -1356,7 +1356,7 @@ namespace HotChocolate.Resolvers
                 fieldSyntax != null!;
 
             public bool ResolverWithFieldSelection(
-                IFieldSelection fieldSelection) =>
+                ISelection fieldSelection) =>
                 fieldSelection != null!;
 
             public bool ResolverWithSelection(

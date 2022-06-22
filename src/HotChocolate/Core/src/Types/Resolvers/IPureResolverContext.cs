@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -18,30 +19,30 @@ public interface IPureResolverContext : IHasContextData
     ISchema Schema { get; }
 
     /// <summary>
-    /// Gets the root object type of the currently execution operation.
-    /// </summary>
-    IObjectType RootType { get; }
-
-    /// <summary>
     /// Gets the object type on which the field resolver is being executed.
     /// </summary>
     IObjectType ObjectType { get; }
 
     /// <summary>
-    /// Gets the current execution path.
+    /// Gets the operation from the query that is being executed.
     /// </summary>
-    Path Path { get; }
+    IOperation Operation { get; }
 
     /// <summary>
     /// Gets the field selection for which a field resolver is
     /// being executed.
     /// </summary>
-    IFieldSelection Selection { get; }
+    ISelection Selection { get; }
 
     /// <summary>
     /// Gets access to the coerced variable values of the request.
     /// </summary>
     IVariableValueCollection Variables { get; }
+
+    /// <summary>
+    /// Gets the current execution path.
+    /// </summary>
+    Path Path { get; }
 
     /// <summary>
     /// Gets the previous (parent) resolver result.

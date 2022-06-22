@@ -26,7 +26,6 @@ internal sealed partial class SubscriptionExecutor
 
     public async Task<IExecutionResult> ExecuteAsync(
         IRequestContext requestContext,
-        QueryPlan queryPlan,
         Func<object?> resolveQueryValue)
     {
         if (requestContext is null)

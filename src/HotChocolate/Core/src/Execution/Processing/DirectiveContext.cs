@@ -61,7 +61,7 @@ internal sealed class DirectiveContext : IDirectiveContext
     public FieldNode FieldSelection =>
         _middlewareContext.FieldSelection;
 
-    public IFieldSelection Selection =>
+    public ISelection Selection =>
         _middlewareContext.Selection;
 
     public Path Path =>
@@ -153,9 +153,9 @@ internal sealed class DirectiveContext : IDirectiveContext
     public Optional<T> ArgumentOptional<T>(NameString name) =>
         _middlewareContext.ArgumentOptional<T>(name);
 
-    public IReadOnlyList<IFieldSelection> GetSelections(
+    public IReadOnlyList<ISelection> GetSelections(
         ObjectType typeContext,
-        IFieldSelection? fieldSelection = null,
+        ISelection? fieldSelection = null,
         bool allowInternals = false) =>
         _middlewareContext.GetSelections(typeContext, fieldSelection, allowInternals);
 

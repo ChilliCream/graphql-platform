@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -18,6 +19,8 @@ public sealed partial class OperationCompiler
     private readonly Dictionary<SelectionSetNode, int> _selectionSetIdLookup = new(BySyntax);
     private readonly Dictionary<int, SelectionVariants> _selectionVariants = new();
     private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = new(Ordinal);
+    private readonly List<IOperationOptimizer> _operationOptimizers = new();
+    private readonly List<ISelectionSetOptimizer> _selectionSetOptimizers = new();
     private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
     private CompilerContext? _deferContext;
     private int _nextSelectionId;
@@ -35,23 +38,25 @@ public sealed partial class OperationCompiler
         ObjectType operationType,
         DocumentNode document,
         ISchema schema,
-        IReadOnlyList<ISelectionOptimizer>? selectionOptimizers = null)
+        IReadOnlyList<IOperationCompilerOptimizer>? optimizers = null)
     {
         try
         {
+            // prepare optimizers
+            PrepareOptimizers(optimizers);
+
+            var rootOptimizers = ImmutableList<ISelectionSetOptimizer>.Empty;
+            if (_selectionSetOptimizers.Count > 0)
+            {
+                rootOptimizers = ImmutableList.CreateRange(_selectionSetOptimizers);
+            }
+
             // collect root fields
             var id = GetOrCreateSelectionSetId(operationDefinition.SelectionSet);
             var variants = GetOrCreateSelectionVariants(id);
             SelectionSetInfo[] infos = { new(operationDefinition.SelectionSet, 0) };
 
             var context = new CompilerContext(schema, document);
-            var rootOptimizers = context.Optimizers;
-
-            if (selectionOptimizers is not null)
-            {
-                rootOptimizers = rootOptimizers.AddRange(selectionOptimizers);
-            }
-
             context.Initialize(operationType, variants, infos, rootOptimizers);
             CompileSelectionSet(context);
 
@@ -60,6 +65,7 @@ public sealed partial class OperationCompiler
             {
                 var current = _backlog.Pop();
                 variants = GetOrCreateSelectionVariants(current.SelectionSetId);
+
                 if (!variants.ContainsSelectionSet(current.Type))
                 {
                     infos = _selectionLookup[current.Selection];
@@ -69,20 +75,12 @@ public sealed partial class OperationCompiler
             }
 
             // create operation
-            var selectionVariants = new SelectionVariants[_selectionVariants.Count];
-
-            foreach (var item in _selectionVariants)
-            {
-                selectionVariants[item.Key] = item.Value;
-            }
-
-            return new Operation(
+            return CreateOperation(
                 operationId,
-                document,
                 operationDefinition,
                 operationType,
-                selectionVariants,
-                _includeConditions);
+                document,
+                schema);
         }
         finally
         {
@@ -95,10 +93,69 @@ public sealed partial class OperationCompiler
             _selectionSetIdLookup.Clear();
             _selectionVariants.Clear();
             _fragmentDefinitions.Clear();
+            _operationOptimizers.Clear();
+            _selectionSetOptimizers.Clear();
 
             _includeConditions = Array.Empty<IncludeCondition>();
             _deferContext = null;
         }
+    }
+
+    private Operation CreateOperation(
+        string operationId,
+        OperationDefinitionNode operationDefinition,
+        ObjectType operationType,
+        DocumentNode document,
+        ISchema schema)
+    {
+        var contextData = new Dictionary<string, object?>();
+        var variants = new SelectionVariants[_selectionVariants.Count];
+
+        if (_operationOptimizers.Count == 0)
+        {
+            // if we do not have any optimizers we will copy
+            // the variants and seal them in one go.
+            foreach (var item in _selectionVariants)
+            {
+                variants[item.Key] = item.Value;
+                item.Value.Seal();
+            }
+        }
+        else
+        {
+            // if we have optimizers we will first copy the variants to its array,
+            // after that we will run the optimizers and give them a chance to do some
+            // more mutations on the compiled selection variants.
+            // after we have executed all optimizers we will seal the selection variants.
+            var context = new OperationOptimizerContext(
+                schema,
+                operationType,
+                variants,
+                contextData);
+
+            foreach (var item in _selectionVariants)
+            {
+                variants[item.Key] = item.Value;
+            }
+
+            for (var i = 0; i < _operationOptimizers.Count; i++)
+            {
+                _operationOptimizers[i].OptimizeOperation(context);
+            }
+
+            for (var i = 0; i < variants.Length; i++)
+            {
+                variants[i].Seal();
+            }
+        }
+
+        return new Operation(
+            operationId,
+            document,
+            operationDefinition,
+            operationType,
+            variants,
+            _includeConditions);
     }
 
     private void CompileSelectionSet(CompilerContext context)
@@ -117,10 +174,10 @@ public sealed partial class OperationCompiler
 
     private void CompleteSelectionSet(CompilerContext context)
     {
-        var selections = new ISelection[context.Fields.Values.Count];
+        var selections = new Selection[context.Fields.Values.Count];
         var fragments = context.Fragments.Count is 0
-            ? Array.Empty<IFragment>()
-            : new IFragment[context.Fragments.Count];
+            ? Array.Empty<Fragment>()
+            : new Fragment[context.Fragments.Count];
         var selectionIndex = 0;
         var isConditional = false;
 
@@ -506,10 +563,31 @@ public sealed partial class OperationCompiler
     }
 
     private void ReturnContext(CompilerContext context)
+        => _deferContext ??= context;
+
+    private void PrepareOptimizers(IReadOnlyList<IOperationCompilerOptimizer> optimizers)
     {
-        if (_deferContext is null)
+        // we only clear the selectionSetOptimizers since we use this list as a temp
+        // to temporarily store the selectionSetOptimizers before they are copied to
+        // the context.
+        _selectionSetOptimizers.Clear();
+
+        if (optimizers.Count > 0)
         {
-            _deferContext = context;
+            for (var i = 0; i < optimizers.Count; i++)
+            {
+                var optimizer = optimizers[i];
+
+                if (optimizer is ISelectionSetOptimizer selectionSetOptimizer)
+                {
+                    _selectionSetOptimizers.Add(selectionSetOptimizer);
+                }
+
+                if (optimizer is IOperationOptimizer operationOptimizer)
+                {
+                    _operationOptimizers.Add(operationOptimizer);
+                }
+            }
         }
     }
 }

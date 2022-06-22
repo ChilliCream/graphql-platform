@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 internal static class OperationPrinter
 {
-    public static string Print(IPreparedOperation operation)
+    public static string Print(Operation operation)
     {
         var directives = operation.Definition.Directives;
 
@@ -185,7 +185,7 @@ internal static class OperationPrinter
         private readonly GlobalState _state;
 
         public PrintContext(
-            IPreparedOperation operation,
+            Operation operation,
             ISelectionVariants selectionVariants,
             List<IDefinitionNode> definitions)
         {
@@ -196,7 +196,7 @@ internal static class OperationPrinter
         }
 
         private PrintContext(
-            IPreparedOperation operation,
+            Operation operation,
             ISelectionVariants selectionVariants,
             List<IDefinitionNode> definitions,
             GlobalState state)
@@ -207,7 +207,7 @@ internal static class OperationPrinter
             _state = state;
         }
 
-        public IPreparedOperation Operation { get; }
+        public Operation Operation { get; }
 
         public ISelectionVariants SelectionVariants { get; }
 
