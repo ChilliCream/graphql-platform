@@ -17,13 +17,13 @@ internal sealed class __Field : ObjectType<IOutputField>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference stringType = Create(ScalarNames.String);
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-        SyntaxTypeReference nonNullTypeType = Parse($"{nameof(__Type)}!");
-        SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-        SyntaxTypeReference booleanType = Parse($"{ScalarNames.Boolean}");
-        SyntaxTypeReference argumentListType = Parse($"[{nameof(__InputValue)}!]!");
-        SyntaxTypeReference directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var stringType = Create(ScalarNames.String);
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullTypeType = Parse($"{nameof(__Type)}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        var booleanType = Parse($"{ScalarNames.Boolean}");
+        var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
+        var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
         var def = new ObjectTypeDefinition(
             Names.__Field,
@@ -75,7 +75,7 @@ internal sealed class __Field : ObjectType<IOutputField>
 
         public static object? Arguments(IPureResolverContext context)
         {
-            IOutputField field = context.Parent<IOutputField>();
+            var field = context.Parent<IOutputField>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)
                 ? field.Arguments
                 : field.Arguments.Where(t => !t.IsDeprecated);

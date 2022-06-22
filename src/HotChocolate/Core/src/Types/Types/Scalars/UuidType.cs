@@ -91,7 +91,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     {
         if (_enforceFormat)
         {
-            ReadOnlySpan<byte> value = valueSyntax.AsSpan();
+            var value = valueSyntax.AsSpan();
 
             if (Utf8Parser.TryParse(value, out Guid _, out var consumed, _format[0]) &&
                 consumed == value.Length)
@@ -111,7 +111,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     {
         if (_enforceFormat)
         {
-            ReadOnlySpan<byte> value = valueSyntax.AsSpan();
+            var value = valueSyntax.AsSpan();
 
             if (Utf8Parser.TryParse(value, out Guid g, out var consumed, _format[0]) &&
                 consumed == value.Length)
@@ -119,7 +119,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
                 return g;
             }
         }
-        else if (Guid.TryParse(valueSyntax.Value, out Guid g))
+        else if (Guid.TryParse(valueSyntax.Value, out var g))
         {
             return g;
         }
@@ -184,7 +184,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
 
         if (resultValue is string s)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(s);
+            var bytes = Encoding.UTF8.GetBytes(s);
 
             if (_enforceFormat &&
                 Utf8Parser.TryParse(bytes, out Guid guid, out var consumed, _format[0]) &&

@@ -585,7 +585,7 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(types));
         }
 
-        foreach (INamedType type in types)
+        foreach (var type in types)
         {
             builder.AddType(type);
         }
@@ -606,7 +606,7 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(types));
         }
 
-        foreach (Type type in types)
+        foreach (var type in types)
         {
             builder.AddType(type);
         }

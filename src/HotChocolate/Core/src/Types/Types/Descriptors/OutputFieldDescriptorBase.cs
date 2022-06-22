@@ -33,7 +33,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     {
         base.OnCreateDefinition(definition);
 
-        foreach (ArgumentDescriptor argument in Arguments)
+        foreach (var argument in Arguments)
         {
             Definition.Arguments.Add(argument.CreateDefinition());
         }
@@ -62,7 +62,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
 
     protected void Type(Type type)
     {
-        Internal.ITypeInfo? typeInfo = Context.TypeInspector.CreateTypeInfo(type);
+        var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
         if (typeInfo.IsSchemaType && !typeInfo.IsOutputType())
         {
@@ -115,13 +115,13 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
         ParameterInfo? parameter = null;
         Parameters?.TryGetValue(name, out parameter);
 
-        ArgumentDescriptor? descriptor = parameter is null
+        var descriptor = parameter is null
             ? Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name))
             : Arguments.FirstOrDefault(t => t.Definition.Parameter == parameter);
 
         if (descriptor is null && Definition.Arguments.Count > 0)
         {
-            ArgumentDefinition? definition = parameter is null
+            var definition = parameter is null
                 ? Definition.Arguments.FirstOrDefault(t => t.Name.Equals(name))
                 : Definition.Arguments.FirstOrDefault(t => t.Parameter == parameter);
 

@@ -100,12 +100,12 @@ public partial class EnumType
         _naming = context.DescriptorContext.Naming;
         SyntaxNode = definition.SyntaxNode;
 
-        foreach (EnumValueDefinition enumValueDefinition in definition.Values)
+        foreach (var enumValueDefinition in definition.Values)
         {
             if (enumValueDefinition.Ignore)
                 continue;
 
-            if (TryCreateEnumValue(context, enumValueDefinition, out IEnumValue? enumValue))
+            if (TryCreateEnumValue(context, enumValueDefinition, out var enumValue))
             {
                 _enumValues[enumValue.Name] = enumValue;
                 _valueLookup[enumValue.Value] = enumValue;

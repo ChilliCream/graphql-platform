@@ -77,7 +77,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
     {
         AssertInitialized();
 
-        TDefinition definition = _definition!;
+        var definition = _definition!;
 
         OnBeforeCompleteName(context, definition, definition.ContextData);
 
@@ -118,7 +118,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
     {
         AssertNamed();
 
-        TDefinition definition = _definition!;
+        var definition = _definition!;
 
         OnBeforeCompleteType(context, definition, definition.ContextData);
 
@@ -159,9 +159,9 @@ public abstract class TypeSystemObjectBase<TDefinition>
     {
         OnBeforeRegisterDependencies(context, definition, definition.ContextData);
 
-        foreach (ITypeSystemMemberConfiguration? configuration in definition.GetConfigurations())
+        foreach (var configuration in definition.GetConfigurations())
         {
-            foreach (TypeDependency dependency in configuration.Dependencies)
+            foreach (var dependency in configuration.Dependencies)
             {
                 context.Dependencies.Add(dependency);
             }
@@ -176,7 +176,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
         TDefinition definition,
         ApplyConfigurationOn on)
     {
-        foreach (ITypeSystemMemberConfiguration config in definition.GetConfigurations())
+        foreach (var config in definition.GetConfigurations())
         {
             if (config.On == on)
             {

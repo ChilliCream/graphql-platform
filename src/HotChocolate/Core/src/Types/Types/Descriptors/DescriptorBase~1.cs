@@ -39,8 +39,8 @@ public abstract class DescriptorBase<T>
             var i = 0;
             var buffered = 0;
             var length = Definition.Configurations.Count;
-            CreateConfiguration[] rented = ArrayPool<CreateConfiguration>.Shared.Rent(length);
-            IList<ITypeSystemMemberConfiguration> configurations = Definition.Configurations;
+            var rented = ArrayPool<CreateConfiguration>.Shared.Rent(length);
+            var configurations = Definition.Configurations;
 
             do
             {

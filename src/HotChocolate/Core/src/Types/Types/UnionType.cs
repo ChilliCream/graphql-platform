@@ -208,7 +208,7 @@ public class UnionType
     {
         base.OnRegisterDependencies(context, definition);
 
-        foreach (ITypeReference typeRef in definition.Types)
+        foreach (var typeRef in definition.Types)
         {
             context.Dependencies.Add(new(typeRef));
         }
@@ -238,7 +238,7 @@ public class UnionType
 
         OnCompleteTypeSet(context, definition, typeSet);
 
-        foreach (ObjectType objectType in typeSet)
+        foreach (var objectType in typeSet)
         {
             _typeMap[objectType.Name] = objectType;
         }
@@ -259,7 +259,7 @@ public class UnionType
         UnionTypeDefinition definition,
         ISet<ObjectType> typeSet)
     {
-        foreach (ITypeReference typeReference in definition.Types)
+        foreach (var typeReference in definition.Types)
         {
             if (context.TryGetType(typeReference, out ObjectType? ot))
             {
@@ -287,7 +287,7 @@ public class UnionType
             // abstract type resolver.
             _resolveAbstractType = (c, r) =>
             {
-                foreach (ObjectType type in _typeMap.Values)
+                foreach (var type in _typeMap.Values)
                 {
                     if (type.IsInstanceOfType(c, r))
                     {

@@ -143,7 +143,7 @@ public class UnionTypeDescriptor
         IDescriptorContext context,
         Type schemaType)
     {
-        UnionTypeDescriptor descriptor = New(context, schemaType);
+        var descriptor = New(context, schemaType);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }

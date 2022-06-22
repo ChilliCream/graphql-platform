@@ -336,7 +336,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             {
                 var nonRepeatable = 0;
 
-                foreach (T def in definitions)
+                foreach (var def in definitions)
                 {
                     if (!def.IsRepeatable && def.Key is not null)
                     {

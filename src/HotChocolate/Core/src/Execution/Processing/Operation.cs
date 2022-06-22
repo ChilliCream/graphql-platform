@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class Operation : IPreparedOperation
+internal sealed class Operation : IOperation
 {
     private readonly SelectionVariants[] _selectionVariants;
     private readonly IncludeCondition[] _includeConditions;
@@ -16,12 +16,14 @@ internal sealed class Operation : IPreparedOperation
         OperationDefinitionNode definition,
         ObjectType rootType,
         SelectionVariants[] selectionVariants,
-        IncludeCondition[] includeConditions)
+        IncludeCondition[] includeConditions,
+        Dictionary<string, object?> contextData)
     {
         Id = id;
         Document = document;
         Definition = definition;
         RootType = rootType;
+        ContextData = contextData;
         Type = definition.Operation;
 
         if (definition.Name?.Value is { } name)
@@ -54,6 +56,8 @@ internal sealed class Operation : IPreparedOperation
 
     public IReadOnlyList<IncludeCondition> IncludeConditions
         => _includeConditions;
+
+    public IReadOnlyDictionary<string, object?> ContextData { get; }
 
     public ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext)
     {
@@ -94,7 +98,7 @@ internal sealed class Operation : IPreparedOperation
         return _selectionVariants[selectionSetId].GetPossibleTypes();
     }
 
-    public long CreateIncludeContext(IVariableValueCollection variables)
+    public long CreateIncludeFlags(IVariableValueCollection variables)
     {
         long context = 0;
 

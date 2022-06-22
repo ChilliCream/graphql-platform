@@ -22,7 +22,7 @@ public class Argument : FieldBase<ArgumentDefinition>, IInputField
     {
         DefaultValue = definition.DefaultValue;
 
-        IReadOnlyList<IInputValueFormatter> formatters = definition.GetFormatters();
+        var formatters = definition.GetFormatters();
 
         if (formatters.Count == 0)
         {

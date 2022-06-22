@@ -46,7 +46,7 @@ public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
             configs.AddRange(Configurations);
         }
 
-        foreach (EnumValueDefinition value in Values)
+        foreach (var value in Values)
         {
             if (value.HasConfigurations)
             {

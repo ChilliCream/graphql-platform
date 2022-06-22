@@ -86,7 +86,7 @@ public class InputObjectTypeDescriptor<T>
     {
         if (property.ExtractMember() is PropertyInfo p)
         {
-            InputFieldDescriptor fieldDescriptor =
+            var fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Property == p);
             if (fieldDescriptor is { })
             {

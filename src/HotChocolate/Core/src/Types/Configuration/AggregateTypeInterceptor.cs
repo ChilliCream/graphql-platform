@@ -60,7 +60,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
     {
-        foreach (TypeInterceptor interceptor in _typeInterceptors)
+        foreach (var interceptor in _typeInterceptors)
         {
             interceptor.InitializeContext(
                 context,
@@ -73,7 +73,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeDiscoverTypes()
     {
-        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        foreach (var interceptor in _flowInterceptors)
         {
             interceptor.OnBeforeDiscoverTypes();
         }
@@ -81,7 +81,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterDiscoverTypes()
     {
-        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        foreach (var interceptor in _flowInterceptors)
         {
             interceptor.OnAfterDiscoverTypes();
         }
@@ -90,7 +90,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
     public override void OnBeforeInitialize(
         ITypeDiscoveryContext discoveryContext)
     {
-        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        foreach (var interceptor in _initInterceptors)
         {
             if (interceptor.CanHandle(discoveryContext))
             {
@@ -104,7 +104,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        foreach (var interceptor in _initInterceptors)
         {
             if (interceptor.CanHandle(discoveryContext))
             {
@@ -115,7 +115,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnTypeRegistered(ITypeDiscoveryContext discoveryContext)
     {
-        foreach (ITypeRegistryInterceptor interceptor in _registryInterceptors)
+        foreach (var interceptor in _registryInterceptors)
         {
             interceptor.OnTypeRegistered(discoveryContext);
         }
@@ -128,11 +128,11 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         if (_agrInterceptors.Count > 0)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
+            foreach (var interceptor in _agrInterceptors)
             {
                 _discoveryContexts.Clear();
 
-                foreach (ITypeDiscoveryContext discoveryContext in discoveryContexts)
+                foreach (var discoveryContext in discoveryContexts)
                 {
                     if (interceptor.CanHandle(discoveryContext))
                     {
@@ -155,11 +155,11 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
     {
         if (_agrInterceptors.Count > 0)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
+            foreach (var interceptor in _agrInterceptors)
             {
                 _discoveryContexts.Clear();
 
-                foreach (ITypeDiscoveryContext discoveryContext in discoveryContexts)
+                foreach (var discoveryContext in discoveryContexts)
                 {
                     if (interceptor.CanHandle(discoveryContext))
                     {
@@ -179,7 +179,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        foreach (var interceptor in _initInterceptors)
         {
             if (interceptor.CanHandle(discoveryContext))
             {
@@ -194,7 +194,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        foreach (var interceptor in _initInterceptors)
         {
             if (interceptor.CanHandle(discoveryContext))
             {
@@ -206,7 +206,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteTypeNames()
     {
-        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        foreach (var interceptor in _flowInterceptors)
         {
             interceptor.OnBeforeCompleteTypeNames();
         }
@@ -214,7 +214,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteTypeNames()
     {
-        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        foreach (var interceptor in _flowInterceptors)
         {
             interceptor.OnAfterCompleteTypeNames();
         }
@@ -225,7 +225,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        foreach (var interceptor in _initInterceptors)
         {
             if (interceptor.CanHandle(completionContext))
             {
@@ -239,7 +239,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        foreach (var interceptor in _initInterceptors)
         {
             if (interceptor.CanHandle(completionContext))
             {
@@ -254,7 +254,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         OperationType operationType,
         IDictionary<string, object?> contextData)
     {
-        foreach (TypeInterceptor interceptor in _typeInterceptors)
+        foreach (var interceptor in _typeInterceptors)
         {
             if (interceptor.CanHandle(completionContext))
             {
@@ -272,11 +272,11 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
     {
         if (_agrInterceptors.Count > 0)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
+            foreach (var interceptor in _agrInterceptors)
             {
                 _completionContexts.Clear();
 
-                foreach (ITypeCompletionContext completionContext in completionContexts)
+                foreach (var completionContext in completionContexts)
                 {
                     if (interceptor.CanHandle(completionContext))
                     {
@@ -293,7 +293,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeMergeTypeExtensions()
     {
-        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        foreach (var interceptor in _flowInterceptors)
         {
             interceptor.OnBeforeMergeTypeExtensions();
         }
@@ -301,7 +301,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterMergeTypeExtensions()
     {
-        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        foreach (var interceptor in _flowInterceptors)
         {
             interceptor.OnAfterMergeTypeExtensions();
         }
@@ -309,7 +309,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteTypes()
     {
-        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        foreach (var interceptor in _flowInterceptors)
         {
             interceptor.OnBeforeCompleteTypes();
         }
@@ -317,7 +317,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteTypes()
     {
-        foreach (ITypeInitializationFlowInterceptor interceptor in _flowInterceptors)
+        foreach (var interceptor in _flowInterceptors)
         {
             interceptor.OnAfterCompleteTypes();
         }
@@ -328,7 +328,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        foreach (var interceptor in _initInterceptors)
         {
             if (interceptor.CanHandle(completionContext))
             {
@@ -342,7 +342,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        foreach (var interceptor in _initInterceptors)
         {
             if (interceptor.CanHandle(completionContext))
             {
@@ -356,7 +356,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+        foreach (var interceptor in _initInterceptors)
         {
             if (interceptor.CanHandle(validationContext))
             {
@@ -369,7 +369,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies)
     {
-        foreach (ITypeScopeInterceptor interceptor in _scopeInterceptors)
+        foreach (var interceptor in _scopeInterceptors)
         {
             if (interceptor.TryCreateScope(discoveryContext, out typeDependencies))
             {
@@ -386,11 +386,11 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
     {
         if (_agrInterceptors.Count > 0)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
+            foreach (var interceptor in _agrInterceptors)
             {
                 _completionContexts.Clear();
 
-                foreach (ITypeCompletionContext completionContext in completionContexts)
+                foreach (var completionContext in completionContexts)
                 {
                     if (interceptor.CanHandle(completionContext))
                     {

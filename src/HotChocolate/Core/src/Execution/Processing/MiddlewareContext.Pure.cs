@@ -62,9 +62,9 @@ internal partial class MiddlewareContext
 
         public ISchema Schema => _parentContext.Schema;
 
-        public IObjectType RootType => _parentContext.RootType;
-
         public IObjectType ObjectType => _parentType;
+
+        public IOperation Operation => _parentContext.Operation;
 
         public ISelection Selection => _selection;
 

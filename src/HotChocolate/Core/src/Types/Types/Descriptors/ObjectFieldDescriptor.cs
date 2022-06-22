@@ -91,7 +91,7 @@ public class ObjectFieldDescriptor
         Definition.IsParallelExecutable =
             context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
-        MemberInfo? member = expression.TryExtractCallMember();
+        var member = expression.TryExtractCallMember();
 
         if (member is not null)
         {
@@ -140,7 +140,7 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     protected override void OnCreateDefinition(ObjectFieldDefinition definition)
     {
-        MemberInfo? member = definition.ResolverMember ?? definition.Member;
+        var member = definition.ResolverMember ?? definition.Member;
 
         if (!Definition.AttributesAreApplied && member is not null)
         {
@@ -298,9 +298,9 @@ public class ObjectFieldDescriptor
 
             if (resultType.IsGenericType)
             {
-                Type resultTypeDef = resultType.GetGenericTypeDefinition();
+                var resultTypeDef = resultType.GetGenericTypeDefinition();
 
-                Type clrResultType = resultTypeDef == typeof(NativeType<>)
+                var clrResultType = resultTypeDef == typeof(NativeType<>)
                     ? resultType.GetGenericArguments()[0]
                     : resultType;
 

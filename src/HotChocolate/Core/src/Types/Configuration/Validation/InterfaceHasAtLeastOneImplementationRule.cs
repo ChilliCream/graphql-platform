@@ -23,20 +23,20 @@ internal class InterfaceHasAtLeastOneImplementationRule
 
         var fieldTypes = new HashSet<INamedType>();
 
-        foreach (ObjectType objectType in typeSystemObjects.OfType<ObjectType>())
+        foreach (var objectType in typeSystemObjects.OfType<ObjectType>())
         {
-            foreach (InterfaceType interfaceType in objectType.Implements)
+            foreach (var interfaceType in objectType.Implements)
             {
                 interfaceTypes.Remove(interfaceType);
             }
 
-            foreach (ObjectField field in objectType.Fields)
+            foreach (var field in objectType.Fields)
             {
                 fieldTypes.Add(field.Type.NamedType());
             }
         }
 
-        foreach (InterfaceType interfaceType in interfaceTypes.Where(fieldTypes.Contains))
+        foreach (var interfaceType in interfaceTypes.Where(fieldTypes.Contains))
         {
             // TODO : resources
             errors.Add(SchemaErrorBuilder.New()

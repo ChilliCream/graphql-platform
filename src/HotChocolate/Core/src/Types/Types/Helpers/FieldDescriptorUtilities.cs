@@ -22,14 +22,14 @@ public static class FieldDescriptorUtilities
         where TMember : MemberInfo
         where TField : FieldDefinitionBase
     {
-        foreach (TField fieldDefinition in fieldDefinitions)
+        foreach (var fieldDefinition in fieldDefinitions)
         {
             if (!fieldDefinition.Ignore)
             {
                 fields[fieldDefinition.Name] = fieldDefinition;
             }
 
-            TMember? member = resolveMember(fieldDefinition);
+            var member = resolveMember(fieldDefinition);
             if (member != null)
             {
                 handledMembers.Add(member);
@@ -73,11 +73,11 @@ public static class FieldDescriptorUtilities
                 .OfType<TMember>()
                 .ToList();
 
-            foreach (TMember member in members)
+            foreach (var member in members)
             {
                 if (include?.Invoke(members, member) ?? true)
                 {
-                    TField fieldDefinition = createdFieldDefinition(member);
+                    var fieldDefinition = createdFieldDefinition(member);
 
                     if (!handledMembers.Contains(member) &&
                         !fields.ContainsKey(fieldDefinition.Name) &&
@@ -107,15 +107,15 @@ public static class FieldDescriptorUtilities
 
             try
             {
-                foreach (ArgumentDefinition argument in arguments)
+                foreach (var argument in arguments)
                 {
                     processedNames.Add(argument.Name);
                 }
 
-                foreach (ParameterInfo parameter in
+                foreach (var parameter in
                     context.ResolverCompiler.GetArgumentParameters(method.GetParameters()))
                 {
-                    ArgumentDefinition argumentDefinition =
+                    var argumentDefinition =
                         ArgumentDescriptor
                             .New(context, parameter)
                             .CreateDefinition();

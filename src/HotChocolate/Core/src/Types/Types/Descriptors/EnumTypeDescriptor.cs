@@ -55,7 +55,7 @@ public class EnumTypeDescriptor
 
         definition.Values.Clear();
 
-        foreach (EnumValueDefinition value in values.Values)
+        foreach (var value in values.Values)
         {
             definition.Values.Add(value);
         }
@@ -71,7 +71,7 @@ public class EnumTypeDescriptor
         {
             foreach (var value in Context.TypeInspector.GetEnumValues(typeDefinition.RuntimeType))
             {
-                EnumValueDefinition valueDefinition =
+                var valueDefinition =
                     EnumValueDescriptor.New(Context, value)
                         .CreateDefinition();
 
@@ -126,7 +126,7 @@ public class EnumTypeDescriptor
 
     public IEnumValueDescriptor Value<T>(T value)
     {
-        EnumValueDescriptor descriptor = Values.FirstOrDefault(t =>
+        var descriptor = Values.FirstOrDefault(t =>
             t.Definition.RuntimeValue is not null &&
             t.Definition.RuntimeValue.Equals(value));
 
@@ -178,7 +178,7 @@ public class EnumTypeDescriptor
         IDescriptorContext context,
         Type schemaType)
     {
-        EnumTypeDescriptor descriptor = New(context, schemaType);
+        var descriptor = New(context, schemaType);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }

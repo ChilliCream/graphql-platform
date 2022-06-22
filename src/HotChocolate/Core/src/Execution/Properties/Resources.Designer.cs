@@ -386,5 +386,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("SelectionSetOptimizerContext_InvalidFieldName", resourceCulture);
             }
         }
+        
+        internal static string OperationCompiler_ToManyIncludeConditions {
+            get {
+                return ResourceManager.GetString("OperationCompiler_ToManyIncludeConditions", resourceCulture);
+            }
+        }
     }
 }

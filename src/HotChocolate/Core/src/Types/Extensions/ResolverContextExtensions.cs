@@ -421,7 +421,7 @@ public static class ResolverContextExtensions
         }
         else
         {
-            T newValue = createValue(name);
+            var newValue = createValue(name);
             SetGlobalState(context, name, newValue);
             return newValue;
         }
@@ -477,7 +477,7 @@ public static class ResolverContextExtensions
         }
         else
         {
-            T newValue = createValue(name);
+            var newValue = createValue(name);
             SetScopedState(context, name, newValue);
             return newValue;
         }
@@ -533,7 +533,7 @@ public static class ResolverContextExtensions
         }
         else
         {
-            T newValue = createValue(name);
+            var newValue = createValue(name);
             SetLocalState(context, name, newValue);
             return newValue;
         }

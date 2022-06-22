@@ -43,7 +43,7 @@ internal sealed class SchemaTypes
 
     public T GetType<T>(NameString typeName) where T : IType
     {
-        if (_types.TryGetValue(typeName, out INamedType? namedType)
+        if (_types.TryGetValue(typeName, out var namedType)
             && namedType is T type)
         {
             return type;
@@ -57,7 +57,7 @@ internal sealed class SchemaTypes
     public bool TryGetType<T>(NameString typeName, [NotNullWhen(true)] out T? type)
         where T : IType
     {
-        if (_types.TryGetValue(typeName, out INamedType? namedType)
+        if (_types.TryGetValue(typeName, out var namedType)
             && namedType is T t)
         {
             type = t;
@@ -75,7 +75,7 @@ internal sealed class SchemaTypes
 
     public bool TryGetClrType(NameString typeName, [NotNullWhen(true)] out Type? clrType)
     {
-        if (_types.TryGetValue(typeName, out INamedType? type)
+        if (_types.TryGetValue(typeName, out var type)
             && type is IHasRuntimeType ct
             && ct.RuntimeType != typeof(object))
         {
@@ -91,7 +91,7 @@ internal sealed class SchemaTypes
         string abstractTypeName,
         [NotNullWhen(true)] out IReadOnlyList<ObjectType>? types)
     {
-        if (_possibleTypes.TryGetValue(abstractTypeName, out List<ObjectType>? pt))
+        if (_possibleTypes.TryGetValue(abstractTypeName, out var pt))
         {
             types = pt;
             return true;
@@ -106,13 +106,13 @@ internal sealed class SchemaTypes
     {
         var possibleTypes = new Dictionary<NameString, List<ObjectType>>();
 
-        foreach (ObjectType objectType in types.OfType<ObjectType>())
+        foreach (var objectType in types.OfType<ObjectType>())
         {
             possibleTypes[objectType.Name] = new List<ObjectType> { objectType };
 
-            foreach (InterfaceType interfaceType in objectType.Implements)
+            foreach (var interfaceType in objectType.Implements)
             {
-                if (!possibleTypes.TryGetValue(interfaceType.Name, out List<ObjectType>? pt))
+                if (!possibleTypes.TryGetValue(interfaceType.Name, out var pt))
                 {
                     pt = new List<ObjectType>();
                     possibleTypes[interfaceType.Name] = pt;
@@ -122,12 +122,12 @@ internal sealed class SchemaTypes
             }
         }
 
-        foreach (UnionType unionType in types.OfType<UnionType>())
+        foreach (var unionType in types.OfType<UnionType>())
         {
-            foreach (ObjectType objectType in unionType.Types.Values)
+            foreach (var objectType in unionType.Types.Values)
             {
                 if (!possibleTypes.TryGetValue(
-                    unionType.Name, out List<ObjectType>? pt))
+                    unionType.Name, out var pt))
                 {
                     pt = new List<ObjectType>();
                     possibleTypes[unionType.Name] = pt;

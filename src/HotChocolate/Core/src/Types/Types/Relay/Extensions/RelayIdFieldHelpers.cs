@@ -92,8 +92,8 @@ internal static class RelayIdFieldHelpers
     {
         if (definition.Type is ExtendedTypeReference typeReference)
         {
-            ITypeInfo typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
-            IExtendedType type = RewriteType(context.TypeInspector, typeInfo);
+            var typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
+            var type = RewriteType(context.TypeInspector, typeInfo);
             definition.Type = typeReference.WithType(type);
         }
         else
@@ -106,11 +106,11 @@ internal static class RelayIdFieldHelpers
 
     private static IExtendedType RewriteType(ITypeInspector typeInspector, ITypeInfo typeInfo)
     {
-        Type current = typeof(IdType);
+        var current = typeof(IdType);
 
         if (typeInfo.Components.Count > 1)
         {
-            foreach (TypeComponent component in typeInfo.Components.Reverse().Skip(1))
+            foreach (var component in typeInfo.Components.Reverse().Skip(1))
             {
                 if (component.Kind == TypeComponentKind.NonNull)
                 {
@@ -131,7 +131,7 @@ internal static class RelayIdFieldHelpers
         ArgumentDefinition definition,
         NameString typeName)
     {
-        ITypeInspector typeInspector = completionContext.TypeInspector;
+        var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
 
         if (definition is InputFieldDefinition { RuntimeType: { } runtimeType })
@@ -167,7 +167,7 @@ internal static class RelayIdFieldHelpers
         ResultConverterDefinition placeholder,
         NameString typeName)
     {
-        ITypeInspector typeInspector = completionContext.TypeInspector;
+        var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
 
         if (definition.ResultType is not null)
@@ -190,7 +190,7 @@ internal static class RelayIdFieldHelpers
         completionContext.DescriptorContext.SchemaCompleted += (_, args) =>
             schemaName = args.Schema.Name;
 
-        IIdSerializer serializer =
+        var serializer =
             completionContext.Services.GetService<IIdSerializer>() ??
             new IdSerializer();
         var index = definition.ResultConverters.IndexOf(placeholder);
@@ -232,7 +232,7 @@ internal static class RelayIdFieldHelpers
         IExtendedType resultType,
         NameString typeName)
     {
-        IIdSerializer serializer =
+        var serializer =
             completionContext.Services.GetService<IIdSerializer>() ??
             (_idSerializer ??= new IdSerializer());
 

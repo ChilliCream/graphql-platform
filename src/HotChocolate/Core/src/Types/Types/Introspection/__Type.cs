@@ -17,15 +17,15 @@ internal sealed class __Type : ObjectType
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference stringType = Create(ScalarNames.String);
-        SyntaxTypeReference booleanType = Create(ScalarNames.Boolean);
-        SyntaxTypeReference kindType = Parse($"{nameof(__TypeKind)}!");
-        SyntaxTypeReference typeType = Create(nameof(__Type));
-        SyntaxTypeReference fieldListType = Parse($"[{nameof(__Field)}!]");
-        SyntaxTypeReference typeListType = Parse($"[{nameof(__Type)}!]");
-        SyntaxTypeReference enumValueListType = Parse($"[{nameof(__EnumValue)}!]");
-        SyntaxTypeReference inputValueListType = Parse($"[{nameof(__InputValue)}!]");
-        SyntaxTypeReference directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var stringType = Create(ScalarNames.String);
+        var booleanType = Create(ScalarNames.Boolean);
+        var kindType = Parse($"{nameof(__TypeKind)}!");
+        var typeType = Create(nameof(__Type));
+        var fieldListType = Parse($"[{nameof(__Field)}!]");
+        var typeListType = Parse($"[{nameof(__Type)}!]");
+        var enumValueListType = Parse($"[{nameof(__EnumValue)}!]");
+        var inputValueListType = Parse($"[{nameof(__InputValue)}!]");
+        var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
         var def = new ObjectTypeDefinition(
             Names.__Type,
@@ -116,7 +116,7 @@ internal sealed class __Type : ObjectType
 
         public static object? Fields(IPureResolverContext context)
         {
-            IType type = context.Parent<IType>();
+            var type = context.Parent<IType>();
             var includeDeprecated = context.ArgumentValue<bool>(Names.IncludeDeprecated);
 
             if (type is IComplexOutputType ct)

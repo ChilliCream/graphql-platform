@@ -49,7 +49,7 @@ internal sealed class TypeRegistrar : ITypeRegistrar
             throw new ArgumentNullException(nameof(obj));
         }
 
-        RegisteredType registeredType = InitializeType(obj, scope, inferred);
+        var registeredType = InitializeType(obj, scope, inferred);
 
         configure?.Invoke(registeredType);
 
@@ -60,7 +60,7 @@ internal sealed class TypeRegistrar : ITypeRegistrar
             if (obj is IHasRuntimeType hasRuntimeType
                 && hasRuntimeType.RuntimeType != typeof(object))
             {
-                ExtendedTypeReference runtimeTypeRef =
+                var runtimeTypeRef =
                     _context.TypeInspector.GetTypeRef(
                         hasRuntimeType.RuntimeType,
                         SchemaTypeReference.InferTypeContext(obj),
@@ -81,7 +81,7 @@ internal sealed class TypeRegistrar : ITypeRegistrar
     {
         _typeRegistry.Register(registeredType);
 
-        foreach (ITypeReference typeReference in registeredType.References)
+        foreach (var typeReference in registeredType.References)
         {
             MarkResolved(typeReference);
         }
@@ -137,11 +137,11 @@ internal sealed class TypeRegistrar : ITypeRegistrar
         var unhandled = new List<ITypeReference>();
         var registered = new HashSet<ITypeReference>();
 
-        foreach (RegisteredType type in _typeRegistry.Types)
+        foreach (var type in _typeRegistry.Types)
         {
             if (_handled.Add(type))
             {
-                foreach (TypeDependency typeDep in type.Dependencies)
+                foreach (var typeDep in type.Dependencies)
                 {
                     if (registered.Add(typeDep.TypeReference))
                     {
@@ -165,7 +165,7 @@ internal sealed class TypeRegistrar : ITypeRegistrar
             // not already registered it.
             TypeReference instanceRef = TypeReference.Create(typeSystemObject, scope);
 
-            if (_typeRegistry.TryGetType(instanceRef, out RegisteredType? registeredType))
+            if (_typeRegistry.TryGetType(instanceRef, out var registeredType))
             {
                 // if we already no this object we will short-circuit here and just return the
                 // already registered instance.
@@ -205,7 +205,7 @@ internal sealed class TypeRegistrar : ITypeRegistrar
             if (typeSystemObject is IHasTypeIdentity hasTypeIdentity &&
                 hasTypeIdentity.TypeIdentity is not null)
             {
-                ExtendedTypeReference reference =
+                var reference =
                     _context.TypeInspector.GetTypeRef(
                         hasTypeIdentity.TypeIdentity,
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
@@ -216,7 +216,7 @@ internal sealed class TypeRegistrar : ITypeRegistrar
 
             if (_interceptor.TryCreateScope(
                 registeredType,
-                out IReadOnlyList<TypeDependency>? dependencies))
+                out var dependencies))
             {
                 registeredType.Dependencies.Clear();
                 registeredType.Dependencies.AddRange(dependencies);

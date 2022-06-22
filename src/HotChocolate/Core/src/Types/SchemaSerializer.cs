@@ -22,7 +22,7 @@ public static class SchemaSerializer
             throw new ArgumentNullException(nameof(schema));
         }
 
-        DocumentNode document = SerializeSchema(schema);
+        var document = SerializeSchema(schema);
         return document.Print();
     }
 
@@ -38,7 +38,7 @@ public static class SchemaSerializer
             throw new ArgumentNullException(nameof(textWriter));
         }
 
-        DocumentNode document = SerializeSchema(schema);
+        var document = SerializeSchema(schema);
         textWriter.Write(document.Print());
     }
 
@@ -58,7 +58,7 @@ public static class SchemaSerializer
             throw new ArgumentNullException(nameof(stream));
         }
 
-        DocumentNode document = SerializeSchema(schema);
+        var document = SerializeSchema(schema);
         await document.PrintToAsync(stream, indented, cancellationToken).ConfigureAwait(false);
     }
 
@@ -80,9 +80,9 @@ public static class SchemaSerializer
 
         var list = new List<IDefinitionNode>();
 
-        foreach (INamedType namedType in namedTypes)
+        foreach (var namedType in namedTypes)
         {
-            ITypeDefinitionNode typeDefinition =
+            var typeDefinition =
                 namedType is ScalarType scalarType
                     ? SerializeScalarType(scalarType)
                     : SerializeNonScalarTypeDefinition(namedType, false);
@@ -118,7 +118,7 @@ public static class SchemaSerializer
 
         var builtInDirectives = new HashSet<NameString> { Skip, Include, Deprecated };
 
-        IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions =
+        var directiveTypeDefinitions =
             schema.DirectiveTypes
                 .Where(directive => !builtInDirectives.Contains(directive.Name))
                 .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
@@ -126,7 +126,7 @@ public static class SchemaSerializer
 
         typeDefinitions.AddRange(directiveTypeDefinitions);
 
-        IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions =
+        var scalarTypeDefinitions =
             schema.Types
             .OfType<ScalarType>()
             .Where(t => includeSpecScalars || !BuiltInTypes.IsBuiltInType(t.Name))

@@ -30,7 +30,7 @@ public static class DirectiveClassMiddlewareFactory
     {
         return next =>
         {
-            MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate> factory =
+            var factory =
                 MiddlewareCompiler<TMiddleware>
                     .CompileFactory<IServiceProvider, FieldDelegate>(
                         (services, next) =>
@@ -61,10 +61,10 @@ public static class DirectiveClassMiddlewareFactory
         FieldDelegate next)
         where TMiddleware : class
     {
-        object sync = new object();
+        var sync = new object();
         TMiddleware middleware = null;
 
-        ClassQueryDelegate<TMiddleware, IDirectiveContext> compiled =
+        var compiled =
             MiddlewareCompiler<TMiddleware>.CompileDelegate<IDirectiveContext>(
                 (context, middleware) => new List<IParameterHandler>
                 {

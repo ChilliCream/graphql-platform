@@ -26,7 +26,7 @@ internal static class CompleteInterfacesHelper
         var implements = new InterfaceType[interfaceReferences.Count];
         var index = 0;
 
-        foreach (ITypeReference interfaceRef in interfaceReferences)
+        foreach (var interfaceRef in interfaceReferences)
         {
             if (!context.TryGetType(interfaceRef, out InterfaceType? type))
             {

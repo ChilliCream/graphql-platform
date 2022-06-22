@@ -48,7 +48,7 @@ public static class TypeNameHelper
             .Extend()
             .OnBeforeNaming((ctx, definition) =>
             {
-                IType type = ctx.GetType<IType>(
+                var type = ctx.GetType<IType>(
                     ctx.DescriptorContext.TypeInspector.GetTypeRef(dependency));
                 definition.Name = createName(type.NamedType());
             })

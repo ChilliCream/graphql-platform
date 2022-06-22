@@ -4,9 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Fetching;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -23,7 +21,6 @@ internal sealed partial class SubscriptionExecutor
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private IDisposable? _subscriptionScope;
         private readonly IRequestContext _requestContext;
-        private readonly QueryPlan _queryPlan;
         private readonly ObjectType _subscriptionType;
         private readonly ISelectionSet _rootSelections;
         private readonly Func<object?> _resolveQueryRootValue;
@@ -37,7 +34,6 @@ internal sealed partial class SubscriptionExecutor
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
             IRequestContext requestContext,
-            QueryPlan queryPlan,
             ObjectType subscriptionType,
             ISelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
@@ -51,7 +47,6 @@ internal sealed partial class SubscriptionExecutor
             _operationContextPool = operationContextPool;
             _queryExecutor = queryExecutor;
             _requestContext = requestContext;
-            _queryPlan = queryPlan;
             _subscriptionType = subscriptionType;
             _rootSelections = rootSelections;
             _resolveQueryRootValue = resolveQueryRootValue;
@@ -93,7 +88,6 @@ internal sealed partial class SubscriptionExecutor
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
             IRequestContext requestContext,
-            QueryPlan queryPlan,
             ObjectType subscriptionType,
             ISelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
@@ -103,7 +97,6 @@ internal sealed partial class SubscriptionExecutor
                 operationContextPool,
                 queryExecutor,
                 requestContext,
-                queryPlan,
                 subscriptionType,
                 rootSelections,
                 resolveQueryRootValue,
@@ -129,7 +122,7 @@ internal sealed partial class SubscriptionExecutor
         public ulong Id => _id;
 
         /// <inheritdoc />
-        public IPreparedOperation Operation => _requestContext.Operation!;
+        public IOperation Operation => _requestContext.Operation!;
 
         public async ValueTask DisposeAsync()
         {
@@ -182,7 +175,6 @@ internal sealed partial class SubscriptionExecutor
                     eventServices,
                     dispatcher,
                     _requestContext.Operation!,
-                    _queryPlan,
                     _requestContext.Variables!,
                     rootValue,
                     _resolveQueryRootValue);
@@ -237,7 +229,6 @@ internal sealed partial class SubscriptionExecutor
                     _requestContext.Services,
                     NoopBatchDispatcher.Default,
                     _requestContext.Operation!,
-                    _queryPlan,
                     _requestContext.Variables!,
                     rootValue,
                     _resolveQueryRootValue);

@@ -42,7 +42,7 @@ public class InterfaceTypeDescriptor
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
 
-        foreach (InterfaceFieldDefinition field in definition.Fields)
+        foreach (var field in definition.Fields)
         {
             Fields.Add(InterfaceFieldDescriptor.From(Context, field));
         }
@@ -161,7 +161,7 @@ public class InterfaceTypeDescriptor
 
     public IInterfaceFieldDescriptor Field(NameString name)
     {
-        InterfaceFieldDescriptor fieldDescriptor =
+        var fieldDescriptor =
             Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
 
         if (fieldDescriptor is not null)
@@ -221,7 +221,7 @@ public class InterfaceTypeDescriptor
     public static InterfaceTypeDescriptor FromSchemaType(
         IDescriptorContext context, Type schemaType)
     {
-        InterfaceTypeDescriptor descriptor = New(context, schemaType);
+        var descriptor = New(context, schemaType);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }

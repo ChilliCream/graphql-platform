@@ -43,7 +43,7 @@ public class ObjectTypeDescriptor
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
 
-        foreach (ObjectFieldDefinition field in definition.Fields)
+        foreach (var field in definition.Fields)
         {
             Fields.Add(ObjectFieldDescriptor.From(Context, field));
         }
@@ -66,7 +66,7 @@ public class ObjectTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        foreach (ObjectFieldDescriptor field in Fields)
+        foreach (var field in Fields)
         {
             if (!field.Definition.Ignore)
             {
@@ -185,7 +185,7 @@ public class ObjectTypeDescriptor
 
     public IObjectFieldDescriptor Field(NameString name)
     {
-        ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+        var fieldDescriptor = Fields.FirstOrDefault(
             t => t.Definition.Name.Equals(name));
 
         if (fieldDescriptor is { })
@@ -212,7 +212,7 @@ public class ObjectTypeDescriptor
 
         if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
         {
-            ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+            var fieldDescriptor = Fields.FirstOrDefault(
                 t => t.Definition.Member == propertyOrMethod);
 
             if (fieldDescriptor is not null)
@@ -242,11 +242,11 @@ public class ObjectTypeDescriptor
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        MemberInfo? member = propertyOrMethod.TryExtractMember();
+        var member = propertyOrMethod.TryExtractMember();
 
         if (member is PropertyInfo or MethodInfo)
         {
-            ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+            var fieldDescriptor = Fields.FirstOrDefault(
                 t => t.Definition.Member == member);
 
             if (fieldDescriptor is not null)

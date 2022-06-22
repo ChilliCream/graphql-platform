@@ -44,7 +44,7 @@ public static class ResolveObjectFieldDescriptorExtensions
 
         return descriptor.Resolve(async ctx =>
         {
-            Task<object?> resolverTask = resolver(ctx);
+            var resolverTask = resolver(ctx);
             if (resolverTask is null)
             {
                 return default;
@@ -91,7 +91,7 @@ public static class ResolveObjectFieldDescriptorExtensions
         return descriptor.Resolve(
             async ctx =>
             {
-                Task<TResult>? resolverTask = resolver(ctx);
+                var resolverTask = resolver(ctx);
                 if (resolverTask is null)
                 {
                     return default;
@@ -173,7 +173,7 @@ public static class ResolveObjectFieldDescriptorExtensions
         return descriptor.Resolve(
             async ctx =>
             {
-                Task<TResult>? resolverTask = resolver();
+                var resolverTask = resolver();
                 if (resolverTask is null)
                 {
                     return default;
@@ -239,7 +239,7 @@ public static class ResolveObjectFieldDescriptorExtensions
         return descriptor.Resolve(
              async ctx =>
             {
-                Task<TResult>? resolverTask = resolver(ctx, ctx.RequestAborted);
+                var resolverTask = resolver(ctx, ctx.RequestAborted);
                 if (resolverTask is null)
                 {
                     return default;

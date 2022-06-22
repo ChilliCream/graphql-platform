@@ -40,7 +40,7 @@ public class InputObjectTypeDescriptor
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
 
-        foreach (InputFieldDefinition field in definition.Fields)
+        foreach (var field in definition.Fields)
         {
             Fields.Add(InputFieldDescriptor.From(Context, field));
         }
@@ -106,7 +106,7 @@ public class InputObjectTypeDescriptor
 
     public IInputFieldDescriptor Field(NameString name)
     {
-        InputFieldDescriptor fieldDescriptor =
+        var fieldDescriptor =
             Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
 
         if (fieldDescriptor is not null)
@@ -160,7 +160,7 @@ public class InputObjectTypeDescriptor
         IDescriptorContext context,
         Type schemaType)
     {
-        InputObjectTypeDescriptor descriptor = New(context, schemaType);
+        var descriptor = New(context, schemaType);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }

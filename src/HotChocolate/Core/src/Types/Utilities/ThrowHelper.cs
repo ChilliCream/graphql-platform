@@ -256,7 +256,7 @@ internal static class ThrowHelper
         InputObjectType type,
         Path? path)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_OneOfNoFieldSet,
                 type.Name.Value)
@@ -270,7 +270,7 @@ internal static class ThrowHelper
         InputObjectType type,
         Path? path)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_OneOfMoreThanOneFieldSet,
                 type.Name.Value)
@@ -285,7 +285,7 @@ internal static class ThrowHelper
         Path? path,
         InputField field)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_OneOfFieldIsNull,
                 field.Name.Value,
@@ -302,7 +302,7 @@ internal static class ThrowHelper
         Path? path,
         InputField? field = null)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage("Cannot accept null for non-nullable input.")
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path);

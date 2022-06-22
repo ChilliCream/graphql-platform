@@ -15,7 +15,7 @@ public class InputObjectTypeValidationRule : ISchemaValidationRule
     {
         if (options.StrictValidation)
         {
-            foreach (InputObjectType type in typeSystemObjects.OfType<InputObjectType>())
+            foreach (var type in typeSystemObjects.OfType<InputObjectType>())
             {
                 EnsureTypeHasFields(type, errors);
                 EnsureFieldNamesAreValid(type, errors);
@@ -33,7 +33,7 @@ public class InputObjectTypeValidationRule : ISchemaValidationRule
         {
             if (type.Fields.Any(t => t.Type.Kind is TypeKind.NonNull || t.DefaultValue is not null))
             {
-                string[] fieldNames = type.Fields
+                var fieldNames = type.Fields
                     .Where(t => t.Type.Kind is TypeKind.NonNull || t.DefaultValue is not null)
                     .Select(t => t.Name.Value)
                     .ToArray();

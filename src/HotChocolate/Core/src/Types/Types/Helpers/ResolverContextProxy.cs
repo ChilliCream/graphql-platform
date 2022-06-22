@@ -77,10 +77,10 @@ internal sealed class ResolverContextProxy : IResolverContext
         => _resolverContext.ReportError(exception, configure);
 
     public IReadOnlyList<ISelection> GetSelections(
-        ObjectType typeContext,
-        ISelection? fieldSelection = null,
+        IObjectType typeContext,
+        ISelection? selection = null,
         bool allowInternals = false)
-        => _resolverContext.GetSelections(typeContext, fieldSelection, allowInternals);
+        => _resolverContext.GetSelections(typeContext, selection, allowInternals);
 
     public T GetQueryRoot<T>() => _resolverContext.GetQueryRoot<T>();
 }

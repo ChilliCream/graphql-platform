@@ -23,7 +23,7 @@ internal sealed class DependantFactoryTypeReferenceHandler : ITypeRegistrarHandl
 
         if (_handled.Add(typeRef))
         {
-            TypeSystemObjectBase obj = typeRef.Factory(_context);
+            var obj = typeRef.Factory(_context);
             typeRegistrar.Register(obj, typeRef.Scope, configure: AddTypeRef);
         }
 

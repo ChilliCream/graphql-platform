@@ -56,7 +56,7 @@ public class InterfaceTypeDefinition
             configs.AddRange(Configurations);
         }
 
-        foreach (InterfaceFieldDefinition field in Fields)
+        foreach (var field in Fields)
         {
             if (field.HasConfigurations)
             {
@@ -66,7 +66,7 @@ public class InterfaceTypeDefinition
 
             if (field.HasArguments)
             {
-                foreach (ArgumentDefinition argument in field.Arguments)
+                foreach (var argument in field.Arguments)
                 {
                     if (argument.HasConfigurations)
                     {

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing.Plan;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -33,11 +32,6 @@ internal sealed partial class SubscriptionExecutor
             throw new ArgumentNullException(nameof(requestContext));
         }
 
-        if (queryPlan is null)
-        {
-            throw new ArgumentNullException(nameof(queryPlan));
-        }
-
         if (requestContext.Operation is null || requestContext.Variables is null)
         {
             throw SubscriptionExecutor_ContextInvalidState();
@@ -63,7 +57,6 @@ internal sealed partial class SubscriptionExecutor
                 _operationContextPool,
                 _queryExecutor,
                 requestContext,
-                queryPlan,
                 requestContext.Operation.RootType,
                 selectionSet,
                 resolveQueryValue,

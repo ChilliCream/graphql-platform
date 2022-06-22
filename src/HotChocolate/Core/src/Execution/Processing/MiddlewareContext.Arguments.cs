@@ -8,7 +8,7 @@ using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
-internal partial class MiddlewareContext : IMiddlewareContext
+internal partial class MiddlewareContext
 {
     public IReadOnlyDictionary<NameString, ArgumentValue> Arguments { get; set; } =
         default!;

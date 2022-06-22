@@ -43,7 +43,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
     {
         if (_queryType is not null && _mutationDefinition is not null)
         {
-            MutationPayloadOptions options = _context.DescriptorContext.GetMutationPayloadOptions();
+            var options = _context.DescriptorContext.GetMutationPayloadOptions();
 
             ITypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
 
@@ -52,7 +52,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
 
-            foreach (ObjectFieldDefinition field in _mutationDefinition.Fields)
+            foreach (var field in _mutationDefinition.Fields)
             {
                 if (!field.IsIntrospectionField &&
                     _context.TryGetType(field.Type!, out IType? returnType) &&

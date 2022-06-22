@@ -110,7 +110,7 @@ public class DirectiveTypeDescriptor
 
     public IDirectiveArgumentDescriptor Argument(NameString name)
     {
-        DirectiveArgumentDescriptor descriptor =
+        var descriptor =
             Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name));
         if (descriptor is { })
         {
@@ -126,7 +126,7 @@ public class DirectiveTypeDescriptor
 
     public IDirectiveTypeDescriptor Location(DirectiveLocation value)
     {
-        Array values = Enum.GetValues(typeof(DirectiveLocation));
+        var values = Enum.GetValues(typeof(DirectiveLocation));
         foreach (DirectiveLocation item in values)
         {
             if (value.HasFlag(item))
@@ -224,7 +224,7 @@ public class DirectiveTypeDescriptor
         IDescriptorContext context,
         Type schemaType)
     {
-        DirectiveTypeDescriptor descriptor = New(context, schemaType);
+        var descriptor = New(context, schemaType);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }

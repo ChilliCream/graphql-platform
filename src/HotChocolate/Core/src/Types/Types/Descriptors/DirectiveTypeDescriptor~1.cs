@@ -94,7 +94,7 @@ public class DirectiveTypeDescriptor<T>
 
         if (property.ExtractMember() is PropertyInfo p)
         {
-            DirectiveArgumentDescriptor descriptor =
+            var descriptor =
             Arguments.FirstOrDefault(t => t.Definition.Property == p);
             if (descriptor is { })
             {

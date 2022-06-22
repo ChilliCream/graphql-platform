@@ -74,7 +74,7 @@ public abstract class ObjectTypeDescriptorBase<T>
 
         bool IncludeField(IReadOnlyList<MemberInfo> all, MemberInfo current)
         {
-            NameString name = Context.Naming.GetMemberName(current, MemberKind.ObjectField);
+            var name = Context.Naming.GetMemberName(current, MemberKind.ObjectField);
 
             if (Fields.Any(t => t.Definition.Name.Equals(name)))
             {
@@ -85,7 +85,7 @@ public abstract class ObjectTypeDescriptorBase<T>
             {
                 subscribeResolver = new HashSet<string>();
 
-                foreach (MemberInfo member in all)
+                foreach (var member in all)
                 {
                     HandlePossibleSubscribeMember(member);
                 }

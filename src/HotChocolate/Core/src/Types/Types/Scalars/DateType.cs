@@ -33,7 +33,7 @@ public class DateType : ScalarType<DateTime, StringValueNode>
 
     protected override DateTime ParseLiteral(StringValueNode valueSyntax)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, out DateTime? value))
+        if (TryDeserializeFromString(valueSyntax.Value, out var value))
         {
             return value.Value;
         }
@@ -99,7 +99,7 @@ public class DateType : ScalarType<DateTime, StringValueNode>
             return true;
         }
 
-        if (resultValue is string s && TryDeserializeFromString(s, out DateTime? d))
+        if (resultValue is string s && TryDeserializeFromString(s, out var d))
         {
             runtimeValue = d;
             return true;
@@ -132,7 +132,7 @@ public class DateType : ScalarType<DateTime, StringValueNode>
            serialized,
            CultureInfo.InvariantCulture,
            DateTimeStyles.AssumeLocal,
-           out DateTime dateTime))
+           out var dateTime))
         {
             value = dateTime.Date;
             return true;

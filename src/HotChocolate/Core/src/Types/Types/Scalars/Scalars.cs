@@ -145,7 +145,7 @@ public static class Scalars
             return true;
         }
 
-        Type valueType = value.GetType();
+        var valueType = value.GetType();
 
         if (valueType.IsEnum)
         {

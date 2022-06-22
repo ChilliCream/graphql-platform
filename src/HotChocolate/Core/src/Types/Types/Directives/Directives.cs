@@ -22,7 +22,7 @@ public static class Directives
     internal static IReadOnlyList<ITypeReference> CreateReferences(
         IDescriptorContext descriptorContext)
     {
-        ITypeInspector typeInspector = descriptorContext.TypeInspector;
+        var typeInspector = descriptorContext.TypeInspector;
 
         if (descriptorContext.Options.EnableOneOf)
         {
