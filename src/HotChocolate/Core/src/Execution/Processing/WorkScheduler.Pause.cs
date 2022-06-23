@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution.Processing;
 
-internal partial class WorkScheduler
+internal sealed partial class WorkScheduler
 {
     private sealed class ProcessingPause : INotifyCompletion
     {

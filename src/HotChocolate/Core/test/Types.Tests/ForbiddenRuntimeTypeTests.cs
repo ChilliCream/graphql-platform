@@ -5,44 +5,43 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public class ForbiddenRuntimeTypeTests
 {
-    public class ForbiddenRuntimeTypeTests
+    [Fact]
+    public async Task Executable_NotAllowed()
     {
-        [Fact]
-        public async Task Executable_NotAllowed()
-        {
-            async Task SchemaError() =>
-                await new ServiceCollection()
-                    .AddGraphQL()
-                    .AddQueryType<Query1>()
-                    .BuildSchemaAsync();
+        async Task SchemaError() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query1>()
+                .BuildSchemaAsync();
 
-            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(SchemaError);
-            exception.Errors[0].Message.MatchSnapshot();
-        }
+        var exception = await Assert.ThrowsAsync<SchemaException>(SchemaError);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecutableList_NotAllowed()
-        {
-            async Task SchemaError() =>
-                await new ServiceCollection()
-                    .AddGraphQL()
-                    .AddQueryType<Query2>()
-                    .BuildSchemaAsync();
+    [Fact]
+    public async Task ExecutableList_NotAllowed()
+    {
+        async Task SchemaError() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query2>()
+                .BuildSchemaAsync();
 
-            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(SchemaError);
-            exception.Errors[0].Message.MatchSnapshot();
-        }
+        var exception = await Assert.ThrowsAsync<SchemaException>(SchemaError);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
 
-        public class Query1
-        {
-            public IExecutable Executable() => throw new InvalidOperationException();
-        }
+    public class Query1
+    {
+        public IExecutable Executable() => throw new InvalidOperationException();
+    }
 
-        public class Query2
-        {
-            public IExecutable[] Executable() => throw new InvalidOperationException();
-        }
+    public class Query2
+    {
+        public IExecutable[] Executable() => throw new InvalidOperationException();
     }
 }

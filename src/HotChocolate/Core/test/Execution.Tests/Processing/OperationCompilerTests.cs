@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -255,8 +254,6 @@ public class OperationCompilerTests
             .AddStarWarsTypes()
             .Create();
 
-        var droid = schema.GetType<ObjectType>("Droid");
-
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
                     hero(episode: EMPIRE) {
@@ -295,8 +292,6 @@ public class OperationCompilerTests
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
-
-        var droid = schema.GetType<ObjectType>("Droid");
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
@@ -338,8 +333,6 @@ public class OperationCompilerTests
             .AddStarWarsTypes()
             .Create();
 
-        var droid = schema.GetType<ObjectType>("Droid");
-
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean, $q: Boolean){
                     hero(episode: EMPIRE) {
@@ -378,8 +371,6 @@ public class OperationCompilerTests
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
-
-        var droid = schema.GetType<ObjectType>("Droid");
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
@@ -425,8 +416,6 @@ public class OperationCompilerTests
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
-
-        var droid = schema.GetType<ObjectType>("Droid");
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean) {
@@ -551,8 +540,6 @@ public class OperationCompilerTests
             .AddStarWarsTypes()
             .Create();
 
-        var droid = schema.GetType<ObjectType>("Droid");
-
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean, $q: Boolean) {
                     hero(episode: EMPIRE) @include(if: $v) {
@@ -597,8 +584,6 @@ public class OperationCompilerTests
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
-
-        var droid = schema.GetType<ObjectType>("Droid");
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean, $q: Boolean) {
@@ -972,7 +957,7 @@ public class OperationCompilerTests
         MatchSnapshot(document, operation);
     }
 
-    private static void MatchSnapshot(DocumentNode original, IPreparedOperation compiled)
+    private static void MatchSnapshot(DocumentNode original, IOperation compiled)
     {
         var sb = new StringBuilder();
         sb.AppendLine(original.ToString());
@@ -1000,34 +985,16 @@ public class OperationCompilerTests
         public string Text => "Baz";
     }
 
-    public class NoopOptimizer : ISelectionOptimizer
+    public class NoopOptimizer : ISelectionSetOptimizer
     {
-        public bool AllowFragmentDeferral(
-            SelectionOptimizerContext context,
-            InlineFragmentNode fragment) => true;
-
-        public bool AllowFragmentDeferral(
-            SelectionOptimizerContext context,
-            FragmentSpreadNode fragmentSpread,
-            FragmentDefinitionNode fragmentDefinition) => true;
-
-        public void OptimizeSelectionSet(SelectionOptimizerContext context)
+        public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
         {
         }
     }
 
-    public class SimpleOptimizer : ISelectionOptimizer
+    public class SimpleOptimizer : ISelectionSetOptimizer
     {
-        public bool AllowFragmentDeferral(
-            SelectionOptimizerContext context,
-            InlineFragmentNode fragment) => true;
-
-        public bool AllowFragmentDeferral(
-            SelectionOptimizerContext context,
-            FragmentSpreadNode fragmentSpread,
-            FragmentDefinitionNode fragmentDefinition) => true;
-
-        public void OptimizeSelectionSet(SelectionOptimizerContext context)
+        public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
         {
             /*
             if (!context.Path.IsEmpty && context.Path.Peek() is { Name.Value: "bar" })

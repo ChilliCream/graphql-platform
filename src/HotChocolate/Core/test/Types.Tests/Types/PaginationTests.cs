@@ -9,26 +9,26 @@ using static HotChocolate.Tests.TestHelper;
 
 #nullable enable
 
-namespace HotChocolate.Types
-{
-    public class PaginationTests
-    {
-        [Fact(Skip = "Test is flaky")]
-        public async Task Execute_NestedOffsetPaging_NoCyclicDependencies()
-        {
-            await TryTest(async ct =>
-            {
-                IRequestExecutor executor =
-                    await new ServiceCollection()
-                        .AddGraphQL()
-                        .AddQueryType<QueryType>()
-                        .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
-                        .Services
-                        .BuildServiceProvider()
-                        .GetRequestExecutorAsync(cancellationToken: ct);
+namespace HotChocolate.Types;
 
-                IExecutionResult executionResult = await executor
-                    .ExecuteAsync(@"
+public class PaginationTests
+{
+    [Fact(Skip = "Test is flaky")]
+    public async Task Execute_NestedOffsetPaging_NoCyclicDependencies()
+    {
+        await TryTest(async ct =>
+        {
+            var executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync(cancellationToken: ct);
+
+            var executionResult = await executor
+                .ExecuteAsync(@"
                         {
                             users {
                                 items {
@@ -40,28 +40,28 @@ namespace HotChocolate.Types
                                }
                             }
                         }",
-                        ct);
+                    ct);
 
-                executionResult.ToJson().MatchSnapshot();
-            });
-        }
+            executionResult.ToJson().MatchSnapshot();
+        });
+    }
 
-        [Fact(Skip = "Flaky test.")]
-        public async Task Execute_NestedOffsetPaging_With_Indirect_Cycles()
+    [Fact(Skip = "Flaky test.")]
+    public async Task Execute_NestedOffsetPaging_With_Indirect_Cycles()
+    {
+        await TryTest(async ct =>
         {
-            await TryTest(async ct =>
-            {
-                IRequestExecutor executor =
-                    await new ServiceCollection()
-                        .AddGraphQL()
-                        .AddQueryType<QueryType>()
-                        .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
-                        .Services
-                        .BuildServiceProvider()
-                        .GetRequestExecutorAsync(cancellationToken: ct);
+            var executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync(cancellationToken: ct);
 
-                IExecutionResult executionResult = await executor
-                    .ExecuteAsync(@"
+            var executionResult = await executor
+                .ExecuteAsync(@"
                     {
                         users {
                             items {
@@ -79,77 +79,76 @@ namespace HotChocolate.Types
                     }",
                     ct);
 
-                executionResult.ToJson().MatchSnapshot();
-            });
-        }
+            executionResult.ToJson().MatchSnapshot();
+        });
+    }
 
-        public class User
+    public class User
+    {
+        public string? FirstName { get; set; }
+
+        public List<User> Parents { get; set; } = default!;
+
+        public List<Group> Groups { get; set; } = default!;
+    }
+
+    public class Group
+    {
+        public string? FirstName { get; set; }
+
+        public List<User> Members { get; set; } = default!;
+    }
+
+    public class UserType : ObjectType<User>
+    {
+        protected override void Configure(IObjectTypeDescriptor<User> descriptor)
         {
-            public string? FirstName { get; set; }
+            descriptor
+                .Field(i => i.Parents)
+                .UseOffsetPaging<UserType>()
+                .Resolve(() => new[]
+                {
+                    new User { FirstName = "Mother" },
+                    new User { FirstName = "Father" }
+                });
 
-            public List<User> Parents { get; set; } = default!;
-
-            public List<Group> Groups { get; set; } = default!;
+            descriptor
+                .Field(i => i.Groups)
+                .UseOffsetPaging<GroupType>()
+                .Resolve(() => new[]
+                {
+                    new Group { FirstName = "Admin" }
+                });
         }
+    }
 
-        public class Group
+    public class GroupType : ObjectType<Group>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Group> descriptor)
         {
-            public string? FirstName { get; set; }
-
-            public List<User> Members { get; set; } = default!;
+            descriptor
+                .Field(i => i.Members)
+                .UseOffsetPaging<UserType>()
+                .Resolve(() => new[]
+                {
+                    new User { FirstName = "Mother" },
+                    new User { FirstName = "Father" }
+                });
         }
+    }
 
-        public class UserType : ObjectType<User>
+    public class Query
+    {
+        public List<User> Users => new() { new User() };
+    }
+
+    public class QueryType : ObjectType<Query>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
         {
-            protected override void Configure(IObjectTypeDescriptor<User> descriptor)
-            {
-                descriptor
-                    .Field(i => i.Parents)
-                    .UseOffsetPaging<UserType>()
-                    .Resolve(() => new[]
-                    {
-                        new User { FirstName = "Mother" },
-                        new User { FirstName = "Father" }
-                    });
-
-                descriptor
-                    .Field(i => i.Groups)
-                    .UseOffsetPaging<GroupType>()
-                    .Resolve(() => new[]
-                    {
-                        new Group { FirstName = "Admin" }
-                    });
-            }
-        }
-
-        public class GroupType : ObjectType<Group>
-        {
-            protected override void Configure(IObjectTypeDescriptor<Group> descriptor)
-            {
-                descriptor
-                    .Field(i => i.Members)
-                    .UseOffsetPaging<UserType>()
-                    .Resolve(() => new[]
-                    {
-                        new User { FirstName = "Mother" },
-                        new User { FirstName = "Father" }
-                    });
-            }
-        }
-
-        public class Query
-        {
-            public List<User> Users => new() { new User() };
-        }
-
-        public class QueryType : ObjectType<Query>
-        {
-            protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-            {
-                descriptor
-                    .Field(t => t.Users)
-                    .UseOffsetPaging<UserType>();
-            }
+            descriptor
+                .Field(t => t.Users)
+                .UseOffsetPaging<UserType>();
         }
     }
 }

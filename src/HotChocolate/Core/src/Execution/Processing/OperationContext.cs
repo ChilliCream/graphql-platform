@@ -82,7 +82,7 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
-    public ISelectionSet CollectFields(ISelection selection, ObjectType objectType)
+    public ISelectionSet CollectFields(ISelection selection, IObjectType objectType)
     {
         AssertInitialized();
         return Operation.GetSelectionSet(selection, objectType);

@@ -39,9 +39,4 @@ internal interface IWorkScheduler
     /// Execute the work.
     /// </summary>
     Task ExecuteAsync();
-
-    /// <summary>
-    /// Resets the execution state.
-    /// </summary>
-    void Reset();
 }

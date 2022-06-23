@@ -15,7 +15,7 @@ public class CancellationTests
         // arrange
         var query = new Query();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(query)
                 .AddGraphQL()

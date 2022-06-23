@@ -85,7 +85,7 @@ internal sealed class DirectiveContext : IDirectiveContext
         => _middlewareContext.ReportError(exception, configure);
 
     public IReadOnlyList<ISelection> GetSelections(
-        ObjectType typeContext,
+        IObjectType typeContext,
         ISelection? selection = null,
         bool allowInternals = false)
         => _middlewareContext.GetSelections(typeContext, selection, allowInternals);
