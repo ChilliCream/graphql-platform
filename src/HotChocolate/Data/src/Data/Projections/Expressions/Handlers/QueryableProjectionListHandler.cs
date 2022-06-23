@@ -21,7 +21,7 @@ public class QueryableProjectionListHandler
         ISelection selection)
     {
         IObjectField field = selection.Field;
-        if (field.Member is PropertyInfo { CanWrite: true })
+        if (field.Member is PropertyInfo)
         {
             Expression next = context.GetInstance().Append(field.Member);
 
@@ -38,7 +38,7 @@ public class QueryableProjectionListHandler
     {
         IObjectField field = selection.Field;
 
-        if (field.Member is not PropertyInfo { CanWrite: true })
+        if (field.Member is not PropertyInfo)
         {
             action = SelectionVisitor.Skip;
             return true;
@@ -92,7 +92,7 @@ public class QueryableProjectionListHandler
 
         Expression select = queryableScope.CreateSelection(context.PopInstance(), type);
 
-        parentScope.Level.Peek().Enqueue(Expression.Bind(field.Member, select));
+        parentScope.Level.Peek().Enqueue(select);
 
         action = SelectionVisitor.Continue;
         return true;

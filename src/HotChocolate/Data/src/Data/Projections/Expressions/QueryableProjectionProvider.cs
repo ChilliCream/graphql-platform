@@ -75,15 +75,17 @@ public class QueryableProjectionProvider : ProjectionProvider
             var visitor = new QueryableProjectionVisitor();
             visitor.Visit(visitorContext);
 
-            Expression<Func<TEntityType, TEntityType>> projection =
+            Expression<Func<TEntityType, object[]>> projection =
                 visitorContext.Project<TEntityType>();
 
             input = input switch
             {
                 IQueryable<TEntityType> q => q.Select(projection),
                 IEnumerable<TEntityType> e => e.AsQueryable().Select(projection),
+                /*
                 QueryableExecutable<TEntityType> ex =>
                     ex.WithSource(ex.Source.Select(projection)),
+                */
                 _ => input
             };
 

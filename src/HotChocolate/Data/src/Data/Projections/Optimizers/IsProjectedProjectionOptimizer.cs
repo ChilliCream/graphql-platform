@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -18,8 +19,8 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
         Selection selection)
     {
         if (!(context.Type is ObjectType type &&
-            type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out object? fieldsObj) &&
-            fieldsObj is string[] fields))
+                type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out object? fieldsObj) &&
+                fieldsObj is string[] fields))
         {
             return selection;
         }
@@ -65,6 +66,65 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
                 internalSelection: true);
 
             context.Fields[alias] = compiledSelection;
+        }
+
+        return selection;
+    }
+}
+
+public class RewriteToIndexerOptimizer : IProjectionOptimizer
+{
+    public bool CanHandle(ISelection field) => field.DeclaringType is ObjectType;
+
+    public Selection RewriteSelection(
+        SelectionOptimizerContext context,
+        Selection selection)
+    {
+        for (var i = 0; i < context.SelectionSet.Selections.Count; i++)
+        {
+            ISelectionNode selectionNode = context.SelectionSet.Selections[i];
+            if (selectionNode is FieldNode fn &&
+                selection.ResponseName == (fn.Alias?.Value ?? fn.Name.Value))
+            {
+                // TODO check if this really works
+                var index = i;
+                if (selection.Strategy == SelectionExecutionStrategy.Pure)
+                {
+                    return new Selection(
+                        selection.Id,
+                        selection.DeclaringType,
+                        selection.Field,
+                        selection.SyntaxNode,
+                        null,
+                        c => c.Parent<object[]>()[index],
+                        arguments: selection.Arguments,
+                        internalSelection: false);
+                }
+                else
+                {
+                    FieldDelegate resolverPipeline =
+                        selection.ResolverPipeline ??
+                        context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
+
+                    FieldDelegate WrappedPipeline(FieldDelegate next) =>
+                        ctx =>
+                        {
+                            ctx.Result = ctx.Parent<object[]>()[index];
+                            return next(ctx);
+                        };
+
+                    resolverPipeline = WrappedPipeline(resolverPipeline);
+
+                    return new Selection(
+                        selection.Id,
+                        selection.DeclaringType,
+                        selection.Field,
+                        selection.SyntaxNode,
+                        resolverPipeline,
+                        arguments: selection.Arguments,
+                        internalSelection: false);
+                }
+            }
         }
 
         return selection;

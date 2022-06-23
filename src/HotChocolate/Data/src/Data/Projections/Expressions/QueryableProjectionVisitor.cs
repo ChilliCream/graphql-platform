@@ -29,7 +29,7 @@ public class QueryableProjectionVisitor
 
             context.PushInstance(
                 Expression.Convert(context.GetInstance(), objectType.RuntimeType));
-            scope.Level.Push(new Queue<MemberAssignment>());
+            scope.Level.Push(new Queue<Expression>());
 
             ISelectionVisitorAction res =
                 base.VisitObjectType(field, objectType, selectionSet, context);

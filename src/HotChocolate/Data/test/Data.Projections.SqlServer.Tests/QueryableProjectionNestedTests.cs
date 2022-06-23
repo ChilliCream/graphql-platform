@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Data.Projections.Extensions;
 using HotChocolate.Execution;
@@ -139,8 +140,6 @@ public class QueryableProjectionNestedTests
     private static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Bar>().HasOne(x => x.Foo);
-        modelBuilder.Entity<Bar>().Ignore(x => x.NotSettable);
-        modelBuilder.Entity<Bar>().Ignore(x => x.NotSettableList);
     }
 
     public class Foo
@@ -160,7 +159,7 @@ public class QueryableProjectionNestedTests
 
         public Foo Method() => new() { BarString = "Worked" };
 
-        public Foo[] NotSettableList { get; } =
+        public List<Foo> NotSettableList { get; } =new()
         {
             new() { BarString = "Worked" }
         };

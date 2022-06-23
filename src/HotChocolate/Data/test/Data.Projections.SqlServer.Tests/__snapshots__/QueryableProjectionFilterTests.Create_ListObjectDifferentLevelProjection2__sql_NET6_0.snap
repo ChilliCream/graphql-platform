@@ -1,0 +1,33 @@
+﻿.param set @__p_0 'a'
+.param set @__p_1 'b'
+.param set @__p_2 'c'
+.param set @__p_3 'd'
+
+SELECT 1, "d"."Id", "f"."Id", "t"."c", "t"."BarString", "t"."BarShort", "t"."Id", "t"."Id0", "t0"."c", "t0"."BarShort", "t0"."Id", "t0"."Id0", "t1"."c", "t1"."BarString", "t1"."BarShort", "t1"."Id", "t1"."Id0", "t2"."c", "t2"."BarShort", "t2"."Id", "t2"."Id0"
+FROM "Data" AS "d"
+INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+LEFT JOIN (
+    SELECT 1 AS "c", "f0"."BarString", "f0"."BarShort", "b"."Id", "f0"."Id" AS "Id0", "b"."FooId"
+    FROM "BarDeep" AS "b"
+    INNER JOIN "FooDeep" AS "f0" ON "b"."FooId1" = "f0"."Id"
+    WHERE "f0"."BarString" = @__p_0
+) AS "t" ON "f"."Id" = "t"."FooId"
+LEFT JOIN (
+    SELECT 1 AS "c", "f1"."BarShort", "b0"."Id", "f1"."Id" AS "Id0", "b0"."FooId"
+    FROM "BarDeep" AS "b0"
+    INNER JOIN "FooDeep" AS "f1" ON "b0"."FooId1" = "f1"."Id"
+    WHERE "f1"."BarString" = @__p_1
+) AS "t0" ON "f"."Id" = "t0"."FooId"
+LEFT JOIN (
+    SELECT 1 AS "c", "f2"."BarString", "f2"."BarShort", "b1"."Id", "f2"."Id" AS "Id0", "b1"."FooId"
+    FROM "BarDeep" AS "b1"
+    INNER JOIN "FooDeep" AS "f2" ON "b1"."FooId1" = "f2"."Id"
+    WHERE "f2"."BarString" = @__p_2
+) AS "t1" ON "f"."Id" = "t1"."FooId"
+LEFT JOIN (
+    SELECT 1 AS "c", "f3"."BarShort", "b2"."Id", "f3"."Id" AS "Id0", "b2"."FooId"
+    FROM "BarDeep" AS "b2"
+    INNER JOIN "FooDeep" AS "f3" ON "b2"."FooId1" = "f3"."Id"
+    WHERE "f3"."BarString" = @__p_3
+) AS "t2" ON "f"."Id" = "t2"."FooId"
+ORDER BY "d"."Id", "f"."Id", "t"."Id", "t"."Id0", "t0"."Id", "t0"."Id0", "t1"."Id", "t1"."Id0", "t2"."Id"

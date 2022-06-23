@@ -1,2 +1,2 @@
-﻿SELECT 1
+﻿SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"

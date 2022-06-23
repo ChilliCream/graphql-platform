@@ -24,7 +24,7 @@ public class QueryableProjectionFieldHandler
         Expression nestedProperty;
         Type memberType;
 
-        if (field.Member is PropertyInfo { CanWrite: true } propertyInfo)
+        if (field.Member is PropertyInfo propertyInfo)
         {
             memberType = propertyInfo.PropertyType;
             nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
@@ -88,7 +88,7 @@ public class QueryableProjectionFieldHandler
 
         parentScope.Level
             .Peek()
-            .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
+            .Enqueue(NotNullAndAlso(nestedProperty, memberInit, typeof(object[])));
 
         action = SelectionVisitor.Continue;
         return true;
