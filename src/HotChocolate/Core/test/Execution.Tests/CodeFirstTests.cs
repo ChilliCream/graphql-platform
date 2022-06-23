@@ -25,8 +25,7 @@ public class CodeFirstTests
             .Create();
 
         // act
-        var result =
-            await schema.MakeExecutable().ExecuteAsync("{ test }");
+        var result = await schema.MakeExecutable().ExecuteAsync("{ test }");
 
         // assert
         Assert.Null(Assert.IsType<QueryResult>(result).Errors);

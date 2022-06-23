@@ -22,6 +22,7 @@ public sealed partial class OperationCompiler
     private readonly Dictionary<string, object?> _contextData = new();
     private readonly List<IOperationOptimizer> _operationOptimizers = new();
     private readonly List<ISelectionSetOptimizer> _selectionSetOptimizers = new();
+    private readonly List<Selection> _selections = new();
     private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
     private CompilerContext? _deferContext;
     private int _nextSelectionId;
@@ -97,6 +98,7 @@ public sealed partial class OperationCompiler
             _contextData.Clear();
             _operationOptimizers.Clear();
             _selectionSetOptimizers.Clear();
+            _selections.Clear();
 
             _includeConditions = Array.Empty<IncludeCondition>();
             _deferContext = null;
@@ -114,6 +116,8 @@ public sealed partial class OperationCompiler
 
         if (_operationOptimizers.Count == 0)
         {
+            CompleteResolvers(schema);
+
             // if we do not have any optimizers we will copy
             // the variants and seal them in one go.
             foreach (var item in _selectionVariants)
@@ -144,6 +148,8 @@ public sealed partial class OperationCompiler
                 _operationOptimizers[i].OptimizeOperation(context);
             }
 
+            CompleteResolvers(schema);
+
             for (var i = 0; i < variants.Length; i++)
             {
                 variants[i].Seal();
@@ -158,6 +164,21 @@ public sealed partial class OperationCompiler
             variants,
             _includeConditions,
             new Dictionary<string, object?>(_contextData));
+    }
+
+    private void CompleteResolvers(ISchema schema)
+    {
+        foreach (var selection in _selections)
+        {
+            if (selection.ResolverPipeline is null && selection.PureResolver is null)
+            {
+                var field = selection.Field;
+                var syntaxNode = selection.SyntaxNode;
+                var resolver = CreateFieldMiddleware(schema, field, syntaxNode);
+                var pureResolver = TryCreatePureField(field, syntaxNode);
+                selection.SetResolvers(resolver, pureResolver);
+            }
+        }
     }
 
     private void CompileSelectionSet(CompilerContext context)
@@ -188,7 +209,6 @@ public sealed partial class OperationCompiler
             // if the field of the selection returns a composite type we will traverse
             // the child selection-sets as well.
             var fieldType = selection.Type.NamedType();
-            var selectionSetId = -1;
 
             if (selection.IsConditional)
             {
@@ -204,7 +224,7 @@ public sealed partial class OperationCompiler
                     throw QueryCompiler_CompositeTypeSelectionSet(selection.SyntaxNode);
                 }
 
-                selectionSetId = GetOrCreateSelectionSetId(selection.SelectionSet);
+                var selectionSetId = GetOrCreateSelectionSetId(selection.SelectionSet);
                 var selectionVariants = GetOrCreateSelectionVariants(selectionSetId);
                 var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
@@ -222,9 +242,8 @@ public sealed partial class OperationCompiler
                 }
             }
 
-            // we now seal the selection to make it immutable.
-            selection.Seal(selectionSetId);
             selections[selectionIndex++] = selection;
+            _selections.Add(selection);
         }
 
         if (context.Fragments.Count > 0)
@@ -341,9 +360,6 @@ public sealed partial class OperationCompiler
                                 selection.SelectionSet.Selections))
                         : selection,
                     responseName: responseName,
-                    // FIX: selection must be bound later
-                    resolverPipeline: CreateFieldMiddleware(context.Schema, field, selection),
-                    pureResolver: TryCreatePureField(field, selection),
                     strategy: field.IsParallelExecutable
                         ? SelectionExecutionStrategy.Default
                         : SelectionExecutionStrategy.Serial,
