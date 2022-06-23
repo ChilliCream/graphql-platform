@@ -18,7 +18,7 @@ internal static class ThrowHelper
                     variableDefinition.Variable.Name.Value)
                 .SetCode(ErrorCodes.Execution.MustBeInputType)
                 .SetExtension("variable", variableDefinition.Variable.Name.Value)
-                .SetExtension("type", variableDefinition.Type.ToString()!)
+                .SetExtension("type", variableDefinition.Type.ToString())
                 .AddLocation(variableDefinition)
                 .Build());
     }
@@ -312,8 +312,17 @@ internal static class ThrowHelper
     public static GraphQLException OneOfFieldMustBeNonNull(
         FieldCoordinate field)
         => new(ErrorBuilder.New()
-            .SetMessage($"Value for oneof field {field.FieldName} must be non-null.")
+            .SetMessage(string.Format(ThrowHelper_OneOfFieldMustBeNonNull, field.FieldName))
             .SetCode(ErrorCodes.Execution.OneOfFieldMustBeNonNull)
             .SetExtension(nameof(field), field.ToString())
             .Build());
+
+    public static ArgumentException SelectionSet_TypeContextInvalid(IObjectType typeContext)
+        => new(string.Format(SelectionVariants_TypeContextInvalid, typeContext.Name));
+
+    public static InvalidOperationException SelectionSet_TypeAlreadyAdded(IObjectType typeContext)
+        => new(string.Format(ThrowHelper_SelectionSet_TypeAlreadyAdded, typeContext.Name));
+
+    public static ArgumentException Operation_NoSelectionSet()
+        => new("The specified selection does not have a selection set.");
 }

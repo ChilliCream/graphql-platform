@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Properties.Resources;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -40,7 +41,7 @@ internal sealed class SelectionVariants : ISelectionVariants
         {
             return _map.TryGetValue(typeContext, out var selections)
                 ? selections
-                : SelectionSet.Empty;
+                : throw SelectionSet_TypeContextInvalid(typeContext);
         }
 
         if (ReferenceEquals(_firstType, typeContext))
@@ -53,7 +54,7 @@ internal sealed class SelectionVariants : ISelectionVariants
             return _secondSelections!;
         }
 
-        return SelectionSet.Empty;
+        throw SelectionSet_TypeContextInvalid(typeContext);
     }
 
     internal bool ContainsSelectionSet(IObjectType typeContext)
@@ -84,7 +85,7 @@ internal sealed class SelectionVariants : ISelectionVariants
     {
         if (_readOnly)
         {
-            throw new NotSupportedException(Resources.SelectionVariants_ReadOnly);
+            throw new NotSupportedException(SelectionVariants_ReadOnly);
         }
 
         var selectionSet = new SelectionSet(selections, fragments, isConditional);
@@ -104,8 +105,7 @@ internal sealed class SelectionVariants : ISelectionVariants
             {
                 if (typeContext == _firstType)
                 {
-                    throw new InvalidOperationException(
-                        $"The type {typeContext.Name} was already added.");
+                    throw SelectionSet_TypeAlreadyAdded(typeContext);
                 }
 
                 _secondType = typeContext;
@@ -130,14 +130,20 @@ internal sealed class SelectionVariants : ISelectionVariants
 
     internal void Seal()
     {
-        _readOnly = true;
-
-        if (_map is not null)
+        if (!_readOnly)
         {
-            foreach (var selectionSet in _map.Values)
+            _firstSelections?.Seal();
+            _secondSelections?.Seal();
+
+            if (_map is not null)
             {
-                selectionSet.Seal(Id);
+                foreach (var selectionSet in _map.Values)
+                {
+                    selectionSet.Seal();
+                }
             }
+
+            _readOnly = true;
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -73,9 +74,9 @@ internal sealed class Operation : IOperation
 
         var selectionSetId = ((Selection)selection).SelectionSetId;
 
-        if (selectionSetId == -1)
+        if (selectionSetId is -1)
         {
-            throw new ArgumentException("The specified selection does not have a selection set.");
+            throw Operation_NoSelectionSet();
         }
 
         return _selectionVariants[selectionSetId].GetSelectionSet(typeContext);

@@ -253,11 +253,20 @@ public class Selection : ISelection
         PureResolver = pureResolver;
     }
 
-    internal void Seal(int selectionSetId)
+    internal void SetSelectionSetId(int selectionSetId)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        SelectionSetId = selectionSetId;
+    }
+
+    internal void Seal()
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
-            SelectionSetId = selectionSetId;
             _flags |= Flags.Sealed;
         }
     }

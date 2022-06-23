@@ -16,6 +16,22 @@ internal sealed partial class ResolverTask
             {
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
+
+                switch (_taskBuffer.Count)
+                {
+                    case 0:
+                        break;
+
+                    case 1:
+                        _operationContext.Scheduler.Register(_taskBuffer[0]);
+                        _taskBuffer.Clear();
+                        break;
+
+                    default:
+                        _operationContext.Scheduler.Register(_taskBuffer);
+                        _taskBuffer.Clear();
+                        break;
+                }
             }
 
             Status = _completionStatus;

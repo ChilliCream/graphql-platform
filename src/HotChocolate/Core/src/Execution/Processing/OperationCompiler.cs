@@ -209,6 +209,7 @@ public sealed partial class OperationCompiler
             // if the field of the selection returns a composite type we will traverse
             // the child selection-sets as well.
             var fieldType = selection.Type.NamedType();
+            var selectionSetId = -1;
 
             if (selection.IsConditional)
             {
@@ -224,7 +225,7 @@ public sealed partial class OperationCompiler
                     throw QueryCompiler_CompositeTypeSelectionSet(selection.SyntaxNode);
                 }
 
-                var selectionSetId = GetOrCreateSelectionSetId(selection.SelectionSet);
+                selectionSetId = GetOrCreateSelectionSetId(selection.SelectionSet);
                 var selectionVariants = GetOrCreateSelectionVariants(selectionSetId);
                 var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
@@ -242,6 +243,7 @@ public sealed partial class OperationCompiler
                 }
             }
 
+            selection.SetSelectionSetId(selectionSetId);
             selections[selectionIndex++] = selection;
             _selections.Add(selection);
         }

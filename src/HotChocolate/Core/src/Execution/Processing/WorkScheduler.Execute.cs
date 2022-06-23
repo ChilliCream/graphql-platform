@@ -11,7 +11,7 @@ internal sealed partial class WorkScheduler
     public async Task ExecuteAsync()
     {
         AssertNotPooled();
-        
+
         try
         {
             await ExecuteInternalAsync(_buffer);
@@ -24,7 +24,7 @@ internal sealed partial class WorkScheduler
 
     private async Task ExecuteInternalAsync(IExecutionTask?[] buffer)
     {
-        RESTART:
+RESTART:
         _diagnosticEvents.StartProcessing(_requestContext);
 
         try
@@ -78,8 +78,6 @@ internal sealed partial class WorkScheduler
             }
         }
 
-        _ct.ThrowIfCancellationRequested();
-
         if (!_isCompleted)
         {
             lock (_sync)
@@ -108,17 +106,12 @@ internal sealed partial class WorkScheduler
             await _pause;
             goto RESTART;
         }
+
+        _ct.ThrowIfCancellationRequested();
     }
-
-
 
     private int TryTake(IExecutionTask?[] buffer)
     {
-        if (_isCompleted || _ct.IsCancellationRequested)
-        {
-            return default;
-        }
-
         var size = 0;
 
         lock (_sync)
