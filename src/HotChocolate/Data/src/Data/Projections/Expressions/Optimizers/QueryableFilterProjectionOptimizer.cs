@@ -16,7 +16,12 @@ public sealed class QueryableFilterProjectionOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         Selection selection)
     {
-        var resolverPipeline =
+        if (selection.Strategy is SelectionExecutionStrategy.Pure)
+        {
+            return selection;
+        }
+
+        FieldDelegate resolverPipeline =
             selection.ResolverPipeline ??
             context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
 

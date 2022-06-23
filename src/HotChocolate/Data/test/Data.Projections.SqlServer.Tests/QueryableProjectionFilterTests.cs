@@ -22,7 +22,7 @@ public class QueryableProjectionFilterTests
                     new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
                 ObjectArray = new List<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "b" } }
                 }
             }
         },
@@ -35,7 +35,7 @@ public class QueryableProjectionFilterTests
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "c" } },
                 ObjectArray = new List<BarDeep>
                 {
                     new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
@@ -184,6 +184,79 @@ public class QueryableProjectionFilterTests
                                         }) {
                                         foo {
                                             barString
+                                            barShort
+                                        }
+                                    }
+                                }
+                            }
+                        }")
+                .Create());
+
+        res1.MatchSqlSnapshot();
+    }
+
+    [Fact]
+    public async Task Create_ListObjectDifferentLevelProjection_Alias()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
+                        {
+                            root {
+                                foo {
+                                    a: objectArray(
+                                        where: {
+                                            foo: {
+                                                barString: {
+                                                    eq: ""a""
+                                                }
+                                            }
+                                        }) {
+                                        foo {
+                                            barString
+                                            barShort
+                                        }
+                                    }
+                                    b: objectArray(
+                                        where: {
+                                            foo: {
+                                                barString: {
+                                                    eq: ""b""
+                                                }
+                                            }
+                                        }) {
+                                        foo {
+                                            barShort
+                                        }
+                                    }
+                                    c: objectArray(
+                                        where: {
+                                            foo: {
+                                                barString: {
+                                                    eq: ""c""
+                                                }
+                                            }
+                                        }) {
+                                        foo {
+                                            barString
+                                            barShort
+                                        }
+                                    }
+                                    d: objectArray(
+                                        where: {
+                                            foo: {
+                                                barString: {
+                                                    eq: ""d""
+                                                }
+                                            }
+                                        }) {
+                                        foo {
                                             barShort
                                         }
                                     }

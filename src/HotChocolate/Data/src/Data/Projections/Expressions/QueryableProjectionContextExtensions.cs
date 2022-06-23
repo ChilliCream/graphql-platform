@@ -33,7 +33,7 @@ public static class QueryableProjectionContextExtensions
         return false;
     }
 
-    public static Expression<Func<T, T>> Project<T>(this QueryableProjectionContext context)
+    public static Expression<Func<T, object[]>> Project<T>(this QueryableProjectionContext context)
     {
         if (context.TryGetQueryableScope(out var scope))
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Data.Projections.Handlers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -27,7 +28,10 @@ public abstract class ProjectionProvider
     private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors =
         new List<IProjectionFieldInterceptor>();
 
-    private readonly IList<IProjectionOptimizer> _optimizer = new List<IProjectionOptimizer>();
+    private readonly IList<IProjectionOptimizer> _optimizer = new List<IProjectionOptimizer>()
+    {
+        new RewriteToIndexerOptimizer()
+    };
 
     public const string ProjectionContextIdentifier = "ProjectionMiddleware";
 

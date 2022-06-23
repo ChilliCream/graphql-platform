@@ -20,7 +20,7 @@ public class QueryableProjectionListHandler
         ISelection selection)
     {
         var field = selection.Field;
-        if (field.Member is PropertyInfo { CanWrite: true })
+        if (field.Member is PropertyInfo)
         {
             var next = context.GetInstance().Append(field.Member);
 
@@ -37,10 +37,9 @@ public class QueryableProjectionListHandler
     {
         var field = selection.Field;
 
-        if (field.Member is not PropertyInfo { CanWrite: true })
+        if (field.Member is not PropertyInfo)
         {
             action = SelectionVisitor.Skip;
-
             return true;
         }
 
@@ -54,7 +53,6 @@ public class QueryableProjectionListHandler
         context.AddScope(clrType);
 
         action = SelectionVisitor.Continue;
-
         return true;
     }
 
@@ -68,7 +66,6 @@ public class QueryableProjectionListHandler
         if (field.Member is null)
         {
             action = null;
-
             return false;
         }
 
@@ -78,7 +75,6 @@ public class QueryableProjectionListHandler
             !context.TryGetQueryableScope(out var parentScope))
         {
             action = null;
-
             return false;
         }
 
@@ -88,7 +84,6 @@ public class QueryableProjectionListHandler
             (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0))
         {
             action = SelectionVisitor.Continue;
-
             return true;
         }
 
@@ -96,10 +91,9 @@ public class QueryableProjectionListHandler
 
         var select = queryableScope.CreateSelection(context.PopInstance(), type);
 
-        parentScope.Level.Peek().Enqueue(Expression.Bind(field.Member, select));
+        parentScope.Level.Peek().Enqueue(select);
 
         action = SelectionVisitor.Continue;
-
         return true;
     }
 }

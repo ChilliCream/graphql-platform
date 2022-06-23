@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Projections.Expressions;
 public class QueryableProjectionScope
     : ProjectionScope<Expression>
 {
-    private Dictionary<Type, Queue<MemberAssignment>>? _abstractType;
+    private Dictionary<Type, Queue<Expression>>? _abstractType;
 
     public QueryableProjectionScope(
         Type type,
@@ -17,8 +17,8 @@ public class QueryableProjectionScope
         Parameter = Expression.Parameter(type, parameterName);
         Instance.Push(Parameter);
         RuntimeType = type;
-        Level = new Stack<Queue<MemberAssignment>>();
-        Level.Push(new Queue<MemberAssignment>());
+        Level = new Stack<Queue<Expression>>();
+        Level.Push(new Queue<Expression>());
     }
 
     public Type RuntimeType { get; }
@@ -27,21 +27,21 @@ public class QueryableProjectionScope
     /// Contains a queue for each level of the AST. The queues contain all operations of a level
     /// A new queue is needed when entering new <see cref="ObjectValueNode"/>
     ///</summary>
-    public Stack<Queue<MemberAssignment>> Level { get; }
+    public Stack<Queue<Expression>> Level { get; }
 
     public ParameterExpression Parameter { get; }
 
-    public void AddAbstractType(Type type, Queue<MemberAssignment> memberAssignments)
+    public void AddAbstractType(Type type, Queue<Expression> initializers)
     {
-        _abstractType ??= new Dictionary<Type, Queue<MemberAssignment>>();
-        _abstractType[type] = memberAssignments;
+        _abstractType ??= new Dictionary<Type, Queue<Expression>>();
+        _abstractType[type] = initializers;
     }
 
-    public IEnumerable<KeyValuePair<Type, Queue<MemberAssignment>>> GetAbstractTypes()
+    public IEnumerable<KeyValuePair<Type, Queue<Expression>>> GetAbstractTypes()
     {
         if (_abstractType is not null)
         {
-            foreach (var elm in _abstractType)
+            foreach (KeyValuePair<Type, Queue<Expression>> elm in _abstractType)
             {
                 yield return elm;
             }

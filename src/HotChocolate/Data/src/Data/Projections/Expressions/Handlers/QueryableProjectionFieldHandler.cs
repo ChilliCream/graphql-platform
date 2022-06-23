@@ -23,7 +23,7 @@ public class QueryableProjectionFieldHandler
         Expression nestedProperty;
         Type memberType;
 
-        if (field.Member is PropertyInfo { CanWrite: true } propertyInfo)
+        if (field.Member is PropertyInfo propertyInfo)
         {
             memberType = propertyInfo.PropertyType;
             nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
@@ -31,7 +31,6 @@ public class QueryableProjectionFieldHandler
         else
         {
             action = SelectionVisitor.Skip;
-
             return true;
         }
 
@@ -43,7 +42,6 @@ public class QueryableProjectionFieldHandler
         context.PushInstance(nestedProperty);
 
         action = SelectionVisitor.Continue;
-
         return true;
     }
 
@@ -57,7 +55,6 @@ public class QueryableProjectionFieldHandler
         if (field.Member is null)
         {
             action = null;
-
             return false;
         }
 
@@ -67,7 +64,6 @@ public class QueryableProjectionFieldHandler
         if (scope is not QueryableProjectionScope queryableScope)
         {
             action = null;
-
             return false;
         }
 
@@ -86,25 +82,14 @@ public class QueryableProjectionFieldHandler
         else
         {
             action = SelectionVisitor.Skip;
-
             return true;
         }
 
-        if (context.InMemory)
-        {
-            parentScope.Level
-                .Peek()
-                .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
-        }
-        else
-        {
-            parentScope.Level
-                .Peek()
-                .Enqueue(Expression.Bind(field.Member, memberInit));
-        }
+        parentScope.Level
+            .Peek()
+            .Enqueue(NotNullAndAlso(nestedProperty, memberInit, typeof(object[])));
 
         action = SelectionVisitor.Continue;
-
         return true;
     }
 }

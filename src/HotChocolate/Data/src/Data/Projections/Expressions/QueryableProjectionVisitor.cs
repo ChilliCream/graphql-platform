@@ -24,8 +24,9 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
                 return Continue;
             }
 
-            context.PushInstance(Expression.Convert(context.GetInstance(), objectType.RuntimeType));
-            scope.Level.Push(new Queue<MemberAssignment>());
+            context.PushInstance(
+                Expression.Convert(context.GetInstance(), objectType.RuntimeType));
+            scope.Level.Push(new Queue<Expression>());
 
             var res = base.VisitObjectType(field, objectType, selection, context);
 

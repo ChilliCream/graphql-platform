@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -40,13 +39,15 @@ public class QueryableProjectionScalarHandler
             context.Scopes.Peek() is QueryableProjectionScope closure &&
             field.Member is PropertyInfo member)
         {
-            var instance = closure.Instance.Peek();
+            Expression instance = closure.Instance.Peek();
+            Expression value = Expression.Property(instance, member);
 
-            closure.Level.Peek()
-                .Enqueue(
-                    Expression.Bind(
-                        member,
-                        Expression.Property(instance, member)));
+            if (member.GetReturnType().IsValueType)
+            {
+                value = Expression.Convert(value, typeof(object));
+            }
+
+            closure.Level.Peek().Enqueue(value);
 
             action = SelectionVisitor.Continue;
             return true;
