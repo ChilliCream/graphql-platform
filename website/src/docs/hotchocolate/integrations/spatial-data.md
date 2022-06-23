@@ -20,20 +20,25 @@ can return NetTopologySuite shapes and they will be transformed into GeoJSON.
 
 # Getting Started
 
-You first need to add the package reference to your project. You can do this with the `dotnet` cli:
+You first need to add two package references to your project. You can do this with the `dotnet` cli:
 
 ```bash
 dotnet add package HotChocolate.Spatial
+dotnet add package HotChocolate.Data.Spatial 
 ```
 
 > ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
-To make the schema recognize the spatial types you need to register them on the schema builder.
+To make the schema recognize the spatial types you need to register them on the schema builder. You also need to register spatial filtering and projections.
 
 ```csharp
 services
     .AddGraphQLServer()
-    .AddSpatialTypes();
+    .AddSpatialTypes()
+    .AddFiltering()
+    .AddProjections()
+    .AddSpatialFiltering()
+    .AddSpatialProjections();
 ```
 
 All NetToplogySuite runtime types are now bound to the corresponding GeoJSON type.
