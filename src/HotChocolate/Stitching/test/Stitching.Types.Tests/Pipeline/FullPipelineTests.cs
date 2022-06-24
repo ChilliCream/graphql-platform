@@ -2,10 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
-using HotChocolate.Stitching.Types.Pipeline.ApplyMissingBindings;
-using HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
-using HotChocolate.Stitching.Types.Pipeline.PrepareDocuments;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -14,7 +10,7 @@ namespace HotChocolate.Stitching.Types.Pipeline;
 public class FullPipelineTests
 {
     [Fact]
-    public async Task Apply_Local_Remove()
+    public async Task Apply_Local_Rename()
     {
         // arrange
         MergeSchema pipeline = CreatePipeline();
