@@ -937,7 +937,7 @@ public class SyntaxRewriter<TContext>
         VariableNode node,
         TContext context)
     {
-        NameNode name = RewriteName(node.Name, context);
+        NameNode name = RewriteNode(node.Name, context);
 
         if (!ReferenceEquals(name, node.Name))
         {
