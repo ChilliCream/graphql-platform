@@ -83,18 +83,19 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         FieldMiddleware middleware)
         => builder
             .TryAddTypeInterceptor(typeof(ApplyFieldMiddlewareInterceptor))
-            .ConfigureSchema(
-                b => b.SetContextData(ApplyFieldMiddlewareInterceptor.ContextKey,
-                obj =>
-                {
-                    if (obj is not FieldMiddlewareLookup lookup)
+            .ConfigureSchema(b => b
+                .SetContextData(
+                    ApplyFieldMiddlewareInterceptor.ContextKey,
+                    obj =>
                     {
-                        lookup = new FieldMiddlewareLookup();
-                    }
+                        if (obj is not FieldMiddlewareLookup lookup)
+                        {
+                            lookup = new FieldMiddlewareLookup();
+                        }
 
-                    lookup.RegisterFieldMiddleware(fieldReference, middleware);
-                    return lookup;
-                }));
+                        lookup.RegisterFieldMiddleware(fieldReference, middleware);
+                        return lookup;
+                    }));
 
     private sealed class FieldMiddlewareLookup
     {
