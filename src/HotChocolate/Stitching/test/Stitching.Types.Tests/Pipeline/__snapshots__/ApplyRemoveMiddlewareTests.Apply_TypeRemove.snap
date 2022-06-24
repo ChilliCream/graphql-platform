@@ -1,0 +1,3 @@
+﻿extend schema @_hc_service(name: "abc") {
+
+}
