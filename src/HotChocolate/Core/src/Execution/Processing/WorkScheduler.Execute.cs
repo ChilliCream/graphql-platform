@@ -78,32 +78,10 @@ RESTART:
             }
         }
 
-        if (!_isCompleted)
-        {
-            lock (_sync)
-            {
-                if (!_isCompleted)
-                {
-                    var isWaitingForTaskCompletion = _work.HasRunningTasks && _work.IsEmpty;
-                    var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
+        TryDispatchOrComplete();
 
-                    if (isWaitingForTaskCompletion && _hasBatches)
-                    {
-                        _hasBatches = false;
-                        _pause.Reset();
-                        _batchDispatcher.BeginDispatch(_ct);
-                    }
-                    else if (!isWaitingForTaskCompletion && !_hasBatches && !hasWork)
-                    {
-                        _isCompleted = true;
-                    }
-                }
-            }
-        }
-
-        if (!_isCompleted)
+        if (await TryPauseAsync().ConfigureAwait(false))
         {
-            await _pause;
             goto RESTART;
         }
 
@@ -182,5 +160,44 @@ RESTART:
         {
             _result.AddError(error);
         }
+    }
+
+    private void TryDispatchOrComplete()
+    {
+        if (!_isCompleted)
+        {
+            lock (_sync)
+            {
+                if (!_isCompleted)
+                {
+                    var isWaitingForTaskCompletion = _work.HasRunningTasks && _work.IsEmpty;
+                    var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
+
+                    if (isWaitingForTaskCompletion && _hasBatches)
+                    {
+                        _hasBatches = false;
+                        _pause.Reset();
+                        _batchDispatcher.BeginDispatch(_ct);
+                    }
+                    else if (!isWaitingForTaskCompletion && !_hasBatches && !hasWork)
+                    {
+                        _isCompleted = true;
+                    }
+                }
+            }
+        }
+    }
+
+    private async ValueTask<bool> TryPauseAsync()
+    {
+        if (!_isCompleted)
+        {
+            if (_pause.IsPaused)
+            {
+                await _pause;
+            }
+            return true;
+        }
+        return false;
     }
 }

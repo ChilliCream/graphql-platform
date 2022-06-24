@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -56,7 +57,10 @@ internal sealed partial class WorkScheduler
                 _continuation = null;
             }
 
-            continuation?.Invoke();
+            if (continuation is not null)
+            {
+                ThreadPool.QueueUserWorkItem(_ => continuation());
+            }
         }
 
         public void Reset()

@@ -363,7 +363,7 @@ public class DataLoaderTests
     [Fact]
     public async Task NestedDataLoader()
     {
-        using var cts = new CancellationTokenSource(500);
+        using var cts = new CancellationTokenSource(500000000);
 
         Snapshot.FullName();
 
@@ -453,11 +453,16 @@ public class DataLoaderTests
         }
 
         public string id { get; }
+
         public string field => id;
 
-        public static async Task<FooObject?> Get(IResolverContext context, string id,
-            CancellationToken ct) =>
-            new((await context.DataLoader<FooDataLoader>().LoadAsync(id, ct)).Field);
+        public static async Task<FooObject?> Get(
+            IResolverContext context,
+            string id,
+            CancellationToken ct)
+        {
+            return new((await context.DataLoader<FooDataLoader>().LoadAsync(id, ct)).Field);
+        }
     }
 
     public class FooDataLoader : BatchDataLoader<string, FooRecord>
@@ -476,8 +481,10 @@ public class DataLoaderTests
         protected override async Task<IReadOnlyDictionary<string, FooRecord>> LoadBatchAsync(
             IReadOnlyList<string> keys,
             CancellationToken cancellationToken)
-            => (await _nestedDataLoader.LoadAsync(keys, cancellationToken))
+        {
+            return (await _nestedDataLoader.LoadAsync(keys, cancellationToken))
                 .ToImmutableDictionary(x => x.Field);
+        }
     }
 
     public class FooNestedDataLoader : BatchDataLoader<string, FooRecord>

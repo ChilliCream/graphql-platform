@@ -65,23 +65,14 @@ internal sealed partial  class WorkScheduler : IWorkScheduler
     public void Complete(IExecutionTask task)
     {
         AssertNotPooled();
-        
-        var hasWork = true;
 
         if (task.IsRegistered)
         {
+            // complete is thread-safe
             var work = task.IsSerial ? _serial : _work;
-
-            lock (task)
-            {
-                work.Complete();
-                hasWork = (!_work.IsEmpty && !_serial.IsEmpty) || _work.HasRunningTasks;
-            }
+            work.Complete();
         }
 
-        if (!hasWork)
-        {
-            _pause.TryContinue();
-        }
+        _pause.TryContinue();
     }
 }

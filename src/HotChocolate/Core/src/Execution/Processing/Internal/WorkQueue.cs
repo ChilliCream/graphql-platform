@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace HotChocolate.Execution.Processing.Internal;
 
@@ -18,8 +18,10 @@ internal sealed class WorkQueue
 
     public void Complete()
     {
-        Debug.Assert(_running > 0, "There are no running tasks.");
-        _running--;
+        if (Interlocked.Decrement(ref _running) < 0)
+        {
+            throw new InvalidOperationException();
+        }
     }
 
     public bool TryTake([MaybeNullWhen(false)] out IExecutionTask executionTask)
@@ -36,7 +38,7 @@ internal sealed class WorkQueue
 #else
         if (_stack.TryPop(out executionTask))
         {
-            _running++;
+            Interlocked.Increment(ref _running);
             return true;
         }
 #endif

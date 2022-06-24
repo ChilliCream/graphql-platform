@@ -17,13 +17,13 @@ public class Query
 
     public Bar Bar => new Bar();
 
-    public Task<string> GetWithDataLoader2(
+    public async Task<string> GetWithDataLoader2(
         string key,
         FieldNode fieldSelection,
         [DataLoader("fooBar")] TestDataLoader testDataLoader,
         CancellationToken cancellationToken)
     {
-        return testDataLoader.LoadAsync(key, cancellationToken);
+        return await testDataLoader.LoadAsync(key, cancellationToken);
     }
 
     public Task<string> GetDataLoaderWithInterface(

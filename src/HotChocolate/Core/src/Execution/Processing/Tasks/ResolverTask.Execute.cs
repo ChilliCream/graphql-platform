@@ -8,6 +8,8 @@ namespace HotChocolate.Execution.Processing.Tasks;
 
 internal sealed partial class ResolverTask
 {
+    private readonly string s = Guid.NewGuid().ToString("N");
+
     private async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         try
@@ -24,12 +26,10 @@ internal sealed partial class ResolverTask
 
                     case 1:
                         _operationContext.Scheduler.Register(_taskBuffer[0]);
-                        _taskBuffer.Clear();
                         break;
 
                     default:
                         _operationContext.Scheduler.Register(_taskBuffer);
-                        _taskBuffer.Clear();
                         break;
                 }
             }
@@ -50,9 +50,11 @@ internal sealed partial class ResolverTask
             Status = ExecutionTaskStatus.Faulted;
             _resolverContext.Result = null;
         }
-
-        _operationContext.Scheduler.Complete(this);
-        _objectPool.Return(this);
+        finally
+        {
+            _operationContext.Scheduler.Complete(this);
+            _objectPool.Return(this);
+        }
     }
 
     private async ValueTask<bool> TryExecuteAsync(CancellationToken cancellationToken)
