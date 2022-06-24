@@ -9,6 +9,6 @@ type Bar {
 
 type Foo {
   xyz: String @_hc_bind(to: "ServiceA", as: "abc")
+  zzz: Float @_hc_bind(to: "ServiceA") @_hc_bind(to: "ServiceB")
   abc: Int @_hc_bind(to: "ServiceB")
-  zzz: Float @_hc_bind(to: "ServiceB")
 }

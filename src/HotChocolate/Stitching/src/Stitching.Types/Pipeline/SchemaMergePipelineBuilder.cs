@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
 using HotChocolate.Stitching.Types.Pipeline.ApplyMissingBindings;
+using HotChocolate.Stitching.Types.Pipeline.ApplyRemove;
 using HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
 using HotChocolate.Stitching.Types.Pipeline.PrepareDocuments;
 
@@ -34,6 +35,11 @@ public sealed class SchemaMergePipelineBuilder
             .Use(next =>
             {
                 var middleware = new PrepareDocumentsMiddleware(next);
+                return context => middleware.InvokeAsync(context);
+            })
+            .Use(next =>
+            {
+                var middleware = new ApplyRemoveMiddleware(next);
                 return context => middleware.InvokeAsync(context);
             })
             .Use(next =>
