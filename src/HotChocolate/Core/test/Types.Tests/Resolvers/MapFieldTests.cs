@@ -67,7 +67,6 @@ public class MapFieldTests
             .MatchSnapshotAsync();
     }
 
-
     public class Middleware
     {
         public Task InvokeAsync(IMiddlewareContext context)
