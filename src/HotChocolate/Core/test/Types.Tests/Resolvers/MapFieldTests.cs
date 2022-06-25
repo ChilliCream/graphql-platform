@@ -25,7 +25,7 @@ public class MapFieldTests
                 _ => context =>
                 {
                     context.Result = "Correct";
-                    return ValueTask.CompletedTask;
+                    return default;
                 })
             .ExecuteRequestAsync("{ foo }")
             .MatchSnapshotAsync();
