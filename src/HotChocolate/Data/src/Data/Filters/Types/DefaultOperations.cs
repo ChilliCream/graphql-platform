@@ -40,4 +40,6 @@ public static class DefaultFilterOperations
     public const int Like = 28;
 
     public const int Data = 29;
+
+    public const int CaseInsensitiveContains = 100;
 }

@@ -166,31 +166,6 @@ public static class FilterConventionDescriptorExtensions
         }
     }
 
-    /// <summary>
-    /// Adds a case insensitive contains filter "icontains" to the auto generated list of filters.
-    /// </summary>
-    /// <param name="descriptor">The descriptor where the handlers are registered</param>
-    /// <returns>The amended descriptor</returns>
-    public static IFilterConventionDescriptor AddCaseInsensitiveContains(
-            this IFilterConventionDescriptor descriptor)
-    {
-        descriptor
-            .Configure<StringOperationFilterInputType>(
-                x => x.Operation(ExtendedFilterOperations.CaseInsensitiveContains).Type<StringType>());
-
-        descriptor
-            .Operation(ExtendedFilterOperations.CaseInsensitiveContains)
-            .Name("icontains")
-            .Description("Contains ignoring case");
-
-        QueryableFilterProviderExtension extension =
-            new(x => x.AddFieldHandler<QueryableStringCaseInsensitiveContainsHandler>());
-
-        descriptor.AddProviderExtension(extension);
-
-        return descriptor;
-    }
-
     private static IFilterConventionDescriptor BindComparableType<T>(
         this IFilterConventionDescriptor descriptor)
         where T : struct

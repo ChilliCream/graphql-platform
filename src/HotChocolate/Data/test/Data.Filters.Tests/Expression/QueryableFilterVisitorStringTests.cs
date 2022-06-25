@@ -127,7 +127,9 @@ public class QueryableFilterVisitorStringTests
 
         var filterConvention =
             new FilterConvention(
-               x => x.AddDefaults().AddCaseInsensitiveContains());
+                x => new QueryableFilterConventionDescriptor(x)
+                    .AddCaseInsensitiveContains()
+                    .AddDefaults());
 
         ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput(), filterConvention);
 
@@ -244,8 +246,7 @@ public class QueryableFilterVisitorStringTests
     public class FooFilterInput
         : FilterInputType<Foo>
     {
-        protected override void Configure(
-            IFilterInputTypeDescriptor<Foo> descriptor)
+        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
         {
             descriptor.Field(t => t.Bar);
         }

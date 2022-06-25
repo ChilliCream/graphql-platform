@@ -175,6 +175,36 @@ public class QueryableFilterVisitorStringTests
     }
 
     [Fact]
+    public async Task Create_StringInvariantContains_Expression()
+    {
+        // arrange
+        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+
+        // act
+        // assert
+        IExecutionResult? res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+            .SetQuery("{ root(where: { bar: { icontains: \"A\" }}){ bar}}")
+            .Create());
+
+        res1.MatchSnapshot("a");
+
+        IExecutionResult? res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+            .SetQuery("{ root(where: { bar: { icontains: \"B\" }}){ bar}}")
+            .Create());
+
+        res2.MatchSnapshot("b");
+
+        IExecutionResult? res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+            .SetQuery("{ root(where: { bar: { icontains: null }}){ bar}}")
+            .Create());
+
+        res3.MatchSnapshot("null");
+    }
+
+    [Fact]
     public async Task Create_StringNoContains_Expression()
     {
         // arrange
