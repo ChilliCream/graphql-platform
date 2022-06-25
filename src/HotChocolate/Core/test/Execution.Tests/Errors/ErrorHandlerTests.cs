@@ -204,7 +204,6 @@ namespace HotChocolate.Execution.Errors
 
         public class SomeService
         {
-
         }
 
         public class AggregateErrorFilter : IErrorFilter
