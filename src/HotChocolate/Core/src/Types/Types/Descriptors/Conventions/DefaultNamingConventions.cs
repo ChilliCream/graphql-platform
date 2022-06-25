@@ -138,6 +138,7 @@ public class DefaultNamingConventions
         {
             throw new ArgumentNullException(nameof(parameter));
         }
+
         return parameter.GetGraphQLName();
     }
 
@@ -244,6 +245,7 @@ public class DefaultNamingConventions
                 {
                     buffer[p++] = '_';
                 }
+
                 buffer[p++] = char.ToUpper(name[i]);
                 lastWasUnderline = name[i] == '_';
             }
@@ -332,52 +334,67 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public NameString FormatFieldName(string fieldName)
+    public unsafe NameString FormatFieldName(string name)
     {
-        if (string.IsNullOrEmpty(fieldName))
+        if (string.IsNullOrEmpty(name))
         {
             throw new ArgumentException(
                 TypeResources.DefaultNamingConventions_FormatFieldName_EmptyOrNull,
-                nameof(fieldName));
+                nameof(name));
         }
 
-        var lastValidIndex = fieldName.Length - 1;
-
-        if (lastValidIndex + 1 <= 3)
+        // quick exit
+        if (char.IsLower(name[0]))
         {
-            return fieldName.ToLowerInvariant();
+            return name;
         }
 
-        var lastUpperCaseIndex = lastValidIndex;
+        var size = name.Length;
+        char[]? rented = null;
+        Span<char> buffer = size <= 128
+            ? stackalloc char[size]
+            : rented = ArrayPool<char>.Shared.Rent(size);
 
-        fieldName = fieldName.Substring(0, lastValidIndex) +
-            char.ToLowerInvariant(fieldName[lastValidIndex]);
-
-        for (var i = lastValidIndex; i >= 1; i--)
+        try
         {
-            if (char.IsUpper(fieldName[i]) &&
-                char.IsLower(fieldName[i + 1]) &&
-                IsNotLastUpperCaseIndex(ref i, ref lastUpperCaseIndex))
+            var p = 0;
+            for (; p < name.Length && char.IsLetter(name[p]) && char.IsUpper(name[p]); p++)
             {
-
-                fieldName =
-                    fieldName.Substring(0, i + 1) +
-                    fieldName.Substring(i + 1, lastUpperCaseIndex - i - 1).ToLowerInvariant() +
-                    fieldName.Substring(lastUpperCaseIndex);
-
-                lastUpperCaseIndex = i;
+                buffer[p] = char.ToLowerInvariant(name[p]);
             }
 
+            // in case more than one character is upper case, we uppercase
+            // the current character. We only uppercase the character
+            // back if the last character is a letter
+            //
+            // before    after      result
+            // FOOBar    FOOBar   = fooBar
+            //    ^        ^
+            // FOO1Ar    FOO1Ar   = foo1Ar
+            //   ^         ^
+            // FOO_Ar    FOO_Ar   = foo_Ar
+            //   ^         ^
+            if (p < name.Length && p > 1 && char.IsLetter(name[p]))
+            {
+                buffer[p - 1] = char.ToUpperInvariant(name[p - 1]);
+            }
+
+            for (; p < name.Length; p++)
+            {
+                buffer[p] = name[p];
+            }
+
+            fixed (char* charPtr = buffer)
+            {
+                return new string(charPtr, 0, buffer.Length);
+            }
         }
-
-        fieldName =
-    fieldName.Substring(0, lastUpperCaseIndex).ToLowerInvariant() +
-    fieldName.Substring(lastUpperCaseIndex);
-        return fieldName;
-    }
-
-    private bool IsNotLastUpperCaseIndex(ref int currentIterator, ref int uppercaseIndex)
-    {
-        return currentIterator != uppercaseIndex && currentIterator + 1 != uppercaseIndex;
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<char>.Shared.Return(rented);
+            }
+        }
     }
 }

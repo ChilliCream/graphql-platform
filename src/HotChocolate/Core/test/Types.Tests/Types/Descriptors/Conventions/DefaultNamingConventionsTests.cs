@@ -5,27 +5,31 @@ namespace HotChocolate.Types.Descriptors
 {
     public class DefaultNamingConventionsTests
     {
-
+        [InlineData("f", "f")]
         [InlineData("IOFile", "ioFile")]
         [InlineData("FooBar", "fooBar")]
+        [InlineData("FOO1Bar", "foo1Bar")]
+        [InlineData("FOO_Bar", "foo_Bar")]
+        [InlineData("FOO", "foo")]
+        [InlineData("FOo", "fOo")]
         [InlineData("FOOBarBaz", "fooBarBaz")]
-        [InlineData("FoO", "foo")]
+        [InlineData("FoO", "foO")]
         [InlineData("F","f")]
         [Theory]
         public void GetFormattedFieldName_ReturnsFormattedFieldName(
               string fieldName,
-              string excpectedFieldName) {
+              string expected) {
             // arrange
             var namingConventions = new DefaultNamingConventions(
                 new XmlDocumentationProvider(
                     new XmlDocumentationFileResolver(),
                     new NoOpStringBuilderPool()));
-            
+
             // act
             NameString formattedFieldName = namingConventions.FormatFieldName(fieldName);
 
             // assert
-            Assert.Equal(excpectedFieldName, formattedFieldName);
+            Assert.Equal(expected, formattedFieldName);
         }
 
         [InlineData("Foo", "FOO")]
