@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -107,19 +106,15 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         public bool TryGetFieldMiddlewares(
             string type,
-            string field,
-            [NotNullWhen(true)] out IEnumerable<FieldMiddleware>? middleware)
+            [NotNullWhen(true)] out List<FieldMiddlewareReference>? middlewareReferences)
         {
-            middleware = null;
+            middlewareReferences = null;
             if (!_lookup.TryGetValue(type, out var references))
             {
                 return false;
             }
 
-            middleware = references
-                .Where(x => x.Reference.FieldName == field && x.Reference.TypeName == type)
-                .Select(x => x.Middleware);
-
+            middlewareReferences = references;
             return true;
         }
 
@@ -132,21 +127,6 @@ public static partial class SchemaRequestExecutorBuilderExtensions
             }
 
             middlewares.Add(new(reference, middleware));
-        }
-
-        private sealed class FieldMiddlewareReference
-        {
-            public FieldMiddlewareReference(
-                FieldReference reference,
-                FieldMiddleware middleware)
-            {
-                Reference = reference;
-                Middleware = middleware;
-            }
-
-            public FieldReference Reference { get; }
-
-            public FieldMiddleware Middleware { get; }
         }
     }
 
@@ -178,15 +158,34 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
             foreach (ObjectFieldDefinition field in def.Fields)
             {
-                if (lookup.TryGetFieldMiddlewares(def.Name, field.Name.Value, out var middlewares))
+                if (lookup.TryGetFieldMiddlewares(def.Name, out var refs))
                 {
-                    foreach (FieldMiddleware middleware in middlewares)
+                    foreach (var middlewareRef in refs)
                     {
-                        var middlewareDefinition = new FieldMiddlewareDefinition(middleware);
-                        field.MiddlewareDefinitions.Add(middlewareDefinition);
+                        if (middlewareRef.Reference.FieldName.Equals(field.Name))
+                        {
+                            var middlewareDefinition = new FieldMiddlewareDefinition(
+                                middlewareRef.Middleware);
+                            field.MiddlewareDefinitions.Add(middlewareDefinition);
+                        }
                     }
                 }
             }
         }
+    }
+
+    private sealed class FieldMiddlewareReference
+    {
+        public FieldMiddlewareReference(
+            FieldReference reference,
+            FieldMiddleware middleware)
+        {
+            Reference = reference;
+            Middleware = middleware;
+        }
+
+        public FieldReference Reference { get; }
+
+        public FieldMiddleware Middleware { get; }
     }
 }
