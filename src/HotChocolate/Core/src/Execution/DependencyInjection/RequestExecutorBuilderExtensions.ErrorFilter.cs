@@ -57,7 +57,10 @@ public static partial class RequestExecutorBuilderExtensions
         }
 
         builder.Services.TryAddTransient<T>();
-        return builder.ConfigureSchemaServices(s => s.AddSingleton<IErrorFilter, T>());
+        return builder.ConfigureSchemaServices(s
+            => s.AddSingleton<T>()
+                .AddSingleton<IErrorFilter, T>(sp
+                    => sp.GetCombinedServices().GetRequiredService<T>()));
     }
 
     public static IServiceCollection AddErrorFilter(

@@ -95,6 +95,25 @@ namespace HotChocolate.Execution.Errors
         }
 
         [Fact]
+        public async Task AddClassErrorFilterUsingDI_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<SomeService>();
+            IRequestExecutor schema = await serviceCollection
+                .AddGraphQLServer()
+                .AddErrorFilter<DummyErrorFilterWithDependency>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult resp = await schema.ExecuteAsync("{ foo }");
+
+            // assert
+            resp.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task AddClassErrorFilterWithFactory()
         {
             Snapshot.FullName();
@@ -166,6 +185,26 @@ namespace HotChocolate.Execution.Errors
             {
                 return error.WithCode("Foo123");
             }
+        }
+
+        public class DummyErrorFilterWithDependency : IErrorFilter
+        {
+            private readonly SomeService _service;
+
+            public DummyErrorFilterWithDependency(SomeService service)
+            {
+                _service = service;
+            }
+
+            public IError OnError(IError error)
+            {
+                return error.WithCode("Foo123");
+            }
+        }
+
+        public class SomeService
+        {
+
         }
 
         public class AggregateErrorFilter : IErrorFilter
