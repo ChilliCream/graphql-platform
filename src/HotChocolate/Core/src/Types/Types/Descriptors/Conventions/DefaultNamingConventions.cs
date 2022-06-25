@@ -192,7 +192,7 @@ public class DefaultNamingConventions
         }
 
         var allUpper = true;
-        var lastValidIndexMinusOne = name.Length - 1;
+        var lengthMinusOne = name.Length - 1;
 
         for (var i = 0; i < name.Length; i++)
         {
@@ -200,7 +200,7 @@ public class DefaultNamingConventions
 
             if (i > 0 && char.IsUpper(c) &&
                 (!char.IsUpper(name[i - 1]) ||
-                    (i < lastValidIndexMinusOne && char.IsLower(name[i + 1]))))
+                    (i < lengthMinusOne && char.IsLower(name[i + 1]))))
             {
                 underscores++;
             }
@@ -241,7 +241,7 @@ public class DefaultNamingConventions
                 if (!lastWasUnderline &&
                     char.IsUpper(name[i]) &&
                     (!char.IsUpper(name[i - 1]) ||
-                        (i < lastValidIndexMinusOne && char.IsLower(name[i + 1]))))
+                        (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                 {
                     buffer[p++] = '_';
                 }
