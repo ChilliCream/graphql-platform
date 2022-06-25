@@ -2,12 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Stitching.SchemaBuilding;
 
 internal sealed class TypeReferenceRewriter
-    : SchemaSyntaxRewriter<TypeReferenceRewriter.Context>
+    : SyntaxRewriter<TypeReferenceRewriter.Context>
 {
+    public DocumentNode RewriteSchema(
+        DocumentNode document,
+        NameString schemaName)
+    {
+        return document;
+    }
+
+    /*
     public DocumentNode RewriteSchema(
         DocumentNode document,
         NameString schemaName)
@@ -123,9 +132,8 @@ internal sealed class TypeReferenceRewriter
 
         foreach (NamedTypeNode namedType in objectType.Interfaces)
         {
-            if (types.TryGetValue(namedType.Name.Value,
-                out ComplexTypeDefinitionNodeBase ct)
-                && ct is InterfaceTypeDefinitionNode it)
+            if (types.TryGetValue(namedType.Name.Value, out ComplexTypeDefinitionNodeBase? ct) &&
+                ct is InterfaceTypeDefinitionNode it)
             {
                 interfaceTypes.Add(it);
             }
@@ -203,9 +211,10 @@ internal sealed class TypeReferenceRewriter
         NameString originalFieldName,
         NameString newFieldName)
     {
-        FieldDefinitionNode fieldDefinition = type.Fields.FirstOrDefault(
+        FieldDefinitionNode? fieldDefinition = type.Fields.FirstOrDefault(
             t => originalFieldName.Equals(t.GetOriginalName(
                 renameContext.SchemaName)));
+
         if (fieldDefinition != null)
         {
             renameContext.RenamedFields[fieldDefinition] = newFieldName;
@@ -297,7 +306,9 @@ internal sealed class TypeReferenceRewriter
             || typeDefinition.IsFromSchema(context.SourceSchema.Value);
     }
 
-    public sealed class Context
+    */
+
+    public sealed class Context : ISyntaxVisitorContext
     {
         public Context(
             NameString? sourceSchema,

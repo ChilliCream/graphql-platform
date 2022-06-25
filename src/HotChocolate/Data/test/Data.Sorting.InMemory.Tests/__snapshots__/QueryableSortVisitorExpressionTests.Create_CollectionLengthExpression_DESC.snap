@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "name": "Foo",
+        "lastName": "Galoo"
+      },
+      {
+        "name": "Sam",
+        "lastName": "Sampleman"
+      }
+    ]
+  }
+}

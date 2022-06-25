@@ -54,6 +54,95 @@ namespace HotChocolate.Execution.Batching
             await batchResult.MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task ExecuteExportScalarList()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+                .AddStarWarsTypes()
+                .AddExportDirectiveType()
+                .Services
+                .AddStarWarsRepositories());
+
+            // act
+            var batch = new List<IReadOnlyQueryRequest>
+            {
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        query getHero {
+                            hero(episode: EMPIRE) {
+                                friends {
+                                    nodes {
+                                        id @export(as: ""abc"")
+                                    }
+                                }
+                            }
+                        }")
+                    .Create(),
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        query getCharacter {
+                            character(characterIds: $abc) {
+                                name
+                            }
+                        }")
+                    .Create()
+            };
+
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
+
+            // assert
+            await batchResult.MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task ExecuteExportScalarList_ExplicitVariable()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+                .AddStarWarsTypes()
+                .AddExportDirectiveType()
+                .Services
+                .AddStarWarsRepositories());
+
+            // act
+            var batch = new List<IReadOnlyQueryRequest>
+            {
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        query getHero {
+                            hero(episode: EMPIRE) {
+                                friends {
+                                    nodes {
+                                        id @export(as: ""abc"")
+                                    }
+                                }
+                            }
+                        }")
+                    .Create(),
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        query getCharacter($abc: [String!]!) {
+                            character(characterIds: $abc) {
+                                name
+                            }
+                        }")
+                    .Create()
+            };
+
+            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
+
+            // assert
+            await batchResult.MatchSnapshotAsync();
+        }
 
         [Fact]
         public async Task ExecuteExportObject()
@@ -73,8 +162,7 @@ namespace HotChocolate.Execution.Batching
             {
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        @"
-                        mutation firstReview {
+                        @"mutation firstReview {
                             createReview(
                                 episode: NEW_HOPE
                                 review: { commentary: ""foo"", stars: 4 })

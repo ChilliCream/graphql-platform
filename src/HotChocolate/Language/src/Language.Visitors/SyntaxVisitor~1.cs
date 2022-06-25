@@ -6,13 +6,13 @@ public partial class SyntaxVisitor<TContext>
 {
     private readonly SyntaxVisitorOptions _options;
 
-    public SyntaxVisitor(SyntaxVisitorOptions options = default)
+    protected SyntaxVisitor(SyntaxVisitorOptions options = default)
     {
         DefaultAction = Skip;
         _options = options;
     }
 
-    public SyntaxVisitor(
+    protected SyntaxVisitor(
         ISyntaxVisitorAction defaultResult,
         SyntaxVisitorOptions options = default)
     {
@@ -34,35 +34,38 @@ public partial class SyntaxVisitor<TContext>
     /// <summary>
     /// Ends traversing the graph.
     /// </summary>
-    public static ISyntaxVisitorAction Break { get; } = new BreakSyntaxVisitorAction();
+    public static ISyntaxVisitorAction Break { get; }
+        = new BreakSyntaxVisitorAction();
 
     /// <summary>
     /// Skips the child nodes and the current node.
     /// </summary>
-    public static ISyntaxVisitorAction Skip { get; } = new SkipSyntaxVisitorAction();
+    public static ISyntaxVisitorAction Skip { get; }
+        = new SkipSyntaxVisitorAction();
 
     /// <summary>
     /// Continues traversing the graph.
     /// </summary>
-    public static ISyntaxVisitorAction Continue { get; } = new ContinueSyntaxVisitorAction();
+    public static ISyntaxVisitorAction Continue { get; }
+        = new ContinueSyntaxVisitorAction();
 
     /// <summary>
     /// Skips the child node but completes the current node.
     /// </summary>
-    public static ISyntaxVisitorAction SkipAndLeave { get; } =
-        new SkipAndLeaveSyntaxVisitorAction();
+    public static ISyntaxVisitorAction SkipAndLeave { get; }
+        = new SkipAndLeaveSyntaxVisitorAction();
 
     public ISyntaxVisitorAction Visit(
         ISyntaxNode node,
         TContext context) =>
         Visit<ISyntaxNode, ISyntaxNode?>(node, null, context);
 
-    protected ISyntaxVisitorAction Visit<T, P>(
-        T node,
-        P parent,
+    protected ISyntaxVisitorAction Visit<TNode, TParent>(
+        TNode node,
+        TParent parent,
         TContext context)
-        where T : notnull, ISyntaxNode
-        where P : ISyntaxNode?
+        where TNode : notnull, ISyntaxNode
+        where TParent : ISyntaxNode?
     {
         TContext? localContext = OnBeforeEnter(node, parent, context);
         ISyntaxVisitorAction? result = Enter(node, localContext);
@@ -76,8 +79,7 @@ public partial class SyntaxVisitor<TContext>
             }
         }
 
-        if (result.Kind == SyntaxVisitorActionKind.Continue ||
-            result.Kind == SyntaxVisitorActionKind.SkipAndLeave)
+        if (result.Kind is SyntaxVisitorActionKind.Continue or SyntaxVisitorActionKind.SkipAndLeave)
         {
             localContext = OnBeforeLeave(node, parent, localContext);
             result = Leave(node, localContext);

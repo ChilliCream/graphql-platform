@@ -139,26 +139,24 @@ public class InMemoryClientTests
         }
 
         public Task<IResponseStream> ExecuteBatchAsync(
-            IEnumerable<IQueryRequest> requestBatch,
-            bool allowParallelExecution = false,
+            IReadOnlyList<IQueryRequest> requestBatch,
             CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
-        public ISchema Schema { get; } = null!;
+        public ISchema Schema => null!;
 
-        public IServiceProvider Services { get; } = new ServiceCollection()
-            .AddSingleton(ApplicationServiceProvider)
-            .BuildServiceProvider();
+        public IServiceProvider Services { get; } =
+            new ServiceCollection()
+                .AddSingleton(ApplicationServiceProvider)
+                .BuildServiceProvider();
 
         public static IApplicationServiceProvider ApplicationServiceProvider { get; } =
             new DefaultApplicationServiceProvider(
-                new ServiceCollection().BuildServiceProvider());
+                new ServiceCollection()
+                    .BuildServiceProvider());
     }
 
-    private sealed class DefaultApplicationServiceProvider
-        : IApplicationServiceProvider
+    private sealed class DefaultApplicationServiceProvider : IApplicationServiceProvider
     {
         private readonly IServiceProvider _applicationServices;
 

@@ -11,7 +11,7 @@ namespace HotChocolate.Properties {
     using System;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TypeResources {
@@ -1413,6 +1413,24 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string CollectionSegmentType_PageInfo_Description {
+            get {
+                return ResourceManager.GetString("CollectionSegmentType_PageInfo_Description", resourceCulture);
+            }
+        }
+        
+        internal static string CollectionSegmentType_Description {
+            get {
+                return ResourceManager.GetString("CollectionSegmentType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string CollectionSegmentType_Items_Description {
+            get {
+                return ResourceManager.GetString("CollectionSegmentType_Items_Description", resourceCulture);
+            }
+        }
+        
         internal static string ConnectionType_Nodes_Description {
             get {
                 return ResourceManager.GetString("ConnectionType_Nodes_Description", resourceCulture);
@@ -1476,6 +1494,18 @@ namespace HotChocolate.Properties {
         internal static string ResolverContextExtensions_ContextData_KeyNotFound {
             get {
                 return ResourceManager.GetString("ResolverContextExtensions_ContextData_KeyNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaTypes_GetType_DoesNotExist {
+            get {
+                return ResourceManager.GetString("SchemaTypes_GetType_DoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaTypes_DefinitionInvalid {
+            get {
+                return ResourceManager.GetString("SchemaTypes_DefinitionInvalid", resourceCulture);
             }
         }
     }

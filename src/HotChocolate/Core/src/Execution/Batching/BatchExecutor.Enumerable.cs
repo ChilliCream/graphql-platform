@@ -17,7 +17,7 @@ internal partial class BatchExecutor
 {
     private sealed class BatchExecutorEnumerable : IAsyncEnumerable<IQueryResult>
     {
-        private readonly IEnumerable<IQueryRequest> _requestBatch;
+        private readonly IReadOnlyList<IQueryRequest> _requestBatch;
         private readonly IRequestExecutor _requestExecutor;
         private readonly IErrorHandler _errorHandler;
         private readonly ITypeConverter _typeConverter;
@@ -29,7 +29,7 @@ internal partial class BatchExecutor
         private Dictionary<string, FragmentDefinitionNode>? _fragments;
 
         public BatchExecutorEnumerable(
-            IEnumerable<IQueryRequest> requestBatch,
+            IReadOnlyList<IQueryRequest> requestBatch,
             IRequestExecutor requestExecutor,
             IErrorHandler errorHandler,
             ITypeConverter typeConverter,
@@ -51,11 +51,12 @@ internal partial class BatchExecutor
         public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
-            foreach (IQueryRequest queryRequest in _requestBatch)
+            for (var i = 0; i < _requestBatch.Count; i++)
             {
+                IQueryRequest queryRequest = _requestBatch[i];
                 var request = (IReadOnlyQueryRequest)queryRequest;
-                IQueryResult result =
-                    await ExecuteNextAsync(request, cancellationToken).ConfigureAwait(false);
+                IQueryResult result = await ExecuteNextAsync(
+                    request, cancellationToken).ConfigureAwait(false);
                 yield return result;
 
                 if (result.Data is null)
@@ -99,7 +100,7 @@ internal partial class BatchExecutor
                     .SetQuery(document)
                     .SetVariableValues(variableValues)
                     .AddExportedVariables(_exportedVariables)
-                    .SetQueryId(null) // TODO ... should we create a name here?
+                    .SetQueryId(null)
                     .SetQueryHash(null)
                     .Create();
 
@@ -155,8 +156,7 @@ internal partial class BatchExecutor
 
                 if (!exported[variableName].Any())
                 {
-                    if (variables != null
-                        && variables.TryGetValue(variableName, out var value))
+                    if (variables != null && variables.TryGetValue(variableName, out var value))
                     {
                         merged[variableName] = value;
                     }
@@ -165,8 +165,7 @@ internal partial class BatchExecutor
                 {
                     var list = new List<object?>();
 
-                    if (variables != null
-                        && variables.TryGetValue(variableName, out var value))
+                    if (variables != null && variables.TryGetValue(variableName, out var value))
                     {
                         if (value is IReadOnlyCollection<object?> l)
                         {
@@ -178,21 +177,16 @@ internal partial class BatchExecutor
                         }
                     }
 
-                    foreach (ExportedVariable variable in
-                        exported[variableName])
+                    foreach (ExportedVariable variable in exported[variableName])
                     {
-                        SerializeListValue(
-                            variable,
-                            variableDefinition.Type,
-                            list);
+                        SerializeListValue(variable, variableDefinition.Type, list);
                     }
 
                     merged[variableName] = list;
                 }
                 else
                 {
-                    if (variables != null
-                        && variables.TryGetValue(variableName, out var value))
+                    if (variables != null && variables.TryGetValue(variableName, out var value))
                     {
                         merged[variableName] = value;
                     }

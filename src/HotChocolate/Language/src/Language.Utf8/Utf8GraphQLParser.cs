@@ -186,7 +186,7 @@ public ref partial struct Utf8GraphQLParser
         }
     }
 
-    internal static unsafe int ConvertToBytes(
+    internal static unsafe void ConvertToBytes(
         string text,
         ref Span<byte> buffer)
     {
@@ -198,7 +198,6 @@ public ref partial struct Utf8GraphQLParser
                     stringPtr, text.Length,
                     bytePtr, buffer.Length);
                 buffer = buffer.Slice(0, length);
-                return length;
             }
         }
     }

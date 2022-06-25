@@ -11,7 +11,7 @@ namespace HotChocolate.ApolloFederation;
 /// <summary>
 /// The apollo federation schema printer.
 /// </summary>
-internal static partial class FederationSchemaPrinter
+public static partial class FederationSchemaPrinter
 {
     private readonly static HashSet<string> _builtInDirectives = new()
     {

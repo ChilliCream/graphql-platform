@@ -119,7 +119,7 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
 
-    private async Task WriteResultHeaderAsync(
+    private static async Task WriteResultHeaderAsync(
         Stream outputStream,
         CancellationToken ct)
     {
@@ -134,7 +134,7 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
 
-    private async Task WriteNextAsync(
+    private static async Task WriteNextAsync(
         Stream outputStream,
         CancellationToken ct)
     {
@@ -143,7 +143,7 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
 
-    private async Task WriteEndAsync(
+    private static async Task WriteEndAsync(
         Stream outputStream,
         CancellationToken ct)
     {

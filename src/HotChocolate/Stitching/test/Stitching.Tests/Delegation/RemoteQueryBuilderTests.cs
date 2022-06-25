@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
@@ -11,7 +12,7 @@ namespace HotChocolate.Stitching.Delegation;
 
 public class RemoteQueryBuilderTests
 {
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public void BuildRemoteQuery()
     {
         // arrange
@@ -52,7 +53,7 @@ public class RemoteQueryBuilderTests
         newQuery.Print().MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "Disabled")]
     public void BuildRemoteQueryCanOverrideOperationName()
     {
         // arrange

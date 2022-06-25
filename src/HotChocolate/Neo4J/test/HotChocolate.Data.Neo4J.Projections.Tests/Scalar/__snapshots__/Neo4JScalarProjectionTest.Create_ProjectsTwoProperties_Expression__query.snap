@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) RETURN foo {.Bar, .Baz}
+﻿MATCH (fooScalar:FooScalar) RETURN fooScalar {.Bar, .Baz}

@@ -111,12 +111,15 @@ internal sealed class RemoteRequestScheduler : IRemoteRequestScheduler
     {
         try
         {
+            var batch = new IQueryRequest[_bufferedRequests.Count];
+
+            for (var j = 0; j < _bufferedRequests.Count; j++)
+            {
+                batch[j] = _bufferedRequests[j].Request;
+            }
+
             IResponseStream batchQueryResult =
-                await Executor.ExecuteBatchAsync(
-                    _bufferedRequests.Select(t => t.Request),
-                    true,
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                await Executor.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
 
             var i = 0;
             await foreach (IQueryResult queryResult in batchQueryResult.ReadResultsAsync()

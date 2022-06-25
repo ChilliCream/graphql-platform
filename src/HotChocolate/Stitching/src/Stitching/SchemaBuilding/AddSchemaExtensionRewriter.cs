@@ -4,12 +4,13 @@ using System.Globalization;
 using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.SchemaBuilding;
 
 public partial class AddSchemaExtensionRewriter
-    : SchemaSyntaxRewriter<AddSchemaExtensionRewriter.MergeContext>
+    : SyntaxRewriter<AddSchemaExtensionRewriter.MergeContext>
 {
     private readonly Dictionary<string, DirectiveDefinitionNode> _globalDirectives;
 
@@ -507,7 +508,7 @@ public partial class AddSchemaExtensionRewriter
             }
 
             if (!alreadyDeclared.Add(directive.Name.Value)
-                && directiveDefinition.IsUnique)
+                && !directiveDefinition.IsRepeatable)
             {
                 throw new SchemaMergeException(
                     typeDefinition, typeExtension,

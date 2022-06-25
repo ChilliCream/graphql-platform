@@ -1,13 +1,13 @@
+#nullable enable
+
 using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
-
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class InputParser
@@ -35,7 +35,8 @@ public class InputParser
             throw new ArgumentNullException(nameof(field));
         }
 
-        var runtimeValue = ParseLiteralInternal(value, field.Type, field.Name, 0, true, field);
+        Path path = PathFactory.Instance.New(field.Name);
+        var runtimeValue = ParseLiteralInternal(value, field.Type, path, 0, true, field);
         runtimeValue = FormatValue(field, runtimeValue);
 
         // Caller doesn't care, but to ensure specificity, we set the field's runtime type
@@ -61,7 +62,7 @@ public class InputParser
             throw new ArgumentNullException(nameof(type));
         }
 
-        return ParseLiteralInternal(value, type, path ?? Path.New("root"), 0, true, null);
+        return ParseLiteralInternal(value, type, path ?? Path.Root, 0, true, null);
     }
 
     private object? ParseLiteralInternal(
@@ -130,7 +131,7 @@ public class InputParser
                     list.Add(ParseLiteralInternal(
                         items[i],
                         elementType,
-                        path.Append(i),
+                        PathFactory.Instance.Append(path, i),
                         stack,
                         defaults,
                         field));
@@ -141,7 +142,7 @@ public class InputParser
                 for (var i = 0; i < items.Count; i++)
                 {
                     IValueNode item = items[i];
-                    Path itemPath = path.Append(i);
+                    Path itemPath = PathFactory.Instance.Append(path, i);
 
                     if (item.Kind != SyntaxKind.ListValue)
                     {
@@ -166,7 +167,7 @@ public class InputParser
             list.Add(ParseLiteralInternal(
                 resultValue,
                 type.ElementType,
-                path.Append(0),
+                PathFactory.Instance.Append(path, 0),
                 stack,
                 defaults, field));
             return list;
@@ -187,7 +188,7 @@ public class InputParser
             Span<bool> processed = stack <= 256 && type.Fields.Count <= 32
                 ? stackalloc bool[type.Fields.Count]
                 : processedBuffer = ArrayPool<bool>.Shared.Rent(type.Fields.Count);
-            
+
             if(processedBuffer is not null)
             {
                 processed.Clear();
@@ -223,7 +224,8 @@ public class InputParser
                     if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField? field))
                     {
                         IValueNode literal = fieldValue.Value;
-                        Path fieldPath = path.Append(field.Name);
+                        Path fieldPath =
+                            PathFactory.Instance.Append(path, field.Name);
 
                         if (literal.Kind is SyntaxKind.NullValue)
                         {
@@ -275,7 +277,7 @@ public class InputParser
                         if (!processed[i])
                         {
                             InputField field = type.Fields[i];
-                            Path fieldPath = path.Append(field.Name);
+                            Path fieldPath = PathFactory.Instance.Append(path, field.Name);
                             fieldValues[i] = CreateDefaultValue(field, fieldPath, stack);
                         }
                     }
@@ -329,7 +331,7 @@ public class InputParser
             throw new ArgumentNullException(nameof(type));
         }
 
-        return Deserialize(resultValue, type, path ?? Path.New("root"), null);
+        return Deserialize(resultValue, type, path ?? Path.Root, null);
     }
 
     private object? Deserialize(object? resultValue, IType type, Path path, IInputField? field)
@@ -379,8 +381,9 @@ public class InputParser
 
             for (var i = 0; i < serializedList.Count; i++)
             {
+                Path newPath = PathFactory.Instance.Append(path, i);
                 list.Add(
-                    Deserialize(serializedList[i], type.ElementType, path.Append(i), field));
+                    Deserialize(serializedList[i], type.ElementType, newPath, field));
             }
 
             return list;
@@ -419,7 +422,8 @@ public class InputParser
 
                 if (map.TryGetValue(field.Name.Value, out var fieldValue))
                 {
-                    Path fieldPath = path.Append(field.Name);
+                    Path fieldPath =
+                        PathFactory.Instance.Append(path, field.Name);
 
                     if (fieldValue is null)
                     {
@@ -448,7 +452,8 @@ public class InputParser
                 }
                 else
                 {
-                    fieldValues[i] = CreateDefaultValue(field, path.Append(field.Name), 0);
+                    Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+                    fieldValues[i] = CreateDefaultValue(field, fieldPath, 0);
                 }
             }
 

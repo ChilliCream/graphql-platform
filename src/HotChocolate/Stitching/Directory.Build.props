@@ -2,7 +2,7 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <LibraryTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</LibraryTargetFrameworks>
+    <LibraryTargetFrameworks>net6.0</LibraryTargetFrameworks>
   </PropertyGroup>
 
 </Project>

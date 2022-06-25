@@ -16,13 +16,17 @@ internal sealed class FetchGroupedDataLoader<TKey, TValue>
     private readonly FetchGroup<TKey, TValue> _fetch;
 
     public FetchGroupedDataLoader(
+        string key,
         FetchGroup<TKey, TValue> fetch,
         IBatchScheduler batchScheduler,
         DataLoaderOptions options)
         : base(batchScheduler, options)
     {
         _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
+        CacheKeyType = $"{GetCacheKeyType(GetType())}-{key}";
     }
+
+    protected override string CacheKeyType { get; }
 
     protected override Task<ILookup<TKey, TValue>> LoadGroupedBatchAsync(
         IReadOnlyList<TKey> keys,

@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Data.Utilities;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -19,8 +20,8 @@ namespace HotChocolate.Data.Sorting;
 /// The sort convention provides defaults for inferring sorting fields.
 /// </summary>
 public class SortConvention
-    : Convention<SortConventionDefinition>,
-      ISortConvention
+    : Convention<SortConventionDefinition>
+    , ISortConvention
 {
     private const string _typePostFix = "SortInput";
 
@@ -75,7 +76,7 @@ public class SortConvention
     {
     }
 
-    protected override void Complete(IConventionContext context)
+    protected internal override void Complete(IConventionContext context)
     {
         if (Definition?.Provider is null)
         {
@@ -129,10 +130,20 @@ public class SortConvention
         base.Complete(context);
     }
 
-
     /// <inheritdoc />
     public virtual NameString GetTypeName(Type runtimeType) =>
         _namingConventions.GetTypeName(runtimeType, TypeKind.Object) + _typePostFix;
+
+    public NameString GetTypeName(ISortInputType parentType, SortFieldDefinition fieldDefinition)
+    {
+        string parentName = parentType.Name;
+        if (parentName.EndsWith(_typePostFix, StringComparison.Ordinal))
+        {
+            parentName = parentName.Remove(parentName.Length - _typePostFix.Length);
+        }
+
+        return parentName + NameHelpers.UppercaseFirstLetter(fieldDefinition.Name) + _typePostFix;
+    }
 
     /// <inheritdoc />
     public virtual string? GetTypeDescription(Type runtimeType) =>
@@ -268,6 +279,12 @@ public class SortConvention
         handler = null;
         return false;
     }
+
+    public ISortMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        ISortInputTypeDefinition typeDefinition,
+        ISortFieldDefinition fieldDefinition)
+        => _provider.CreateMetaData(context, typeDefinition, fieldDefinition);
 
     private bool TryCreateSortType(
         IExtendedType runtimeType,
