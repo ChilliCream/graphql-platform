@@ -8,8 +8,6 @@ namespace HotChocolate.Types;
 /// </summary>
 internal struct Iso8601Duration
 {
-    private static readonly uint NegativeBit = 0x80000000;
-
     [Flags]
     private enum Parts
     {
@@ -36,10 +34,10 @@ internal struct Iso8601Duration
         int minutes,
         int seconds,
         uint nanoseconds,
+        bool isNegative,
         out TimeSpan? result)
     {
         ulong ticks = 0;
-        var isNegative = (nanoseconds & NegativeBit) != 0;
 
         // Throw error if result cannot fit into a long
         try
@@ -115,7 +113,8 @@ internal struct Iso8601Duration
         int hours = default;
         int minutes = default;
         int seconds = default;
-        uint nanoseconds; // High bit is used to indicate whether duration is negative
+        uint nanoseconds = default;
+        bool isNegative = false;
 
         Parts parts = Parts.HasNone;
 
@@ -134,7 +133,7 @@ internal struct Iso8601Duration
         if (s[pos] == '-')
         {
             pos++;
-            nanoseconds = NegativeBit;
+            isNegative = true;
         }
         else
         {
@@ -341,7 +340,16 @@ internal struct Iso8601Duration
                 return false;
             }
 
-            return TryToTimeSpan(years, months, weeks, days, hours, minutes, seconds, nanoseconds, out result);
+            return TryToTimeSpan(years,
+                months,
+                weeks,
+                days,
+                hours,
+                minutes,
+                seconds,
+                nanoseconds,
+                isNegative,
+                out result);
         }
 
         return false;

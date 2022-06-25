@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
             ArgumentNonNullValidator.ValidationResult report =
                 ArgumentNonNullValidator.Validate(
                     field,
-                    new ObjectValueNode(), Path.New("root"));
+                    new ObjectValueNode(), PathFactory.Instance.New("root"));
 
             // assert
             Assert.False(report.HasErrors);
@@ -59,7 +59,7 @@ namespace HotChocolate.Execution
             // act
             var report = ArgumentNonNullValidator.Validate(
                 field,
-                new ObjectValueNode(), Path.New("root"));
+                new ObjectValueNode(), PathFactory.Instance.New("root"));
 
             // assert
             Assert.True(report.HasErrors);

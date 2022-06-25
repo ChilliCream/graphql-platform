@@ -232,13 +232,13 @@ internal static class DelegationHelpers
 
         try
         {
-            Path? current = errorPath;
+            Path current = errorPath;
 
             do
             {
                 paths[--depth] = current;
                 current = current.Parent;
-            } while (current is not null && current is not RootPathSegment);
+            } while (!current.IsRoot);
 
             depth = 0;
             while (!fetchPath.IsEmpty)
@@ -271,11 +271,11 @@ internal static class DelegationHelpers
             {
                 if (paths[i] is IndexerPathSegment index)
                 {
-                    current = current.Append(index.Index);
+                    current = PathFactory.Instance.Append(current, index.Index);
                 }
                 else if (paths[i] is NamePathSegment name)
                 {
-                    current = current.Append(name.Name);
+                    current = PathFactory.Instance.Append(current, name.Name);
                 }
             }
 

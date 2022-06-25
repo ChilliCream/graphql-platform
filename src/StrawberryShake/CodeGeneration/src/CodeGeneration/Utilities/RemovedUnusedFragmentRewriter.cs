@@ -6,7 +6,7 @@ using HotChocolate.Language.Visitors;
 namespace StrawberryShake.CodeGeneration.Utilities;
 
 internal sealed class RemovedUnusedFragmentRewriter
-    : QuerySyntaxRewriter<RemovedUnusedFragmentRewriter.Context>
+    : SyntaxRewriter<RemovedUnusedFragmentRewriter.Context>
 {
     protected override DocumentNode RewriteDocument(DocumentNode node, Context context)
     {

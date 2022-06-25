@@ -198,9 +198,13 @@ internal static class ErrorHelper
                 ErrorCodes.Execution.ComplexityExceeded,
                 extensions: new Dictionary<string, object?>
                 {
-                        { nameof(complexity), complexity },
-                        { nameof(allowedComplexity), allowedComplexity }
-                }));
+                    { nameof(complexity), complexity },
+                    { nameof(allowedComplexity), allowedComplexity }
+                }),
+            contextData: new Dictionary<string, object?>
+            {
+                { WellKnownContextData.ValidationErrors, true }
+            });
 
     public static IQueryResult StateInvalidForComplexityAnalyzer() =>
         QueryResultBuilder.CreateError(

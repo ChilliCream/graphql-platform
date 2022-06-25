@@ -16,10 +16,10 @@ public class SchemaCoordinateVisitorTests
         var list = new List<string>();
 
         SyntaxVisitor
-            .Create
-                (node =>
+            .Create(
+                current =>
                 {
-                    if (node is NameNode n)
+                    if (current is NameNode n)
                     {
                         list.Add(n.Value);
                     }

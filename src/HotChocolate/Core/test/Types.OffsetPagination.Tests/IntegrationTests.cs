@@ -623,6 +623,32 @@ namespace HotChocolate.Types.Pagination
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task TotalCountWithCustomCollectionSegment()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<CustomCollectionSegmentQuery>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            const string query = @"
+            {
+                foos {
+                    totalCount
+                }
+            }
+            ";
+
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -640,11 +666,7 @@ namespace HotChocolate.Types.Pagination
                     .Field(t => t.Foos())
                     .Name("nestedObjectList")
                     .UseOffsetPaging(
-                        options: new PagingOptions
-                        {
-                            MaxPageSize = 2,
-                            IncludeTotalCount = true
-                        });
+                        options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true });
             }
         }
 
@@ -656,11 +678,7 @@ namespace HotChocolate.Types.Pagination
                     .Field(t => t.FoosExecutable())
                     .Name("fooExecutable")
                     .UseOffsetPaging(
-                        options: new PagingOptions
-                        {
-                            MaxPageSize = 2,
-                            IncludeTotalCount = true
-                        });
+                        options: new PagingOptions { MaxPageSize = 2, IncludeTotalCount = true });
             }
         }
 
@@ -668,18 +686,7 @@ namespace HotChocolate.Types.Pagination
         {
             public string[] Letters => new[]
             {
-                "a",
-                "b",
-                "c",
-                "d",
-                "e",
-                "f",
-                "g",
-                "h",
-                "i",
-                "j",
-                "k",
-                "l"
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
             };
 
             public List<List<Foo>> Foos() => new()
@@ -699,7 +706,7 @@ namespace HotChocolate.Types.Pagination
                 {
                     new Foo { Bar = "a" },
                     new Foo { Bar = "b" },
-                    new Foo { Bar = "c" } ,
+                    new Foo { Bar = "c" },
                     new Foo { Bar = "d" },
                     new Foo { Bar = "e" },
                     new Foo { Bar = "f" }
@@ -728,18 +735,7 @@ namespace HotChocolate.Types.Pagination
             [UseOffsetPaging]
             public string[] Letters => new[]
             {
-                "a",
-                "b",
-                "c",
-                "d",
-                "e",
-                "f",
-                "g",
-                "h",
-                "i",
-                "j",
-                "k",
-                "l"
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
             };
 
             [UseOffsetPaging(typeof(NonNullType<StringType>))]
@@ -801,5 +797,12 @@ namespace HotChocolate.Types.Pagination
         {
             return _source.ToString()!;
         }
+    }
+
+    public class CustomCollectionSegmentQuery
+    {
+        [UseOffsetPaging(IncludeTotalCount = true)]
+        public CollectionSegment<string> GetFoos(int? first, string? after)
+            => new(new[] { "asd", "asd2" }, new CollectionSegmentInfo(false, false), 2);
     }
 }
