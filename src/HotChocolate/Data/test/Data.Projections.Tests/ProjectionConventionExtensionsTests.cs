@@ -124,7 +124,7 @@ public class ProjectionConventionExtensionsTests
         }
 
         public Selection RewriteSelection(
-            SelectionOptimizerContext context,
+            SelectionSetOptimizerContext context,
             Selection selection)
         {
             throw new NotImplementedException();
@@ -133,8 +133,7 @@ public class ProjectionConventionExtensionsTests
 
     private sealed class MockProjectionConvention : ProjectionConvention
     {
-        public MockProjectionConvention(
-            Action<IProjectionConventionDescriptor> configure)
+        public MockProjectionConvention(Action<IProjectionConventionDescriptor> configure)
             : base(configure)
         {
         }

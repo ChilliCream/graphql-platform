@@ -27,7 +27,7 @@ public sealed class SelectedField
     }
 
     /// <inheritdoc />
-    public IFieldSelection Selection => _selection;
+    public ISelection Selection => _selection;
 
     /// <inheritdoc />
     public IObjectField Field => Selection.Field;
@@ -87,7 +87,7 @@ public sealed class SelectedField
         return false;
     }
 
-    private IReadOnlyList<IFieldSelection>? GetFieldSelections(
+    private IReadOnlyList<ISelection>? GetFieldSelections(
         ObjectType? type = null,
         bool allowInternals = false)
     {

@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Data.Projections;
 
-public class ProjectionOptimizer : ISelectionOptimizer
+public class ProjectionOptimizer : ISelectionSetOptimizer
 {
     private readonly IProjectionProvider _provider;
 
@@ -13,34 +13,20 @@ public class ProjectionOptimizer : ISelectionOptimizer
         _provider = provider;
     }
 
-    public void OptimizeSelectionSet(SelectionOptimizerContext context)
+    public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
     {
-        var processedFields = new HashSet<string>();
-        while (!processedFields.SetEquals(context.Fields.Keys))
+        var processedSelections = new HashSet<string>();
+        while (!processedSelections.SetEquals(context.Selections.Keys))
         {
-            var fieldsToProcess = new HashSet<string>(context.Fields.Keys);
-            fieldsToProcess.ExceptWith(processedFields);
-            foreach (var field in fieldsToProcess)
+            var selectionToProcess = new HashSet<string>(context.Selections.Keys);
+            selectionToProcess.ExceptWith(processedSelections);
+            foreach (var responseName in selectionToProcess)
             {
-                context.Fields[field] =
-                    _provider.RewriteSelection(context, context.Fields[field]);
-                processedFields.Add(field);
+                var rewrittenSelection =
+                    _provider.RewriteSelection(context, context.Selections[responseName]);
+                context.ReplaceSelection(responseName, rewrittenSelection);
+                processedSelections.Add(responseName);
             }
         }
-    }
-
-    public bool AllowFragmentDeferral(
-        SelectionOptimizerContext context,
-        InlineFragmentNode fragment)
-    {
-        return false;
-    }
-
-    public bool AllowFragmentDeferral(
-        SelectionOptimizerContext context,
-        FragmentSpreadNode fragmentSpread,
-        FragmentDefinitionNode fragmentDefinition)
-    {
-        return false;
     }
 }

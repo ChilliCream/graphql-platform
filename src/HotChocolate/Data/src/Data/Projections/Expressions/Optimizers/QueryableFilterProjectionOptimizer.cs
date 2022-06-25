@@ -12,7 +12,7 @@ public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
         field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 
     public Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection)
     {
         var resolverPipeline =
@@ -32,17 +32,18 @@ public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
         resolverPipeline = WrappedPipeline(resolverPipeline);
 
         var compiledSelection = new Selection(
-            context.GetNextId(),
+            selection.Id,
             context.Type,
             selection.Field,
             selection.Field.Type,
             selection.SyntaxNode,
             selection.ResponseName,
-            resolverPipeline,
-            arguments: selection.Arguments,
-            isInternal: false);
+            SelectionExecutionStrategy.Default,
+            selection.Arguments,
+            // TODO I think i need to have access to the include conditions here
+            resolverPipeline:resolverPipeline);
 
-        context.Fields[compiledSelection.ResponseName] = compiledSelection;
+        context.ReplaceSelection(compiledSelection.ResponseName, compiledSelection);
         return compiledSelection;
     }
 }
