@@ -40,7 +40,7 @@ public class Neo4JFilterProvider
             IMiddlewareContext context)
         {
             Neo4JFilterVisitorContext? visitorContext = null;
-            IInputField argument = context.Field.Arguments[argumentName];
+            ArgumentValue argument = context.Selection.Arguments[argumentName];
             IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
             if (filter is not NullValueNode && argument.Type is IFilterInputType filterInput)
