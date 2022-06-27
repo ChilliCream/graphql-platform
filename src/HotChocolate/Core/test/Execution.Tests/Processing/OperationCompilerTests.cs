@@ -184,6 +184,73 @@ public class OperationCompilerTests
     }
 
     [Fact]
+    public void Nested_Fragments_with_Conditions()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            @"query ($if: Boolean!) {
+                human(id: ""1000"") {
+                    ... Human1 @include(if: $if)
+                    ... Human2 @skip(if: $if)
+                }
+            }
+            fragment Human1 on Human {
+                friends {
+                    edges {
+                        ... FriendEdge1
+                    }
+                }
+            }
+            fragment FriendEdge1 on FriendsEdge {
+                node {
+                    __typename
+                    friends {
+                        nodes {
+                            __typename
+                            ... Human3
+                        }
+                    }
+                }
+            }
+            fragment Human2 on Human {
+                friends {
+                    edges {
+                        node {
+                            __typename
+                            ... Human3
+                        }
+                    }
+                }
+            }
+            fragment Human3 on Human {
+                name
+                otherHuman {
+                  __typename
+                  name
+                }
+            }");
+
+        var operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
     public void Prepare_Duplicate_Field_With_Skip()
     {
         // arrange
@@ -256,15 +323,15 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
-                    hero(episode: EMPIRE) {
-                        name
-                        ... abc @include(if: $v)
-                    }
-                }
-
-                fragment abc on Droid {
+                hero(episode: EMPIRE) {
                     name
-                }");
+                    ... abc @include(if: $v)
+                }
+            }
+
+            fragment abc on Droid {
+                name
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -295,15 +362,15 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
-                    hero(episode: EMPIRE) {
-                        name @include(if: $v)
-                        ... abc
-                    }
+                hero(episode: EMPIRE) {
+                    name @include(if: $v)
+                    ... abc
                 }
+            }
 
-                fragment abc on Droid {
-                    name
-                }");
+            fragment abc on Droid {
+                name
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -335,15 +402,15 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean, $q: Boolean){
-                    hero(episode: EMPIRE) {
-                        name @include(if: $v)
-                        ... abc @include(if: $q)
-                    }
+                hero(episode: EMPIRE) {
+                    name @include(if: $v)
+                    ... abc @include(if: $q)
                 }
+            }
 
-                fragment abc on Droid {
-                    name
-                }");
+            fragment abc on Droid {
+                name
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -374,18 +441,18 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
-                    hero(episode: EMPIRE) {
-                        name @include(if: $v)
-                        ... abc
-                    }
+                hero(episode: EMPIRE) {
+                    name @include(if: $v)
+                    ... abc
                 }
+            }
 
-                fragment abc on Droid {
+            fragment abc on Droid {
+                name
+                ... {
                     name
-                    ... {
-                        name
-                    }
-                }");
+                }
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -419,20 +486,20 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean) {
-                    hero(episode: EMPIRE) @include(if: $v) {
-                        name
+                hero(episode: EMPIRE) @include(if: $v) {
+                    name
+                }
+                ... on Query {
+                    hero(episode: EMPIRE) {
+                        id
                     }
-                    ... on Query {
-                        hero(episode: EMPIRE) {
-                            id
-                        }
+                }
+                ... @include(if: $v) {
+                    hero(episode: EMPIRE) {
+                        height
                     }
-                    ... @include(if: $v) {
-                        hero(episode: EMPIRE) {
-                            height
-                        }
-                    }
-                }");
+                }
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -465,52 +532,50 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"
-                query ($if: Boolean!) {
-                    human(id: ""1000"") {
-                        ... Human1 @include(if: $if)
-                        ... Human2 @skip(if: $if)
+            @"query ($if: Boolean!) {
+                human(id: ""1000"") {
+                    ... Human1 @include(if: $if)
+                    ... Human2 @skip(if: $if)
+                }
+            }
+            fragment Human1 on Human {
+                friends {
+                    edges {
+                        ... FriendEdge1
                     }
                 }
-                fragment Human1 on Human {
+            }
+            fragment FriendEdge1 on CharacterEdge {
+                node {
+                    __typename
                     friends {
-                        edges {
-                            ... FriendEdge1
+                        nodes {
+                            __typename
+                            ... Human3
                         }
                     }
                 }
-                fragment FriendEdge1 on CharacterEdge {
-                    node {
-                        __typename
-                        friends {
-                            nodes {
-                                __typename
-                                ... Human3
-                            }
+            }
+            fragment Human2 on Human {
+                friends {
+                    edges {
+                        node {
+                            __typename
+                            ... Human3
                         }
                     }
                 }
-                fragment Human2 on Human {
-                    friends {
-                        edges {
-                            node {
-                                __typename
-                                ... Human3
-                            }
-                        }
-                    }
-                }
-                fragment Human3 on Human {
-                    # This works
-                    name
+            }
+            fragment Human3 on Human {
+                # This works
+                name
 
-                    # This is returned as an empty object but should be populated
-                    otherHuman {
-                      __typename
-                      name
-                    }
+                # This is returned as an empty object but should be populated
+                otherHuman {
+                    __typename
+                    name
                 }
-                ");
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -542,20 +607,20 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean, $q: Boolean) {
-                    hero(episode: EMPIRE) @include(if: $v) {
-                        name @include(if: $q)
+                hero(episode: EMPIRE) @include(if: $v) {
+                    name @include(if: $q)
+                }
+                ... on Query {
+                    hero(episode: EMPIRE) {
+                        id
                     }
-                    ... on Query {
-                        hero(episode: EMPIRE) {
-                            id
-                        }
+                }
+                ... @include(if: $v) {
+                    hero(episode: EMPIRE) {
+                        height
                     }
-                    ... @include(if: $v) {
-                        hero(episode: EMPIRE) {
-                            height
-                        }
-                    }
-                }");
+                }
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -587,10 +652,10 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean, $q: Boolean) {
-                    hero(episode: EMPIRE) @include(if: $v) {
-                        name @include(if: $q)
-                    }
-                }");
+                hero(episode: EMPIRE) @include(if: $v) {
+                    name @include(if: $q)
+                }
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -626,12 +691,12 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"{
-                    root {
-                        bar {
-                            text
-                        }
+                root {
+                    bar {
+                        text
                     }
-                }");
+                }
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -661,13 +726,13 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"{
-                    hero(episode: EMPIRE) {
-                        name
-                        ... @defer {
-                            id
-                        }
+                hero(episode: EMPIRE) {
+                    name
+                    ... @defer {
+                        id
                     }
-                }");
+                }
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -695,16 +760,15 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"{
-                    hero(episode: EMPIRE) {
-                        name
-                        ... Foo @defer
-                    }
+                hero(episode: EMPIRE) {
+                    name
+                    ... Foo @defer
                 }
+            }
 
-                fragment Foo on Droid {
-                    id
-                }
-                ");
+            fragment Foo on Droid {
+                id
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -732,15 +796,15 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"query Hero($episode: Episode, $withFriends: Boolean!) {
-                    hero(episode: $episode) {
-                        name
-                        friends @include(if: $withFriends) {
-                            nodes {
-                                id
-                            }
+                hero(episode: $episode) {
+                    name
+                    friends @include(if: $withFriends) {
+                        nodes {
+                            id
                         }
                     }
-                }");
+                }
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -771,13 +835,13 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
-                    hero(episode: EMPIRE) {
-                        name @include(if: $v)
-                        ... abc
-                    }
+                hero(episode: EMPIRE) {
+                    name @include(if: $v)
+                    ... abc
                 }
+            }
 
-                fragment abc on Droid { }");
+            fragment abc on Droid { }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -808,11 +872,11 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse(
             @"query foo($v: Boolean){
-                    hero(episode: EMPIRE) {
-                        name @include(if: $v)
-                        ... on Droid { }
-                    }
-                }");
+                hero(episode: EMPIRE) {
+                    name @include(if: $v)
+                    ... on Droid { }
+                }
+            }");
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -866,8 +930,6 @@ public class OperationCompilerTests
     public async Task Large_Query_Test()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-
         var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
