@@ -85,7 +85,7 @@ public class ProjectionConvention
     public FieldMiddleware CreateExecutor<TEntityType>() =>
         _provider.CreateExecutor<TEntityType>();
 
-    public ISelectionOptimizer CreateOptimizer() =>
+    public ISelectionSetOptimizer CreateOptimizer() =>
         new ProjectionOptimizer(_provider);
 
     private static IReadOnlyList<IProjectionProviderExtension> CollectExtensions(

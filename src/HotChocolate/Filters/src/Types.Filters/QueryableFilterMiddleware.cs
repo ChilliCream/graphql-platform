@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Filters
             }
 
             if (source is not null &&
-                context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
+                context.Selection.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
                 iot is IFilterInputType fit)
             {
                 var visitorContext = new QueryableFilterVisitorContext(

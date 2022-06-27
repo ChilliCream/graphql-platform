@@ -156,7 +156,7 @@ public abstract class ProjectionProvider
     }
 
     public Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection)
     {
         for (var i = 0; i < _optimizer.Count; i++)
