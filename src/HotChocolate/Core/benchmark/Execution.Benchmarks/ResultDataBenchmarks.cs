@@ -18,7 +18,7 @@ namespace HotChocolate.Execution.Benchmarks
         {
             var dictionary = new Dictionary<string, object>();
 
-            for (int i = 0; i < Size; i++)
+            for (var i = 0; i < Size; i++)
             {
                 dictionary[i.ToString()] = i;
             }
@@ -29,9 +29,9 @@ namespace HotChocolate.Execution.Benchmarks
         [Benchmark]
         public ResultValue[] Create_And_Fill_ArrayPool()
         {
-            ResultValue[] buffer = ArrayPool<ResultValue>.Shared.Rent(Size);
+            var buffer = ArrayPool<ResultValue>.Shared.Rent(Size);
 
-            for (int i = 0; i < Size; i++)
+            for (var i = 0; i < Size; i++)
             {
                 buffer[i] = new ResultValue(i.ToString(), i, true);
             }
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution.Benchmarks
         {
             _resultMap.EnsureCapacity(Size);
 
-            for (int i = 0; i < Size; i++)
+            for (var i = 0; i < Size; i++)
             {
                 _resultMap.SetValue(i, i.ToString(), i);
             }

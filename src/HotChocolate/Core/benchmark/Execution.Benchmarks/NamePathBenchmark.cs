@@ -38,7 +38,7 @@ public class NamePathBenchmark
     public void V12_CreatePath()
     {
         V12.Path root = V12.RootPathSegment.Instance;
-        int each = Size / 2;
+        var each = Size / 2;
         for (var fieldCount = 0; fieldCount < each; fieldCount++)
         {
             root = root.Append(_name);
@@ -54,7 +54,7 @@ public class NamePathBenchmark
     public void Pooled_CreatePath()
     {
         Pooled.Path root = Pooled.RootPathSegment.Instance;
-        int each = Size / 2;
+        var each = Size / 2;
         for (var fieldCount = 0; fieldCount < each; fieldCount++)
         {
             root = _pooledPathFactory.Append(root, _name);
@@ -72,7 +72,7 @@ public class NamePathBenchmark
     public void Optimized_CreatePath()
     {
         Optimized.Path root = Optimized.RootPathSegment.Instance;
-        int each = Size / 2;
+        var each = Size / 2;
         for (var fieldCount = 0; fieldCount < each; fieldCount++)
         {
             root = _optimizedPathFactory.Append(root, _name);
@@ -90,7 +90,7 @@ public class NamePathBenchmark
     public void Threadsafe_CreatePath()
     {
         Threadsafe.Path root = Threadsafe.RootPathSegment.Instance;
-        int each = Size / 2;
+        var each = Size / 2;
         for (var fieldCount = 0; fieldCount < each; fieldCount++)
         {
             root = _threadsafePathFactory.Append(root, _name);
@@ -170,7 +170,7 @@ public class NamePathBenchmark
                 }
 
                 var stack = new List<object>();
-                Path? current = this;
+                var current = this;
 
                 while (current != null)
                 {
@@ -556,7 +556,7 @@ public class NamePathBenchmark
             {
                 while (true)
                 {
-                    if (_current is null || !_current.TryPop(out T? segment))
+                    if (_current is null || !_current.TryPop(out var segment))
                     {
                         Resize();
                         continue;
@@ -611,7 +611,7 @@ public class NamePathBenchmark
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
 
-                IndexerPathSegment indexer = _indexerPathFactory.Get();
+                var indexer = _indexerPathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Index = index;
@@ -629,7 +629,7 @@ public class NamePathBenchmark
                 // TODO private
                 //name.EnsureNotEmpty(nameof(name));
 
-                NamePathSegment indexer = _namePathFactory.Get();
+                var indexer = _namePathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Name = name;
@@ -696,7 +696,7 @@ public class NamePathBenchmark
                 }
 
                 var stack = new List<object>();
-                Path? current = this;
+                var current = this;
 
                 while (current != null)
                 {
@@ -947,7 +947,7 @@ public class NamePathBenchmark
 
             public T Pop()
             {
-                if (TryPop(out T? obj))
+                if (TryPop(out var obj))
                 {
                     return obj;
                 }
@@ -1113,7 +1113,7 @@ public class NamePathBenchmark
             {
                 while (true)
                 {
-                    if (_current is null || !_current.TryPop(out T? segment))
+                    if (_current is null || !_current.TryPop(out var segment))
                     {
                         Resize();
                         continue;
@@ -1170,7 +1170,7 @@ public class NamePathBenchmark
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
 
-                IndexerPathSegment indexer = _indexerPathFactory.Get();
+                var indexer = _indexerPathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Index = index;
@@ -1189,7 +1189,7 @@ public class NamePathBenchmark
                 // TODO private
                 //name.EnsureNotEmpty(nameof(name));
 
-                NamePathSegment indexer = _namePathFactory.Get();
+                var indexer = _namePathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Name = name;
@@ -1243,7 +1243,7 @@ public class NamePathBenchmark
                 }
 
                 var stack = new List<object>();
-                Path current = this;
+                var current = this;
 
                 while (!ReferenceEquals(current, RootPathSegment.Instance))
                 {
@@ -1489,7 +1489,7 @@ public class NamePathBenchmark
 
             public T Pop()
             {
-                if (TryPop(out T? obj))
+                if (TryPop(out var obj))
                 {
                     return obj;
                 }
@@ -1655,7 +1655,7 @@ public class NamePathBenchmark
             {
                 while (true)
                 {
-                    if (_current is null || !_current.TryPop(out T? segment))
+                    if (_current is null || !_current.TryPop(out var segment))
                     {
                         Resize();
                         continue;
@@ -1712,7 +1712,7 @@ public class NamePathBenchmark
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
 
-                IndexerPathSegment indexer = _indexerPathFactory.Get();
+                var indexer = _indexerPathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Index = index;
@@ -1731,7 +1731,7 @@ public class NamePathBenchmark
                 // TODO private
                 //name.EnsureNotEmpty(nameof(name));
 
-                NamePathSegment indexer = _namePathFactory.Get();
+                var indexer = _namePathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Name = name;
@@ -1785,7 +1785,7 @@ public class NamePathBenchmark
                 }
 
                 var stack = new List<object>();
-                Path current = this;
+                var current = this;
 
                 while (!ReferenceEquals(current, RootPathSegment.Instance))
                 {
@@ -2031,7 +2031,7 @@ public class NamePathBenchmark
 
             public T Pop()
             {
-                if (TryPop(out T? obj))
+                if (TryPop(out var obj))
                 {
                     return obj;
                 }
