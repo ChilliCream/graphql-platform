@@ -54,7 +54,6 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
 
             var nodesPipeline = context.CompileResolverPipeline(nodesField, nodesFieldNode);
 
-            // TODO include condition?
             var compiledSelection = new Selection(
                 context.GetNextSelectionId(),
                 context.Type,
