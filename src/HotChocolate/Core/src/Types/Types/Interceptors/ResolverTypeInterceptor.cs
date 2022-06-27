@@ -68,7 +68,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             !typeDef.NeedsNameCompletion)
         {
             if (typeDef.RuntimeType == typeof(object) &&
-                _runtimeTypes.TryGetValue(typeDef.Name, out Type? type))
+                _runtimeTypes.TryGetValue(typeDef.Name, out var type))
             {
                 typeDef.RuntimeType = type;
             }
@@ -87,7 +87,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
         var list = new List<TypeDependency>();
 
-        foreach (ITypeDefinition? typeDef in _typeDefs)
+        foreach (var typeDef in _typeDefs)
         {
             switch (typeDef)
             {
@@ -114,7 +114,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             definition is ITypeDefinition typeDef)
         {
             if (typeDef.RuntimeType == typeof(object) &&
-                _runtimeTypes.TryGetValue(typeDef.Name, out Type? type))
+                _runtimeTypes.TryGetValue(typeDef.Name, out var type))
             {
                 typeDef.RuntimeType = type;
             }
@@ -135,18 +135,18 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         var completed = 0;
 
-        foreach (ObjectTypeDefinition objectTypeDef in _typeDefs.OfType<ObjectTypeDefinition>())
+        foreach (var objectTypeDef in _typeDefs.OfType<ObjectTypeDefinition>())
         {
             if (_configs.Contains(objectTypeDef.Name))
             {
-                foreach (FieldResolverConfig config in _configs[objectTypeDef.Name])
+                foreach (var config in _configs[objectTypeDef.Name])
                 {
                     context.Resolvers[config.Field.FieldName] = config;
                 }
 
-                foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
+                foreach (var field in objectTypeDef.Fields)
                 {
-                    if (context.Resolvers.TryGetValue(field.Name, out FieldResolverConfig conf))
+                    if (context.Resolvers.TryGetValue(field.Name, out var conf))
                     {
                         field.Resolvers = conf.ToFieldResolverDelegates();
                         TrySetRuntimeType(context, field, conf);
@@ -174,10 +174,10 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
         if (context.Members.Count > 0)
         {
-            foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
+            foreach (var field in objectTypeDef.Fields)
             {
                 if (!field.Resolvers.HasResolvers &&
-                    context.Members.TryGetValue(field.Name, out MemberInfo? member))
+                    context.Members.TryGetValue(field.Name, out var member))
                 {
                     field.ResolverMember = member;
 
@@ -197,7 +197,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private void ApplySourceMembers(CompletionContext context)
     {
-        foreach (ITypeDefinition definition in
+        foreach (var definition in
             _typeDefs.Where(t => t.RuntimeType != typeof(object)))
         {
             context.TypesToAnalyze.Enqueue(definition);
@@ -228,7 +228,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         var initialized = false;
 
-        foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
+        foreach (var field in objectTypeDef.Fields)
         {
             if (!initialized && field.Member is null)
             {
@@ -237,7 +237,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             }
 
             if (field.Member is null &&
-                context.Members.TryGetValue(field.Name, out MemberInfo? member))
+                context.Members.TryGetValue(field.Name, out var member))
             {
                 field.Member = member;
 
@@ -252,7 +252,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
                     if (TrySetRuntimeTypeFromMember(context, field.Type, field.Member) is { } u)
                     {
-                        foreach (ITypeDefinition updated in u)
+                        foreach (var updated in u)
                         {
                             context.TypesToAnalyze.Enqueue(updated);
                         }
@@ -270,7 +270,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         var initialized = false;
 
-        foreach (InputFieldDefinition field in inputTypeDef.Fields)
+        foreach (var field in inputTypeDef.Fields)
         {
             if (!initialized && field.Property is null)
             {
@@ -279,14 +279,14 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             }
 
             if (field.Property is null &&
-                context.Members.TryGetValue(field.Name, out MemberInfo? member) &&
+                context.Members.TryGetValue(field.Name, out var member) &&
                 member is PropertyInfo property)
             {
                 field.Property = property;
 
                 if (TrySetRuntimeTypeFromMember(context, field.Type, property) is { } upd)
                 {
-                    foreach (ITypeDefinition updated in upd)
+                    foreach (var updated in upd)
                     {
                         context.TypesToAnalyze.Enqueue(updated);
                     }
@@ -303,14 +303,14 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         var initialized = false;
 
-        foreach (EnumValueDefinition enumValue in enumTypeDef.Values)
+        foreach (var enumValue in enumTypeDef.Values)
         {
             if (!initialized && enumValue.Member is null)
             {
-                foreach (object value in _typeInspector.GetEnumValues(enumTypeDef.RuntimeType))
+                foreach (var value in _typeInspector.GetEnumValues(enumTypeDef.RuntimeType))
                 {
-                    NameString name = _naming.GetEnumValueName(value);
-                    MemberInfo? member = _typeInspector.GetEnumValueMember(enumTypeDef);
+                    var name = _naming.GetEnumValueName(value);
+                    var member = _typeInspector.GetEnumValueMember(enumTypeDef);
                     context.Values.Add(name, (value, member!));
                     context.ValuesToName.Add(value.ToString()!, (value, member!));
                 }
@@ -340,7 +340,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             return;
         }
 
-        foreach (Type? resolverType in _resolverTypes[typeName])
+        foreach (var resolverType in _resolverTypes[typeName])
         {
             CollectSourceMembers(context, resolverType);
         }
@@ -348,9 +348,9 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private void CollectSourceMembers(CompletionContext context, Type runtimeType)
     {
-        foreach (MemberInfo? member in _typeInspector.GetMembers(runtimeType, false))
+        foreach (var member in _typeInspector.GetMembers(runtimeType, false))
         {
-            NameString name = _naming.GetMemberName(member, MemberKind.ObjectField);
+            var name = _naming.GetMemberName(member, MemberKind.ObjectField);
             context.Members[name] = member;
         }
     }
@@ -362,9 +362,9 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         if (config.ResultType != typeof(object) &&
             field.Type is not null &&
-            _typeReferenceResolver.TryGetType(field.Type, out IType? type))
+            _typeReferenceResolver.TryGetType(field.Type, out var type))
         {
-            foreach (ITypeDefinition? typeDef in context.TypeDefs[type.NamedType().Name])
+            foreach (var typeDef in context.TypeDefs[type.NamedType().Name])
             {
                 if (typeDef.RuntimeType == typeof(object))
                 {
@@ -375,27 +375,27 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     }
 
     private void TryBindArgumentRuntimeType(
-        ObjectFieldDefinition field, 
+        ObjectFieldDefinition field,
         MemberInfo member)
     {
         if (member is MethodInfo method)
         {
-            foreach (ParameterInfo parameter in
+            foreach (var parameter in
                 _resolverCompiler.GetArgumentParameters(method.GetParameters()))
             {
                 _parameters[parameter.Name!] = parameter;
             }
 
-            foreach (ArgumentDefinition argument in field.Arguments)
+            foreach (var argument in field.Arguments)
             {
-                if (_parameters.TryGetValue(argument.Name.Value, out ParameterInfo? parameter))
+                if (_parameters.TryGetValue(argument.Name.Value, out var parameter))
                 {
                     argument.Parameter = parameter;
                     argument.RuntimeType = parameter.ParameterType;
 
-                    if (_typeReferenceResolver.TryGetType(argument.Type!, out IType? type))
+                    if (_typeReferenceResolver.TryGetType(argument.Type!, out var type))
                     {
-                        Type? unwrapped = Unwrap(parameter.ParameterType, type);
+                        var unwrapped = Unwrap(parameter.ParameterType, type);
                         if (unwrapped is not null)
                         {
 #if NET5_0_OR_GREATER
@@ -420,12 +420,12 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         ITypeReference? typeRef,
         MemberInfo member)
     {
-        if (typeRef is not null && _typeReferenceResolver.TryGetType(typeRef, out IType? type))
+        if (typeRef is not null && _typeReferenceResolver.TryGetType(typeRef, out var type))
         {
             List<ITypeDefinition>? updated = null;
             Type? runtimeType = null;
 
-            foreach (ITypeDefinition? typeDef in context.TypeDefs[type.NamedType().Name])
+            foreach (var typeDef in context.TypeDefs[type.NamedType().Name])
             {
                 if (typeDef.RuntimeType == typeof(object))
                 {

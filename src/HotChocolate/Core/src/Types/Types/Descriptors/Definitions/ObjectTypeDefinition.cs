@@ -105,7 +105,7 @@ public class ObjectTypeDefinition
             configs.AddRange(Configurations);
         }
 
-        foreach (ObjectFieldDefinition field in Fields)
+        foreach (var field in Fields)
         {
             if (field.HasConfigurations)
             {
@@ -113,7 +113,7 @@ public class ObjectTypeDefinition
                 configs.AddRange(field.Configurations);
             }
 
-            foreach (ArgumentDefinition argument in field.GetArguments())
+            foreach (var argument in field.GetArguments())
             {
                 if (argument.HasConfigurations)
                 {
@@ -179,7 +179,7 @@ public class ObjectTypeDefinition
         {
             target.Fields.Clear();
 
-            foreach (ObjectFieldDefinition? field in Fields)
+            foreach (var field in Fields)
             {
                 target.Fields.Add(field);
             }
@@ -212,9 +212,9 @@ public class ObjectTypeDefinition
             target._fieldIgnores.AddRange(_fieldIgnores);
         }
 
-        foreach (ObjectFieldDefinition? field in Fields)
+        foreach (var field in Fields)
         {
-            ObjectFieldDefinition? targetField = field switch
+            var targetField = field switch
             {
                 { BindToField: { Type: ObjectFieldBindingType.Property } bindTo } =>
                     target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Member?.Name!)),
@@ -230,7 +230,7 @@ public class ObjectTypeDefinition
             if (field.Member is MethodInfo p &&
                 p.GetParameters() is { Length: > 0 } parameters)
             {
-                ParameterInfo? parent = parameters.FirstOrDefault(
+                var parent = parameters.FirstOrDefault(
                     t => t.IsDefined(typeof(ParentAttribute), true));
                 if (parent is not null &&
                     !parent.ParameterType.IsAssignableFrom(target.RuntimeType) &&

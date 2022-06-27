@@ -84,7 +84,6 @@ internal sealed class DeferredStream : IDeferredExecutionTask
         _task ??= new StreamExecutionTask(operationContext, this);
         _task.Reset();
 
-        operationContext.QueryPlan = operationContext.QueryPlan.GetStreamPlan(Selection.Id);
         operationContext.Scheduler.Register(_task);
         await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
@@ -95,7 +94,7 @@ internal sealed class DeferredStream : IDeferredExecutionTask
 
         operationContext.Scheduler.DeferredWork.Register(this);
 
-        IQueryResult result = operationContext
+        var result = operationContext
             .TrySetNext(true)
             .SetLabel(Label)
             .SetPath(operationContext.PathFactory.Append(Path, Index))

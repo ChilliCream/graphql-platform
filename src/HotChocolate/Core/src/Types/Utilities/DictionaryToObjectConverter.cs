@@ -40,13 +40,13 @@ public sealed class DictionaryToObjectConverter : DictionaryVisitor<ConverterCon
         if (!context.ClrType.IsValueType &&
             context.ClrType != typeof(string))
         {
-            ILookup<string, PropertyInfo> properties =
+            var properties =
                 context.ClrType.CreatePropertyLookup();
 
             context.Fields = properties;
             context.Object = Activator.CreateInstance(context.ClrType);
 
-            foreach (KeyValuePair<string, object> field in dictionary)
+            foreach (var field in dictionary)
             {
                 VisitField(field, context);
             }
@@ -57,7 +57,7 @@ public sealed class DictionaryToObjectConverter : DictionaryVisitor<ConverterCon
         KeyValuePair<string, object> field,
         ConverterContext context)
     {
-        PropertyInfo property = context.Fields[field.Key].FirstOrDefault();
+        var property = context.Fields[field.Key].FirstOrDefault();
         if (property != null)
         {
             var valueContext = new ConverterContext();
@@ -71,11 +71,11 @@ public sealed class DictionaryToObjectConverter : DictionaryVisitor<ConverterCon
         IReadOnlyList<object> list,
         ConverterContext context)
     {
-        Type elementType = ExtendedType.Tools.GetElementType(context.ClrType);
+        var elementType = ExtendedType.Tools.GetElementType(context.ClrType);
 
         if (elementType is not null)
         {
-            Type listType = typeof(List<>).MakeGenericType(elementType);
+            var listType = typeof(List<>).MakeGenericType(elementType);
             var temp = (IList)Activator.CreateInstance(listType);
 
             for (var i = 0; i < list.Count; i++)

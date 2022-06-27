@@ -259,7 +259,7 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.NonNull)
         {
-            IType innerType = ((NonNullType)type).Type;
+            var innerType = ((NonNullType)type).Type;
             if (innerType.Kind == TypeKind.List)
             {
                 return (ListType)innerType;
@@ -276,7 +276,7 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        IType current = type;
+        var current = type;
 
         if (IsNamed(current))
         {
@@ -341,7 +341,7 @@ public static class TypeExtensions
 
         if (type.IsListType())
         {
-            Type elementType = ToRuntimeType(type.ElementType());
+            var elementType = ToRuntimeType(type.ElementType());
             return typeof(List<>).MakeGenericType(elementType);
         }
 
@@ -540,7 +540,7 @@ public static class TypeExtensions
                 // we optimized this case to not allocate memory in the case that the type is
                 // already non-null and the inner type is either a named type or if the
                 // inner nullability modifier is null.
-                IType innerType = type.InnerType();
+                var innerType = type.InnerType();
                 return nullability.Element is null || innerType.IsNamedType()
                     // if the type is not a list type or if the nullability has no inner part
                     // we do not recursively rewrite.

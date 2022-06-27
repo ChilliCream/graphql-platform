@@ -25,5 +25,5 @@
 }
 
 fragment Fragment_0 on Human {
-  id @conditional @__execute(id: 2, kind: DEFAULT, type: LEAF)
+  id @__execute(id: 2, kind: DEFAULT, type: LEAF)
 }

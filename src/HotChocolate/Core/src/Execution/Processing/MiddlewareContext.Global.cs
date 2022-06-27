@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing;
 
-internal partial class MiddlewareContext
+internal partial class MiddlewareContext : IMiddlewareContext
 {
     private IOperationContext _operationContext = default!;
     private IServiceProvider _services = default!;
@@ -28,9 +27,7 @@ internal partial class MiddlewareContext
 
     public IObjectType RootType => _operationContext.Operation.RootType;
 
-    public DocumentNode Document => _operationContext.Operation.Document;
-
-    public OperationDefinitionNode Operation => _operationContext.Operation.Definition;
+    public IOperation Operation => _operationContext.Operation;
 
     public IDictionary<string, object?> ContextData => _operationContext.ContextData;
 
@@ -39,8 +36,8 @@ internal partial class MiddlewareContext
     public CancellationToken RequestAborted { get; private set; }
 
     public IReadOnlyList<ISelection> GetSelections(
-        ObjectType typeContext,
-        ISelection? fieldSelection = null,
+        IObjectType typeContext,
+        ISelection? selection = null,
         bool allowInternals = false)
     {
         if (typeContext is null)
@@ -48,7 +45,7 @@ internal partial class MiddlewareContext
             throw new ArgumentNullException(nameof(typeContext));
         }
 
-        var selection = GetSelection(fieldSelection);
+        selection ??= _selection;
 
         if (selection.SelectionSet is null)
         {
@@ -74,21 +71,6 @@ internal partial class MiddlewareContext
         }
 
         return fields.Selections;
-    }
-
-    private ISelection GetSelection(ISelection? fieldSelection)
-    {
-        if (fieldSelection is null)
-        {
-            return _selection;
-        }
-
-        if (fieldSelection is ISelection selection)
-        {
-            return selection;
-        }
-
-        throw new ArgumentException("Invalid selection type.");
     }
 
     public void ReportError(string errorMessage)

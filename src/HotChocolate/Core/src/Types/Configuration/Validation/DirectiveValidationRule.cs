@@ -21,7 +21,7 @@ internal class DirectiveValidationRule : ISchemaValidationRule
     {
         if (options.StrictValidation)
         {
-            foreach (DirectiveType type in typeSystemObjects.OfType<DirectiveType>())
+            foreach (var type in typeSystemObjects.OfType<DirectiveType>())
             {
                 EnsureDirectiveNameIsValid(type, errors);
                 EnsureArgumentNamesAreValid(type, errors);

@@ -11,7 +11,7 @@ public class VisibilityTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
+        var field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
 
         // act
         var includeCondition = IncludeCondition.FromSelection(field);
@@ -24,8 +24,8 @@ public class VisibilityTests
     public void Equals_Skip_With_Literal_True()
     {
         // arrange
-        FieldNode fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
-        FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
+        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
+        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
 
         // act
         var includeConditionA = IncludeCondition.FromSelection(fieldA);
@@ -39,8 +39,8 @@ public class VisibilityTests
     public void Equals_Skip_With_Variable_True()
     {
         // arrange
-        FieldNode fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: $a)");
-        FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
+        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: $a)");
+        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
 
         // act
         var includeConditionA = IncludeCondition.FromSelection(fieldA);
@@ -54,30 +54,30 @@ public class VisibilityTests
     public void Equals_Skip_With_Literal_False()
     {
         // arrange
-        FieldNode fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
-        FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
+        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
+        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
 
         // act
         var includeConditionA = IncludeCondition.FromSelection(fieldA);
         var includeConditionB = IncludeCondition.FromSelection(fieldB);
 
         // assert
-        Assert.True(includeConditionA.Equals(includeConditionB));
+        Assert.False(includeConditionA.Equals(includeConditionB));
     }
 
     [Fact]
     public void Equals_Skip_With_Variable_False()
     {
         // arrange
-        FieldNode fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
-        FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
+        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
+        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
 
         // act
         var includeConditionA = IncludeCondition.FromSelection(fieldA);
         var includeConditionB = IncludeCondition.FromSelection(fieldB);
 
         // assert
-        Assert.True(includeConditionA.Equals(includeConditionB));
+        Assert.False(includeConditionA.Equals(includeConditionB));
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class VisibilityTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @test(test: true)");
+        var field = Utf8GraphQLParser.Syntax.ParseField("field @test(test: true)");
 
         // act
         var includeCondition = IncludeCondition.FromSelection(field);
@@ -99,7 +99,7 @@ public class VisibilityTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field");
+        var field = Utf8GraphQLParser.Syntax.ParseField("field");
 
         // act
         var includeCondition = IncludeCondition.FromSelection(field);
@@ -113,7 +113,7 @@ public class VisibilityTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
+        var field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
 
         // act
         var includeCondition = IncludeCondition.FromSelection(field);
@@ -126,8 +126,8 @@ public class VisibilityTests
     public void GetHashCode_Skip_With_Literal_Equal()
     {
         // arrange
-        FieldNode fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
-        FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
+        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
+        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
 
         var includeConditionA = IncludeCondition.FromSelection(fieldA);
         var includeConditionB = IncludeCondition.FromSelection(fieldB);
@@ -144,8 +144,8 @@ public class VisibilityTests
     public void GetHashCode_Skip_With_Literal_NotEqual()
     {
         // arrange
-        FieldNode fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
-        FieldNode fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
+        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
+        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
 
         var includeConditionA = IncludeCondition.FromSelection(fieldA);
         var includeConditionB = IncludeCondition.FromSelection(fieldB);
@@ -164,7 +164,7 @@ public class VisibilityTests
         // arrange
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
-        FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: $a)");
+        var field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: $a)");
         var includeCondition = IncludeCondition.FromSelection(field);
 
         // act
@@ -180,7 +180,7 @@ public class VisibilityTests
         // arrange
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(true);
-        FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: $a)");
+        var field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: $a)");
         var includeCondition = IncludeCondition.FromSelection(field);
 
         // act
@@ -195,7 +195,7 @@ public class VisibilityTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        FieldNode field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: true)");
+        var field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: true)");
         var includeCondition = IncludeCondition.FromSelection(field);
 
         // act

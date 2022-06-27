@@ -39,7 +39,7 @@ public class OutputFieldDefinitionBase
         {
             target._arguments = new List<ArgumentDefinition>();
 
-            foreach (ArgumentDefinition argument in _arguments)
+            foreach (var argument in _arguments)
             {
                 var newArgument = new ArgumentDefinition();
                 argument.CopyTo(newArgument);
@@ -58,9 +58,9 @@ public class OutputFieldDefinitionBase
         {
             target._arguments ??= new List<ArgumentDefinition>();
 
-            foreach (ArgumentDefinition argument in _arguments)
+            foreach (var argument in _arguments)
             {
-                ArgumentDefinition? targetArgument =
+                var targetArgument =
                     target._arguments.FirstOrDefault(t => t.Name.Equals(argument.Name));
 
                 if (targetArgument is null)

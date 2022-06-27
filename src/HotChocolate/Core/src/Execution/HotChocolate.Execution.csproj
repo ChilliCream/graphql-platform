@@ -60,6 +60,33 @@
     <Compile Update="Processing\OperationCompiler.SelectionSetInfo.cs">
       <DependentUpon>OperationCompiler.cs</DependentUpon>
     </Compile>
+    <Compile Update="Processing\MiddlewareContext.Arguments.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\MiddlewareContext.Pooling.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\MiddlewareContext.Pure.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\MiddlewareContext.Selection.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\MiddlewareContext.State.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\Tasks\ResolverTask.Execute.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\WorkScheduler.Pooling.cs">
+      <DependentUpon>WorkScheduler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\WorkScheduler.Execute.cs">
+      <DependentUpon>WorkScheduler.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\WorkScheduler.Pause.cs">
+      <DependentUpon>WorkScheduler.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

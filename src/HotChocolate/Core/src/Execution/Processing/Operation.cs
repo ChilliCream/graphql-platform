@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class Operation : IPreparedOperation
+internal sealed class Operation : IOperation
 {
     private readonly SelectionVariants[] _selectionVariants;
     private readonly IncludeCondition[] _includeConditions;
@@ -16,12 +17,14 @@ internal sealed class Operation : IPreparedOperation
         OperationDefinitionNode definition,
         ObjectType rootType,
         SelectionVariants[] selectionVariants,
-        IncludeCondition[] includeConditions)
+        IncludeCondition[] includeConditions,
+        Dictionary<string, object?> contextData)
     {
         Id = id;
         Document = document;
         Definition = definition;
         RootType = rootType;
+        ContextData = contextData;
         Type = definition.Operation;
 
         if (definition.Name?.Value is { } name)
@@ -55,6 +58,8 @@ internal sealed class Operation : IPreparedOperation
     public IReadOnlyList<IncludeCondition> IncludeConditions
         => _includeConditions;
 
+    public IReadOnlyDictionary<string, object?> ContextData { get; }
+
     public ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext)
     {
         if (selection is null)
@@ -69,9 +74,9 @@ internal sealed class Operation : IPreparedOperation
 
         var selectionSetId = ((Selection)selection).SelectionSetId;
 
-        if (selectionSetId == -1)
+        if (selectionSetId is -1)
         {
-            throw new ArgumentException("The specified selection does not have a selection set.");
+            throw Operation_NoSelectionSet();
         }
 
         return _selectionVariants[selectionSetId].GetSelectionSet(typeContext);
@@ -94,7 +99,7 @@ internal sealed class Operation : IPreparedOperation
         return _selectionVariants[selectionSetId].GetPossibleTypes();
     }
 
-    public long CreateIncludeContext(IVariableValueCollection variables)
+    public long CreateIncludeFlags(IVariableValueCollection variables)
     {
         long context = 0;
 
@@ -110,7 +115,5 @@ internal sealed class Operation : IPreparedOperation
         return context;
     }
 
-    public string Print() => OperationPrinter.Print(this);
-
-    public override string ToString() => Print();
+    public override string ToString() => OperationPrinter.Print(this);
 }

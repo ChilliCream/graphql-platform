@@ -58,13 +58,13 @@ public sealed class DirectiveCollection : IDirectiveCollection
         var processed = new HashSet<string>();
         List<IDirective>? directives = null;
 
-        foreach (DirectiveDefinition description in _definitions!)
+        foreach (var description in _definitions!)
         {
             if (TryCompleteDirective(
                 context,
                 description,
                 processed,
-                out Directive? directive))
+                out var directive))
             {
                 directives ??= new List<IDirective>();
                 directives.Add(directive);
@@ -93,7 +93,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
     {
         if (!context.TryGetDirectiveType(
             definition.Reference,
-            out DirectiveType? directiveType))
+            out var directiveType))
         {
             directive = null;
             return false;
@@ -132,11 +132,11 @@ public sealed class DirectiveCollection : IDirectiveCollection
     {
         var arguments = directive.ToNode().Arguments.ToDictionary(t => t.Name.Value);
 
-        foreach (ArgumentNode argument in arguments.Values)
+        foreach (var argument in arguments.Values)
         {
             if (directive.Type.Arguments.TryGetField(
                 argument.Name.Value,
-                out Argument? arg))
+                out var arg))
             {
                 if (!arg.Type.IsInstanceOfType(argument.Value))
                 {
@@ -161,10 +161,10 @@ public sealed class DirectiveCollection : IDirectiveCollection
             }
         }
 
-        foreach (Argument argument in directive.Type.Arguments
+        foreach (var argument in directive.Type.Arguments
             .Where(a => a.Type.IsNonNullType()))
         {
-            if (!arguments.TryGetValue(argument.Name, out ArgumentNode? arg)
+            if (!arguments.TryGetValue(argument.Name, out var arg)
                 || arg.Value is NullValueNode)
             {
                 context.ReportError(

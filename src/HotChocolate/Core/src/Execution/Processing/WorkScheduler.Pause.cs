@@ -1,10 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace HotChocolate.Execution.Processing;
 
-internal partial class WorkScheduler
+internal sealed partial class WorkScheduler
 {
     private sealed class ProcessingPause : INotifyCompletion
     {
@@ -56,7 +57,10 @@ internal partial class WorkScheduler
                 _continuation = null;
             }
 
-            continuation?.Invoke();
+            if (continuation is not null)
+            {
+                ThreadPool.QueueUserWorkItem(_ => continuation());
+            }
         }
 
         public void Reset()

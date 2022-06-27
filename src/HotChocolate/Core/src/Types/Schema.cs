@@ -122,7 +122,7 @@ public partial class Schema
             throw new ArgumentNullException(nameof(abstractType));
         }
 
-        if (_types.TryGetPossibleTypes(abstractType.Name, out IReadOnlyList<ObjectType>? types))
+        if (_types.TryGetPossibleTypes(abstractType.Name, out var types))
         {
             return types;
         }
@@ -147,7 +147,7 @@ public partial class Schema
     {
         if (_directiveTypes.TryGetValue(
             directiveName.EnsureNotEmpty(nameof(directiveName)),
-            out DirectiveType? type))
+            out var type))
         {
             return type;
         }

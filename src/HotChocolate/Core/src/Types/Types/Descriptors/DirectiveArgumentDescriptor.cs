@@ -39,12 +39,12 @@ public class DirectiveArgumentDescriptor
         Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
         Definition.Property = property;
 
-        if (context.TypeInspector.TryGetDefaultValue(property, out object? defaultValue))
+        if (context.TypeInspector.TryGetDefaultValue(property, out var defaultValue))
         {
             Definition.RuntimeDefaultValue = defaultValue;
         }
 
-        if (context.Naming.IsDeprecated(property, out string? reason))
+        if (context.Naming.IsDeprecated(property, out var reason))
         {
             Deprecated(reason);
         }

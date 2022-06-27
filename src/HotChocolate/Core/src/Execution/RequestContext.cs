@@ -75,7 +75,7 @@ internal sealed class RequestContext : IRequestContext
 
     public string? OperationId { get; set; }
 
-    public IPreparedOperation? Operation { get; set; }
+    public IOperation? Operation { get; set; }
 
     public IVariableValueCollection? Variables { get; set; }
 
@@ -110,7 +110,7 @@ internal sealed class RequestContext : IRequestContext
 
         if (_contextData is not null)
         {
-            foreach (KeyValuePair<string, object?> item in ContextData)
+            foreach (var item in ContextData)
             {
                 cloned._contextData.TryAdd(item.Key, item.Value);
             }
@@ -126,7 +126,7 @@ internal sealed class RequestContext : IRequestContext
 
         if (request.ContextData is not null)
         {
-            foreach (KeyValuePair<string, object?> item in request.ContextData)
+            foreach (var item in request.ContextData)
             {
                 _contextData.TryAdd(item.Key, item.Value);
             }

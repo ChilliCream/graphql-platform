@@ -25,7 +25,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         return builder.ConfigureSchemaAsync(async (sp, b, ct) =>
         {
-            DocumentNode document = await loadDocumentAsync(sp, ct).ConfigureAwait(false);
+            var document = await loadDocumentAsync(sp, ct).ConfigureAwait(false);
             b.AddDocument(document);
         });
     }
@@ -80,7 +80,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         return builder.AddDocument(async (sp, ct) =>
         {
-            byte[] buffer = await Task
+            var buffer = await Task
                 .Run(() => File.ReadAllBytes(filePath), ct)
                 .ConfigureAwait(false);
             return Utf8GraphQLParser.Parse(buffer);

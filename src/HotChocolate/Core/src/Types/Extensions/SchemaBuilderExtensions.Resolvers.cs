@@ -632,7 +632,7 @@ public static partial class SchemaBuilderExtensions
 
         if (resolverType is { IsClass: true } or { IsInterface: true })
         {
-            foreach (PropertyInfo? property in resolverType.GetProperties())
+            foreach (var property in resolverType.GetProperties())
             {
                 AddResolverTypeInternal(builder, property.Name, property.PropertyType);
             }

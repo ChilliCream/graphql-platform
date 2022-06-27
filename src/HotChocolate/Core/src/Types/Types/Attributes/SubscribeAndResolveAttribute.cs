@@ -23,14 +23,14 @@ public sealed class SubscribeAndResolveAttribute
     {
         descriptor.Extend().OnBeforeCreate(d =>
         {
-            ITypeReference typeReference =
+            var typeReference =
                 context.TypeInspector.GetReturnTypeRef(member, TypeContext.Output);
 
             if (typeReference is ExtendedTypeReference typeRef &&
-                context.TypeInspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo) &&
+                context.TypeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo) &&
                 !typeInfo.IsSchemaType)
             {
-                IExtendedType? rewritten = typeRef.Type.IsArrayOrList
+                var rewritten = typeRef.Type.IsArrayOrList
                     ? typeRef.Type.ElementType
                     : null;
 

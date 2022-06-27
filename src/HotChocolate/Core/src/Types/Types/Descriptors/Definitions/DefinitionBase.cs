@@ -116,7 +116,7 @@ public class DefinitionBase : IDefinition
         {
             target._configurations = new List<ITypeSystemMemberConfiguration>();
 
-            foreach (ITypeSystemMemberConfiguration configuration in _configurations)
+            foreach (var configuration in _configurations)
             {
                 target._configurations.Add(configuration.Copy(target));
             }
@@ -145,7 +145,7 @@ public class DefinitionBase : IDefinition
         {
             target._configurations ??= new List<ITypeSystemMemberConfiguration>();
 
-            foreach (ITypeSystemMemberConfiguration configuration in _configurations)
+            foreach (var configuration in _configurations)
             {
                 target._configurations.Add(configuration.Copy(target));
             }
@@ -154,7 +154,7 @@ public class DefinitionBase : IDefinition
         if (_contextData is not null && _contextData.Count > 0)
         {
             target._contextData ??= new ExtensionData();
-            foreach (KeyValuePair<string, object?> item in _contextData)
+            foreach (var item in _contextData)
             {
                 target._contextData[item.Key] = item.Value;
             }

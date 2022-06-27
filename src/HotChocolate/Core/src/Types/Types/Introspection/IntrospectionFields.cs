@@ -56,7 +56,7 @@ public static class IntrospectionFields
         static INamedType? Resolve(IPureResolverContext ctx)
         {
             var name = ctx.ArgumentValue<string>("name");
-            return ctx.Schema.TryGetType<INamedType>(name, out INamedType? type) ? type : null;
+            return ctx.Schema.TryGetType<INamedType>(name, out var type) ? type : null;
         }
 
         return CreateDefinition(descriptor);
@@ -80,7 +80,7 @@ public static class IntrospectionFields
 
     private static ObjectFieldDefinition CreateDefinition(ObjectFieldDescriptor descriptor)
     {
-        ObjectFieldDefinition definition = descriptor.CreateDefinition();
+        var definition = descriptor.CreateDefinition();
         definition.IsIntrospectionField = true;
         return definition;
     }

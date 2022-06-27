@@ -22,7 +22,7 @@ public static class TypeConverterExtensions
 
         if (typeConverter.TryConvert(
             typeof(TFrom), typeof(TTo),
-            source, out object conv)
+            source, out var conv)
             && conv is TTo convcasted)
         {
             converted = convcasted;

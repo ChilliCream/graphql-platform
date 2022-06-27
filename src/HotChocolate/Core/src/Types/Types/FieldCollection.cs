@@ -17,7 +17,7 @@ public class FieldCollection<T> : IFieldCollection<T> where T : class, IField
         _fields = fields ?? throw new ArgumentNullException(nameof(fields));
         _fieldsLookup = new Dictionary<NameString, T>(_fields.Length);
 
-        foreach (T? field in _fields)
+        foreach (var field in _fields)
         {
             _fieldsLookup.Add(field.Name, field);
         }
@@ -36,7 +36,7 @@ public class FieldCollection<T> : IFieldCollection<T> where T : class, IField
     {
         if (_fieldsLookup.TryGetValue(
             fieldName.EnsureNotEmpty(nameof(fieldName)),
-            out T? item))
+            out var item))
         {
             field = item;
             return true;

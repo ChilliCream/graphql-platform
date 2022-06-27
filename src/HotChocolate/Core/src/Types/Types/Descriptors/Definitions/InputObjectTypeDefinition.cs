@@ -56,7 +56,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
             configs.AddRange(Configurations);
         }
 
-        foreach (InputFieldDefinition field in Fields)
+        foreach (var field in Fields)
         {
             if (field.HasConfigurations)
             {
@@ -76,7 +76,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
         {
             target.Fields.Clear();
 
-            foreach (InputFieldDefinition? field in Fields)
+            foreach (var field in Fields)
             {
                 target.Fields.Add(field);
             }
@@ -90,9 +90,9 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
     {
         base.MergeInto(target);
 
-        foreach (InputFieldDefinition? field in Fields)
+        foreach (var field in Fields)
         {
-            InputFieldDefinition? targetField =
+            var targetField =
                 target.Fields.FirstOrDefault(t => field.Name.Equals(t.Name));
 
             if (field.Ignore)

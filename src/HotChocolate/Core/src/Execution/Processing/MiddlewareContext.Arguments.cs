@@ -8,7 +8,7 @@ using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
-internal partial class MiddlewareContext : IMiddlewareContext
+internal partial class MiddlewareContext
 {
     public IReadOnlyDictionary<NameString, ArgumentValue> Arguments { get; set; } =
         default!;
@@ -17,7 +17,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
     {
         if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
         {
-            IValueNode literal = ArgumentLiteral<IValueNode>(name);
+            var literal = ArgumentLiteral<IValueNode>(name);
 
             if (literal is T casted)
             {
@@ -33,7 +33,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public T ArgumentValue<T>(NameString name)
     {
-        if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
+        if (!Arguments.TryGetValue(name, out var argument))
         {
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
@@ -43,7 +43,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public Optional<T> ArgumentOptional<T>(NameString name)
     {
-        if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
+        if (!Arguments.TryGetValue(name, out var argument))
         {
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
@@ -55,12 +55,12 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode
     {
-        if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
+        if (!Arguments.TryGetValue(name, out var argument))
         {
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
 
-        IValueNode literal = argument.ValueLiteral!;
+        var literal = argument.ValueLiteral!;
 
         if (literal is TValueNode castedLiteral)
         {
@@ -73,7 +73,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public ValueKind ArgumentKind(NameString name)
     {
-        if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
+        if (!Arguments.TryGetValue(name, out var argument))
         {
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
@@ -132,7 +132,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             throw new ArgumentNullException(nameof(argumentValues));
         }
 
-        IReadOnlyDictionary<NameString, ArgumentValue> original = Arguments;
+        var original = Arguments;
         Arguments = argumentValues;
         return original;
     }

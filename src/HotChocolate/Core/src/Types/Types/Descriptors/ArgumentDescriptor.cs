@@ -54,7 +54,7 @@ public class ArgumentDescriptor
         Definition.Type = context.TypeInspector.GetArgumentTypeRef(parameter);
         Definition.Parameter = parameter;
 
-        if (context.TypeInspector.TryGetDefaultValue(parameter, out object defaultValue))
+        if (context.TypeInspector.TryGetDefaultValue(parameter, out var defaultValue))
         {
             Definition.RuntimeDefaultValue = defaultValue;
         }

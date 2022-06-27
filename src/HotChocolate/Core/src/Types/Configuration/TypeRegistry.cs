@@ -64,7 +64,7 @@ internal sealed class TypeRegistry
         }
 
         if (typeRef is ExtendedTypeReference clrTypeRef &&
-            _runtimeTypeRefs.TryGetValue(clrTypeRef, out ITypeReference? internalRef))
+            _runtimeTypeRefs.TryGetValue(clrTypeRef, out var internalRef))
         {
             typeRef = internalRef;
         }
@@ -128,9 +128,9 @@ internal sealed class TypeRegistry
 
         var addToTypes = !_typeRegister.ContainsValue(registeredType);
 
-        foreach (ITypeReference typeReference in registeredType.References)
+        foreach (var typeReference in registeredType.References)
         {
-            if (_typeRegister.TryGetValue(typeReference, out RegisteredType? current) &&
+            if (_typeRegister.TryGetValue(typeReference, out var current) &&
                 !ReferenceEquals(current, registeredType))
             {
                 if (current.IsInferred && !registeredType.IsInferred)
@@ -206,8 +206,8 @@ internal sealed class TypeRegistry
             return;
         }
 
-        if (TryGetTypeRef(typeName, out ITypeReference? typeRef) &&
-            TryGetType(typeRef, out RegisteredType? type) &&
+        if (TryGetTypeRef(typeName, out var typeRef) &&
+            TryGetType(typeRef, out var type) &&
             !ReferenceEquals(type, registeredType))
         {
             throw TypeInitializer_DuplicateTypeName(registeredType.Type, type.Type);
@@ -218,7 +218,7 @@ internal sealed class TypeRegistry
 
     public void CompleteDiscovery()
     {
-        foreach (RegisteredType registeredType in _types)
+        foreach (var registeredType in _types)
         {
             ITypeReference reference = TypeReference.Create(registeredType.Type);
             registeredType.References.TryAdd(reference);

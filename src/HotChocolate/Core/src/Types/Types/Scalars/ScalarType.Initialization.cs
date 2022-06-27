@@ -91,7 +91,7 @@ public abstract partial class ScalarType
     {
         _converter = context.Services.GetTypeConverter();
 
-        DirectiveDefinition[] directiveDefinitions =
+        var directiveDefinitions =
             _specifiedBy is null
                 ? Array.Empty<DirectiveDefinition>()
                 : new[]

@@ -80,7 +80,7 @@ public partial class SchemaErrorBuilder
                 writer.WritePropertyName("path");
                 writer.WriteStartArray();
 
-                foreach (string segment in Path.Select(t => t.ToString()!))
+                foreach (var segment in Path.Select(t => t.ToString()!))
                 {
                     writer.WriteStringValue(segment);
                 }
@@ -93,7 +93,7 @@ public partial class SchemaErrorBuilder
                 writer.WritePropertyName("extensions");
                 writer.WriteStartObject();
 
-                foreach (KeyValuePair<string, object> item in Extensions.OrderBy(t => t.Key))
+                foreach (var item in Extensions.OrderBy(t => t.Key))
                 {
                     writer.WritePropertyName(item.Key);
 

@@ -25,10 +25,10 @@ internal class DeferredTaskExecutor : IAsyncEnumerable<IQueryResult>
         {
             yield return _initialResult;
 
-            IOperationContext context = _operationContextOwner.OperationContext;
+            var context = _operationContextOwner.OperationContext;
 
             while (context.Scheduler.DeferredWork.TryTake(
-                out IDeferredExecutionTask? deferredTask))
+                out var deferredTask))
             {
                 if (cancellationToken.IsCancellationRequested)
                 {

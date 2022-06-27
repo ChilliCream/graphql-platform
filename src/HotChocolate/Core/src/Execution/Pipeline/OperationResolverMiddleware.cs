@@ -13,12 +13,12 @@ internal sealed class OperationResolverMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ObjectPool<OperationCompiler> _operationCompilerPool;
-    private readonly IReadOnlyList<ISelectionOptimizer>? _optimizers;
+    private readonly IReadOnlyList<IOperationCompilerOptimizer>? _optimizers;
 
     public OperationResolverMiddleware(
         RequestDelegate next,
         ObjectPool<OperationCompiler> operationCompilerPool,
-        IEnumerable<ISelectionOptimizer> optimizers)
+        IEnumerable<IOperationCompilerOptimizer> optimizers)
     {
         if (optimizers is null)
         {
@@ -65,7 +65,7 @@ internal sealed class OperationResolverMiddleware
         }
     }
 
-    private IPreparedOperation CompileOperation(
+    private IOperation CompileOperation(
         IRequestContext context,
         string operationId,
         OperationDefinitionNode operationDefinition,

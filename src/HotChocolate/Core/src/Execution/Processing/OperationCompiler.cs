@@ -19,8 +19,10 @@ public sealed partial class OperationCompiler
     private readonly Dictionary<SelectionSetNode, int> _selectionSetIdLookup = new(BySyntax);
     private readonly Dictionary<int, SelectionVariants> _selectionVariants = new();
     private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = new(Ordinal);
+    private readonly Dictionary<string, object?> _contextData = new();
     private readonly List<IOperationOptimizer> _operationOptimizers = new();
     private readonly List<ISelectionSetOptimizer> _selectionSetOptimizers = new();
+    private readonly List<Selection> _selections = new();
     private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
     private CompilerContext? _deferContext;
     private int _nextSelectionId;
@@ -32,7 +34,7 @@ public sealed partial class OperationCompiler
         _parser = parser ?? throw new ArgumentNullException(nameof(parser));
     }
 
-    public IPreparedOperation Compile(
+    public IOperation Compile(
         string operationId,
         OperationDefinitionNode operationDefinition,
         ObjectType operationType,
@@ -93,8 +95,10 @@ public sealed partial class OperationCompiler
             _selectionSetIdLookup.Clear();
             _selectionVariants.Clear();
             _fragmentDefinitions.Clear();
+            _contextData.Clear();
             _operationOptimizers.Clear();
             _selectionSetOptimizers.Clear();
+            _selections.Clear();
 
             _includeConditions = Array.Empty<IncludeCondition>();
             _deferContext = null;
@@ -108,11 +112,12 @@ public sealed partial class OperationCompiler
         DocumentNode document,
         ISchema schema)
     {
-        var contextData = new Dictionary<string, object?>();
         var variants = new SelectionVariants[_selectionVariants.Count];
 
         if (_operationOptimizers.Count == 0)
         {
+            CompleteResolvers(schema);
+
             // if we do not have any optimizers we will copy
             // the variants and seal them in one go.
             foreach (var item in _selectionVariants)
@@ -131,7 +136,7 @@ public sealed partial class OperationCompiler
                 schema,
                 operationType,
                 variants,
-                contextData);
+                _contextData);
 
             foreach (var item in _selectionVariants)
             {
@@ -142,6 +147,8 @@ public sealed partial class OperationCompiler
             {
                 _operationOptimizers[i].OptimizeOperation(context);
             }
+
+            CompleteResolvers(schema);
 
             for (var i = 0; i < variants.Length; i++)
             {
@@ -155,7 +162,23 @@ public sealed partial class OperationCompiler
             operationDefinition,
             operationType,
             variants,
-            _includeConditions);
+            _includeConditions,
+            new Dictionary<string, object?>(_contextData));
+    }
+
+    private void CompleteResolvers(ISchema schema)
+    {
+        foreach (var selection in _selections)
+        {
+            if (selection.ResolverPipeline is null && selection.PureResolver is null)
+            {
+                var field = selection.Field;
+                var syntaxNode = selection.SyntaxNode;
+                var resolver = CreateFieldMiddleware(schema, field, syntaxNode);
+                var pureResolver = TryCreatePureField(field, syntaxNode);
+                selection.SetResolvers(resolver, pureResolver);
+            }
+        }
     }
 
     private void CompileSelectionSet(CompilerContext context)
@@ -220,9 +243,9 @@ public sealed partial class OperationCompiler
                 }
             }
 
-            // we now seal the selection to make it immutable.
-            selection.Seal(selectionSetId);
+            selection.SetSelectionSetId(selectionSetId);
             selections[selectionIndex++] = selection;
+            _selections.Add(selection);
         }
 
         if (context.Fragments.Count > 0)
@@ -339,9 +362,6 @@ public sealed partial class OperationCompiler
                                 selection.SelectionSet.Selections))
                         : selection,
                     responseName: responseName,
-                    // FIX: selection must be bound later
-                    resolverPipeline: CreateFieldMiddleware(context.Schema, field, selection),
-                    pureResolver: TryCreatePureField(field, selection),
                     strategy: field.IsParallelExecutable
                         ? SelectionExecutionStrategy.Default
                         : SelectionExecutionStrategy.Serial,
@@ -523,8 +543,7 @@ public sealed partial class OperationCompiler
 
             if (pos == 64)
             {
-                throw new InvalidOperationException(
-                    "The operation compiler only allows for 64 unique include conditions.");
+                throw new InvalidOperationException(OperationCompiler_ToManyIncludeConditions);
             }
 
             if (_includeConditions.Length == 0)
@@ -565,12 +584,17 @@ public sealed partial class OperationCompiler
     private void ReturnContext(CompilerContext context)
         => _deferContext ??= context;
 
-    private void PrepareOptimizers(IReadOnlyList<IOperationCompilerOptimizer> optimizers)
+    private void PrepareOptimizers(IReadOnlyList<IOperationCompilerOptimizer>? optimizers)
     {
         // we only clear the selectionSetOptimizers since we use this list as a temp
         // to temporarily store the selectionSetOptimizers before they are copied to
         // the context.
         _selectionSetOptimizers.Clear();
+
+        if (optimizers is null)
+        {
+            return;
+        }
 
         if (optimizers.Count > 0)
         {

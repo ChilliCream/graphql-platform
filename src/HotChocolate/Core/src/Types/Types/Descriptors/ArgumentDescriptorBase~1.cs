@@ -80,7 +80,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
     /// </summary>
     public void Type(Type type)
     {
-        ITypeInfo typeInfo = Context.TypeInspector.CreateTypeInfo(type);
+        var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
         if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
         {
@@ -169,7 +169,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
         }
         else
         {
-            IExtendedType type = Context.TypeInspector.GetType(value.GetType());
+            var type = Context.TypeInspector.GetType(value.GetType());
             Definition.SetMoreSpecificType(type, TypeContext.Input);
             Definition.RuntimeDefaultValue = value;
             Definition.DefaultValue = null;

@@ -69,9 +69,9 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
 
         if (runtimeValue is IEnumerable<IdValue?> nullableIdEnumerable)
         {
-            IList list = _createList();
+            var list = _createList();
 
-            foreach (IdValue? idv in nullableIdEnumerable)
+            foreach (var idv in nullableIdEnumerable)
             {
                 if (!idv.HasValue)
                 {
@@ -90,9 +90,9 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
 
         if (runtimeValue is IEnumerable<IdValue> idEnumerable)
         {
-            IList list = _createList();
+            var list = _createList();
 
-            foreach (IdValue idv in idEnumerable)
+            foreach (var idv in idEnumerable)
             {
                 if (!_validateType || _typeName.Equals(idv.TypeName))
                 {
@@ -107,9 +107,9 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
         {
             try
             {
-                IList list = _createList();
+                var list = _createList();
 
-                foreach (string? sv in stringEnumerable)
+                foreach (var sv in stringEnumerable)
                 {
                     if (sv is null)
                     {
@@ -148,8 +148,8 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
     {
         if (resultType.IsArrayOrList)
         {
-            Type listType = typeof(List<>).MakeGenericType(resultType.ElementType!.Source);
-            ConstructorInfo constructor = listType.GetConstructors().Single(t => t.GetParameters().Length == 0);
+            var listType = typeof(List<>).MakeGenericType(resultType.ElementType!.Source);
+            var constructor = listType.GetConstructors().Single(t => t.GetParameters().Length == 0);
             Expression create = Expression.New(constructor);
             return Expression.Lambda<Func<IList>>(create).Compile();
         }

@@ -119,7 +119,7 @@ internal class TypeValidationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         Type runtimeType)
     {
-        ISchemaError schemaError = ErrorHelper
+        var schemaError = ErrorHelper
             .NoSchemaTypesAllowedAsRuntimeType(discoveryContext.Type, runtimeType);
         discoveryContext.ReportError(schemaError);
     }

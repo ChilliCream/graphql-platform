@@ -16,10 +16,10 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference stringType = Create(ScalarNames.String);
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-        SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-        SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var stringType = Create(ScalarNames.String);
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
         var def = new ObjectTypeDefinition(
             Names.__EnumValue,

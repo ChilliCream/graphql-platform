@@ -57,7 +57,7 @@ internal sealed class SelectionSet : ISelectionSet
     }
 
     /// <inheritdoc />
-    public bool IsConditional => (_flags & Flags.Conditional) != Flags.Conditional;
+    public bool IsConditional => (_flags & Flags.Conditional) == Flags.Conditional;
 
     /// <inheritdoc />
     public IReadOnlyList<ISelection> Selections => _selections;
@@ -70,13 +70,13 @@ internal sealed class SelectionSet : ISelectionSet
     /// </summary>
     public static SelectionSet Empty { get; } = new(Array.Empty<Selection>(), false);
 
-    internal void Seal(int selectionSetId)
+    internal void Seal()
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
             for (var i = 0; i < _selections.Count; i++)
             {
-                _selections[i].Seal(selectionSetId);
+                _selections[i].Seal();
             }
 
             _flags |= Flags.Sealed;

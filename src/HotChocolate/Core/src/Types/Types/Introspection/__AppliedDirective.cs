@@ -20,8 +20,8 @@ internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-        SyntaxTypeReference locationListType = Parse($"[{nameof(__DirectiveArgument)}!]!");
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var locationListType = Parse($"[{nameof(__DirectiveArgument)}!]!");
 
         return new ObjectTypeDefinition(
             Names.__AppliedDirective,

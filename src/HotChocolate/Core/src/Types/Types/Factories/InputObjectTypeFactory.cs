@@ -14,7 +14,7 @@ internal sealed class InputObjectTypeFactory
         InputObjectTypeDefinitionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
-        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
         var typeDefinition = new InputObjectTypeDefinition(
@@ -37,7 +37,7 @@ internal sealed class InputObjectTypeFactory
     public InputObjectTypeExtension Create(IDescriptorContext context, InputObjectTypeExtensionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
-        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
         var typeDefinition = new InputObjectTypeDefinition(node.Name.Value);
@@ -59,7 +59,7 @@ internal sealed class InputObjectTypeFactory
     {
         path.Push(parent);
 
-        foreach (InputValueDefinitionNode inputField in fields)
+        foreach (var inputField in fields)
         {
             var inputFieldDefinition = new InputFieldDefinition(
                 inputField.Name.Value,

@@ -14,8 +14,8 @@ public class NullableTypeConverter : IChangeTypeProvider
         ChangeTypeProvider root,
         [NotNullWhen(true)] out ChangeType? converter)
     {
-        Type innerFrom = GetUnderlyingNullableType(source);
-        Type innerTo = GetUnderlyingNullableType(target);
+        var innerFrom = GetUnderlyingNullableType(source);
+        var innerTo = GetUnderlyingNullableType(target);
 
         if ((innerFrom != source || innerTo != target)
             && root(innerFrom, innerTo, out converter))

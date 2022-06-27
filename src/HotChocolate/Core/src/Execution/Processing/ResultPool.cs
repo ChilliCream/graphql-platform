@@ -36,7 +36,7 @@ internal sealed class ResultPool
 
     public void Return(IList<ResultObjectBuffer<ResultMap>> buffers)
     {
-        for (int i = 0; i < buffers.Count; i++)
+        for (var i = 0; i < buffers.Count; i++)
         {
             _resultMapPool.Return(buffers[i]);
         }
@@ -44,7 +44,7 @@ internal sealed class ResultPool
 
     public void Return(IList<ResultObjectBuffer<ResultMapList>> buffers)
     {
-        for (int i = 0; i < buffers.Count; i++)
+        for (var i = 0; i < buffers.Count; i++)
         {
             _resultMapListPool.Return(buffers[i]);
         }
@@ -52,7 +52,7 @@ internal sealed class ResultPool
 
     public void Return(IList<ResultObjectBuffer<ResultList>> buffers)
     {
-        for (int i = 0; i < buffers.Count; i++)
+        for (var i = 0; i < buffers.Count; i++)
         {
             _resultListPool.Return(buffers[i]);
         }

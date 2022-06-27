@@ -33,7 +33,7 @@ public static class RequestExecutorServiceProviderExtensions
         NameString schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -61,7 +61,7 @@ public static class RequestExecutorServiceProviderExtensions
         CancellationToken cancellationToken = default)
     {
         IServiceProvider services = builder.Services.BuildServiceProvider();
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -153,7 +153,7 @@ public static class RequestExecutorServiceProviderExtensions
         NameString schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -198,7 +198,7 @@ public static class RequestExecutorServiceProviderExtensions
         NameString schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await BuildRequestExecutorAsync(builder, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -244,7 +244,7 @@ public static class RequestExecutorServiceProviderExtensions
         NameString schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -293,7 +293,7 @@ public static class RequestExecutorServiceProviderExtensions
         NameString schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await BuildRequestExecutorAsync(builder, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -329,7 +329,7 @@ public static class RequestExecutorServiceProviderExtensions
         NameString schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 

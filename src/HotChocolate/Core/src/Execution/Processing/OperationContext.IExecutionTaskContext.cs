@@ -35,7 +35,7 @@ internal sealed partial class OperationContext : IExecutionTaskContext
 
         if (error is AggregateError aggregateError)
         {
-            foreach (IError? innerError in aggregateError.Errors)
+            foreach (var innerError in aggregateError.Errors)
             {
                 ReportSingle(innerError);
             }
@@ -54,7 +54,7 @@ internal sealed partial class OperationContext : IExecutionTaskContext
         {
             if (processed is AggregateError ar)
             {
-                foreach (IError? ie in ar.Errors)
+                foreach (var ie in ar.Errors)
                 {
                     Result.AddError(ie);
                     DiagnosticEvents.TaskError(task, ie);

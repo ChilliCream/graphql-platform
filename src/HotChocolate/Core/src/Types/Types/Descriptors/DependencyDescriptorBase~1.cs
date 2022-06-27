@@ -47,7 +47,7 @@ internal abstract class DependencyDescriptorBase
                 nameof(schemaType));
         }
 
-        TypeDependencyKind kind = mustBeNamedOrCompleted
+        var kind = mustBeNamedOrCompleted
             ? DependencyKind
             : TypeDependencyKind.Default;
 
@@ -61,7 +61,7 @@ internal abstract class DependencyDescriptorBase
     {
         typeName.EnsureNotEmpty(nameof(typeName));
 
-        TypeDependencyKind kind = mustBeNamedOrCompleted
+        var kind = mustBeNamedOrCompleted
             ? DependencyKind
             : TypeDependencyKind.Default;
 

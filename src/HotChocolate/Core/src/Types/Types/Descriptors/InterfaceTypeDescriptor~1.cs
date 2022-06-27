@@ -123,10 +123,10 @@ public class InterfaceTypeDescriptor<T>
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        MemberInfo member = propertyOrMethod.ExtractMember();
+        var member = propertyOrMethod.ExtractMember();
         if (member is PropertyInfo || member is MethodInfo)
         {
-            InterfaceFieldDescriptor fieldDescriptor =
+            var fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Member == member);
             if (fieldDescriptor is { })
             {

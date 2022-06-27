@@ -106,19 +106,19 @@ public interface IResolverContext : IPureResolverContext
     /// <param name="typeContext">
     /// The object type context.
     /// </param>
-    /// <param name="fieldSelection">
+    /// <param name="selection">
     /// The selection for which the pre-compiled child selections shall be returned.
     /// </param>
     /// <param name="allowInternals">
     /// Include also internal selections that shall not be included into the result set.
     /// </param>
     /// <returns>
-    /// Returns the pre-compiled selections for the <paramref name="fieldSelection" />
+    /// Returns the pre-compiled selections for the <paramref name="selection" />
     /// with the specified <paramref name="typeContext" />.
     /// </returns>
     IReadOnlyList<ISelection> GetSelections(
-        ObjectType typeContext,
-        ISelection? fieldSelection = null,
+        IObjectType typeContext,
+        ISelection? selection = null,
         bool allowInternals = false);
 
     /// <summary>

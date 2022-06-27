@@ -81,7 +81,7 @@ public partial class ObjectType
         {
             if (context.IsOfType is not null)
             {
-                IsOfTypeFallback isOfType = context.IsOfType;
+                var isOfType = context.IsOfType;
                 _isOfType = (ctx, obj) => isOfType(this, ctx, obj);
             }
             else if (RuntimeType == typeof(object))
@@ -101,7 +101,7 @@ public partial class ObjectType
     {
         var hasErrors = false;
 
-        foreach (ObjectFieldDefinition field in definition.Fields.Where(t => t.Type is null))
+        foreach (var field in definition.Fields.Where(t => t.Type is null))
         {
             hasErrors = true;
             context.ReportError(ObjectType_UnableToInferOrResolveType(Name, this, field));
@@ -124,7 +124,7 @@ public partial class ObjectType
             return true;
         }
 
-        Type type = result.GetType();
+        var type = result.GetType();
         return Name.Equals(type.Name);
     }
 }

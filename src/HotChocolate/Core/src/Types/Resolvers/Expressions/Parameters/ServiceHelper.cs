@@ -43,9 +43,9 @@ internal static class ServiceHelper
         FieldMiddlewareDefinition serviceMiddleware =
             new(next => async context =>
                 {
-                    IServiceProvider services = context.Services;
+                    var services = context.Services;
                     var objectPool = services.GetRequiredService<ObjectPool<TService>>();
-                    TService service = objectPool.Get();
+                    var service = objectPool.Get();
 
                     try
                     {
@@ -76,7 +76,7 @@ internal static class ServiceHelper
     {
         var scopedServiceName = typeof(TService).FullName ?? typeof(TService).Name;
 
-        FieldMiddlewareDefinition? middleware =
+        var middleware =
             definition.MiddlewareDefinitions.FirstOrDefault(
                 t => t.Key == WellKnownMiddleware.ResolverServiceScope);
         var index = 0;
@@ -86,7 +86,7 @@ internal static class ServiceHelper
             middleware = new FieldMiddlewareDefinition(
                 next => async context =>
                 {
-                    using IServiceScope scope = context.Services.CreateScope();
+                    using var scope = context.Services.CreateScope();
                     context.SetLocalState(WellKnownContextData.ResolverServiceScope, scope);
                     await next(context).ConfigureAwait(false);
                 },
@@ -102,7 +102,7 @@ internal static class ServiceHelper
         FieldMiddlewareDefinition serviceMiddleware =
             new(next => async context =>
                 {
-                    IServiceScope? scope = context.GetLocalStateOrDefault<IServiceScope>(
+                    var scope = context.GetLocalStateOrDefault<IServiceScope>(
                         WellKnownContextData.ResolverServiceScope);
 
                     if (scope is null)
@@ -111,7 +111,7 @@ internal static class ServiceHelper
                             TypeResources.ServiceHelper_UseResolverServiceInternal_Order);
                     }
 
-                    TService service = scope.ServiceProvider.GetRequiredService<TService>();
+                    var service = scope.ServiceProvider.GetRequiredService<TService>();
                     context.SetLocalState(scopedServiceName, service);
                     await next(context).ConfigureAwait(false);
                 },

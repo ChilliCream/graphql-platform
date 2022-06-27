@@ -122,13 +122,13 @@ public class ObjectTypeExtension
         ObjectTypeDefinition extensionDef,
         ObjectTypeDefinition typeDef)
     {
-        IReadOnlyList<ObjectFieldBinding> fieldIgnores = extensionDef.GetFieldIgnores();
+        var fieldIgnores = extensionDef.GetFieldIgnores();
 
         if (fieldIgnores.Count > 0)
         {
             var fields = new List<ObjectFieldDefinition>();
 
-            foreach (ObjectFieldBinding binding in fieldIgnores)
+            foreach (var binding in fieldIgnores)
             {
                 switch (binding.Type)
                 {
@@ -151,7 +151,7 @@ public class ObjectTypeExtension
                 }
             }
 
-            foreach (ObjectFieldDefinition? field in fields)
+            foreach (var field in fields)
             {
                 typeDef.Fields.Remove(field);
             }

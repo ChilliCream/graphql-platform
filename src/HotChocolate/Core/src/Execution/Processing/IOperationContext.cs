@@ -105,7 +105,7 @@ internal interface IOperationContext : IHasContextData
     /// <returns></returns>
     ISelectionSet CollectFields(
         ISelection selection,
-        ObjectType typeContext);
+        IObjectType typeContext);
 
     /// <summary>
     /// Register cleanup tasks that will be executed after resolver execution is finished.

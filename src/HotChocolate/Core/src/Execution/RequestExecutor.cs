@@ -59,15 +59,15 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(request));
         }
 
-        IServiceScope? scope = request.Services is null
+        var scope = request.Services is null
             ? _applicationServices.CreateScope()
             : null;
 
-        IServiceProvider services = scope is null
+        var services = scope is null
             ? request.Services!
             : scope.ServiceProvider;
 
-        RequestContext context = _contextPool.Get();
+        var context = _contextPool.Get();
 
         try
         {

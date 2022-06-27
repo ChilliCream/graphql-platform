@@ -23,7 +23,8 @@ public readonly ref struct SelectionSetOptimizerContext
     internal SelectionSetOptimizerContext(
         OperationCompiler compiler,
         OperationCompiler.CompilerContext compilerContext,
-        Dictionary<Selection, OperationCompiler.SelectionSetInfo[]> selectionLookup)
+        Dictionary<Selection, OperationCompiler.SelectionSetInfo[]> selectionLookup,
+        Dictionary<string, object?> contextData)
     {
         _compiler = compiler;
         _compilerContext = compilerContext;

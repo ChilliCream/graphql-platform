@@ -60,7 +60,7 @@ public partial class EnumType
     /// <inheritdoc />
     public bool TryGetRuntimeValue(NameString name, [NotNullWhen(true)] out object? runtimeValue)
     {
-        if (_enumValues.TryGetValue(name, out IEnumValue? value))
+        if (_enumValues.TryGetValue(name, out var value))
         {
             runtimeValue = value.Value;
             return true;
@@ -112,7 +112,7 @@ public partial class EnumType
         }
 
         if (valueSyntax is EnumValueNode evn &&
-            _enumValues.TryGetValue(evn.Value, out IEnumValue? ev))
+            _enumValues.TryGetValue(evn.Value, out var ev))
         {
             return ev.Value;
         }
@@ -141,7 +141,7 @@ public partial class EnumType
             return NullValueNode.Default;
         }
 
-        if (_valueLookup.TryGetValue(runtimeValue, out IEnumValue? enumValue))
+        if (_valueLookup.TryGetValue(runtimeValue, out var enumValue))
         {
             return new EnumValueNode(enumValue.Name);
         }
@@ -160,7 +160,7 @@ public partial class EnumType
         }
 
         if (resultValue is string s &&
-            _enumValues.TryGetValue(s, out IEnumValue? enumValue))
+            _enumValues.TryGetValue(s, out var enumValue))
         {
             return new EnumValueNode(enumValue.Name);
         }
@@ -190,7 +190,7 @@ public partial class EnumType
         }
 
         if (RuntimeType.IsInstanceOfType(runtimeValue) &&
-            _valueLookup.TryGetValue(runtimeValue, out IEnumValue? enumValue))
+            _valueLookup.TryGetValue(runtimeValue, out var enumValue))
         {
             return enumValue.Name;
         }
@@ -213,7 +213,7 @@ public partial class EnumType
     /// <inheritdoc />
     public object? Deserialize(object? resultValue)
     {
-        if (TryDeserialize(resultValue, out object? runtimeValue))
+        if (TryDeserialize(resultValue, out var runtimeValue))
         {
             return runtimeValue;
         }
@@ -233,7 +233,7 @@ public partial class EnumType
         }
 
         if (resultValue is string s &&
-            _enumValues.TryGetValue(s, out IEnumValue? enumValue))
+            _enumValues.TryGetValue(s, out var enumValue))
         {
             runtimeValue = enumValue.Value;
             return true;

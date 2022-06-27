@@ -75,7 +75,7 @@ public sealed class IdSerializer : IIdSerializer
 
         byte[] serializedArray = null;
 
-        Span<byte> serialized = serializedSize <= _stackallocThreshold
+        var serialized = serializedSize <= _stackallocThreshold
             ? stackalloc byte[serializedSize]
             : (serializedArray = ArrayPool<byte>.Shared.Rent(serializedSize));
 
@@ -95,7 +95,7 @@ public sealed class IdSerializer : IIdSerializer
                 serialized.Slice(position, nameSize));
             serialized[position++] = _separator;
 
-            Span<byte> value = serialized.Slice(position + 1);
+            var value = serialized.Slice(position + 1);
 
             int bytesWritten;
             switch (id)
@@ -130,7 +130,7 @@ public sealed class IdSerializer : IIdSerializer
                     break;
             }
 
-            OperationStatus operationStatus =
+            var operationStatus =
                 Base64.EncodeToUtf8InPlace(serialized, position, out bytesWritten);
 
             if (operationStatus != OperationStatus.Done)
@@ -187,7 +187,7 @@ public sealed class IdSerializer : IIdSerializer
 
         byte[] serializedArray = null;
 
-        Span<byte> serialized = serializedSize <= _stackallocThreshold
+        var serialized = serializedSize <= _stackallocThreshold
             ? stackalloc byte[serializedSize]
             : (serializedArray = ArrayPool<byte>.Shared.Rent(serializedSize));
 
@@ -196,7 +196,7 @@ public sealed class IdSerializer : IIdSerializer
             var bytesWritten = CopyString(serializedId, serialized);
             serialized = serialized.Slice(0, bytesWritten);
 
-            OperationStatus operationStatus =
+            var operationStatus =
                 Base64.DecodeFromUtf8InPlace(serialized, out bytesWritten);
 
             if (operationStatus != OperationStatus.Done)
@@ -209,7 +209,7 @@ public sealed class IdSerializer : IIdSerializer
 
             int nextSeparator;
 
-            Span<byte> decoded = serialized.Slice(0, bytesWritten);
+            var decoded = serialized.Slice(0, bytesWritten);
 
             NameString schemaName = null;
 

@@ -87,7 +87,7 @@ public class DirectiveTypeDefinition
 
         configs.AddRange(Configurations);
 
-        foreach (DirectiveArgumentDefinition field in GetArguments())
+        foreach (var field in GetArguments())
         {
             configs.AddRange(field.Configurations);
         }

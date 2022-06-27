@@ -13,7 +13,11 @@ public partial class OperationCompiler
             return;
         }
 
-        var optimizerContext = new SelectionSetOptimizerContext(this, context, _selectionLookup);
+        var optimizerContext = new SelectionSetOptimizerContext(
+            this,
+            context,
+            _selectionLookup,
+            _contextData);
 
         if (context.Optimizers.Count == 1)
         {

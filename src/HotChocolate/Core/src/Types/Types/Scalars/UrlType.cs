@@ -39,7 +39,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
 
     protected override Uri ParseLiteral(StringValueNode valueSyntax)
     {
-        if (TryParseUri(valueSyntax.Value, out Uri? uri))
+        if (TryParseUri(valueSyntax.Value, out var uri))
         {
             return uri;
         }
@@ -102,7 +102,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
             return true;
         }
 
-        if (resultValue is string s && TryParseUri(s, out Uri? uri))
+        if (resultValue is string s && TryParseUri(s, out var uri))
         {
             runtimeValue = uri;
             return true;

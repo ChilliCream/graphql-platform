@@ -16,6 +16,20 @@ internal sealed partial class ResolverTask
             {
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
+
+                switch (_taskBuffer.Count)
+                {
+                    case 0:
+                        break;
+
+                    case 1:
+                        _operationContext.Scheduler.Register(_taskBuffer[0]);
+                        break;
+
+                    default:
+                        _operationContext.Scheduler.Register(_taskBuffer);
+                        break;
+                }
             }
 
             Status = _completionStatus;
@@ -34,9 +48,11 @@ internal sealed partial class ResolverTask
             Status = ExecutionTaskStatus.Faulted;
             _resolverContext.Result = null;
         }
-
-        _operationContext.Scheduler.Complete(this);
-        _objectPool.Return(this);
+        finally
+        {
+            _operationContext.Scheduler.Complete(this);
+            _objectPool.Return(this);
+        }
     }
 
     private async ValueTask<bool> TryExecuteAsync(CancellationToken cancellationToken)

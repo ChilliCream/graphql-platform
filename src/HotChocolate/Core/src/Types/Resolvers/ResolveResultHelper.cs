@@ -47,21 +47,21 @@ internal static class ResolveResultHelper
     private static MethodCallExpression AwaitTaskMethodCall(
         Expression taskExpression, Type value)
     {
-        MethodInfo awaitHelper = _awaitTaskHelper.MakeGenericMethod(value);
+        var awaitHelper = _awaitTaskHelper.MakeGenericMethod(value);
         return Call(awaitHelper, taskExpression);
     }
 
     private static MethodCallExpression AwaitValueTaskMethodCall(
         Expression taskExpression, Type value)
     {
-        MethodInfo awaitHelper = _awaitValueTaskHelper.MakeGenericMethod(value);
+        var awaitHelper = _awaitValueTaskHelper.MakeGenericMethod(value);
         return Call(awaitHelper, taskExpression);
     }
 
     private static MethodCallExpression WrapResult(
         Expression taskExpression, Type value)
     {
-        MethodInfo wrapResultHelper = _wrapResultHelper.MakeGenericMethod(value);
+        var wrapResultHelper = _wrapResultHelper.MakeGenericMethod(value);
         return Call(wrapResultHelper, taskExpression);
     }
 }

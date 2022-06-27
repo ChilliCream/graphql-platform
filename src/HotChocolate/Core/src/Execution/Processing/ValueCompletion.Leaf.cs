@@ -19,7 +19,7 @@ internal static partial class ValueCompletion
         try
         {
             var leafType = (ILeafType)fieldType;
-            Type runtimeType = leafType.RuntimeType;
+            var runtimeType = leafType.RuntimeType;
 
             if (!runtimeType.IsInstanceOfType(result) &&
                 operationContext.Converter.TryConvert(runtimeType, result, out var c))

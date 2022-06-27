@@ -53,7 +53,7 @@ public class NodeDescriptor<TNode>
 
         if (Definition.IdMember is null)
         {
-            IObjectFieldDescriptor descriptor = _typeDescriptor
+            var descriptor = _typeDescriptor
                 .Field(NodeType.Names.Id)
                 .Type<NonNullType<IdType>>();
 
@@ -61,7 +61,7 @@ public class NodeDescriptor<TNode>
         }
         else
         {
-            IObjectFieldDescriptor descriptor = _typeDescriptor
+            var descriptor = _typeDescriptor
                 .Field(Definition.IdMember)
                 .Name(NodeType.Names.Id)
                 .Type<NonNullType<IdType>>();
@@ -78,7 +78,7 @@ public class NodeDescriptor<TNode>
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        MemberInfo? member = propertyOrMethod.TryExtractMember();
+        var member = propertyOrMethod.TryExtractMember();
 
         if (member is MethodInfo or PropertyInfo)
         {
