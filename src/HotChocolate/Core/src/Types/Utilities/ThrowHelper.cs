@@ -13,8 +13,7 @@ namespace HotChocolate.Utilities;
 
 internal static class ThrowHelper
 {
-    public static ArgumentException String_NullOrEmpty(
-        string parameterName) =>
+    public static ArgumentException String_NullOrEmpty(string parameterName) =>
         new ArgumentException(
             $@"'{parameterName}' cannot be null or empty",
             parameterName);
@@ -36,8 +35,7 @@ internal static class ThrowHelper
                 .SetMessage("There is no event message on the context.")
                 .Build());
 
-    public static SchemaException SubscribeAttribute_MessageTypeUnspecified(
-        MemberInfo member) =>
+    public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -47,8 +45,7 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_TopicTypeUnspecified(
-        MemberInfo member) =>
+    public static SchemaException SubscribeAttribute_TopicTypeUnspecified(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -58,8 +55,7 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_TopicOnParameterAndMethod(
-        MemberInfo member) =>
+    public static SchemaException SubscribeAttribute_TopicOnParameterAndMethod(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -84,8 +80,7 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException Convention_UnableToCreateConvention(
-        Type convention) =>
+    public static SchemaException Convention_UnableToCreateConvention(Type convention) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -93,8 +88,7 @@ internal static class ThrowHelper
                     convention.FullName ?? convention.Name)
                 .Build());
 
-    public static SchemaException UsePagingAttribute_NodeTypeUnknown(
-        MemberInfo member) =>
+    public static SchemaException UsePagingAttribute_NodeTypeUnknown(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_UsePagingAttribute_NodeTypeUnknown)
@@ -189,8 +183,7 @@ internal static class ThrowHelper
                     scope ?? "default")
                 .Build());
 
-    public static SchemaException DataLoader_InvalidType(
-        Type dataLoaderType) =>
+    public static SchemaException DataLoader_InvalidType(Type dataLoaderType) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -321,13 +314,13 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                "The syntax node `{0}` is incompatible with the type `{1}`.",
-                kind,
-                type.Name.Value)
-            .SetPath(path)
-            .SetExtension(nameof(type), type.Name.Value)
-            .Build(),
+                .SetMessage(
+                    "The syntax node `{0}` is incompatible with the type `{1}`.",
+                    kind,
+                    type.Name.Value)
+                .SetPath(path)
+                .SetExtension(nameof(type), type.Name.Value)
+                .Build(),
             type,
             path);
 
@@ -337,15 +330,15 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                "The input object `{1}` must to be serialized as `{2}` or as " +
-                "`IReadOnlyDictionary<string. object?>` but not as `{0}`.",
-                objectType.FullName ?? objectType.Name,
-                type.Name.Value,
-                type.RuntimeType.FullName ?? type.RuntimeType.Name)
-            .SetPath(path)
-            .SetExtension(nameof(type), type.Name.Value)
-            .Build(),
+                .SetMessage(
+                    "The input object `{1}` must to be serialized as `{2}` or as " +
+                    "`IReadOnlyDictionary<string. object?>` but not as `{0}`.",
+                    objectType.FullName ?? objectType.Name,
+                    type.Name.Value,
+                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                .SetPath(path)
+                .SetExtension(nameof(type), type.Name.Value)
+                .Build(),
             type,
             path);
 
@@ -356,15 +349,15 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                "The item syntax node for a nested list must be " +
-                "`ListValue` but the parser found `{0}`.",
-                kind)
-            .SetPath(path)
-            .SetExtension(
-                "specifiedBy",
-                "https://spec.graphql.org/June2018/#sec-Type-System.List")
-            .Build(),
+                .SetMessage(
+                    "The item syntax node for a nested list must be " +
+                    "`ListValue` but the parser found `{0}`.",
+                    kind)
+                .SetPath(path)
+                .SetExtension(
+                    "specifiedBy",
+                    "https://spec.graphql.org/June2018/#sec-Type-System.List")
+                .Build(),
             type,
             path);
 
@@ -374,13 +367,13 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                "The list `{1}` must to be serialized as `{2}` or as " +
-                "`IList` but not as `{0}`.",
-                listType.FullName ?? listType.Name,
-                type.Print(),
-                type.RuntimeType.FullName ?? type.RuntimeType.Name)
-            .Build(),
+                .SetMessage(
+                    "The list `{1}` must to be serialized as `{2}` or as " +
+                    "`IList` but not as `{0}`.",
+                    listType.FullName ?? listType.Name,
+                    type.Print(),
+                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                .Build(),
             type,
             path);
 
@@ -531,4 +524,35 @@ internal static class ThrowHelper
                 "A type with the name `{0}` was not found.",
                 coordinate.Name.Value),
             coordinate);
+
+    public static InvalidOperationException Flags_Enum_Shape_Unkown(Type type)
+        => new InvalidOperationException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "The shape of the enum {0} is not known",
+                type.FullName ?? type.Name));
+
+    public static GraphQLException Flags_Parser_NoSelection(InputObjectType type)
+        => new(
+            ErrorBuilder
+                .New()
+                .SetMessage("Flags need to have at least one selection. Type: {0}", type.Name.Value)
+                .Build());
+
+    public static GraphQLException Flags_Parser_UnknownSelection(string value, InputObjectType type)
+        => new(
+            ErrorBuilder
+                .New()
+                .SetMessage("The value {0} is not known for type {1}", value, type.Name.Value)
+                .Build());
+
+    public static SchemaException Flags_IllegalFlagEnumName(Type type, string? valueName)
+        => new(
+            SchemaErrorBuilder
+                .New()
+                .SetMessage(
+                    "One of the values of {0} does not have a valid name: {1}",
+                    type.FullName ?? type.Name,
+                    valueName ?? "value is null")
+                .Build());
 }

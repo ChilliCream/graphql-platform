@@ -14,102 +14,63 @@ namespace HotChocolate;
 /// </summary>
 public interface IReadOnlySchemaOptions
 {
-    /// <summary>
-    /// Gets the name of the query type.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.QueryTypeName"/>
     string? QueryTypeName { get; }
 
-    /// <summary>
-    /// Gets or sets the name of the mutation type.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.MutationTypeName"/>
     string? MutationTypeName { get; }
 
-    /// <summary>
-    /// Gets or sets the name of the subscription type.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.SubscriptionTypeName"/>
     string? SubscriptionTypeName { get; }
 
-    /// <summary>
-    /// Defines if the schema allows the query type to be omitted.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.StrictValidation"/>
     bool StrictValidation { get; }
 
-    /// <summary>
-    /// Defines if the CSharp XML documentation shall be integrated.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.UseXmlDocumentation"/>
     bool UseXmlDocumentation { get; }
 
-    /// <summary>
-    /// A delegate which resolves the name of the XML documentation file to be read.
-    /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.ResolveXmlDocumentationFileName"/>
     Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
 
-    /// <summary>
-    /// Defines if fields shall be sorted by name.
-    /// Default: <c>false</c>
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.SortFieldsByName"/>
     bool SortFieldsByName { get; }
 
-    /// <summary>
-    /// Defines if syntax nodes shall be preserved on the type system objects
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.PreserveSyntaxNodes"/>
     bool PreserveSyntaxNodes { get; }
 
-    /// <summary>
-    /// Defines if types shall be removed from the schema that are
-    /// unreachable from the root types.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.RemoveUnreachableTypes"/>
     bool RemoveUnreachableTypes { get; }
 
-    /// <summary>
-    /// Defines the default binding behavior.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.DefaultBindingBehavior"/>
     BindingBehavior DefaultBindingBehavior { get; }
 
-    /// <summary>
-    /// Defines on which fields a middleware pipeline can be applied on.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.FieldMiddleware"/>
     FieldMiddlewareApplication FieldMiddleware { get; }
 
-    /// <summary>
-    /// Defines if the experimental directive introspection feature shall be enabled.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.EnableDirectiveIntrospection"/>
     bool EnableDirectiveIntrospection { get; }
 
-    /// <summary>
-    /// The default directive visibility when directive introspection is enabled.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.DefaultDirectiveVisibility"/>
     DirectiveVisibility DefaultDirectiveVisibility { get; }
 
-    /// <summary>
-    /// Defines if field inlining is allowed.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.AllowInlining"/>
     bool AllowInlining { get; }
 
-    /// <summary>
-    /// Defines that the default resolver execution strategy.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.DefaultResolverStrategy"/>
     ExecutionStrategy DefaultResolverStrategy { get; }
 
-    /// <summary>
-    /// Defines if the order of important middleware components shall be validated.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.ValidatePipelineOrder"/>
     bool ValidatePipelineOrder { get; }
 
-    /// <summary>
-    /// Defines if the runtime types of types shall be validated.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.StrictRuntimeTypeValidation"/>
     bool StrictRuntimeTypeValidation { get; }
 
-    /// <summary>
-    /// Defines a delegate that determines if a runtime
-    /// is an instance of an <see cref="ObjectType{T}"/>.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.DefaultIsOfTypeCheck"/>
     IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
 
-    /// <summary>
-    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.EnableOneOf"/>
     bool EnableOneOf { get; }
+
+    /// <inheritdoc cref="ISchemaOptions.EnableFlagEnums"/>
+    bool EnableFlagEnums { get; }
 }

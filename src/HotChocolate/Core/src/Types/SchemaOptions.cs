@@ -13,106 +13,69 @@ namespace HotChocolate;
 /// </summary>
 public class SchemaOptions : ISchemaOptions
 {
-    /// <summary>
-    /// Gets or sets the name of the query type.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.QueryTypeName"/>
     public string? QueryTypeName { get; set; }
 
-    /// <summary>
-    /// Gets or sets the name of the mutation type.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.MutationTypeName"/>
     public string? MutationTypeName { get; set; }
 
-    /// <summary>
-    /// Gets or sets the name of the subscription type.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.SubscriptionTypeName"/>
     public string? SubscriptionTypeName { get; set; }
 
-    /// <summary>
-    /// Defines if the schema allows the query type to be omitted.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.StrictValidation"/>
     public bool StrictValidation { get; set; } = true;
 
-    /// <summary>
-    /// Defines if the CSharp XML documentation shall be integrated.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.UseXmlDocumentation"/>
     public bool UseXmlDocumentation { get; set; } = true;
 
-    /// <summary>
-    /// A delegate which defines the name of the XML documentation file to be read.
-    /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.ResolveXmlDocumentationFileName"/>
     public Func<Assembly, string>? ResolveXmlDocumentationFileName { get; set; } = null;
 
-    /// <summary>
-    /// Defines if fields shall be sorted by name.
-    /// Default: <c>false</c>
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.SortFieldsByName"/>
     public bool SortFieldsByName { get; set; }
 
-    /// <summary>
-    /// Defines if syntax nodes shall be preserved on the type system objects
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.PreserveSyntaxNodes"/>
     public bool PreserveSyntaxNodes { get; set; }
 
-    /// <summary>
-    /// Defines if types shall be removed from the schema that are
-    /// unreachable from the root types.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.RemoveUnreachableTypes"/>
     public bool RemoveUnreachableTypes { get; set; }
 
-    /// <summary>
-    /// Defines the default binding behavior.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.DefaultBindingBehavior"/>
     public BindingBehavior DefaultBindingBehavior { get; set; } =
         BindingBehavior.Implicit;
 
-    /// <summary>
-    /// Defines on which fields a middleware pipeline can be applied on.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.FieldMiddleware"/>
     public FieldMiddlewareApplication FieldMiddleware { get; set; } =
         FieldMiddlewareApplication.UserDefinedFields;
 
-    /// <summary>
-    /// Defines if the experimental directive introspection feature shall be enabled.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.EnableDirectiveIntrospection"/>
     public bool EnableDirectiveIntrospection { get; set; }
 
-    /// <summary>
-    /// The default directive visibility when directive introspection is enabled.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.DefaultDirectiveVisibility"/>
     public DirectiveVisibility DefaultDirectiveVisibility { get; set; } =
         DirectiveVisibility.Public;
 
-    /// <summary>
-    /// Defines if field inlining is allowed.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.AllowInlining"/>
     public bool AllowInlining { get; set; } = true;
 
-    /// <summary>
-    /// Defines that the default resolver execution strategy.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.DefaultResolverStrategy"/>
     public ExecutionStrategy DefaultResolverStrategy { get; set; } =
         ExecutionStrategy.Parallel;
 
-    /// <summary>
-    /// Defines if the order of important middleware components shall be validated.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.ValidatePipelineOrder"/>
     public bool ValidatePipelineOrder { get; set; } = true;
 
-    /// <summary>
-    /// Defines if the runtime types of types shall be validated.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.StrictRuntimeTypeValidation"/>
     public bool StrictRuntimeTypeValidation { get; set; }
 
-    /// <summary>
-    /// Defines a delegate that determines if a runtime
-    /// is an instance of an <see cref="ObjectType{T}"/>.
-    /// </summary>
+    /// <inheritdoc cref="ISchemaOptions.DefaultIsOfTypeCheck"/>
     public IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
-    
-    /// <inheritdoc />
+
+    /// <inheritdoc cref="ISchemaOptions.EnableOneOf"/>
     public bool EnableOneOf { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableFlagEnums"/>
+    public bool EnableFlagEnums { get; set; }
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
@@ -141,7 +104,8 @@ public class SchemaOptions : ISchemaOptions
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
-            EnableOneOf = options.EnableOneOf
+            EnableOneOf = options.EnableOneOf,
+            EnableFlagEnums = options.EnableFlagEnums
         };
     }
 }
