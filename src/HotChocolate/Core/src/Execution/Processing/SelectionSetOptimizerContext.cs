@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -101,7 +101,7 @@ public readonly ref struct SelectionSetOptimizerContext
         if (!NameUtils.IsValidGraphQLName(responseName))
         {
             throw new ArgumentException(
-                string.Format(Resources.SelectionSetOptimizerContext_InvalidFieldName, responseName));
+                string.Format(SelectionSetOptimizerContext_InvalidFieldName, responseName));
         }
 
         _compilerContext.Fields.Add(responseName, newSelection);
@@ -125,7 +125,7 @@ public readonly ref struct SelectionSetOptimizerContext
         if (!NameUtils.IsValidGraphQLName(responseName))
         {
             throw new ArgumentException(
-                string.Format(Resources.SelectionSetOptimizerContext_InvalidFieldName, responseName));
+                string.Format(SelectionSetOptimizerContext_InvalidFieldName, responseName));
         }
 
         if (!_compilerContext.Fields.TryGetValue(responseName, out var currentSelection))
