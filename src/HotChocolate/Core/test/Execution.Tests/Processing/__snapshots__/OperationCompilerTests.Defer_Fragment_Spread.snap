@@ -26,5 +26,5 @@ fragment Foo on Droid {
 }
 
 fragment Fragment_0 on Droid {
-  id @conditional @__execute(id: 3, kind: DEFAULT, type: LEAF)
+  id @__execute(id: 3, kind: DEFAULT, type: LEAF)
 }

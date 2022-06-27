@@ -573,7 +573,7 @@ public class StarWarsCodeFirstTests
 
         eventResult?.MatchSnapshot();
     }
-
+    
     [Fact]
     public async Task SubscribeToReview_WithInlineFragment()
     {
@@ -974,50 +974,49 @@ public class StarWarsCodeFirstTests
     {
         Snapshot.FullName();
 
-        await ExpectValid(@"
-                query ($if: Boolean!) {
-                    human(id: ""1000"") {
-                        ... Human1 @include(if: $if)
-                        ... Human2 @skip(if: $if)
+        await ExpectValid(
+            @"query ($if: Boolean!) {
+                human(id: ""1000"") {
+                    ... Human1 @include(if: $if)
+                    ... Human2 @skip(if: $if)
+                }
+            }
+            fragment Human1 on Human {
+                friends {
+                    edges {
+                        ... FriendEdge1
                     }
                 }
-                fragment Human1 on Human {
+            }
+            fragment FriendEdge1 on FriendsEdge {
+                node {
+                    __typename
                     friends {
-                        edges {
-                            ... FriendEdge1
+                        nodes {
+                            __typename
+                            ... Human3
                         }
                     }
                 }
-                fragment FriendEdge1 on FriendsEdge {
-                    node {
-                        __typename
-                        friends {
-                            nodes {
-                                __typename
-                                ... Human3
-                            }
+            }
+            fragment Human2 on Human {
+                friends {
+                    edges {
+                        node {
+                            __typename
+                            ... Human3
                         }
                     }
                 }
-                fragment Human2 on Human {
-                    friends {
-                        edges {
-                            node {
-                                __typename
-                                ... Human3
-                            }
-                        }
-                    }
+            }
+            fragment Human3 on Human {
+                name
+                otherHuman {
+                  __typename
+                  name
                 }
-                fragment Human3 on Human {
-                    name
-                    otherHuman {
-                      __typename
-                      name
-                    }
-                }
-                ",
-                request: r => r.SetVariableValue("if", true))
-            .MatchSnapshotAsync();
+            }",
+            request: r => r.SetVariableValue("if", true))
+        .MatchSnapshotAsync();
     }
 }
