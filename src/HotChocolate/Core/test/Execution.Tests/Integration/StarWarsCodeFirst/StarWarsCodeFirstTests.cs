@@ -1015,8 +1015,7 @@ public class StarWarsCodeFirstTests
                   __typename
                   name
                 }
-            }
-            ",
+            }",
             request: r => r.SetVariableValue("if", true))
         .MatchSnapshotAsync();
     }

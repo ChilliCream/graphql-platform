@@ -184,6 +184,73 @@ public class OperationCompilerTests
     }
 
     [Fact]
+    public void Nested_Fragments_with_Conditions()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            @"query ($if: Boolean!) {
+                human(id: ""1000"") {
+                    ... Human1 @include(if: $if)
+                    ... Human2 @skip(if: $if)
+                }
+            }
+            fragment Human1 on Human {
+                friends {
+                    edges {
+                        ... FriendEdge1
+                    }
+                }
+            }
+            fragment FriendEdge1 on FriendsEdge {
+                node {
+                    __typename
+                    friends {
+                        nodes {
+                            __typename
+                            ... Human3
+                        }
+                    }
+                }
+            }
+            fragment Human2 on Human {
+                friends {
+                    edges {
+                        node {
+                            __typename
+                            ... Human3
+                        }
+                    }
+                }
+            }
+            fragment Human3 on Human {
+                name
+                otherHuman {
+                  __typename
+                  name
+                }
+            }");
+
+        var operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        var operation = compiler.Compile(
+            "opid",
+            operationDefinition,
+            schema.QueryType,
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
     public void Prepare_Duplicate_Field_With_Skip()
     {
         // arrange
