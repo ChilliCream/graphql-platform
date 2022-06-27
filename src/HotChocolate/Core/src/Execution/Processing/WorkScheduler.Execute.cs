@@ -35,11 +35,16 @@ RESTART:
 
                 if (work is not 0)
                 {
-                    if (!buffer[0]!.IsSerial)
+                    var first = buffer[0]!;
+
+                    if (!first.IsSerial)
                     {
+                        first.BeginExecute(_ct);
+                        buffer[0] = null;
+
                         // if work is not serial we will just enqueue it and not wait
                         // for it to finish.
-                        for (var i = 0; i < work; i++)
+                        for (var i = 1; i < work; i++)
                         {
                             buffer[i]!.BeginExecute(_ct);
                             buffer[i] = null;
@@ -52,9 +57,8 @@ RESTART:
                         try
                         {
                             _batchDispatcher.DispatchOnSchedule = true;
-                            var task = buffer[0]!;
-                            task.BeginExecute(_ct);
-                            await task.WaitForCompletionAsync(_ct).ConfigureAwait(false);
+                            first.BeginExecute(_ct);
+                            await first.WaitForCompletionAsync(_ct).ConfigureAwait(false);
                             buffer[0] = null;
                         }
                         finally
