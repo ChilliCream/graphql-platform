@@ -31,19 +31,8 @@ public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
 
         resolverPipeline = WrappedPipeline(resolverPipeline);
 
-        var compiledSelection = new Selection(
-            selection.Id,
-            context.Type,
-            selection.Field,
-            selection.Field.Type,
-            selection.SyntaxNode,
-            selection.ResponseName,
-            SelectionExecutionStrategy.Default,
-            selection.Arguments,
-            // TODO I think i need to have access to the include conditions here
-            resolverPipeline:resolverPipeline);
+        context.SetResolver(selection, resolverPipeline);
 
-        context.ReplaceSelection(compiledSelection.ResponseName, compiledSelection);
-        return compiledSelection;
+        return selection;
     }
 }

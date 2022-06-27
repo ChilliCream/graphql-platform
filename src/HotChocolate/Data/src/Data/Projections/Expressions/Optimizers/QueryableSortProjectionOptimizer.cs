@@ -28,20 +28,8 @@ public class QueryableSortProjectionOptimizer : IProjectionOptimizer
 
         resolverPipeline = WrappedPipeline(resolverPipeline);
 
-        // TODO include condition?
-        var compiledSelection = new Selection(
-            context.GetNextSelectionId(),
-            context.Type,
-            selection.Field,
-            selection.Field.Type,
-            selection.SyntaxNode,
-            selection.ResponseName,
-            resolverPipeline: resolverPipeline,
-            arguments: selection.Arguments,
-            isInternal: false);
+        context.SetResolver(selection, resolverPipeline);
 
-        context.ReplaceSelection(compiledSelection.ResponseName, compiledSelection);
-
-        return compiledSelection;
+        return selection;
     }
 }
