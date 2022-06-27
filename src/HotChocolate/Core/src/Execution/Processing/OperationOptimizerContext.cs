@@ -28,7 +28,6 @@ public readonly ref struct OperationOptimizerContext
         ContextData = contextData;
     }
 
-
     /// <summary>
     /// Gets the schema for which the query is compiled.
     /// </summary>

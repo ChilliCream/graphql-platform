@@ -29,6 +29,7 @@ public readonly ref struct SelectionSetOptimizerContext
         _compiler = compiler;
         _compilerContext = compilerContext;
         _selectionLookup = selectionLookup;
+        ContextData = contextData;
     }
 
     /// <summary>
@@ -48,6 +49,12 @@ public readonly ref struct SelectionSetOptimizerContext
     /// </summary>
     public IReadOnlyDictionary<string, Selection> Selections
         => _compilerContext.Fields;
+
+    /// <summary>
+    /// The context data dictionary can be used by middleware components and
+    /// resolvers to store and retrieve data during execution.
+    /// </summary>
+    public IDictionary<string, object?> ContextData { get; }
 
     /// <summary>
     /// Gets the next operation unique selection id.
