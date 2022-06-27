@@ -161,11 +161,11 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     /// </returns>
     public static SchemaCoordinate FromSyntax(SchemaCoordinateNode node)
     {
-        NameString? memberName = node.MemberName is null
+        var memberName = node.MemberName is null
             ? null
             : (NameString?)node.MemberName.Value;
 
-        NameString? argumentName = node.ArgumentName is null
+        var argumentName = node.ArgumentName is null
             ? null
             : (NameString?)node.ArgumentName.Value;
 

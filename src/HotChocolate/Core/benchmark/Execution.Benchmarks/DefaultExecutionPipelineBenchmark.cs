@@ -131,7 +131,6 @@ namespace HotChocolate.Execution.Benchmarks
         {
             var result = (await executor.ExecuteAsync(request)).ExpectQueryResult();
 
-
             if (result.Errors is { Count: > 0 })
             {
                 Console.WriteLine("Full Error:");

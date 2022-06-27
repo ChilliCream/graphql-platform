@@ -22,7 +22,7 @@ public class PathFactory
             throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        IndexerPathSegment indexer = CreateIndexer();
+        var indexer = CreateIndexer();
 
         indexer.Parent = parent;
         indexer.Index = index;
@@ -41,7 +41,7 @@ public class PathFactory
     {
         name.EnsureNotEmpty(nameof(name));
 
-        NamePathSegment indexer = CreateNamed();
+        var indexer = CreateNamed();
 
         indexer.Parent = parent;
         indexer.Name = name;
