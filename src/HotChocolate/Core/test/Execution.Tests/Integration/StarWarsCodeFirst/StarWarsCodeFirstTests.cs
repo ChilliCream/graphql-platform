@@ -580,7 +580,6 @@ public class StarWarsCodeFirstTests
         // arrange
         var executor = await CreateExecutorAsync();
 
-
         // act
         var subscriptionResult =
             (IResponseStream)await executor.ExecuteAsync(
