@@ -38,7 +38,7 @@ public class Neo4JSortProvider
             FieldDelegate next,
             IMiddlewareContext context)
         {
-            IInputField argument = context.Field.Arguments[argumentName];
+            var argument = context.Selection.Arguments[argumentName];
             IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
             if (filter is not NullValueNode &&

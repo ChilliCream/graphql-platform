@@ -8,6 +8,8 @@ namespace HotChocolate.Execution.Processing.Tasks;
 
 internal sealed partial class ResolverTask
 {
+    private readonly string s = Guid.NewGuid().ToString("N");
+
     private async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         try
