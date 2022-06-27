@@ -91,10 +91,11 @@ internal static class OperationPrinter
                             CreateSelectionSet(context, fragment.SelectionSet, new()));
                 }
 
-                selections.Add(new FragmentSpreadNode(
-                    null,
-                    new(fragmentName),
-                    new[] { new DirectiveNode("defer") }));
+                selections.Add(
+                    new FragmentSpreadNode(
+                        null,
+                        new(fragmentName),
+                        new[] { new DirectiveNode("defer") }));
             }
         }
 

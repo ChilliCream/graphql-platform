@@ -42,7 +42,7 @@ namespace HotChocolate.Execution.Benchmarks
             }
             */
 
-            BenchmarkRunner.Run<OperationCompilerBenchmark>();
+            BenchmarkRunner.Run<DefaultExecutionPipelineBenchmark>();
         }
     }
 }

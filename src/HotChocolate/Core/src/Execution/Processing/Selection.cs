@@ -41,6 +41,8 @@ public class Selection : ISelection
         SyntaxNode = syntaxNode;
         ResponseName = responseName;
         Arguments = arguments ?? _emptyArguments;
+        ResolverPipeline = resolverPipeline;
+        PureResolver = pureResolver;
 
         _includeConditions = includeCondition is 0
             ? Array.Empty<long>()
