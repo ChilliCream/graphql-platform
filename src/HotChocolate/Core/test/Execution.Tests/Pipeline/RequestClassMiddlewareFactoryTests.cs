@@ -46,7 +46,6 @@ public class RequestClassMiddlewareFactoryTests
         var compiledMiddleware = middleware(factoryContext, _ => default);
         await compiledMiddleware(context);
 
-
         // assert
         Assert.Single((context.ContextData["result"] as IEnumerable<ISelectionSetOptimizer>)!);
     }

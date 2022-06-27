@@ -115,7 +115,5 @@ internal sealed class Operation : IOperation
         return context;
     }
 
-    public string Print() => OperationPrinter.Print(this);
-
-    public override string ToString() => Print();
+    public override string ToString() => OperationPrinter.Print(this);
 }

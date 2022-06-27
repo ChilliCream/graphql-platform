@@ -62,7 +62,7 @@ public class VisibilityTests
         var includeConditionB = IncludeCondition.FromSelection(fieldB);
 
         // assert
-        Assert.True(includeConditionA.Equals(includeConditionB));
+        Assert.False(includeConditionA.Equals(includeConditionB));
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class VisibilityTests
         var includeConditionB = IncludeCondition.FromSelection(fieldB);
 
         // assert
-        Assert.True(includeConditionA.Equals(includeConditionB));
+        Assert.False(includeConditionA.Equals(includeConditionB));
     }
 
     [Fact]
