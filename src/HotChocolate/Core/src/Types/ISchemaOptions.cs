@@ -111,4 +111,39 @@ public interface ISchemaOptions : IReadOnlySchemaOptions
     /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
     /// </summary>
     new bool EnableOneOf { get; set; }
+
+    /// <summary>
+    /// Defines if flag enums should be inferred as object value nodes
+    /// </summary>
+    /// <example>
+    /// Given the following enum
+    /// <br/>
+    /// <code>
+    /// [Flags]
+    /// public enum Example { First, Second, Third }
+    ///
+    /// public class Query { public Example Loopback(Example input) => input;
+    /// </code>
+    /// <br/>
+    /// The following schema is produced
+    /// <br/>
+    /// <code>
+    /// type Query {
+    ///    loopback(input: ExampleFlagsInput!): ExampleFlags
+    /// }
+    ///
+    /// type ExampleFlags {
+    ///    isFirst: Boolean!
+    ///    isSecond: Boolean!
+    ///    isThird: Boolean!
+    /// }
+    ///
+    /// input ExampleFlagsInput {
+    ///    isFirst: Boolean
+    ///    isSecond: Boolean
+    ///    isThird: Boolean
+    /// }
+    /// </code>
+    /// </example>
+    new bool EnableFlagEnums { get; set; }
 }
