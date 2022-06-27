@@ -98,10 +98,10 @@ RESTART:
 
         lock (_sync)
         {
-            var isDefault = !_work.IsEmpty || _work.HasRunningTasks;
-            var work = isDefault ? _work : _serial;
+            var isParallel = !_work.IsEmpty || _work.HasRunningTasks;
+            var work = isParallel ? _work : _serial;
 
-            if (isDefault)
+            if (isParallel)
             {
                 // The default behavior for tasks is that they can be executed in parallel.
                 // We will always try to dequeue multiple tasks at once so that we avoid having
