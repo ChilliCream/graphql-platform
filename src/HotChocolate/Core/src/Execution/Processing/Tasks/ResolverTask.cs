@@ -202,10 +202,4 @@ internal sealed partial class ResolverTask : IExecutionTask
         _taskBuffer.Clear();
         return true;
     }
-
-    /// <summary>
-    /// Returns the task back to the pool.
-    /// </summary>
-    internal void Return()
-        => _objectPool.Return(this);
 }

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial  class WorkScheduler : IWorkScheduler
+internal sealed partial class WorkScheduler : IWorkScheduler
 {
     public bool IsCompleted
     {
