@@ -50,6 +50,13 @@ internal partial class MiddlewareContext
             return casted;
         }
 
+        if (_parent is object[] o &&
+            Temp.ValueConverter.TryGetValue(_selection.Id, out var converter))
+        {
+            return (T)converter(o);
+        }
+
+
         throw ThrowHelper.ResolverContext_CannotCastParent(
             Selection.Field.Coordinate,
             Path,

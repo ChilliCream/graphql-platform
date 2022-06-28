@@ -1,9 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities.Serialization;
 using static HotChocolate.Data.Projections.ProjectionConvention;
 
 namespace HotChocolate.Data.Projections.Handlers;
@@ -81,49 +87,102 @@ public class RewriteToIndexerOptimizer : IProjectionOptimizer
         SelectionOptimizerContext context,
         Selection selection)
     {
+        if (!Temp.Factories.TryGetValue(context.Path, out var converter))
+        {
+            var runtimeType = context.Type.RuntimeType;
+            if (runtimeType == typeof(object))
+            {
+                converter = o =>
+                {
+                    // maybe dict
+                    return new object();
+                };
+            }
+            else
+            {
+                MemberInfo?[] memberInfos =
+                    context.Fields.Select(x => x.Value.Field.Member).ToArray();
+
+                converter = o =>
+                {
+                    var value = Activator.CreateInstance(runtimeType);
+                    for (var i = 0; i < memberInfos.Length; i++)
+                    {
+                        if (memberInfos[i] is PropertyInfo { CanWrite: true } p)
+                        {
+                            p.SetValue(value, o[i]);
+                        }
+                    }
+
+                    return value!;
+                };
+            }
+
+            Temp.Factories.Add(context.Path, converter);
+        }
         for (var i = 0; i < context.SelectionSet.Selections.Count; i++)
         {
             ISelectionNode selectionNode = context.SelectionSet.Selections[i];
+
             if (selectionNode is FieldNode fn &&
                 selection.ResponseName == (fn.Alias?.Value ?? fn.Name.Value))
             {
+                // abstract type resolver
+                if (selection.Field.Type.NamedType().IsAbstractType())
+                {
+                    Temp.OfType.Add(selection.Id,
+                        (o, type) =>
+                        {
+                            if (o is not object[] values || values.Length < 1 )
+                            {
+                                return false;
+                            }
+
+                            return values[values.Length - 1].Equals(type.Name.Value);
+                        });
+
+                }
+                Temp.ValueConverter[selection.Id] = converter;
                 // TODO check if this really works
                 var index = i;
-                if (selection.Strategy == SelectionExecutionStrategy.Pure)
+                if (selection.Field.Member is PropertyInfo)
                 {
-                    return new Selection(
-                        selection.Id,
-                        selection.DeclaringType,
-                        selection.Field,
-                        selection.SyntaxNode,
-                        null,
-                        c => c.Parent<object[]>()[index],
-                        arguments: selection.Arguments,
-                        internalSelection: false);
-                }
-                else
-                {
-                    FieldDelegate resolverPipeline =
-                        selection.ResolverPipeline ??
-                        context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
+                    if (selection.Strategy == SelectionExecutionStrategy.Pure)
+                    {
+                        return new Selection(
+                            selection.Id,
+                            selection.DeclaringType,
+                            selection.Field,
+                            selection.SyntaxNode,
+                            null,
+                            c => c.Parent<object[]>()[index],
+                            arguments: selection.Arguments,
+                            internalSelection: false);
+                    }
+                    else
+                    {
+                        FieldDelegate resolverPipeline =
+                            selection.ResolverPipeline ??
+                            context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
 
-                    FieldDelegate WrappedPipeline(FieldDelegate next) =>
-                        ctx =>
-                        {
-                            ctx.Result = ctx.Parent<object[]>()[index];
-                            return next(ctx);
-                        };
+                        FieldDelegate WrappedPipeline(FieldDelegate next) =>
+                            ctx =>
+                            {
+                                ctx.Result = ctx.Parent<object[]>()[index];
+                                return next(ctx);
+                            };
 
-                    resolverPipeline = WrappedPipeline(resolverPipeline);
+                        resolverPipeline = WrappedPipeline(resolverPipeline);
 
-                    return new Selection(
-                        selection.Id,
-                        selection.DeclaringType,
-                        selection.Field,
-                        selection.SyntaxNode,
-                        resolverPipeline,
-                        arguments: selection.Arguments,
-                        internalSelection: false);
+                        return new Selection(
+                            selection.Id,
+                            selection.DeclaringType,
+                            selection.Field,
+                            selection.SyntaxNode,
+                            resolverPipeline,
+                            arguments: selection.Arguments,
+                            internalSelection: false);
+                    }
                 }
             }
         }

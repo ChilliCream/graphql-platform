@@ -1,6 +1,8 @@
 using System;
 using HotChocolate.Data;
 using HotChocolate.Data.Projections;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Types;
 
 namespace HotChocolate;
 
@@ -18,8 +20,7 @@ public static class ProjectionsSchemaBuilderExtensions
     /// <returns>
     /// Returns the <see cref="ISchemaBuilder"/>.
     /// </returns>
-    public static ISchemaBuilder AddProjections(
-        this ISchemaBuilder builder) =>
+    public static ISchemaBuilder AddProjections(this ISchemaBuilder builder) =>
         AddProjections(builder, x => x.AddDefaults());
 
     /// <summary>
@@ -42,6 +43,27 @@ public static class ProjectionsSchemaBuilderExtensions
         Action<IProjectionConventionDescriptor> configure,
         string? name = null) =>
         builder
+            .ModifyOptions(x => x.DefaultIsOfTypeCheck = (type, context, result) =>
+            {
+                if (Temp.OfType.TryGetValue(((Selection)context.Selection).Id, out var ofType))
+                {
+                    return ofType(result, type);
+                }
+                else if (type.RuntimeType != typeof(object))
+                {
+                    return result is null || type.RuntimeType == result.GetType();
+                }
+                else
+                {
+                    if (result is null)
+                    {
+                        return true;
+                    }
+
+                    Type resultType = result.GetType();
+                    return type.Name.Equals(resultType.Name, StringComparison.Ordinal);
+                }
+            })
             .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
             .TryAddConvention<IProjectionConvention>(
                 sp => new ProjectionConvention(configure),

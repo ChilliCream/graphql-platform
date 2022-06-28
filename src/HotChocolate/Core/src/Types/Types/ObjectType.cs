@@ -1,11 +1,12 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -160,4 +161,17 @@ public partial class ObjectType
     /// The descriptor allows to configure the interface type.
     /// </param>
     protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
+}
+
+public class Temp
+{
+    public static Dictionary<IImmutableStack<IObjectField>, Func<object[], object>> Factories
+    {
+        get;
+    } = new();
+
+    public static Dictionary<int, Func<object[], object>> ValueConverter { get; } = new();
+
+    public static Dictionary<int, Func<object, ObjectType, bool>> OfType { get; } =
+        new();
 }

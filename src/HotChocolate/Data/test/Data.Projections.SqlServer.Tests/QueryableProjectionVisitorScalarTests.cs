@@ -115,6 +115,22 @@ public class QueryableProjectionVisitorScalarTests
             .MatchAsync();
     }
 
+    [Fact]
+    public async Task Test1()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root{ baz extended }}")
+                .Create());
+
+        res1.MatchSqlSnapshot();
+    }
+
     public class Foo
     {
         public int Id { get; set; }
@@ -126,6 +142,8 @@ public class QueryableProjectionVisitorScalarTests
         public string Computed() => "Foo";
 
         public string? NotSettable { get; }
+
+        public string Extended([Parent] Foo p) => (p.Baz ?? "") + p.Computed();
     }
 
     public class FooNullable
