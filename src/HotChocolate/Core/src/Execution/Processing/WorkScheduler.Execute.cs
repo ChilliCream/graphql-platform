@@ -183,6 +183,10 @@ RESTART:
                     {
                         _isCompleted = true;
                     }
+                    else if (!hasWork)
+                    {
+                        _pause.Reset();
+                    }
                 }
             }
         }
