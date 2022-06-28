@@ -177,19 +177,22 @@ RESTART:
                     var isWaitingForTaskCompletion = _work.HasRunningTasks && _work.IsEmpty;
                     var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
 
-                    if (isWaitingForTaskCompletion && _hasBatches)
-                    {
-                        _hasBatches = false;
-                        _pause.Reset();
-                        _batchDispatcher.BeginDispatch(_ct);
-                    }
-                    else if (!isWaitingForTaskCompletion && !_hasBatches && !hasWork)
-                    {
-                        _isCompleted = true;
-                    }
-                    else if (!_pause.IsPaused && !hasWork)
+                    if (isWaitingForTaskCompletion)
                     {
                         _pause.Reset();
+
+                        if (_hasBatches)
+                        {
+                            _hasBatches = false;
+                            _batchDispatcher.BeginDispatch(_ct);
+                        }
+                    }
+                    else
+                    {
+                        if (!_hasBatches && !hasWork)
+                        {
+                            _isCompleted = true;
+                        }
                     }
                 }
             }
