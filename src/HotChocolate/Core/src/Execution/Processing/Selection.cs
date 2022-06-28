@@ -80,7 +80,7 @@ public class Selection : ISelection
     public int Id { get; }
 
     /// <inheritdoc />
-    public SelectionExecutionStrategy Strategy { get; }
+    public SelectionExecutionStrategy Strategy { get; private set;}
 
     /// <inheritdoc />
     public IObjectType DeclaringType { get; }
@@ -249,6 +249,11 @@ public class Selection : ISelection
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
             throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        if (pureResolver is not null)
+        {
+             Strategy = SelectionExecutionStrategy.Pure;
         }
 
         ResolverPipeline = resolverPipeline;
