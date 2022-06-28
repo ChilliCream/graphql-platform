@@ -184,7 +184,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
     public void Directive<TDirective>() where TDirective : class, new()
         => Definition.AddDirective(new TDirective(), Context.TypeInspector);
 
-    /// <inheritdoc cref="IArgumentDescriptor.Directive(NameString, ArgumentNode[])"/>
-    public void Directive(NameString name, params ArgumentNode[] arguments)
+    /// <inheritdoc cref="IArgumentDescriptor.Directive(string, ArgumentNode[])"/>
+    public void Directive(string name, params ArgumentNode[] arguments)
         => Definition.AddDirective(name, arguments);
 }

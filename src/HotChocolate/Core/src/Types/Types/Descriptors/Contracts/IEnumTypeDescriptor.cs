@@ -24,7 +24,7 @@ public interface IEnumTypeDescriptor
     /// <param name="value">
     /// The name value.
     /// </param>
-    IEnumTypeDescriptor Name(NameString value);
+    IEnumTypeDescriptor Name(string value);
 
     /// <summary>
     /// Defines the description that the enum type shall have.
@@ -69,6 +69,6 @@ public interface IEnumTypeDescriptor
         where T : class, new();
 
     IEnumTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 }

@@ -5,7 +5,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Processing;
 
-public interface IArgumentMap : IReadOnlyDictionary<NameString, ArgumentValue>
+public interface IArgumentMap : IReadOnlyDictionary<string, ArgumentValue>
 {
     bool IsFinalNoErrors { get; }
 

@@ -1,12 +1,13 @@
+using HotChocolate.Utilities;
+
 namespace HotChocolate.Types.Descriptors;
 
-public sealed class NameDirectiveReference
-    : IDirectiveReference
+public sealed class NameDirectiveReference : IDirectiveReference
 {
-    public NameDirectiveReference(NameString name)
+    public NameDirectiveReference(string name)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
     }
 
-    public NameString Name { get; }
+    public string Name { get; }
 }

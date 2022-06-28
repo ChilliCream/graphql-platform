@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -28,12 +29,12 @@ public class ObjectTypeDefinition
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
     public ObjectTypeDefinition(
-        NameString name,
+        string name,
         string? description = null,
         Type? runtimeType = null)
         : base(runtimeType ?? typeof(object))
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
         FieldBindingType = runtimeType;
     }

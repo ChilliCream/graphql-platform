@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -28,12 +29,12 @@ public class DirectiveTypeDefinition
     /// Initializes a new instance of <see cref="DirectiveTypeDefinition"/>.
     /// </summary>
     public DirectiveTypeDefinition(
-        NameString name,
+        string name,
         string? description = null,
         Type? runtimeType = null,
         bool isRepeatable = false)
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
         RuntimeType = runtimeType ?? typeof(object);
         IsRepeatable = isRepeatable;

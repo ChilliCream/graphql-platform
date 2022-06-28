@@ -11,14 +11,14 @@ public interface IFieldCollection<out T> : IReadOnlyCollection<T> where T : clas
 
     T this[int index] { get; }
 
-    bool ContainsField(NameString fieldName);
+    bool ContainsField(string fieldName);
 }
 
 public static class FieldCollectionExtensions
 {
     public static bool TryGetField<T>(
         this IFieldCollection<T> collection,
-        NameString fieldName,
+        string fieldName,
         [NotNullWhen(true)] out T? field)
         where T : class, IField
     {

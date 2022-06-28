@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -17,10 +18,10 @@ public class ArgumentDescriptor
     /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
-        NameString argumentName)
+        string argumentName)
         : base(context)
     {
-        Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
+        Definition.Name = argumentName;
     }
 
     /// <summary>
@@ -28,7 +29,7 @@ public class ArgumentDescriptor
     /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
-        NameString argumentName,
+        string argumentName,
         Type argumentType)
         : this(context, argumentName)
     {
@@ -37,7 +38,6 @@ public class ArgumentDescriptor
             throw new ArgumentNullException(nameof(argumentType));
         }
 
-        Definition.Name = argumentName;
         Definition.Type = context.TypeInspector.GetTypeRef(argumentType, TypeContext.Input);
     }
 
@@ -181,7 +181,7 @@ public class ArgumentDescriptor
 
     /// <inheritdoc />
     public new IArgumentDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);

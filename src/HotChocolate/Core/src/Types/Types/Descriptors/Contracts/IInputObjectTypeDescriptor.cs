@@ -10,11 +10,11 @@ public interface IInputObjectTypeDescriptor
     IInputObjectTypeDescriptor SyntaxNode(
         InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode);
 
-    IInputObjectTypeDescriptor Name(NameString value);
+    IInputObjectTypeDescriptor Name(string value);
 
     IInputObjectTypeDescriptor Description(string value);
 
-    IInputFieldDescriptor Field(NameString name);
+    IInputFieldDescriptor Field(string name);
 
     IInputObjectTypeDescriptor Directive<T>(T directiveInstance)
         where T : class;
@@ -23,6 +23,6 @@ public interface IInputObjectTypeDescriptor
         where T : class, new();
 
     IInputObjectTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 }
