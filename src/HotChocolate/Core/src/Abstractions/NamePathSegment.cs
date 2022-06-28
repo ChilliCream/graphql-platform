@@ -6,12 +6,12 @@ namespace HotChocolate;
 /// An <see cref="IndexerPathSegment" /> represents a pointer to
 /// an named element in the result structure.
 /// </summary>
-public sealed class NamePathSegment : Path
+public class NamePathSegment : Path
 {
     /// <summary>
     ///  Gets the name representing a field on a result map.
     /// </summary>
-    public NameString Name { get; internal set; }
+    public virtual NameString Name { get; internal set; }
 
     /// <inheritdoc />
     public override string Print()

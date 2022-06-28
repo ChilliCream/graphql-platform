@@ -14,7 +14,7 @@ public abstract class Path : IEquatable<Path>
     /// <summary>
     /// Gets the parent path segment.
     /// </summary>
-    public Path Parent { get; internal set; } = Root;
+    public virtual Path Parent { get; internal set; } = Root;
 
     /// <summary>
     /// Gets the count of segments this path contains.

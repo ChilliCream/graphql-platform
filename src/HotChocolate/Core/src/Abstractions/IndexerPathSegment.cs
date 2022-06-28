@@ -6,13 +6,13 @@ namespace HotChocolate;
 /// An <see cref="IndexerPathSegment" /> represents a pointer to
 /// an list element in the result structure.
 /// </summary>
-public sealed class IndexerPathSegment : Path
+public class IndexerPathSegment : Path
 {
     /// <summary>
     /// Gets the <see cref="Index"/> which represents the position an element in a
     /// list of the result structure.
     /// </summary>
-    public int Index { get; internal set; }
+    public virtual int Index { get; internal set; }
 
     /// <inheritdoc />
     public override string Print()

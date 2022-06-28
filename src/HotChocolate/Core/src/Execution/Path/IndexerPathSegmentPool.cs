@@ -10,12 +10,12 @@ internal sealed class IndexerPathSegmentPool
     {
     }
 
+#if NET6_0_OR_GREATER
     private sealed class BufferPolicy
         : IPooledObjectPolicy<PathSegmentBuffer<IndexerPathSegment>>
     {
-        private static readonly IndexerPathSegmentPolicy _policy = new();
-
-        public PathSegmentBuffer<IndexerPathSegment> Create() => new(256, _policy);
+        public PathSegmentBuffer<IndexerPathSegment> Create()
+            => new IndexerPathSegmentBuffer(256);
 
         public bool Return(PathSegmentBuffer<IndexerPathSegment> obj)
         {
@@ -23,15 +23,31 @@ internal sealed class IndexerPathSegmentPool
             return true;
         }
     }
-
-    private sealed class IndexerPathSegmentPolicy : IPooledObjectPolicy<IndexerPathSegment>
+#else
+    private sealed class BufferPolicy
+        : IPooledObjectPolicy<PathSegmentBuffer<IndexerPathSegment>>
     {
-        public IndexerPathSegment Create() => new();
+        private static readonly IndexerPathSegmentPolicy _policy = new();
 
-        public bool Return(IndexerPathSegment segment)
+        public PathSegmentBuffer<IndexerPathSegment> Create()
+            => new ObjectPoolPathSegmentBuffer<IndexerPathSegment>(256, _policy);
+
+        public bool Return(PathSegmentBuffer<IndexerPathSegment> obj)
         {
-            segment.Parent = Path.Root;
+            obj.Reset();
             return true;
         }
+
+        private sealed class IndexerPathSegmentPolicy : IPooledObjectPolicy<IndexerPathSegment>
+        {
+            public IndexerPathSegment Create() => new();
+
+            public bool Return(IndexerPathSegment segment)
+            {
+                segment.Parent = Path.Root;
+                return true;
+            }
+        }
     }
+#endif
 }

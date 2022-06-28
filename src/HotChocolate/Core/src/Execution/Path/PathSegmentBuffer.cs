@@ -1,29 +1,27 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution;
 
-internal sealed class PathSegmentBuffer<T> where T : class
+internal abstract class PathSegmentBuffer<T> where T : class
 {
     private readonly int _capacity;
-    private readonly IPooledObjectPolicy<T> _policy;
     private readonly T?[] _buffer;
-    private int _index;
+    protected int Index;
 
-    public PathSegmentBuffer(int capacity, IPooledObjectPolicy<T> policy)
+    public PathSegmentBuffer(int capacity)
     {
         _capacity = capacity;
-        _policy = policy;
         _buffer = new T[capacity];
     }
 
-    public bool HasSpace() => _index < _capacity;
+    public bool HasSpace() => Index < _capacity;
 
     public T Pop()
     {
-        if (TryPop(out var obj))
+        if (TryPop(out T? obj))
         {
             return obj;
         }
@@ -33,16 +31,16 @@ internal sealed class PathSegmentBuffer<T> where T : class
 
     public bool TryPop([NotNullWhen(true)] out T? obj)
     {
-        var nextIndex = Interlocked.Increment(ref _index) - 1;
+        var nextIndex = Interlocked.Increment(ref Index) - 1;
         if (nextIndex < _capacity)
         {
-            if (_buffer[nextIndex] is { } o)
+            if (_buffer[nextIndex] is not null)
             {
-                obj = o;
+                obj = (T)_buffer[nextIndex];
                 return true;
             }
 
-            obj = _policy.Create();
+            obj = Create(nextIndex);
             _buffer[nextIndex] = obj;
             return true;
         }
@@ -53,24 +51,22 @@ internal sealed class PathSegmentBuffer<T> where T : class
 
     public void Reset()
     {
-        if (_index == 0)
+        if (Index == 0)
         {
             return;
         }
 
-        if (_index >= _capacity)
+        if (Index >= _capacity)
         {
-            _index = _capacity;
+            Index = _capacity;
         }
 
-        for (var i = 0; i < _index; i++)
-        {
-            if (!_policy.Return(_buffer[i]!))
-            {
-                _buffer[i] = null;
-            }
-        }
+        Clear(_buffer, Index);
 
-        _index = 0;
+        Index = 0;
     }
+
+    protected abstract T Create(int index);
+
+    protected abstract void Clear(T?[] buffer, int index);
 }

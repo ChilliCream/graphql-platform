@@ -10,12 +10,12 @@ internal sealed class NamePathSegmentPool
     {
     }
 
+#if NET6_0_OR_GREATER
     private sealed class BufferPolicy
         : IPooledObjectPolicy<PathSegmentBuffer<NamePathSegment>>
     {
-        private static readonly NamePathSegmentPolicy _policy = new();
-
-        public PathSegmentBuffer<NamePathSegment> Create() => new(256, _policy);
+        public PathSegmentBuffer<NamePathSegment> Create()
+            => new NamePathSegmentBuffer(256);
 
         public bool Return(PathSegmentBuffer<NamePathSegment> obj)
         {
@@ -23,18 +23,34 @@ internal sealed class NamePathSegmentPool
             return true;
         }
     }
-
-    private sealed class NamePathSegmentPolicy : IPooledObjectPolicy<NamePathSegment>
+#else
+    private sealed class BufferPolicy
+        : IPooledObjectPolicy<PathSegmentBuffer<NamePathSegment>>
     {
-        private readonly NameString _default = new("default");
+        private static readonly NamePathSegmentPolicy _policy = new();
 
-        public NamePathSegment Create() => new();
+        public PathSegmentBuffer<NamePathSegment> Create() =>
+            new ObjectPoolPathSegmentBuffer<NamePathSegment>(256, _policy);
 
-        public bool Return(NamePathSegment segment)
+        public bool Return(PathSegmentBuffer<NamePathSegment> obj)
         {
-            segment.Name = _default;
-            segment.Parent = Path.Root;
+            obj.Reset();
             return true;
         }
+
+        private sealed class NamePathSegmentPolicy : IPooledObjectPolicy<NamePathSegment>
+        {
+            private readonly NameString _default = new("default");
+
+            public NamePathSegment Create() => new();
+
+            public bool Return(NamePathSegment segment)
+            {
+                segment.Name = _default;
+                segment.Parent = Path.Root;
+                return true;
+            }
+        }
     }
+#endif
 }
