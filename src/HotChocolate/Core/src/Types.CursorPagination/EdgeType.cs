@@ -42,7 +42,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
             new CompleteConfiguration(
                 (c, d) =>
                 {
-                    IType type = c.GetType<IType>(nodeType);
+                    var type = c.GetType<IType>(nodeType);
                     ConnectionName = type.NamedType().Name;
                     ((ObjectTypeDefinition)d).Name = NameHelper.CreateEdgeName(ConnectionName);
                 },

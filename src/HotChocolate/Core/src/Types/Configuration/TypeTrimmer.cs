@@ -36,7 +36,7 @@ internal sealed class TypeTrimmer
         foreach (var directiveType in _discoveredTypes.OfType<DirectiveType>())
         {
             if (directiveType.IsExecutableDirective ||
-                directiveType.Name.Equals(WellKnownDirectives.Deprecated))
+                directiveType.Name.EqualsOrdinal(WellKnownDirectives.Deprecated))
             {
                 _touched.Add(directiveType);
                 VisitDirective(directiveType);

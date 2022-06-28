@@ -125,6 +125,6 @@ public partial class ObjectType
         }
 
         var type = result.GetType();
-        return Name.Equals(type.Name);
+        return Name.EqualsOrdinal(type.Name);
     }
 }

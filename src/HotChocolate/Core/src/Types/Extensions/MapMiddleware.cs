@@ -32,7 +32,7 @@ internal sealed class MapMiddleware
 
     private bool IsField(NameString typeName, NameString fieldName)
     {
-        return _fieldReference.TypeName.Equals(typeName)
-            && _fieldReference.FieldName.Equals(fieldName);
+        return _fieldReference.TypeName.EqualsOrdinal(typeName)
+            && _fieldReference.FieldName.EqualsOrdinal(fieldName);
     }
 }

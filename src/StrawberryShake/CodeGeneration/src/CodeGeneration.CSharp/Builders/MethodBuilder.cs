@@ -224,7 +224,7 @@ public class MethodBuilder : ICodeContainer<MethodBuilder>
 
             using (writer.IncreaseIndent())
             {
-                foreach (ICode code in _lines)
+                foreach (var code in _lines)
                 {
                     code.Build(writer);
                 }

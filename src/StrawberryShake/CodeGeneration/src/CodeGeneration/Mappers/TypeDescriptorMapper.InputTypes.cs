@@ -20,7 +20,7 @@ public static partial class TypeDescriptorMapper
         {
             if (!typeDescriptors.TryGetValue(
                     inputType.Name,
-                    out InputTypeDescriptorModel descriptorModel))
+                    out var descriptorModel))
             {
                 descriptorModel = new InputTypeDescriptorModel(
                     inputType,
@@ -38,14 +38,14 @@ public static partial class TypeDescriptorMapper
         Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors,
         Dictionary<NameString, INamedTypeDescriptor> leafTypeDescriptors)
     {
-        foreach (InputTypeDescriptorModel typeDescriptorModel in typeDescriptors.Values)
+        foreach (var typeDescriptorModel in typeDescriptors.Values)
         {
             var properties = new List<PropertyDescriptor>();
 
             foreach (var field in typeDescriptorModel.Model.Fields)
             {
                 INamedTypeDescriptor? fieldType;
-                INamedType namedType = field.Type.NamedType();
+                var namedType = field.Type.NamedType();
 
                 if (namedType.IsScalarType() || namedType.IsEnumType())
                 {
@@ -77,7 +77,7 @@ public static partial class TypeDescriptorMapper
         Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors)
     {
         return typeDescriptors.Values
-            .First(t => t.Model.Type.Name.Equals(fieldNamedType.Name))
+            .First(t => t.Model.Type.Name.EqualsOrdinal(fieldNamedType.Name))
             .Descriptor;
     }
 }

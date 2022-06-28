@@ -101,7 +101,7 @@ public class OperationModel
 
         if(!_selectionSets.TryGetValue(
                new SelectionSetInfo(fieldNamedType, fieldSyntax.SelectionSet!),
-               out SelectionSetNode? selectionSetNode))
+               out var selectionSetNode))
         {
             selectionSetNode = fieldSyntax.SelectionSet;
         }

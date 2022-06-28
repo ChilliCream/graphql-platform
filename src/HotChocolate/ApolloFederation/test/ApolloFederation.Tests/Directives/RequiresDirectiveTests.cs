@@ -13,12 +13,12 @@ public class RequiresDirectiveTests
     public void AddRequiresDirective_EnsureAvailableInSchema()
     {
         // arrange
-        ISchema schema = CreateSchema(b => b.AddDirectiveType<RequiresDirectiveType>());
+        var schema = CreateSchema(b => b.AddDirectiveType<RequiresDirectiveType>());
 
         // act
-        DirectiveType? directive =
+        var directive =
             schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.Equals(WellKnownTypeNames.Requires));
+                t => t.Name.EqualsOrdinal(WellKnownTypeNames.Requires));
 
         // assert
         Assert.NotNull(directive);
@@ -38,7 +38,7 @@ public class RequiresDirectiveTests
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"type Review @key(fields: ""id"") {
                         id: Int!
@@ -59,7 +59,7 @@ public class RequiresDirectiveTests
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(
@@ -108,7 +108,7 @@ public class RequiresDirectiveTests
                 o.Field("someField").Argument("a", a => a.Type<IntType>()).Type(reviewType);
             });
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(queryType)
             .AddType<FieldSetType>()
             .AddDirectiveType<KeyDirectiveType>()
@@ -117,7 +117,7 @@ public class RequiresDirectiveTests
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(testType.Fields.Single(field => field.Name.Value == "product").Directives,
@@ -140,13 +140,13 @@ public class RequiresDirectiveTests
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(testType.Fields.Single(field => field.Name.Value == "product").Directives,

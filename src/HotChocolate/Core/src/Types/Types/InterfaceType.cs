@@ -116,7 +116,7 @@ public partial class InterfaceType
     /// The interface type name.
     /// </param>
     public bool IsImplementing(NameString typeName)
-        => _implements.Any(t => t.Name.Equals(typeName));
+        => _implements.Any(t => t.Name.EqualsOrdinal(typeName));
 
     /// <summary>
     /// Defines if this type is implementing the

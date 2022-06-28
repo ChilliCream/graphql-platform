@@ -29,7 +29,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         out string? path,
         out string ns)
     {
-        InterfaceTypeDescriptor resultTypeDescriptor =
+        var resultTypeDescriptor =
             resultBuilderDescriptor.ResultNamedType as InterfaceTypeDescriptor ??
             throw new InvalidOperationException(
                 "A result type can only be generated for complex types");
@@ -38,11 +38,11 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         path = State;
         ns = resultBuilderDescriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
             .SetName(fileName);
 
-        ConstructorBuilder constructorBuilder = classBuilder
+        var constructorBuilder = classBuilder
             .AddConstructor()
             .SetTypeName(fileName);
 
@@ -75,7 +75,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 .SetAccessModifier(AccessModifier.Protected)
                 .SetOverride());
 
-        AssignmentBuilder assignment = AssignmentBuilder
+        var assignment = AssignmentBuilder
             .New()
             .SetLefthandSide(GetPropertyName(_resultDataFactory))
             .SetRighthandSide(GetParameterName(_resultDataFactory))
@@ -92,12 +92,12 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
             .AddParameter(_serializerResolver)
             .SetType(TypeNames.ISerializerResolver);
 
-        IEnumerable<ValueParserDescriptor> valueParsers =
+        var valueParsers =
             resultBuilderDescriptor.ValueParsers
                 .GroupBy(t => t.Name)
                 .Select(t => t.First());
 
-        foreach (ValueParserDescriptor valueParser in valueParsers)
+        foreach (var valueParser in valueParsers)
         {
             var parserFieldName = $"{GetFieldName(valueParser.Name)}Parser";
 
@@ -107,7 +107,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 .SetType(TypeNames.ILeafValueParser
                     .WithGeneric(valueParser.SerializedType, valueParser.RuntimeType));
 
-            MethodCallBuilder getLeaveValueParser = MethodCallBuilder
+            var getLeaveValueParser = MethodCallBuilder
                 .Inline()
                 .SetMethodName(_serializerResolver, "GetLeafValueParser")
                 .AddGeneric(valueParser.SerializedType.ToString())
@@ -145,7 +145,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
     {
         if (namedTypeDescriptor is InterfaceTypeDescriptor interfaceType)
         {
-            foreach (ObjectTypeDescriptor @class in interfaceType.ImplementedBy)
+            foreach (var @class in interfaceType.ImplementedBy)
             {
                 AddRequiredDeserializeMethods(@class, classBuilder, processed);
             }
@@ -158,9 +158,9 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 objectType.Properties);
 
             // include properties from fragments
-            foreach (DeferredFragmentDescriptor fragment in objectType.Deferred)
+            foreach (var fragment in objectType.Deferred)
             {
-                foreach (PropertyDescriptor property in fragment.Class.Properties)
+                foreach (var property in fragment.Class.Properties)
                 {
                     if (propertyProcessed.Add(property.Name))
                     {
@@ -169,7 +169,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 }
             }
 
-            foreach (PropertyDescriptor property in properties)
+            foreach (var property in properties)
             {
                 AddDeserializeMethod(property.Type, classBuilder, processed);
 
@@ -190,7 +190,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
         if (processed.Add(methodName))
         {
-            MethodBuilder methodBuilder = classBuilder
+            var methodBuilder = classBuilder
                 .AddMethod()
                 .SetPrivate()
                 .SetReturnType(typeReference.ToStateTypeReference())
@@ -212,7 +212,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                     .SetType(TypeNames.JsonElement.MakeNullable());
             }
 
-            IfBuilder jsonElementNullCheck = IfBuilder
+            var jsonElementNullCheck = IfBuilder
                 .New()
                 .SetCondition($"!{_obj}.HasValue")
                 .AddCode(
@@ -275,7 +275,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
     private static MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property)
     {
-        MethodCallBuilder propertyAccessor = MethodCallBuilder
+        var propertyAccessor = MethodCallBuilder
             .Inline()
             .SetMethodName(TypeNames.GetPropertyOrNull)
             .AddArgument(_obj)
@@ -304,7 +304,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         ICode argument,
         bool setNullForgiving)
     {
-        MethodCallBuilder deserializeMethodCaller = MethodCallBuilder
+        var deserializeMethodCaller = MethodCallBuilder
             .Inline()
             .SetMethodName(DeserializerMethodNameFromTypeName(property));
 

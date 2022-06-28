@@ -31,7 +31,7 @@ internal class ConnectionType
         ConnectionName = connectionName.EnsureNotEmpty(nameof(connectionName));
         NameString edgeTypeName = NameHelper.CreateEdgeName(connectionName);
 
-        SyntaxTypeReference edgesType =
+        var edgesType =
             TypeReference.Parse(
                 $"[{edgeTypeName}!]",
                 TypeContext.Output,
@@ -45,7 +45,7 @@ internal class ConnectionType
                 (c, d) =>
                 {
                     var definition = (ObjectTypeDefinition)d;
-                    ObjectFieldDefinition nodes = definition.Fields.First(IsNodesField);
+                    var nodes = definition.Fields.First(IsNodesField);
                     nodes.Type = TypeReference.Parse(
                         $"[{c.GetType<IType>(nodeType).Print()}]",
                         TypeContext.Output);
@@ -68,7 +68,7 @@ internal class ConnectionType
             throw new ArgumentNullException(nameof(nodeType));
         }
 
-        DependantFactoryTypeReference edgeType =
+        var edgeType =
             TypeReference.Create(
                 ContextDataKeys.EdgeType,
                 nodeType,
@@ -84,12 +84,12 @@ internal class ConnectionType
             new CompleteConfiguration(
                 (c, d) =>
                 {
-                    IType type = c.GetType<IType>(nodeType);
+                    var type = c.GetType<IType>(nodeType);
                     ConnectionName = type.NamedType().Name;
 
                     var definition = (ObjectTypeDefinition)d;
-                    ObjectFieldDefinition edges = definition.Fields.First(IsEdgesField);
-                    ObjectFieldDefinition nodes = definition.Fields.First(IsNodesField);
+                    var edges = definition.Fields.First(IsEdgesField);
+                    var nodes = definition.Fields.First(IsNodesField);
 
                     definition.Name = NameHelper.CreateConnectionName(ConnectionName);
                     edges.Type = TypeReference.Parse(

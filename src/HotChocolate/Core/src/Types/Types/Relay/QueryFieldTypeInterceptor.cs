@@ -74,7 +74,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
             definition is ObjectTypeDefinition objectTypeDef &&
             _payloads.Contains(objectType.Name))
         {
-            if (objectTypeDef.Fields.Any(t => t.Name.Equals(_queryField.Name)))
+            if (objectTypeDef.Fields.Any(t => t.Name.EqualsOrdinal(_queryField.Name)))
             {
                 return;
             }

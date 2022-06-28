@@ -24,7 +24,7 @@ public class ValidationConfiguration : IValidationConfiguration
 
     private ValidationOptions CreateOptions(string schemaName)
     {
-        ValidationOptionsModifiers modifiers = _optionsMonitor.Get(schemaName);
+        var modifiers = _optionsMonitor.Get(schemaName);
         var options = new ValidationOptions();
 
         for (var i = 0; i < modifiers.Modifiers.Count; i++)

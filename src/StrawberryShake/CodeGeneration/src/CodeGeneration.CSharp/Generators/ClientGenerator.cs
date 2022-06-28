@@ -19,13 +19,13 @@ public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
         path = null;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
             .SetName(fileName)
             .SetComment(descriptor.Documentation)
             .AddImplements(descriptor.InterfaceType.ToString());
 
-        ConstructorBuilder constructorBuilder = classBuilder
+        var constructorBuilder = classBuilder
             .AddConstructor()
             .SetTypeName(fileName);
 
@@ -36,7 +36,7 @@ public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
             .SetType(TypeNames.String)
             .AsLambda(descriptor.Name.Value.AsStringToken());
 
-        foreach (OperationDescriptor operation in descriptor.Operations)
+        foreach (var operation in descriptor.Operations)
         {
             AddConstructorAssignedField(
                 operation.InterfaceType.ToString(),

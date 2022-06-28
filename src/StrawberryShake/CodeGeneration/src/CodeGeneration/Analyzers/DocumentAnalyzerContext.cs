@@ -78,7 +78,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         [NotNullWhen(true)] out T? typeModel)
         where T : ITypeModel
     {
-        if (_typeModels.TryGetValue(name, out ITypeModel? model) &&
+        if (_typeModels.TryGetValue(name, out var model) &&
             model is T casted)
         {
             typeModel = casted;
@@ -91,7 +91,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 
     public void RegisterModel(NameString name, ITypeModel typeModel)
     {
-        if (_typeModels.TryGetValue(name, out ITypeModel? registeredTypeModel) &&
+        if (_typeModels.TryGetValue(name, out var registeredTypeModel) &&
             !ReferenceEquals(registeredTypeModel, typeModel))
         {
             throw new GraphQLException("A type model name must be unique.");

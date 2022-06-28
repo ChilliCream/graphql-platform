@@ -44,7 +44,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 new IdSerializer();
 
             var typeNameField = objectTypeDefinition.Fields.First(
-                t => t.Name.Equals(IntrospectionFields.TypeName) && t.IsIntrospectionField);
+                t => t.Name.EqualsOrdinal(IntrospectionFields.TypeName) &&
+                    t.IsIntrospectionField);
             var index = objectTypeDefinition.Fields.IndexOf(typeNameField);
 
             CreateNodeField(typeInspector, serializer, objectTypeDefinition.Fields, index + 1);

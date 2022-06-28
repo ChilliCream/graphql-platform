@@ -39,7 +39,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
         var stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
         var infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
             .SetName(fileName)
             .AddImplements(TypeNames.IInputObjectFormatter);
@@ -51,7 +51,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
 
         //  Initialize Method
 
-        CodeBlockBuilder initialize = classBuilder
+        var initialize = classBuilder
             .AddMethod("Initialize")
             .SetPublic()
             .AddParameter(serializerResolver, x => x.SetType(TypeNames.ISerializerResolver))
@@ -92,7 +92,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
 
         // Format Method
 
-        CodeBlockBuilder codeBlock =
+        var codeBlock =
             classBuilder
                 .AddMethod("Format")
                 .SetPublic()
@@ -179,7 +179,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
             string assignment,
             bool isNullable)
         {
-            RuntimeTypeInfo runtimeType = currentType.GetRuntimeType();
+            var runtimeType = currentType.GetRuntimeType();
             var isValueType = runtimeType.IsValueType;
 
             ICode format = currentType switch

@@ -217,10 +217,10 @@ public class ObjectTypeDefinition
             var targetField = field switch
             {
                 { BindToField: { Type: ObjectFieldBindingType.Property } bindTo } =>
-                    target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Member?.Name!)),
+                    target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Member?.Name!)),
                 { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
-                    target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Name)),
-                _ => target.Fields.FirstOrDefault(t => field.Name.Equals(t.Name))
+                    target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Name)),
+                _ => target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name))
             };
 
             var replaceField = field.BindToField?.Replace ?? false;

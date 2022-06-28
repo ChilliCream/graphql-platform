@@ -159,7 +159,7 @@ namespace HotChocolate
         {
             // arrange
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .Build();
 
@@ -172,7 +172,7 @@ namespace HotChocolate
         {
             // arrange
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .SetCode("foo")
                 .Build();
@@ -188,7 +188,7 @@ namespace HotChocolate
         {
             // arrange
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .SetPath(new List<object> { "foo" })
                 .Build();
@@ -202,7 +202,7 @@ namespace HotChocolate
         {
             // arrange
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .SetPath(Path.FromList("foo"))
                 .Build();
@@ -216,7 +216,7 @@ namespace HotChocolate
         {
             // arrange
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .AddLocation(new Location(2, 3))
                 .Build();
@@ -231,7 +231,7 @@ namespace HotChocolate
         {
             // arrange
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .AddLocation(new Location(2, 3))
                 .AddLocation(new Location(4, 5))
@@ -248,7 +248,7 @@ namespace HotChocolate
         {
             // arrange
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .AddLocation(2, 3)
                 .AddLocation(new Location(4, 5))
@@ -270,7 +270,7 @@ namespace HotChocolate
                 false);
 
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .AddLocation(syntaxNode)
                 .Build();
@@ -287,7 +287,7 @@ namespace HotChocolate
             var syntaxNode = new StringValueNode("abc");
 
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .AddLocation(syntaxNode)
                 .Build();
@@ -327,7 +327,7 @@ namespace HotChocolate
             var exception = new Exception();
 
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .SetException(exception)
                 .Build();
@@ -341,7 +341,7 @@ namespace HotChocolate
         {
             // arrange
             // act
-            IError error = ErrorBuilder.New()
+            var error = ErrorBuilder.New()
                 .SetMessage("bar")
                 .SetExtension("a", "b")
                 .SetExtension("a", "c")

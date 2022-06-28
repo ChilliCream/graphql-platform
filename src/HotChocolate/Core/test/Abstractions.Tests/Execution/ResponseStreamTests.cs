@@ -146,7 +146,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = new ResponseStream(() => default!);
 
             // act
-            IResponseStream responseStream = result.ExpectResponseStream();
+            var responseStream = result.ExpectResponseStream();
 
             // assert
             Assert.NotNull(responseStream);

@@ -513,11 +513,11 @@ public class IdAttributeTests
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
-            if (validationContext.Type.Name.Equals("Query") &&
+            if (validationContext.Type.Name.EqualsOrdinal("Query") &&
                 definition is ObjectTypeDefinition typeDef)
             {
                 Count = typeDef.Fields
-                    .Single(t => t.Name.Equals("abc"))
+                    .Single(t => t.Name.EqualsOrdinal("abc"))
                     .GetResultConverters()
                     .Count;
             }

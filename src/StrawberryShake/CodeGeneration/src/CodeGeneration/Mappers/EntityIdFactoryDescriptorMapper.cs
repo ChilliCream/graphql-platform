@@ -13,11 +13,11 @@ public static class EntityIdFactoryDescriptorMapper
     {
         var entities = new List<EntityIdDescriptor>();
 
-        foreach (EntityModel entity in model.Entities)
+        foreach (var entity in model.Entities)
         {
             var fields = new List<ScalarEntityIdDescriptor>();
 
-            foreach (IOutputField field in entity.Fields)
+            foreach (var field in entity.Fields)
             {
                 if (field.Type.NamedType() is ILeafType leafType)
                 {

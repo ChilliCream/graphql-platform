@@ -327,7 +327,7 @@ public static class TypeExtensions
         {
             NonNullType xnn when y is NonNullType ynn => xnn.Type.IsEqualTo(ynn.Type),
             ListType xl when y is ListType yl => xl.ElementType.IsEqualTo(yl.ElementType),
-            INamedType xnt when y is INamedType ynt => xnt.Name.Equals(ynt.Name),
+            INamedType xnt when y is INamedType ynt => xnt.Name.EqualsOrdinal(ynt.Name),
             _ => false
         };
     }

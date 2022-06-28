@@ -13,7 +13,7 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private ISelectionNode ParseFragment()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         ExpectSpread();
         var isOnKeyword = _reader.Value.SequenceEqual(GraphQLKeywords.On);
@@ -41,7 +41,7 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private FragmentDefinitionNode ParseFragmentDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         ExpectFragmentKeyword();
 
@@ -51,14 +51,14 @@ public ref partial struct Utf8GraphQLParser
         //    TypeCondition Directives? SelectionSet
         if (_allowFragmentVars)
         {
-            NameNode name = ParseFragmentName();
-            List<VariableDefinitionNode> variableDefinitions =
+            var name = ParseFragmentName();
+            var variableDefinitions =
               ParseVariableDefinitions();
             ExpectOnKeyword();
-            NamedTypeNode typeCondition = ParseNamedType();
-            List<DirectiveNode> directives = ParseDirectives(false);
-            SelectionSetNode selectionSet = ParseSelectionSet();
-            Location? location = CreateLocation(in start);
+            var typeCondition = ParseNamedType();
+            var directives = ParseDirectives(false);
+            var selectionSet = ParseSelectionSet();
+            var location = CreateLocation(in start);
 
             return new FragmentDefinitionNode
             (
@@ -72,12 +72,12 @@ public ref partial struct Utf8GraphQLParser
         }
         else
         {
-            NameNode name = ParseFragmentName();
+            var name = ParseFragmentName();
             ExpectOnKeyword();
-            NamedTypeNode typeCondition = ParseNamedType();
-            List<DirectiveNode> directives = ParseDirectives(false);
-            SelectionSetNode selectionSet = ParseSelectionSet();
-            Location? location = CreateLocation(in start);
+            var typeCondition = ParseNamedType();
+            var directives = ParseDirectives(false);
+            var selectionSet = ParseSelectionSet();
+            var location = CreateLocation(in start);
 
             return new FragmentDefinitionNode
             (
@@ -101,9 +101,9 @@ public ref partial struct Utf8GraphQLParser
     /// </param>
     private FragmentSpreadNode ParseFragmentSpread(in TokenInfo start)
     {
-        NameNode name = ParseFragmentName();
-        List<DirectiveNode> directives = ParseDirectives(false);
-        Location? location = CreateLocation(in start);
+        var name = ParseFragmentName();
+        var directives = ParseDirectives(false);
+        var location = CreateLocation(in start);
 
         return new FragmentSpreadNode
         (
@@ -128,9 +128,9 @@ public ref partial struct Utf8GraphQLParser
         in TokenInfo start,
         NamedTypeNode? typeCondition)
     {
-        List<DirectiveNode> directives = ParseDirectives(false);
-        SelectionSetNode selectionSet = ParseSelectionSet();
-        Location? location = CreateLocation(in start);
+        var directives = ParseDirectives(false);
+        var selectionSet = ParseSelectionSet();
+        var location = CreateLocation(in start);
 
         return new InlineFragmentNode
         (

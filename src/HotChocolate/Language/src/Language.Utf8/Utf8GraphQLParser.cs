@@ -48,7 +48,7 @@ public ref partial struct Utf8GraphQLParser
     {
         var definitions = new List<IDefinitionNode>();
 
-        TokenInfo start = Start();
+        var start = Start();
 
         MoveNext();
 
@@ -57,7 +57,7 @@ public ref partial struct Utf8GraphQLParser
             definitions.Add(ParseDefinition());
         }
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new DocumentNode(location, definitions);
     }
@@ -166,7 +166,7 @@ public ref partial struct Utf8GraphQLParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 

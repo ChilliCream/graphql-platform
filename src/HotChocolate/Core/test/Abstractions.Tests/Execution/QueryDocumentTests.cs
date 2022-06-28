@@ -25,7 +25,7 @@ namespace HotChocolate.Execution
         public void Create_Document()
         {
             // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+            var document = Utf8GraphQLParser.Parse("{ a }");
 
             // act
             var query = new QueryDocument(document);
@@ -38,7 +38,7 @@ namespace HotChocolate.Execution
         public void QueryDocument_ToString()
         {
             // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+            var document = Utf8GraphQLParser.Parse("{ a }");
 
             // act
             var query = new QueryDocument(document);
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution
         public void QueryDocument_ToSource()
         {
             // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+            var document = Utf8GraphQLParser.Parse("{ a }");
 
             // act
             var query = new QueryDocument(document);
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution
         public async Task QueryDocument_WriteToAsync()
         {
             // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+            var document = Utf8GraphQLParser.Parse("{ a }");
             var query = new QueryDocument(document);
             byte[] buffer;
 
@@ -89,7 +89,7 @@ namespace HotChocolate.Execution
         public void QueryDocument_WriteTo()
         {
             // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+            var document = Utf8GraphQLParser.Parse("{ a }");
             var query = new QueryDocument(document);
             byte[] buffer;
 

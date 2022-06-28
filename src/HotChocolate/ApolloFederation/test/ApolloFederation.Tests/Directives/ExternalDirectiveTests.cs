@@ -12,12 +12,12 @@ public class ExternalDirectiveTests : FederationTypesTestBase
     public void AddExternalDirective_EnsureAvailableInSchema()
     {
         // arrange
-        ISchema schema = CreateSchema(b => b.AddDirectiveType<ExternalDirectiveType>());
+        var schema = CreateSchema(b => b.AddDirectiveType<ExternalDirectiveType>());
 
         // act
-        DirectiveType? directive =
+        var directive =
             schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.Equals(WellKnownTypeNames.External));
+                t => t.Name.EqualsOrdinal(WellKnownTypeNames.External));
 
         // assert
         Assert.NotNull(directive);
@@ -34,7 +34,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema? schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(o => o
                 .Name("Query")
                 .Field("field")
@@ -46,7 +46,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .Create();
 
         // act
-        ObjectType query = schema.GetType<ObjectType>("Query");
+        var query = schema.GetType<ObjectType>("Query");
 
         // assert
         Assert.Collection(
@@ -66,7 +66,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                     type Query {
@@ -80,7 +80,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .Create();
 
         // act
-        ObjectType queryInterface = schema.GetType<ObjectType>("Query");
+        var queryInterface = schema.GetType<ObjectType>("Query");
 
         // assert
         Assert.Collection(
@@ -99,13 +99,13 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ObjectType query = schema.GetType<ObjectType>("User");
+        var query = schema.GetType<ObjectType>("User");
 
         // assert
         Assert.Collection(

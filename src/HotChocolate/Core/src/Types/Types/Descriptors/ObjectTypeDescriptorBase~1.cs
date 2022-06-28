@@ -76,7 +76,7 @@ public abstract class ObjectTypeDescriptorBase<T>
         {
             var name = Context.Naming.GetMemberName(current, MemberKind.ObjectField);
 
-            if (Fields.Any(t => t.Definition.Name.Equals(name)))
+            if (Fields.Any(t => t.Definition.Name.EqualsOrdinal(name)))
             {
                 return false;
             }

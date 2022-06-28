@@ -31,15 +31,15 @@ public class OperationVisitor : DocumentValidatorVisitor
         DocumentNode node,
         IDocumentValidatorContext context)
     {
-        bool hasAnonymousOp = false;
-        int opCount = 0;
+        var hasAnonymousOp = false;
+        var opCount = 0;
         OperationDefinitionNode? anonymousOp = null;
 
         context.Names.Clear();
 
-        for (int i = 0; i < node.Definitions.Count; i++)
+        for (var i = 0; i < node.Definitions.Count; i++)
         {
-            IDefinitionNode definition = node.Definitions[i];
+            var definition = node.Definitions[i];
             if (definition.Kind == SyntaxKind.OperationDefinition)
             {
                 opCount++;

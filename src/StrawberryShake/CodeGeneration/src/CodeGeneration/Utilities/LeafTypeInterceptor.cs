@@ -32,9 +32,9 @@ public class LeafTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteTypeNames()
     {
-        foreach (LeafType leafType in _leafTypes)
+        foreach (var leafType in _leafTypes)
         {
-            if (_scalarInfos.TryGetValue(leafType.Type.Name, out LeafTypeInfo scalarInfo))
+            if (_scalarInfos.TryGetValue(leafType.Type.Name, out var scalarInfo))
             {
                 if (leafType.Type is ScalarType)
                 {

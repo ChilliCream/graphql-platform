@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .Create();
@@ -27,10 +27,10 @@ namespace HotChocolate.Execution
         public void BuildRequest_OnlyQueryDocIsSet_RequestHasOnlyQuery()
         {
             // arrange
-            DocumentNode query = Utf8GraphQLParser.Parse("{ foo }");
+            var query = Utf8GraphQLParser.Parse("{ foo }");
 
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery(query)
                     .Create();
@@ -75,7 +75,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddVariableValue("one", "foo")
@@ -91,7 +91,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddVariableValue("one", "foo")
@@ -112,7 +112,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddVariableValue("one", "foo")
@@ -129,7 +129,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .SetVariableValue("one", "bar")
@@ -145,7 +145,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddVariableValue("one", "foo")
@@ -163,7 +163,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddGlobalState("one", "foo")
@@ -179,7 +179,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddGlobalState("one", "foo")
@@ -200,7 +200,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddGlobalState("one", "foo")
@@ -217,7 +217,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .SetGlobalState("one", "bar")
@@ -233,7 +233,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddGlobalState("one", "foo")
@@ -251,7 +251,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .SetInitialValue(new { a = "123" })
@@ -266,7 +266,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .SetOperation("bar")
@@ -281,7 +281,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .SetOperation("bar")
@@ -300,7 +300,7 @@ namespace HotChocolate.Execution
             var service = new { a = "123" };
 
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .SetServices(new DictionaryServiceProvider(
@@ -318,7 +318,7 @@ namespace HotChocolate.Execution
             var service = new { a = "123" };
 
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .SetOperation("bar")
@@ -338,7 +338,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .TryAddGlobalState("one", "bar")
@@ -353,7 +353,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddGlobalState("one", "foo")
@@ -369,7 +369,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .TryAddVariableValue("one", "bar")
@@ -384,7 +384,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddVariableValue("one", "foo")
@@ -400,7 +400,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .TryAddExtension("one", "bar")
@@ -415,7 +415,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddExtension("one", "foo")
@@ -431,7 +431,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddExtension("one", "foo")
@@ -447,7 +447,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddExtension("one", "foo")
@@ -474,7 +474,7 @@ namespace HotChocolate.Execution
                 };
 
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddExtension("one", "foo")
@@ -498,7 +498,7 @@ namespace HotChocolate.Execution
                 };
 
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddExtension("one", "foo")
@@ -523,7 +523,7 @@ namespace HotChocolate.Execution
                 };
 
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddExtension("one", "foo")
@@ -547,7 +547,7 @@ namespace HotChocolate.Execution
                 };
 
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddExtension("one", "foo")
@@ -566,7 +566,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddExtension("one", "foo")

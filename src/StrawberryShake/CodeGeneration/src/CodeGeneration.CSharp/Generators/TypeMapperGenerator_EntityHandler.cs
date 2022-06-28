@@ -37,10 +37,10 @@ public partial class TypeMapperGenerator
 
         if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
         {
-            foreach (ObjectTypeDescriptor implementer in
+            foreach (var implementer in
                      interfaceTypeDescriptor.ImplementedBy.Where(x => x.IsEntity()))
             {
-                NameString dataMapperName =
+                var dataMapperName =
                     CreateEntityMapperName(
                         implementer.RuntimeType.Name,
                         implementer.Name.Value);
@@ -79,13 +79,13 @@ public partial class TypeMapperGenerator
                     objectTypeDescriptor.RuntimeType.Name,
                     objectTypeDescriptor.Name));
 
-        MethodCallBuilder constructorCall = MethodCallBuilder
+        var constructorCall = MethodCallBuilder
             .New()
             .SetReturn()
             .SetWrapArguments()
             .SetMethodName(dataMapperName, "Map");
 
-        MethodCallBuilder argument = MethodCallBuilder
+        var argument = MethodCallBuilder
             .Inline()
             .SetMethodName(_snapshot, "GetEntity")
             .AddGeneric(CreateEntityType(
@@ -102,7 +102,7 @@ public partial class TypeMapperGenerator
                 .SetCode(ExceptionBuilder.Inline(TypeNames.GraphQLClientException)));
 
 
-        IfBuilder ifCorrectType = IfBuilder
+        var ifCorrectType = IfBuilder
             .New()
             .AddCode(constructorCall)
             .SetCondition(

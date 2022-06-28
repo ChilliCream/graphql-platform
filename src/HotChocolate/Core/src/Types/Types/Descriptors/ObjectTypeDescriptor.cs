@@ -185,10 +185,9 @@ public class ObjectTypeDescriptor
 
     public IObjectFieldDescriptor Field(NameString name)
     {
-        var fieldDescriptor = Fields.FirstOrDefault(
-            t => t.Definition.Name.Equals(name));
+        var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
 
-        if (fieldDescriptor is { })
+        if (fieldDescriptor is not null)
         {
             return fieldDescriptor;
         }

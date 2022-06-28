@@ -18,7 +18,7 @@ internal sealed class DefaultDocumentValidatorFactory : IDocumentValidatorFactor
     public IDocumentValidator CreateValidator(NameString schemaName = default)
     {
         schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
-        ValidationOptions options = _configuration.GetOptions(schemaName);
+        var options = _configuration.GetOptions(schemaName);
         return new DocumentValidator(_contextPool, options.Rules, options);
     }
 }

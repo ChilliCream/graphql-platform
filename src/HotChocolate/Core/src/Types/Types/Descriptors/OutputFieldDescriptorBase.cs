@@ -116,13 +116,13 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
         Parameters?.TryGetValue(name, out parameter);
 
         var descriptor = parameter is null
-            ? Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name))
+            ? Arguments.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name))
             : Arguments.FirstOrDefault(t => t.Definition.Parameter == parameter);
 
         if (descriptor is null && Definition.Arguments.Count > 0)
         {
             var definition = parameter is null
-                ? Definition.Arguments.FirstOrDefault(t => t.Name.Equals(name))
+                ? Definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(name))
                 : Definition.Arguments.FirstOrDefault(t => t.Parameter == parameter);
 
             if (definition is not null)

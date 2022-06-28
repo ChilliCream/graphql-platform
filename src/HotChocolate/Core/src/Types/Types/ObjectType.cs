@@ -122,7 +122,7 @@ public partial class ObjectType
 
     /// <inheritdoc />
     public bool IsImplementing(NameString interfaceTypeName)
-        => _implements.Any(t => t.Name.Equals(interfaceTypeName));
+        => _implements.Any(t => t.Name.EqualsOrdinal(interfaceTypeName));
 
     /// <summary>
     /// Defines if this type is implementing the

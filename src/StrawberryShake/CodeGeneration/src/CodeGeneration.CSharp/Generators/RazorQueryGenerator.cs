@@ -25,7 +25,7 @@ public class RazorQueryGenerator : CSharpSyntaxGenerator<OperationDescriptor>
         var componentName = $"Use{descriptor.Name.Value}";
         var resultType = descriptor.ResultTypeReference.GetRuntimeType().ToString();
 
-        ClassDeclarationSyntax classDeclaration =
+        var classDeclaration =
             ClassDeclaration(componentName)
                 .AddImplements(TypeNames.UseQuery.WithGeneric(resultType))
                 .AddModifiers(
@@ -67,7 +67,7 @@ public class RazorQueryGenerator : CSharpSyntaxGenerator<OperationDescriptor>
 
     private PropertyDeclarationSyntax CreateArgumentProperty(PropertyDescriptor property)
     {
-        PropertyDeclarationSyntax propertySyntax =
+        var propertySyntax =
             PropertyDeclaration(property.Type.ToTypeSyntax(), GetPropertyName(property.Name))
                 .WithAttributeLists(
                     SingletonList(
@@ -101,7 +101,7 @@ public class RazorQueryGenerator : CSharpSyntaxGenerator<OperationDescriptor>
             Argument(IdentifierName("Strategy"))
                 .WithNameColon(NameColon(IdentifierName("strategy"))));
 
-        SyntaxList<StatementSyntax> bodyStatements =
+        var bodyStatements =
             SingletonList<StatementSyntax>(
                 ExpressionStatement(
                     InvocationExpression(

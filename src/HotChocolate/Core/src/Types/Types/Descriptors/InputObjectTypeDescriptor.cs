@@ -106,17 +106,14 @@ public class InputObjectTypeDescriptor
 
     public IInputFieldDescriptor Field(NameString name)
     {
-        var fieldDescriptor =
-            Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+        var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
 
         if (fieldDescriptor is not null)
         {
             return fieldDescriptor;
         }
 
-        fieldDescriptor = new InputFieldDescriptor(
-            Context,
-            name.EnsureNotEmpty(nameof(name)));
+        fieldDescriptor = new InputFieldDescriptor(Context, name.EnsureNotEmpty(nameof(name)));
         Fields.Add(fieldDescriptor);
         return fieldDescriptor;
     }

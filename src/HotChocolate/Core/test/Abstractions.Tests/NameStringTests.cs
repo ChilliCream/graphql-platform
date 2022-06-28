@@ -73,7 +73,7 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action a = () => { NameString nameString = name; };
+            var a = () => { NameString nameString = name; };
 
             // assert
             Assert.Throws<ArgumentException>(a);
@@ -99,7 +99,7 @@ namespace HotChocolate
             var nameString = new NameString("Foo");
 
             // act
-            string value = nameString.ToString(); ;
+            var value = nameString.ToString(); ;
 
             // assert
             Assert.Equal(nameString.Value, value);
@@ -113,7 +113,7 @@ namespace HotChocolate
             var b = new NameString("Bar");
 
             // act
-            NameString combined = a.Add(b);
+            var combined = a.Add(b);
 
             // assert
             Assert.Equal("FooBar", combined.ToString());
@@ -127,7 +127,7 @@ namespace HotChocolate
             var b = new NameString("Bar");
 
             // act
-            NameString combined = a + b;
+            var combined = a + b;
 
             // assert
             Assert.Equal("FooBar", combined.ToString());
@@ -155,7 +155,7 @@ namespace HotChocolate
             var b = new NameString("Foo");
 
             // act
-            bool result = a.Equals(b);
+            var result = a.Equals(b);
 
             // assert
             Assert.True(result);
@@ -168,7 +168,7 @@ namespace HotChocolate
             var a = new NameString("Foo");
 
             // act
-            bool result = a.Equals(a);
+            var result = a.Equals(a);
 
             // assert
             Assert.True(result);
@@ -182,7 +182,7 @@ namespace HotChocolate
             var b = new NameString("foo");
 
             // act
-            bool result = a.Equals(b, StringComparison.OrdinalIgnoreCase);
+            var result = a.Equals(b, StringComparison.OrdinalIgnoreCase);
 
             // assert
             Assert.True(result);
@@ -196,7 +196,7 @@ namespace HotChocolate
             var b = new NameString("Bar");
 
             // act
-            bool result = a.Equals(b);
+            var result = a.Equals(b);
 
             // assert
             Assert.False(result);
@@ -210,7 +210,7 @@ namespace HotChocolate
             var b = "Foo";
 
             // act
-            bool result = a.Equals(b);
+            var result = a.Equals(b);
 
             // assert
             Assert.True(result);
@@ -224,7 +224,7 @@ namespace HotChocolate
             var b = "Bar";
 
             // act
-            bool result = a.Equals(b);
+            var result = a.Equals(b);
 
             // assert
             Assert.False(result);
@@ -238,7 +238,7 @@ namespace HotChocolate
             var b = new NameString("Foo");
 
             // act
-            bool result = a == b;
+            var result = a == b;
 
             // assert
             Assert.True(result);
@@ -249,10 +249,10 @@ namespace HotChocolate
         {
             // arrange
             var a = new NameString("Foo");
-            NameString b = a;
+            var b = a;
 
             // act
-            bool result = a == b;
+            var result = a == b;
 
             // assert
             Assert.True(result);
@@ -266,7 +266,7 @@ namespace HotChocolate
             var b = new NameString("Bar");
 
             // act
-            bool result = a == b;
+            var result = a == b;
 
             // assert
             Assert.False(result);
@@ -280,7 +280,7 @@ namespace HotChocolate
             var b = "Foo";
 
             // act
-            bool result = a == b;
+            var result = a == b;
 
             // assert
             Assert.True(result);
@@ -294,7 +294,7 @@ namespace HotChocolate
             var b = "Bar";
 
             // act
-            bool result = a == b;
+            var result = a == b;
 
             // assert
             Assert.False(result);
@@ -308,7 +308,7 @@ namespace HotChocolate
             var b = new NameString("Foo");
 
             // act
-            bool result = a != b;
+            var result = a != b;
 
             // assert
             Assert.False(result);
@@ -319,10 +319,10 @@ namespace HotChocolate
         {
             // arrange
             var a = new NameString("Foo");
-            NameString b = a;
+            var b = a;
 
             // act
-            bool result = a != b;
+            var result = a != b;
 
             // assert
             Assert.False(result);
@@ -336,7 +336,7 @@ namespace HotChocolate
             var b = new NameString("Bar");
 
             // act
-            bool result = a != b;
+            var result = a != b;
 
             // assert
             Assert.True(result);
@@ -350,7 +350,7 @@ namespace HotChocolate
             var b = "Foo";
 
             // act
-            bool result = a != b;
+            var result = a != b;
 
             // assert
             Assert.False(result);
@@ -364,7 +364,7 @@ namespace HotChocolate
             var b = "Bar";
 
             // act
-            bool result = a != b;
+            var result = a != b;
 
             // assert
             Assert.True(result);

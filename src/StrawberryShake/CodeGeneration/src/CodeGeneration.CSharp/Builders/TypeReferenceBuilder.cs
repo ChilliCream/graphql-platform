@@ -107,7 +107,7 @@ public class TypeReferenceBuilder : ICode
             return;
         }
 
-        TypeKindToken token = _buildOrder[currentIndex];
+        var token = _buildOrder[currentIndex];
         switch (token)
         {
             case TypeKindToken.List:

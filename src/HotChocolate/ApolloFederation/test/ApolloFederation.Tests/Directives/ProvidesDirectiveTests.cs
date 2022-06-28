@@ -12,12 +12,12 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
     public void AddProvidesDirective_EnsureAvailableInSchema()
     {
         // arrange
-        ISchema schema = CreateSchema(b => b.AddDirectiveType<ProvidesDirectiveType>());
+        var schema = CreateSchema(b => b.AddDirectiveType<ProvidesDirectiveType>());
 
         // act
-        DirectiveType? directive =
+        var directive =
             schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.Equals(WellKnownTypeNames.Provides));
+                t => t.Name.EqualsOrdinal(WellKnownTypeNames.Provides));
 
         // assert
         Assert.NotNull(directive);
@@ -37,7 +37,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                     type Review @key(fields: ""id"") {
@@ -60,7 +60,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(testType.Fields.Single(field => field.Name.Value == "product").Directives,
@@ -83,7 +83,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddType(
                 new ObjectType(o =>
                 {
@@ -112,7 +112,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(
@@ -139,13 +139,13 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(

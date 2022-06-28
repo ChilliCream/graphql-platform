@@ -394,7 +394,7 @@ public class OperationCompilerTests
         // arrange
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-            .Returns((NameString name) => name.Equals("q"));
+            .Returns((NameString name) => name.EqualsOrdinal("q"));
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -599,7 +599,7 @@ public class OperationCompilerTests
         // arrange
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-            .Returns((NameString name) => name.Equals("v"));
+            .Returns((NameString name) => name.EqualsOrdinal("v"));
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -644,7 +644,7 @@ public class OperationCompilerTests
         // arrange
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-            .Returns((NameString name) => name.Equals("v"));
+            .Returns((NameString name) => name.EqualsOrdinal("v"));
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -679,7 +679,7 @@ public class OperationCompilerTests
         // arrange
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-            .Returns((NameString name) => name.Equals("v"));
+            .Returns((NameString name) => name.EqualsOrdinal("v"));
 
         var schema = SchemaBuilder.New()
             .AddQueryType(d => d

@@ -78,7 +78,7 @@ public sealed class DependantFactoryTypeReference
             return false;
         }
 
-        return Name.Equals(other.Name) && Dependency.Equals(other.Dependency);
+        return Name.EqualsOrdinal(other.Name) && Dependency.Equals(other.Dependency);
     }
 
     /// <inheritdoc />

@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Utilities;
 
 #nullable enable
 

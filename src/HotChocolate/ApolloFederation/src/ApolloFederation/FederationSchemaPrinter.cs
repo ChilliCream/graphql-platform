@@ -167,8 +167,8 @@ public static partial class FederationSchemaPrinter
 
     private static bool IsApolloFederationType(INamedType type)
         => type is EntityType or ServiceType ||
-           type.Name.Equals(WellKnownTypeNames.Any) ||
-           type.Name.Equals(WellKnownTypeNames.FieldSet);
+           type.Name.EqualsOrdinal(WellKnownTypeNames.Any) ||
+           type.Name.EqualsOrdinal(WellKnownTypeNames.FieldSet);
 
     private static bool IsBuiltInType(INamedType type) =>
         IntrospectionTypes.IsIntrospectionType(type.Name) ||

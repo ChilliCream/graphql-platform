@@ -34,7 +34,7 @@ public class MiddlewareBase : IDisposable
         _resultSerializer = resultSerializer ??
             throw new ArgumentNullException(nameof(resultSerializer));
         SchemaName = schemaName;
-        IsDefaultSchema = SchemaName.Equals(Schema.DefaultName);
+        IsDefaultSchema = SchemaName.EqualsOrdinal(Schema.DefaultName);
         ExecutorProxy = new RequestExecutorProxy(executorResolver, schemaName);
     }
 

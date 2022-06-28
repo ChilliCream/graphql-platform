@@ -226,8 +226,8 @@ namespace HotChocolate
             var b = new FieldCoordinate("abc", "def");
 
             // act
-            (NameString at, NameString af, NameString? aa) = a;
-            (NameString bt, NameString bf, NameString? ba) = b;
+            (var at, var af, var aa) = a;
+            (var bt, var bf, var ba) = b;
 
             // assert
             Assert.Equal(a.TypeName, at);

@@ -33,9 +33,9 @@ public static class DataTypeDescriptorMapper
 
         var dataTypeInfos = new Dictionary<NameString, DataTypeInfo>();
 
-        foreach (ObjectTypeDescriptor dataType in dataTypes)
+        foreach (var dataType in dataTypes)
         {
-            ObjectType objectType = model.Schema.GetType<ObjectType>(dataType.Name);
+            var objectType = model.Schema.GetType<ObjectType>(dataType.Name);
 
             var abstractTypes = new List<INamedType>();
             abstractTypes.AddRange(unionTypes.Where(t => t.ContainsType(dataType.Name)));
@@ -54,7 +54,7 @@ public static class DataTypeDescriptorMapper
 
         var handledAbstractTypes = new HashSet<string>();
 
-        foreach (DataTypeInfo dataTypeInfo in dataTypeInfos.Values)
+        foreach (var dataTypeInfo in dataTypeInfos.Values)
         {
             var implements = new List<string>();
 

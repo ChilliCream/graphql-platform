@@ -494,7 +494,7 @@ internal static class ErrorHelper
         IOutputField? field = null,
         DirectiveType? directive = null)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_ArgumentNotUnique)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath());
@@ -524,7 +524,7 @@ internal static class ErrorHelper
         IOutputField? field = null,
         DirectiveType? directive = null)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_ArgumentRequired, argumentName)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath());
@@ -553,7 +553,7 @@ internal static class ErrorHelper
         IOutputField? field = null,
         DirectiveType? directive = null)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_ArgumentDoesNotExist, node.Name.Value)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath());

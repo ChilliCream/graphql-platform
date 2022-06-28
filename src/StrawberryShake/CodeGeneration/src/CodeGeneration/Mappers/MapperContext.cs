@@ -78,32 +78,32 @@ public class MapperContext : IMapperContext
 
     public IEnumerable<ICodeDescriptor> GetAllDescriptors()
     {
-        foreach (EntityTypeDescriptor entityTypeDescriptor in EntityTypes)
+        foreach (var entityTypeDescriptor in EntityTypes)
         {
             yield return entityTypeDescriptor;
         }
 
-        foreach (INamedTypeDescriptor type in Types)
+        foreach (var type in Types)
         {
             yield return type;
         }
 
-        foreach (OperationDescriptor type in Operations)
+        foreach (var type in Operations)
         {
             yield return type;
         }
 
-        foreach (ResultBuilderDescriptor resultBuilder in ResultBuilders)
+        foreach (var resultBuilder in ResultBuilders)
         {
             yield return resultBuilder;
         }
 
-        foreach (DataTypeDescriptor dataType in DataTypes)
+        foreach (var dataType in DataTypes)
         {
             yield return dataType;
         }
 
-        foreach (ResultFromEntityDescriptor descriptor in _mappers)
+        foreach (var descriptor in _mappers)
         {
             yield return descriptor;
         }

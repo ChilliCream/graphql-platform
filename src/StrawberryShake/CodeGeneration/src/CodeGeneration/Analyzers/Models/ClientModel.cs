@@ -49,9 +49,9 @@ public class ClientModel
         var outputTypes = new Dictionary<NameString, OutputTypeModel>();
         var entities = new Dictionary<NameString, EntityModel>();
 
-        foreach (OperationModel operation in operations)
+        foreach (var operation in operations)
         {
-            foreach (OutputTypeModel outputType in operation.OutputTypes)
+            foreach (var outputType in operation.OutputTypes)
             {
                 if (!outputTypes.ContainsKey(outputType.Name))
                 {

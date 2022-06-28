@@ -16,7 +16,7 @@ namespace HotChocolate.Execution.Instrumentation
             path = PathFactory.Instance.Append(path, "name");
 
             // act
-            string result = path.ToString();
+            var result = path.ToString();
 
             // assert
             Assert.Equal("/hero/friends[0]/name", result);
@@ -32,7 +32,7 @@ namespace HotChocolate.Execution.Instrumentation
             path = PathFactory.Instance.Append(path, "name");
 
             // act
-            IReadOnlyList<object> result = path.ToList();
+            var result = path.ToList();
 
             // assert
             result.MatchSnapshot();

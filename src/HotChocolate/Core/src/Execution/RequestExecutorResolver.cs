@@ -355,7 +355,7 @@ internal sealed class RequestExecutorResolver
 
     private static void AssertSchemaNameValid(ISchema schema, NameString expectedSchemaName)
     {
-        if (!schema.Name.Equals(expectedSchemaName))
+        if (!schema.Name.EqualsOrdinal(expectedSchemaName))
         {
             throw RequestExecutorResolver_SchemaNameDoesNotMatch(
                 expectedSchemaName,

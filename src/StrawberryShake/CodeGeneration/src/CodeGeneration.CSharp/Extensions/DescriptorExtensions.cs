@@ -39,7 +39,7 @@ public static class DescriptorExtensions
         this ITypeDescriptor typeReferenceDescriptor,
         TypeReferenceBuilder? builder = null)
     {
-        TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
+        var actualBuilder = builder ?? TypeReferenceBuilder.New();
 
         if (typeReferenceDescriptor is NonNullTypeDescriptor n)
         {
@@ -77,7 +77,7 @@ public static class DescriptorExtensions
         this ITypeDescriptor typeDescriptor,
         TypeReferenceBuilder? builder = null)
     {
-        TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
+        var actualBuilder = builder ?? TypeReferenceBuilder.New();
 
         if (typeDescriptor is NonNullTypeDescriptor n)
         {

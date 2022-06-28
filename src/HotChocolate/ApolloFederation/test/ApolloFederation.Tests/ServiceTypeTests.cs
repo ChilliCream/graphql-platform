@@ -12,7 +12,7 @@ public class ServiceTypeTests
     public async Task TestServiceTypeEmptyQueryTypeSchemaFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(
                 @"type Query {
@@ -26,7 +26,7 @@ public class ServiceTypeTests
             .Create();
 
         // act
-        ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
+        var entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
         // assert
         var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
@@ -38,7 +38,7 @@ public class ServiceTypeTests
     public async Task TestServiceTypeTypeSchemaFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(@"
                     type Query {
@@ -53,7 +53,7 @@ public class ServiceTypeTests
             .Create();
 
         // act
-        ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
+        var entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
         // assert
         var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
@@ -66,14 +66,14 @@ public class ServiceTypeTests
     public async Task TestServiceTypeEmptyQueryTypePureCodeFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddType<Address>()
             .AddQueryType<EmptyQuery>()
             .Create();
 
         // act
-        ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
+        var entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
         // assert
         var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
@@ -85,13 +85,13 @@ public class ServiceTypeTests
     public async Task TestServiceTypeTypePureCodeFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
+        var entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
         // assert
         var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(

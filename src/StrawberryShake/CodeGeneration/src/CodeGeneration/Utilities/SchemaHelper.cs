@@ -37,7 +37,7 @@ public static class SchemaHelper
         var globalEntityPatterns = new List<SelectionSetNode>();
         var typeEntityPatterns = new Dictionary<NameString, SelectionSetNode>();
 
-        foreach (DocumentNode document in schemaFiles.Select(f => f.Document))
+        foreach (var document in schemaFiles.Select(f => f.Document))
         {
             if (document.Definitions.Any(t => t is ITypeSystemExtensionNode))
             {
@@ -102,11 +102,11 @@ public static class SchemaHelper
         Dictionary<NameString, LeafTypeInfo> leafTypes,
         TypeInfos typeInfos)
     {
-        foreach (ScalarTypeExtensionNode scalarTypeExtension in scalarTypeExtensions)
+        foreach (var scalarTypeExtension in scalarTypeExtensions)
         {
             if (!leafTypes.TryGetValue(
                     scalarTypeExtension.Name.Value,
-                    out LeafTypeInfo scalarInfo))
+                    out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -129,11 +129,11 @@ public static class SchemaHelper
         Dictionary<NameString, LeafTypeInfo> leafTypes,
         TypeInfos typeInfos)
     {
-        foreach (EnumTypeExtensionNode scalarTypeExtension in enumTypeExtensions)
+        foreach (var scalarTypeExtension in enumTypeExtensions)
         {
             if (!leafTypes.TryGetValue(
                     scalarTypeExtension.Name.Value,
-                    out LeafTypeInfo scalarInfo))
+                    out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -162,14 +162,14 @@ public static class SchemaHelper
         HotChocolate.Language.IHasDirectives hasDirectives,
         NameString directiveName)
     {
-        DirectiveNode? directive = hasDirectives.Directives.FirstOrDefault(
-            t => directiveName.Equals(t.Name.Value));
+        var directive = hasDirectives.Directives.FirstOrDefault(
+            t => directiveName.EqualsOrdinal(t.Name.Value));
 
         if (directive is { Arguments: { Count: > 0 } })
         {
-            ArgumentNode? name = directive.Arguments.FirstOrDefault(
+            var name = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("name"));
-            ArgumentNode? valueType = directive.Arguments.FirstOrDefault(
+            var valueType = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("valueType"));
 
             if (name is { Value: StringValueNode stringValue })
@@ -190,7 +190,7 @@ public static class SchemaHelper
         {
             foreach (var directive in schemaExtension.Directives)
             {
-                if (TryGetKeys(directive, out SelectionSetNode? selectionSet))
+                if (TryGetKeys(directive, out var selectionSet))
                 {
                     entityPatterns.Add(selectionSet);
                 }
@@ -202,9 +202,9 @@ public static class SchemaHelper
         IEnumerable<ObjectTypeExtensionNode> objectTypeExtensions,
         Dictionary<NameString, SelectionSetNode> entityPatterns)
     {
-        foreach (ObjectTypeExtensionNode objectTypeExtension in objectTypeExtensions)
+        foreach (var objectTypeExtension in objectTypeExtensions)
         {
-            if (TryGetKeys(objectTypeExtension, out SelectionSetNode? selectionSet) &&
+            if (TryGetKeys(objectTypeExtension, out var selectionSet) &&
                 !entityPatterns.ContainsKey(objectTypeExtension.Name.Value))
             {
                 entityPatterns.Add(
@@ -262,7 +262,7 @@ public static class SchemaHelper
         HotChocolate.Language.IHasDirectives directives,
         [NotNullWhen(true)] out SelectionSetNode? selectionSet)
     {
-        DirectiveNode? directive = directives.Directives.FirstOrDefault(IsKeyDirective);
+        var directive = directives.Directives.FirstOrDefault(IsKeyDirective);
 
         if (directive is not null)
         {
@@ -297,7 +297,7 @@ public static class SchemaHelper
         string runtimeType,
         string serializationType = TypeNames.String)
     {
-        if (!leafTypes.TryGetValue(typeName, out LeafTypeInfo leafType))
+        if (!leafTypes.TryGetValue(typeName, out var leafType))
         {
             leafType = new LeafTypeInfo(typeName, runtimeType, serializationType);
             leafTypes.Add(typeName, leafType);

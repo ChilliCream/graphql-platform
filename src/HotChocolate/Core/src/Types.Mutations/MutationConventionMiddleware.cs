@@ -38,14 +38,14 @@ internal sealed class MutationConventionMiddleware
         var preservedArguments = context.ReplaceArguments(arguments);
         var inputArgument = preservedArguments[_inputArgumentName];
 
-        foreach (ResolverArgument argument in _resolverArguments)
+        foreach (var argument in _resolverArguments)
         {
             input.TryGetValue(argument.Name, out var value);
 
-            inputLiteral.TryGetValue(argument.Name, out IValueNode? valueLiteral);
+            inputLiteral.TryGetValue(argument.Name, out var valueLiteral);
             valueLiteral ??= NullValueNode.Default;
 
-            if (!valueLiteral.TryGetValueKind(out ValueKind kind))
+            if (!valueLiteral.TryGetValueKind(out var kind))
             {
                 kind = ValueKind.Unknown;
             }

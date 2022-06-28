@@ -93,7 +93,7 @@ internal sealed class TypeRegistry
         if (!_nameRefs.TryGetValue(typeName, out typeRef))
         {
             typeRef = Types
-                .FirstOrDefault(t => !t.IsExtension && t.Type.Name.Equals(typeName))
+                .FirstOrDefault(t => !t.IsExtension && t.Type.Name.EqualsOrdinal(typeName))
                 ?.References[0];
         }
         return typeRef is not null;

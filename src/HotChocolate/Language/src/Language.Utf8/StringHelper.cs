@@ -55,7 +55,7 @@ internal static class StringHelper
         var trim = commonIndent is > 0;
 
         position = 0;
-        ReadOnlySpan<byte> line = GetNextLine(in data, ref position);
+        var line = GetNextLine(in data, ref position);
         line.CopyTo(trimmedData);
         var next = line.Length;
         var writePosition = next - 1;

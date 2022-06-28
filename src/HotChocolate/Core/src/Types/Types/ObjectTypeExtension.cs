@@ -134,7 +134,7 @@ public class ObjectTypeExtension
                 {
                     case ObjectFieldBindingType.Field:
                         if (typeDef.Fields.FirstOrDefault(
-                            t => t.Name.Equals(binding.Name)) is { } f)
+                            t => t.Name.EqualsOrdinal(binding.Name)) is { } f)
                         {
                             fields.Add(f);
                         }
@@ -143,7 +143,7 @@ public class ObjectTypeExtension
                     case ObjectFieldBindingType.Property:
                         if (typeDef.Fields.FirstOrDefault(
                             t => t.Member != null &&
-                                binding.Name.Equals(t.Member.Name)) is { } p)
+                                binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
                         {
                             fields.Add(p);
                         }

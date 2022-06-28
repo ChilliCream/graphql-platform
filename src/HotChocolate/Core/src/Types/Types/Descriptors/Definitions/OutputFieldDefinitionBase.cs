@@ -61,7 +61,7 @@ public class OutputFieldDefinitionBase
             foreach (var argument in _arguments)
             {
                 var targetArgument =
-                    target._arguments.FirstOrDefault(t => t.Name.Equals(argument.Name));
+                    target._arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(argument.Name));
 
                 if (targetArgument is null)
                 {

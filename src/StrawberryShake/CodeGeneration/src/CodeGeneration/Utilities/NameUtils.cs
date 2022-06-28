@@ -30,7 +30,7 @@ public static class NameUtils
     public static string GetPathName(Path path)
     {
         var builder = new StringBuilder();
-        Path? current = path;
+        var current = path;
 
         while (current != null)
         {

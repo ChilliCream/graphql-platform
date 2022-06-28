@@ -22,12 +22,12 @@ public class EntitiesResolverTests
     public async void TestResolveViaForeignServiceType()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
-        IResolverContext context = CreateResolverContext(schema);
+        var context = CreateResolverContext(schema);
 
         // act
         var representations = new List<Representation>
@@ -39,9 +39,9 @@ public class EntitiesResolverTests
         };
 
         // assert
-        IReadOnlyList<object?> result =
+        var result =
             await EntitiesResolver.ResolveAsync(schema, representations, context);
-        ForeignType obj = Assert.IsType<ForeignType>(result[0]);
+        var obj = Assert.IsType<ForeignType>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("someExternalField", obj.SomeExternalField);
         Assert.Equal("InternalValue", obj.InternalField);
@@ -51,12 +51,12 @@ public class EntitiesResolverTests
     public async void TestResolveViaForeignServiceType_MixedTypes()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
-        IResolverContext context = CreateResolverContext(schema);
+        var context = CreateResolverContext(schema);
 
         // act
         var representations = new List<Representation>
@@ -68,9 +68,9 @@ public class EntitiesResolverTests
         };
 
         // assert
-        IReadOnlyList<object?> result =
+        var result =
             await EntitiesResolver.ResolveAsync(schema, representations, context);
-        MixedFieldTypes obj = Assert.IsType<MixedFieldTypes>(result[0]);
+        var obj = Assert.IsType<MixedFieldTypes>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal(25, obj.IntField);
         Assert.Equal("InternalValue", obj.InternalField);
@@ -79,12 +79,12 @@ public class EntitiesResolverTests
     [Fact]
     public async void TestResolveViaEntityResolver()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
-        IResolverContext context = CreateResolverContext(schema);
+        var context = CreateResolverContext(schema);
 
         // act
         var representations = new List<Representation>
@@ -94,9 +94,9 @@ public class EntitiesResolverTests
         };
 
         // assert
-        IReadOnlyList<object?> result =
+        var result =
             await EntitiesResolver.ResolveAsync(schema, representations, context);
-        TypeWithReferenceResolver obj = Assert.IsType<TypeWithReferenceResolver>(result[0]);
+        var obj = Assert.IsType<TypeWithReferenceResolver>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("SomeField", obj.SomeField);
     }
@@ -105,7 +105,7 @@ public class EntitiesResolverTests
     public async void TestResolveViaEntityResolver_WithDataLoader()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
@@ -113,7 +113,7 @@ public class EntitiesResolverTests
         var batchScheduler = new ManualBatchScheduler();
         var dataLoader = new FederatedTypeDataLoader(batchScheduler);
 
-        IResolverContext context = CreateResolverContext(schema,
+        var context = CreateResolverContext(schema,
             null,
             mock =>
             {
@@ -140,12 +140,12 @@ public class EntitiesResolverTests
     [Fact]
     public async void TestResolveViaEntityResolver_NoTypeFound()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
-        IResolverContext context = CreateResolverContext(schema);
+        var context = CreateResolverContext(schema);
 
         // act
         var representations = new List<Representation>
@@ -161,12 +161,12 @@ public class EntitiesResolverTests
     [Fact]
     public async void TestResolveViaEntityResolver_NoResolverFound()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
-        IResolverContext context = CreateResolverContext(schema);
+        var context = CreateResolverContext(schema);
 
         // act
         var representations = new List<Representation>

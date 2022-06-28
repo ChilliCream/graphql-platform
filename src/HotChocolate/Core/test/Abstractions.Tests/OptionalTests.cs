@@ -51,7 +51,7 @@ namespace HotChocolate
             Optional<string> b = "abc";
 
             // act
-            bool result = a.Equals(b);
+            var result = a.Equals(b);
 
             // assert
             Assert.True(result);
@@ -65,7 +65,7 @@ namespace HotChocolate
             var b = "abc";
 
             // act
-            bool result = a.Equals(b);
+            var result = a.Equals(b);
 
             // assert
             Assert.True(result);
@@ -79,7 +79,7 @@ namespace HotChocolate
             Optional<string> b = "def";
 
             // act
-            bool result = a.Equals(b);
+            var result = a.Equals(b);
 
             // assert
             Assert.False(result);
@@ -93,7 +93,7 @@ namespace HotChocolate
             Optional<string> b = "abc";
 
             // act
-            bool result = a == b;
+            var result = a == b;
 
             // assert
             Assert.True(result);
@@ -107,7 +107,7 @@ namespace HotChocolate
             var b = "abc";
 
             // act
-            bool result = a == b;
+            var result = a == b;
 
             // assert
             Assert.True(result);
@@ -121,7 +121,7 @@ namespace HotChocolate
             Optional<string> b = "def";
 
             // act
-            bool result = a == b;
+            var result = a == b;
 
             // assert
             Assert.False(result);
@@ -135,7 +135,7 @@ namespace HotChocolate
             Optional<string> b = "abc";
 
             // act
-            bool result = a != b;
+            var result = a != b;
 
             // assert
             Assert.False(result);
@@ -149,7 +149,7 @@ namespace HotChocolate
             var b = "abc";
 
             // act
-            bool result = a != b;
+            var result = a != b;
 
             // assert
             Assert.False(result);
@@ -163,7 +163,7 @@ namespace HotChocolate
             Optional<string> b = "def";
 
             // act
-            bool result = a != b;
+            var result = a != b;
 
             // assert
             Assert.True(result);
@@ -173,7 +173,7 @@ namespace HotChocolate
         public void Optional_From_Value_Equals()
         {
             Optional<int> a = 1;
-            Optional<int> b = Optional<int>.From(a);
+            var b = Optional<int>.From(a);
 
             Assert.True(a.HasValue);
             Assert.True(b.HasValue);

@@ -110,16 +110,14 @@ public class DirectiveTypeDescriptor
 
     public IDirectiveArgumentDescriptor Argument(NameString name)
     {
-        var descriptor =
-            Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name));
-        if (descriptor is { })
+        var descriptor = Arguments.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
+
+        if (descriptor is not null)
         {
             return descriptor;
         }
 
-        descriptor = DirectiveArgumentDescriptor.New(
-            Context,
-            name.EnsureNotEmpty(nameof(name)));
+        descriptor = DirectiveArgumentDescriptor.New(Context, name.EnsureNotEmpty(nameof(name)));
         Arguments.Add(descriptor);
         return descriptor;
     }

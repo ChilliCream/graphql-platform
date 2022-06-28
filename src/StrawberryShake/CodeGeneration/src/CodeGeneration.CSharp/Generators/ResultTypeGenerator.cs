@@ -21,13 +21,13 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
         path = null;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        IReadOnlyList<PropertyDescriptor> equalityProperties = descriptor.Properties;
+        var equalityProperties = descriptor.Properties;
 
         if (descriptor.Deferred.Count > 0)
         {
             var temp = descriptor.Properties.ToList();
 
-            foreach (DeferredFragmentDescriptor deferred in descriptor.Deferred)
+            foreach (var deferred in descriptor.Deferred)
             {
                 var fieldName = GetFieldName(deferred.Label);
                 var propertyName = GetPropertyName(deferred.Label);
@@ -37,19 +37,19 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
             equalityProperties = temp;
         }
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
             .SetComment(descriptor.Description)
             .SetName(fileName)
             .AddEquality(fileName, equalityProperties);
 
-        ConstructorBuilder constructorBuilder = classBuilder
+        var constructorBuilder = classBuilder
             .AddConstructor()
             .SetTypeName(fileName);
 
-        foreach (PropertyDescriptor prop in descriptor.Properties)
+        foreach (var prop in descriptor.Properties)
         {
-            TypeReferenceBuilder propTypeBuilder = prop.Type.ToTypeReference();
+            var propTypeBuilder = prop.Type.ToTypeReference();
 
             // Add Property to class
             classBuilder
@@ -71,7 +71,7 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
 
         classBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
 
-        foreach (DeferredFragmentDescriptor deferred in descriptor.Deferred)
+        foreach (var deferred in descriptor.Deferred)
         {
             var fieldName = GetFieldName(deferred.Label);
             var propertyName = GetPropertyName(deferred.Label);

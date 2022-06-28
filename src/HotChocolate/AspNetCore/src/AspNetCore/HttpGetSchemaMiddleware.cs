@@ -129,7 +129,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
             : "types.graphql";
 
     private string GetSchemaFileName(ISchema schema)
-        => schema.Name.IsEmpty || schema.Name.Equals(Schema.DefaultName)
+        => schema.Name.IsEmpty || schema.Name.EqualsOrdinal(Schema.DefaultName)
             ? "schema.graphql"
             : schema.Name + ".schema.graphql";
 }

@@ -40,7 +40,7 @@ namespace HotChocolate.Execution
                 .Create();
 
             // act
-            IQueryResult queryResult = result.ExpectQueryResult();
+            var queryResult = result.ExpectQueryResult();
 
             // assert
             Assert.NotNull(queryResult);

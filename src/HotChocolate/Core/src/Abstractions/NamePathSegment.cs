@@ -1,5 +1,7 @@
 #nullable enable
 
+using static System.StringComparison;
+
 namespace HotChocolate;
 
 /// <summary>
@@ -11,7 +13,7 @@ public sealed class NamePathSegment : Path
     /// <summary>
     ///  Gets the name representing a field on a result map.
     /// </summary>
-    public NameString Name { get; internal set; }
+    public string Name { get; internal set; } = default!;
 
     /// <inheritdoc />
     public override string Print()
@@ -32,7 +34,7 @@ public sealed class NamePathSegment : Path
 
         if (other is NamePathSegment name &&
             Depth.Equals(name.Depth) &&
-            Name.Equals(name.Name))
+            string.Equals(Name, name.Name, Ordinal))
         {
             if (ReferenceEquals(Parent, other.Parent))
             {

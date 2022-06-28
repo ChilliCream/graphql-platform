@@ -93,7 +93,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
         foreach (var field in Fields)
         {
             var targetField =
-                target.Fields.FirstOrDefault(t => field.Name.Equals(t.Name));
+                target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name));
 
             if (field.Ignore)
             {

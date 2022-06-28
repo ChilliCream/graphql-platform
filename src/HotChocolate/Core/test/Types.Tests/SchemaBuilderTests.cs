@@ -1511,11 +1511,11 @@ public class SchemaBuilderTests
                 .Field("foo")
                 .Resolve("bar"))
             .TryAddSchemaInterceptor(new DummySchemaInterceptor(
-                c => c.ContextData["name"] = c.ContextData["name"] + "1"))
+                c => c.ContextData["name"] += "1"))
             .TryAddTypeInterceptor(new DelegateTypeInterceptor(
                 onAfterRegisterDependencies: (c, d, _) =>
                 {
-                    if (d is ObjectTypeDefinition def && def.Name.Equals("Query"))
+                    if (d is ObjectTypeDefinition def && def.Name.EqualsOrdinal("Query"))
                     {
                         ObjectTypeDescriptor
                             .From(c.DescriptorContext, def)
