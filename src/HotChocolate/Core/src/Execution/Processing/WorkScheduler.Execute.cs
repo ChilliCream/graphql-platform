@@ -205,6 +205,7 @@ RESTART:
         {
             if (_pause.IsPaused)
             {
+                _diagnosticEvents.StopProcessing(_requestContext);
                 await _pause;
             }
             return true;
