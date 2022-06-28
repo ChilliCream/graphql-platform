@@ -587,6 +587,17 @@ internal static class ErrorHelper
             .Build();
     }
 
+    public static IError SubscriptionNoTopLevelIntrospectionField(
+        this IDocumentValidatorContext context,
+        OperationDefinitionNode operation)
+    {
+        return ErrorBuilder.New()
+            .SetMessage(Resources.ErrorHelper_SubscriptionNoTopLevelIntrospectionField)
+            .AddLocation(operation)
+            .SpecifiedBy("sec-Single-root-field")
+            .Build();
+    }
+
     public static IError MaxOperationComplexity(
         this IDocumentValidatorContext context,
         OperationDefinitionNode operation,
