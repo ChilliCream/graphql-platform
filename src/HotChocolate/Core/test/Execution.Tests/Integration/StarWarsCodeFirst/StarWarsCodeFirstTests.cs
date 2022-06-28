@@ -573,7 +573,7 @@ public class StarWarsCodeFirstTests
 
         eventResult?.MatchSnapshot();
     }
-
+    
     [Fact]
     public async Task SubscribeToReview_WithInlineFragment()
     {

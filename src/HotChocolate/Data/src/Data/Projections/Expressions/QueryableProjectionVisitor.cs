@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions;

@@ -12,7 +12,7 @@ public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
         field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 
     public Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection)
     {
         var resolverPipeline =
@@ -31,18 +31,8 @@ public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
 
         resolverPipeline = WrappedPipeline(resolverPipeline);
 
-        var compiledSelection = new Selection(
-            context.GetNextId(),
-            context.Type,
-            selection.Field,
-            selection.Field.Type,
-            selection.SyntaxNode,
-            selection.ResponseName,
-            resolverPipeline,
-            arguments: selection.Arguments,
-            isInternal: false);
+        context.SetResolver(selection, resolverPipeline);
 
-        context.Fields[compiledSelection.ResponseName] = compiledSelection;
-        return compiledSelection;
+        return selection;
     }
 }

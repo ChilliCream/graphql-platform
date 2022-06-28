@@ -17,7 +17,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         field.Field.Name.Value is "edges" or "items" or "nodes";
 
     public Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection)
     {
         if (context.Type.NamedType() is not IPageType pageType)
@@ -30,18 +30,21 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
 
         var selections = CollectSelection(context);
 
-        context.Fields[CombinedEdgeField] =
-            CreateCombinedSelection(context,
+        var combinedSelection =
+            CreateCombinedSelection(
+                context,
                 selection,
                 selection.DeclaringType,
                 pageType,
                 selections);
 
+        context.AddSelection(CombinedEdgeField, combinedSelection);
+
         return selection;
     }
 
     private Selection CreateCombinedSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         ISelection selection,
         IObjectType declaringType,
         IPageType pageType,
@@ -63,13 +66,13 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             context.CompileResolverPipeline(nodesField, combinedField);
 
         return new Selection(
-            context.GetNextId(),
+            context.GetNextSelectionId(),
             declaringType,
             nodesField,
             nodesField.Type,
             combinedField,
             CombinedEdgeField,
-            nodesPipeline,
+            resolverPipeline: nodesPipeline,
             arguments: selection.Arguments,
             isInternal: true);
     }
@@ -90,7 +93,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             ErrorHelper.ProjectionVisitor_NodeFieldWasNotFound(type));
     }
 
-    private IReadOnlyList<ISelectionNode> CollectSelection(SelectionOptimizerContext context)
+    private IReadOnlyList<ISelectionNode> CollectSelection(SelectionSetOptimizerContext context)
     {
         var selections = new List<ISelectionNode>();
 
@@ -102,11 +105,11 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
     }
 
     private static void CollectSelectionOfEdges(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         List<ISelectionNode> selections)
     {
-        if (context.Fields.Values
-            .FirstOrDefault(x => x.Field.Name == "edges") is { } edgeSelection)
+        if (context.Selections.Values
+                .FirstOrDefault(x => x.Field.Name == "edges") is { } edgeSelection)
         {
             foreach (var edgeSubField in edgeSelection.SelectionSet!.Selections)
             {
@@ -124,11 +127,11 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
     }
 
     private static void CollectSelectionOfItems(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         List<ISelectionNode> selections)
     {
-        if (context.Fields.Values
-            .FirstOrDefault(x => x.Field.Name == "items") is { } itemSelection)
+        if (context.Selections.Values
+                .FirstOrDefault(x => x.Field.Name == "items") is { } itemSelection)
         {
             foreach (var nodeField in itemSelection.SelectionSet!.Selections)
             {
@@ -138,11 +141,11 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
     }
 
     private static void CollectSelectionOfNodes(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         List<ISelectionNode> selections)
     {
-        if (context.Fields.Values
-            .FirstOrDefault(x => x.Field.Name == "nodes") is { } nodeSelection)
+        if (context.Selections.Values
+                .FirstOrDefault(x => x.Field.Name == "nodes") is { } nodeSelection)
         {
             foreach (var nodeField in nodeSelection.SelectionSet!.Selections)
             {

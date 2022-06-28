@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -38,7 +39,7 @@ public interface ISelectedField
     /// Gets the field selection for which a field resolver is
     /// being executed.
     /// </summary>
-    IFieldSelection Selection { get; }
+    ISelection Selection { get; }
 
     /// <summary>
     /// Gets the field on which the field resolver is being executed.
