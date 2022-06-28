@@ -16,12 +16,16 @@ internal sealed class WorkQueue
 
     public int Count => _stack.Count;
 
-    public void Complete()
+    public bool Complete()
     {
-        if (Interlocked.Decrement(ref _running) < 0)
+        var value = Interlocked.Decrement(ref _running);
+
+        if (value < 0)
         {
             throw new InvalidOperationException();
         }
+
+        return value is 0;
     }
 
     public bool TryTake([MaybeNullWhen(false)] out IExecutionTask executionTask)
@@ -30,7 +34,7 @@ internal sealed class WorkQueue
         if (_stack.Count > 0)
         {
             executionTask = _stack.Pop();
-            _running++;
+            Interlocked.Increment(ref _running);
             return true;
         }
 

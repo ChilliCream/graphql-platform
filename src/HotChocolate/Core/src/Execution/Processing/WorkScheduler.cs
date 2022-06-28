@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial  class WorkScheduler : IWorkScheduler
+internal sealed partial class WorkScheduler : IWorkScheduler
 {
     public bool IsCompleted
     {
@@ -70,9 +70,14 @@ internal sealed partial  class WorkScheduler : IWorkScheduler
         {
             // complete is thread-safe
             var work = task.IsSerial ? _serial : _work;
-            work.Complete();
-        }
 
-        _pause.TryContinue();
+            if (work.Complete())
+            {
+                lock (_sync)
+                {
+                    _pause.TryContinue();
+                }
+            }
+        }
     }
 }

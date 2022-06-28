@@ -14,8 +14,7 @@ internal sealed class ArgumentMap : IArgumentMap
     public ArgumentMap(IReadOnlyDictionary<NameString, ArgumentValue> arguments)
     {
         _arguments = arguments;
-
-        IsFinal = arguments.Count == 0;
+        IsFinal = true;
 
         if (_arguments.Count > 0)
         {

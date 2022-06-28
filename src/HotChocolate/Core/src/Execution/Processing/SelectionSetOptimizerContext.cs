@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -29,6 +29,7 @@ public readonly ref struct SelectionSetOptimizerContext
         _compiler = compiler;
         _compilerContext = compilerContext;
         _selectionLookup = selectionLookup;
+        ContextData = contextData;
     }
 
     /// <summary>
@@ -48,6 +49,12 @@ public readonly ref struct SelectionSetOptimizerContext
     /// </summary>
     public IReadOnlyDictionary<string, Selection> Selections
         => _compilerContext.Fields;
+
+    /// <summary>
+    /// The context data dictionary can be used by middleware components and
+    /// resolvers to store and retrieve data during execution.
+    /// </summary>
+    public IDictionary<string, object?> ContextData { get; }
 
     /// <summary>
     /// Gets the next operation unique selection id.
@@ -101,7 +108,7 @@ public readonly ref struct SelectionSetOptimizerContext
         if (!NameUtils.IsValidGraphQLName(responseName))
         {
             throw new ArgumentException(
-                string.Format(Resources.SelectionSetOptimizerContext_InvalidFieldName, responseName));
+                string.Format(SelectionSetOptimizerContext_InvalidFieldName, responseName));
         }
 
         _compilerContext.Fields.Add(responseName, newSelection);
@@ -125,7 +132,7 @@ public readonly ref struct SelectionSetOptimizerContext
         if (!NameUtils.IsValidGraphQLName(responseName))
         {
             throw new ArgumentException(
-                string.Format(Resources.SelectionSetOptimizerContext_InvalidFieldName, responseName));
+                string.Format(SelectionSetOptimizerContext_InvalidFieldName, responseName));
         }
 
         if (!_compilerContext.Fields.TryGetValue(responseName, out var currentSelection))

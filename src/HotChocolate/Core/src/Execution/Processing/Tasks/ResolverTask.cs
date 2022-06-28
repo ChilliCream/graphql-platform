@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
 
@@ -202,10 +203,4 @@ internal sealed partial class ResolverTask : IExecutionTask
         _taskBuffer.Clear();
         return true;
     }
-
-    /// <summary>
-    /// Returns the task back to the pool.
-    /// </summary>
-    internal void Return()
-        => _objectPool.Return(this);
 }

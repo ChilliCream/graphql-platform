@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
-public static class ArgumentCoercionHelper
+internal static class ArgumentCoercionHelper
 {
     public static bool TryCoerceArguments(
         this IArgumentMap arguments,
@@ -37,7 +37,7 @@ public static class ArgumentCoercionHelper
 
         // if there are arguments that have variables and need variable replacement we will
         // rewrite the arguments that need variable replacement.
-        var args = new Dictionary<NameString, ArgumentValue>();
+        Dictionary<NameString, ArgumentValue> args = new();
 
         foreach (var argument in arguments.Values)
         {

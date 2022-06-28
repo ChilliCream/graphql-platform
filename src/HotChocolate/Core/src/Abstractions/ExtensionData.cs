@@ -26,7 +26,7 @@ public class ExtensionData
 
     public ExtensionData(IReadOnlyDictionary<string, object?> extensionData)
     {
-        ImmutableDictionary<string, object?>.Builder builder =
+        var builder =
             ImmutableDictionary.CreateBuilder<string, object?>();
         builder.AddRange(extensionData);
         _dict = builder.ToImmutableDictionary();
@@ -144,7 +144,7 @@ public class ExtensionData
 
             var i = arrayIndex;
 
-            foreach (string key in _dict.Keys)
+            foreach (var key in _dict.Keys)
             {
                 array[i++] = key;
             }

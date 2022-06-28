@@ -35,11 +35,16 @@ RESTART:
 
                 if (work is not 0)
                 {
-                    if (!buffer[0]!.IsSerial)
+                    var first = buffer[0]!;
+
+                    if (!first.IsSerial)
                     {
+                        first.BeginExecute(_ct);
+                        buffer[0] = null;
+
                         // if work is not serial we will just enqueue it and not wait
                         // for it to finish.
-                        for (var i = 0; i < work; i++)
+                        for (var i = 1; i < work; i++)
                         {
                             buffer[i]!.BeginExecute(_ct);
                             buffer[i] = null;
@@ -52,9 +57,8 @@ RESTART:
                         try
                         {
                             _batchDispatcher.DispatchOnSchedule = true;
-                            var task = buffer[0]!;
-                            task.BeginExecute(_ct);
-                            await task.WaitForCompletionAsync(_ct).ConfigureAwait(false);
+                            first.BeginExecute(_ct);
+                            await first.WaitForCompletionAsync(_ct).ConfigureAwait(false);
                             buffer[0] = null;
                         }
                         finally
@@ -94,10 +98,10 @@ RESTART:
 
         lock (_sync)
         {
-            var isDefault = !_work.IsEmpty || _work.HasRunningTasks;
-            var work = isDefault ? _work : _serial;
+            var isParallel = !_work.IsEmpty || _work.HasRunningTasks;
+            var work = isParallel ? _work : _serial;
 
-            if (isDefault)
+            if (isParallel)
             {
                 // The default behavior for tasks is that they can be executed in parallel.
                 // We will always try to dequeue multiple tasks at once so that we avoid having
@@ -173,19 +177,22 @@ RESTART:
                     var isWaitingForTaskCompletion = _work.HasRunningTasks && _work.IsEmpty;
                     var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
 
-                    if (isWaitingForTaskCompletion && _hasBatches)
-                    {
-                        _hasBatches = false;
-                        _pause.Reset();
-                        _batchDispatcher.BeginDispatch(_ct);
-                    }
-                    else if (!isWaitingForTaskCompletion && !_hasBatches && !hasWork)
-                    {
-                        _isCompleted = true;
-                    }
-                    else if (!_pause.IsPaused && !hasWork)
+                    if (isWaitingForTaskCompletion)
                     {
                         _pause.Reset();
+
+                        if (_hasBatches)
+                        {
+                            _hasBatches = false;
+                            _batchDispatcher.BeginDispatch(_ct);
+                        }
+                    }
+                    else
+                    {
+                        if (!_hasBatches && !hasWork)
+                        {
+                            _isCompleted = true;
+                        }
                     }
                 }
             }
@@ -198,6 +205,7 @@ RESTART:
         {
             if (_pause.IsPaused)
             {
+                _diagnosticEvents.StopProcessing(_requestContext);
                 await _pause;
             }
             return true;

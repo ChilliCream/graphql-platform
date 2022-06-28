@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Benchmarks
         {
             var query = resources.GetResourceString(resourceName);
             var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(query).AsSpan());
-            DocumentNode document = Utf8GraphQLParser.Parse(query);
+            var document = Utf8GraphQLParser.Parse(query);
 
             return QueryRequestBuilder.New()
                 .SetQuery(document)
@@ -101,7 +101,7 @@ namespace HotChocolate.Execution.Benchmarks
 
         // note : 4 data fetches (2 parallel 2 cascading)
         [Benchmark]
-        public Task GetTwoHerosWithFriends()
+        public Task GetTwoHeroesWithFriends()
         {
             return OneRequest(_executor, _getTwoHeroesWithFriendsRequest);
         }
@@ -129,8 +129,7 @@ namespace HotChocolate.Execution.Benchmarks
             IRequestExecutor executor,
             IReadOnlyQueryRequest request)
         {
-            IQueryResult result = (await executor.ExecuteAsync(request)).ExpectQueryResult();
-            
+            var result = (await executor.ExecuteAsync(request)).ExpectQueryResult();
 
             if (result.Errors is { Count: > 0 })
             {
@@ -141,18 +140,18 @@ namespace HotChocolate.Execution.Benchmarks
 
             // var jsonWriter = new HotChocolate.Execution.Serialization.JsonQueryResultSerializer(true);
             // Console.WriteLine(jsonWriter.Serialize((IReadOnlyQueryResult)result));
-            ((IDisposable)result).Dispose();
+            await result.DisposeAsync();
         }
 
         private static async Task FiveRequestsInParallel(
             IRequestExecutor executor,
             IReadOnlyQueryRequest request)
         {
-            Task task1 = OneRequest(executor, request);
-            Task task2 = OneRequest(executor, request);
-            Task task3 = OneRequest(executor, request);
-            Task task4 = OneRequest(executor, request);
-            Task task5 = OneRequest(executor, request);
+            var task1 = OneRequest(executor, request);
+            var task2 = OneRequest(executor, request);
+            var task3 = OneRequest(executor, request);
+            var task4 = OneRequest(executor, request);
+            var task5 = OneRequest(executor, request);
 
             await WaitForTask(task1);
             await WaitForTask(task2);
