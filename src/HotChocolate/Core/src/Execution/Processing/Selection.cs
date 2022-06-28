@@ -26,15 +26,14 @@ public class Selection : ISelection
         IType type,
         FieldNode syntaxNode,
         NameString responseName,
-        SelectionExecutionStrategy strategy = SelectionExecutionStrategy.Default,
         IArgumentMap? arguments = null,
         long includeCondition = 0,
         bool isInternal = false,
+        bool isParallelExecutable = true,
         FieldDelegate? resolverPipeline = null,
         PureFieldDelegate? pureResolver = null)
     {
         Id = id;
-        Strategy = strategy;
         DeclaringType = declaringType;
         Field = field;
         Type = type;
@@ -43,6 +42,7 @@ public class Selection : ISelection
         Arguments = arguments ?? _emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
+        Strategy = InferStrategy(!isParallelExecutable, pureResolver is not null);
 
         _includeConditions = includeCondition is 0
             ? Array.Empty<long>()
@@ -251,13 +251,9 @@ public class Selection : ISelection
             throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
         }
 
-        if (pureResolver is not null)
-        {
-             Strategy = SelectionExecutionStrategy.Pure;
-        }
-
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
+        Strategy = InferStrategy(hasPureResolver: pureResolver is not null);
     }
 
     internal void SetSelectionSetId(int selectionSetId)
@@ -276,6 +272,24 @@ public class Selection : ISelection
         {
             _flags |= Flags.Sealed;
         }
+    }
+
+    private SelectionExecutionStrategy InferStrategy(
+        bool isSerial = false,
+        bool hasPureResolver = false)
+    {
+        // once a field is marked serial it even with a pure resolver cannot become pure.
+        if (Strategy is SelectionExecutionStrategy.Serial || isSerial)
+        {
+            return SelectionExecutionStrategy.Serial;
+        }
+
+        if (hasPureResolver)
+        {
+            return SelectionExecutionStrategy.Pure;
+        }
+
+        return SelectionExecutionStrategy.Default;
     }
 
     [Flags]

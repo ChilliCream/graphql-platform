@@ -362,9 +362,7 @@ public sealed partial class OperationCompiler
                                 selection.SelectionSet.Selections))
                         : selection,
                     responseName: responseName,
-                    strategy: field.IsParallelExecutable
-                        ? SelectionExecutionStrategy.Default
-                        : SelectionExecutionStrategy.Serial,
+                    isParallelExecutable: field.IsParallelExecutable,
                     arguments: CoerceArgumentValues(field, selection, responseName),
                     includeCondition: includeCondition);
 
