@@ -10,8 +10,8 @@ public class QueryableProjectionVisitorScalarTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
-        };
+        new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
+    };
 
     private readonly SchemaCache _cache = new SchemaCache();
 
@@ -101,6 +101,22 @@ public class QueryableProjectionVisitorScalarTests
         res1.MatchSqlSnapshot();
     }
 
+    [Fact]
+    public async Task Test1()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root{ baz extended }}")
+                .Create());
+
+        res1.MatchSqlSnapshot();
+    }
+
     public class Foo
     {
         public int Id { get; set; }
@@ -112,6 +128,8 @@ public class QueryableProjectionVisitorScalarTests
         public string Computed() => "Foo";
 
         public string? NotSettable { get; }
+
+        public string Extended([Parent] Foo p) => (p.Baz ?? "") + p.Computed();
     }
 
     public class FooNullable

@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Projections.Expressions;
 public class QueryableProjectionScope
     : ProjectionScope<Expression>
 {
-    private Dictionary<Type, Queue<Expression>>? _abstractType;
+    private Dictionary<Type, IEnumerable<Expression>>? _abstractType;
 
     public QueryableProjectionScope(
         Type type,
@@ -31,17 +31,17 @@ public class QueryableProjectionScope
 
     public ParameterExpression Parameter { get; }
 
-    public void AddAbstractType(Type type, Queue<Expression> initializers)
+    public void AddAbstractType(Type type, IEnumerable<Expression> initializers)
     {
-        _abstractType ??= new Dictionary<Type, Queue<Expression>>();
+        _abstractType ??= new Dictionary<Type, IEnumerable<Expression>>();
         _abstractType[type] = initializers;
     }
 
-    public IEnumerable<KeyValuePair<Type, Queue<Expression>>> GetAbstractTypes()
+    public IEnumerable<KeyValuePair<Type, IEnumerable<Expression>>> GetAbstractTypes()
     {
         if (_abstractType is not null)
         {
-            foreach (KeyValuePair<Type, Queue<Expression>> elm in _abstractType)
+            foreach (KeyValuePair<Type, IEnumerable<Expression>> elm in _abstractType)
             {
                 yield return elm;
             }

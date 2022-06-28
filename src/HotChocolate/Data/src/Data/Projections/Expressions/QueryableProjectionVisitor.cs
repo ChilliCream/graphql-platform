@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Language;
@@ -35,7 +36,7 @@ public class QueryableProjectionVisitor
                 base.VisitObjectType(field, objectType, selectionSet, context);
 
             context.PopInstance();
-            scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop());
+            scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop().Append(Expression.Constant(objectType.Name.Value)));
 
             return res;
         }

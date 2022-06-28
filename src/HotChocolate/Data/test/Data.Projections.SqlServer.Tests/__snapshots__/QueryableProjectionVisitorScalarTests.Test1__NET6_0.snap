@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "baz": "a",
+        "extended": "aFoo"
+      },
+      {
+        "baz": "b",
+        "extended": "bFoo"
+      }
+    ]
+  }
+}

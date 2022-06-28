@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -51,6 +52,13 @@ internal partial class MiddlewareContext
             return casted;
         }
 
+        if (_parent is object[] o &&
+            Temp.ValueConverter.TryGetValue(_selection.Id, out var converter))
+        {
+            return (T)converter(o);
+        }
+
+
         throw ThrowHelper.ResolverContext_CannotCastParent(
             Selection.Field.Coordinate,
             Path,
@@ -58,3 +66,4 @@ internal partial class MiddlewareContext
             _parent.GetType());
     }
 }
+

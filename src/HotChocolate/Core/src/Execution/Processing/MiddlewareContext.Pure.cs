@@ -41,8 +41,8 @@ internal partial class MiddlewareContext
             }
 
             if (selection.Arguments.TryCoerceArguments(
-                _parentContext,
-                out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
+                    _parentContext,
+                    out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
             {
                 _argumentValues = coercedArgs;
                 return true;
@@ -81,6 +81,8 @@ internal partial class MiddlewareContext
             {
                 T casted => casted,
                 null => default!,
+                object[] o when Temp.ValueConverter.TryGetValue(_selection.Id, out var converter) =>
+                    (T)converter(o),
                 _ => throw ResolverContext_CannotCastParent(
                     Selection.Field.Coordinate,
                     _path,
@@ -115,7 +117,11 @@ internal partial class MiddlewareContext
             }
 
             throw ResolverContext_LiteralNotCompatible(
-                _selection.SyntaxNode, _path, name, typeof(TValueNode), literal.GetType());
+                _selection.SyntaxNode,
+                _path,
+                name,
+                typeof(TValueNode),
+                literal.GetType());
         }
 
         public Optional<T> ArgumentOptional<T>(NameString name)
@@ -178,7 +184,10 @@ internal partial class MiddlewareContext
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
                 throw ResolverContext_LiteralsNotSupported(
-                    _selection.SyntaxNode, _path, argument.Name, typeof(T));
+                    _selection.SyntaxNode,
+                    _path,
+                    argument.Name,
+                    typeof(T));
             }
 
             // If the object is internally held as a dictionary structure we will try to
@@ -205,7 +214,10 @@ internal partial class MiddlewareContext
 
             // we are unable to convert the argument to the request type.
             throw ResolverContext_CannotConvertArgument(
-                _selection.SyntaxNode, _path, argument.Name, typeof(T));
+                _selection.SyntaxNode,
+                _path,
+                argument.Name,
+                typeof(T));
         }
     }
 }

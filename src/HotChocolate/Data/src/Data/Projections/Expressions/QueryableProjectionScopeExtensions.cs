@@ -37,7 +37,7 @@ public static class QueryableProjectionScopeExtensions
         {
             Expression lastValue = Expression.Default(typeof(object[]));
 
-            foreach (KeyValuePair<Type, Queue<Expression>> val in scope.GetAbstractTypes())
+            foreach (KeyValuePair<Type, IEnumerable<Expression>> val in scope.GetAbstractTypes())
             {
                 Expression memberInit = Expression.NewArrayInit(typeof(object), val.Value);
 
@@ -75,11 +75,7 @@ public static class QueryableProjectionScopeExtensions
         MethodCallExpression selection = Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.Select),
-            new[]
-            {
-                scope.RuntimeType,
-                typeof(object[]),
-            },
+            new[] { scope.RuntimeType, typeof(object[]), },
             source,
             scope.CreateMemberInitLambda());
 
@@ -113,10 +109,7 @@ public static class QueryableProjectionScopeExtensions
         return Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.ToArray),
-            new[]
-            {
-                scope.RuntimeType
-            },
+            new[] { scope.RuntimeType },
             source);
     }
 
@@ -125,10 +118,7 @@ public static class QueryableProjectionScopeExtensions
         return Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.ToList),
-            new[]
-            {
-                scope.RuntimeType
-            },
+            new[] { scope.RuntimeType },
             source);
     }
 
@@ -140,10 +130,7 @@ public static class QueryableProjectionScopeExtensions
             setType.MakeGenericType(source.Type.GetGenericArguments()[0]);
 
         ConstructorInfo? ctor =
-            typedGeneric.GetConstructor(new[]
-            {
-                source.Type
-            });
+            typedGeneric.GetConstructor(new[] { source.Type });
 
         if (ctor is null)
         {
