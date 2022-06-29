@@ -13,12 +13,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArraySomeStringEqual_Expression()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: {some: { eq: \"a\" }}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
+        var tester = CreateProviderTester(new FooSimpleFilterInput());
 
         // act
-        Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
+        var func = tester.Build<FooSimple>(value);
 
         // assert
         var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -32,12 +32,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArrayAnyStringEqual_Expression()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: {any: true}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
+        var tester = CreateProviderTester(new FooSimpleFilterInput());
 
         // act
-        Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
+        var func = tester.Build<FooSimple>(value);
 
         // assert
         var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -54,12 +54,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArraySomeStringEqualWithNull_Expression()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: {some: { eq: \"a\" }}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
+        var tester = CreateProviderTester(new FooSimpleFilterInput());
 
         // act
-        Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
+        var func = tester.Build<FooSimple>(value);
 
         // assert
         var a = new FooSimple { Bar = new[] { "c", null, "a" } };
@@ -76,12 +76,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArraySomeObjectStringEqualWithNull_Expression()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ fooNested: {some: {bar: { eq: \"a\" }}}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo
@@ -109,12 +109,12 @@ public class QueryableFilterVisitorListTests
     [Fact]
     public void Create_ArraySomeObjectStringEqual_Expression()
     {
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ fooNested: {some: {bar: { eq: \"a\" }}}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
         // assert
         var a = new Foo
         {
@@ -155,12 +155,12 @@ public class QueryableFilterVisitorListTests
     [Fact]
     public void Create_ArrayNoneObjectStringEqual_Expression()
     {
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ fooNested: {none: {bar: { eq: \"a\" }}}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo
@@ -201,12 +201,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArrayAllObjectStringEqual_Expression()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ fooNested: {all: { bar: {eq: \"a\" }}}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo
@@ -270,12 +270,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArrayAnyObjectStringEqual_Expression()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ fooNested: {any: true}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo
@@ -301,12 +301,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArrayNotAnyObjectStringEqual_Expression()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ fooNested: {any: false}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo
@@ -334,12 +334,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArraySomeStringEqual_Expression_Null()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: {some: { eq: null }}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
+        var tester = CreateProviderTester(new FooSimpleFilterInput());
 
         // act
-        Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
+        var func = tester.Build<FooSimple>(value);
 
         // assert
         var a = new FooSimple { Bar = new[] { "c", null, "a" } };
@@ -353,12 +353,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArrayNoneStringEqual_Expression_Null()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: {none: { eq: null }}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
+        var tester = CreateProviderTester(new FooSimpleFilterInput());
 
         // act
-        Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
+        var func = tester.Build<FooSimple>(value);
 
         // assert
         var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -372,12 +372,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArrayAllStringEqual_Expression_Null()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: {all: { eq: null }}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooSimpleFilterInput());
+        var tester = CreateProviderTester(new FooSimpleFilterInput());
 
         // act
-        Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
+        var func = tester.Build<FooSimple>(value);
 
         // assert
         var a = new FooSimple { Bar = new string[] { null!, null!, null! } };
@@ -391,12 +391,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArraySomeStringEqual_Multiple()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: {some: { eq: \"a\" }} otherProperty: {eq:null}}");
-        ExecutorBuilder tester = CreateProviderTester(new FooSimpleFilterInput());
+        var tester = CreateProviderTester(new FooSimpleFilterInput());
 
         // act
-        Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
+        var func = tester.Build<FooSimple>(value);
 
         // assert
         var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -410,12 +410,12 @@ public class QueryableFilterVisitorListTests
     public void Create_ArraySomeObjectEqual_Multiple()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ fooNested: {some: {bar: { eq: \"a\" }}} otherProperty: {eq:null}}");
-        ExecutorBuilder tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo

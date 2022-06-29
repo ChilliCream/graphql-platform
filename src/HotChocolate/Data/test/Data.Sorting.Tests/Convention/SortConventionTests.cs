@@ -28,24 +28,24 @@ public class SortConventionTests
                 descriptor.Provider(provider);
             });
 
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
         var type = new FooSortType();
 
         //act
         CreateSchemaWith(type, convention);
         var executor = new ExecutorBuilder(type);
 
-        Func<Foo[], Foo[]> func = executor.Build<Foo>(value);
+        var func = executor.Build<Foo>(value);
 
         // assert
-        Foo[]? a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        Foo[]? b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -74,7 +74,7 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        SchemaException error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -102,7 +102,7 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        SchemaException? error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -130,7 +130,7 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        SchemaException error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -159,7 +159,7 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        SchemaException error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         error.Message.MatchSnapshot();
@@ -186,7 +186,7 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        SchemaException? error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -214,7 +214,7 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        SchemaException? error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -250,24 +250,24 @@ public class SortConventionTests
                 descriptor.BindRuntimeType<string, TestEnumType>();
             });
 
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
         var type = new FooSortType();
 
         //act
         CreateSchemaWith(type, convention, extension1, extension2);
         var executor = new ExecutorBuilder(type);
 
-        Func<Foo[], Foo[]> func = executor.Build<Foo>(value);
+        var func = executor.Build<Foo>(value);
 
         // assert
-        Foo[]? a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        Foo[]? b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -293,7 +293,7 @@ public class SortConventionTests
                 descriptor.Provider(provider);
             });
 
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
         var type = new FooSortType();
 
         //act
@@ -303,17 +303,17 @@ public class SortConventionTests
             typeof(MockSortExtensionConvention));
         var executor = new ExecutorBuilder(type);
 
-        Func<Foo[], Foo[]> func = executor.Build<Foo>(value);
+        var func = executor.Build<Foo>(value);
 
         // assert
-        Foo[]? a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        Foo[]? b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -345,24 +345,24 @@ public class SortConventionTests
                 descriptor.AddProviderExtension<MockSortProviderExtensionConvention>();
             });
 
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
         var type = new FooSortType();
 
         //act
         CreateSchemaWith(type, convention, extension1);
         var executor = new ExecutorBuilder(type);
 
-        Func<Foo[], Foo[]> func = executor.Build<Foo>(value);
+        var func = executor.Build<Foo>(value);
 
         // assert
-        Foo[]? a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        Foo[]? b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -375,7 +375,7 @@ public class SortConventionTests
         SortConvention convention,
         params Type[] extensions)
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
             .AddSorting()
             .AddQueryType(
@@ -386,7 +386,7 @@ public class SortConventionTests
                         .Resolve("bar"))
             .AddType(type);
 
-        foreach (Type? extension in extensions)
+        foreach (var extension in extensions)
         {
             builder.AddConvention<ISortConvention>(extension);
         }
@@ -399,7 +399,7 @@ public class SortConventionTests
         SortConvention convention,
         params SortConventionExtension[] extensions)
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
             .AddSorting()
             .AddQueryType(
@@ -410,7 +410,7 @@ public class SortConventionTests
                         .Resolve("bar"))
             .AddType(type);
 
-        foreach (SortConventionExtension? extension in extensions)
+        foreach (var extension in extensions)
         {
             builder.AddConvention<ISortConvention>(extension);
         }

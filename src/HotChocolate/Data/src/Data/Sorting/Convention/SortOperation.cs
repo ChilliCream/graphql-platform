@@ -1,3 +1,5 @@
+using HotChocolate.Utilities;
+
 namespace HotChocolate.Data.Sorting;
 
 public class SortOperation
@@ -16,6 +18,6 @@ public class SortOperation
     public string? Description { get; }
 
     internal static SortOperation FromDefinition(
-        SortOperationConventionDefinition definition) =>
-        new SortOperation(definition.Id, definition.Name, definition.Description);
+        SortOperationConventionDefinition definition)
+        => new(definition.Id, definition.Name.EnsureGraphQLName(), definition.Description);
 }

@@ -7,10 +7,11 @@ using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortTypeInterceptor : TypeInterceptor
+public sealed class SortTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<string, ISortConvention> _conventions = new();
     private readonly List<Func<ITypeReference>> _typesToRegister = new();
@@ -148,7 +149,7 @@ public class SortTypeInterceptor : TypeInterceptor
             return;
         }
 
-        ITypeReference? originalType = null;
+        ITypeReference? originalType;
         _typesToRegister.Add(() =>
         {
             originalType = sortField.Type;
@@ -173,18 +174,16 @@ public class SortTypeInterceptor : TypeInterceptor
                 if (originalType is null ||
                     !_typeRegistry.TryGetType(originalType, out var registeredType))
                 {
-                    throw ThrowHelper.Sorting_FieldHadNoType(
-                        sortField.Name.Value,
-                        parentTypeDefinition.Name.Value);
+                    throw Sorting_FieldHadNoType(sortField.Name, parentTypeDefinition.Name);
                 }
 
                 if (!_definitions.TryGetValue(
                         registeredType.Type,
                         out var definition))
                 {
-                    throw ThrowHelper.Sorting_DefinitionForTypeNotFound(
-                        sortField.Name.Value,
-                        parentTypeDefinition.Name.Value,
+                    throw Sorting_DefinitionForTypeNotFound(
+                        sortField.Name,
+                        parentTypeDefinition.Name,
                         registeredType.Type.Name);
                 }
 
@@ -220,11 +219,10 @@ public class SortTypeInterceptor : TypeInterceptor
             descriptor.CreateDefinition(),
             definition);
 
-        if (definition is {Name: {HasValue: true}} and IHasScope {Scope: { }})
+        if (!string.IsNullOrEmpty(definition.Name) &&
+            definition is IHasScope { Scope: not null })
         {
-            definition.Name = completionContext.Scope +
-                "_" +
-                definition.Name;
+            definition.Name = completionContext.Scope + "_" + definition.Name;
         }
     }
 
@@ -250,11 +248,10 @@ public class SortTypeInterceptor : TypeInterceptor
             descriptor.CreateDefinition(),
             definition);
 
-        if (definition is {Name: {HasValue: true}} and IHasScope {Scope: { }})
+        if (!string.IsNullOrEmpty(definition.Name) &&
+            definition is IHasScope { Scope: not null })
         {
-            definition.Name = completionContext.Scope +
-                "_" +
-                definition.Name;
+            definition.Name = completionContext.Scope + "_" + definition.Name;
         }
     }
 
@@ -262,8 +259,7 @@ public class SortTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         SortInputTypeDefinition definition)
     {
-        var convention =
-            GetConvention(completionContext.DescriptorContext, definition.Scope);
+        var convention = GetConvention(completionContext.DescriptorContext, definition.Scope);
 
         foreach (var field in definition.Fields)
         {
@@ -271,12 +267,10 @@ public class SortTypeInterceptor : TypeInterceptor
             {
                 if (sortFieldDefinition.Type is null)
                 {
-                    throw ThrowHelper.Sorting_FieldHadNoType(field.Name, definition.Name);
+                    throw Sorting_FieldHadNoType(field.Name, definition.Name);
                 }
 
-                if (completionContext.TryPredictTypeKind(
-                        sortFieldDefinition.Type,
-                        out var kind) &&
+                if (completionContext.TryPredictTypeKind(sortFieldDefinition.Type, out var kind) &&
                     kind != TypeKind.Enum)
                 {
                     field.Type = field.Type!.With(scope: completionContext.Scope);
@@ -288,16 +282,16 @@ public class SortTypeInterceptor : TypeInterceptor
                 if (sortFieldDefinition.Handler is null)
                 {
                     if (convention.TryGetFieldHandler(
-                            completionContext,
-                            definition,
-                            sortFieldDefinition,
-                            out var handler))
+                        completionContext,
+                        definition,
+                        sortFieldDefinition,
+                        out var handler))
                     {
                         sortFieldDefinition.Handler = handler;
                     }
                     else
                     {
-                        throw ThrowHelper.SortInterceptor_NoFieldHandlerFoundForField(
+                        throw SortInterceptor_NoFieldHandlerFoundForField(
                             definition,
                             sortFieldDefinition);
                     }
@@ -318,16 +312,16 @@ public class SortTypeInterceptor : TypeInterceptor
             if (enumValue is SortEnumValueDefinition sortEnumValueDefinition)
             {
                 if (convention.TryGetOperationHandler(
-                        completionContext,
-                        definition,
-                        sortEnumValueDefinition,
-                        out var handler))
+                    completionContext,
+                    definition,
+                    sortEnumValueDefinition,
+                    out var handler))
                 {
                     sortEnumValueDefinition.Handler = handler;
                 }
                 else
                 {
-                    throw ThrowHelper.SortInterceptor_NoOperationHandlerFoundForValue(
+                    throw SortInterceptor_NoOperationHandlerFoundForValue(
                         definition,
                         sortEnumValueDefinition);
                 }

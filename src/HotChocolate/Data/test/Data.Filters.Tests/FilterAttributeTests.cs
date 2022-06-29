@@ -15,7 +15,7 @@ public class FilterAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query1>()
             .AddFiltering()
             .Create();
@@ -29,7 +29,7 @@ public class FilterAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query3>()
             .AddFiltering()
             .Create();
@@ -43,7 +43,7 @@ public class FilterAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query2>()
             .AddFiltering()
             .Create();
@@ -57,7 +57,7 @@ public class FilterAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query4>()
             .AddFiltering()
             .Create();

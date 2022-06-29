@@ -14,7 +14,7 @@ public interface IDefinition
     /// <summary>
     /// Gets or sets the name the type shall have.
     /// </summary>
-    string? Name { get; set; }
+    string Name { get; set; }
 
     /// <summary>
     /// Gets or sets the description the type shall have.

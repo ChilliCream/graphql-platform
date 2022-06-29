@@ -14,7 +14,7 @@ public class FilterConventionScopeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
             .AddQueryType<Query1>()
             .AddFiltering()
@@ -29,7 +29,7 @@ public class FilterConventionScopeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
             .AddQueryType<QueryType>()
             .AddFiltering()
@@ -44,7 +44,7 @@ public class FilterConventionScopeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
             .AddQueryType<CustomizedQueryType>()
             .AddFiltering()

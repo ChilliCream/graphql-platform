@@ -123,8 +123,8 @@ internal static class ErrorHelper
             .New()
             .SetMessage(
                 DataResources.Filtering_InlineFilterTypeHadNoFields,
-                typeDefinition.Name.Value,
-                fieldDefinition.Name.Value,
+                typeDefinition.Name,
+                fieldDefinition.Name,
                 parentType.Name)
             .SetCode(ErrorCodes.Data.InlineFilterTypeNoFields)
             .SetTypeSystemObject(type)

@@ -22,8 +22,7 @@ public class SortInputType
 
     public SortInputType(Action<ISortInputTypeDescriptor> configure)
     {
-        _configure = configure ??
-            throw new ArgumentNullException(nameof(configure));
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
     public IExtendedType EntityType { get; private set; } = default!;
@@ -68,8 +67,7 @@ public class SortInputType
     {
         base.OnCompleteType(context, definition);
 
-        if (definition is SortInputTypeDefinition ft &&
-            ft.EntityType is { })
+        if (definition is SortInputTypeDefinition { EntityType: not null } ft)
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
         }
@@ -170,7 +168,7 @@ public class SortInputType
             ITypeCompletionContext context,
             SortInputTypeDefinition definition)
         {
-            if (definition.Name.HasValue)
+            if (!string.IsNullOrEmpty(definition.Name))
             {
                 return;
             }

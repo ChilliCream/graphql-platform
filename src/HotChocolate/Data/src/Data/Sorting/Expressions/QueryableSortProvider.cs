@@ -8,14 +8,14 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
 [return: NotNullIfNotNull("input")]
 public delegate object? ApplySorting(IResolverContext context, object? input);
 
-public class QueryableSortProvider
-    : SortProvider<QueryableSortContext>
+public class QueryableSortProvider : SortProvider<QueryableSortContext>
 {
     public const string ContextArgumentNameKey = "SortArgumentName";
     public const string ContextVisitSortArgumentKey = nameof(VisitSortArgument);
@@ -35,9 +35,9 @@ public class QueryableSortProvider
     protected virtual SortVisitor<QueryableSortContext, QueryableSortOperation> Visitor { get; }
         = new();
 
-    public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
     {
-        var applySorting = CreateApplicatorAsync<TEntityType>(argumentName);
+        var applySorting = CreateApplicatorAsync<TEntityType>(argumentName.EnsureGraphQLName());
 
         return next => context => ExecuteAsync(next, context);
 
@@ -55,7 +55,7 @@ public class QueryableSortProvider
         }
     }
 
-    private static ApplySorting CreateApplicatorAsync<TEntityType>(NameString argumentName)
+    private static ApplySorting CreateApplicatorAsync<TEntityType>(string argumentName)
     {
         return (context, input) =>
         {
@@ -122,7 +122,7 @@ public class QueryableSortProvider
     }
 
     public override void ConfigureField(
-        NameString argumentName,
+        string argumentName,
         IObjectFieldDescriptor descriptor)
     {
         QueryableSortContext VisitSortArgumentExecutor(

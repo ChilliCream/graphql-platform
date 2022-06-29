@@ -14,7 +14,7 @@ public class IdFilterTypeInterceptorTests
     [Fact]
     public async Task Filtering_Should_UseIdType_When_Specified()
     {
-        ISchema schema = await new ServiceCollection()
+        var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
             .AddType(new FilterInputType<Foo>(x =>
@@ -28,7 +28,7 @@ public class IdFilterTypeInterceptorTests
     [Fact]
     public async Task Filtering_Should_InfereType_When_Annotated()
     {
-        ISchema schema = await new ServiceCollection()
+        var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
             .AddType(new FilterInputType<FooId>())

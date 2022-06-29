@@ -12,7 +12,7 @@ public class FilterVisitorTestBase
             new FilterConvention(
                x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .TryAddTypeInterceptor<FilterTypeInterceptor>()
             .AddQueryType(
@@ -33,7 +33,7 @@ public class FilterVisitorTestBase
         where T : IFilterInputType
     {
         var convention = new FilterConvention(x => x.AddDefaults());
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .TryAddTypeInterceptor<FilterTypeInterceptor>()
             .AddQueryType(c => c

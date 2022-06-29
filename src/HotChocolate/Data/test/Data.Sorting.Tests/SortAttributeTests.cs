@@ -15,7 +15,7 @@ public class SortAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query1>()
             .AddSorting()
             .Create();
@@ -29,7 +29,7 @@ public class SortAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query2>()
             .AddSorting()
             .Create();
@@ -43,7 +43,7 @@ public class SortAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query3>()
             .AddSorting()
             .Create();
@@ -57,7 +57,7 @@ public class SortAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query4>()
             .AddSorting()
             .Create();

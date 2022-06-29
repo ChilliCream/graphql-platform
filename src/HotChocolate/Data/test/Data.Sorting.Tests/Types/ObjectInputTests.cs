@@ -12,7 +12,7 @@ public class ObjectInputTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")
@@ -32,7 +32,7 @@ public class ObjectInputTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")

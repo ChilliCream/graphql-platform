@@ -4,13 +4,13 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
-using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 public static class SortObjectFieldDescriptorExtensions
@@ -181,7 +181,7 @@ public static class SortObjectFieldDescriptorExtensions
                         new CompleteConfiguration<ArgumentDefinition>((context, def) =>
                         {
                             var namedType = context.GetType<INamedType>(argumentTypeReference);
-                            def.Type = TypeReference.Parse($"[{namedType.Name.Value}!]");
+                            def.Type = TypeReference.Parse($"[{namedType.Name}!]");
                         },
                         argumentDefinition,
                         ApplyConfigurationOn.Naming,
