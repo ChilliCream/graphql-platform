@@ -35,7 +35,7 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
     /// <summary>
     /// Gets the GraphQL type name.
     /// </summary>
-    public NameString Name
+    public string Name
     {
         get => _name;
         protected set

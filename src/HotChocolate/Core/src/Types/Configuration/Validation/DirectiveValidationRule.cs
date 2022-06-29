@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
@@ -12,7 +13,7 @@ namespace HotChocolate.Configuration.Validation;
 /// </summary>
 internal class DirectiveValidationRule : ISchemaValidationRule
 {
-    private const string _twoUnderscores = "__";
+    private const char _underscore = '_';
 
     public void Validate(
         IReadOnlyList<ITypeSystemObject> typeSystemObjects,
@@ -34,7 +35,11 @@ internal class DirectiveValidationRule : ISchemaValidationRule
         DirectiveType type,
         ICollection<ISchemaError> errors)
     {
-        if (type.Name.Value.StartsWith(_twoUnderscores))
+        var firstTwoLetters = type.Name.AsSpan().Slice(0, 2);
+
+        if (firstTwoLetters.Length is 2 &&
+            firstTwoLetters[0] == _underscore &&
+            firstTwoLetters[1] == _underscore)
         {
             errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
         }

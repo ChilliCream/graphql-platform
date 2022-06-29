@@ -33,7 +33,7 @@ public interface IObjectFieldDescriptor
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IObjectFieldDescriptor Name(NameString value);
+    IObjectFieldDescriptor Name(string value);
 
     /// <summary>
     /// Adds explanatory text to the <see cref="ObjectField"/>
@@ -101,7 +101,7 @@ public interface IObjectFieldDescriptor
     /// The argument descriptor to specify the argument configuration.
     /// </param>
     IObjectFieldDescriptor Argument(
-        NameString argumentName,
+        string argumentName,
         Action<IArgumentDescriptor> argumentDescriptor);
 
     /// <summary>
@@ -267,7 +267,7 @@ public interface IObjectFieldDescriptor
     /// }
     /// ]]>
     /// </code>
-    /// The GetFoo method cann be mapped like:
+    /// The GetFoo method can be mapped like:
     /// <code>
     /// <![CDATA[
     /// descriptor
@@ -397,7 +397,5 @@ public interface IObjectFieldDescriptor
     /// <param name="name">The name of the directive</param>
     /// <param name="arguments">The arguments of the directive</param>
     /// <returns>The descriptor</returns>
-    IObjectFieldDescriptor Directive(
-        NameString name,
-        params ArgumentNode[] arguments);
+    IObjectFieldDescriptor Directive(string name, params ArgumentNode[] arguments);
 }

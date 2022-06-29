@@ -53,9 +53,9 @@ public class UnionTypeDescriptor
     }
 
     public IUnionTypeDescriptor SyntaxNode(
-        UnionTypeDefinitionNode unionTypeDefinitionNode)
+        UnionTypeDefinitionNode unionTypeDefinition)
     {
-        Definition.SyntaxNode = unionTypeDefinitionNode;
+        Definition.SyntaxNode = unionTypeDefinition;
         return this;
     }
 

@@ -11,7 +11,7 @@ public abstract class FloatTypeBase<TRuntimeType>
     where TRuntimeType : IComparable
 {
     protected FloatTypeBase(
-        NameString name,
+        string name,
         TRuntimeType min,
         TRuntimeType max,
         BindingBehavior bind = BindingBehavior.Explicit)

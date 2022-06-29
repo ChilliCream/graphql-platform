@@ -50,9 +50,9 @@ public class InputObjectTypeDescriptor<T>
     }
 
     public new IInputObjectTypeDescriptor<T> SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode)
+        InputObjectTypeDefinitionNode inputObjectTypeDefinition)
     {
-        base.SyntaxNode(inputObjectTypeDefinitionNode);
+        base.SyntaxNode(inputObjectTypeDefinition);
         return this;
     }
 

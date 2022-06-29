@@ -3,6 +3,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -56,10 +57,10 @@ internal abstract class DependencyDescriptorBase
     }
 
     protected void DependsOn(
-        NameString typeName,
+        string typeName,
         bool mustBeNamedOrCompleted)
     {
-        typeName.EnsureNotEmpty(nameof(typeName));
+        typeName.EnsureGraphQLName();
 
         var kind = mustBeNamedOrCompleted
             ? DependencyKind
@@ -67,7 +68,7 @@ internal abstract class DependencyDescriptorBase
 
         _configuration.AddDependency(
             new TypeDependency(
-                TypeReference.Create(new NamedTypeNode(typeName), TypeContext.None),
+                TypeReference.Create(new NamedTypeNode(typeName)),
                 kind));
     }
 }

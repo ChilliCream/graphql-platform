@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
@@ -9,7 +10,7 @@ namespace HotChocolate.Configuration.Validation;
 
 internal static class TypeValidationHelper
 {
-    private const string _twoUnderscores = "__";
+    private const char _underscore = '_';
 
     public static void EnsureTypeHasFields(
         IComplexOutputType type,
@@ -90,7 +91,11 @@ internal static class TypeValidationHelper
 
             if (!field.IsIntrospectionField)
             {
-                if (field.Name.Value.StartsWith(_twoUnderscores))
+                var firstTwoLetters = field.Name.AsSpan().Slice(0, 2);
+
+                if (firstTwoLetters.Length is 2 &&
+                    firstTwoLetters[0] == _underscore &&
+                    firstTwoLetters[1] == _underscore)
                 {
                     errors.Add(TwoUnderscoresNotAllowedField(type, field));
                 }
@@ -98,8 +103,11 @@ internal static class TypeValidationHelper
                 for (var j = 0; j < field.Arguments.Count; j++)
                 {
                     var argument = field.Arguments[j];
+                    firstTwoLetters = argument.Name.AsSpan().Slice(0, 2);
 
-                    if (argument.Name.Value.StartsWith(_twoUnderscores))
+                    if (firstTwoLetters.Length is 2 &&
+                        firstTwoLetters[0] == _underscore &&
+                        firstTwoLetters[1] == _underscore)
                     {
                         errors.Add(TwoUnderscoresNotAllowedOnArgument(
                             type,
@@ -118,8 +126,11 @@ internal static class TypeValidationHelper
         for (var i = 0; i < type.Fields.Count; i++)
         {
             var field = type.Fields[i];
+            var firstTwoLetters = field.Name.AsSpan().Slice(0, 2);
 
-            if (field.Name.Value.StartsWith(_twoUnderscores))
+            if (firstTwoLetters.Length is 2 &&
+                firstTwoLetters[0] == _underscore &&
+                firstTwoLetters[1] == _underscore)
             {
                 errors.Add(TwoUnderscoresNotAllowedField(type, field));
             }
@@ -133,8 +144,11 @@ internal static class TypeValidationHelper
         for (var i = 0; i < type.Arguments.Count; i++)
         {
             IInputField field = type.Arguments[i];
+            var firstTwoLetters = field.Name.AsSpan().Slice(0, 2);
 
-            if (field.Name.Value.StartsWith(_twoUnderscores))
+            if (firstTwoLetters.Length is 2 &&
+                firstTwoLetters[0] == _underscore &&
+                firstTwoLetters[1] == _underscore)
             {
                 errors.Add(TwoUnderscoresNotAllowedOnArgument(type, field));
             }

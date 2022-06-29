@@ -33,7 +33,7 @@ public interface IOperation : IHasReadOnlyContextData
     /// <summary>
     /// Gets the name of the operation.
     /// </summary>
-    NameString? Name { get; }
+    string? Name { get; }
 
     /// <summary>
     /// Gets the operation type (Query, Mutation, Subscription).

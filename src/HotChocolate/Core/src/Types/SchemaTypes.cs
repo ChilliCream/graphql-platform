@@ -11,8 +11,8 @@ namespace HotChocolate;
 
 internal sealed class SchemaTypes
 {
-    private readonly Dictionary<NameString, INamedType> _types;
-    private readonly Dictionary<NameString, List<ObjectType>> _possibleTypes;
+    private readonly Dictionary<string, INamedType> _types;
+    private readonly Dictionary<string, List<ObjectType>> _possibleTypes;
 
     public SchemaTypes(SchemaTypesDefinition definition)
     {
@@ -41,7 +41,7 @@ internal sealed class SchemaTypes
 
     public ObjectType? SubscriptionType { get; }
 
-    public T GetType<T>(NameString typeName) where T : IType
+    public T GetType<T>(string typeName) where T : IType
     {
         if (_types.TryGetValue(typeName, out var namedType)
             && namedType is T type)
@@ -54,7 +54,7 @@ internal sealed class SchemaTypes
             nameof(typeName));
     }
 
-    public bool TryGetType<T>(NameString typeName, [NotNullWhen(true)] out T? type)
+    public bool TryGetType<T>(string typeName, [NotNullWhen(true)] out T? type)
         where T : IType
     {
         if (_types.TryGetValue(typeName, out var namedType)
@@ -73,7 +73,7 @@ internal sealed class SchemaTypes
         return _types.Values;
     }
 
-    public bool TryGetClrType(NameString typeName, [NotNullWhen(true)] out Type? clrType)
+    public bool TryGetClrType(string typeName, [NotNullWhen(true)] out Type? clrType)
     {
         if (_types.TryGetValue(typeName, out var type)
             && type is IHasRuntimeType ct
@@ -101,10 +101,10 @@ internal sealed class SchemaTypes
         return false;
     }
 
-    private static Dictionary<NameString, List<ObjectType>> CreatePossibleTypeLookup(
+    private static Dictionary<string, List<ObjectType>> CreatePossibleTypeLookup(
         IReadOnlyCollection<INamedType> types)
     {
-        var possibleTypes = new Dictionary<NameString, List<ObjectType>>();
+        var possibleTypes = new Dictionary<string, List<ObjectType>>();
 
         foreach (var objectType in types.OfType<ObjectType>())
         {

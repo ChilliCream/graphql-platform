@@ -10,7 +10,7 @@ public interface IInputObjectTypeDescriptor<T>
     , IFluent
 {
     IInputObjectTypeDescriptor<T> SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode);
+        InputObjectTypeDefinitionNode inputObjectTypeDefinition);
 
     IInputObjectTypeDescriptor<T> Name(string value);
 

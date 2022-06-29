@@ -20,7 +20,7 @@ public class DirectiveArgumentDescriptor
     /// </summary>
     protected internal DirectiveArgumentDescriptor(
         IDescriptorContext context,
-        NameString argumentName)
+        string argumentName)
         : base(context)
     {
         Definition.Name = argumentName;
@@ -82,9 +82,9 @@ public class DirectiveArgumentDescriptor
     }
 
     /// <inheritdoc />
-    public IDirectiveArgumentDescriptor Name(NameString value)
+    public IDirectiveArgumentDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -168,7 +168,7 @@ public class DirectiveArgumentDescriptor
     /// <returns>An instance of <see cref="DirectiveArgumentDescriptor "/></returns>
     public static DirectiveArgumentDescriptor New(
         IDescriptorContext context,
-        NameString argumentName)
+        string argumentName)
         => new(context, argumentName);
 
     /// <summary>

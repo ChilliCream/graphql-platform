@@ -30,7 +30,7 @@ public class DefaultNamingConventions
     protected IDocumentationProvider DocumentationProvider => _documentation;
 
     /// <inheritdoc />
-    public virtual NameString GetTypeName(Type type)
+    public virtual string GetTypeName(Type type)
     {
         if (type is null)
         {

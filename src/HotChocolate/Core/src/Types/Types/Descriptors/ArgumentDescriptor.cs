@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -196,8 +195,8 @@ public class ArgumentDescriptor
     /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor New(
         IDescriptorContext context,
-        NameString argumentName) =>
-        new(context, argumentName);
+        string argumentName)
+        => new(context, argumentName);
 
     /// <summary>
     /// Creates a new instance of <see cref="ArgumentDescriptor"/>
@@ -208,7 +207,7 @@ public class ArgumentDescriptor
     /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor New(
         IDescriptorContext context,
-        NameString argumentName,
+        string argumentName,
         Type argumentType) =>
         new(context, argumentName, argumentType);
 

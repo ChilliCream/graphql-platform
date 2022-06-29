@@ -86,9 +86,9 @@ public class InterfaceFieldDescriptor
         }
     }
 
-    public new IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode fieldDefinitionNode)
+    public new IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode fieldDefinition)
     {
-        base.SyntaxNode(fieldDefinitionNode);
+        base.SyntaxNode(fieldDefinition);
         return this;
     }
 

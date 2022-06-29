@@ -8,7 +8,7 @@ public interface IInputObjectTypeDescriptor
     , IFluent
 {
     IInputObjectTypeDescriptor SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode);
+        InputObjectTypeDefinitionNode inputObjectTypeDefinition);
 
     IInputObjectTypeDescriptor Name(string value);
 

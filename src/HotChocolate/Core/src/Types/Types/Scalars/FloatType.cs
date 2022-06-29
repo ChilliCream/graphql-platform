@@ -42,7 +42,7 @@ public class FloatType : FloatTypeBase<double>
     /// Initializes a new instance of the <see cref="FloatType"/> class.
     /// </summary>
     public FloatType(
-        NameString name,
+        string name,
         string? description = null,
         double min = double.MinValue,
         double max = double.MaxValue,

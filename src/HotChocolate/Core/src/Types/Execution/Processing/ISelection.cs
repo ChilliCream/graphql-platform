@@ -19,7 +19,7 @@ public interface ISelection : IOptionalSelection
     /// <summary>
     /// Gets the name this field will have in the response map.
     /// </summary>
-    NameString ResponseName { get; }
+    string ResponseName { get; }
 
     /// <summary>
     /// Gets the field that was selected.

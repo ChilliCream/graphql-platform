@@ -67,7 +67,7 @@ public class DirectiveTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var arguments = new Dictionary<NameString, DirectiveArgumentDefinition>();
+        var arguments = new Dictionary<string, DirectiveArgumentDefinition>(StringComparer.Ordinal);
         var handledMembers = new HashSet<PropertyInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
