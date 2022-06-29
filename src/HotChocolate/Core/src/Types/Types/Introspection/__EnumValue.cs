@@ -50,7 +50,7 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
     private static class Resolvers
     {
         public static object Name(IPureResolverContext context)
-            => context.Parent<IEnumValue>();
+            => context.Parent<IEnumValue>().Name;
 
         public static object? Description(IPureResolverContext context)
             => context.Parent<IEnumValue>().Description;

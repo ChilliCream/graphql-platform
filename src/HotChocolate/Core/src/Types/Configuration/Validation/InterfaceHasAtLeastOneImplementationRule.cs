@@ -28,7 +28,7 @@ internal class InterfaceHasAtLeastOneImplementationRule : ISchemaValidationRule
             if (typeSystemObjects[i] is InterfaceType interfaceType)
             {
                 interfaceTypes.Add(interfaceType);
-            };
+            }
         }
 
         // next we go through all the object types and strike the interfaces from the interface
@@ -62,7 +62,7 @@ internal class InterfaceHasAtLeastOneImplementationRule : ISchemaValidationRule
             // if we do not remove unreachable types than all the interfaces left over here are
             // violations; otherwise, only the interfaces in the fieldTypes collection represent
             // violations.
-            if (!options.RemoveUnreachableTypes || fieldTypes.Contains(interfaceType))
+            if (/* !options.RemoveUnreachableTypes || */ fieldTypes.Contains(interfaceType))
             {
                 errors.Add(ErrorHelper.InterfaceHasNoImplementation(interfaceType));
             }

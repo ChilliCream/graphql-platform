@@ -101,8 +101,10 @@ internal sealed class EdgeType : ObjectType, IEdgeType
     }
 
     private static ObjectTypeDefinition CreateTypeDefinition(ITypeReference nodeType)
-        => new(string.Empty, EdgeType_Description, typeof(IEdge))
+        => new()
         {
+            Description = EdgeType_Description,
+            RuntimeType = typeof(IEdge),
             Fields =
             {
                 new(Names.Cursor,

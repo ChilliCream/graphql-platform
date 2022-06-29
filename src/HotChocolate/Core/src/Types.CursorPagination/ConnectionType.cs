@@ -150,10 +150,11 @@ internal class ConnectionType
         bool withTotalCount,
         ITypeReference? edgesType = null)
     {
-        var definition = new ObjectTypeDefinition(
-            string.Empty,
-            ConnectionType_Description,
-            typeof(Connection));
+        var definition = new ObjectTypeDefinition
+        {
+            Description = ConnectionType_Description,
+            RuntimeType = typeof(Connection)
+        };
 
         definition.Fields.Add(new(
             Names.PageInfo,

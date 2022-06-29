@@ -594,7 +594,6 @@ public class InterfaceTypeTests : TypeTestBase
     public async Task AnnotationBased_DeprecatedArguments_Valid()
     {
         // arrange
-
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()

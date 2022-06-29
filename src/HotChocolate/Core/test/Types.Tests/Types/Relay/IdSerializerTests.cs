@@ -13,10 +13,10 @@ public class IdSerializerTests
         var serializer = new IdSerializer();
 
         // act
-        Action a = () => serializer.Serialize("", 123);
+        void Action() => serializer.Serialize("", 123);
 
         // assert
-        Assert.Throws<ArgumentException>(a);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
