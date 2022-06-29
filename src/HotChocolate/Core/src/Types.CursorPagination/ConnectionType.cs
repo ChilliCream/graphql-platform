@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +21,7 @@ internal class ConnectionType
     , IPageType
 {
     internal ConnectionType(
-        NameString connectionName,
+        string connectionName,
         ITypeReference nodeType,
         bool withTotalCount)
     {
@@ -28,8 +30,13 @@ internal class ConnectionType
             throw new ArgumentNullException(nameof(nodeType));
         }
 
-        ConnectionName = connectionName.EnsureNotEmpty(nameof(connectionName));
-        NameString edgeTypeName = NameHelper.CreateEdgeName(connectionName);
+        if (string.IsNullOrEmpty(connectionName))
+        {
+            throw new ArgumentNullException(nameof(connectionName));
+        }
+
+        ConnectionName = connectionName;
+        var edgeTypeName = NameHelper.CreateEdgeName(connectionName);
 
         var edgesType =
             TypeReference.Parse(
@@ -75,6 +82,8 @@ internal class ConnectionType
                 _ => new EdgeType(nodeType),
                 TypeContext.Output);
 
+        // the property is set later in the configuration
+        ConnectionName = default!;
         Definition = CreateTypeDefinition(withTotalCount);
         Definition.Dependencies.Add(new(nodeType));
         Definition.Dependencies.Add(new(edgeType));
@@ -117,7 +126,7 @@ internal class ConnectionType
     /// <summary>
     /// Gets the connection name of this connection type.
     /// </summary>
-    public NameString ConnectionName { get; private set; }
+    public string ConnectionName { get; private set; }
 
     /// <summary>
     /// Gets the edge type of this connection.
@@ -142,7 +151,7 @@ internal class ConnectionType
         ITypeReference? edgesType = null)
     {
         var definition = new ObjectTypeDefinition(
-            default,
+            string.Empty,
             ConnectionType_Description,
             typeof(Connection));
 

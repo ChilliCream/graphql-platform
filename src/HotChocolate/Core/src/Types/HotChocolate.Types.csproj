@@ -57,6 +57,21 @@
     <Compile Update="Types\ObjectType.Initialization.cs">
       <DependentUpon>ObjectType.cs</DependentUpon>
     </Compile>
+    <Compile Update="Utilities\DefaultTypeConverter.Setup.cs">
+      <DependentUpon>DefaultTypeConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaBuilder.Create.cs">
+      <DependentUpon>SchemaBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaBuilder.Lazy.cs">
+      <DependentUpon>SchemaBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaBuilder.Setup.cs">
+      <DependentUpon>SchemaBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaErrorBuilder.Error.cs">
+      <DependentUpon>SchemaErrorBuilder.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

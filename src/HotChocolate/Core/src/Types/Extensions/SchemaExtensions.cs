@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using TypeThrowHelper = HotChocolate.Utilities.ThrowHelper;
@@ -137,7 +136,7 @@ public static class SchemaExtensions
                 if (type.Kind is TypeKind.InputObject)
                 {
                     var inputType = (InputObjectType)type;
-                    if (inputType.Fields.TryGetField(coordinate.MemberName.Value, out var input))
+                    if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
                     {
                         member = input;
                         return true;
@@ -152,7 +151,7 @@ public static class SchemaExtensions
             }
 
             var complexType = (IComplexOutputType)type;
-            if (complexType.Fields.TryGetField(coordinate.MemberName.Value, out var field))
+            if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
                 if (coordinate.ArgumentName is null)
                 {
@@ -160,7 +159,7 @@ public static class SchemaExtensions
                     return true;
                 }
 
-                if (field.Arguments.TryGetField(coordinate.ArgumentName.Value, out var fieldArg))
+                if (field.Arguments.TryGetField(coordinate.ArgumentName, out var fieldArg))
                 {
                     member = fieldArg;
                     return true;
@@ -176,7 +175,7 @@ public static class SchemaExtensions
     /// Gets a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
     /// </summary>
     /// <param name="schema">
-    /// The schema on which the <paramref name="member"/> shall be resolved.
+    /// The schema on which the member shall be resolved.
     /// </param>
     /// <param name="coordinateString">
     /// A string representing a schema coordinate.
@@ -203,7 +202,7 @@ public static class SchemaExtensions
     /// Gets a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
     /// </summary>
     /// <param name="schema">
-    /// The schema on which the <paramref name="member"/> shall be resolved.
+    /// The schema on which the member shall be resolved.
     /// </param>
     /// <param name="coordinate">
     /// A schema coordinate.
@@ -216,7 +215,7 @@ public static class SchemaExtensions
     /// </exception>
     /// <exception cref="InvalidSchemaCoordinateException">
     /// Unable to resolve a type system member with the
-    /// specified <paramref name="coordinateString"/>.
+    /// specified <paramref name="coordinate"/>.
     /// </exception>
     public static ITypeSystemMember GetMember(
         this ISchema schema,
@@ -236,7 +235,7 @@ public static class SchemaExtensions
                     return directive;
                 }
 
-                if (directive.Arguments.TryGetField(coordinate.ArgumentName.Value, out var arg))
+                if (directive.Arguments.TryGetField(coordinate.ArgumentName, out var arg))
                 {
                     return arg;
                 }
@@ -259,7 +258,7 @@ public static class SchemaExtensions
                 if (type.Kind is TypeKind.Enum)
                 {
                     var enumType = (EnumType)type;
-                    if (enumType.TryGetValue(coordinate.MemberName.Value, out var enumValue))
+                    if (enumType.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
                         return enumValue;
                     }
@@ -270,7 +269,7 @@ public static class SchemaExtensions
                 if (type.Kind is TypeKind.InputObject)
                 {
                     var inputType = (InputObjectType)type;
-                    if (inputType.Fields.TryGetField(coordinate.MemberName.Value, out var input))
+                    if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
                     {
                         return input;
                     }
@@ -285,14 +284,14 @@ public static class SchemaExtensions
             }
 
             var complexType = (IComplexOutputType)type;
-            if (complexType.Fields.TryGetField(coordinate.MemberName.Value, out var field))
+            if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
                 if (coordinate.ArgumentName is null)
                 {
                     return field;
                 }
 
-                if (field.Arguments.TryGetField(coordinate.ArgumentName.Value, out var fieldArg))
+                if (field.Arguments.TryGetField(coordinate.ArgumentName, out var fieldArg))
                 {
                     return fieldArg;
                 }

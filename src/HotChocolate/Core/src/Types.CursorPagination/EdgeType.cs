@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Pagination;
 internal sealed class EdgeType : ObjectType, IEdgeType
 {
     internal EdgeType(
-        NameString connectionName,
+        string connectionName,
         ITypeReference nodeType)
     {
         if (nodeType is null)
@@ -20,7 +20,12 @@ internal sealed class EdgeType : ObjectType, IEdgeType
             throw new ArgumentNullException(nameof(nodeType));
         }
 
-        ConnectionName = connectionName.EnsureNotEmpty(nameof(connectionName));
+        if (string.IsNullOrEmpty(connectionName))
+        {
+            throw new ArgumentNullException(nameof(connectionName));
+        }
+
+        ConnectionName = connectionName;
         Definition = CreateTypeDefinition(nodeType);
         Definition.Name = NameHelper.CreateEdgeName(connectionName);
         Definition.Configurations.Add(
@@ -37,6 +42,8 @@ internal sealed class EdgeType : ObjectType, IEdgeType
             throw new ArgumentNullException(nameof(nodeType));
         }
 
+        // the property is set later in the configuration.
+        ConnectionName = default!;
         Definition = CreateTypeDefinition(nodeType);
         Definition.Configurations.Add(
             new CompleteConfiguration(
@@ -60,7 +67,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
     /// <summary>
     /// Gets the connection name of this connection type.
     /// </summary>
-    public NameString ConnectionName { get; private set; }
+    public string ConnectionName { get; private set; }
 
     /// <inheritdoc />
     public IOutputType NodeType { get; private set; } = default!;
@@ -94,18 +101,18 @@ internal sealed class EdgeType : ObjectType, IEdgeType
     }
 
     private static ObjectTypeDefinition CreateTypeDefinition(ITypeReference nodeType)
-        => new(default, EdgeType_Description, typeof(IEdge))
+        => new(string.Empty, EdgeType_Description, typeof(IEdge))
         {
             Fields =
             {
-                    new(Names.Cursor,
-                        EdgeType_Cursor_Description,
-                        TypeReference.Parse($"{ScalarNames.String}!"),
-                        pureResolver: GetCursor),
-                    new(Names.Node,
-                        EdgeType_Node_Description,
-                        nodeType,
-                        pureResolver: GetNode)
+                new(Names.Cursor,
+                    EdgeType_Cursor_Description,
+                    TypeReference.Parse($"{ScalarNames.String}!"),
+                    pureResolver: GetCursor),
+                new(Names.Node,
+                    EdgeType_Node_Description,
+                    nodeType,
+                    pureResolver: GetNode)
             }
         };
 

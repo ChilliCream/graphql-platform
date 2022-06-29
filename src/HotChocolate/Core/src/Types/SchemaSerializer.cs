@@ -116,7 +116,7 @@ public static class SchemaSerializer
             typeDefinitions.Insert(0, SerializeSchemaTypeDefinition(schema));
         }
 
-        var builtInDirectives = new HashSet<NameString> { Skip, Include, Deprecated };
+        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated };
 
         var directiveTypeDefinitions =
             schema.DirectiveTypes
@@ -513,14 +513,12 @@ public static class SchemaSerializer
         throw new NotSupportedException();
     }
 
-    private static NamedTypeNode SerializeNamedType(INamedType namedType) =>
-        new(null, new NameNode(namedType.Name));
+    private static NamedTypeNode SerializeNamedType(INamedType namedType)
+        => new(null, new NameNode(namedType.Name));
 
-    private static DirectiveNode SerializeDirective(IDirective directiveType) =>
-        directiveType.ToNode(true);
+    private static DirectiveNode SerializeDirective(IDirective directiveType)
+        => directiveType.ToNode(true);
 
-    private static StringValueNode SerializeDescription(string description) =>
-        string.IsNullOrEmpty(description)
-            ? null
-            : new StringValueNode(description);
+    private static StringValueNode SerializeDescription(string description)
+        => string.IsNullOrEmpty(description) ? null : new StringValueNode(description);
 }

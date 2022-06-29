@@ -1,10 +1,11 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
@@ -12,8 +13,6 @@ using HotChocolate.Types.Interceptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.Extensions.DependencyInjection;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -427,7 +426,7 @@ public partial class SchemaBuilder
                 schemaDef.SubscriptionType = GetOperationType(OperationType.Subscription);
             }
 
-            ObjectType? GetObjectType(NameString typeName)
+            ObjectType? GetObjectType(string typeName)
             {
                 foreach (var registeredType in typeRegistry.Types)
                 {
