@@ -1,9 +1,10 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
@@ -32,7 +33,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     {
         return builder.UseField(
             FieldClassMiddlewareFactory.Create(
-                (s, n) => new MapMiddleware(
+                (_, n) => new MapMiddleware(
                     n, fieldReference, middleware(n))));
     }
 
@@ -43,7 +44,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     {
         return builder.UseField(
             FieldClassMiddlewareFactory.Create(
-                (s, n) =>
+                (_, n) =>
                 {
                     var classMiddleware =
                         FieldClassMiddlewareFactory.Create<TMiddleware>();
@@ -60,7 +61,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     {
         return builder.UseField(
             FieldClassMiddlewareFactory.Create(
-                (s, n) =>
+                (_, n) =>
                 {
                     var classMiddleware =
                         FieldClassMiddlewareFactory
@@ -113,7 +114,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                 : _next(context);
         }
 
-        private bool IsField(NameString typeName, NameString fieldName)
+        private bool IsField(string typeName, string fieldName)
         {
             return _fieldReference.TypeName.EqualsOrdinal(typeName)
                 && _fieldReference.FieldName.EqualsOrdinal(fieldName);

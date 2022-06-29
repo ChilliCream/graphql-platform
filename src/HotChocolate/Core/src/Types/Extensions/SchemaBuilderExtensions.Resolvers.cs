@@ -91,7 +91,10 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(resolver));
         }
 
-        return AddResolverInternal(builder, typeName, fieldName,
+        return AddResolverInternal(
+            builder,
+            typeName,
+            fieldName,
             ctx => new ValueTask<object?>(resolver(ctx)));
     }
 

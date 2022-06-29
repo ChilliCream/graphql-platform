@@ -5,6 +5,7 @@ using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
@@ -78,7 +79,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
             throw new ArgumentException(nameof(filePath));
         }
 
-        return builder.AddDocument(async (sp, ct) =>
+        return builder.AddDocument(async (_, ct) =>
         {
             var buffer = await Task
                 .Run(() => File.ReadAllBytes(filePath), ct)

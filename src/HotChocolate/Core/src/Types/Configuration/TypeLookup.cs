@@ -6,6 +6,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 #nullable  enable
 
@@ -59,7 +60,7 @@ internal sealed class TypeLookup
                 return true;
 
             case SyntaxTypeReference r:
-                NameString typeName = r.Type.NamedType().Name.Value;
+                var typeName = r.Type.NamedType().Name.Value;
                 if (_typeRegistry.TryGetTypeRef(typeName, out namedTypeRef))
                 {
                     _refs[typeRef] = namedTypeRef;
@@ -99,7 +100,9 @@ internal sealed class TypeLookup
         if (directiveRef is NameDirectiveReference nr)
         {
             namedTypeRef = _typeRegistry.Types
-                .FirstOrDefault(t => t.Type is DirectiveType && t.Type.Name.EqualsOrdinal(nr.Name))?
+                .FirstOrDefault(
+                    t => t.Type is DirectiveType &&
+                        t.Type.Name.EqualsOrdinal(nr.Name))?
                 .References[0];
             return namedTypeRef is not null;
         }

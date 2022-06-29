@@ -38,7 +38,7 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
     /// </summary>
     public string Name
     {
-        get => _name ?? throw new InvalidOperationException("Object not named yet.");
+        get => _name!;
         protected set
         {
             if (IsNamed)

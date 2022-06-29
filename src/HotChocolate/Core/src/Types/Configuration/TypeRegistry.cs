@@ -196,7 +196,10 @@ internal sealed class TypeRegistry
             throw new ArgumentNullException(nameof(registeredType));
         }
 
-        typeName.EnsureNotEmpty(nameof(typeName));
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
 
         if (registeredType.IsExtension)
         {

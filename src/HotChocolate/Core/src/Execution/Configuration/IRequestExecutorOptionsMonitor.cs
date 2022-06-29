@@ -14,7 +14,7 @@ public interface IRequestExecutorOptionsMonitor
     /// instance with the given name.
     /// </summary>
     ValueTask<RequestExecutorSetup> GetAsync(
-        NameString schemaName,
+        string schemaName,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -27,5 +27,5 @@ public interface IRequestExecutorOptionsMonitor
     /// <returns>
     /// An <see cref="IDisposable"/> which should be disposed to stop listening for changes.
     /// </returns>
-    IDisposable OnChange(Action<NameString> listener);
+    IDisposable OnChange(Action<string> listener);
 }

@@ -446,9 +446,8 @@ internal class TypeInitializer
             foreach (var type in _typeRegistry.Types
                 .Where(t => !processed.Contains(t.References[0])))
             {
-                var name = type.Type.Name
-                    ? type.Type.Name
-                    : type.References[0].ToString()!;
+                // the name might not be set at this point.
+                var name = type.Type.Name ?? type.References[0].ToString()!;
 
                 IReadOnlyList<ITypeReference> needed =
                     TryNormalizeDependencies(type.Conditionals,
