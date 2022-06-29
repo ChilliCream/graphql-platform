@@ -23,7 +23,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
         var serializedId = serializer.Serialize("abc", "def", "ghi");
 
         // assert
-        var id = serializer.Deserialize(serializedId);
+        var id = serializer.Deserialize(serializedId!);
         Assert.Equal("abc", id.SchemaName);
         Assert.Equal("def", id.TypeName);
         Assert.Equal("ghi", id.Value);
@@ -44,8 +44,8 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
         var serializedId = serializer.Serialize("abc", "def", "ghi");
 
         // assert
-        var id = serializer.Deserialize(serializedId);
-        Assert.False(id.SchemaName.HasValue);
+        var id = serializer.Deserialize(serializedId!);
+        Assert.NotNull(id.SchemaName);
         Assert.Equal("def", id.TypeName);
         Assert.Equal("ghi", id.Value);
     }
@@ -55,8 +55,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
     {
         // arrange
         // act
-        void Fail() => RequestExecutorBuilderExtensions
-            .AddIdSerializer(default(IServiceCollection)!, true);
+        void Fail() => default(IServiceCollection)!.AddIdSerializer(true);
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);
@@ -78,7 +77,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
         var serializedId = serializer.Serialize("abc", "def", "ghi");
 
         // assert
-        var id = serializer.Deserialize(serializedId);
+        var id = serializer.Deserialize(serializedId!);
         Assert.Equal("abc", id.SchemaName);
         Assert.Equal("def", id.TypeName);
         Assert.Equal("ghi", id.Value);
@@ -100,8 +99,8 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
         var serializedId = serializer.Serialize("abc", "def", "ghi");
 
         // assert
-        var id = serializer.Deserialize(serializedId);
-        Assert.False(id.SchemaName.HasValue);
+        var id = serializer.Deserialize(serializedId!);
+        Assert.Null(id.SchemaName);
         Assert.Equal("def", id.TypeName);
         Assert.Equal("ghi", id.Value);
     }
@@ -111,8 +110,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
     {
         // arrange
         // act
-        void Fail() => RequestExecutorBuilderExtensions
-            .AddIdSerializer(default(IRequestExecutorBuilder)!, true);
+        void Fail() => default(IRequestExecutorBuilder)!.AddIdSerializer(true);
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);

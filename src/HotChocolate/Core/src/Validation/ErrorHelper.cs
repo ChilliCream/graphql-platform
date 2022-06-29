@@ -179,11 +179,9 @@ internal static class ErrorHelper
         IValueNode valueNode)
     {
         return ErrorBuilder.New()
-            .SetMessage(
-                Resources.ErrorHelper_FieldValueIsNotCompatible,
-                field.Name.Value)
+            .SetMessage(Resources.ErrorHelper_FieldValueIsNotCompatible, field.Name)
             .AddLocation(valueNode)
-            .SetExtension("fieldName", field.Name.Value)
+            .SetExtension("fieldName", field.Name)
             .SetExtension("fieldType", field.Type.Print())
             .SetExtension("locationType", locationType.Print())
             .SetPath(context.CreateErrorPath())
@@ -261,7 +259,7 @@ internal static class ErrorHelper
              .Build();
     }
 
-    public static IError FieldsAreNotMergable(
+    public static IError FieldsAreNotMergeable(
         this IDocumentValidatorContext context,
         FieldInfo fieldA,
         FieldInfo fieldB)
@@ -651,7 +649,7 @@ internal static class ErrorHelper
         ISyntaxNode node,
         InputObjectType type)
         => ErrorBuilder.New()
-            .SetMessage(Resources.ErrorHelper_OneOfMustHaveExactlyOneField, type.Name.Value)
+            .SetMessage(Resources.ErrorHelper_OneOfMustHaveExactlyOneField, type.Name)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(type), type.Name)

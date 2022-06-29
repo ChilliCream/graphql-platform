@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 using static System.StringComparison;
 using static HotChocolate.Language.SyntaxComparer;
 
@@ -200,7 +201,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsTypeNameField(NameString fieldName)
+    private static bool IsTypeNameField(string fieldName)
         => fieldName.EqualsOrdinal(IntrospectionFields.TypeName);
 
     private static void TryMergeFieldsInSet(
@@ -240,13 +241,13 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                                 else if (context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
                                 {
                                     context.ReportError(
-                                        context.FieldsAreNotMergable(fieldA, fieldB));
+                                        context.FieldsAreNotMergeable(fieldA, fieldB));
                                 }
                             }
                         }
                         else if (context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
                         {
-                            context.ReportError(context.FieldsAreNotMergable(fieldA, fieldB));
+                            context.ReportError(context.FieldsAreNotMergeable(fieldA, fieldB));
                         }
                     }
                 }

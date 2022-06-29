@@ -28,7 +28,7 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
     /// Initializes a new instance of the <see cref="LocalDateType"/> class.
     /// </summary>
     public LocalDateType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

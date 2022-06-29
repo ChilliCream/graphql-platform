@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
