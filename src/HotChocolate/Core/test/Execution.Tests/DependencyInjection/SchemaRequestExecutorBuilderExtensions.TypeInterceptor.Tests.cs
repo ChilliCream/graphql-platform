@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;

@@ -139,8 +139,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
     {
         // arrange
         // act
-        void Fail() => RequestExecutorBuilderExtensions
-            .AddIdSerializer<MockSerializer>(default(IServiceCollection)!);
+        void Fail() => default(IServiceCollection)!.AddIdSerializer<MockSerializer>();
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);
@@ -170,8 +169,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
     {
         // arrange
         // act
-        void Fail() => RequestExecutorBuilderExtensions
-            .AddIdSerializer<MockSerializer>(default(IRequestExecutorBuilder)!);
+        void Fail() => default(IRequestExecutorBuilder)!.AddIdSerializer<MockSerializer>();
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);
@@ -184,7 +182,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
         var serializer =
             new ServiceCollection()
                 .TryAddIdSerializer()
-                .AddIdSerializer(s => new MockSerializer())
+                .AddIdSerializer(_ => new MockSerializer())
                 .BuildServiceProvider()
                 .GetRequiredService<IIdSerializer>();
 
@@ -200,8 +198,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
     {
         // arrange
         // act
-        void Fail() => RequestExecutorBuilderExtensions
-            .AddIdSerializer(default(IServiceCollection)!, s => new MockSerializer());
+        void Fail() => default(IServiceCollection)!.AddIdSerializer(_ => new MockSerializer());
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);
@@ -212,10 +209,8 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
     {
         // arrange
         // act
-        void Fail() => RequestExecutorBuilderExtensions
-            .AddIdSerializer(
-                new ServiceCollection(),
-                default(Func<IServiceProvider, IIdSerializer>)!);
+        void Fail() => new ServiceCollection().AddIdSerializer(
+            default(Func<IServiceProvider, IIdSerializer>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);
@@ -228,7 +223,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
         var serializer =
             new ServiceCollection()
                 .AddGraphQL()
-                .AddIdSerializer(s => new MockSerializer())
+                .AddIdSerializer(_ => new MockSerializer())
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<IIdSerializer>();
@@ -245,8 +240,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
     {
         // arrange
         // act
-        void Fail() => RequestExecutorBuilderExtensions
-            .AddIdSerializer(default(IRequestExecutorBuilder)!, s => new MockSerializer());
+        void Fail() => default(IRequestExecutorBuilder)!.AddIdSerializer(_ => new MockSerializer());
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);
@@ -257,10 +251,8 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
     {
         // arrange
         // act
-        void Fail() => RequestExecutorBuilderExtensions
-            .AddIdSerializer(
-                new DefaultRequestExecutorBuilder(new ServiceCollection(), "Foo"),
-                default(Func<IServiceProvider, IIdSerializer>)!);
+        void Fail() => new DefaultRequestExecutorBuilder(new ServiceCollection(), "Foo")
+            .AddIdSerializer(default(Func<IServiceProvider, IIdSerializer>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);
@@ -268,14 +260,14 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
 
     private sealed class MockSerializer : IIdSerializer
     {
-        public string Serialize<T>(NameString schemaName, NameString typeName, T id)
+        public string Serialize<T>(string schemaName, string typeName, T id)
         {
             return "mock";
         }
 
         public IdValue Deserialize(string serializedId)
         {
-            return new IdValue(null, null, "mock");
+            return new IdValue(null, "abc", "mock");
         }
     }
 }

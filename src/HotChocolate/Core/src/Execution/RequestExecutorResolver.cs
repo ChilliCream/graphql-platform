@@ -48,10 +48,10 @@ internal sealed class RequestExecutorResolver
     }
 
     public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
         if (!_executors.TryGetValue(schemaName, out var re))
         {
@@ -72,10 +72,10 @@ internal sealed class RequestExecutorResolver
     }
 
     public async ValueTask<IRequestExecutor> GetRequestExecutorNoLockAsync(
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
         if (!_executors.TryGetValue(schemaName, out var re))
         {
