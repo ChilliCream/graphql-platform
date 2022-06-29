@@ -6,6 +6,7 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Utilities;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class HotChocolateAspNetCoreServiceCollectionExtensions

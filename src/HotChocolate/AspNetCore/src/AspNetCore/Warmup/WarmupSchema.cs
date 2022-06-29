@@ -2,10 +2,10 @@ namespace HotChocolate.AspNetCore.Warmup;
 
 internal class WarmupSchema
 {
-    public WarmupSchema(NameString schemaName)
+    public WarmupSchema(string schemaName)
     {
         SchemaName = schemaName;
     }
 
-    public NameString SchemaName { get; }
+    public string SchemaName { get; }
 }

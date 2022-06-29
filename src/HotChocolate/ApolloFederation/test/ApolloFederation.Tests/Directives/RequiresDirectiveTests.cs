@@ -1,6 +1,7 @@
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -63,7 +64,7 @@ public class RequiresDirectiveTests
 
         // assert
         Assert.Collection(
-            testType.Fields.Single(field => field.Name.Value == "product").Directives,
+            testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
                 Assert.Equal(
@@ -120,7 +121,7 @@ public class RequiresDirectiveTests
         var testType = schema.GetType<ObjectType>("Review");
 
         // assert
-        Assert.Collection(testType.Fields.Single(field => field.Name.Value == "product").Directives,
+        Assert.Collection(testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
                 Assert.Equal(
@@ -149,7 +150,7 @@ public class RequiresDirectiveTests
         var testType = schema.GetType<ObjectType>("Review");
 
         // assert
-        Assert.Collection(testType.Fields.Single(field => field.Name.Value == "product").Directives,
+        Assert.Collection(testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
                 Assert.Equal(

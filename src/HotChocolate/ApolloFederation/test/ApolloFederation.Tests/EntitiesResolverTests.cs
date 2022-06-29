@@ -1,16 +1,10 @@
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.ApolloFederation.Helpers;
-using HotChocolate.Fetching;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Xunit;
 using static HotChocolate.ApolloFederation.TestHelper;
 
