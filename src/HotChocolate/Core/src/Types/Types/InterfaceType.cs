@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -115,7 +116,7 @@ public partial class InterfaceType
     /// <param name="typeName">
     /// The interface type name.
     /// </param>
-    public bool IsImplementing(NameString typeName)
+    public bool IsImplementing(string typeName)
         => _implements.Any(t => t.Name.EqualsOrdinal(typeName));
 
     /// <summary>

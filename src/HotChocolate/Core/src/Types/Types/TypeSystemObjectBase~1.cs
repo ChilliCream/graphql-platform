@@ -9,8 +9,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
-public abstract class TypeSystemObjectBase<TDefinition>
-    : TypeSystemObjectBase
+public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
     where TDefinition : DefinitionBase
 {
     private TDefinition? _definition;
@@ -52,7 +51,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
         }
 
         // if we at this point already know the name we will just commit it.
-        if (_definition.Name.HasValue)
+        if (_definition.Name is not null)
         {
             Name = _definition.Name;
         }
@@ -85,10 +84,10 @@ public abstract class TypeSystemObjectBase<TDefinition>
         OnCompleteName(context, definition);
 
         Debug.Assert(
-            Name.HasValue,
+            Name is not null,
             "After the naming is completed the name has to have a value.");
 
-        if (Name.IsEmpty)
+        if (Name is null)
         {
             context.ReportError(SchemaErrorBuilder.New()
                 .SetMessage(
@@ -108,7 +107,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
         ITypeCompletionContext context,
         TDefinition definition)
     {
-        if (definition.Name.HasValue)
+        if (definition.Name is not null)
         {
             Name = definition.Name;
         }
@@ -304,7 +303,7 @@ public abstract class TypeSystemObjectBase<TDefinition>
             "The type must be initialized.");
 
         Debug.Assert(
-            _definition?.Name.HasValue ?? false,
+            _definition?.Name is not null,
             "The name must have been completed before completing the type.");
 
         if (!IsNamed)

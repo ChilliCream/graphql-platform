@@ -7,6 +7,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable

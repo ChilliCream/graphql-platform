@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -12,13 +13,13 @@ namespace HotChocolate.Types.Relay;
 
 internal class GlobalIdInputValueFormatter : IInputValueFormatter
 {
-    private readonly NameString _typeName;
+    private readonly string _typeName;
     private readonly IIdSerializer _idSerializer;
     private readonly bool _validateType;
     private readonly Func<IList> _createList;
 
     public GlobalIdInputValueFormatter(
-        NameString typeName,
+        string typeName,
         IIdSerializer idSerializer,
         IExtendedType resultType,
         bool validateType)

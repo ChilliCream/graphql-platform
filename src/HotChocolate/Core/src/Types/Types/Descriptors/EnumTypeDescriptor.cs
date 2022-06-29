@@ -91,9 +91,9 @@ public class EnumTypeDescriptor
         return this;
     }
 
-    public IEnumTypeDescriptor Name(NameString value)
+    public IEnumTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -122,7 +122,7 @@ public class EnumTypeDescriptor
         BindValues(BindingBehavior.Implicit);
 
     [Obsolete("Use `Value`.")]
-    public IEnumValueDescriptor Item<T>(T value) => Value<T>(value);
+    public IEnumValueDescriptor Item<T>(T value) => Value(value);
 
     public IEnumValueDescriptor Value<T>(T value)
     {
@@ -154,8 +154,7 @@ public class EnumTypeDescriptor
         return this;
     }
 
-    public IEnumTypeDescriptor Directive(
-        NameString name, params ArgumentNode[] arguments)
+    public IEnumTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
         return this;

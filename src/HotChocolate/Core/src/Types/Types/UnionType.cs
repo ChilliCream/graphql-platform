@@ -46,11 +46,11 @@ namespace HotChocolate.Types;
 /// </summary>
 public class UnionType
     : NamedTypeBase<UnionTypeDefinition>
-        , IUnionType
+    , IUnionType
 {
     private const string _typeReference = "typeReference";
 
-    private readonly Dictionary<NameString, ObjectType> _typeMap = new();
+    private readonly Dictionary<string, ObjectType> _typeMap = new();
 
     private Action<IUnionTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
@@ -74,8 +74,7 @@ public class UnionType
     /// </exception>
     public UnionType(Action<IUnionTypeDescriptor> configure)
     {
-        _configure = configure
-                     ?? throw new ArgumentNullException(nameof(configure));
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
     /// <summary>
@@ -100,7 +99,7 @@ public class UnionType
     /// <summary>
     /// Gets the <see cref="IObjectType" /> set of this union type.
     /// </summary>
-    public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
+    public IReadOnlyDictionary<string, ObjectType> Types => _typeMap;
 
     IReadOnlyCollection<IObjectType> IUnionType.Types => _typeMap.Values;
 
@@ -152,8 +151,15 @@ public class UnionType
     }
 
     /// <inheritdoc />
-    public bool ContainsType(NameString typeName) =>
-        _typeMap.ContainsKey(typeName.EnsureNotEmpty(nameof(typeName)));
+    public bool ContainsType(string typeName)
+    {
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
+
+        return _typeMap.ContainsKey(typeName);
+    }
 
     /// <summary>
     /// Resolves the concrete type for the value of a type
@@ -169,15 +175,11 @@ public class UnionType
     /// Returns <c>null</c> if the value is not of a type
     /// implementing this interface.
     /// </returns>
-    public ObjectType? ResolveConcreteType(
-        IResolverContext context,
-        object resolverResult) =>
-        _resolveAbstractType?.Invoke(context, resolverResult);
+    public ObjectType? ResolveConcreteType(IResolverContext context, object resolverResult)
+        => _resolveAbstractType?.Invoke(context, resolverResult);
 
-    IObjectType? IUnionType.ResolveConcreteType(
-        IResolverContext context,
-        object resolverResult) =>
-        ResolveConcreteType(context, resolverResult);
+    IObjectType? IUnionType.ResolveConcreteType(IResolverContext context, object resolverResult)
+        => ResolveConcreteType(context, resolverResult);
 
     protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {

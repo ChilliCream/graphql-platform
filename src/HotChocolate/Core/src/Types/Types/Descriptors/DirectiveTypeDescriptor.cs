@@ -9,6 +9,7 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -49,8 +50,7 @@ public class DirectiveTypeDescriptor
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    internal protected override DirectiveTypeDefinition Definition { get; protected set; } =
-        new DirectiveTypeDefinition();
+    protected internal override DirectiveTypeDefinition Definition { get; protected set; } = new();
 
     protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
         new List<DirectiveArgumentDescriptor>();
@@ -84,7 +84,7 @@ public class DirectiveTypeDescriptor
     }
 
     protected virtual void OnCompleteArguments(
-        IDictionary<NameString, DirectiveArgumentDefinition> arguments,
+        IDictionary<string, DirectiveArgumentDefinition> arguments,
         ISet<PropertyInfo> handledProperties)
     {
     }
@@ -96,9 +96,9 @@ public class DirectiveTypeDescriptor
         return this;
     }
 
-    public IDirectiveTypeDescriptor Name(NameString value)
+    public IDirectiveTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -108,7 +108,7 @@ public class DirectiveTypeDescriptor
         return this;
     }
 
-    public IDirectiveArgumentDescriptor Argument(NameString name)
+    public IDirectiveArgumentDescriptor Argument(string name)
     {
         var descriptor = Arguments.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
 
@@ -117,7 +117,7 @@ public class DirectiveTypeDescriptor
             return descriptor;
         }
 
-        descriptor = DirectiveArgumentDescriptor.New(Context, name.EnsureNotEmpty(nameof(name)));
+        descriptor = DirectiveArgumentDescriptor.New(Context, name);
         Arguments.Add(descriptor);
         return descriptor;
     }
@@ -205,18 +205,12 @@ public class DirectiveTypeDescriptor
         return this;
     }
 
-    public static DirectiveTypeDescriptor New(
-        IDescriptorContext context,
-        Type clrType) =>
-        new DirectiveTypeDescriptor(context, clrType);
+    public static DirectiveTypeDescriptor New(IDescriptorContext context, Type clrType)
+        => new(context, clrType);
 
-    public static DirectiveTypeDescriptor New(
-        IDescriptorContext context) =>
-        new DirectiveTypeDescriptor(context);
+    public static DirectiveTypeDescriptor New(IDescriptorContext context) => new(context);
 
-    public static DirectiveTypeDescriptor<T> New<T>(
-        IDescriptorContext context) =>
-        new DirectiveTypeDescriptor<T>(context);
+    public static DirectiveTypeDescriptor<T> New<T>(IDescriptorContext context) => new(context);
 
     public static DirectiveTypeDescriptor FromSchemaType(
         IDescriptorContext context,
@@ -229,11 +223,11 @@ public class DirectiveTypeDescriptor
 
     public static DirectiveTypeDescriptor From(
         IDescriptorContext context,
-        DirectiveTypeDefinition definition) =>
-        new DirectiveTypeDescriptor(context, definition);
+        DirectiveTypeDefinition definition)
+        => new(context, definition);
 
     public static DirectiveTypeDescriptor From<T>(
         IDescriptorContext context,
-        DirectiveTypeDefinition definition) =>
-        new DirectiveTypeDescriptor<T>(context, definition);
+        DirectiveTypeDefinition definition)
+        => new DirectiveTypeDescriptor<T>(context, definition);
 }

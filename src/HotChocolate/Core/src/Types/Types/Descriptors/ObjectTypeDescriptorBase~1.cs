@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -37,7 +38,7 @@ public abstract class ObjectTypeDescriptorBase<T>
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
     protected override void OnCompleteFields(
-        IDictionary<NameString, ObjectFieldDefinition> fields,
+        IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
         HashSet<string> subscribeResolver = null;
@@ -106,7 +107,7 @@ public abstract class ObjectTypeDescriptorBase<T>
         }
     }
 
-    public new IObjectTypeDescriptor<T> Name(NameString value)
+    public new IObjectTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
         return this;
@@ -200,7 +201,7 @@ public abstract class ObjectTypeDescriptorBase<T>
     }
 
     public new IObjectTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);

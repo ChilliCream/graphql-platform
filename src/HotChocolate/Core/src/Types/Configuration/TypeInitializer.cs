@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
@@ -445,8 +446,8 @@ internal class TypeInitializer
             foreach (var type in _typeRegistry.Types
                 .Where(t => !processed.Contains(t.References[0])))
             {
-                var name = type.Type.Name.HasValue
-                    ? type.Type.Name.Value
+                var name = type.Type.Name
+                    ? type.Type.Name
                     : type.References[0].ToString()!;
 
                 IReadOnlyList<ITypeReference> needed =

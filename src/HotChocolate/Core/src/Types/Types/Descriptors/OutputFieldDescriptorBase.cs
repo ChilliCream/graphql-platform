@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -26,8 +27,8 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     protected ICollection<ArgumentDescriptor> Arguments =>
         _arguments ??= new List<ArgumentDescriptor>();
 
-    protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters { get; set; } =
-        ImmutableDictionary<NameString, ParameterInfo>.Empty;
+    protected IReadOnlyDictionary<string, ParameterInfo> Parameters { get; set; } =
+        ImmutableDictionary<string, ParameterInfo>.Empty;
 
     protected override void OnCreateDefinition(TDefinition definition)
     {
@@ -44,9 +45,9 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
         Definition.SyntaxNode = syntaxNode;
     }
 
-    protected void Name(NameString name)
+    protected void Name(string name)
     {
-        Definition.Name = name.EnsureNotEmpty(nameof(name));
+        Definition.Name = name;
     }
 
     protected void Description(string? description)
@@ -102,7 +103,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     }
 
     protected void Argument(
-        NameString name,
+        string name,
         Action<IArgumentDescriptor> argument)
     {
         if (argument is null)
@@ -110,10 +111,9 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
             throw new ArgumentNullException(nameof(argument));
         }
 
-        name.EnsureNotEmpty(nameof(name));
+        name.EnsureGraphQLName();
 
-        ParameterInfo? parameter = null;
-        Parameters?.TryGetValue(name, out parameter);
+        Parameters.TryGetValue(name, out var parameter);
 
         var descriptor = parameter is null
             ? Arguments.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name))
@@ -177,10 +177,6 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
         Definition.AddDirective(new T(), Context.TypeInspector);
     }
 
-    protected void Directive(
-        NameString name,
-        params ArgumentNode[] arguments)
-    {
-        Definition.AddDirective(name, arguments);
-    }
+    protected void Directive(string name, params ArgumentNode[] arguments)
+        => Definition.AddDirective(name, arguments);
 }

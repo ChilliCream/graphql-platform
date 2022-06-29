@@ -77,8 +77,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, object?> resolver)
     {
         if (builder is null)
@@ -115,8 +115,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, ValueTask<object?>> resolver)
     {
         if (builder is null)
@@ -153,8 +153,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver<TResult>(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, TResult> resolver)
     {
         if (builder is null)
@@ -191,8 +191,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver<TResult>(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, ValueTask<TResult>> resolver)
     {
         if (builder is null)
@@ -229,8 +229,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<object?> resolver)
     {
         if (builder is null)
@@ -267,8 +267,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<ValueTask<object?>> resolver)
     {
         if (builder is null)
@@ -304,8 +304,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver<TResult>(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<TResult> resolver)
     {
         if (builder is null)
@@ -342,8 +342,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver<TResult>(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<ValueTask<TResult>> resolver)
     {
         if (builder is null)
@@ -385,8 +385,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, CancellationToken, object?> resolver)
     {
         if (builder is null)
@@ -423,8 +423,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver<TResult>(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, CancellationToken, TResult> resolver)
     {
         if (builder is null)
@@ -461,8 +461,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver<TResult>(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, CancellationToken, ValueTask<TResult>> resolver)
     {
         if (builder is null)
@@ -504,8 +504,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         object? constantResult)
     {
         if (builder is null)
@@ -537,8 +537,8 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver<TResult>(
         this ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         TResult constantResult)
     {
         if (builder is null)
@@ -569,7 +569,7 @@ public static partial class SchemaBuilderExtensions
     public static ISchemaBuilder AddResolver(
         this ISchemaBuilder builder,
         Type resolverType,
-        NameString? typeName = null)
+        string? typeName = null)
     {
         if (builder is null)
         {
@@ -584,14 +584,14 @@ public static partial class SchemaBuilderExtensions
         if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true } or
             { IsClass: true, IsAbstract: false, IsNestedPublic: true })
         {
-            if (typeName is { IsEmpty: true } or null)
+            if (string.IsNullOrEmpty(typeName))
             {
                 typeName = resolverType.IsDefined(typeof(GraphQLNameAttribute))
                     ? resolverType.GetCustomAttribute<GraphQLNameAttribute>()!.Name
                     : resolverType.Name;
             }
 
-            AddResolverTypeInternal(builder, typeName.Value, resolverType);
+            AddResolverTypeInternal(builder, typeName, resolverType);
 
 
             return builder;
@@ -620,7 +620,7 @@ public static partial class SchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddResolver<T>(
         this ISchemaBuilder builder,
-        NameString? typeName = null)
+        string? typeName = null)
         => AddResolver(builder, typeof(T), typeName);
 
     public static ISchemaBuilder AddRootResolver(this ISchemaBuilder builder, Type resolverType)
@@ -667,8 +667,8 @@ public static partial class SchemaBuilderExtensions
 
     private static ISchemaBuilder AddResolverInternal(
         ISchemaBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         FieldResolverDelegate resolver)
     {
         return AddResolverConfigInternal(
@@ -697,13 +697,13 @@ public static partial class SchemaBuilderExtensions
 
     private static ISchemaBuilder AddResolverTypeInternal(
         ISchemaBuilder builder,
-        NameString typeName,
+        string typeName,
         Type resolverType)
     {
         InitializeResolverTypeInterceptor(builder);
 
         if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverTypes, out var o) &&
-            o is List<(NameString, Type)> resolverTypes)
+            o is List<(string, Type)> resolverTypes)
         {
             resolverTypes.Add((typeName, resolverType));
         }
@@ -716,8 +716,8 @@ public static partial class SchemaBuilderExtensions
         if (!builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))
         {
             var resolverConfigs = new List<FieldResolverConfig>();
-            var resolverTypes = new List<(NameString, Type)>();
-            var runtimeTypes = new Dictionary<NameString, Type>();
+            var resolverTypes = new List<(string, Type)>();
+            var runtimeTypes = new Dictionary<string, Type>();
 
             builder.ContextData.Add(WellKnownContextData.ResolverConfigs, resolverConfigs);
             builder.ContextData.Add(WellKnownContextData.ResolverTypes, resolverTypes);

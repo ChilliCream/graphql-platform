@@ -29,7 +29,7 @@ public class TimeSpanType
     }
 
     public TimeSpanType(
-        NameString name,
+        string name,
         string? description = default,
         TimeSpanFormat format = TimeSpanFormat.Iso8601,
         BindingBehavior bind = BindingBehavior.Explicit)

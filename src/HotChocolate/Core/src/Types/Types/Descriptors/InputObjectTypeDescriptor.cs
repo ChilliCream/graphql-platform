@@ -5,6 +5,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -63,7 +64,7 @@ public class InputObjectTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<NameString, InputFieldDefinition>();
+        var fields = new Dictionary<string, InputFieldDefinition>();
         var handledProperties = new HashSet<PropertyInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
@@ -80,7 +81,7 @@ public class InputObjectTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<NameString, InputFieldDefinition> fields,
+        IDictionary<string, InputFieldDefinition> fields,
         ISet<PropertyInfo> handledProperties)
     {
     }
@@ -92,9 +93,9 @@ public class InputObjectTypeDescriptor
         return this;
     }
 
-    public IInputObjectTypeDescriptor Name(NameString value)
+    public IInputObjectTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -104,7 +105,7 @@ public class InputObjectTypeDescriptor
         return this;
     }
 
-    public IInputFieldDescriptor Field(NameString name)
+    public IInputFieldDescriptor Field(string name)
     {
         var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
 
@@ -113,7 +114,7 @@ public class InputObjectTypeDescriptor
             return fieldDescriptor;
         }
 
-        fieldDescriptor = new InputFieldDescriptor(Context, name.EnsureNotEmpty(nameof(name)));
+        fieldDescriptor = new InputFieldDescriptor(Context, name);
         Fields.Add(fieldDescriptor);
         return fieldDescriptor;
     }
@@ -133,25 +134,19 @@ public class InputObjectTypeDescriptor
     }
 
     public IInputObjectTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
         return this;
     }
 
-    public static InputObjectTypeDescriptor New(
-        IDescriptorContext context) =>
-        new InputObjectTypeDescriptor(context);
+    public static InputObjectTypeDescriptor New(IDescriptorContext context) => new(context);
 
-    public static InputObjectTypeDescriptor New(
-        IDescriptorContext context,
-        Type clrType) =>
-        new InputObjectTypeDescriptor(context, clrType);
+    public static InputObjectTypeDescriptor New(IDescriptorContext context, Type clrType)
+        => new(context, clrType);
 
-    public static InputObjectTypeDescriptor<T> New<T>(
-        IDescriptorContext context) =>
-        new InputObjectTypeDescriptor<T>(context);
+    public static InputObjectTypeDescriptor<T> New<T>(IDescriptorContext context) => new(context);
 
     public static InputObjectTypeDescriptor FromSchemaType(
         IDescriptorContext context,
@@ -164,11 +159,11 @@ public class InputObjectTypeDescriptor
 
     public static InputObjectTypeDescriptor From(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition) =>
-        new InputObjectTypeDescriptor(context, definition);
+        InputObjectTypeDefinition definition)
+        => new(context, definition);
 
     public static InputObjectTypeDescriptor<T> From<T>(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition) =>
-        new InputObjectTypeDescriptor<T>(context, definition);
+        InputObjectTypeDefinition definition)
+        => new(context, definition);
 }

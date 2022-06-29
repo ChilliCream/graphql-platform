@@ -47,19 +47,31 @@ public partial class EnumType
     /// <summary>
     /// Gets a dictionary that allows to lookup the enum value by its name.
     /// </summary>
-    protected IReadOnlyDictionary<NameString, IEnumValue> NameLookup => _enumValues;
+    protected IReadOnlyDictionary<string, IEnumValue> NameLookup => _enumValues;
 
     /// <summary>
     /// Gets a dictionary that allows to lookup the enum value by its runtime value.
     /// </summary>
     protected IReadOnlyDictionary<object, IEnumValue> ValueLookup => _valueLookup;
 
-    public bool TryGetValue(NameString name, [NotNullWhen(true)] out IEnumValue? value)
-        => _enumValues.TryGetValue(name, out value);
+    public bool TryGetValue(string name, [NotNullWhen(true)] out IEnumValue? value)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        return _enumValues.TryGetValue(name, out value);
+    }
 
     /// <inheritdoc />
-    public bool TryGetRuntimeValue(NameString name, [NotNullWhen(true)] out object? runtimeValue)
+    public bool TryGetRuntimeValue(string name, [NotNullWhen(true)] out object? runtimeValue)
     {
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
         if (_enumValues.TryGetValue(name, out var value))
         {
             runtimeValue = value.Value;
@@ -165,12 +177,6 @@ public partial class EnumType
             return new EnumValueNode(enumValue.Name);
         }
 
-        if (resultValue is NameString n &&
-            _enumValues.TryGetValue(n, out enumValue))
-        {
-            return new EnumValueNode(enumValue.Name);
-        }
-
         if (_valueLookup.TryGetValue(resultValue, out enumValue))
         {
             return new EnumValueNode(enumValue.Name);
@@ -198,7 +204,7 @@ public partial class EnumType
         // schema first unbound enum type
         if (RuntimeType == typeof(object))
         {
-            string name = _naming.GetEnumValueName(runtimeValue);
+            var name = _naming.GetEnumValueName(runtimeValue);
             if (_enumValues.TryGetValue(name, out enumValue))
             {
                 return enumValue.Name;
@@ -234,13 +240,6 @@ public partial class EnumType
 
         if (resultValue is string s &&
             _enumValues.TryGetValue(s, out var enumValue))
-        {
-            runtimeValue = enumValue.Value;
-            return true;
-        }
-
-        if (resultValue is NameString n &&
-            _enumValues.TryGetValue(n, out enumValue))
         {
             runtimeValue = enumValue.Value;
             return true;

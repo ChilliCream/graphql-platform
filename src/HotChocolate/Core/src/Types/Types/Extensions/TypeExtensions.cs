@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
@@ -235,7 +236,7 @@ public static class TypeExtensions
         return type.Kind != TypeKind.NonNull ? type : ((NonNullType)type).Type;
     }
 
-    public static NameString TypeName(this IType type)
+    public static string TypeName(this IType type)
     {
         if (type is null)
         {

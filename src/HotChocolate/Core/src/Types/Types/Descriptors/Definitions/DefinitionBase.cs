@@ -15,12 +15,12 @@ public class DefinitionBase : IDefinition
     private List<TypeDependency>? _dependencies;
     private List<ITypeSystemMemberConfiguration>? _configurations;
     private ExtensionData? _contextData;
-    private string? _name;
+    private string _name = string.Empty;
 
     /// <summary>
     /// Gets or sets the name the type shall have.
     /// </summary>
-    public string? Name
+    public string Name
     {
         get => _name;
         set => _name = value?.EnsureGraphQLName();

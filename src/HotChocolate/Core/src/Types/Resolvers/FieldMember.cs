@@ -13,8 +13,8 @@ public sealed class FieldMember
     private FieldReference? _fieldReference;
 
     public FieldMember(
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         MemberInfo member)
         : base(typeName, fieldName)
     {
@@ -22,8 +22,8 @@ public sealed class FieldMember
     }
 
     public FieldMember(
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Expression expression)
         : base(typeName, fieldName)
     {
@@ -31,8 +31,8 @@ public sealed class FieldMember
     }
 
     private FieldMember(
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         MemberInfo? member,
         Expression? expression)
         : base(typeName, fieldName)
@@ -45,7 +45,7 @@ public sealed class FieldMember
 
     public Expression? Expression { get; }
 
-    public FieldMember WithTypeName(NameString typeName)
+    public FieldMember WithTypeName(string typeName)
     {
         if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
         {
@@ -55,7 +55,7 @@ public sealed class FieldMember
         return new FieldMember(typeName, FieldName, Member, Expression);
     }
 
-    public FieldMember WithFieldName(NameString fieldName)
+    public FieldMember WithFieldName(string fieldName)
     {
         if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
         {

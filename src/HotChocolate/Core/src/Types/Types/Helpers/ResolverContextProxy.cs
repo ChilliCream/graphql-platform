@@ -35,15 +35,15 @@ internal sealed class ResolverContextProxy : IResolverContext
 
     public T Parent<T>() => _resolverContext.Parent<T>();
 
-    public T ArgumentValue<T>(NameString name) => _resolverContext.ArgumentValue<T>(name);
+    public T ArgumentValue<T>(string name) => _resolverContext.ArgumentValue<T>(name);
 
-    public TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode
+    public TValueNode ArgumentLiteral<TValueNode>(string name) where TValueNode : IValueNode
         => _resolverContext.ArgumentLiteral<TValueNode>(name);
 
-    public Optional<T> ArgumentOptional<T>(NameString name)
+    public Optional<T> ArgumentOptional<T>(string name)
         => _resolverContext.ArgumentOptional<T>(name);
 
-    public ValueKind ArgumentKind(NameString name) => _resolverContext.ArgumentKind(name);
+    public ValueKind ArgumentKind(string name) => _resolverContext.ArgumentKind(name);
 
     public T Service<T>() => _resolverContext.Service<T>();
 
@@ -55,7 +55,7 @@ internal sealed class ResolverContextProxy : IResolverContext
         set => _resolverContext.Services = value;
     }
 
-    public NameString ResponseName => _resolverContext.ResponseName;
+    public string ResponseName => _resolverContext.ResponseName;
 
     public bool HasErrors => _resolverContext.HasErrors;
 

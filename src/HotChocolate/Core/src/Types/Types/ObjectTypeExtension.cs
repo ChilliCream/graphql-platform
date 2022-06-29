@@ -6,6 +6,7 @@ using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -21,8 +22,7 @@ namespace HotChocolate.Types;
 /// which is itself an extension of another GraphQL service.
 /// </para>
 /// </summary>
-public class ObjectTypeExtension
-    : NamedTypeExtensionBase<ObjectTypeDefinition>
+public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
 {
     private Action<IObjectTypeDescriptor>? _configure;
 

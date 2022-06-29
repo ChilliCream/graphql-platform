@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable  enable
@@ -15,7 +16,7 @@ internal sealed class TypeRegistry
     private readonly Dictionary<ITypeReference, RegisteredType> _typeRegister = new();
     private readonly Dictionary<ExtendedTypeReference, ITypeReference> _runtimeTypeRefs =
         new(new ExtendedTypeReferenceEqualityComparer());
-    private readonly Dictionary<NameString, ITypeReference> _nameRefs = new();
+    private readonly Dictionary<string, ITypeReference> _nameRefs = new(StringComparer.Ordinal);
     private readonly List<RegisteredType> _types = new();
     private readonly ITypeRegistryInterceptor _typeRegistryInterceptor;
 
@@ -32,7 +33,7 @@ internal sealed class TypeRegistry
     public IReadOnlyDictionary<ExtendedTypeReference, ITypeReference> RuntimeTypeRefs =>
         _runtimeTypeRefs;
 
-    public IReadOnlyDictionary<NameString, ITypeReference> NameRefs => _nameRefs;
+    public IReadOnlyDictionary<string, ITypeReference> NameRefs => _nameRefs;
 
     public bool IsRegistered(ITypeReference typeReference)
     {
@@ -85,10 +86,10 @@ internal sealed class TypeRegistry
     }
 
     public bool TryGetTypeRef(
-        NameString typeName,
+        string typeName,
         [NotNullWhen(true)] out ITypeReference? typeRef)
     {
-        typeName.EnsureNotEmpty(nameof(typeName));
+        typeName.EnsureGraphQLName();
 
         if (!_nameRefs.TryGetValue(typeName, out typeRef))
         {
@@ -176,18 +177,19 @@ internal sealed class TypeRegistry
         }
     }
 
-    public void Register(NameString typeName, ExtendedTypeReference typeReference)
+    public void Register(string typeName, ExtendedTypeReference typeReference)
     {
         if (typeReference is null)
         {
             throw new ArgumentNullException(nameof(typeReference));
         }
 
-        typeName.EnsureNotEmpty(nameof(typeName));
+        typeName.EnsureGraphQLName();
+
         _nameRefs[typeName] = typeReference;
     }
 
-    public void Register(NameString typeName, RegisteredType registeredType)
+    public void Register(string typeName, RegisteredType registeredType)
     {
         if (registeredType is null)
         {

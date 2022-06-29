@@ -5,6 +5,7 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Types.Helpers.CompleteInterfacesHelper;
 using static HotChocolate.Utilities.ErrorHelper;

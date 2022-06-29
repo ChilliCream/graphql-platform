@@ -4,7 +4,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
@@ -68,12 +67,12 @@ internal sealed class __Field : ObjectType<IOutputField>
     private static class Resolvers
     {
         public static string Name(IPureResolverContext context)
-            => context.Parent<IOutputField>().Name.Value;
+            => context.Parent<IOutputField>().Name;
 
         public static string? Description(IPureResolverContext context)
             => context.Parent<IOutputField>().Description;
 
-        public static object? Arguments(IPureResolverContext context)
+        public static object Arguments(IPureResolverContext context)
         {
             var field = context.Parent<IOutputField>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)

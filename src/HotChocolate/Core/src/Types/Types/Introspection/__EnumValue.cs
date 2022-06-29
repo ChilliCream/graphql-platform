@@ -2,7 +2,6 @@
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.TypeReference;
@@ -51,7 +50,7 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
     private static class Resolvers
     {
         public static object Name(IPureResolverContext context)
-            => context.Parent<IEnumValue>().Name.Value;
+            => context.Parent<IEnumValue>();
 
         public static object? Description(IPureResolverContext context)
             => context.Parent<IEnumValue>().Description;

@@ -1,6 +1,5 @@
 using System;
 using System.Buffers.Text;
-using System.Linq;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -75,7 +74,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// or must be explicitly bound.
     /// </param>
     public UuidType(
-        NameString name,
+        string name,
         string? description = null,
         char defaultFormat = '\0',
         bool enforceFormat = false,

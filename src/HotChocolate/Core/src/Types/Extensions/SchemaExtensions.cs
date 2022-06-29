@@ -23,19 +23,13 @@ public static class SchemaExtensions
     /// Returns the root operation object type.
     /// </returns>
     public static ObjectType? GetOperationType(this ISchema schema, OperationType operation)
-    {
-        switch (operation)
+        => operation switch
         {
-            case Language.OperationType.Query:
-                return schema.QueryType;
-            case Language.OperationType.Mutation:
-                return schema.MutationType;
-            case Language.OperationType.Subscription:
-                return schema.SubscriptionType;
-            default:
-                throw new NotSupportedException();
-        }
-    }
+            OperationType.Query => schema.QueryType,
+            OperationType.Mutation => schema.MutationType,
+            OperationType.Subscription => schema.SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
@@ -50,7 +44,7 @@ public static class SchemaExtensions
     /// The resolved type system member.
     /// </param>
     /// <returns>
-    /// <c>true</c> if a type system member was found with the given 
+    /// <c>true</c> if a type system member was found with the given
     /// <paramref name="coordinateString"/>; otherwise, <c>false</c>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
@@ -83,7 +77,7 @@ public static class SchemaExtensions
     /// The resolved type system member.
     /// </param>
     /// <returns>
-    /// <c>true</c> if a type system member was found with the given 
+    /// <c>true</c> if a type system member was found with the given
     /// <paramref name="coordinate"/>; otherwise, <c>false</c>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
@@ -109,7 +103,7 @@ public static class SchemaExtensions
                     return true;
                 }
 
-                if (directive.Arguments.TryGetField(coordinate.ArgumentName.Value, out var arg))
+                if (directive.Arguments.TryGetField(coordinate.ArgumentName, out var arg))
                 {
                     member = arg;
                     return true;
@@ -133,7 +127,7 @@ public static class SchemaExtensions
                 if (type.Kind is TypeKind.Enum)
                 {
                     var enumType = (EnumType)type;
-                    if (enumType.TryGetValue(coordinate.MemberName.Value, out var enumValue))
+                    if (enumType.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
                         member = enumValue;
                         return true;
@@ -197,7 +191,7 @@ public static class SchemaExtensions
     /// The <paramref name="coordinateString"/> has invalid syntax.
     /// </exception>
     /// <exception cref="InvalidSchemaCoordinateException">
-    /// Unable to resolve a type system member with the 
+    /// Unable to resolve a type system member with the
     /// specified <paramref name="coordinateString"/>.
     /// </exception>
     public static ITypeSystemMember GetMember(
@@ -221,7 +215,7 @@ public static class SchemaExtensions
     /// <paramref name="schema"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="InvalidSchemaCoordinateException">
-    /// Unable to resolve a type system member with the 
+    /// Unable to resolve a type system member with the
     /// specified <paramref name="coordinateString"/>.
     /// </exception>
     public static ITypeSystemMember GetMember(

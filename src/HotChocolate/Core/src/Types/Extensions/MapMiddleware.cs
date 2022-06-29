@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate;
 
@@ -30,7 +31,7 @@ internal sealed class MapMiddleware
             : _next(context);
     }
 
-    private bool IsField(NameString typeName, NameString fieldName)
+    private bool IsField(string typeName, string fieldName)
     {
         return _fieldReference.TypeName.EqualsOrdinal(typeName)
             && _fieldReference.FieldName.EqualsOrdinal(fieldName);

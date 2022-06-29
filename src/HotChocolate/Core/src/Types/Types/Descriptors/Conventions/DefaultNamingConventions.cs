@@ -46,7 +46,7 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public virtual NameString GetTypeName(Type type, TypeKind kind)
+    public virtual string GetTypeName(Type type, TypeKind kind)
     {
         if (type is null)
         {
@@ -99,7 +99,7 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public virtual NameString GetMemberName(
+    public virtual string GetMemberName(
         MemberInfo member,
         MemberKind kind)
     {
@@ -132,7 +132,7 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public virtual NameString GetArgumentName(ParameterInfo parameter)
+    public virtual string GetArgumentName(ParameterInfo parameter)
     {
         if (parameter is null)
         {
@@ -160,7 +160,7 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public virtual unsafe NameString GetEnumValueName(object value)
+    public virtual unsafe string GetEnumValueName(object value)
     {
         if (value is null)
         {
@@ -332,7 +332,7 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public NameString FormatFieldName(string fieldName)
+    public string FormatFieldName(string fieldName)
     {
         if (string.IsNullOrEmpty(fieldName))
         {

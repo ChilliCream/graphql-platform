@@ -42,10 +42,7 @@ public class UnionTypeDescriptor
     {
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
-            Context.TypeInspector.ApplyAttributes(
-                Context,
-                this,
-                Definition.RuntimeType);
+            Context.TypeInspector.ApplyAttributes(Context, this, Definition.RuntimeType);
             Definition.AttributesAreApplied = true;
         }
 
@@ -59,9 +56,9 @@ public class UnionTypeDescriptor
         return this;
     }
 
-    public IUnionTypeDescriptor Name(NameString value)
+    public IUnionTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -123,7 +120,7 @@ public class UnionTypeDescriptor
     }
 
     public IUnionTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
