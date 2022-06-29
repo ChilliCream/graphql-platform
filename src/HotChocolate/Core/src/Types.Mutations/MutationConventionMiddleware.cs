@@ -1,5 +1,4 @@
 using System.Linq;
-using HotChocolate.Execution.Processing;
 
 #nullable enable
 
@@ -34,7 +33,7 @@ internal sealed class MutationConventionMiddleware
         var inputLiteral = context.ArgumentLiteral<ObjectValueNode>(_inputArgumentName)
             .Fields.ToDictionary(t => t.Name.Value, t => t.Value);
 
-        var arguments = new Dictionary<NameString, ArgumentValue>();
+        var arguments = new Dictionary<string, ArgumentValue>(StringComparer.Ordinal);
         var preservedArguments = context.ReplaceArguments(arguments);
         var inputArgument = preservedArguments[_inputArgumentName];
 
@@ -65,10 +64,7 @@ internal sealed class MutationConventionMiddleware
         {
             await _next(context);
 
-            if (context.Result is null)
-            {
-                context.Result = Null;
-            }
+            context.Result ??= Null;
         }
         finally
         {

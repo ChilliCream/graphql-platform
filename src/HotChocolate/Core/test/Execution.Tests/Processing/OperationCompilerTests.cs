@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,6 +5,7 @@ using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
@@ -315,7 +315,7 @@ public class OperationCompilerTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -354,7 +354,7 @@ public class OperationCompilerTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -393,8 +393,8 @@ public class OperationCompilerTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-            .Returns((NameString name) => name.EqualsOrdinal("q"));
+        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>()))
+            .Returns((string name) => name.EqualsOrdinal("q"));
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -433,7 +433,7 @@ public class OperationCompilerTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -475,10 +475,10 @@ public class OperationCompilerTests
     {
         // arrange
         var vFalse = new Mock<IVariableValueCollection>();
-        vFalse.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+        vFalse.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
 
         var vTrue = new Mock<IVariableValueCollection>();
-        vTrue.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(true);
+        vTrue.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(true);
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -522,10 +522,10 @@ public class OperationCompilerTests
     {
         // arrange
         var vFalse = new Mock<IVariableValueCollection>();
-        vFalse.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+        vFalse.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
 
         var vTrue = new Mock<IVariableValueCollection>();
-        vTrue.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(true);
+        vTrue.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(true);
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -598,8 +598,8 @@ public class OperationCompilerTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-            .Returns((NameString name) => name.EqualsOrdinal("v"));
+        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>()))
+            .Returns((string name) => name.EqualsOrdinal("v"));
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -643,8 +643,8 @@ public class OperationCompilerTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-            .Returns((NameString name) => name.EqualsOrdinal("v"));
+        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>()))
+            .Returns((string name) => name.EqualsOrdinal("v"));
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -678,8 +678,8 @@ public class OperationCompilerTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-            .Returns((NameString name) => name.EqualsOrdinal("v"));
+        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>()))
+            .Returns((string name) => name.EqualsOrdinal("v"));
 
         var schema = SchemaBuilder.New()
             .AddQueryType(d => d
@@ -700,8 +700,6 @@ public class OperationCompilerTests
 
         var operationDefinition =
             document.Definitions.OfType<OperationDefinitionNode>().Single();
-
-        var optimizers = new List<NoopOptimizer> { new NoopOptimizer() };
 
         // act
         var compiler = new OperationCompiler(new InputParser());
@@ -827,7 +825,7 @@ public class OperationCompilerTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -864,7 +862,7 @@ public class OperationCompilerTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -899,7 +897,7 @@ public class OperationCompilerTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -959,8 +957,6 @@ public class OperationCompilerTests
     public async Task Crypto_Details_Test()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-
         var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
@@ -991,8 +987,6 @@ public class OperationCompilerTests
     public async Task Crypto_List_Test()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-
         var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()

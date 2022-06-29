@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -56,9 +55,7 @@ internal static class ArgumentCoercionHelper
 
                 args.Add(argument.Name, new ArgumentValue(
                     argument,
-                    literal.TryGetValueKind(out var kind)
-                        ? kind
-                        : ValueKind.Unknown,
+                    literal.TryGetValueKind(out var kind) ? kind : ValueKind.Unknown,
                     argument.IsFullyCoerced,
                     argument.IsDefaultValue,
                     null,

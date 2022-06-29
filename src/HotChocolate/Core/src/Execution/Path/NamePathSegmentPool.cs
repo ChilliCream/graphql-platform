@@ -9,8 +9,7 @@ internal sealed class NamePathSegmentPool : DefaultObjectPool<PathSegmentBuffer<
     {
     }
 
-    private sealed class BufferPolicy
-        : IPooledObjectPolicy<PathSegmentBuffer<NamePathSegment>>
+    private sealed class BufferPolicy : IPooledObjectPolicy<PathSegmentBuffer<NamePathSegment>>
     {
         private static readonly NamePathSegmentPolicy _policy = new();
 

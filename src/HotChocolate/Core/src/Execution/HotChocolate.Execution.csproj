@@ -144,6 +144,18 @@
     <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Validation.cs">
       <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>
+    <Compile Update="Processing\ValueCompletion.Leaf.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletion.List.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletion.Object.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletion.Tools.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

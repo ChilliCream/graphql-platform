@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 public static class JsonObjectTypeExtensions
 {
     /// <summary>
-    /// Specifies that this field will be resolved from the JsonELement representing the instance
+    /// Specifies that this field will be resolved from the JsonElement representing the instance
     /// of this type.
     /// </summary>
     /// <param name="descriptor">
@@ -37,9 +37,9 @@ public static class JsonObjectTypeExtensions
             .Extend()
             .OnBeforeCompletion((ctx, def) =>
             {
-                propertyName ??= def.Name.Value;
-                IType type = ctx.GetType<IType>(def.Type!);
-                INamedType namedType = type.NamedType();
+                propertyName ??= def.Name;
+                var type = ctx.GetType<IType>(def.Type!);
+                var namedType = type.NamedType();
 
                 if (type.IsListType())
                 {
@@ -59,7 +59,7 @@ public static class JsonObjectTypeExtensions
     }
 
     /// <summary>
-    /// Specifies that this field will be resolved from the JsonELement representing the instance
+    /// Specifies that this field will be resolved from the JsonElement representing the instance
     /// of this type.
     /// </summary>
     /// <param name="descriptor">
@@ -102,7 +102,7 @@ public static class JsonObjectTypeExtensions
         ScalarType scalarType,
         string propertyName)
     {
-        switch (scalarType.Name.Value)
+        switch (scalarType.Name)
         {
             case ScalarNames.ID:
             case ScalarNames.String:
@@ -163,7 +163,7 @@ public static class JsonObjectTypeExtensions
     }
 
     private static JsonElement? GetProperty(this IPureResolverContext context, string propertyName)
-        => context.Parent<JsonElement>().TryGetProperty(propertyName, out JsonElement element)
+        => context.Parent<JsonElement>().TryGetProperty(propertyName, out var element)
             ? element
             : null;
 }

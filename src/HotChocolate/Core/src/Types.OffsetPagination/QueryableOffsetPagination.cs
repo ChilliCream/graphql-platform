@@ -29,7 +29,7 @@ internal sealed class QueryableOffsetPagination<TEntity>
 
         if (query is IAsyncEnumerable<TEntity> enumerable)
         {
-            await foreach (TEntity item in enumerable.WithCancellation(cancellationToken)
+            await foreach (var item in enumerable.WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
             {
                 list.Add(item);
@@ -39,7 +39,7 @@ internal sealed class QueryableOffsetPagination<TEntity>
         {
             await Task.Run(() =>
                 {
-                    foreach (TEntity item in query)
+                    foreach (var item in query)
                     {
                         if (cancellationToken.IsCancellationRequested)
                         {

@@ -23,7 +23,7 @@ public class DefinitionBase : IDefinition
     public string Name
     {
         get => _name;
-        set => _name = value?.EnsureGraphQLName();
+        set => _name = value.EnsureGraphQLName();
     }
 
     /// <summary>

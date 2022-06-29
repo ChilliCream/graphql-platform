@@ -1,5 +1,4 @@
 using HotChocolate.Types;
-using static HotChocolate.Types.Pagination.Properties.OffsetResources;
 
 namespace HotChocolate.Utilities;
 
@@ -28,18 +27,10 @@ internal static class ThrowHelper
             ErrorBuilder.New()
                 .SetMessage(
                     "You must provide take to properly paginate the `{0}`.",
-                    field.Type.NamedType().Name.Value)
+                    field.Type.NamedType().Name)
                 .SetCode(ErrorCodes.Paging.NoPagingBoundaries)
                 .SetPath(path)
                 .SetSyntaxNode(field.SyntaxNode)
                 .SetExtension(nameof(field), field.Coordinate.ToString())
-                .Build());
-
-
-    public static SchemaException OffsetPagingObjectFieldDescriptorExtensions_InvalidType() =>
-        new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid)
-                .SetCode(ErrorCodes.Paging.SchemaTypeInvalid)
                 .Build());
 }

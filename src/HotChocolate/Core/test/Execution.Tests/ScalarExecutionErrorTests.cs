@@ -27,7 +27,7 @@ public class ScalarExecutionErrorTests
             "{ stringToName(name: \"  \") }");
 
         // assert
-        result.MatchSnapshot();
+        await result.MatchSnapshotAsync();
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class ScalarExecutionErrorTests
             "{ stringToFoo(name: \"  \") }");
 
         // assert
-        result.MatchSnapshot();
+        await result.MatchSnapshotAsync();
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class ScalarExecutionErrorTests
             "{ nameToString(name: \"  \") }");
 
         // assert
-        result.MatchSnapshot();
+        await result.MatchSnapshotAsync();
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class ScalarExecutionErrorTests
             });
 
         // assert
-        result.MatchSnapshot();
+        await result.MatchSnapshotAsync();
     }
 
     public class Query
@@ -106,10 +106,10 @@ public class ScalarExecutionErrorTests
         {
             descriptor.Field(t => t.StringToName(default!))
                 .Argument("name", a => a.Type<StringType>())
-                .Type<NameType>();
+                .Type<StringType>();
 
             descriptor.Field(t => t.NameToString(default!))
-                .Argument("name", a => a.Type<NameType>())
+                .Argument("name", a => a.Type<StringType>())
                 .Type<StringType>();
 
             descriptor.Field(t => t.StringToFoo(default!))
@@ -190,11 +190,11 @@ public class ScalarExecutionErrorTests
             throw new SerializationException("String is not a.", this);
         }
 
-        public override IValueNode ParseResult(object? resultValue) 
+        public override IValueNode ParseResult(object? resultValue)
             => ParseValue(resultValue);
 
         public override bool TrySerialize(
-            object? runtimeValue, 
+            object? runtimeValue,
             out object? resultValue)
         {
             if (runtimeValue is null)
@@ -214,7 +214,7 @@ public class ScalarExecutionErrorTests
         }
 
         public override bool TryDeserialize(
-            object? resultValue, 
+            object? resultValue,
             out object?runtimeValue)
         {
             if (resultValue is null)

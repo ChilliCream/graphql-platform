@@ -89,7 +89,7 @@ public class RelaySchemaTests
             .EnableRelaySupport(new RelayOptions
             {
                 AddQueryFieldToMutationPayloads = true,
-                MutationPayloadPredicate = type => type.Name.Value.EndsWith("Result")
+                MutationPayloadPredicate = type => type.Name.EndsWith("Result")
             })
             .BuildSchemaAsync()
             .MatchSnapshotAsync();

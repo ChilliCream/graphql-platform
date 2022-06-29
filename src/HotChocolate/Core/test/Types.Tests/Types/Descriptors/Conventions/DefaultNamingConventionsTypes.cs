@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;
 
 public class DefaultNamingConventionsTests
@@ -27,7 +28,7 @@ public class DefaultNamingConventionsTests
         var schemaName = namingConventions.GetEnumValueName(runtimeName);
 
         // assert
-        Assert.Equal(expectedSchemaName, schemaName.Value);
+        Assert.Equal(expectedSchemaName, schemaName);
     }
 
     [InlineData(true)]
@@ -100,7 +101,7 @@ public class DefaultNamingConventionsTests
         var typeName = namingConventions.GetTypeName(type, TypeKind.InputObject);
 
         // assert
-        Assert.Equal(expectedName, typeName.Value);
+        Assert.Equal(expectedName, typeName);
     }
 
     private enum Foo

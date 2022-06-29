@@ -34,7 +34,7 @@ public class ObjectTypeDefinition
         Type? runtimeType = null)
         : base(runtimeType ?? typeof(object))
     {
-        Name = name.EnsureGraphQLName();
+        Name = name;
         Description = description;
         FieldBindingType = runtimeType;
     }

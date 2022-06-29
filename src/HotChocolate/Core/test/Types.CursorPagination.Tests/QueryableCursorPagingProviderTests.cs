@@ -433,7 +433,7 @@ public class QueryableCursorPagingProviderTests
             set => throw new NotImplementedException();
         }
 
-        public NameString ResponseName => throw new NotImplementedException();
+        public string ResponseName => throw new NotImplementedException();
 
         public bool HasErrors => throw new NotImplementedException();
 
@@ -501,9 +501,9 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public T ArgumentValue<T>(NameString name)
+        public T ArgumentValue<T>(string name)
         {
-            switch (name.Value)
+            switch (name)
             {
                 case "first":
                     if (_arguments.First is null)
@@ -550,17 +550,17 @@ public class QueryableCursorPagingProviderTests
             throw new InvalidOperationException();
         }
 
-        public TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode
+        public TValueNode ArgumentLiteral<TValueNode>(string name) where TValueNode : IValueNode
         {
             throw new NotImplementedException();
         }
 
-        public Optional<T> ArgumentOptional<T>(NameString name)
+        public Optional<T> ArgumentOptional<T>(string name)
         {
             throw new NotImplementedException();
         }
 
-        public ValueKind ArgumentKind(NameString name)
+        public ValueKind ArgumentKind(string name)
         {
             throw new NotImplementedException();
         }

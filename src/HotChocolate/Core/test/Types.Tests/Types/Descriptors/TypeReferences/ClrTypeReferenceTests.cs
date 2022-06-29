@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Internal;
 using Xunit;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;
 
 public class ClrTypeReferenceTests
@@ -177,11 +178,10 @@ public class ClrTypeReferenceTests
     public void ITypeReference_Equals_To_SyntaxTypeRef()
     {
         // arrange
-        var x = TypeReference.Create(
-            _typeInspector.GetType(typeof(string)));
+        var x = TypeReference.Create(_typeInspector.GetType(typeof(string)));
 
         // act
-        var xx = x.Equals(TypeReference.Create(new NameType("foo")));
+        var xx = x.Equals(TypeReference.Create(new StringType("foo")));
 
         // assert
         Assert.False(xx);

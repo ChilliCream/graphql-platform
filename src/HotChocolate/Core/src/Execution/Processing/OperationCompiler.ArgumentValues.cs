@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using static System.StringComparer;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -19,7 +20,7 @@ public sealed partial class OperationCompiler
             return null;
         }
 
-        var arguments = new Dictionary<NameString, ArgumentValue>();
+        var arguments = new Dictionary<string, ArgumentValue>(Ordinal);
 
         for (var i = 0; i < selection.Arguments.Count; i++)
         {
@@ -28,7 +29,7 @@ public sealed partial class OperationCompiler
                 argumentValue.Name.Value,
                 out var argument))
             {
-                arguments[argument.Name.Value] =
+                arguments[argument.Name] =
                     CreateArgumentValue(
                         responseName,
                         argument,
@@ -43,7 +44,7 @@ public sealed partial class OperationCompiler
             var argument = field.Arguments[i];
             if (!arguments.ContainsKey(argument.Name))
             {
-                arguments[argument.Name.Value] =
+                arguments[argument.Name] =
                     CreateArgumentValue(
                         responseName,
                         argument,
