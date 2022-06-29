@@ -59,12 +59,10 @@ public class SchemaBuilderExtensionsDocumentTests
         await File.WriteAllTextAsync(file, "type Query { a: String }");
 
         // act
-        SchemaBuilderExtensions.AddDocumentFromFile(builder, file);
+        builder.AddDocumentFromFile(file);
 
         // assert
-        var schema = builder
-            .Use(next => context => next.Invoke(context))
-            .Create();
+        var schema = builder.Use(next => next).Create();
 
         schema.ToString().MatchSnapshot();
     }

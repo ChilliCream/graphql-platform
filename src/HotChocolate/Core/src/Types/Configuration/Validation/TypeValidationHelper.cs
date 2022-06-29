@@ -91,11 +91,7 @@ internal static class TypeValidationHelper
 
             if (!field.IsIntrospectionField)
             {
-                var firstTwoLetters = field.Name.AsSpan().Slice(0, 2);
-
-                if (firstTwoLetters.Length is 2 &&
-                    firstTwoLetters[0] == _underscore &&
-                    firstTwoLetters[1] == _underscore)
+                if (StartsWithTwoUnderscores(field.Name))
                 {
                     errors.Add(TwoUnderscoresNotAllowedField(type, field));
                 }
@@ -103,11 +99,7 @@ internal static class TypeValidationHelper
                 for (var j = 0; j < field.Arguments.Count; j++)
                 {
                     var argument = field.Arguments[j];
-                    firstTwoLetters = argument.Name.AsSpan().Slice(0, 2);
-
-                    if (firstTwoLetters.Length is 2 &&
-                        firstTwoLetters[0] == _underscore &&
-                        firstTwoLetters[1] == _underscore)
+                    if (StartsWithTwoUnderscores(argument.Name))
                     {
                         errors.Add(TwoUnderscoresNotAllowedOnArgument(
                             type,
@@ -126,11 +118,7 @@ internal static class TypeValidationHelper
         for (var i = 0; i < type.Fields.Count; i++)
         {
             var field = type.Fields[i];
-            var firstTwoLetters = field.Name.AsSpan().Slice(0, 2);
-
-            if (firstTwoLetters.Length is 2 &&
-                firstTwoLetters[0] == _underscore &&
-                firstTwoLetters[1] == _underscore)
+            if (StartsWithTwoUnderscores(field.Name))
             {
                 errors.Add(TwoUnderscoresNotAllowedField(type, field));
             }
@@ -144,11 +132,7 @@ internal static class TypeValidationHelper
         for (var i = 0; i < type.Arguments.Count; i++)
         {
             IInputField field = type.Arguments[i];
-            var firstTwoLetters = field.Name.AsSpan().Slice(0, 2);
-
-            if (firstTwoLetters.Length is 2 &&
-                firstTwoLetters[0] == _underscore &&
-                firstTwoLetters[1] == _underscore)
+            if (StartsWithTwoUnderscores(field.Name))
             {
                 errors.Add(TwoUnderscoresNotAllowedOnArgument(type, field));
             }
@@ -292,6 +276,22 @@ internal static class TypeValidationHelper
             complexType.IsImplementing(interfaceType))
         {
             return true;
+        }
+
+        return false;
+    }
+
+    private static bool StartsWithTwoUnderscores(string name)
+    {
+        if (name.Length > 2)
+        {
+            var firstTwoLetters = name.AsSpan().Slice(0, 2);
+
+            if (firstTwoLetters[0] == _underscore &&
+                firstTwoLetters[1] == _underscore)
+            {
+                return true;
+            }
         }
 
         return false;

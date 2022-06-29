@@ -971,17 +971,17 @@ public class SchemaBuilderTests
         // act
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(@"
-                    type Query {
-                        foo : Baz
-                    }
+                type Query {
+                    foo : Baz
+                }
 
-                    type Baz {
-                        baz: String
-                    }
+                type Baz {
+                    baz: String
+                }
 
-                    interface Bar {
-                        baz: String
-                    }")
+                interface Bar {
+                    baz: String
+                }")
             .AddResolver("Query", "foo", "bar")
             .AddResolver("Baz", "baz", "baz")
             .Create();
