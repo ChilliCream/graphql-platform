@@ -104,7 +104,7 @@ public class QueryableDefaultFieldHandler
         }
 
         // Deque last
-        Expression condition = context.GetLevel().Dequeue();
+        var condition = context.GetLevel().Dequeue();
 
         context.PopInstance();
         context.RuntimeTypes.Pop();

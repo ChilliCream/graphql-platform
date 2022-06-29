@@ -243,9 +243,9 @@ public class InterfaceTypeTests : TypeTestBase
         // act
         var fooType = CreateType(
             new InterfaceType<IFoo>(d => d
-                .Directive(new NameString("foo"))
+                .Directive("foo")
                 .Field(f => f.Bar)
-                .Directive(new NameString("foo"))),
+                .Directive("foo")),
             b => b.AddDirectiveType<FooDirectiveType>()
                 .ModifyOptions(o => o.StrictValidation = false));
 
@@ -331,12 +331,13 @@ public class InterfaceTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var fooType = CreateType(new InterfaceType(d => d
+        var fooType = CreateType(
+            new InterfaceType(d => d
                 .Name("FooInt")
-                .Directive(new NameString("foo"))
+                .Directive("foo")
                 .Field("bar")
                 .Type<StringType>()
-                .Directive(new NameString("foo"))),
+                .Directive("foo")),
             b => b.AddDirectiveType<FooDirectiveType>()
                 .ModifyOptions(o => o.StrictValidation = false));
 
@@ -350,7 +351,8 @@ public class InterfaceTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var fooType = CreateType(new InterfaceType(d => d
+        var fooType = CreateType(
+            new InterfaceType(d => d
                 .Name("FooInt")
                 .Directive(new DirectiveNode("foo"))
                 .Field("id")
@@ -748,7 +750,7 @@ public class InterfaceTypeTests : TypeTestBase
 
     private sealed class SnakeCaseNamingConventions : DefaultNamingConventions
     {
-        public override NameString GetMemberName(MemberInfo member, MemberKind kind)
+        public override string GetMemberName(MemberInfo member, MemberKind kind)
         {
             if (kind == MemberKind.InterfaceField)
             {

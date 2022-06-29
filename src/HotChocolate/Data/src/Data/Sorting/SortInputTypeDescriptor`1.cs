@@ -104,7 +104,7 @@ public class SortInputTypeDescriptor<T>
         switch (propertyOrMember.TryExtractMember())
         {
             case PropertyInfo m:
-                SortFieldDescriptor? fieldDescriptor =
+                var fieldDescriptor =
                     Fields.FirstOrDefault(t => t.Definition.Member == m);
 
                 if (fieldDescriptor is null)
@@ -132,7 +132,7 @@ public class SortInputTypeDescriptor<T>
         Expression<Func<T, TField?>> propertyOrMember,
         Action<ISortInputTypeDescriptor<TField>> configure)
     {
-        ISortFieldDescriptor descriptor = Field(propertyOrMember);
+        var descriptor = Field(propertyOrMember);
         descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
         return descriptor;
 
@@ -140,7 +140,7 @@ public class SortInputTypeDescriptor<T>
             IDescriptorContext context,
             string? scope)
         {
-            SortInputTypeDescriptor<TField> descriptor =
+            var descriptor =
                 Inline<TField>(context, typeof(TField), scope);
             configure(descriptor);
             return descriptor.CreateDefinition();
@@ -159,7 +159,7 @@ public class SortInputTypeDescriptor<T>
     {
         if (propertyOrMember.ExtractMember() is PropertyInfo p)
         {
-            SortFieldDescriptor? fieldDescriptor =
+            var fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Member == p);
 
             if (fieldDescriptor is null)

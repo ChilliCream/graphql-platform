@@ -121,7 +121,7 @@ public class SortInputTypeDescriptor
     /// <inheritdoc />
     public ISortFieldDescriptor Field(NameString name)
     {
-        SortFieldDescriptor? fieldDescriptor =
+        var fieldDescriptor =
             Fields.FirstOrDefault(t => t.Definition.Name == name);
 
         if (fieldDescriptor is null)
@@ -138,7 +138,7 @@ public class SortInputTypeDescriptor
         NameString name,
         Action<ISortInputTypeDescriptor> configure)
     {
-        ISortFieldDescriptor descriptor = Field(name);
+        var descriptor = Field(name);
         descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
         return descriptor;
 
@@ -146,7 +146,7 @@ public class SortInputTypeDescriptor
             IDescriptorContext context,
             string? scope)
         {
-            SortInputTypeDescriptor descriptor = Inline(context, typeof(object), scope);
+            var descriptor = Inline(context, typeof(object), scope);
             configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -155,7 +155,7 @@ public class SortInputTypeDescriptor
     /// <inheritdoc />
     public ISortInputTypeDescriptor Ignore(NameString name)
     {
-        SortFieldDescriptor? fieldDescriptor =
+        var fieldDescriptor =
             Fields.FirstOrDefault(t => t.Definition.Name == name);
 
         if (fieldDescriptor is null)
@@ -214,7 +214,7 @@ public class SortInputTypeDescriptor
         Type schemaType,
         string? scope = null)
     {
-        SortInputTypeDescriptor? descriptor = New(context, schemaType, scope);
+        var descriptor = New(context, schemaType, scope);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }
@@ -241,7 +241,7 @@ public class SortInputTypeDescriptor
         Type entityType,
         string? scope = null)
     {
-        SortInputTypeDescriptor descriptor = New(context, entityType, scope);
+        var descriptor = New(context, entityType, scope);
 
         descriptor.BindFieldsExplicitly();
 
@@ -258,7 +258,7 @@ public class SortInputTypeDescriptor
         Type entityType,
         string? scope = null)
     {
-        SortInputTypeDescriptor<TField> descriptor = New<TField>(context, entityType, scope);
+        var descriptor = New<TField>(context, entityType, scope);
 
         descriptor.BindFieldsExplicitly();
 

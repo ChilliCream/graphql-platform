@@ -80,7 +80,7 @@ public class ArgumentTests
                         $"to actual type ({actualType})");
                 }
 
-                if (context.Selection.Field.Name.Value.StartsWith("array"))
+                if (context.Selection.Field.Name.StartsWith("array"))
                 {
                     if (!argument.RuntimeType.IsArray)
                     {

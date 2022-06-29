@@ -14,7 +14,7 @@ public class SortEnumValueDescriptor
         int value)
         : base(context, new SortEnumValueDefinition { Operation = value })
     {
-        ISortConvention convention = context.GetSortConvention(scope);
+        var convention = context.GetSortConvention(scope);
         Definition.Name = convention.GetOperationName(value);
         Definition.Description = convention.GetOperationDescription(value);
         Definition.RuntimeValue = Definition.Name.Value;

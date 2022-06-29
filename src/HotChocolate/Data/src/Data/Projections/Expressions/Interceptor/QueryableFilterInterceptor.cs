@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -7,13 +6,13 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Data.Projections.Handlers;
 
 public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableProjectionContext>
@@ -28,29 +27,27 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
         QueryableProjectionContext context,
         ISelection selection)
     {
-        IObjectField field = selection.Field;
-        IReadOnlyDictionary<string, object?> contextData = field.ContextData;
+        var field = selection.Field;
+        var contextData = field.ContextData;
 
         if (contextData.TryGetValue(ContextArgumentNameKey, out var arg) &&
-            arg is NameString argumentName &&
+            arg is string argumentName &&
             contextData.TryGetValue(ContextVisitFilterArgumentKey, out var argVisitor) &&
             argVisitor is VisitFilterArgument argumentVisitor &&
             context.Selection.Count > 0 &&
-            context.Selection.Peek()
-                .Arguments.TryCoerceArguments(
-                    context.Context,
-                    out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs) &&
-            coercedArgs.TryGetValue(argumentName, out ArgumentValue? argumentValue) &&
+            context.Selection.Peek().Arguments
+                .TryCoerceArguments(context.Context, out var coercedArgs) &&
+            coercedArgs.TryGetValue(argumentName, out var argumentValue) &&
             argumentValue.Type is IFilterInputType filterInputType &&
             argumentValue.ValueLiteral is { } valueNode and not NullValueNode)
         {
-            QueryableFilterContext filterContext =
+            var filterContext =
                 argumentVisitor(valueNode, filterInputType, false);
 
-            Expression instance = context.PopInstance();
+            var instance = context.PopInstance();
             if (filterContext.Errors.Count == 0)
             {
-                if (filterContext.TryCreateLambda(out LambdaExpression? expression))
+                if (filterContext.TryCreateLambda(out var expression))
                 {
                     context.PushInstance(
                         Expression.Call(

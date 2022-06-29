@@ -28,7 +28,7 @@ public class SortFieldDescriptor
          Expression expression)
          : base(context)
     {
-        ISortConvention convention = context.GetSortConvention(scope);
+        var convention = context.GetSortConvention(scope);
 
         Definition.Expression = expression;
         Definition.Scope = scope;
@@ -45,7 +45,7 @@ public class SortFieldDescriptor
         MemberInfo member)
         : base(context)
     {
-        ISortConvention? convention = context.GetSortConvention(scope);
+        var convention = context.GetSortConvention(scope);
 
         Definition.Member = member ??
             throw new ArgumentNullException(nameof(member));

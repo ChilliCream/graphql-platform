@@ -2,7 +2,7 @@ namespace HotChocolate.Data.Sorting;
 
 public class SortOperation
 {
-    public SortOperation(int id, NameString name, string? description)
+    public SortOperation(int id, string name, string? description)
     {
         Id = id;
         Name = name;
@@ -11,7 +11,7 @@ public class SortOperation
 
     public int Id { get; }
 
-    public NameString Name { get; }
+    public string Name { get; }
 
     public string? Description { get; }
 

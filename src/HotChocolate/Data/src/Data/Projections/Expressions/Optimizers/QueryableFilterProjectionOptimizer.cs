@@ -2,6 +2,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Data.Projections.Handlers;
 
 public class QueryableFilterProjectionOptimizer : IProjectionOptimizer

@@ -16,15 +16,15 @@ public static class FilterContextResolverContextExtensions
     /// </summary>
     public static IFilterContext? GetFilterContext(this IResolverContext context)
     {
-        IObjectField field = context.Selection.Field;
+        var field = context.Selection.Field;
         if (!field.ContextData.TryGetValue(ContextArgumentNameKey, out var argumentNameObj) ||
-            argumentNameObj is not NameString argumentName)
+            argumentNameObj is not string argumentName)
         {
             return null;
         }
 
-        IInputField argument = context.Selection.Field.Arguments[argumentName];
-        IValueNode filter = context.LocalContextData.ContainsKey(ContextValueNodeKey) &&
+        var argument = context.Selection.Field.Arguments[argumentName];
+        var filter = context.LocalContextData.ContainsKey(ContextValueNodeKey) &&
             context.LocalContextData[ContextValueNodeKey] is IValueNode node
                 ? node
                 : context.ArgumentLiteral<IValueNode>(argumentName);

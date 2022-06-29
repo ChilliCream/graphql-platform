@@ -37,7 +37,7 @@ public class QueryableSortProvider
 
     public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
     {
-        ApplySorting applySorting = CreateApplicatorAsync<TEntityType>(argumentName);
+        var applySorting = CreateApplicatorAsync<TEntityType>(argumentName);
 
         return next => context => ExecuteAsync(next, context);
 
@@ -60,8 +60,8 @@ public class QueryableSortProvider
         return (context, input) =>
         {
             // next we get the sort argument.
-            IInputField argument = context.Selection.Field.Arguments[argumentName];
-            IValueNode sort = context.ArgumentLiteral<IValueNode>(argumentName);
+            var argument = context.Selection.Field.Arguments[argumentName];
+            var sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
             // if no sort is defined we can stop here and yield back control.
             var skipSorting =
@@ -90,7 +90,7 @@ public class QueryableSortProvider
                     input is not IQueryable ||
                     input is EnumerableQuery;
 
-                QueryableSortContext visitorContext = executor(
+                var visitorContext = executor(
                     sort,
                     sortInput,
                     inMemory);
@@ -99,7 +99,7 @@ public class QueryableSortProvider
                 if (visitorContext.Errors.Count > 0)
                 {
                     input = Array.Empty<TEntityType>();
-                    foreach (IError error in visitorContext.Errors)
+                    foreach (var error in visitorContext.Errors)
                     {
                         context.ReportError(error.WithPath(context.Path));
                     }
@@ -140,7 +140,7 @@ public class QueryableSortProvider
             return visitorContext;
         }
 
-        ExtensionData contextData = descriptor.Extend().Definition.ContextData;
+        var contextData = descriptor.Extend().Definition.ContextData;
         var argumentKey = (VisitSortArgument)VisitSortArgumentExecutor;
         contextData[ContextVisitSortArgumentKey] = argumentKey;
         contextData[ContextArgumentNameKey] = argumentName;

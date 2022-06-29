@@ -126,9 +126,9 @@ public class ProjectionVisitor<TContext>
 
             foreach (var selection in selections)
             {
-                if (selection.ResponseName.Value is CombinedEdgeField)
+                if (selection.ResponseName is CombinedEdgeField)
                 {
-                    context.Selection.Push((ISelection)selection);
+                    context.Selection.Push(selection);
                     return base.Visit(selection.Field, context);
                 }
             }

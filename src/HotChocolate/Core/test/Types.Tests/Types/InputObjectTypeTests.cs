@@ -155,9 +155,7 @@ public class InputObjectTypeTests : TypeTestBase
         // arrange
         // act
         var fooType = new InputObjectType<SimpleInput>(
-            d => d.Directive(new NameString("foo"))
-                .Field(f => f.Id)
-                .Directive(new NameString("foo")));
+            d => d.Directive("foo").Field(f => f.Id).Directive("foo"));
 
         // assert
         fooType = CreateType(fooType,
@@ -252,10 +250,10 @@ public class InputObjectTypeTests : TypeTestBase
         // act
         var fooType = new InputObjectType<SimpleInput>(d => d
             .Name("Bar")
-            .Directive(new NameString("foo"))
+            .Directive("foo")
             .Field("id")
             .Type<StringType>()
-            .Directive(new NameString("foo")));
+            .Directive("foo"));
 
         // assert
         fooType = CreateType(fooType,
@@ -457,7 +455,7 @@ public class InputObjectTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // act
-        var result = executor.Execute(
+        var result = await executor.ExecuteAsync(
             "{ foo(a: { bar: { text: \"abc\" } }) }");
 
         // assert

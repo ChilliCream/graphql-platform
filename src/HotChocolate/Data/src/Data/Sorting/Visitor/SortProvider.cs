@@ -92,7 +92,7 @@ public abstract class SortProvider<TContext>
             throw SortProvider_NoOperationHandlersConfigured(this);
         }
 
-        IServiceProvider services = new DictionaryServiceProvider(
+        var services = new DictionaryServiceProvider(
             (typeof(ISortProvider), this),
             (typeof(IConventionContext), context),
             (typeof(IDescriptorContext), context.DescriptorContext),

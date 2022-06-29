@@ -150,7 +150,7 @@ public class UnionTypeTests
         // act
         var fooBarType = CreateType(new UnionType(d => d
                 .Name("BarUnion")
-                .Directive(new NameString("foo"))
+                .Directive("foo")
                 .Type<FooType>()
                 .Type<BarType>()),
             b => b.AddDirectiveType<FooDirectiveType>());

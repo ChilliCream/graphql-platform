@@ -102,5 +102,5 @@ public interface ISelectedField
     /// <returns>
     /// Returns true if the field is selected, false if the field is not selected
     /// </returns>
-    bool IsSelected(NameString fieldName, ObjectType? type = null, bool allowInternals = true);
+    bool IsSelected(string fieldName, ObjectType? type = null, bool allowInternals = true);
 }

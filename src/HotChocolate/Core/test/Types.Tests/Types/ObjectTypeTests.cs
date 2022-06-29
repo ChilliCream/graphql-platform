@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -17,7 +16,6 @@ using Snapshooter;
 #endif
 using Snapshooter.Xunit;
 using Xunit;
-using Xunit.Sdk;
 
 namespace HotChocolate.Types;
 
@@ -121,7 +119,7 @@ public class ObjectTypeTests : TypeTestBase
 
         Assert.NotNull(argumentType);
         Assert.True(argumentType.IsNonNullType());
-        Assert.Equal("Int", argumentType.NamedType().Name.Value);
+        Assert.Equal("Int", argumentType.NamedType().Name);
     }
 
     [Fact]
@@ -489,9 +487,9 @@ public class ObjectTypeTests : TypeTestBase
             .Use(_ => _)
             .Create();
 
-        Assert.Equal("A", schema.QueryType.Name.Value);
-        Assert.Equal("B", schema.MutationType?.Name.Value);
-        Assert.Equal("C", schema.SubscriptionType?.Name.Value);
+        Assert.Equal("A", schema.QueryType.Name);
+        Assert.Equal("B", schema.MutationType?.Name);
+        Assert.Equal("C", schema.SubscriptionType?.Name);
     }
 
     [Fact]
@@ -515,9 +513,9 @@ public class ObjectTypeTests : TypeTestBase
             })
             .Create();
 
-        Assert.Equal("A", schema.QueryType.Name.Value);
-        Assert.Equal("B", schema.MutationType?.Name.Value);
-        Assert.Equal("C", schema.SubscriptionType?.Name.Value);
+        Assert.Equal("A", schema.QueryType.Name);
+        Assert.Equal("B", schema.MutationType?.Name);
+        Assert.Equal("C", schema.SubscriptionType?.Name);
     }
 
     [Fact]
@@ -813,7 +811,7 @@ public class ObjectTypeTests : TypeTestBase
             .Name("Bar")
             .Field("_123")
             .Type<StringType>()
-            .Resolve(ctx => ctx.Selection.Field.Name.Value));
+            .Resolve(ctx => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -833,7 +831,7 @@ public class ObjectTypeTests : TypeTestBase
         var objectType = new ObjectType(t => t
             .Name("Bar")
             .Field("_123")
-            .Resolve(ctx => ctx.Selection.Field.Name.Value));
+            .Resolve(ctx => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -854,7 +852,7 @@ public class ObjectTypeTests : TypeTestBase
             .Name("Bar")
             .Field("_123")
             .Type<StringType>()
-            .Resolve((ctx, _) => ctx.Selection.Field.Name.Value));
+            .Resolve((ctx, _) => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -874,7 +872,7 @@ public class ObjectTypeTests : TypeTestBase
         var objectType = new ObjectType(t => t
             .Name("Bar")
             .Field("_123")
-            .Resolve((ctx, _) => ctx.Selection.Field.Name.Value));
+            .Resolve((ctx, _) => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -937,7 +935,7 @@ public class ObjectTypeTests : TypeTestBase
             .Name("Bar")
             .Field("_123")
             .Type<StringType>()
-            .Resolve(ctx => (object)ctx.Selection.Field.Name.Value));
+            .Resolve(ctx => (object)ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -958,7 +956,7 @@ public class ObjectTypeTests : TypeTestBase
             .Name("Bar")
             .Field("_123")
             .Type<StringType>()
-            .Resolve((ctx, _) => (object)ctx.Selection.Field.Name.Value));
+            .Resolve((ctx, _) => (object)ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -1018,7 +1016,7 @@ public class ObjectTypeTests : TypeTestBase
         var objectType = new ObjectType<Foo>(t => t
             .Field(f => f.Description)
             .Type<StringType>()
-            .Resolve(ctx => ctx.Selection.Field.Name.Value));
+            .Resolve(ctx => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -1038,7 +1036,7 @@ public class ObjectTypeTests : TypeTestBase
         var objectType = new ObjectType<Foo>(t => t
             .Field(f => f.Description)
             .Type<StringType>()
-            .Resolve((ctx, _) => ctx.Selection.Field.Name.Value));
+            .Resolve((ctx, _) => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -1098,7 +1096,7 @@ public class ObjectTypeTests : TypeTestBase
         var objectType = new ObjectType<Foo>(t => t
             .Field(f => f.Description)
             .Type<StringType>()
-            .Resolve(ctx => (object)ctx.Selection.Field.Name.Value));
+            .Resolve(ctx => (object)ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -1118,7 +1116,7 @@ public class ObjectTypeTests : TypeTestBase
         var objectType = new ObjectType<Foo>(t => t
             .Field(f => f.Description)
             .Type<StringType>()
-            .Resolve((ctx, _) => (object)ctx.Selection.Field.Name.Value));
+            .Resolve((ctx, _) => (object)ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -2166,10 +2164,7 @@ public class ObjectTypeTests : TypeTestBase
             var type = typeof(ResolveWithQuery);
 
             descriptor.Name("ResolveWithQuery");
-
-            descriptor.Field("foo")
-                .Type<IntType>()
-                .ResolveWith(type.GetProperty("Foo"));
+            descriptor.Field("foo").Type<IntType>().ResolveWith(type.GetProperty("Foo")!);
         }
     }
 

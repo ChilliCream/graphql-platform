@@ -132,14 +132,14 @@ public static class ProjectionObjectFieldDescriptorExtensions
             .OnBeforeCreate(
                 (context, definition) =>
                 {
-                    Type? selectionType = type;
+                    var selectionType = type;
 
                     if (selectionType is null)
                     {
                         if (definition.ResultType is null ||
                             !context.TypeInspector.TryCreateTypeInfo(
                                 definition.ResultType,
-                                out ITypeInfo? typeInfo))
+                                out var typeInfo))
                         {
                             throw new ArgumentException(
                                 DataResources.UseProjection_CannotHandleType_,
@@ -172,13 +172,13 @@ public static class ProjectionObjectFieldDescriptorExtensions
         ITypeCompletionContext context,
         string? scope)
     {
-        IProjectionConvention convention =
+        var convention =
             context.DescriptorContext.GetProjectionConvention(scope);
         RegisterOptimizer(definition.ContextData, convention.CreateOptimizer());
 
         definition.ContextData[ProjectionContextIdentifier] = true;
 
-        MethodInfo factory = _factoryTemplate.MakeGenericMethod(type);
+        var factory = _factoryTemplate.MakeGenericMethod(type);
         var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] =

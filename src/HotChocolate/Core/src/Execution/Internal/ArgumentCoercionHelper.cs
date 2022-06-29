@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Processing;
+namespace HotChocolate.Execution.Internal;
 
-internal static class ArgumentCoercionHelper
+public static class ArgumentCoercionHelper
 {
     public static bool TryCoerceArguments(
         this IArgumentMap arguments,

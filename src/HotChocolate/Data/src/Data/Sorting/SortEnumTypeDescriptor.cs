@@ -58,7 +58,7 @@ public class SortEnumTypeDescriptor
 
         definition.Values.Clear();
 
-        foreach (SortEnumValueDefinition value in values.Values)
+        foreach (var value in values.Values)
         {
             definition.Values.Add(value);
         }
@@ -87,7 +87,7 @@ public class SortEnumTypeDescriptor
 
     public ISortEnumValueDescriptor Operation(int operation)
     {
-        SortEnumValueDescriptor? descriptor = Values
+        var descriptor = Values
             .FirstOrDefault(
                 t =>
                     t.Definition.RuntimeValue is not null &&
@@ -136,7 +136,7 @@ public class SortEnumTypeDescriptor
         Type schemaType,
         string? scope)
     {
-        SortEnumTypeDescriptor descriptor = New(context, schemaType, scope);
+        var descriptor = New(context, schemaType, scope);
         return descriptor;
     }
 

@@ -39,7 +39,7 @@ public class SortingInfo : SortingValueNode, ISortingInfo
             return;
         }
 
-        IType type = Type;
+        var type = Type;
         if (Type is NonNullType nonNullType)
         {
             type = nonNullType.Type;
@@ -49,11 +49,11 @@ public class SortingInfo : SortingValueNode, ISortingInfo
             type is SortInputType sortingInputType)
         {
             List<ISortingFieldInfo>? fieldInfos = null;
-            foreach (ObjectFieldNode fieldValue in valueNode.Fields)
+            foreach (var fieldValue in valueNode.Fields)
             {
                 if (sortingInputType.Fields.TryGetField(fieldValue.Name.Value, out var field))
                 {
-                    ISortingValueNode value = CreateValueInfo(fieldValue.Value, field.Type);
+                    var value = CreateValueInfo(fieldValue.Value, field.Type);
                     if (field is SortField fieldInfo)
                     {
                         fieldInfos ??= new();
@@ -70,7 +70,7 @@ public class SortingInfo : SortingValueNode, ISortingInfo
 
     private ISortingValueNode CreateValueInfo(IValueNode valueNode, IType type)
     {
-        IType normalizedType = type;
+        var normalizedType = type;
         if (type is NonNullType nonNullType)
         {
             normalizedType = nonNullType.Type;
@@ -82,7 +82,7 @@ public class SortingInfo : SortingValueNode, ISortingInfo
         {
             List<ISortingValueNode> values = new(listValueNode.Items.Count);
 
-            foreach (IValueNode item in listValueNode.Items)
+            foreach (var item in listValueNode.Items)
             {
                 values.Add(CreateValueInfo(item, normalizedType.ElementType()));
             }

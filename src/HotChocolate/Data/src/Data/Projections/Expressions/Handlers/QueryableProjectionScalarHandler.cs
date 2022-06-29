@@ -34,13 +34,13 @@ public class QueryableProjectionScalarHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
 
         if (context.Scopes.Count > 0 &&
             context.Scopes.Peek() is QueryableProjectionScope closure &&
             field.Member is PropertyInfo member)
         {
-            Expression instance = closure.Instance.Peek();
+            var instance = closure.Instance.Peek();
 
             closure.Level.Peek()
                 .Enqueue(

@@ -11,8 +11,7 @@ using static HotChocolate.Data.ThrowHelper;
 namespace HotChocolate.Data.Projections.Context;
 
 /// <inheritdoc />
-public sealed class SelectedField
-    : ISelectedField
+public sealed class SelectedField : ISelectedField
 {
     private readonly IResolverContext _resolverContext;
     private readonly ISelection _selection;
@@ -50,14 +49,11 @@ public sealed class SelectedField
             return Array.Empty<SelectedField>();
         }
 
-        List<SelectedField> finalFields = new();
+        var finalFields = new SelectedField[fields.Count];
 
         for (var i = 0; i < fields.Count; i++)
         {
-            if (fields[i] is ISelection selection)
-            {
-                finalFields.Add(new SelectedField(_resolverContext, selection));
-            }
+            finalFields[i] = new SelectedField(_resolverContext, fields[i]);
         }
 
         return finalFields;
@@ -65,7 +61,7 @@ public sealed class SelectedField
 
     /// <inheritdoc />
     public bool IsSelected(
-        NameString fieldName,
+        string fieldName,
         ObjectType? type = null,
         bool allowInternals = false)
     {

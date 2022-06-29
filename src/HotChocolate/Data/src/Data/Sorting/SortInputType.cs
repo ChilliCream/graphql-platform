@@ -82,7 +82,7 @@ public class SortInputType
         var fields = new InputField[definition.Fields.Count];
         var index = 0;
 
-        foreach (InputFieldDefinition fieldDefinition in definition.Fields)
+        foreach (var fieldDefinition in definition.Fields)
         {
             if (fieldDefinition is SortFieldDefinition {Ignore: false} field)
             {
@@ -118,7 +118,7 @@ public class SortInputType
             throw new ArgumentNullException(nameof(sortType));
         }
 
-        SortInputTypeDefinition sortTypeDefinition = explicitDefinition ?? new()
+        var sortTypeDefinition = explicitDefinition ?? new()
         {
             EntityType = typeof(object)
         };
@@ -127,7 +127,7 @@ public class SortInputType
         // to declare the types of operations
         foreach (var field in sourceTypeDefinition.Fields.OfType<SortFieldDefinition>())
         {
-            SortFieldDefinition? userDefinedField = sortTypeDefinition.Fields
+            var userDefinedField = sortTypeDefinition.Fields
                 .OfType<SortFieldDefinition>()
                 .FirstOrDefault(x => x.Name == field.Name);
 
@@ -175,8 +175,8 @@ public class SortInputType
                 return;
             }
 
-            ISortInputType parentSortType = context.GetType<ISortInputType>(sortType);
-            ISortConvention convention = context.GetSortConvention(context.Scope);
+            var parentSortType = context.GetType<ISortInputType>(sortType);
+            var convention = context.GetSortConvention(context.Scope);
             definition.Name = convention.GetTypeName(parentSortType, fieldDefinition);
         }
     }

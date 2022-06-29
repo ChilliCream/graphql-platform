@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -136,7 +135,6 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
         {
             throw new ArgumentNullException(nameof(typeReference));
         }
-
 
         Definition.Type = typeReference;
     }

@@ -37,25 +37,25 @@ public class ListOperationTypeDescriptor<T> : IListOperationTypeDescriptor<T>
         where TDirective : class, new()
         => _descriptor.Directive<TDirective>();
 
-    public IFilterInputTypeDescriptor Directive(NameString name, params ArgumentNode[] arguments)
+    public IFilterInputTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
         => _descriptor.Directive(name, arguments);
 
     public IDescriptorExtension<FilterInputTypeDefinition> Extend()
         => _descriptor.Extend();
 
-    public IFilterFieldDescriptor Field(NameString name)
+    public IFilterFieldDescriptor Field(string name)
         => _descriptor.Field(name);
 
-    public IFilterFieldDescriptor Field(NameString name, Action<IFilterInputTypeDescriptor> configure)
+    public IFilterFieldDescriptor Field(string name, Action<IFilterInputTypeDescriptor> configure)
         => _descriptor.Field(name, configure);
 
     public IFilterInputTypeDescriptor Ignore(int operationId)
         => _descriptor.Ignore(operationId);
 
-    public IFilterInputTypeDescriptor Ignore(NameString name)
+    public IFilterInputTypeDescriptor Ignore(string name)
         => _descriptor.Ignore(name);
 
-    public IFilterInputTypeDescriptor Name(NameString value)
+    public IFilterInputTypeDescriptor Name(string value)
         => _descriptor.Name(value);
 
     public IFilterOperationFieldDescriptor Operation(int operationId)

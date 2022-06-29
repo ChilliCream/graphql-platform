@@ -65,7 +65,7 @@ public abstract class SortVisitorBase<TContext, T>
         ObjectFieldNode node,
         TContext context)
     {
-        ISyntaxVisitorAction result = Continue;
+        var result = Continue;
 
         if (context.Fields.Peek() is ISortField field)
         {

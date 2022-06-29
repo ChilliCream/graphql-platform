@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Fetching;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
