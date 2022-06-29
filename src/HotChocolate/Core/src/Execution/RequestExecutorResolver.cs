@@ -112,9 +112,9 @@ internal sealed class RequestExecutorResolver
         return re.Executor;
     }
 
-    public void EvictRequestExecutor(NameString schemaName = default)
+    public void EvictRequestExecutor(string? schemaName = default)
     {
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
         if (_executors.TryRemove(schemaName, out var re))
         {
@@ -165,7 +165,7 @@ internal sealed class RequestExecutorResolver
     }
 
     private async Task<IServiceProvider> CreateSchemaServicesAsync(
-        NameString schemaName,
+        string schemaName,
         RequestExecutorSetup options,
         CancellationToken cancellationToken)
     {
@@ -292,7 +292,7 @@ internal sealed class RequestExecutorResolver
     }
 
     private async ValueTask<ISchema> CreateSchemaAsync(
-        NameString schemaName,
+        string schemaName,
         RequestExecutorSetup options,
         RequestExecutorOptions executorOptions,
         IServiceProvider serviceProvider,
@@ -353,7 +353,7 @@ internal sealed class RequestExecutorResolver
         return schema;
     }
 
-    private static void AssertSchemaNameValid(ISchema schema, NameString expectedSchemaName)
+    private static void AssertSchemaNameValid(ISchema schema, string expectedSchemaName)
     {
         if (!schema.Name.EqualsOrdinal(expectedSchemaName))
         {
@@ -388,7 +388,7 @@ internal sealed class RequestExecutorResolver
     }
 
     private RequestDelegate CreatePipeline(
-        NameString schemaName,
+        string schemaName,
         IList<RequestCoreMiddleware> pipeline,
         IServiceProvider schemaServices,
         IRequestExecutorOptionsAccessor options)
@@ -469,9 +469,9 @@ internal sealed class RequestExecutorResolver
 
     private sealed class SetSchemaNameInterceptor : TypeInterceptor
     {
-        private readonly NameString _schemaName;
+        private readonly string _schemaName;
 
-        public SetSchemaNameInterceptor(NameString schemaName)
+        public SetSchemaNameInterceptor(string schemaName)
         {
             _schemaName = schemaName;
         }
@@ -494,13 +494,13 @@ internal sealed class RequestExecutorResolver
         private readonly RequestExecutorResolver _resolver;
         private bool _disposed;
 
-        public TypeModuleChangeMonitor(RequestExecutorResolver resolver, NameString schemaName)
+        public TypeModuleChangeMonitor(RequestExecutorResolver resolver, string schemaName)
         {
             _resolver = resolver;
             SchemaName = schemaName;
         }
 
-        public NameString SchemaName { get; }
+        public string SchemaName { get; }
 
         public void Register(ITypeModule typeModule)
         {

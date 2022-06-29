@@ -25,7 +25,7 @@ internal sealed class NamePathSegmentPool : DefaultObjectPool<PathSegmentBuffer<
 
     private sealed class NamePathSegmentPolicy : IPooledObjectPolicy<NamePathSegment>
     {
-        private readonly string _default = new("default");
+        private readonly string _default = "default";
 
         public NamePathSegment Create() => new();
 

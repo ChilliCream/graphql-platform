@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -12,7 +13,7 @@ internal partial class MiddlewareContext
     private sealed class PureResolverContext : IPureResolverContext
     {
         private readonly MiddlewareContext _parentContext;
-        private IReadOnlyDictionary<NameString, ArgumentValue> _argumentValues = default!;
+        private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = default!;
         private ISelection _selection = default!;
         private Path _path = default!;
         private ObjectType _parentType = default!;
@@ -89,8 +90,13 @@ internal partial class MiddlewareContext
             };
         }
 
-        public T ArgumentValue<T>(NameString name)
+        public T ArgumentValue<T>(string name)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
@@ -99,9 +105,14 @@ internal partial class MiddlewareContext
             return CoerceArgumentValue<T>(argument);
         }
 
-        public TValueNode ArgumentLiteral<TValueNode>(NameString name)
+        public TValueNode ArgumentLiteral<TValueNode>(string name)
             where TValueNode : IValueNode
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
@@ -118,8 +129,13 @@ internal partial class MiddlewareContext
                 _selection.SyntaxNode, _path, name, typeof(TValueNode), literal.GetType());
         }
 
-        public Optional<T> ArgumentOptional<T>(NameString name)
+        public Optional<T> ArgumentOptional<T>(string name)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
@@ -130,7 +146,7 @@ internal partial class MiddlewareContext
                 : new Optional<T>(CoerceArgumentValue<T>(argument));
         }
 
-        public ValueKind ArgumentKind(NameString name)
+        public ValueKind ArgumentKind(string name)
         {
             if (!_argumentValues.TryGetValue(name, out var argument))
             {

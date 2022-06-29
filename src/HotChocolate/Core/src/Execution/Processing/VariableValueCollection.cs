@@ -18,7 +18,7 @@ internal class VariableValueCollection : IVariableValueCollection
     public static VariableValueCollection Empty { get; } =
         new(new Dictionary<string, VariableValueOrLiteral>());
 
-    public T? GetVariable<T>(NameString name)
+    public T? GetVariable<T>(string name)
     {
         if (TryGetVariable(name, out T? value))
         {
@@ -33,9 +33,14 @@ internal class VariableValueCollection : IVariableValueCollection
         throw ThrowHelper.VariableNotFound(name);
     }
 
-    public bool TryGetVariable<T>(NameString name, out T? value)
+    public bool TryGetVariable<T>(string name, out T? value)
     {
-        if (_coercedValues.TryGetValue(name.Value, out var variableValue))
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        if (_coercedValues.TryGetValue(name, out var variableValue))
         {
             var requestedType = typeof(T);
 

@@ -95,7 +95,7 @@ internal static class ThrowHelper
         new(ThrowHelper_QueryTypeNotSupported_Message);
 
     public static GraphQLException VariableNotFound(
-        NameString variableName) =>
+        string variableName) =>
         new(ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_VariableNotFound_Message,
@@ -103,7 +103,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException VariableNotOfType(
-        NameString variableName,
+        string variableName,
         Type type) =>
         new(ErrorBuilder.New()
             .SetMessage(
@@ -134,7 +134,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException ResolverContext_LiteralsNotSupported(
-        FieldNode field, Path path, NameString argumentName, Type requestedType) =>
+        FieldNode field, Path path, string argumentName, Type requestedType) =>
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_ResolverContext_LiteralsNotSupported_Message)
             .SetPath(path)
@@ -145,7 +145,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException ResolverContext_CannotConvertArgument(
-        FieldNode field, Path path, NameString argumentName, Type requestedType) =>
+        FieldNode field, Path path, string argumentName, Type requestedType) =>
         new(ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_ResolverContext_CannotConvertArgument_Message,
@@ -159,7 +159,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException ResolverContext_LiteralNotCompatible(
-        FieldNode field, Path path, NameString argumentName,
+        FieldNode field, Path path, string argumentName,
         Type requestedType, Type actualType) =>
         new(ErrorBuilder.New()
             .SetMessage(
@@ -175,7 +175,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException ResolverContext_ArgumentDoesNotExist(
-        FieldNode field, Path path, NameString argumentName) =>
+        FieldNode field, Path path, string argumentName) =>
         new(ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_ResolverContext_ArgumentDoesNotExist_Message,
@@ -188,7 +188,7 @@ internal static class ThrowHelper
             .Build());
 
     public static InvalidOperationException RequestExecutorResolver_SchemaNameDoesNotMatch(
-        NameString configurationSchemaName, NameString schemaName) =>
+        string configurationSchemaName, string schemaName) =>
         new("The schema name must align with the schema name expected by the configuration.");
 
     public static GraphQLException OperationResolverHelper_NoOperationFound(

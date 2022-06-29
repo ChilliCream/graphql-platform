@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
 

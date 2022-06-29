@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
@@ -11,7 +12,7 @@ internal static class ArgumentCoercionHelper
     public static bool TryCoerceArguments(
         this IArgumentMap arguments,
         IResolverContext resolverContext,
-        [NotNullWhen(true)] out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs)
+        [NotNullWhen(true)] out IReadOnlyDictionary<string, ArgumentValue>? coercedArgs)
     {
         if (arguments.IsFinalNoErrors)
         {
@@ -37,7 +38,7 @@ internal static class ArgumentCoercionHelper
 
         // if there are arguments that have variables and need variable replacement we will
         // rewrite the arguments that need variable replacement.
-        Dictionary<NameString, ArgumentValue> args = new();
+        Dictionary<string, ArgumentValue> args = new(StringComparer.Ordinal);
 
         foreach (var argument in arguments.Values)
         {

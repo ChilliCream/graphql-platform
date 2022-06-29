@@ -46,7 +46,7 @@ internal sealed class Operation : IOperation
 
     public ObjectType RootType { get; }
 
-    public NameString? Name { get; }
+    public string? Name { get; }
 
     public OperationType Type { get; }
 

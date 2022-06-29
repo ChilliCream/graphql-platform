@@ -268,7 +268,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
     private static void WritePathValue(Utf8JsonWriter writer, Path path)
     {
-        if (path is not null && path.IsRoot)
+        if (path.IsRoot)
         {
             writer.WriteStartArray();
             writer.WriteEndArray();
@@ -283,10 +283,6 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         {
             switch (list[i])
             {
-                case NameString n:
-                    writer.WriteStringValue(n.Value);
-                    break;
-
                 case string s:
                     writer.WriteStringValue(s);
                     break;
@@ -470,10 +466,6 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
             case bool b:
                 writer.WriteBooleanValue(b);
-                break;
-
-            case NameString n:
-                writer.WriteStringValue(n.Value);
                 break;
 
             case Uri u:

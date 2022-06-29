@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Processing;
 public class Selection : ISelection
 {
     private static readonly ArgumentMap _emptyArguments =
-        new(new Dictionary<NameString, ArgumentValue>());
+        new(new Dictionary<string, ArgumentValue>());
 
     private long[] _includeConditions;
     private Flags _flags;
@@ -25,7 +25,7 @@ public class Selection : ISelection
         IObjectField field,
         IType type,
         FieldNode syntaxNode,
-        NameString responseName,
+        string responseName,
         IArgumentMap? arguments = null,
         long includeCondition = 0,
         bool isInternal = false,
@@ -103,7 +103,7 @@ public class Selection : ISelection
     public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
 
     /// <inheritdoc />
-    public NameString ResponseName { get; }
+    public string ResponseName { get; }
 
     /// <inheritdoc />
     public FieldDelegate? ResolverPipeline { get; private set; }

@@ -35,15 +35,15 @@ internal sealed class DirectiveContext : IDirectiveContext
 
     public T Parent<T>() => _middlewareContext.Parent<T>();
 
-    public T ArgumentValue<T>(NameString name) => _middlewareContext.ArgumentValue<T>(name);
+    public T ArgumentValue<T>(string name) => _middlewareContext.ArgumentValue<T>(name);
 
-    public TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode
+    public TValueNode ArgumentLiteral<TValueNode>(string name) where TValueNode : IValueNode
         => _middlewareContext.ArgumentLiteral<TValueNode>(name);
 
-    public Optional<T> ArgumentOptional<T>(NameString name)
+    public Optional<T> ArgumentOptional<T>(string name)
         => _middlewareContext.ArgumentOptional<T>(name);
 
-    public ValueKind ArgumentKind(NameString name) => _middlewareContext.ArgumentKind(name);
+    public ValueKind ArgumentKind(string name) => _middlewareContext.ArgumentKind(name);
 
     public T Service<T>() => _middlewareContext.Service<T>();
 
@@ -55,7 +55,7 @@ internal sealed class DirectiveContext : IDirectiveContext
         set => _middlewareContext.Services = value;
     }
 
-    public NameString ResponseName => _middlewareContext.ResponseName;
+    public string ResponseName => _middlewareContext.ResponseName;
 
     public bool HasErrors => _middlewareContext.HasErrors;
 
@@ -112,7 +112,7 @@ internal sealed class DirectiveContext : IDirectiveContext
     public void RegisterForCleanup(Action action)
         => _middlewareContext.RegisterForCleanup(action);
 
-    public IReadOnlyDictionary<NameString, ArgumentValue> ReplaceArguments(
-        IReadOnlyDictionary<NameString, ArgumentValue> argumentValues)
+    public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
+        IReadOnlyDictionary<string, ArgumentValue> argumentValues)
         => _middlewareContext.ReplaceArguments(argumentValues);
 }
