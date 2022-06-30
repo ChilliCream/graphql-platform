@@ -6,9 +6,9 @@ namespace HotChocolate.Types.Sorting;
 [Obsolete("Use HotChocolate.Data.")]
 public abstract class SortingNamingConventionBase : ISortingNamingConvention
 {
-    public virtual string SortKindAscName { get; } = "ASC";
+    public virtual string SortKindAscName => "ASC";
 
-    public virtual string SortKindDescName { get; } = "DESC";
+    public virtual string SortKindDescName => "DESC";
 
     public abstract string ArgumentName { get; }
 

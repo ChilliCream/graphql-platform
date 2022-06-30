@@ -22,7 +22,7 @@ public class MongoDbListAllOperationHandler : MongoDbListOperationHandlerBase
         string path)
     {
         var negatedChilds = new List<MongoDbFilterDefinition>();
-        Queue<MongoDbFilterDefinition> level = scope.Level.Peek();
+        var level = scope.Level.Peek();
 
         while (level.Count > 0)
         {

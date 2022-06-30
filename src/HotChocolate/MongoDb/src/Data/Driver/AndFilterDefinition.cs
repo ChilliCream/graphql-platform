@@ -44,8 +44,8 @@ public sealed class AndFilterDefinition : MongoDbFilterDefinition
 
         foreach (var filter in _filters)
         {
-            BsonDocument renderedFilter = filter.Render(documentSerializer, serializerRegistry);
-            foreach (BsonElement clause in renderedFilter)
+            var renderedFilter = filter.Render(documentSerializer, serializerRegistry);
+            foreach (var clause in renderedFilter)
             {
                 AddClause(document, clause);
             }
@@ -61,7 +61,7 @@ public sealed class AndFilterDefinition : MongoDbFilterDefinition
             // flatten out nested $and
             foreach (var item in (BsonArray)clause.Value)
             {
-                foreach (BsonElement element in (BsonDocument)item)
+                foreach (var element in (BsonDocument)item)
                 {
                     AddClause(document, element);
                 }
@@ -73,7 +73,7 @@ public sealed class AndFilterDefinition : MongoDbFilterDefinition
         }
         else if (document.Contains(clause.Name))
         {
-            BsonElement existingClause = document.GetElement(clause.Name);
+            var existingClause = document.GetElement(clause.Name);
             if (existingClause.Value is BsonDocument existingClauseValue &&
                 clause.Value is BsonDocument clauseValue)
             {
@@ -104,7 +104,7 @@ public sealed class AndFilterDefinition : MongoDbFilterDefinition
     private static void PromoteFilterToDollarForm(BsonDocument document, BsonElement clause)
     {
         var clauses = new BsonArray();
-        foreach (BsonElement queryElement in document)
+        foreach (var queryElement in document)
         {
             clauses.Add(new BsonDocument(queryElement));
         }
