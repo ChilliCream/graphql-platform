@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Projections.Context;
 /// <summary>
 /// Represents a field that is selected in a query in the context of an operation.
 /// <remarks>
-/// The difference between <see cref="ISelectedField"/> and <see cref="IFieldSelection"/> is that
+/// The difference between <see cref="ISelectedField"/> and <see cref="ISelection"/> is that
 /// <see cref="ISelectedField"/> is specific to the current request/operation and not cached. This
 /// makes it possible to recursively iterate through the selected fields by calling
 /// <see cref="ISelectedField.GetFields"/>.
