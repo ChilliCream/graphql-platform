@@ -10,7 +10,7 @@ public interface IRequestExecutorBuilder
     /// <summary>
     /// Gets the name of the schema.
     /// </summary>
-    NameString Name { get; }
+    string Name { get; }
 
     /// <summary>
     /// Gets the application services.

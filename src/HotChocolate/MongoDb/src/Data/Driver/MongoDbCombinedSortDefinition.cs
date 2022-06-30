@@ -31,9 +31,9 @@ public sealed class MongoDbCombinedSortDefinition : MongoDbSortDefinition
 
         foreach (var sort in _sorts)
         {
-            BsonDocument renderedSort = sort.Render(documentSerializer, serializerRegistry);
+            var renderedSort = sort.Render(documentSerializer, serializerRegistry);
 
-            foreach (BsonElement element in renderedSort.Elements)
+            foreach (var element in renderedSort.Elements)
             {
                 // the last sort always wins, and we need to make sure that order is preserved.
                 document.Remove(element.Name);

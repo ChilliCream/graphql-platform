@@ -27,7 +27,7 @@ public class DirectiveTypeTests : TypeTestBase
         Assert.NotEmpty(directiveType.MiddlewareComponents);
         Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
         Assert.Collection(directiveType.Arguments,
-            t => Assert.Equal("argument", t.Name.Value));
+            t => Assert.Equal("argument", t.Name));
     }
 
     [Fact]

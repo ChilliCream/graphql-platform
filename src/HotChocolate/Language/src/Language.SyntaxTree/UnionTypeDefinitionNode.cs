@@ -60,12 +60,12 @@ public sealed class UnionTypeDefinitionNode : UnionTypeDefinitionNodeBase, IType
 
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
 
-        foreach (NamedTypeNode type in Types)
+        foreach (var type in Types)
         {
             yield return type;
         }

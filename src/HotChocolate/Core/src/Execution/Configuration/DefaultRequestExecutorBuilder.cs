@@ -6,13 +6,13 @@ internal class DefaultRequestExecutorBuilder : IRequestExecutorBuilder
 {
     public DefaultRequestExecutorBuilder(
         IServiceCollection services,
-        NameString name)
+        string name)
     {
         Services = services;
         Name = name;
     }
 
-    public NameString Name { get; }
+    public string Name { get; }
 
     public IServiceCollection Services { get; }
 }

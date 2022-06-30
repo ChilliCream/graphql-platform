@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types.Directives;
@@ -14,7 +15,7 @@ public class SpecedDirectiveTypeTests : TypeTestBase
         // act
         var directive =
             schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.Equals("skip"));
+                t => t.Name.EqualsOrdinal("skip"));
 
         // assert
         Assert.NotNull(directive);
@@ -42,7 +43,7 @@ public class SpecedDirectiveTypeTests : TypeTestBase
         // act
         var directive =
             schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.Equals("include"));
+                t => t.Name.EqualsOrdinal("include"));
 
         // assert
         Assert.NotNull(directive);

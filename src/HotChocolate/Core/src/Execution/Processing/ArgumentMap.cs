@@ -9,9 +9,9 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class ArgumentMap : IArgumentMap
 {
-    private readonly IReadOnlyDictionary<NameString, ArgumentValue> _arguments;
+    private readonly IReadOnlyDictionary<string, ArgumentValue> _arguments;
 
-    public ArgumentMap(IReadOnlyDictionary<NameString, ArgumentValue> arguments)
+    public ArgumentMap(IReadOnlyDictionary<string, ArgumentValue> arguments)
     {
         _arguments = arguments;
         IsFinal = true;
@@ -33,7 +33,7 @@ internal sealed class ArgumentMap : IArgumentMap
         }
     }
 
-    public ArgumentValue this[NameString key] => _arguments[key];
+    public ArgumentValue this[string key] => _arguments[key];
 
     public bool IsFinalNoErrors => IsFinal && !HasErrors;
 
@@ -41,18 +41,18 @@ internal sealed class ArgumentMap : IArgumentMap
 
     public bool HasErrors { get; }
 
-    public IEnumerable<NameString> Keys => _arguments.Keys;
+    public IEnumerable<string> Keys => _arguments.Keys;
 
     public IEnumerable<ArgumentValue> Values => _arguments.Values;
 
     public int Count => _arguments.Count;
 
-    public bool ContainsKey(NameString key) => _arguments.ContainsKey(key);
+    public bool ContainsKey(string key) => _arguments.ContainsKey(key);
 
-    public bool TryGetValue(NameString key, [MaybeNullWhen(false)] out ArgumentValue value)
+    public bool TryGetValue(string key, [MaybeNullWhen(false)] out ArgumentValue value)
         => _arguments.TryGetValue(key, out value);
 
-    public IEnumerator<KeyValuePair<NameString, ArgumentValue>> GetEnumerator()
+    public IEnumerator<KeyValuePair<string, ArgumentValue>> GetEnumerator()
         => _arguments.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

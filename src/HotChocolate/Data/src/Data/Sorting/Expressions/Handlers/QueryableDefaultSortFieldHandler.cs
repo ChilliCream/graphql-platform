@@ -43,7 +43,7 @@ public class QueryableDefaultSortFieldHandler
             throw ThrowHelper.Sorting_InvalidState_ParentIsNoFieldSelector(field);
         }
 
-        Expression lastSelector = lastFieldSelector.Selector;
+        var lastSelector = lastFieldSelector.Selector;
         Expression nextSelector;
         if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression })
         {

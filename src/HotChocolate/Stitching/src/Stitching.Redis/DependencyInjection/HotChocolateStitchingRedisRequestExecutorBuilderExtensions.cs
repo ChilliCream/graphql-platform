@@ -24,9 +24,9 @@ public static class HotChocolateStitchingRedisRequestExecutorBuilderExtensions
 
         builder.Services.AddSingleton<IRequestExecutorOptionsProvider>(sp =>
         {
-            IConnectionMultiplexer connection = connectionFactory(sp);
-            IDatabase database = connection.GetDatabase();
-            ISubscriber subscriber = connection.GetSubscriber();
+            var connection = connectionFactory(sp);
+            var database = connection.GetDatabase();
+            var subscriber = connection.GetSubscriber();
             return new RedisExecutorOptionsProvider(
                 builder.Name, configurationName, database, subscriber);
         });

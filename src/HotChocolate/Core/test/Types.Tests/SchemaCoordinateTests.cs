@@ -252,7 +252,7 @@ public class SchemaCoordinateTests
         var member = schema.GetMember("Abc.DEF");
 
         // assert
-        Assert.Equal("DEF", Assert.IsType<EnumValue>(member).Name.Value);
+        Assert.Equal("DEF", Assert.IsType<EnumValue>(member).Name);
     }
 
     [Fact]
@@ -602,7 +602,7 @@ public class SchemaCoordinateTests
 
         // assert
         Assert.True(success);
-        Assert.Equal("DEF", Assert.IsType<EnumValue>(member).Name.Value);
+        Assert.Equal("DEF", Assert.IsType<EnumValue>(member).Name);
     }
 
     [Fact]

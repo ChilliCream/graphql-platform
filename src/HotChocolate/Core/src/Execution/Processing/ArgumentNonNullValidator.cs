@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -78,7 +79,7 @@ internal static class ArgumentNonNullValidator
         ObjectValueNode value,
         Path path)
     {
-        var fields = new Dictionary<NameString, IValueNode>();
+        var fields = new Dictionary<string, IValueNode>(StringComparer.Ordinal);
 
         for (var i = 0; i < value.Fields.Count; i++)
         {

@@ -84,7 +84,7 @@ public static class SyntaxNodeExtensions
 
     public static NamedTypeNode NamedType(this ITypeNode type)
     {
-        ITypeNode innerType = InnerTypeInternal(type);
+        var innerType = InnerTypeInternal(type);
 
         if (innerType.Kind is SyntaxKind.NamedType)
         {

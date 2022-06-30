@@ -66,7 +66,7 @@ public ref partial struct Utf8GraphQLRequestParser
                     var name = _reader.GetString();
                     _reader.MoveNext();
                     _reader.Expect(TokenKind.Colon);
-                    IValueNode value = ParseValueSyntax();
+                    var value = ParseValueSyntax();
                     obj.Add(name, value);
                 }
 

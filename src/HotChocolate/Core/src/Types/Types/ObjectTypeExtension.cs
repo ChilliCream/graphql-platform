@@ -6,6 +6,7 @@ using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -21,8 +22,7 @@ namespace HotChocolate.Types;
 /// which is itself an extension of another GraphQL service.
 /// </para>
 /// </summary>
-public class ObjectTypeExtension
-    : NamedTypeExtensionBase<ObjectTypeDefinition>
+public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
 {
     private Action<IObjectTypeDescriptor>? _configure;
 
@@ -134,7 +134,7 @@ public class ObjectTypeExtension
                 {
                     case ObjectFieldBindingType.Field:
                         if (typeDef.Fields.FirstOrDefault(
-                            t => t.Name.Equals(binding.Name)) is { } f)
+                            t => t.Name.EqualsOrdinal(binding.Name)) is { } f)
                         {
                             fields.Add(f);
                         }
@@ -143,7 +143,7 @@ public class ObjectTypeExtension
                     case ObjectFieldBindingType.Property:
                         if (typeDef.Fields.FirstOrDefault(
                             t => t.Member != null &&
-                                binding.Name.Equals(t.Member.Name)) is { } p)
+                                binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
                         {
                             fields.Add(p);
                         }

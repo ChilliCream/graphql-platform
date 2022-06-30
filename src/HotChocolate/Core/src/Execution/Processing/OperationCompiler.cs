@@ -29,7 +29,7 @@ public sealed partial class OperationCompiler
     private int _nextSelectionSetId;
     private int _nextFragmentId;
 
-    internal OperationCompiler(InputParser parser)
+    public OperationCompiler(InputParser parser)
     {
         _parser = parser ?? throw new ArgumentNullException(nameof(parser));
     }

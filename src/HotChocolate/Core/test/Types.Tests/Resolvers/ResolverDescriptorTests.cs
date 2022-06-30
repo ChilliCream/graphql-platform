@@ -17,8 +17,8 @@ public class ResolverDescriptorTests
         Assert.Equal(typeof(string), descriptor.SourceType);
         Assert.Null(descriptor.ResolverType);
         Assert.NotNull(descriptor.Field.Member);
-        Assert.Equal("a", descriptor.Field.TypeName.Value);
-        Assert.Equal("b", descriptor.Field.FieldName.Value);
+        Assert.Equal("a", descriptor.Field.TypeName);
+        Assert.Equal("b", descriptor.Field.FieldName);
     }
 
     [Fact]
@@ -31,8 +31,8 @@ public class ResolverDescriptorTests
         Assert.Equal(typeof(string), descriptor.SourceType);
         Assert.Null(descriptor.ResolverType);
         Assert.NotNull(descriptor.Field.Member);
-        Assert.Equal("a", descriptor.Field.TypeName.Value);
-        Assert.Equal("b", descriptor.Field.FieldName.Value);
+        Assert.Equal("a", descriptor.Field.TypeName);
+        Assert.Equal("b", descriptor.Field.FieldName);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class ResolverDescriptorTests
         Assert.Equal(typeof(string), descriptor.SourceType);
         Assert.Equal(typeof(int), descriptor.ResolverType);
         Assert.NotNull(descriptor.Field.Member);
-        Assert.Equal("a", descriptor.Field.TypeName.Value);
-        Assert.Equal("b", descriptor.Field.FieldName.Value);
+        Assert.Equal("a", descriptor.Field.TypeName);
+        Assert.Equal("b", descriptor.Field.FieldName);
     }
 }

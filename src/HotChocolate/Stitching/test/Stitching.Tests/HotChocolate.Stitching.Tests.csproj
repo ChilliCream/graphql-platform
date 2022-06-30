@@ -9,7 +9,6 @@
     <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\Stitching.Redis\HotChocolate.Stitching.Redis.csproj" />
-    <ProjectReference Include="..\..\src\Stitching\HotChocolate.Stitching.csproj" />
   </ItemGroup>
 
   <ItemGroup>

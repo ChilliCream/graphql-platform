@@ -172,7 +172,7 @@ internal sealed partial class ResultHelper : IResultHelper
             {
                 if (parent is ResultMap map && path is NamePathSegment nameSegment)
                 {
-                    var value = map.GetValue(nameSegment.Name.Value, out var index);
+                    var value = map.GetValue(nameSegment.Name, out var index);
 
                     if (value.IsNullable)
                     {

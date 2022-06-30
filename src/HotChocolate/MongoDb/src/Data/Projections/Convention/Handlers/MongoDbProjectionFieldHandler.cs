@@ -19,7 +19,7 @@ public class MongoDbProjectionFieldHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
         context.Path.Push(field.GetName());
         action = SelectionVisitor.Continue;
         return true;

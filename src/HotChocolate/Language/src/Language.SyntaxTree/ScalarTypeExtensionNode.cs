@@ -41,7 +41,7 @@ public sealed class ScalarTypeExtensionNode : NamedSyntaxNode, ITypeExtensionNod
     {
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

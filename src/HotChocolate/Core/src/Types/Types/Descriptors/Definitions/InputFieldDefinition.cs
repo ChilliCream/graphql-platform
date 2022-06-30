@@ -20,7 +20,7 @@ public class InputFieldDefinition : ArgumentDefinition
     /// Initializes a new instance of <see cref="InputFieldDefinition"/>.
     /// </summary>
     public InputFieldDefinition(
-        NameString name,
+        string name,
         string? description = null,
         ITypeReference? type = null,
         IValueNode? defaultValue = null,

@@ -67,7 +67,7 @@ public interface IPureResolverContext : IHasContextData
     /// <returns>
     /// Returns the value of the specified field argument as literal.
     /// </returns>
-    T ArgumentValue<T>(NameString name);
+    T ArgumentValue<T>(string name);
 
     /// <summary>
     /// Gets a specific field argument as literal.
@@ -81,7 +81,7 @@ public interface IPureResolverContext : IHasContextData
     /// <returns>
     /// Returns the value of the specified field argument as literal.
     /// </returns>
-    TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode;
+    TValueNode ArgumentLiteral<TValueNode>(string name) where TValueNode : IValueNode;
 
     /// <summary>
     /// Gets a specific field argument as optional.
@@ -95,7 +95,7 @@ public interface IPureResolverContext : IHasContextData
     /// <returns>
     /// Returns the value of the specified field argument as optional.
     /// </returns>
-    Optional<T> ArgumentOptional<T>(NameString name);
+    Optional<T> ArgumentOptional<T>(string name);
 
     /// <summary>
     /// Gets the value kind of a specific field argument.
@@ -106,7 +106,7 @@ public interface IPureResolverContext : IHasContextData
     /// <returns>
     /// Returns the value kind of the specified field argument kind.
     /// </returns>
-    ValueKind ArgumentKind(NameString name);
+    ValueKind ArgumentKind(string name);
 
     /// <summary>
     /// Gets as required service from the dependency injection container.

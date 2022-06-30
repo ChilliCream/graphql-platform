@@ -73,7 +73,7 @@ public partial class CypherVisitor
 
     private bool PreEnter(IVisitable visitable)
     {
-        _currentAliasedElements.TryPeek(out AliasedExpression lastAliased);
+        _currentAliasedElements.TryPeek(out var lastAliased);
         if (_skipNodeContent || _visitableToAliased.Contains(lastAliased))
         {
             return false;

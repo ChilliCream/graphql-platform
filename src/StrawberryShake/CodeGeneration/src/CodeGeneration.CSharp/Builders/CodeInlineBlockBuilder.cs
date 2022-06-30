@@ -27,7 +27,7 @@ public class CodeInlineBlockBuilder : ICode
             throw new ArgumentNullException(nameof(writer));
         }
 
-        foreach (ICode code in _lineParts)
+        foreach (var code in _lineParts)
         {
             code.Build(writer);
         }

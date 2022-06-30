@@ -69,7 +69,7 @@ public static class RelayIdFieldExtensions
     /// </param>
     public static IInputFieldDescriptor ID(
         this IInputFieldDescriptor descriptor,
-        NameString typeName = default)
+        string? typeName = default)
     {
         if (descriptor is null)
         {
@@ -88,7 +88,7 @@ public static class RelayIdFieldExtensions
     /// </param>
     public static IArgumentDescriptor ID(
         this IArgumentDescriptor descriptor,
-        NameString typeName = default)
+        string? typeName = default)
     {
         if (descriptor is null)
         {
@@ -107,7 +107,7 @@ public static class RelayIdFieldExtensions
     /// </param>
     public static IObjectFieldDescriptor ID(
         this IObjectFieldDescriptor descriptor,
-        NameString typeName = default)
+        string? typeName = default)
     {
         if (descriptor is null)
         {

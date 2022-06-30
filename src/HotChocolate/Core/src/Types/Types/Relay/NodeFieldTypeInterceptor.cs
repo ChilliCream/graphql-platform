@@ -3,18 +3,16 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.WellKnownContextData;
@@ -24,10 +22,10 @@ namespace HotChocolate.Types.Relay;
 internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
     private static readonly Task<object?> _nullTask = Task.FromResult<object?>(null);
-    private static NameString Node => "node";
-    private static NameString Nodes => "nodes";
-    private static NameString Id => "id";
-    private static NameString Ids => "ids";
+    private static string Node => "node";
+    private static string Nodes => "nodes";
+    private static string Id => "id";
+    private static string Ids => "ids";
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
@@ -44,7 +42,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 new IdSerializer();
 
             var typeNameField = objectTypeDefinition.Fields.First(
-                t => t.Name.Equals(IntrospectionFields.TypeName) && t.IsIntrospectionField);
+                t => t.Name.EqualsOrdinal(IntrospectionFields.TypeName) &&
+                    t.IsIntrospectionField);
             var index = objectTypeDefinition.Fields.IndexOf(typeNameField);
 
             CreateNodeField(typeInspector, serializer, objectTypeDefinition.Fields, index + 1);
@@ -96,7 +95,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     private static async ValueTask<object?> ResolveSingleNode(
         IResolverContext context,
         IIdSerializer serializer,
-        NameString argumentName)
+        string argumentName)
     {
         var nodeId = context.ArgumentLiteral<StringValueNode>(argumentName);
         var deserializedId = serializer.Deserialize(nodeId.Value);
@@ -107,7 +106,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         context.SetLocalState(InternalType, typeName);
         context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
 
-        if (context.Schema.TryGetType<ObjectType>(typeName, out var type) &&
+        if (context.Schema.TryGetType<ObjectType>(typeName!, out var type) &&
             type.ContextData.TryGetValue(NodeResolver, out var o) &&
             o is FieldResolverDelegate resolver)
         {
@@ -144,7 +143,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                     context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
 
                     tasks[i] =
-                        context.Schema.TryGetType<ObjectType>(typeName, out var type) &&
+                        context.Schema.TryGetType<ObjectType>(typeName!, out var type) &&
                         type.ContextData.TryGetValue(NodeResolver, out var o) &&
                         o is FieldResolverDelegate resolver
                             ? resolver.Invoke(new ResolverContextProxy(context)).AsTask()

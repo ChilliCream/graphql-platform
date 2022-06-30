@@ -49,8 +49,8 @@ internal sealed class WebSocketSession : ISocketSession
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             context.RequestAborted,
             connection.ApplicationStopping);
-        CancellationToken ct = cts.Token;
-        IProtocolHandler? protocol = await connection.TryAcceptConnection();
+        var ct = cts.Token;
+        var protocol = await connection.TryAcceptConnection();
 
         if (protocol is not null)
         {

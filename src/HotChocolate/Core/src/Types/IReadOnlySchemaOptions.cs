@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 #nullable enable

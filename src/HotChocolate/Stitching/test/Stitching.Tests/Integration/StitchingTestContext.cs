@@ -12,7 +12,6 @@ using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using WebSocketClient = Microsoft.AspNetCore.TestHost.WebSocketClient;
 

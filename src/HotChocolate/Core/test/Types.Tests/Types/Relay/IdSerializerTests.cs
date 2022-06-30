@@ -13,10 +13,10 @@ public class IdSerializerTests
         var serializer = new IdSerializer();
 
         // act
-        Action a = () => serializer.Serialize("", 123);
+        void Action() => serializer.Serialize("", 123);
 
         // assert
-        Assert.Throws<ArgumentException>(a);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -39,23 +39,21 @@ public class IdSerializerTests
         var serializer = new IdSerializer();
 
         // act
-        Action a = () => serializer.Deserialize(null);
+        void Action() => serializer.Deserialize(null);
 
         // assert
-        Assert.Throws<ArgumentNullException>(a);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
     public void IsPossibleBase64String_sIsNull_ArgumentNullException()
     {
         // arrange
-        var serializer = new IdSerializer();
-
         // act
-        Action a = () => IdSerializer.IsPossibleBase64String(null);
+        void Action() => IdSerializer.IsPossibleBase64String(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(a);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [InlineData("123", "\0Bar\nFoo\nd123")]
@@ -63,16 +61,15 @@ public class IdSerializerTests
     public void SerializeIdValueWithSchemaName(object id, string expected)
     {
         // arrange
-        NameString schema = "Bar";
-        NameString typeName = "Foo";
+        var schema = "Bar";
+        var typeName = "Foo";
         var serializer = new IdSerializer(includeSchemaName: true);
 
         // act
         var serializedId = serializer.Serialize(schema, typeName, id);
 
         // assert
-        var unwrapped = Encoding.UTF8.GetString(
-            Convert.FromBase64String(serializedId));
+        var unwrapped = Encoding.UTF8.GetString(Convert.FromBase64String(serializedId!));
         Assert.Equal(expected, unwrapped);
     }
 
@@ -103,7 +100,7 @@ public class IdSerializerTests
     public void SerializeIdValue(object id, string expected)
     {
         // arrange
-        NameString typeName = "Foo";
+        var typeName = "Foo";
         var serializer = new IdSerializer();
 
         // act
@@ -111,7 +108,7 @@ public class IdSerializerTests
 
         // assert
         var unwrapped = Encoding.UTF8.GetString(
-            Convert.FromBase64String(serializedId));
+            Convert.FromBase64String(serializedId!));
         Assert.Equal(expected, unwrapped);
     }
 
@@ -121,7 +118,7 @@ public class IdSerializerTests
         // arrange
         object id = long.MaxValue;
         var expected = "Foo\nl" + id;
-        NameString typeName = "Foo";
+        var typeName = "Foo";
         var serializer = new IdSerializer();
 
         // act
@@ -129,7 +126,7 @@ public class IdSerializerTests
 
         // assert
         var unwrapped = Encoding.UTF8.GetString(
-            Convert.FromBase64String(serializedId));
+            Convert.FromBase64String(serializedId!));
         Assert.Equal(expected, unwrapped);
     }
 
@@ -138,7 +135,7 @@ public class IdSerializerTests
     public void SerializeGuidValue()
     {
         // arrange
-        NameString typeName = "Foo";
+        var typeName = "Foo";
         var id = new Guid("dad4f33d303345d7b7541d9ac23974d9");
         var serializer = new IdSerializer();
 
@@ -147,7 +144,7 @@ public class IdSerializerTests
 
         // assert
         var unwrapped = Encoding.UTF8.GetString(
-            Convert.FromBase64String(serializedId));
+            Convert.FromBase64String(serializedId!));
         Assert.Equal("Foo\ngdad4f33d303345d7b7541d9ac23974d9", unwrapped);
     }
 
@@ -200,8 +197,6 @@ public class IdSerializerTests
     public void IsPossibleBase64String(string serialized, bool valid)
     {
         // arrange
-        var serializer = new IdSerializer();
-
         // act
         var result = IdSerializer.IsPossibleBase64String(serialized);
 

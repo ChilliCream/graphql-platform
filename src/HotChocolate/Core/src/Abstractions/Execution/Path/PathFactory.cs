@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution;
 
@@ -37,9 +38,9 @@ public class PathFactory
     /// <param name="parent">The parent</param>
     /// <param name="name">The name of the path segment.</param>
     /// <returns>Returns a new path segment.</returns>
-    public NamePathSegment Append(Path parent, NameString name)
+    public NamePathSegment Append(Path parent, string name)
     {
-        name.EnsureNotEmpty(nameof(name));
+        name.EnsureGraphQLName();
 
         var indexer = CreateNamed();
 

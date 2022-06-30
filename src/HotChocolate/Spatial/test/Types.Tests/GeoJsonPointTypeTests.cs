@@ -15,7 +15,7 @@ public class GeoJsonPointTypeTests
     public async Task Point_Execution_Output_Scalar()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddQueryType(d => d
                 .Name("Query")
@@ -24,10 +24,10 @@ public class GeoJsonPointTypeTests
                 .Resolve(_geom))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test }");
 
         // assert
@@ -38,7 +38,7 @@ public class GeoJsonPointTypeTests
     public async Task Point_Execution_Output()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonPointType>()
@@ -48,10 +48,10 @@ public class GeoJsonPointTypeTests
                 .Resolve(_geom))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { type coordinates bbox crs }}");
 
         // assert
@@ -62,7 +62,7 @@ public class GeoJsonPointTypeTests
     public async Task Point_Execution_With_Fragments()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddSpatialTypes()
             .AddQueryType(d => d
@@ -71,10 +71,10 @@ public class GeoJsonPointTypeTests
                 .Type<GeoJsonPointType>()
                 .Resolve(_geom))
             .Create();
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { ... on Point { type coordinates bbox crs }}}");
 
         // assert
@@ -85,7 +85,7 @@ public class GeoJsonPointTypeTests
     public void Point_Execution_Tests()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonPointType>()

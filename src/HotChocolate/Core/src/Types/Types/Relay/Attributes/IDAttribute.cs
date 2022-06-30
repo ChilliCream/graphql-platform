@@ -89,7 +89,7 @@ public class IDAttribute : DescriptorAttribute
     /// Assuming `<c>User.id</c>` has the value 1. The following string is base64 encoded
     /// </para>
     /// </example>
-    public NameString TypeName { get; }
+    public string TypeName { get; }
 
     /// <inheritdoc />
     protected internal override void TryConfigure(

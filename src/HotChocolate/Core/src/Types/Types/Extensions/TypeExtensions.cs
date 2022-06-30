@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
@@ -235,7 +236,7 @@ public static class TypeExtensions
         return type.Kind != TypeKind.NonNull ? type : ((NonNullType)type).Type;
     }
 
-    public static NameString TypeName(this IType type)
+    public static string TypeName(this IType type)
     {
         if (type is null)
         {
@@ -327,7 +328,7 @@ public static class TypeExtensions
         {
             NonNullType xnn when y is NonNullType ynn => xnn.Type.IsEqualTo(ynn.Type),
             ListType xl when y is ListType yl => xl.ElementType.IsEqualTo(yl.ElementType),
-            INamedType xnt when y is INamedType ynt => xnt.Name.Equals(ynt.Name),
+            INamedType xnt when y is INamedType ynt => xnt.Name.EqualsOrdinal(ynt.Name),
             _ => false
         };
     }

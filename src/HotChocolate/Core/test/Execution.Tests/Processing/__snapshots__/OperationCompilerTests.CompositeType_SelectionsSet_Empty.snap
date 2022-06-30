@@ -8,7 +8,7 @@
 
 query foo($v: Boolean) {
   ... on Query {
-    hero(episode: EMPIRE) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+    hero(episode: EMPIRE) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
       ... on Human {
 
       }

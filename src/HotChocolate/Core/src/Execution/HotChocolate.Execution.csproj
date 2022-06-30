@@ -87,6 +87,75 @@
     <Compile Update="Processing\WorkScheduler.Pause.cs">
       <DependentUpon>WorkScheduler.cs</DependentUpon>
     </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Convention.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Document.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Middleware.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Paging.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Relay.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Resolvers.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.TypeInterceptor.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.TypeModules.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Types.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.DataLoader.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.ErrorFilter.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.IdSerializer.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Instrumentation.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Optimizer.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.ResolverCompiler.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.TransactionScope.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.TypeConversion.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.UseRequest.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Validation.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletion.Leaf.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletion.List.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletion.Object.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\ValueCompletion.Tools.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

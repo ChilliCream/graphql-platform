@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-    private readonly Dictionary<NameString, IEnumValue> _enumValues = new();
+    private readonly Dictionary<string, IEnumValue> _enumValues = new();
     private readonly Dictionary<object, IEnumValue> _valueLookup = new();
     private Action<IEnumTypeDescriptor>? _configure;
     private INamingConventions _naming = default!;

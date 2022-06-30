@@ -11,9 +11,9 @@ namespace HotChocolate.ConferencePlanner.Imports
             this IRequestExecutorBuilder builder) =>
             builder.ConfigureSchemaAsync(async (services, builder, ct) =>
             {
-                IDbContextFactory<ApplicationDbContext> factory =
+                var factory =
                     services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>();
-                using ApplicationDbContext dbContext = factory.CreateDbContext();
+                using var dbContext = factory.CreateDbContext();
 
                 if (await dbContext.Database.EnsureCreatedAsync(ct))
                 {

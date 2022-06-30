@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -30,13 +31,13 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
     public ObjectFieldDefinition(
-        NameString name,
+        string name,
         string? description = null,
         ITypeReference? type = null,
         FieldResolverDelegate? resolver = null,
         PureFieldDelegate? pureResolver = null)
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
         Type = type;
         Resolver = resolver;

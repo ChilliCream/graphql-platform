@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;
 
 public class SchemaTypeReferenceTests
@@ -140,7 +141,7 @@ public class SchemaTypeReferenceTests
         var x = TypeReference.Create(type);
 
         // act
-        var xx = x.Equals(TypeReference.Create(new NameType("foo")));
+        var xx = x.Equals(TypeReference.Create(new StringType("foo")));
 
         // assert
         Assert.False(xx);

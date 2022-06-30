@@ -25,7 +25,7 @@ public interface IResolverContext : IPureResolverContext
     /// Gets the name that the field will have in the response map.
     /// </summary>
     /// <value></value>
-    NameString ResponseName { get; }
+    string ResponseName { get; }
 
     /// <summary>
     /// Indicates that the context has errors. To report new errors use

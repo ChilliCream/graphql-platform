@@ -140,7 +140,7 @@ public sealed class DescriptorContext : IDescriptorContext
         {
             foreach (var sd in directives)
             {
-                _schemaDirectives[sd.Name.Value] = sd;
+                _schemaDirectives[sd.Name] = sd;
             }
 
             ContextData.Remove(SchemaDirectives);

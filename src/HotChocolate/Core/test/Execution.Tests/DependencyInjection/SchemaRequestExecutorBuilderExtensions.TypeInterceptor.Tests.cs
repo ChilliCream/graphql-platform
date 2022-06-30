@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
@@ -29,7 +30,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeRegisterDependencies(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -55,7 +56,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeRegisterDependencies<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -82,7 +83,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeRegisterDependencies(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -111,7 +112,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeRegisterDependencies<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -139,7 +140,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterRegisterDependencies(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -165,7 +166,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterRegisterDependencies<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -192,7 +193,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterRegisterDependencies(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -221,7 +222,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterRegisterDependencies<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -249,7 +250,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeCompleteName(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -275,7 +276,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeCompleteName<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -302,7 +303,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeCompleteName(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -331,7 +332,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeCompleteName<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -359,7 +360,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterCompleteName(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -385,7 +386,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterCompleteName<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -412,7 +413,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterCompleteName(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -441,7 +442,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterCompleteName<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -469,7 +470,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeCompleteType(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -495,7 +496,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeCompleteType<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -522,7 +523,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeCompleteType(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -551,7 +552,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeCompleteType<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -579,7 +580,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterCompleteType(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -605,7 +606,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterCompleteType<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -632,7 +633,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnAfterCompleteType(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }
@@ -661,7 +662,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
             .OnBeforeCompleteType<ObjectTypeDefinition>(
                 (_, def, _) =>
                 {
-                    if (def is not null && def.Name.Equals("Query"))
+                    if (def is not null && def.Name.EqualsOrdinal("Query"))
                     {
                         found = true;
                     }

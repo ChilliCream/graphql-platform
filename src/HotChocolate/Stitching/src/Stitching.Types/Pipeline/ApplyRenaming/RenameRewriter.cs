@@ -21,131 +21,159 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
         base.OnLeave(node, context);
     }
 
-    protected override ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
+    protected override ObjectTypeDefinitionNode? RewriteObjectTypeDefinition(
         ObjectTypeDefinitionNode node,
         RenameContext context)
     {
         var originalName = node.Name.Value;
 
-        node = base.RewriteObjectTypeDefinition(node, context);
+        var rewrittenNode = base.RewriteObjectTypeDefinition(node, context);
+        if (rewrittenNode is null)
+        {
+            return default;
+        }
 
         if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
         {
-            node = ApplyBindDirective(
-                node,
+            rewrittenNode = ApplyBindDirective(
+                rewrittenNode,
                 context,
                 originalName,
                 static (n, d) => n.WithDirectives(d));
         }
 
-        return node;
+        return rewrittenNode;
     }
 
-    protected override InterfaceTypeDefinitionNode RewriteInterfaceTypeDefinition(
+    protected override InterfaceTypeDefinitionNode? RewriteInterfaceTypeDefinition(
         InterfaceTypeDefinitionNode node,
         RenameContext context)
     {
         var originalName = node.Name.Value;
 
-        node = base.RewriteInterfaceTypeDefinition(node, context);
+        var rewrittenNode = base.RewriteInterfaceTypeDefinition(node, context);
+        if (rewrittenNode is null)
+        {
+            return default;
+        }
 
         if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
         {
-            node = ApplyBindDirective(
-                node,
+            rewrittenNode = ApplyBindDirective(
+                rewrittenNode,
                 context,
                 originalName,
                 static (n, d) => n.WithDirectives(d));
         }
 
-        return node;
+        return rewrittenNode;
     }
 
-    protected override UnionTypeDefinitionNode RewriteUnionTypeDefinition(
+    protected override UnionTypeDefinitionNode? RewriteUnionTypeDefinition(
         UnionTypeDefinitionNode node,
         RenameContext context)
     {
         var originalName = node.Name.Value;
 
-        node = base.RewriteUnionTypeDefinition(node, context);
+        var rewrittenNode = base.RewriteUnionTypeDefinition(node, context);
+        if (rewrittenNode is null)
+        {
+            return default;
+        }
 
         if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
         {
-            node = ApplyBindDirective(
-                node,
+            rewrittenNode = ApplyBindDirective(
+                rewrittenNode,
                 context,
                 originalName,
                 static (n, d) => n.WithDirectives(d));
         }
 
-        return node;
+        return rewrittenNode;
     }
 
-    protected override InputObjectTypeDefinitionNode RewriteInputObjectTypeDefinition(
+    protected override InputObjectTypeDefinitionNode? RewriteInputObjectTypeDefinition(
         InputObjectTypeDefinitionNode node,
         RenameContext context)
     {
         var originalName = node.Name.Value;
 
-        node = base.RewriteInputObjectTypeDefinition(node, context);
+        var rewrittenNode = base.RewriteInputObjectTypeDefinition(node, context);
+        if (rewrittenNode is null)
+        {
+            return default;
+        }
 
         if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
         {
-            node = ApplyBindDirective(
-                node,
+            rewrittenNode = ApplyBindDirective(
+                rewrittenNode,
                 context,
                 originalName,
                 static (n, d) => n.WithDirectives(d));
         }
 
-        return node;
+        return rewrittenNode;
     }
 
-    protected override EnumTypeDefinitionNode RewriteEnumTypeDefinition(
+    protected override EnumTypeDefinitionNode? RewriteEnumTypeDefinition(
         EnumTypeDefinitionNode node,
         RenameContext context)
     {
         var originalName = node.Name.Value;
 
-        node = base.RewriteEnumTypeDefinition(node, context);
+        var rewrittenNode = base.RewriteEnumTypeDefinition(node, context);
+        if (rewrittenNode is null)
+        {
+            return default;
+        }
 
         if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
         {
-            node = ApplyBindDirective(
-                node,
+            rewrittenNode = ApplyBindDirective(
+                rewrittenNode,
                 context,
                 originalName,
                 static (n, d) => n.WithDirectives(d));
         }
 
-        return node;
+        return rewrittenNode;
     }
 
-    protected override ScalarTypeDefinitionNode RewriteScalarTypeDefinition(
+    protected override ScalarTypeDefinitionNode? RewriteScalarTypeDefinition(
         ScalarTypeDefinitionNode node,
         RenameContext context)
     {
         var originalName = node.Name.Value;
 
-        node = base.RewriteScalarTypeDefinition(node, context);
+        var rewrittenNode = base.RewriteScalarTypeDefinition(node, context);
+        if (rewrittenNode is null)
+        {
+            return default;
+        }
 
         if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
         {
-            node = ApplyBindDirective(
-                node,
+            rewrittenNode = ApplyBindDirective(
+                rewrittenNode,
                 context,
                 originalName,
                 static (n, d) => n.WithDirectives(d));
         }
 
-        return node;
+        return rewrittenNode;
     }
 
-    protected override FieldDefinitionNode RewriteFieldDefinition(
+    protected override FieldDefinitionNode? RewriteFieldDefinition(
         FieldDefinitionNode node,
         RenameContext context)
     {
-        node = base.RewriteFieldDefinition(node, context);
+        var rewrittenNode = base.RewriteFieldDefinition(node, context);
+        if (rewrittenNode is null)
+        {
+            return default;
+        }
 
         if (context.Navigator.TryPeek(1, out ISyntaxNode? parent) &&
             parent.Kind is SyntaxKind.ObjectTypeDefinition or InterfaceTypeDefinition &&
@@ -154,16 +182,16 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
             var coordinate = context.Navigator.CreateCoordinate();
             if (context.RenamedFields.TryGetValue(coordinate, out var value))
             {
-                var location = node.Location;
+                var location = rewrittenNode.Location;
                 var name = new NameNode(value.Name);
-                var description = node.Description;
-                var arguments = node.Arguments;
-                var type = node.Type;
-                var directives = node.Directives.ToList();
+                var description = rewrittenNode.Description;
+                var arguments = rewrittenNode.Arguments;
+                var type = rewrittenNode.Type;
+                var directives = rewrittenNode.Directives.ToList();
                 directives.Remove(value.RenameDirective);
-                directives.Add(new BindDirective(context.SourceName, node.Name.Value));
+                directives.Add(new BindDirective(context.SourceName, rewrittenNode.Name.Value));
 
-                node = new FieldDefinitionNode(
+                rewrittenNode = new FieldDefinitionNode(
                     location,
                     name,
                     description,
@@ -173,7 +201,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
             }
         }
 
-        return node;
+        return rewrittenNode;
     }
 
     protected override NameNode RewriteName(NameNode node, RenameContext context)
@@ -211,7 +239,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
         return base.RewriteName(node, context);
     }
 
-    private T ApplyBindDirective<T>(
+    private static T ApplyBindDirective<T>(
         T node,
         RenameContext context,
         string originalName,

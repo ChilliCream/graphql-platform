@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using HotChocolate.Resolvers;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Pagination;
 
 internal static class CursorPaginationResolverContextExtensions
@@ -24,7 +24,7 @@ internal static class CursorPaginationResolverContextExtensions
 
             for (var i = 0; i < selections.Count; i++)
             {
-                if (selections[i].Field.Name.Value is OffsetPagingFieldNames.TotalCount)
+                if (selections[i].Field.Name is OffsetPagingFieldNames.TotalCount)
                 {
                     return true;
                 }

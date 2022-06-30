@@ -30,9 +30,9 @@ public abstract partial class ScalarType
     /// Defines if this scalar binds implicitly to its runtime type or
     /// if it has to be explicitly assigned to it.
     /// </param>
-    protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
+    protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         Bind = bind;
 
         Directives = default!;

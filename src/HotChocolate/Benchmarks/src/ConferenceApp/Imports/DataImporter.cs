@@ -12,14 +12,14 @@ namespace HotChocolate.ConferencePlanner.Imports
     {
         public async Task LoadDataAsync(ApplicationDbContext db)
         {
-            using Stream? stream = GetType().Assembly.GetManifestResourceStream(
+            using var stream = GetType().Assembly.GetManifestResourceStream(
                 "HotChocolate.ConferencePlanner.Imports.Data.json")!;
             using var reader = new JsonTextReader(new StreamReader(stream));
 
             var speakerNames = new Dictionary<string, Speaker>();
             var tracks = new Dictionary<string, Track>();
 
-            JArray conference = await JArray.LoadAsync(reader);
+            var conference = await JArray.LoadAsync(reader);
             var speakers = new Dictionary<string, Speaker>();
 
             foreach (JObject conferenceDay in conference)
@@ -45,7 +45,7 @@ namespace HotChocolate.ConferencePlanner.Imports
 
                         foreach (JObject speakerData in sessionData["speakers"]!)
                         {
-                            if (!speakers.TryGetValue(speakerData["id"]!.ToString(), out Speaker? speaker))
+                            if (!speakers.TryGetValue(speakerData["id"]!.ToString(), out var speaker))
                             {
                                 speaker = new Speaker
                                 { 

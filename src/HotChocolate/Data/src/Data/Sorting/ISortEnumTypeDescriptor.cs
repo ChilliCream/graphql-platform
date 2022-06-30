@@ -11,8 +11,7 @@ public interface ISortEnumTypeDescriptor
     /// <param name="enumTypeDefinition">
     /// The the type definition node.
     /// </param>
-    ISortEnumTypeDescriptor SyntaxNode(
-        EnumTypeDefinitionNode enumTypeDefinition);
+    ISortEnumTypeDescriptor SyntaxNode(EnumTypeDefinitionNode enumTypeDefinition);
 
     /// <summary>
     /// Defines the name the enum type shall have.
@@ -20,8 +19,7 @@ public interface ISortEnumTypeDescriptor
     /// <param name="value">
     /// The name value.
     /// </param>
-    ISortEnumTypeDescriptor Name(
-        NameString value);
+    ISortEnumTypeDescriptor Name(string value);
 
     /// <summary>
     /// Defines the description that the enum type shall have.
@@ -29,19 +27,13 @@ public interface ISortEnumTypeDescriptor
     /// <param name="value">
     /// The description value.
     /// </param>
-    ISortEnumTypeDescriptor Description(
-        string value);
+    ISortEnumTypeDescriptor Description(string value);
 
     ISortEnumValueDescriptor Operation(int operation);
 
-    ISortEnumTypeDescriptor Directive<T>(
-        T directiveInstance)
-        where T : class;
+    ISortEnumTypeDescriptor Directive<T>(T directiveInstance) where T : class;
 
-    ISortEnumTypeDescriptor Directive<T>()
-        where T : class, new();
+    ISortEnumTypeDescriptor Directive<T>() where T : class, new();
 
-    ISortEnumTypeDescriptor Directive(
-        NameString name,
-        params ArgumentNode[] arguments);
+    ISortEnumTypeDescriptor Directive(string name, params ArgumentNode[] arguments);
 }

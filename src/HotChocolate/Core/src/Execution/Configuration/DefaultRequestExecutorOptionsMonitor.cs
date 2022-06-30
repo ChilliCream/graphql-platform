@@ -14,10 +14,10 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly IOptionsMonitor<RequestExecutorSetup> _optionsMonitor;
     private readonly IRequestExecutorOptionsProvider[] _optionsProviders;
-    private readonly Dictionary<NameString, List<IConfigureRequestExecutorSetup>> _configs =
+    private readonly Dictionary<string, List<IConfigureRequestExecutorSetup>> _configs =
         new();
     private readonly List<IDisposable> _disposables = new();
-    private readonly List<Action<NameString>> _listeners = new();
+    private readonly List<Action<string>> _listeners = new();
     private bool _initialized;
     private bool _disposed;
 
@@ -30,7 +30,7 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
     }
 
     public async ValueTask<RequestExecutorSetup> GetAsync(
-        NameString schemaName,
+        string schemaName,
         CancellationToken cancellationToken = default)
     {
         await InitializeAsync(cancellationToken).ConfigureAwait(false);
@@ -90,7 +90,7 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
         }
     }
 
-    public IDisposable OnChange(Action<NameString> listener) =>
+    public IDisposable OnChange(Action<string> listener) =>
         new Session(this, listener);
 
     private void OnChange(IConfigureRequestExecutorSetup changes)
@@ -124,11 +124,11 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
     private sealed class Session : IDisposable
     {
         private readonly DefaultRequestExecutorOptionsMonitor _monitor;
-        private readonly Action<NameString> _listener;
+        private readonly Action<string> _listener;
 
         public Session(
             DefaultRequestExecutorOptionsMonitor monitor,
-            Action<NameString> listener)
+            Action<string> listener)
         {
             lock (monitor._listeners)
             {

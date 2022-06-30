@@ -27,7 +27,7 @@ public class MultiplierPathType
     /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
     /// </summary>
     public MultiplierPathType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

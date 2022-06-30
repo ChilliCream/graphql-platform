@@ -181,7 +181,7 @@ internal static class RequestClassMiddlewareFactory
 
         public bool CanHandle(ParameterInfo parameter)
         {
-            return parameter.ParameterType == typeof(NameString) &&
+            return parameter.ParameterType == typeof(string) &&
                 parameter.Name == "schemaName";
         }
 

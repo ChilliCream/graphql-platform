@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -12,13 +13,13 @@ namespace HotChocolate.Types.Relay;
 
 internal class GlobalIdInputValueFormatter : IInputValueFormatter
 {
-    private readonly NameString _typeName;
+    private readonly string _typeName;
     private readonly IIdSerializer _idSerializer;
     private readonly bool _validateType;
     private readonly Func<IList> _createList;
 
     public GlobalIdInputValueFormatter(
-        NameString typeName,
+        string typeName,
         IIdSerializer idSerializer,
         IExtendedType resultType,
         bool validateType)
@@ -37,7 +38,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
         }
 
         if (runtimeValue is IdValue id &&
-            (!_validateType || _typeName.Equals(id.TypeName)))
+            (!_validateType || _typeName.EqualsOrdinal(id.TypeName)))
         {
             return id.Value;
         }
@@ -48,7 +49,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
             {
                 id = _idSerializer.Deserialize(s);
 
-                if (!_validateType || _typeName.Equals(id.TypeName))
+                if (!_validateType || _typeName.EqualsOrdinal(id.TypeName))
                 {
                     return id.Value;
                 }
@@ -79,7 +80,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
                     continue;
                 }
 
-                if (!_validateType || _typeName.Equals(idv.Value.TypeName))
+                if (!_validateType || _typeName.EqualsOrdinal(idv.Value.TypeName))
                 {
                     list.Add(idv.Value.Value);
                 }
@@ -94,7 +95,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
 
             foreach (var idv in idEnumerable)
             {
-                if (!_validateType || _typeName.Equals(idv.TypeName))
+                if (!_validateType || _typeName.EqualsOrdinal(idv.TypeName))
                 {
                     list.Add(idv.Value);
                 }
@@ -119,7 +120,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
 
                     id = _idSerializer.Deserialize(sv);
 
-                    if (!_validateType || _typeName.Equals(id.TypeName))
+                    if (!_validateType || _typeName.EqualsOrdinal(id.TypeName))
                     {
                         list.Add(id.Value);
                     }

@@ -50,7 +50,7 @@ public class MongoDbAggregateFluentExecutable<T> : MongoDbExecutable<T>
     /// <returns>A aggregate fluent including the configuration of this executable</returns>
     public IAggregateFluent<T> BuildPipeline()
     {
-        IAggregateFluent<T> pipeline = _aggregate;
+        var pipeline = _aggregate;
         if (Sorting is not null)
         {
             pipeline = pipeline.Sort(Sorting.ToSortDefinition<T>());

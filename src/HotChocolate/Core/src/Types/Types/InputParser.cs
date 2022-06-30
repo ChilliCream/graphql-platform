@@ -317,7 +317,7 @@ public class InputParser
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
                 .SetExtension(nameof(field), field.Coordinate.ToString())
-                .SetExtension("fieldType", type.Name.Value)
+                .SetExtension("fieldType", type.Name)
                 .Build();
 
             throw new SerializationException(error, ex.Type, path);
@@ -420,10 +420,9 @@ public class InputParser
             {
                 var field = type.Fields[i];
 
-                if (map.TryGetValue(field.Name.Value, out var fieldValue))
+                if (map.TryGetValue(field.Name, out var fieldValue))
                 {
-                    Path fieldPath =
-                        PathFactory.Instance.Append(path, field.Name);
+                    Path fieldPath = PathFactory.Instance.Append(path, field.Name);
 
                     if (fieldValue is null)
                     {
@@ -514,7 +513,7 @@ public class InputParser
             var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
                 .SetExtension(nameof(field), field.Coordinate.ToString())
-                .SetExtension("fieldType", type.Name.Value)
+                .SetExtension("fieldType", type.Name)
                 .Build();
 
             throw new SerializationException(error, ex.Type, path);

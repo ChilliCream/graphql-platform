@@ -11,12 +11,12 @@ public class QueryableFilterVisitorBooleanTests
     public void Create_BooleanEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { eq: true }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = true };
@@ -30,12 +30,12 @@ public class QueryableFilterVisitorBooleanTests
     public void Create_BooleanNotEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { eq: false }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = false };
@@ -49,12 +49,12 @@ public class QueryableFilterVisitorBooleanTests
     public void Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { eq: true }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { Bar = true };
@@ -71,12 +71,12 @@ public class QueryableFilterVisitorBooleanTests
     public void Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { eq: false }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { Bar = false };

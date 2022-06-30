@@ -12,7 +12,7 @@ public interface IRequestCoreMiddlewareContext
     /// <summary>
     /// Gets the schema name.
     /// </summary>
-    NameString SchemaName { get; }
+    string SchemaName { get; }
 
     /// <summary>
     /// Gets the application level service provider.

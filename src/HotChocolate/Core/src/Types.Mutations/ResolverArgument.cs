@@ -5,7 +5,7 @@ namespace HotChocolate.Types;
 internal sealed class ResolverArgument : IInputFieldInfo
 {
     public ResolverArgument(
-        NameString name,
+        string name,
         FieldCoordinate coordinate,
         IInputType type,
         Type runtimeType,
@@ -20,7 +20,7 @@ internal sealed class ResolverArgument : IInputFieldInfo
         Formatter = formatter;
     }
 
-    public NameString Name { get; }
+    public string Name { get; }
 
     public FieldCoordinate Coordinate { get; }
 

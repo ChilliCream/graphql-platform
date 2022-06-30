@@ -10,6 +10,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Tests;
+using HotChocolate.Utilities;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -970,17 +971,17 @@ public class SchemaBuilderTests
         // act
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(@"
-                    type Query {
-                        foo : Baz
-                    }
+                type Query {
+                    foo : Baz
+                }
 
-                    type Baz {
-                        baz: String
-                    }
+                type Baz {
+                    baz: String
+                }
 
-                    interface Bar {
-                        baz: String
-                    }")
+                interface Bar {
+                    baz: String
+                }")
             .AddResolver("Query", "foo", "bar")
             .AddResolver("Baz", "baz", "baz")
             .Create();
@@ -1511,15 +1512,15 @@ public class SchemaBuilderTests
                 .Field("foo")
                 .Resolve("bar"))
             .TryAddSchemaInterceptor(new DummySchemaInterceptor(
-                c => c.ContextData["name"] = c.ContextData["name"] + "1"))
+                c => c.ContextData["name"] += "1"))
             .TryAddTypeInterceptor(new DelegateTypeInterceptor(
                 onAfterRegisterDependencies: (c, d, _) =>
                 {
-                    if (d is ObjectTypeDefinition def && def.Name.Equals("Query"))
+                    if (d is ObjectTypeDefinition def && def.Name.EqualsOrdinal("Query"))
                     {
                         ObjectTypeDescriptor
                             .From(c.DescriptorContext, def)
-                            .Name(c.ContextData["name"]?.ToString());
+                            .Name(c.ContextData["name"]!.ToString()!);
                     }
                 }))
             .Create()
@@ -2156,9 +2157,9 @@ public class SchemaBuilderTests
 
     public class DynamicFooType : ObjectType
     {
-        private readonly NameString _typeName;
+        private readonly string _typeName;
 
-        public DynamicFooType(NameString typeName)
+        public DynamicFooType(string typeName)
         {
             _typeName = typeName;
         }

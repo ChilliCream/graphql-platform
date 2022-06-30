@@ -54,7 +54,7 @@ public class NodeFieldSupportTests
                     WellKnownContextData.InternalType,
                     out var value))
                 {
-                    type = (NameString)value;
+                    type = (string)value;
                 }
             })
             .Create();

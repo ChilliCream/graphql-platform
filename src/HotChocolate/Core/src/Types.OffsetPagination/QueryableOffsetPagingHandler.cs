@@ -57,7 +57,7 @@ public class QueryableOffsetPagingHandler<TEntity>
 
             for (var i = 0; i < selections.Count; i++)
             {
-                if (selections[i].Field.Name.Value is "totalCount")
+                if (selections[i].Field.Name is "totalCount")
                 {
                     totalCount = source.Count();
                 }

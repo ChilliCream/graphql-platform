@@ -21,7 +21,7 @@ internal static class Neo4JFilterScopeExtensions
         }
 
         var conditions = new CompoundCondition(Operator.And);
-        foreach (Condition condition in scope.Level.Peek().ToArray())
+        foreach (var condition in scope.Level.Peek().ToArray())
         {
             conditions.And(condition);
         }

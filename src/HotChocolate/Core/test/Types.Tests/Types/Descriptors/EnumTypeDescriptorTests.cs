@@ -1,7 +1,6 @@
 ﻿using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using Xunit;
 
 namespace HotChocolate.Types;
@@ -104,12 +103,13 @@ public class EnumTypeDescriptorTests
 
         // act
         IEnumTypeDescriptor desc = descriptor;
-        desc.Directive(new NameString("Bar"));
+        desc.Directive("Bar");
 
         // assert
         var description = descriptor.CreateDefinition();
-        Assert.Collection(description.Directives,
-            t => Assert.Equal("Bar", t.ParsedDirective.Name.Value));
+        Assert.Collection(
+            description.Directives,
+            t => Assert.Equal("Bar", t.ParsedDirective?.Name.Value));
     }
 
     [Fact]

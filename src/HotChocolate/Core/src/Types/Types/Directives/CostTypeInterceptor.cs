@@ -125,7 +125,7 @@ internal class CostTypeInterceptor : TypeInterceptor
 
     private static bool IsCostDirective(DirectiveDefinition directive)
     {
-        if (directive.Reference is NameDirectiveReference { Name: { Value: "cost" } })
+        if (directive.Reference is NameDirectiveReference { Name: "cost" })
         {
             return true;
         }

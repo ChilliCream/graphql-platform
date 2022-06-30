@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -36,7 +37,7 @@ internal sealed class TypeTrimmer
         foreach (var directiveType in _discoveredTypes.OfType<DirectiveType>())
         {
             if (directiveType.IsExecutableDirective ||
-                directiveType.Name.Equals(WellKnownDirectives.Deprecated))
+                directiveType.Name.EqualsOrdinal(WellKnownDirectives.Deprecated))
             {
                 _touched.Add(directiveType);
                 VisitDirective(directiveType);

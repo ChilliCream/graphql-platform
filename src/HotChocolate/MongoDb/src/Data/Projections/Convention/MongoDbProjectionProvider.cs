@@ -44,11 +44,11 @@ public class MongoDbProjectionProvider
                 visitor.Visit(visitorContext);
 
                 if (!visitorContext.TryCreateQuery(
-                        out MongoDbProjectionDefinition? projections) ||
+                        out var projections) ||
                     visitorContext.Errors.Count > 0)
                 {
                     context.Result = Array.Empty<TEntityType>();
-                    foreach (IError error in visitorContext.Errors)
+                    foreach (var error in visitorContext.Errors)
                     {
                         context.ReportError(error.WithPath(context.Path));
                     }

@@ -63,10 +63,7 @@ public class InputFormatter
         }
     }
 
-    private ObjectValueNode FormatValueObject(
-        object runtimeValue,
-        InputObjectType type,
-        Path path)
+    private ObjectValueNode FormatValueObject(object runtimeValue, InputObjectType type, Path path)
     {
         var fields = new List<ObjectFieldNode>();
         var fieldValues = new object?[type.Fields.Count];
@@ -94,11 +91,7 @@ public class InputFormatter
 
         return new ObjectValueNode(fields);
 
-        void AddField(
-            object? fieldValue,
-            NameString fieldName,
-            IInputType fieldType,
-            Path fieldPath)
+        void AddField(object? fieldValue, string fieldName, IInputType fieldType, Path fieldPath)
         {
             var value = FormatValueInternal(fieldValue, fieldType, fieldPath);
             fields.Add(new ObjectFieldNode(fieldName, value));

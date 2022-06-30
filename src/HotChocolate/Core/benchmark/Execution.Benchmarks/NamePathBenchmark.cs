@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.ObjectPool;
@@ -13,7 +12,7 @@ namespace HotChocolate.Execution.Benchmarks;
 [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
 public class NamePathBenchmark
 {
-    private readonly NameString _name = "name";
+    private readonly string _name = "name";
     private readonly Pooled.PathFactory _pooledPathFactory;
     private readonly Optimized.PathFactory _optimizedPathFactory;
     private readonly Threadsafe.PathFactory _threadsafePathFactory;
@@ -142,9 +141,13 @@ public class NamePathBenchmark
             /// </summary>
             /// <param name="name">The name of the path segment.</param>
             /// <returns>Returns a new path segment.</returns>
-            public virtual NamePathSegment Append(NameString name)
+            public virtual NamePathSegment Append(string name)
             {
-                name.EnsureNotEmpty(nameof(name));
+                if (string.IsNullOrEmpty(name))
+                {
+                    throw new ArgumentNullException(nameof(name));
+                }
+
                 return new NamePathSegment(this, name);
             }
 
@@ -223,7 +226,7 @@ public class NamePathBenchmark
             /// <returns>
             /// Returns a new root segment.
             /// </returns>
-            public static NamePathSegment New(NameString name) => new(null, name);
+            public static NamePathSegment New(string name) => new(null, name);
 
             public static RootPathSegment Root => RootPathSegment.Instance;
 
@@ -245,7 +248,6 @@ public class NamePathBenchmark
                 {
                     segment = path[i] switch
                     {
-                        NameString n => segment.Append(n),
                         string s => segment.Append(s),
                         int n => segment.Append(n),
                         _ => throw new NotSupportedException("notsupported")
@@ -258,7 +260,7 @@ public class NamePathBenchmark
 
         public sealed class NamePathSegment : Path
         {
-            public NamePathSegment(Path? parent, NameString name)
+            public NamePathSegment(Path? parent, string name)
             {
                 Parent = parent;
                 Depth = parent?.Depth + 1 ?? 0;
@@ -274,7 +276,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; }
+            public string Name { get; }
 
             /// <inheritdoc />
             public override string Print()
@@ -405,14 +407,14 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; }
+            public string Name { get; }
 
             /// <inheritdoc />
             public override IndexerPathSegment Append(int index) =>
                 throw new NotSupportedException();
 
             /// <inheritdoc />
-            public override NamePathSegment Append(NameString name) =>
+            public override NamePathSegment Append(string name) =>
                 New(name);
 
             /// <inheritdoc />
@@ -624,7 +626,7 @@ public class NamePathBenchmark
             /// </summary>
             /// <param name="name">The name of the path segment.</param>
             /// <returns>Returns a new path segment.</returns>
-            public virtual NamePathSegment Append(Path? parent, NameString name)
+            public virtual NamePathSegment Append(Path? parent, string name)
             {
                 // TODO private
                 //name.EnsureNotEmpty(nameof(name));
@@ -782,7 +784,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; internal set; }
+            public string Name { get; internal set; }
 
             /// <inheritdoc />
             public override string Print()
@@ -894,7 +896,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; }
+            public string Name { get; }
 
             /// <inheritdoc />
             public override string Print() => "/";
@@ -1064,7 +1066,7 @@ public class NamePathBenchmark
 
             private sealed class NamePathSegmentPolicy : IPooledObjectPolicy<NamePathSegment>
             {
-                private readonly NameString _default = new("default");
+                private readonly string _default = new("default");
 
                 public NamePathSegment Create() => new();
 
@@ -1184,7 +1186,7 @@ public class NamePathBenchmark
             /// </summary>
             /// <param name="name">The name of the path segment.</param>
             /// <returns>Returns a new path segment.</returns>
-            public virtual NamePathSegment Append(Path parent, NameString name)
+            public virtual NamePathSegment Append(Path parent, string name)
             {
                 // TODO private
                 //name.EnsureNotEmpty(nameof(name));
@@ -1329,7 +1331,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; internal set; }
+            public string Name { get; internal set; }
 
             /// <inheritdoc />
             public override string Print()
@@ -1436,7 +1438,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; }
+            public string Name { get; }
 
             /// <inheritdoc />
             public override string Print() => "/";
@@ -1606,7 +1608,7 @@ public class NamePathBenchmark
 
             private sealed class NamePathSegmentPolicy : IPooledObjectPolicy<NamePathSegment>
             {
-                private readonly NameString _default = new("default");
+                private readonly string _default = new("default");
 
                 public NamePathSegment Create() => new();
 
@@ -1726,7 +1728,7 @@ public class NamePathBenchmark
             /// </summary>
             /// <param name="name">The name of the path segment.</param>
             /// <returns>Returns a new path segment.</returns>
-            public virtual NamePathSegment Append(Path parent, NameString name)
+            public virtual NamePathSegment Append(Path parent, string name)
             {
                 // TODO private
                 //name.EnsureNotEmpty(nameof(name));
@@ -1871,7 +1873,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; internal set; }
+            public string Name { get; internal set; }
 
             /// <inheritdoc />
             public override string Print()
@@ -1978,7 +1980,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; }
+            public string Name { get; }
 
             /// <inheritdoc />
             public override string Print() => "/";

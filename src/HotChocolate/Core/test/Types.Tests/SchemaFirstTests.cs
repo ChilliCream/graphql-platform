@@ -612,7 +612,7 @@ public class SchemaFirstTests
 
     public class CustomDescriptionDirective : ISchemaDirective
     {
-        public NameString Name => "desc";
+        public string Name => "desc";
 
         public void ApplyConfiguration(
             IDescriptorContext context,

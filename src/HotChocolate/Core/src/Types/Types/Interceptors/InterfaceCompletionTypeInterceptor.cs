@@ -14,8 +14,8 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
     private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
     private readonly Dictionary<Type, TypeInfo> _allInterfaceRuntimeTypes = new();
     private readonly HashSet<Type> _interfaceRuntimeTypes = new();
-    private readonly HashSet<NameString> _completed = new();
-    private readonly HashSet<NameString> _completedFields = new();
+    private readonly HashSet<string> _completed = new();
+    private readonly HashSet<string> _completedFields = new();
     private readonly Queue<InterfaceType> _backlog = new();
 
     public override bool TriggerAggregations => true;
@@ -69,8 +69,8 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
                 {
                     var interfaceTypeInfo = _allInterfaceRuntimeTypes[interfaceRuntimeType];
                     var interfaceTypeDependency = new TypeDependency(
-                        interfaceTypeInfo.Context.TypeReference, 
-                        TypeDependencyKind.Completed); 
+                        interfaceTypeInfo.Context.TypeReference,
+                        TypeDependencyKind.Completed);
 
                     typeInfo.Context.Dependencies.Add(interfaceTypeDependency);
                     typeInfo.Definition.Interfaces.Add(interfaceTypeDependency.TypeReference);
@@ -89,7 +89,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
         }
 
         var runtimeType = typeInfo.Definition.RuntimeType;
-        return runtimeType is not null && runtimeType != typeof(object);
+        return runtimeType != typeof(object);
     }
 
     private Type GetRuntimeType(TypeInfo typeInfo)
@@ -220,6 +220,6 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
         public IComplexOutputTypeDefinition Definition { get; }
 
-        public override string? ToString() => Definition.Name;
+        public override string ToString() => Definition.Name;
     }
 }

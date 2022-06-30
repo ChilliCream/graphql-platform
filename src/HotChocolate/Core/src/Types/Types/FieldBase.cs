@@ -4,6 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -22,7 +23,7 @@ public abstract class FieldBase<TDefinition>
         Index = index;
 
         SyntaxNode = definition.SyntaxNode;
-        Name = definition.Name.EnsureNotEmpty(nameof(definition.Name));
+        Name = definition.Name.EnsureGraphQLName();
         Description = definition.Description;
         DeclaringType = default!;
         ContextData = default!;
@@ -30,7 +31,7 @@ public abstract class FieldBase<TDefinition>
     }
 
     /// <inheritdoc />
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <inheritdoc />
     public string? Description { get; }

@@ -15,7 +15,7 @@ namespace HotChocolate.Types;
 public sealed class Directive : IDirective
 {
     private object? _customDirective;
-    private DirectiveNode _parsedDirective;
+    private DirectiveNode? _parsedDirective;
     private Dictionary<string, ArgumentNode>? _arguments;
 
     private Directive(
@@ -34,7 +34,7 @@ public sealed class Directive : IDirective
         Name = directiveType.Name;
     }
 
-    public NameString Name { get; }
+    public string Name { get; }
 
     public DirectiveType Type { get; }
 
@@ -111,7 +111,7 @@ public sealed class Directive : IDirective
 
     private T CreateCustomDirective<T>()
     {
-        if (TryDeserialize(_parsedDirective, out T directive))
+        if (TryDeserialize(_parsedDirective!, out T directive))
         {
             return directive;
         }

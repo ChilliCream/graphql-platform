@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
@@ -281,11 +282,11 @@ internal class TypeInitializer
                 .Select(t => t.Name)
                 .Distinct())
             {
-                var type = types.FirstOrDefault(t => t.Type.Name.Equals(typeName));
+                var type = types.FirstOrDefault(t => t.Type.Name.EqualsOrdinal(typeName));
                 if (type?.Type is INamedType namedType)
                 {
                     MergeTypeExtension(
-                        extensions.Where(t => t.Type.Name.Equals(typeName)),
+                        extensions.Where(t => t.Type.Name.EqualsOrdinal(typeName)),
                         type,
                         namedType,
                         processed);
@@ -445,9 +446,8 @@ internal class TypeInitializer
             foreach (var type in _typeRegistry.Types
                 .Where(t => !processed.Contains(t.References[0])))
             {
-                var name = type.Type.Name.HasValue
-                    ? type.Type.Name.Value
-                    : type.References[0].ToString()!;
+                // the name might not be set at this point.
+                var name = type.Type.Name ?? type.References[0].ToString()!;
 
                 IReadOnlyList<ITypeReference> needed =
                     TryNormalizeDependencies(type.Conditionals,

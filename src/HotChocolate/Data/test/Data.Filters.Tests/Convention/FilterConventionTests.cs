@@ -35,14 +35,14 @@ public class FilterConventionTests
                 descriptor.Provider(provider);
             });
 
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
 
         //act
-        ISchema? schema = CreateSchemaWith(type, convention);
+        var schema = CreateSchemaWith(type, convention);
         var executor = new ExecutorBuilder(type);
 
-        Func<Foo, bool>? func = executor.Build<Foo>(value);
+        var func = executor.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -73,7 +73,7 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        SchemaException? error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -101,7 +101,7 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        SchemaException? error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -129,7 +129,7 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        SchemaException error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -158,7 +158,7 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        ArgumentException error =
+        var error =
             Assert.Throws<ArgumentException>(() => CreateSchemaWith(type, convention));
         Assert.Equal("Name", error.ParamName);
     }
@@ -177,7 +177,7 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        SchemaException? error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -205,7 +205,7 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        SchemaException error =
+        var error =
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -245,14 +245,14 @@ public class FilterConventionTests
                 descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
             });
 
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
 
         //act
         CreateSchemaWith(type, convention, extension1, extension2);
         var executor = new ExecutorBuilder(type);
 
-        Func<Foo, bool> func = executor.Build<Foo>(value);
+        var func = executor.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -280,7 +280,7 @@ public class FilterConventionTests
                 descriptor.Provider(provider);
             });
 
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
 
         //act
@@ -290,7 +290,7 @@ public class FilterConventionTests
             typeof(MockFilterExtensionConvention));
         var executor = new ExecutorBuilder(type);
 
-        Func<Foo, bool> func = executor.Build<Foo>(value);
+        var func = executor.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -324,14 +324,14 @@ public class FilterConventionTests
                 descriptor.AddProviderExtension<MockFilterProviderExtensionConvention>();
             });
 
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
 
         //act
         CreateSchemaWith(type, convention, extension1);
         var executor = new ExecutorBuilder(type);
 
-        Func<Foo, bool> func = executor.Build<Foo>(value);
+        var func = executor.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -353,7 +353,7 @@ public class FilterConventionTests
                 descriptor.BindRuntimeType<Foo, CustomFooFilterInput>();
             });
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQL()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
@@ -361,7 +361,7 @@ public class FilterConventionTests
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
         //act
-        ISchema schema = await builder.BuildSchemaAsync();
+        var schema = await builder.BuildSchemaAsync();
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -382,7 +382,7 @@ public class FilterConventionTests
         provider.Initialize(context);
 
         // assert
-        SchemaException exception =
+        var exception =
             Assert.Throws<SchemaException>(() => provider.Complete(context));
         exception.Message.MatchSnapshot();
     }
@@ -398,7 +398,7 @@ public class FilterConventionTests
                 descriptor.AllowAnd(false);
             });
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQL()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
@@ -406,7 +406,7 @@ public class FilterConventionTests
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
         //act
-        ISchema schema = await builder.BuildSchemaAsync();
+        var schema = await builder.BuildSchemaAsync();
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -423,7 +423,7 @@ public class FilterConventionTests
                 descriptor.AllowOr(false);
             });
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQL()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
@@ -431,7 +431,7 @@ public class FilterConventionTests
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
         //act
-        ISchema schema = await builder.BuildSchemaAsync();
+        var schema = await builder.BuildSchemaAsync();
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -442,7 +442,7 @@ public class FilterConventionTests
         FilterConvention convention,
         params Type[] extensions)
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
             .AddQueryType(
@@ -453,7 +453,7 @@ public class FilterConventionTests
                         .Resolve("bar"))
             .AddType(type);
 
-        foreach (Type? extension in extensions)
+        foreach (var extension in extensions)
         {
             builder.AddConvention<IFilterConvention>(extension);
         }
@@ -466,7 +466,7 @@ public class FilterConventionTests
         FilterConvention convention,
         params FilterConventionExtension[] extensions)
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
             .AddQueryType(
@@ -477,7 +477,7 @@ public class FilterConventionTests
                         .Resolve("bar"))
             .AddType(type);
 
-        foreach (FilterConventionExtension? extension in extensions)
+        foreach (var extension in extensions)
         {
             builder.AddConvention<IFilterConvention>(extension);
         }

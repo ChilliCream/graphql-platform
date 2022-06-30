@@ -5,6 +5,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -74,7 +75,8 @@ public static class TypeExtensionHelper
     {
         foreach (var extensionField in extensionFields)
         {
-            var typeField = typeFields.FirstOrDefault(t => t.Name.Equals(extensionField.Name));
+            var typeField = typeFields.FirstOrDefault(
+                t => t.Name.EqualsOrdinal(extensionField.Name));
 
             if (typeField is null)
             {

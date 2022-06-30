@@ -15,7 +15,7 @@ public class IntegrationTests
     public async Task Sorting_Should_Work_When_UsedWithNonNullDateTime()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
@@ -30,7 +30,7 @@ public class IntegrationTests
         ";
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query);
 
         // assert
         result.MatchSnapshot();

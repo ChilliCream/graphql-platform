@@ -14,7 +14,7 @@ public class SortConventionScopeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<ISortConvention, BarSortConvention>("Bar")
             .AddQueryType<Query1>()
             .AddSorting()
@@ -29,7 +29,7 @@ public class SortConventionScopeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<ISortConvention, BarSortConvention>("Bar")
             .AddQueryType<QueryType>()
             .AddSorting()

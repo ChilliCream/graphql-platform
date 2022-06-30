@@ -15,9 +15,7 @@ public interface ICompletedDependencyDescriptor
     ICompletedDependencyDescriptor DependsOn(
         Type schemaType, bool mustBeCompleted);
 
-    ICompletedDependencyDescriptor DependsOn(NameString typeName);
+    ICompletedDependencyDescriptor DependsOn(string typeName);
 
-    ICompletedDependencyDescriptor DependsOn(
-        NameString typeName,
-        bool mustBeCompleted);
+    ICompletedDependencyDescriptor DependsOn(string typeName, bool mustBeCompleted);
 }

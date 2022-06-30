@@ -25,7 +25,7 @@ public class PortType : IntType
     /// Initializes a new instance of the <see cref="PortType"/> class.
     /// </summary>
     public PortType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, description, 0, 65535, bind)

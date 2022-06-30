@@ -4,7 +4,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
@@ -105,11 +104,11 @@ internal sealed class __Type : ObjectType
 
     private static class Resolvers
     {
-        public static object? Kind(IPureResolverContext context)
+        public static object Kind(IPureResolverContext context)
             => context.Parent<IType>().Kind;
 
         public static object? Name(IPureResolverContext context)
-            => context.Parent<IType>() is INamedType n ? n.Name.Value : null;
+            => context.Parent<IType>() is INamedType n ? n.Name : null;
 
         public static object? Description(IPureResolverContext context)
             => context.Parent<IType>() is INamedType n ? n.Description : null;

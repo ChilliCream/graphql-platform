@@ -23,7 +23,7 @@ public class DateType : ScalarType<DateTime, StringValueNode>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
     /// </summary>
     public DateType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

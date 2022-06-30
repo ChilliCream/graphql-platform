@@ -14,7 +14,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
 {
     public bool CanHandle(ISelection field) =>
         field.DeclaringType is IPageType &&
-        field.Field.Name.Value is "edges" or "items" or "nodes";
+        field.Field.Name is "edges" or "items" or "nodes";
 
     public Selection RewriteSelection(
         SelectionSetOptimizerContext context,
@@ -79,12 +79,12 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
 
     private static (string filedName, IObjectField field) TryGetObjectField(IPageType type)
     {
-        if (type.Fields.FirstOrDefault(x => x.Name.Value == "nodes") is { } nodes)
+        if (type.Fields.FirstOrDefault(x => x.Name == "nodes") is { } nodes)
         {
             return ("nodes", nodes);
         }
 
-        if (type.Fields.FirstOrDefault(x => x.Name.Value == "items") is { } items)
+        if (type.Fields.FirstOrDefault(x => x.Name == "items") is { } items)
         {
             return ("items", items);
         }

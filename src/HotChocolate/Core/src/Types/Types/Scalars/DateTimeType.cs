@@ -35,7 +35,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
     /// </summary>
     public DateTimeType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

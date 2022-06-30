@@ -77,8 +77,8 @@ internal static partial class ValueCompletion
             for (var i = 0; i < array.Length; i++)
             {
                 if (!TryCompleteElement(
-                        operationContext.PathFactory.Append(path,i),
-                        array.GetValue(i)))
+                    operationContext.PathFactory.Append(path,i),
+                    array.GetValue(i)))
                 {
                     completedResult = null;
                     return true;
@@ -184,8 +184,8 @@ internal static partial class ValueCompletion
             for (var i = 0; i < array.Length; i++)
             {
                 if (!TryCompleteElement(
-                        operationContext.PathFactory.Append(path, i),
-                        array.GetValue(i)))
+                    operationContext.PathFactory.Append(path, i),
+                    array.GetValue(i)))
                 {
                     completedResult = null;
                     return true;

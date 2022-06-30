@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing;

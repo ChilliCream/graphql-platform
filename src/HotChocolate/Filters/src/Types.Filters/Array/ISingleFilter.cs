@@ -1,9 +1,8 @@
 using System;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate.Types.Filters;
+
+[Obsolete("Use HotChocolate.Data.")]
+public interface ISingleFilter
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public interface ISingleFilter
-    {
-    }
 }

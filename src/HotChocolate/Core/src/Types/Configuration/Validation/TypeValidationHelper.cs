@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
@@ -9,7 +10,7 @@ namespace HotChocolate.Configuration.Validation;
 
 internal static class TypeValidationHelper
 {
-    private const string _twoUnderscores = "__";
+    private const char _underscore = '_';
 
     public static void EnsureTypeHasFields(
         IComplexOutputType type,
@@ -90,7 +91,7 @@ internal static class TypeValidationHelper
 
             if (!field.IsIntrospectionField)
             {
-                if (field.Name.Value.StartsWith(_twoUnderscores))
+                if (StartsWithTwoUnderscores(field.Name))
                 {
                     errors.Add(TwoUnderscoresNotAllowedField(type, field));
                 }
@@ -98,8 +99,7 @@ internal static class TypeValidationHelper
                 for (var j = 0; j < field.Arguments.Count; j++)
                 {
                     var argument = field.Arguments[j];
-
-                    if (argument.Name.Value.StartsWith(_twoUnderscores))
+                    if (StartsWithTwoUnderscores(argument.Name))
                     {
                         errors.Add(TwoUnderscoresNotAllowedOnArgument(
                             type,
@@ -118,8 +118,7 @@ internal static class TypeValidationHelper
         for (var i = 0; i < type.Fields.Count; i++)
         {
             var field = type.Fields[i];
-
-            if (field.Name.Value.StartsWith(_twoUnderscores))
+            if (StartsWithTwoUnderscores(field.Name))
             {
                 errors.Add(TwoUnderscoresNotAllowedField(type, field));
             }
@@ -133,8 +132,7 @@ internal static class TypeValidationHelper
         for (var i = 0; i < type.Arguments.Count; i++)
         {
             IInputField field = type.Arguments[i];
-
-            if (field.Name.Value.StartsWith(_twoUnderscores))
+            if (StartsWithTwoUnderscores(field.Name))
             {
                 errors.Add(TwoUnderscoresNotAllowedOnArgument(type, field));
             }
@@ -278,6 +276,22 @@ internal static class TypeValidationHelper
             complexType.IsImplementing(interfaceType))
         {
             return true;
+        }
+
+        return false;
+    }
+
+    private static bool StartsWithTwoUnderscores(string name)
+    {
+        if (name.Length > 2)
+        {
+            var firstTwoLetters = name.AsSpan().Slice(0, 2);
+
+            if (firstTwoLetters[0] == _underscore &&
+                firstTwoLetters[1] == _underscore)
+            {
+                return true;
+            }
         }
 
         return false;

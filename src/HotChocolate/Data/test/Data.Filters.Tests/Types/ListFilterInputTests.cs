@@ -11,7 +11,7 @@ public class ListFilterInputTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")
@@ -33,7 +33,7 @@ public class ListFilterInputTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")
@@ -53,7 +53,7 @@ public class ListFilterInputTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")

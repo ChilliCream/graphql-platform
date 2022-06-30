@@ -106,11 +106,11 @@ internal sealed partial class ExtractFieldQuerySyntaxRewriter
             cloned.OutputField = field;
 
             NameNode name = RewriteNode(node.Name, context);
-            NameNode? alias = RewriteNodeOrNull(node.Alias, context);
-            INullabilityNode? required = RewriteNodeOrNull(node.Required, context);
+            NameNode? alias = RewriteNodeOrDefault(node.Alias, context);
+            INullabilityNode? required = RewriteNodeOrDefault(node.Required, context);
             IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
             IReadOnlyList<ArgumentNode> arguments = RewriteList(node.Arguments, context);
-            SelectionSetNode? selectionSet = RewriteNodeOrNull(node.SelectionSet, context);
+            SelectionSetNode? selectionSet = RewriteNodeOrDefault(node.SelectionSet, context);
 
             if (field.TryGetSourceDirective(context.Schema, out SourceDirective? sourceDirective))
             {

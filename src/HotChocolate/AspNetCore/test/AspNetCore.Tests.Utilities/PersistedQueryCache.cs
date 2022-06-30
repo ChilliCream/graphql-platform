@@ -23,7 +23,7 @@ public class PersistedQueryCache
         string queryId,
         CancellationToken cancellationToken = default)
     {
-        if (_cache.TryGetValue(queryId, out DocumentNode document))
+        if (_cache.TryGetValue(queryId, out var document))
         {
             return Task.FromResult(new QueryDocument(document));
         }

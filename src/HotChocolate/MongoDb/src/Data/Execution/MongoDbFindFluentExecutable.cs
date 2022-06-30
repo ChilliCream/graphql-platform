@@ -50,7 +50,7 @@ public class MongoDbFindFluentExecutable<T> : MongoDbExecutable<T>
     /// <returns>A find fluent including the configuration of this executable</returns>
     public IFindFluent<T, T> BuildPipeline()
     {
-        IFindFluent<T, T> pipeline = _findFluent;
+        var pipeline = _findFluent;
 
         if (Filters is not null)
         {

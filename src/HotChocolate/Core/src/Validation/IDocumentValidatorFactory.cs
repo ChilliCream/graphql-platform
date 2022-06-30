@@ -14,5 +14,5 @@ public interface IDocumentValidatorFactory
     /// <returns>
     /// Returns a the document validator for the specified schema.
     /// </returns>
-    IDocumentValidator CreateValidator(NameString schemaName = default);
+    IDocumentValidator CreateValidator(string? schemaName = default);
 }

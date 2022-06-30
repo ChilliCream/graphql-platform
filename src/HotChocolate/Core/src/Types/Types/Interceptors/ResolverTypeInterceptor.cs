@@ -16,21 +16,21 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 {
     private readonly List<ITypeDefinition> _typeDefs = new();
     private readonly List<FieldResolverConfig> _fieldResolvers;
-    private readonly List<(NameString, Type)> _resolverTypeList;
-    private readonly Dictionary<NameString, Type> _runtimeTypes;
+    private readonly List<(string, Type)> _resolverTypeList;
+    private readonly Dictionary<string, Type> _runtimeTypes;
     private readonly Dictionary<string, ParameterInfo> _parameters = new();
     private IDescriptorContext _context = default!;
     private INamingConventions _naming = default!;
     private ITypeInspector _typeInspector = default!;
     private IResolverCompiler _resolverCompiler = default!;
     private TypeReferenceResolver _typeReferenceResolver = default!;
-    private ILookup<NameString, Type> _resolverTypes = default!;
-    private ILookup<NameString, FieldResolverConfig> _configs = default!;
+    private ILookup<string, Type> _resolverTypes = default!;
+    private ILookup<string, FieldResolverConfig> _configs = default!;
 
     public ResolverTypeInterceptor(
         List<FieldResolverConfig> fieldResolvers,
-        List<(NameString, Type)> resolverTypes,
-        Dictionary<NameString, Type> runtimeTypes)
+        List<(string, Type)> resolverTypes,
+        Dictionary<string, Type> runtimeTypes)
     {
         _fieldResolvers = fieldResolvers;
         _resolverTypeList = resolverTypes;
@@ -64,10 +64,10 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         if (!discoveryContext.IsIntrospectionType &&
             discoveryContext.Type is IHasName namedType &&
-            definition is ITypeDefinition typeDef &&
-            !typeDef.NeedsNameCompletion)
+            definition is ITypeDefinition { NeedsNameCompletion: false } typeDef)
         {
             if (typeDef.RuntimeType == typeof(object) &&
+                typeDef.Name is not null &&
                 _runtimeTypes.TryGetValue(typeDef.Name, out var type))
             {
                 typeDef.RuntimeType = type;
@@ -114,6 +114,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             definition is ITypeDefinition typeDef)
         {
             if (typeDef.RuntimeType == typeof(object) &&
+                typeDef.Name is not null &&
                 _runtimeTypes.TryGetValue(typeDef.Name, out var type))
             {
                 typeDef.RuntimeType = type;
@@ -333,7 +334,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         context.ValuesToName.Clear();
     }
 
-    private void CollectResolverMembers(CompletionContext context, NameString typeName)
+    private void CollectResolverMembers(CompletionContext context, string typeName)
     {
         if (!_resolverTypes.Contains(typeName))
         {
@@ -388,7 +389,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
             foreach (var argument in field.Arguments)
             {
-                if (_parameters.TryGetValue(argument.Name.Value, out var parameter))
+                if (_parameters.TryGetValue(argument.Name, out var parameter))
                 {
                     argument.Parameter = parameter;
                     argument.RuntimeType = parameter.ParameterType;
@@ -469,16 +470,16 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private sealed class CompletionContext
     {
-        public readonly Dictionary<NameString, FieldResolverConfig> Resolvers = new();
-        public readonly Dictionary<NameString, MemberInfo> Members = new();
-        public readonly Dictionary<NameString, (object, MemberInfo)> Values = new();
+        public readonly Dictionary<string, FieldResolverConfig> Resolvers = new();
+        public readonly Dictionary<string, MemberInfo> Members = new();
+        public readonly Dictionary<string, (object, MemberInfo)> Values = new();
         public readonly Dictionary<string, (object, MemberInfo)> ValuesToName = new();
         public readonly Queue<ITypeDefinition> TypesToAnalyze = new();
-        public readonly ILookup<NameString, ITypeDefinition> TypeDefs;
+        public readonly ILookup<string, ITypeDefinition> TypeDefs;
 
         public CompletionContext(List<ITypeDefinition> typeDefs)
         {
-            TypeDefs = typeDefs.ToLookup(t => t.Name);
+            TypeDefs = typeDefs.ToLookup(t => t.Name!);
         }
     }
 }

@@ -35,7 +35,7 @@ public static class QueryableProjectionContextExtensions
 
     public static Expression<Func<T, T>> Project<T>(this QueryableProjectionContext context)
     {
-        if (context.TryGetQueryableScope(out QueryableProjectionScope? scope))
+        if (context.TryGetQueryableScope(out var scope))
         {
             return scope.Project<T>();
         }
@@ -47,7 +47,7 @@ public static class QueryableProjectionContextExtensions
         this QueryableProjectionContext context)
         where T : TTarget
     {
-        if (context.TryGetQueryableScope(out QueryableProjectionScope? scope))
+        if (context.TryGetQueryableScope(out var scope))
         {
             return scope.Project<T, TTarget>();
         }

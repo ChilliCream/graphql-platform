@@ -31,7 +31,7 @@ public class StringType
     /// Initializes a new instance of the <see cref="StringType"/> class.
     /// </summary>
     public StringType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

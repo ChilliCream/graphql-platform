@@ -23,7 +23,7 @@ public partial class TypeMapperGenerator
     {
         if (typeDescriptor is InterfaceTypeDescriptor interfaceType)
         {
-            foreach (ObjectTypeDescriptor objectTypeDescriptor in interfaceType.ImplementedBy)
+            foreach (var objectTypeDescriptor in interfaceType.ImplementedBy)
             {
                 AddRequiredMapMethods(
                     settings,
@@ -35,7 +35,7 @@ public partial class TypeMapperGenerator
         }
         else
         {
-            foreach (PropertyDescriptor property in typeDescriptor.Properties)
+            foreach (var property in typeDescriptor.Properties)
             {
                 AddMapMethod(
                     settings,
@@ -102,7 +102,7 @@ public partial class TypeMapperGenerator
 
         if (!typeReference.IsLeaf() && processed.Add(methodName))
         {
-            MethodBuilder methodBuilder = MethodBuilder
+            var methodBuilder = MethodBuilder
                 .New()
                 .SetAccessModifier(AccessModifier.Private)
                 .SetName(methodName)
@@ -124,7 +124,7 @@ public partial class TypeMapperGenerator
         string propertyName,
         bool isNonNullType = false)
     {
-        IfBuilder ifBuilder = IfBuilder
+        var ifBuilder = IfBuilder
             .New()
             .SetCondition($"{propertyName} is null")
             .AddCode(
@@ -153,7 +153,7 @@ public partial class TypeMapperGenerator
             case TypeKind.EntityOrData:
             case TypeKind.Data:
             case TypeKind.Entity:
-                MethodCallBuilder mapperMethodCall =
+                var mapperMethodCall =
                     MethodCallBuilder
                         .Inline()
                         .SetMethodName(MapMethodNameFromTypeName(property.Type));
@@ -280,7 +280,7 @@ public partial class TypeMapperGenerator
         var methodName = $"Map{fragmentTypeDescriptor.RuntimeType.Name}";
         var fieldName = GetFieldName(mapperName);
 
-        MethodBuilder methodBuilder = MethodBuilder
+        var methodBuilder = MethodBuilder
             .New()
             .SetAccessModifier(AccessModifier.Private)
             .SetName(methodName)

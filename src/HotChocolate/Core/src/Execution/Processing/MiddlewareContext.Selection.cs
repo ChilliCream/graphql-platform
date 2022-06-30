@@ -20,7 +20,7 @@ internal partial class MiddlewareContext
 
     public ISelection Selection => _selection;
 
-    public NameString ResponseName => _selection.ResponseName;
+    public string ResponseName => _selection.ResponseName;
 
     public int ResponseIndex { get; private set; }
 

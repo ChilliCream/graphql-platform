@@ -22,7 +22,7 @@ public static class HotChocolateStitchingRedisPublishSchemaDefinitionDescriptorE
 
         return descriptor.SetSchemaDefinitionPublisher(sp =>
         {
-            IConnectionMultiplexer connection = connectionFactory(sp);
+            var connection = connectionFactory(sp);
             return new RedisSchemaDefinitionPublisher(configurationName, connection);
         });
     }

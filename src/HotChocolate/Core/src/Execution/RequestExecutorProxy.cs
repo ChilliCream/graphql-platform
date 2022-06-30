@@ -13,7 +13,7 @@ public sealed class RequestExecutorProxy : IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly IRequestExecutorResolver _executorResolver;
-    private readonly NameString _schemaName;
+    private readonly string _schemaName;
     private IRequestExecutor? _executor;
     private bool _disposed;
 
@@ -21,13 +21,16 @@ public sealed class RequestExecutorProxy : IDisposable
 
     public event EventHandler? ExecutorEvicted;
 
-    public RequestExecutorProxy(
-        IRequestExecutorResolver executorResolver,
-        NameString schemaName)
+    public RequestExecutorProxy(IRequestExecutorResolver executorResolver, string schemaName)
     {
+        if (string.IsNullOrEmpty(schemaName))
+        {
+            throw new ArgumentNullException(nameof(schemaName));
+        }
+
         _executorResolver = executorResolver ??
             throw new ArgumentNullException(nameof(executorResolver));
-        _schemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+        _schemaName = schemaName;
         _executorResolver.RequestExecutorEvicted += EvictRequestExecutor;
     }
 

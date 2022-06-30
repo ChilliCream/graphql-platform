@@ -35,8 +35,8 @@ public class MapProjection : Expression
         var i = 0;
         while (i < content.Length)
         {
-            object? next = i + 1 >= content.Length ? null : ContentAt(content, i + 1);
-            object? current = ContentAt(content, i);
+            var next = i + 1 >= content.Length ? null : ContentAt(content, i + 1);
+            var current = ContentAt(content, i);
 
             switch (current)
             {
@@ -77,7 +77,7 @@ public class MapProjection : Expression
                         newContent.Add(lastExpression);
                         break;
                     case Property property:
-                        List<PropertyLookup> names = property.Names;
+                        var names = property.Names;
 
                         if (names.Count > 1)
                         {
@@ -126,7 +126,7 @@ public class MapProjection : Expression
             throw new ArgumentNullException(nameof(content));
         }
 
-        object currentObject = content[i];
+        var currentObject = content[i];
 
         return currentObject switch
         {

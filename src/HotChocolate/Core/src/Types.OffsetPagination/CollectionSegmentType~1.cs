@@ -15,7 +15,7 @@ internal class CollectionSegmentType
     , IPageType
 {
     internal CollectionSegmentType(
-        NameString? collectionSegmentName,
+        string? collectionSegmentName,
         ITypeReference nodeType,
         bool withTotalCount)
     {
@@ -28,7 +28,7 @@ internal class CollectionSegmentType
 
         if (collectionSegmentName is not null)
         {
-            Definition.Name = collectionSegmentName.Value + "CollectionSegment";
+            Definition.Name = collectionSegmentName + "CollectionSegment";
         }
         else
         {
@@ -36,7 +36,7 @@ internal class CollectionSegmentType
                 new CompleteConfiguration(
                     (c, d) =>
                     {
-                        IType type = c.GetType<IType>(nodeType);
+                        var type = c.GetType<IType>(nodeType);
                         var definition = (ObjectTypeDefinition)d;
                         definition.Name = type.NamedType().Name + "CollectionSegment";
                     },
@@ -53,7 +53,7 @@ internal class CollectionSegmentType
                     ItemType = c.GetType<IOutputType>(nodeType);
 
                     var definition = (ObjectTypeDefinition)d;
-                    ObjectFieldDefinition nodes = definition.Fields.First(IsItemsField);
+                    var nodes = definition.Fields.First(IsItemsField);
                     nodes.Type = TypeReference.Parse($"[{ItemType.Print()}]", TypeContext.Output);
                 },
                 Definition,
@@ -82,10 +82,11 @@ internal class CollectionSegmentType
 
     private static ObjectTypeDefinition CreateTypeDefinition(bool withTotalCount)
     {
-        var definition = new ObjectTypeDefinition(
-            default,
-            CollectionSegmentType_Description,
-            typeof(CollectionSegment));
+        var definition = new ObjectTypeDefinition
+        {
+            Description = CollectionSegmentType_Description,
+            RuntimeType = typeof(CollectionSegment)
+        };
 
         definition.Fields.Add(new(
             Names.PageInfo,

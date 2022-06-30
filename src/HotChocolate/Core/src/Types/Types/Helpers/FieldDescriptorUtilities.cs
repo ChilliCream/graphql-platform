@@ -12,19 +12,19 @@ namespace HotChocolate.Types.Helpers;
 
 public static class FieldDescriptorUtilities
 {
-    private static HashSet<NameString>? _names = new();
+    private static HashSet<string>? _names = new(StringComparer.Ordinal);
 
     public static void AddExplicitFields<TMember, TField>(
         IEnumerable<TField> fieldDefinitions,
         Func<TField, TMember?> resolveMember,
-        IDictionary<NameString, TField> fields,
+        IDictionary<string, TField> fields,
         ISet<TMember> handledMembers)
         where TMember : MemberInfo
         where TField : FieldDefinitionBase
     {
         foreach (var fieldDefinition in fieldDefinitions)
         {
-            if (!fieldDefinition.Ignore)
+            if (!fieldDefinition.Ignore && fieldDefinition.Name is not null)
             {
                 fields[fieldDefinition.Name] = fieldDefinition;
             }
@@ -40,7 +40,7 @@ public static class FieldDescriptorUtilities
     public static void AddImplicitFields<TDescriptor, TMember, TField>(
         TDescriptor descriptor,
         Func<TMember, TField> createdFieldDefinition,
-        IDictionary<NameString, TField> fields,
+        IDictionary<string, TField> fields,
         ISet<TMember> handledMembers)
         where TDescriptor : IHasRuntimeType, IHasDescriptorContext
         where TMember : MemberInfo
@@ -58,7 +58,7 @@ public static class FieldDescriptorUtilities
         TDescriptor descriptor,
         Type fieldBindingType,
         Func<TMember, TField> createdFieldDefinition,
-        IDictionary<NameString, TField> fields,
+        IDictionary<string, TField> fields,
         ISet<TMember> handledMembers,
         Func<IReadOnlyList<TMember>, TMember, bool>? include = null,
         bool includeIgnoredMembers = false)
@@ -79,7 +79,8 @@ public static class FieldDescriptorUtilities
                 {
                     var fieldDefinition = createdFieldDefinition(member);
 
-                    if (!handledMembers.Contains(member) &&
+                    if (fieldDefinition.Name is not null &&
+                        !handledMembers.Contains(member) &&
                         !fields.ContainsKey(fieldDefinition.Name) &&
                         (includeIgnoredMembers || !fieldDefinition.Ignore))
                     {
@@ -109,7 +110,10 @@ public static class FieldDescriptorUtilities
             {
                 foreach (var argument in arguments)
                 {
-                    processedNames.Add(argument.Name);
+                    if (argument.Name is not null)
+                    {
+                        processedNames.Add(argument.Name);
+                    }
                 }
 
                 foreach (var parameter in
@@ -120,7 +124,8 @@ public static class FieldDescriptorUtilities
                             .New(context, parameter)
                             .CreateDefinition();
 
-                    if (processedNames.Add(argumentDefinition.Name))
+                    if (argumentDefinition.Name is not null &&
+                        processedNames.Add(argumentDefinition.Name))
                     {
                         arguments.Add(argumentDefinition);
                     }

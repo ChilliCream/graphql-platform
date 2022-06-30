@@ -7,6 +7,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -155,8 +156,7 @@ public class ObjectField
             executableDirectives ??= new List<IDirective>(_executableDirectives);
             if (!processed.Add(directive.Name) && !directive.Type.IsRepeatable)
             {
-                var remove = executableDirectives
-                    .First(t => t.Name.Equals(directive.Name));
+                var remove = executableDirectives.First(t => t.Name.EqualsOrdinal(directive.Name));
                 executableDirectives.Remove(remove);
             }
             executableDirectives.Add(directive);

@@ -8,6 +8,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -513,11 +514,11 @@ public class IdAttributeTests
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
-            if (validationContext.Type.Name.Equals("Query") &&
+            if (validationContext.Type.Name.EqualsOrdinal("Query") &&
                 definition is ObjectTypeDefinition typeDef)
             {
                 Count = typeDef.Fields
-                    .Single(t => t.Name.Equals("abc"))
+                    .Single(t => t.Name.EqualsOrdinal("abc"))
                     .GetResultConverters()
                     .Count;
             }

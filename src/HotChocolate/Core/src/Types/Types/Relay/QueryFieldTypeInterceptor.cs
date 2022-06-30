@@ -4,6 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -12,7 +13,7 @@ namespace HotChocolate.Types.Relay;
 internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 {
     private const string _defaultFieldName = "query";
-    private readonly HashSet<NameString> _payloads = new();
+    private readonly HashSet<string> _payloads = new();
 
     private ITypeCompletionContext _context = default!;
     private ObjectType? _queryType;
@@ -74,7 +75,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
             definition is ObjectTypeDefinition objectTypeDef &&
             _payloads.Contains(objectType.Name))
         {
-            if (objectTypeDef.Fields.Any(t => t.Name.Equals(_queryField.Name)))
+            if (objectTypeDef.Fields.Any(t => t.Name.EqualsOrdinal(_queryField.Name)))
             {
                 return;
             }

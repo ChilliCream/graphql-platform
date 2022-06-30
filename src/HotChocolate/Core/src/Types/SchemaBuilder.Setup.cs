@@ -1,10 +1,11 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
@@ -12,8 +13,6 @@ using HotChocolate.Types.Interceptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.Extensions.DependencyInjection;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -329,20 +328,20 @@ public partial class SchemaBuilder
 
                 if (typeRef is SyntaxTypeReference str)
                 {
-                    return objectType.Name.Equals(str.Type.NamedType().Name.Value);
+                    return objectType.Name.EqualsOrdinal(str.Type.NamedType().Name.Value);
                 }
             }
             else if (operationType == OperationType.Query)
             {
-                return objectType.Name.Equals(OperationTypeNames.Query);
+                return objectType.Name.EqualsOrdinal(OperationTypeNames.Query);
             }
             else if (operationType == OperationType.Mutation)
             {
-                return objectType.Name.Equals(OperationTypeNames.Mutation);
+                return objectType.Name.EqualsOrdinal(OperationTypeNames.Mutation);
             }
             else if (operationType == OperationType.Subscription)
             {
-                return objectType.Name.Equals(OperationTypeNames.Subscription);
+                return objectType.Name.EqualsOrdinal(OperationTypeNames.Subscription);
             }
 
             return false;
@@ -427,12 +426,12 @@ public partial class SchemaBuilder
                 schemaDef.SubscriptionType = GetOperationType(OperationType.Subscription);
             }
 
-            ObjectType? GetObjectType(NameString typeName)
+            ObjectType? GetObjectType(string typeName)
             {
                 foreach (var registeredType in typeRegistry.Types)
                 {
                     if (registeredType.Type is ObjectType objectType &&
-                        objectType.Name.Equals(typeName))
+                        objectType.Name.EqualsOrdinal(typeName))
                     {
                         return objectType;
                     }
@@ -462,7 +461,7 @@ public partial class SchemaBuilder
                         return typeRegistry.Types
                             .Select(t => t.Type)
                             .OfType<ObjectType>()
-                            .FirstOrDefault(t => t.Name.Equals(namedType.Name.Value));
+                            .FirstOrDefault(t => t.Name.EqualsOrdinal(namedType.Name.Value));
                     }
                 }
 

@@ -39,10 +39,10 @@ public class NamingConventionTests
 
     public class CustomNamingConvention : DefaultNamingConventions
     {
-        public override NameString GetArgumentName(ParameterInfo parameter)
+        public override string GetArgumentName(ParameterInfo parameter)
         {
             var name = base.GetArgumentName(parameter);
-            return name.Value + "_Named";
+            return name + "_Named";
         }
 
         public override string GetArgumentDescription(ParameterInfo parameter)
@@ -55,10 +55,10 @@ public class NamingConventionTests
             return "GetMemberDescription";
         }
 
-        public override NameString GetTypeName(Type type, TypeKind kind)
+        public override string GetTypeName(Type type, TypeKind kind)
         {
             var name = base.GetTypeName(type, kind);
-            return name.Value + "_Named";
+            return name + "_Named";
         }
 
         public override string GetEnumValueDescription(object value)
@@ -66,10 +66,10 @@ public class NamingConventionTests
             return "GetEnumValueDescription";
         }
 
-        public override NameString GetMemberName(MemberInfo member, MemberKind kind)
+        public override string GetMemberName(MemberInfo member, MemberKind kind)
         {
             var name = base.GetMemberName(member, kind);
-            return name.Value + "_Named";
+            return name + "_Named";
         }
 
         public override string GetTypeDescription(Type type, TypeKind kind)

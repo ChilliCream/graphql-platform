@@ -54,8 +54,8 @@ public class Neo4JFixture : Neo4jResource<Neo4JConfig>
 
     public async Task<IRequestExecutor> CreateSchema()
     {
-        IAsyncSession session = GetAsyncSession();
-        IResultCursor cursor = await session.RunAsync(seedCypher);
+        var session = GetAsyncSession();
+        var cursor = await session.RunAsync(seedCypher);
         await cursor.ConsumeAsync();
 
         return await new ServiceCollection()
