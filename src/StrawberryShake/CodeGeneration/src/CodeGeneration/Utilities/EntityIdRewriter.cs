@@ -97,7 +97,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
 
                     selections.Add(new InlineFragmentNode(
                         null,
-                        new NamedTypeNode(objectType.Name.Value),
+                        new NamedTypeNode(objectType.Name),
                         new List<DirectiveNode>(),
                         new SelectionSetNode(fields)));
                 }

@@ -28,7 +28,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
 {
     public static IRequestExecutorBuilder AddRemoteSchema(
         this IRequestExecutorBuilder builder,
-        NameString schemaName,
+        string schemaName,
         bool ignoreRootTypes = false,
         EndpointCapabilities capabilities = default)
     {
@@ -37,7 +37,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        schemaName.EnsureNotEmpty(nameof(schemaName));
+        schemaName.EnsureGraphQLName();
 
         return AddRemoteSchema(
             builder,
@@ -126,7 +126,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
 
     public static IRequestExecutorBuilder AddRemoteSchema(
         this IRequestExecutorBuilder builder,
-        NameString schemaName,
+        string schemaName,
         Func<IServiceProvider, CancellationToken, ValueTask<RemoteSchemaDefinition>> loadSchema,
         bool ignoreRootTypes = false,
         EndpointCapabilities capabilities = default)
@@ -141,7 +141,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             throw new ArgumentNullException(nameof(loadSchema));
         }
 
-        schemaName.EnsureNotEmpty(nameof(schemaName));
+        schemaName.EnsureGraphQLName();
 
         // first we add a full GraphQL schema and executor that represents the remote schema.
         // This remote schema will be used by the stitching engine to execute queries against

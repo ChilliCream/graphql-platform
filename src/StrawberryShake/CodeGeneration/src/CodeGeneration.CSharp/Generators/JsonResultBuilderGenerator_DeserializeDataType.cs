@@ -93,7 +93,7 @@ public partial class JsonResultBuilderGenerator
 
         foreach (var property in concreteType.Properties)
         {
-            if (property.Name.Value.EqualsOrdinal(WellKnownNames.TypeName))
+            if (property.Name.EqualsOrdinal(WellKnownNames.TypeName))
             {
                 continue;
             }

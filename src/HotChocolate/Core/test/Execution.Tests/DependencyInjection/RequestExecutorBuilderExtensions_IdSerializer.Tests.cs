@@ -45,7 +45,7 @@ public class RequestExecutorBuilderExtensionsIdSerializerTests
 
         // assert
         var id = serializer.Deserialize(serializedId!);
-        Assert.NotNull(id.SchemaName);
+        Assert.Null(id.SchemaName);
         Assert.Equal("def", id.TypeName);
         Assert.Equal("ghi", id.Value);
     }

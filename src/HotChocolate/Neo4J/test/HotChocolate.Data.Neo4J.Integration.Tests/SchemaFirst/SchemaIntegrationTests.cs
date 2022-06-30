@@ -17,10 +17,10 @@ public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>
     [Fact]
     public async Task MoviesSchemaIntegrationTests()
     {
-        IRequestExecutor tester = await _fixture.CreateSchema();
+        var tester = await _fixture.CreateSchema();
         tester.Schema.Print().MatchSnapshot("MoviesSchema_Snapshot");
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             @"{
                         actors {
                             name
@@ -32,7 +32,7 @@ public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>
 
         res1.MatchSnapshot("MoviesSchema_Actors_Query");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             @"{
                         actors (where : {name : { startsWith : ""Keanu"" }}) {
                             name
@@ -44,7 +44,7 @@ public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>
 
         res2.MatchSnapshot("MoviesSchema_Name_StartsWith_Actors_Query");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             @"{
                         movies {
                             title
@@ -52,7 +52,7 @@ public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>
                     }");
         res3.MatchSnapshot("MoviesSchema_Movies_Query");
 
-        IExecutionResult res4 = await tester.ExecuteAsync(
+        var res4 = await tester.ExecuteAsync(
             @"{
                         actors(order: [{ name : ASC }]) {
                             name

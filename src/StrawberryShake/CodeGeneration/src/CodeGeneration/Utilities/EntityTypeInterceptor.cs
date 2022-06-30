@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -13,11 +12,11 @@ public class EntityTypeInterceptor : TypeInterceptor
 {
     private readonly List<TypeInfo> _outputTypes = new();
     private readonly IReadOnlyList<SelectionSetNode> _globalEntityPatterns;
-    private readonly IReadOnlyDictionary<NameString, SelectionSetNode> _typeEntityPatterns;
+    private readonly IReadOnlyDictionary<string, SelectionSetNode> _typeEntityPatterns;
 
     public EntityTypeInterceptor(
         IReadOnlyList<SelectionSetNode> globalEntityPatterns,
-        IReadOnlyDictionary<NameString, SelectionSetNode> typeEntityPatterns)
+        IReadOnlyDictionary<string, SelectionSetNode> typeEntityPatterns)
     {
         _globalEntityPatterns = globalEntityPatterns;
         _typeEntityPatterns = typeEntityPatterns;
@@ -48,7 +47,7 @@ public class EntityTypeInterceptor : TypeInterceptor
             foreach (var typeInfo in _outputTypes)
             {
                 if (_globalEntityPatterns.FirstOrDefault(
-                        pattern => DoesPatternMatch(typeInfo.Type, pattern)) is { } matchedPattern)
+                    pattern => DoesPatternMatch(typeInfo.Type, pattern)) is { } matchedPattern)
                 {
                     typeInfo.ContextData[WellKnownContextData.Entity] = matchedPattern;
                 }

@@ -29,7 +29,7 @@ internal sealed class DelegateSyntaxRewriter<TContext>
         ISyntaxNode node,
         TContext context)
     {
-        ISyntaxNode? rewrittenNode = base.OnRewrite(node, context);
+        var rewrittenNode = base.OnRewrite(node, context);
         return _rewrite(rewrittenNode, context);
     }
 

@@ -165,8 +165,8 @@ internal sealed class FieldCollector
         Path path,
         IDictionary<string, FieldSelection> fields)
     {
-        NameString fieldName = fieldSyntax.Name.Value;
-        NameString responseName = fieldSyntax.Alias?.Value ?? fieldSyntax.Name.Value;
+        var fieldName = fieldSyntax.Name.Value;
+        var responseName = fieldSyntax.Alias?.Value ?? fieldSyntax.Name.Value;
         IOutputField? field = null;
 
         if ((type is IComplexOutputType ct && ct.Fields.TryGetField(fieldName, out field)) ||
@@ -337,7 +337,8 @@ internal sealed class FieldCollector
             Arguments = FieldCollection<IInputField>.Empty;
         }
 
-        public NameString Name { get; }
+        public string Name { get; }
+
         public string? Description => null;
 
         public IDirectiveCollection Directives => throw new NotImplementedException();

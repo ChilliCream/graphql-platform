@@ -69,7 +69,7 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
                     .SetRighthandSide(paramName));
         }
 
-        classBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
+        classBuilder.AddImplementsRange(descriptor.Implements);
 
         foreach (var deferred in descriptor.Deferred)
         {

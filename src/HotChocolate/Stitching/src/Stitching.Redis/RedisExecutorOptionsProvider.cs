@@ -13,33 +13,33 @@ namespace HotChocolate.Stitching.Redis;
 
 internal class RedisExecutorOptionsProvider : IRequestExecutorOptionsProvider
 {
-    private readonly NameString _schemaName;
-    private readonly NameString _configurationName;
+    private readonly string _schemaName;
+    private readonly string _configurationName;
     private readonly IDatabase _database;
     private readonly List<OnChangeListener> _listeners = new List<OnChangeListener>();
 
     public RedisExecutorOptionsProvider(
-        NameString schemaName,
-        NameString configurationName,
+        string schemaName,
+        string configurationName,
         IDatabase database,
         ISubscriber subscriber)
     {
         _schemaName = schemaName;
         _configurationName = configurationName;
         _database = database;
-        subscriber.Subscribe(configurationName.Value).OnMessage(OnChangeMessageAsync);
+        subscriber.Subscribe(configurationName).OnMessage(OnChangeMessageAsync);
     }
 
     public async ValueTask<IEnumerable<IConfigureRequestExecutorSetup>> GetOptionsAsync(
         CancellationToken cancellationToken)
     {
-        IEnumerable<RemoteSchemaDefinition> schemaDefinitions =
+        var schemaDefinitions =
             await GetSchemaDefinitionsAsync(cancellationToken)
                 .ConfigureAwait(false);
 
         var factoryOptions = new List<IConfigureRequestExecutorSetup>();
 
-        foreach (RemoteSchemaDefinition schemaDefinition in schemaDefinitions)
+        foreach (var schemaDefinition in schemaDefinitions)
         {
             await CreateFactoryOptionsAsync(
                 schemaDefinition,
@@ -58,7 +58,7 @@ internal class RedisExecutorOptionsProvider : IRequestExecutorOptionsProvider
     {
         string schemaName = message.Message;
 
-        RemoteSchemaDefinition schemaDefinition =
+        var schemaDefinition =
             await GetRemoteSchemaDefinitionAsync(schemaName)
                 .ConfigureAwait(false);
 
@@ -68,9 +68,9 @@ internal class RedisExecutorOptionsProvider : IRequestExecutorOptionsProvider
 
         lock (_listeners)
         {
-            foreach (OnChangeListener listener in _listeners)
+            foreach (var listener in _listeners)
             {
-                foreach (IConfigureRequestExecutorSetup options in factoryOptions)
+                foreach (var options in factoryOptions)
                 {
                     listener.OnChange(options);
                 }
@@ -81,8 +81,7 @@ internal class RedisExecutorOptionsProvider : IRequestExecutorOptionsProvider
     private async ValueTask<IEnumerable<RemoteSchemaDefinition>> GetSchemaDefinitionsAsync(
         CancellationToken cancellationToken)
     {
-        RedisValue[] items = await _database.SetMembersAsync(_configurationName.Value)
-            .ConfigureAwait(false);
+        var items = await _database.SetMembersAsync(_configurationName).ConfigureAwait(false);
 
         var schemaDefinitions = new List<RemoteSchemaDefinition>();
 
@@ -90,7 +89,7 @@ internal class RedisExecutorOptionsProvider : IRequestExecutorOptionsProvider
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            RemoteSchemaDefinition schemaDefinition =
+            var schemaDefinition =
                 await GetRemoteSchemaDefinitionAsync(schemaName)
                     .ConfigureAwait(false);
 
@@ -105,7 +104,7 @@ internal class RedisExecutorOptionsProvider : IRequestExecutorOptionsProvider
         IList<IConfigureRequestExecutorSetup> factoryOptions,
         CancellationToken cancellationToken)
     {
-        await using ServiceProvider services =
+        await using var services =
             new ServiceCollection()
                 .AddGraphQL(_schemaName)
                 .AddRemoteSchema(
@@ -114,10 +113,10 @@ internal class RedisExecutorOptionsProvider : IRequestExecutorOptionsProvider
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutorOptionsMonitor optionsMonitor =
+        var optionsMonitor =
             services.GetRequiredService<IRequestExecutorOptionsMonitor>();
 
-        RequestExecutorSetup options =
+        var options =
             await optionsMonitor.GetAsync(schemaDefinition.Name, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -132,9 +131,9 @@ internal class RedisExecutorOptionsProvider : IRequestExecutorOptionsProvider
 
     private async Task<RemoteSchemaDefinition> GetRemoteSchemaDefinitionAsync(string schemaName)
     {
-        string key = $"{_configurationName}.{schemaName}";
+        var key = $"{_configurationName}.{schemaName}";
         var json = (byte[])await _database.StringGetAsync(key).ConfigureAwait(false);
-        SchemaDefinitionDto? dto = JsonSerializer.Deserialize<SchemaDefinitionDto>(json);
+        var dto = JsonSerializer.Deserialize<SchemaDefinitionDto>(json);
 
         return new RemoteSchemaDefinition(
             dto.Name,

@@ -22,7 +22,7 @@ public sealed class EntityTypeDescriptor : ICodeDescriptor
     /// The documentation of this entity
     /// </param>
     public EntityTypeDescriptor(
-        NameString name,
+        string name,
         RuntimeTypeInfo runtimeType,
         Dictionary<string, PropertyDescriptor> properties,
         string? documentation)
@@ -36,7 +36,7 @@ public sealed class EntityTypeDescriptor : ICodeDescriptor
     /// <summary>
     /// Gets the GraphQL type name which this entity represents.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the entity name.

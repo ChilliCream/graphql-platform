@@ -67,7 +67,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
                     .SetType(
                         descriptor.Kind is TypeKind.Entity
                             ? entityType.FullName
-                            : descriptor.Name.Value)
+                            : descriptor.Name)
                     .SetName(_entity))
             .AddParameter(
                 _snapshot,

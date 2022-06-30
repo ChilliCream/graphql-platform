@@ -59,7 +59,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
 
         foreach (var property in neededSerializers.Values)
         {
-            if (property.Type.GetName().Value is { } name)
+            if (property.Type.GetName() is { } name)
             {
                 var propertyName = GetFieldName(name) + "Formatter";
 
@@ -271,7 +271,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
     {
         return MethodCallBuilder
             .New()
-            .SetMethodName(GetFieldName(descriptor.GetName().Value) + "Formatter", "Format")
+            .SetMethodName(GetFieldName(descriptor.GetName()) + "Formatter", "Format")
             .AddArgument(variableName);
     }
 }

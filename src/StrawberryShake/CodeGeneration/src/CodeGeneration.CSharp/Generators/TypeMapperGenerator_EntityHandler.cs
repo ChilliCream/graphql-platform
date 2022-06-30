@@ -43,14 +43,14 @@ public partial class TypeMapperGenerator
                 var dataMapperName =
                     CreateEntityMapperName(
                         implementer.RuntimeType.Name,
-                        implementer.Name.Value);
+                        implementer.Name);
 
                 if (processed.Add(dataMapperName))
                 {
                     var dataMapperType =
                         TypeNames.IEntityMapper.WithGeneric(
                             CreateEntityType(
-                                implementer.Name.Value,
+                                implementer.Name,
                                 implementer.RuntimeType.NamespaceWithoutGlobal).ToString(),
                             implementer.RuntimeType.Name);
 

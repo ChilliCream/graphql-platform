@@ -24,15 +24,15 @@ public class RedisSchemaDefinitionPublisher : ISchemaDefinitionPublisher
         RemoteSchemaDefinition schemaDefinition,
         CancellationToken cancellationToken = default)
     {
-        string key = $"{_configurationName}.{schemaDefinition.Name}";
-        string json = SerializeSchemaDefinition(schemaDefinition);
+        var key = $"{_configurationName}.{schemaDefinition.Name}";
+        var json = SerializeSchemaDefinition(schemaDefinition);
 
-        IDatabase database = _connection.GetDatabase();
+        var database = _connection.GetDatabase();
         await database.StringSetAsync(key, json).ConfigureAwait(false);
         await database.SetAddAsync(_configurationName.Value, schemaDefinition.Name.Value)
             .ConfigureAwait(false);
 
-        ISubscriber subscriber = _connection.GetSubscriber();
+        var subscriber = _connection.GetSubscriber();
         await subscriber.PublishAsync(_configurationName.Value, schemaDefinition.Name.Value)
             .ConfigureAwait(false);
     }

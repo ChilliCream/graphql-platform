@@ -13,7 +13,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -26,7 +26,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -47,7 +47,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -60,7 +60,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -73,7 +73,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -91,7 +91,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -109,7 +109,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -121,7 +121,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -141,7 +141,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         var resultValue = serializer.ParseLiteral(type.Object, new EnumValueNode(stringValue));
@@ -163,7 +163,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         var resultValue = serializer.ParseLiteral(
@@ -179,7 +179,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         var resultValue = serializer.ParseLiteral(type.Object, NullValueNode.Default);
@@ -193,10 +193,10 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
-        IValueNode resultValue = serializer.ParseValue(type.Object, null);
+        var resultValue = serializer.ParseValue(type.Object, null);
 
         // assert
         Assert.Equal(NullValueNode.Default, resultValue);
@@ -215,13 +215,13 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
-        IValueNode resultValue = serializer.ParseValue(type.Object, value);
+        var resultValue = serializer.ParseValue(type.Object, value);
 
         // assert
-        EnumValueNode enumValue = Assert.IsType<EnumValueNode>(resultValue);
+        var enumValue = Assert.IsType<EnumValueNode>(resultValue);
         Assert.Equal(stringValue, enumValue.Value);
     }
 
@@ -231,7 +231,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -244,10 +244,10 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
-        IValueNode resultValue = serializer.ParseResult(type.Object, null);
+        var resultValue = serializer.ParseResult(type.Object, null);
 
         // assert
         Assert.Equal(NullValueNode.Default, resultValue);
@@ -266,13 +266,13 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
-        IValueNode resultValue = serializer.ParseResult(type.Object, value);
+        var resultValue = serializer.ParseResult(type.Object, value);
 
         // assert
-        EnumValueNode enumValue = Assert.IsType<EnumValueNode>(resultValue);
+        var enumValue = Assert.IsType<EnumValueNode>(resultValue);
         Assert.Equal(stringValue, enumValue.Value);
     }
 
@@ -287,15 +287,13 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
-        IValueNode resultValue = serializer.ParseResult(
-            type.Object,
-            new NameString(stringValue));
+        var resultValue = serializer.ParseResult(type.Object, stringValue);
 
         // assert
-        EnumValueNode enumValue = Assert.IsType<EnumValueNode>(resultValue);
+        var enumValue = Assert.IsType<EnumValueNode>(resultValue);
         Assert.Equal(stringValue, enumValue.Value);
     }
 
@@ -310,13 +308,13 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
-        IValueNode resultValue = serializer.ParseResult(type.Object, stringValue);
+        var resultValue = serializer.ParseResult(type.Object, stringValue);
 
         // assert
-        EnumValueNode enumValue = Assert.IsType<EnumValueNode>(resultValue);
+        var enumValue = Assert.IsType<EnumValueNode>(resultValue);
         Assert.Equal(stringValue, enumValue.Value);
     }
 
@@ -326,7 +324,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -339,7 +337,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -357,7 +355,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -369,7 +367,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -381,7 +379,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -394,7 +392,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -414,7 +412,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -435,7 +433,7 @@ public class GeoJsonTypeSerializerTests
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         // assert
@@ -452,12 +450,11 @@ public class GeoJsonTypeSerializerTests
     [InlineData(GeoJsonGeometryType.MultiPolygon, "MultiPolygon")]
     public void TryDeserialize_Should_Serialize_NameString(
         GeoJsonGeometryType value,
-        string stringValue)
+        string typeName)
     {
         // arrange
         var type = new Mock<IType>();
-        GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
-        var typeName = new NameString(stringValue);
+        var serializer = GeoJsonTypeSerializer.Default;
 
         // act
         var success = serializer.TryDeserialize(type.Object, typeName, out var resultValue);

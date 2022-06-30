@@ -1,5 +1,4 @@
 using System;
-using HotChocolate;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
@@ -11,16 +10,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 public static class DescriptorExtensions
 {
-    public static NameString ExtractMapperName(this INamedTypeDescriptor descriptor)
-    {
-        return descriptor.Kind == TypeKind.Entity
-            ? CreateEntityMapperName(
-                descriptor.RuntimeType.Name,
-                descriptor.Name)
-            : CreateDataMapperName(
-                descriptor.RuntimeType.Name,
-                descriptor.Name);
-    }
+    public static string ExtractMapperName(this INamedTypeDescriptor descriptor)
+        => descriptor.Kind == TypeKind.Entity
+            ? CreateEntityMapperName(descriptor.RuntimeType.Name, descriptor.Name)
+            : CreateDataMapperName(descriptor.RuntimeType.Name, descriptor.Name);
 
     public static RuntimeTypeInfo ExtractType(
         this INamedTypeDescriptor descriptor)

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
@@ -22,7 +21,7 @@ public class RazorQueryGenerator : CSharpSyntaxGenerator<OperationDescriptor>
         OperationDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
     {
-        var componentName = $"Use{descriptor.Name.Value}";
+        var componentName = $"Use{descriptor.Name}";
         var resultType = descriptor.ResultTypeReference.GetRuntimeType().ToString();
 
         var classDeclaration =

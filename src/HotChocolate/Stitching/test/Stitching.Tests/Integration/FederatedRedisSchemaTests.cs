@@ -15,7 +15,6 @@ using HotChocolate.Stitching.Schemas.Reviews;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;

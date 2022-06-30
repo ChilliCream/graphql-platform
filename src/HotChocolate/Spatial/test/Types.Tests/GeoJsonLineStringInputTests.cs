@@ -34,7 +34,7 @@ public class GeoJsonLineStringInputTests
 
     private InputObjectType CreateInputType()
     {
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
         return schema.GetType<InputObjectType>("GeoJSONLineStringInput");
     }
 
@@ -42,7 +42,7 @@ public class GeoJsonLineStringInputTests
     public void ParseLiteral_LineString_With_Valid_Coordinates()
     {
         // arrange
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
         var inputParser = new InputParser(new DefaultTypeConverter());
 
         // act
@@ -66,7 +66,7 @@ public class GeoJsonLineStringInputTests
     public void ParseLiteral_LineString_With_Valid_Coordinates_And_CRS()
     {
         // arrange
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
         var inputParser = new InputParser(new DefaultTypeConverter());
 
         // act
@@ -92,11 +92,11 @@ public class GeoJsonLineStringInputTests
     public void ParseLiteral_LineString_Is_Null()
     {
         // arrange
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
         var inputParser = new InputParser(new DefaultTypeConverter());
 
         // act
-        object? result = inputParser.ParseLiteral(NullValueNode.Default, type);
+        var result = inputParser.ParseLiteral(NullValueNode.Default, type);
 
         // assert
         Assert.Null(result);
@@ -107,7 +107,7 @@ public class GeoJsonLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -120,7 +120,7 @@ public class GeoJsonLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -137,7 +137,7 @@ public class GeoJsonLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -156,7 +156,7 @@ public class GeoJsonLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -172,7 +172,7 @@ public class GeoJsonLineStringInputTests
     public async Task Execution_Tests()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("Query")
                 .Field("test")
@@ -180,10 +180,10 @@ public class GeoJsonLineStringInputTests
                 .Resolve(ctx => ctx.ArgumentValue<LineString>("arg").ToString()))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test(arg: { type: LineString, coordinates: [[30, 10], [10, 30], [40, 40]]})}");
 
         // assert
@@ -202,7 +202,7 @@ public class GeoJsonLineStringInputTests
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("Query")
                 .Field("test")
@@ -210,7 +210,7 @@ public class GeoJsonLineStringInputTests
                 .Resolve("ghi"))
             .Create();
 
-        InputObjectType type = schema.GetType<InputObjectType>("GeoJSONLineStringInput");
+        var type = schema.GetType<InputObjectType>("GeoJSONLineStringInput");
 
         var node = new ObjectValueNode(
             new ObjectFieldNode("type", new EnumValueNode("LineString")),

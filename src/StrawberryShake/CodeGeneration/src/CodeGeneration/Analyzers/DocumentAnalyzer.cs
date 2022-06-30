@@ -44,8 +44,8 @@ public partial class DocumentAnalyzer
 
         var operationDocuments = CreateOperationDocuments(_documents, _schema);
         List<OperationModel> operations = new();
-        Dictionary<NameString, LeafTypeModel> leafTypes = new();
-        Dictionary<NameString, InputObjectTypeModel> inputObjectType = new();
+        Dictionary<string, LeafTypeModel> leafTypes = new(StringComparer.Ordinal);
+        Dictionary<string, InputObjectTypeModel> inputObjectType = new(StringComparer.Ordinal);
         Dictionary<SelectionSetInfo, SelectionSetNode> selectionSets = new();
 
         foreach (var operation in operationDocuments.Operations.Values)

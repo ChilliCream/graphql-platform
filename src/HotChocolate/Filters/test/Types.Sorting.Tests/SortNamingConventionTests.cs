@@ -75,14 +75,14 @@ public class SortingNamingConventionTests : TypeTestBase
             IDescriptorContext context,
             Type entityType)
         {
-            return base.GetSortingTypeName(context, entityType).Add("Test");
+            return string.Concat(base.GetSortingTypeName(context, entityType), "Test");
         }
 
         public override string GetSortingOperationKindTypeName(
             IDescriptorContext context,
             Type entityType)
         {
-            return base.GetSortingOperationKindTypeName(context, entityType).Add("Test");
+            return string.Concat(base.GetSortingOperationKindTypeName(context, entityType), "Test");
         }
     }
 }

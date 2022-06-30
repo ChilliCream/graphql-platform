@@ -14,7 +14,7 @@ public interface IInMemoryClient
     /// <summary>
     /// The name of the schema that should be used by this executor
     /// </summary>
-    NameString SchemaName { get; set; }
+    string SchemaName { get; set; }
 
     /// <summary>
     /// The request executor that will be used to execute the request

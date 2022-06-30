@@ -5,6 +5,7 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
@@ -33,9 +34,9 @@ public static class SchemaHelper
 
         builder.ModifyOptions(o => o.StrictValidation = strictValidation);
 
-        var leafTypes = new Dictionary<NameString, LeafTypeInfo>();
+        var leafTypes = new Dictionary<string, LeafTypeInfo>(StringComparer.Ordinal);
         var globalEntityPatterns = new List<SelectionSetNode>();
-        var typeEntityPatterns = new Dictionary<NameString, SelectionSetNode>();
+        var typeEntityPatterns = new Dictionary<string, SelectionSetNode>(StringComparer.Ordinal);
 
         foreach (var document in schemaFiles.Select(f => f.Document))
         {
@@ -99,14 +100,14 @@ public static class SchemaHelper
 
     private static void CollectScalarInfos(
         IEnumerable<ScalarTypeExtensionNode> scalarTypeExtensions,
-        Dictionary<NameString, LeafTypeInfo> leafTypes,
+        Dictionary<string, LeafTypeInfo> leafTypes,
         TypeInfos typeInfos)
     {
         foreach (var scalarTypeExtension in scalarTypeExtensions)
         {
             if (!leafTypes.TryGetValue(
-                    scalarTypeExtension.Name.Value,
-                    out var scalarInfo))
+                scalarTypeExtension.Name.Value,
+                out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -126,14 +127,14 @@ public static class SchemaHelper
 
     private static void CollectEnumInfos(
         IEnumerable<EnumTypeExtensionNode> enumTypeExtensions,
-        Dictionary<NameString, LeafTypeInfo> leafTypes,
+        Dictionary<string, LeafTypeInfo> leafTypes,
         TypeInfos typeInfos)
     {
         foreach (var scalarTypeExtension in enumTypeExtensions)
         {
             if (!leafTypes.TryGetValue(
-                    scalarTypeExtension.Name.Value,
-                    out var scalarInfo))
+                scalarTypeExtension.Name.Value,
+                out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -160,12 +161,12 @@ public static class SchemaHelper
 
     private static RuntimeTypeDirective? GetDirectiveValue(
         HotChocolate.Language.IHasDirectives hasDirectives,
-        NameString directiveName)
+        string directiveName)
     {
         var directive = hasDirectives.Directives.FirstOrDefault(
             t => directiveName.EqualsOrdinal(t.Name.Value));
 
-        if (directive is { Arguments: { Count: > 0 } })
+        if (directive is { Arguments.Count: > 0 })
         {
             var name = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("name"));
@@ -200,7 +201,7 @@ public static class SchemaHelper
 
     private static void CollectTypeEntityPatterns(
         IEnumerable<ObjectTypeExtensionNode> objectTypeExtensions,
-        Dictionary<NameString, SelectionSetNode> entityPatterns)
+        Dictionary<string, SelectionSetNode> entityPatterns)
     {
         foreach (var objectTypeExtension in objectTypeExtensions)
         {
@@ -216,7 +217,7 @@ public static class SchemaHelper
 
     private static void AddDefaultScalarInfos(
         ISchemaBuilder schemaBuilder,
-        Dictionary<NameString, LeafTypeInfo> leafTypes)
+        Dictionary<string, LeafTypeInfo> leafTypes)
     {
         TryAddLeafType(leafTypes, ScalarNames.String, TypeNames.String);
         TryAddLeafType(leafTypes, ScalarNames.ID, TypeNames.String);
@@ -292,8 +293,8 @@ public static class SchemaHelper
         directive.Name.Value.Equals("key", StringComparison.Ordinal);
 
     private static void TryAddLeafType(
-        Dictionary<NameString, LeafTypeInfo> leafTypes,
-        NameString typeName,
+        Dictionary<string, LeafTypeInfo> leafTypes,
+        string typeName,
         string runtimeType,
         string serializationType = TypeNames.String)
     {

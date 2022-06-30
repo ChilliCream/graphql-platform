@@ -33,7 +33,7 @@ public class ResultInterfaceGenerator : CodeGenerator<InterfaceTypeDescriptor>
                 .SetPublic();
         }
 
-        interfaceBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
+        interfaceBuilder.AddImplementsRange(descriptor.Implements);
 
         foreach (var deferred in descriptor.Deferred)
         {

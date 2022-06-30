@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -152,8 +151,9 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
         }
         else if (namedTypeDescriptor is ObjectTypeDescriptor objectType)
         {
-            var propertyProcessed = new HashSet<NameString>(
-                objectType.Properties.Select(t => t.Name));
+            var propertyProcessed = new HashSet<string>(
+                objectType.Properties.Select(t => t.Name),
+                StringComparer.Ordinal);
             var properties = new List<PropertyDescriptor>(
                 objectType.Properties);
 
@@ -279,7 +279,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
             .Inline()
             .SetMethodName(TypeNames.GetPropertyOrNull)
             .AddArgument(_obj)
-            .AddArgument(property.FieldName.Value.AsStringToken());
+            .AddArgument(property.FieldName.AsStringToken());
 
         var setNullForgiving = property.Kind is PropertyKind.DeferredField;
 
@@ -296,7 +296,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
             .Inline()
             .SetMethodName(TypeNames.ContainsFragment)
             .AddArgument(_obj)
-            .AddArgument(fragment.FragmentIndicatorField.Value.AsStringToken());
+            .AddArgument(fragment.FragmentIndicatorField.AsStringToken());
     }
 
     private static MethodCallBuilder BuildUpdateMethodCall(

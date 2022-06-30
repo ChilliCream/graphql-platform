@@ -459,7 +459,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         foreach (var scalarTypes in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
-            if (_alternativeTypeNames.TryGetValue(scalarTypes.Name.Value, out var serializer))
+            if (_alternativeTypeNames.TryGetValue(scalarTypes.Name, out var serializer))
             {
                 body.AddMethodCall()
                     .SetMethodName(AddSingleton)
@@ -534,7 +534,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
             };
 
-            var operationName = operation.Name.Value;
+            var operationName = operation.Name;
             var fullName = operation.RuntimeType.ToString();
             var operationInterfaceName = operation.InterfaceType.ToString();
             var resultInterface = typeDescriptor.RuntimeType.ToString();

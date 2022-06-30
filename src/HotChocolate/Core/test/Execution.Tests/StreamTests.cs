@@ -151,12 +151,12 @@ public class StreamTests
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
                     @"{
-                            persons {
-                                name
-                            }
-                        }");
+                        persons {
+                            name
+                        }
+                    }");
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        await Assert.IsType<QueryResult>(result).MatchSnapshotAsync();
     }
 
     [Fact]

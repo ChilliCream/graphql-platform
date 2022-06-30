@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Extensions;
 
@@ -28,9 +27,6 @@ public class ClientModel
     /// <param name="inputObjectTypes">
     /// The input types that could be passed in.
     /// </param>
-    /// <param name="selectionSets">
-    /// The mapping of hoisted selection sets to original selection sets.
-    /// </param>
     public ClientModel(
         ISchema schema,
         IReadOnlyList<OperationModel> operations,
@@ -46,8 +42,8 @@ public class ClientModel
 
         Schema = schema;
 
-        var outputTypes = new Dictionary<NameString, OutputTypeModel>();
-        var entities = new Dictionary<NameString, EntityModel>();
+        var outputTypes = new Dictionary<string, OutputTypeModel>(StringComparer.Ordinal);
+        var entities = new Dictionary<string, EntityModel>(StringComparer.Ordinal);
 
         foreach (var operation in operations)
         {

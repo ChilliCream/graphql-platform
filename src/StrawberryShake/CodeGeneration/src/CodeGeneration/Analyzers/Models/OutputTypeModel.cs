@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
@@ -12,7 +12,7 @@ public sealed class OutputTypeModel : ITypeModel
         new Dictionary<string, DeferredFragmentModel>();
 
     public OutputTypeModel(
-        NameString name,
+        string name,
         string? description,
         OutputModelKind kind,
         INamedType type,
@@ -21,7 +21,7 @@ public sealed class OutputTypeModel : ITypeModel
         IReadOnlyList<OutputTypeModel>? implements = null,
         IReadOnlyDictionary<string, DeferredFragmentModel>? deferred = null)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         Description = description;
         Kind = kind;
         Type = type ?? throw new ArgumentNullException(nameof(type));
@@ -31,7 +31,7 @@ public sealed class OutputTypeModel : ITypeModel
         Deferred = deferred ?? _empty;
     }
 
-    public NameString Name { get; }
+    public string Name { get; }
 
     public string? Description { get; }
 

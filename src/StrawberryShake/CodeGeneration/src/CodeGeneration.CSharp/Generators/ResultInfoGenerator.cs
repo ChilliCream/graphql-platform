@@ -113,7 +113,7 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
                 .SetNew()
                 .SetMethodName(className)
                 .AddArgumentRange(
-                    complexTypeDescriptor.Properties.Select(x => x.Name.Value))
+                    complexTypeDescriptor.Properties.Select(x => x.Name))
                 .If(settings.IsStoreEnabled(),
                     x => x.AddArgument(_entityIds).AddArgument(version)));
 

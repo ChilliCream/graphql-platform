@@ -7,10 +7,10 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 public abstract class ComplexTypeDescriptor : INamedTypeDescriptor
 {
     protected ComplexTypeDescriptor(
-        NameString name,
+        string name,
         TypeKind typeKind,
         RuntimeTypeInfo runtimeType,
-        IReadOnlyList<NameString> implements,
+        IReadOnlyList<string> implements,
         IReadOnlyList<DeferredFragmentDescriptor>? deferred,
         string? description,
         RuntimeTypeInfo? parentRuntimeType = null)
@@ -27,7 +27,7 @@ public abstract class ComplexTypeDescriptor : INamedTypeDescriptor
     /// <summary>
     /// Gets the GraphQL type name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the type kind.
@@ -54,7 +54,7 @@ public abstract class ComplexTypeDescriptor : INamedTypeDescriptor
     /// <summary>
     /// A list of interface names the type implements
     /// </summary>
-    public IReadOnlyList<NameString> Implements { get; }
+    public IReadOnlyList<string> Implements { get; }
 
     /// <summary>
     /// Gets the deferred fragments of this type.

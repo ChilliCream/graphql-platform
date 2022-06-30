@@ -11,10 +11,10 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 public class LeafTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<NameString, LeafTypeInfo> _scalarInfos;
+    private readonly Dictionary<string, LeafTypeInfo> _scalarInfos;
     private readonly List<LeafType> _leafTypes = new();
 
-    public LeafTypeInterceptor(Dictionary<NameString, LeafTypeInfo> scalarInfos)
+    public LeafTypeInterceptor(Dictionary<string, LeafTypeInfo> scalarInfos)
     {
         _scalarInfos = scalarInfos ?? throw new ArgumentNullException(nameof(scalarInfos));
     }

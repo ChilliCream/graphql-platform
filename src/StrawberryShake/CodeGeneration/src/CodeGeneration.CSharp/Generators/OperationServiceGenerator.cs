@@ -145,7 +145,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
         foreach (var property in neededSerializers.Values)
         {
-            if (property.Type.GetName().Value is { } name)
+            if (property.Type.GetName() is { } name)
             {
                 var fieldName = $"{GetFieldName(name)}Formatter";
                 constructorBuilder

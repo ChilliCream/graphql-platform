@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -26,8 +26,8 @@ public static class EntityTypeDescriptorMapper
         ClientModel model,
         IMapperContext context)
     {
-        var entityTypes = new Dictionary<NameString, Dictionary<NameString, bool>>();
-        var descriptions = new Dictionary<NameString, string?>();
+        var entityTypes = new Dictionary<string, Dictionary<string, bool>>(StringComparer.Ordinal);
+        var descriptions = new Dictionary<string, string?>(StringComparer.Ordinal);
 
         foreach (var operation in model.Operations)
         {
@@ -42,7 +42,7 @@ public static class EntityTypeDescriptorMapper
                         namedType.Name,
                         out var components))
                     {
-                        components = new Dictionary<NameString, bool>();
+                        components = new Dictionary<string, bool>(StringComparer.Ordinal);
                         entityTypes.Add(namedType.Name, components);
                     }
 
@@ -62,7 +62,7 @@ public static class EntityTypeDescriptorMapper
             }
         }
 
-        foreach ((var key, var value) in entityTypes)
+        foreach (var (key, value) in entityTypes)
         {
             var runtimeType = CreateEntityType(key, context.Namespace);
             descriptions.TryGetValue(key, out var description);
@@ -74,7 +74,7 @@ public static class EntityTypeDescriptorMapper
                 properties,
                 description);
 
-            foreach ((var typeName, var isFragment) in value.OrderBy(t => t.Value))
+            foreach (var (typeName, isFragment) in value.OrderBy(t => t.Value))
             {
                 var type = context.GetType<ComplexTypeDescriptor>(typeName);
 

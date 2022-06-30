@@ -8,7 +8,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Stitching.Integration;

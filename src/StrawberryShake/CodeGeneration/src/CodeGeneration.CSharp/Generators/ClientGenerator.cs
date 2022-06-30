@@ -34,7 +34,7 @@ public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
             .SetPublic()
             .SetStatic()
             .SetType(TypeNames.String)
-            .AsLambda(descriptor.Name.Value.AsStringToken());
+            .AsLambda(descriptor.Name.AsStringToken());
 
         foreach (var operation in descriptor.Operations)
         {

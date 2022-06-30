@@ -23,7 +23,7 @@ public class GeoJsonPolygonTypeTests
     public async Task Polygon_Execution_Output()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonPolygonType>()
@@ -34,10 +34,10 @@ public class GeoJsonPolygonTypeTests
                     .Resolve(_geom))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { type coordinates bbox crs }}");
 
         // assert
@@ -48,7 +48,7 @@ public class GeoJsonPolygonTypeTests
     public async Task Polygon_Execution_With_Fragments()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddSpatialTypes()
             .AddQueryType(
@@ -58,10 +58,10 @@ public class GeoJsonPolygonTypeTests
                     .Type<GeoJsonPolygonType>()
                     .Resolve(_geom))
             .Create();
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { ... on Polygon { type coordinates bbox crs }}}");
 
         // assert
@@ -72,7 +72,7 @@ public class GeoJsonPolygonTypeTests
     public void Polygon_Execution_Tests()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonPolygonType>()

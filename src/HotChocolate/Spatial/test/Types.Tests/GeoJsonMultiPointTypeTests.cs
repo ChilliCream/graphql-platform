@@ -21,7 +21,7 @@ public class GeoJsonMultiPointTypeTests
     public async Task MultiPoint_Execution_Output()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonMultiPointType>()
@@ -31,10 +31,10 @@ public class GeoJsonMultiPointTypeTests
                     .Field("test")
                     .Resolve(_geom))
             .Create();
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { type coordinates bbox crs }}");
 
         // assert
@@ -45,7 +45,7 @@ public class GeoJsonMultiPointTypeTests
     public async Task MultiPoint_Execution_With_Fragments()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddSpatialTypes()
             .AddQueryType(
@@ -55,10 +55,10 @@ public class GeoJsonMultiPointTypeTests
                     .Type<GeoJsonMultiPointType>()
                     .Resolve(_geom))
             .Create();
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { ... on MultiPoint { type coordinates bbox crs }}}");
 
         // assert
@@ -69,7 +69,7 @@ public class GeoJsonMultiPointTypeTests
     public void MultiPoint_Execution_Tests()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonMultiPointType>()

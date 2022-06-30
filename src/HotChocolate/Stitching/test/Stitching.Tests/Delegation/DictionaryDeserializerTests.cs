@@ -7,7 +7,6 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Processing;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Stitching.Delegation;

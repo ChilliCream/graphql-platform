@@ -16,12 +16,13 @@ namespace HotChocolate.Stitching.Utilities;
 internal sealed class IntrospectionHelper
 {
     private readonly HttpClient _httpClient;
-    private readonly NameString _configuration;
+    private readonly string _configuration;
 
-    public IntrospectionHelper(HttpClient httpClient, NameString configuration)
+    public IntrospectionHelper(HttpClient httpClient, string configuration)
     {
+        if (httpClient == null) throw new ArgumentNullException(nameof(httpClient));
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _configuration = configuration.EnsureNotEmpty(nameof(configuration));
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     public async Task<RemoteSchemaDefinition> GetSchemaDefinitionAsync(

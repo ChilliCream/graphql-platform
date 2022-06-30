@@ -20,7 +20,7 @@ public class GeoJsonLineStringTypeTests
     public async Task LineString_Execution_Output()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonLineStringType>()
@@ -30,10 +30,10 @@ public class GeoJsonLineStringTypeTests
                 .Resolve(_geom))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { type coordinates bbox crs }}");
 
         // assert
@@ -44,7 +44,7 @@ public class GeoJsonLineStringTypeTests
     public async Task LineString_Execution_With_Fragments()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddSpatialTypes()
             .AddQueryType(d => d
@@ -53,10 +53,10 @@ public class GeoJsonLineStringTypeTests
                 .Type<GeoJsonLineStringType>()
                 .Resolve(_geom))
             .Create();
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { ... on LineString { type coordinates bbox crs }}}");
 
         // assert
@@ -81,7 +81,7 @@ public class GeoJsonLineStringTypeTests
     public async Task LineString_Execution_With_CRS()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonLineStringType>()
@@ -92,8 +92,8 @@ public class GeoJsonLineStringTypeTests
             .Create();
 
         // act
-        IRequestExecutor executor = schema.MakeExecutable();
-        IExecutionResult result = await executor.ExecuteAsync("{ test { crs }}");
+        var executor = schema.MakeExecutable();
+        var result = await executor.ExecuteAsync("{ test { crs }}");
 
         // assert
         result.MatchSnapshot();
