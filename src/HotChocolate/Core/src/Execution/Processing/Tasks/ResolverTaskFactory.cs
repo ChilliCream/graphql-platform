@@ -12,7 +12,7 @@ internal static class ResolverTaskFactory
 {
     private static List<ResolverTask>? _pooled = new();
 
-    public static ResultMap EnqueueResolverTasks(
+    public static ObjectResult EnqueueResolverTasks(
         IOperationContext operationContext,
         ISelectionSet selectionSet,
         object? parent,
@@ -21,7 +21,7 @@ internal static class ResolverTaskFactory
     {
         var responseIndex = 0;
         var selections = selectionSet.Selections;
-        var resultMap = operationContext.Result.RentResultMap(selections.Count);
+        var parentResult = operationContext.Result.RentObject(selections.Count);
         var scheduler = operationContext.Scheduler;
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
@@ -42,7 +42,7 @@ internal static class ResolverTaskFactory
                         parent,
                         responseIndex++,
                         operationContext.PathFactory.Append(path, selection.ResponseName),
-                        resultMap,
+                        parentResult,
                         scopedContext));
                 }
             }
@@ -65,7 +65,7 @@ internal static class ResolverTaskFactory
                 path,
                 parent);
 
-            return resultMap;
+            return parentResult;
         }
         finally
         {
@@ -83,8 +83,7 @@ internal static class ResolverTaskFactory
         IAsyncEnumerator<object?> value,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        var resultMap = operationContext.Result.RentResultMap(1);
-
+        var parentResult = operationContext.Result.RentObject(1);
         var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
@@ -94,7 +93,7 @@ internal static class ResolverTaskFactory
             parent,
             0,
             path,
-            resultMap,
+            parentResult,
             scopedContext);
 
         try
@@ -106,7 +105,7 @@ internal static class ResolverTaskFactory
                 selection.Type.ElementType(),
                 operationContext.PathFactory.Append(path, index),
                 0,
-                resultMap,
+                parentResult,
                 value.Current,
                 bufferedTasks);
         }
@@ -119,18 +118,18 @@ internal static class ResolverTaskFactory
         return resolverTask;
     }
 
-    public static ResultMap EnqueueOrInlineResolverTasks(
+    public static ObjectResult EnqueueOrInlineResolverTasks(
         IOperationContext operationContext,
         MiddlewareContext resolverContext,
         Path path,
-        ObjectType resultType,
-        object result,
+        ObjectType parentType,
+        object parent,
         ISelectionSet selectionSet,
         List<ResolverTask> bufferedTasks)
     {
         var responseIndex = 0;
         var selections = selectionSet.Selections;
-        var resultMap = operationContext.Result.RentResultMap(selections.Count);
+        var parentResult = operationContext.Result.RentObject(selections.Count);
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
@@ -148,9 +147,9 @@ internal static class ResolverTaskFactory
                         selection,
                         operationContext.PathFactory.Append(path, selection.ResponseName),
                         responseIndex++,
-                        resultType,
-                        result,
-                        resultMap,
+                        parentType,
+                        parent,
+                        parentResult,
                         bufferedTasks);
                 }
                 else
@@ -161,8 +160,8 @@ internal static class ResolverTaskFactory
                         selection,
                         operationContext.PathFactory.Append(path, selection.ResponseName),
                         responseIndex++,
-                        result,
-                        resultMap));
+                        parent,
+                        parentResult));
                 }
             }
         }
@@ -172,9 +171,9 @@ internal static class ResolverTaskFactory
             selectionSet,
             resolverContext.ScopedContextData,
             path,
-            result);
+            parent);
 
-        return resultMap;
+        return parentResult;
     }
 
     private static void ResolveAndCompleteInline(
@@ -185,7 +184,7 @@ internal static class ResolverTaskFactory
         int responseIndex,
         ObjectType parentType,
         object parent,
-        ResultMap resultMap,
+        ObjectResult parentResult,
         List<ResolverTask> bufferedTasks)
     {
         var committed = false;
@@ -204,7 +203,7 @@ internal static class ResolverTaskFactory
                     selection.Type,
                     path,
                     responseIndex,
-                    resultMap,
+                    parentResult,
                     resolverResult,
                     bufferedTasks);
             }
@@ -238,7 +237,7 @@ internal static class ResolverTaskFactory
                 selection,
                 path,
                 responseIndex,
-                resultMap,
+                parentResult,
                 resolverResult);
         }
 
@@ -276,7 +275,7 @@ internal static class ResolverTaskFactory
         IType elementType,
         Path path,
         int responseIndex,
-        ResultMap resultMap,
+        ObjectResult resultMap,
         object? value,
         List<ResolverTask> bufferedTasks)
     {
@@ -296,7 +295,7 @@ internal static class ResolverTaskFactory
                 bufferedTasks,
                 out completedValue) &&
                 elementType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
-                completedValue is IHasResultDataParent result)
+                completedValue is ResultData result)
             {
                 result.Parent = resultMap;
             }
@@ -338,7 +337,7 @@ internal static class ResolverTaskFactory
         ISelection selection,
         Path path,
         int responseIndex,
-        ResultMap resultMap,
+        ObjectResult parentResult,
         object? completedValue)
     {
         var isNonNullType = selection.Type.Kind is TypeKind.NonNull;
@@ -350,11 +349,11 @@ internal static class ResolverTaskFactory
             operationContext.Result.AddNonNullViolation(
                 selection.SyntaxNode,
                 path,
-                resultMap);
+                parentResult);
         }
         else
         {
-            resultMap.SetValue(
+            parentResult.SetValueUnsafe(
                 responseIndex,
                 selection.ResponseName,
                 completedValue,
@@ -369,14 +368,14 @@ internal static class ResolverTaskFactory
         Path path,
         int responseIndex,
         object parent,
-        ResultMap resultMap)
+        ObjectResult parentResult)
     {
         var task = operationContext.ResolverTasks.Get();
 
         task.Initialize(
             operationContext,
             selection,
-            resultMap,
+            parentResult,
             responseIndex,
             parent,
             path,
@@ -391,7 +390,7 @@ internal static class ResolverTaskFactory
         object? parent,
         int responseIndex,
         Path path,
-        ResultMap resultMap,
+        ObjectResult result,
         IImmutableDictionary<string, object?> scopedContext)
     {
         var task = operationContext.ResolverTasks.Get();
@@ -399,7 +398,7 @@ internal static class ResolverTaskFactory
         task.Initialize(
             operationContext,
             selection,
-            resultMap,
+            result,
             responseIndex,
             parent,
             path,

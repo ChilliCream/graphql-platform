@@ -18,7 +18,7 @@ internal partial class MiddlewareContext
 
     public IType? ValueType { get; set; }
 
-    public ResultMap ResultMap { get; private set; } = default!;
+    public ObjectResult ParentResult { get; private set; } = default!;
 
     public bool HasErrors { get; private set; }
 

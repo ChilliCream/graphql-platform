@@ -43,14 +43,11 @@ internal static class InternalServiceCollectionExtensions
 
     internal static IServiceCollection TryAddResultPool(
         this IServiceCollection services,
-        int maximumRetained = 512)
+        int maximumRetained = ResultPoolDefaults.MaximumRetained,
+        int maximumArrayCapacity = ResultPoolDefaults.MaximumAllowedCapacity)
     {
-        services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultMap>>>(
-            _ => new ResultMapPool(maximumRetained));
-        services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultMapList>>>(
-            _ => new ResultMapListPool(maximumRetained));
-        services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultList>>>(
-            _ => new ResultListPool(maximumRetained));
+        services.TryAddSingleton(_ => new ObjectResultPool(maximumRetained, maximumArrayCapacity));
+        services.TryAddSingleton(_ => new ListResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton<ResultPool>();
         return services;
     }
@@ -63,7 +60,6 @@ internal static class InternalServiceCollectionExtensions
             _ => new ExecutionTaskPool<ResolverTask>(
                 new ResolverTaskPoolPolicy(),
                 maximumRetained));
-
         return services;
     }
 

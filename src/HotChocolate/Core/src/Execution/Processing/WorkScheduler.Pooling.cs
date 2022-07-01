@@ -19,7 +19,7 @@ internal sealed partial class WorkScheduler
     private IRequestContext _requestContext = default!;
     private IBatchDispatcher _batchDispatcher = default!;
     private IErrorHandler _errorHandler = default!;
-    private IResultHelper _result = default!;
+    private ResultBuilder _result = default!;
     private IExecutionDiagnosticEvents _diagnosticEvents = default!;
     private CancellationToken _ct;
 

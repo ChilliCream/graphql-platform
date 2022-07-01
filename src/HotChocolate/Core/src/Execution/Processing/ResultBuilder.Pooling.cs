@@ -1,6 +1,6 @@
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class ResultHelper
+internal sealed partial class ResultBuilder
 {
     public void Clear()
     {

@@ -236,7 +236,7 @@ internal sealed partial class SubscriptionExecutor
 
                 // next we need a result map so that we can store the subscribe temporarily
                 // while executing the subscribe pipeline.
-                var resultMap = operationContext.Result.RentResultMap(1);
+                var resultMap = operationContext.Result.RentObject(1);
                 var rootSelection = _rootSelections.Selections[0];
 
                 // we create a temporary middleware context so that we can use the standard

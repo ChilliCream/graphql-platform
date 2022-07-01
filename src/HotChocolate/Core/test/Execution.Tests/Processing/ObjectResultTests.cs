@@ -3,7 +3,7 @@ using Xunit;
 
 namespace HotChocolate.Execution.Processing;
 
-public class ResultMapTests
+public class ObjectResultTests
 {
     [InlineData(8)]
     [InlineData(4)]
@@ -12,28 +12,28 @@ public class ResultMapTests
     public void EnsureCapacity(int size)
     {
         // arrange
-        var resultMap = new ResultMap();
+        var resultMap = new ObjectResult();
 
         // act
         resultMap.EnsureCapacity(size);
 
         // assert
-        Assert.Equal(size, resultMap.Count);
+        Assert.Equal(size, resultMap.Capacity);
     }
 
     [Fact]
     public void SetValue()
     {
         // arrange
-        var resultMap = new ResultMap();
+        var resultMap = new ObjectResult();
         resultMap.EnsureCapacity(1);
 
         // act
-        resultMap.SetValue(0, "abc", "def");
+        resultMap.SetValueUnsafe(0, "abc", "def");
 
         // assert
         Assert.Collection(
-            (IEnumerable<ResultValue>)resultMap,
+            (IEnumerable<ObjectFieldResult>)resultMap,
             t =>
             {
                 Assert.Equal("abc", t.Name);
@@ -51,17 +51,17 @@ public class ResultMapTests
     public void GetValue_ValueIsFound(int capacity)
     {
         // arrange
-        var resultMap = new ResultMap();
+        var resultMap = new ObjectResult();
         resultMap.EnsureCapacity(capacity);
-        resultMap.SetValue(0, "abc", "def");
-        resultMap.SetValue(capacity / 2, "def", "def");
-        resultMap.SetValue(capacity - 1, "ghi", "def");
+        resultMap.SetValueUnsafe(0, "abc", "def");
+        resultMap.SetValueUnsafe(capacity / 2, "def", "def");
+        resultMap.SetValueUnsafe(capacity - 1, "ghi", "def");
 
         // act
-        var value = resultMap.GetValue("def", out var index);
+        var value = resultMap.TryGetValue("def", out var index);
 
         // assert
-        Assert.Equal("def", value.Name);
+        Assert.Equal("def", value?.Name);
         Assert.Equal(capacity / 2, index);
     }
 
@@ -75,11 +75,11 @@ public class ResultMapTests
     public void TryGetValue_ValueIsFound(int capacity)
     {
         // arrange
-        var resultMap = new ResultMap();
+        var resultMap = new ObjectResult();
         resultMap.EnsureCapacity(capacity);
-        resultMap.SetValue(0, "abc", "def");
-        resultMap.SetValue(capacity / 2, "def", "def");
-        resultMap.SetValue(capacity - 1, "ghi", "def");
+        resultMap.SetValueUnsafe(0, "abc", "def");
+        resultMap.SetValueUnsafe(capacity / 2, "def", "def");
+        resultMap.SetValueUnsafe(capacity - 1, "ghi", "def");
 
         IReadOnlyDictionary<string, object> dict = resultMap;
 
@@ -101,11 +101,11 @@ public class ResultMapTests
     public void ContainsKey(int capacity)
     {
         // arrange
-        var resultMap = new ResultMap();
+        var resultMap = new ObjectResult();
         resultMap.EnsureCapacity(capacity);
-        resultMap.SetValue(0, "abc", "def");
-        resultMap.SetValue(capacity / 2, "def", "def");
-        resultMap.SetValue(capacity - 1, "ghi", "def");
+        resultMap.SetValueUnsafe(0, "abc", "def");
+        resultMap.SetValueUnsafe(capacity / 2, "def", "def");
+        resultMap.SetValueUnsafe(capacity - 1, "ghi", "def");
 
         IReadOnlyDictionary<string, object> dict = resultMap;
 
@@ -120,17 +120,17 @@ public class ResultMapTests
     public void EnumerateResultValue()
     {
         // arrange
-        var resultMap = new ResultMap();
+        var resultMap = new ObjectResult();
         resultMap.EnsureCapacity(5);
 
         // act
-        resultMap.SetValue(0, "abc1", "def");
-        resultMap.SetValue(2, "abc2", "def");
-        resultMap.SetValue(4, "abc3", "def");
+        resultMap.SetValueUnsafe(0, "abc1", "def");
+        resultMap.SetValueUnsafe(2, "abc2", "def");
+        resultMap.SetValueUnsafe(4, "abc3", "def");
 
         // assert
         Assert.Collection(
-            (IEnumerable<ResultValue>)resultMap,
+            (IEnumerable<ObjectFieldResult>)resultMap,
             t =>
             {
                 Assert.Equal("abc1", t.Name);
@@ -152,13 +152,13 @@ public class ResultMapTests
     public void EnumerateKeys()
     {
         // arrange
-        var resultMap = new ResultMap();
+        var resultMap = new ObjectResult();
         resultMap.EnsureCapacity(5);
 
         // act
-        resultMap.SetValue(0, "abc1", "def");
-        resultMap.SetValue(2, "abc2", "def");
-        resultMap.SetValue(4, "abc3", "def");
+        resultMap.SetValueUnsafe(0, "abc1", "def");
+        resultMap.SetValueUnsafe(2, "abc2", "def");
+        resultMap.SetValueUnsafe(4, "abc3", "def");
 
         // assert
         Assert.Collection(
@@ -172,13 +172,13 @@ public class ResultMapTests
     public void EnumerateValues()
     {
         // arrange
-        var resultMap = new ResultMap();
+        var resultMap = new ObjectResult();
         resultMap.EnsureCapacity(5);
 
         // act
-        resultMap.SetValue(0, "abc1", "def");
-        resultMap.SetValue(2, "abc2", "def");
-        resultMap.SetValue(4, "abc3", "def");
+        resultMap.SetValueUnsafe(0, "abc1", "def");
+        resultMap.SetValueUnsafe(2, "abc2", "def");
+        resultMap.SetValueUnsafe(4, "abc3", "def");
 
         // assert
         Assert.Collection(

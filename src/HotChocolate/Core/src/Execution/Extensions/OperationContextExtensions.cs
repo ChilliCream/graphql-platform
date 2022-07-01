@@ -38,9 +38,9 @@ internal static class OperationContextExtensions
 
     public static IOperationContext SetData(
         this IOperationContext context,
-        ResultMap resultMap)
+        ObjectResult objectResult)
     {
-        context.Result.SetData(resultMap);
+        context.Result.SetData(objectResult);
         return context;
     }
 
