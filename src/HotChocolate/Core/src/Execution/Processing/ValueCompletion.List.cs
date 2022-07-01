@@ -86,7 +86,7 @@ internal static partial class ValueCompletion
         else if (resultType.IsGenericType &&
             resultType.GetGenericTypeDefinition() == typeof(List<>))
         {
-            var method = _completeListMethod.MakeGenericMethod(resultType);
+            var method = _completeListMethod.MakeGenericMethod(resultType.GetGenericArguments()[0]);
             var call = Expression.Call(method, _completeListParams);
             complete = Expression.Lambda<CompleteList>(call, _completeListParams).Compile();
             _compiledListDelegates.TryAdd(resultType, complete);
