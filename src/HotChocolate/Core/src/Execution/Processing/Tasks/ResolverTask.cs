@@ -133,7 +133,7 @@ internal sealed partial class ResolverTask : IExecutionTask
         }
 
         CompletedValue = completedValue;
-        var isNonNullType = _selection.Type.IsNonNullType();
+        var isNonNullType = _selection.Type.Kind is TypeKind.NonNull;
 
         if (completedValue is null && isNonNullType)
         {
