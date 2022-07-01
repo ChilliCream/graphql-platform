@@ -341,7 +341,7 @@ internal static class ResolverTaskFactory
         ResultMap resultMap,
         object? completedValue)
     {
-        var isNonNullType = selection.Type.IsNonNullType();
+        var isNonNullType = selection.Type.Kind is TypeKind.NonNull;
 
         if (completedValue is null && isNonNullType)
         {

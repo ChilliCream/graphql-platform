@@ -137,7 +137,7 @@ public sealed class ResultMap
         _capacity = capacity;
     }
 
-    public void Clear() => Array.Clear(_buffer, 0, _buffer.Length);
+    public void Clear() => _buffer.AsSpan().Slice(0, _capacity).Clear();
 
     bool IReadOnlyDictionary<string, object?>.ContainsKey(string key)
     {

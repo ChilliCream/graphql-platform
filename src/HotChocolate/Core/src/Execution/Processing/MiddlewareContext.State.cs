@@ -36,14 +36,14 @@ internal partial class MiddlewareContext
 
     public T Parent<T>()
     {
-        if (_parent is null)
-        {
-            return default!;
-        }
-
         if (_parent is T casted)
         {
             return casted;
+        }
+
+        if (_parent is null)
+        {
+            return default!;
         }
 
         if (_operationContext.Converter.TryConvert(_parent, out casted))

@@ -74,52 +74,52 @@ namespace HotChocolate.Execution.Benchmarks
         }
 
         // note : 1 data fetch
-        [Benchmark]
+        // [Benchmark]
         public Task GetHero()
         {
             return OneRequest(_executor, _getHeroRequest);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public Task GetHeroFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _getHeroRequest);
         }
 
         // note : 2 cascading data fetches
-        [Benchmark]
+        // [Benchmark]
         public Task GetHeroWithFriends()
         {
             return OneRequest(_executor, _getHeroWithFriendsRequest);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public Task GetHeroWithFriendsFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _getHeroWithFriendsRequest);
         }
 
         // note : 4 data fetches (2 parallel 2 cascading)
-        [Benchmark]
+        // [Benchmark]
         public Task GetTwoHeroesWithFriends()
         {
             return OneRequest(_executor, _getTwoHeroesWithFriendsRequest);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public Task GetTwoHeroesWithFriendsFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _getTwoHeroesWithFriendsRequest);
         }
 
         // note : large query
-        [Benchmark]
+        // [Benchmark]
         public Task LargeQuery()
         {
             return OneRequest(_executor, _largeQuery);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public Task LargeQueryFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _largeQuery);

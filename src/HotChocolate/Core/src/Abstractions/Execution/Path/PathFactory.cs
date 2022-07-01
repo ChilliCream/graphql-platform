@@ -40,7 +40,10 @@ public class PathFactory
     /// <returns>Returns a new path segment.</returns>
     public NamePathSegment Append(Path parent, string name)
     {
-        name.EnsureGraphQLName();
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
 
         var indexer = CreateNamed();
 
