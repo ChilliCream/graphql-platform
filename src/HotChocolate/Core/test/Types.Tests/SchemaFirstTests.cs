@@ -1,17 +1,17 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using Snapshooter.Xunit;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Language;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate;
 

@@ -64,7 +64,7 @@ internal sealed class DeferredFragment : IDeferredExecutionTask
     /// <inheritdoc/>
     public async Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext)
     {
-        var resultMap = EnqueueResolverTasks(
+        var parentResult = EnqueueResolverTasks(
             operationContext,
             Fragment.SelectionSet,
             Parent,
@@ -77,7 +77,7 @@ internal sealed class DeferredFragment : IDeferredExecutionTask
             .TrySetNext(true)
             .SetLabel(Label)
             .SetPath(Path)
-            .SetData(resultMap)
+            .SetData(parentResult)
             .BuildResult();
     }
 }

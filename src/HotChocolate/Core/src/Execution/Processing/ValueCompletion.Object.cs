@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ErrorHelper;
@@ -12,15 +11,14 @@ namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    private static bool TryCompleteCompositeValue(
+    private static ObjectResult? CompleteCompositeValue(
         IOperationContext operationContext,
         MiddlewareContext resolverContext,
+        List<ResolverTask> tasks,
         ISelection selection,
         Path path,
         IType fieldType,
-        object result,
-        List<ResolverTask> bufferedTasks,
-        [NotNullWhen(true)] out object? completedResult)
+        object result)
     {
         if (TryResolveObjectType(
             operationContext,
@@ -40,15 +38,14 @@ internal static partial class ValueCompletion
                 result = converted;
             }
 
-            completedResult = EnqueueOrInlineResolverTasks(
+            return EnqueueOrInlineResolverTasks(
                 operationContext,
                 resolverContext,
                 path,
                 objectType,
                 result,
                 selectionSet,
-                bufferedTasks);
-            return true;
+                tasks);
         }
 
         ReportError(
@@ -57,8 +54,7 @@ internal static partial class ValueCompletion
             selection,
             ValueCompletion_CouldNotResolveAbstractType(selection.SyntaxNode, path, result));
 
-        completedResult = null;
-        return false;
+        return null;
     }
 
     private static bool TryResolveObjectType(

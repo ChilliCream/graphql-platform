@@ -7,14 +7,13 @@ namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    private static bool TryCompleteLeafValue(
+    private static object? CompleteLeafValue(
         IOperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
         Path path,
         IType fieldType,
-        object? result,
-        out object? completedResult)
+        object? result)
     {
         try
         {
@@ -27,8 +26,7 @@ internal static partial class ValueCompletion
                 result = c;
             }
 
-            completedResult = leafType.Serialize(result);
-            return true;
+            return leafType.Serialize(result);
         }
         catch (SerializationException ex)
         {
@@ -51,7 +49,6 @@ internal static partial class ValueCompletion
                     path));
         }
 
-        completedResult = null;
-        return true;
+        return null;
     }
 }

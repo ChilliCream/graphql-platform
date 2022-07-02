@@ -3,15 +3,15 @@ using Xunit;
 
 namespace HotChocolate.Execution.Processing;
 
-public class ResultHelperTests
+public class ResultBuilderTests
 {
     [Fact]
     public void BuildResult_SimpleResultSet_SnapshotMatches()
     {
         // arrange
-        var helper = new ResultHelper(CreatePool());
-        var map = helper.RentResultMap(1);
-        map.SetValue(0, "abc", "def", false);
+        var helper = new ResultBuilder(CreatePool());
+        var map = helper.RentObject(1);
+        map.SetValueUnsafe(0, "abc", "def", false);
         helper.SetData(map);
 
         // act
@@ -25,8 +25,7 @@ public class ResultHelperTests
     private ResultPool CreatePool()
     {
         return new ResultPool(
-            new ResultMapPool(16),
-            new ResultMapListPool(16),
-            new ResultListPool(16));
+            new ObjectResultPool(16, 16),
+            new ListResultPool(16, 16));
     }
 }

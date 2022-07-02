@@ -115,9 +115,7 @@ public static class OffsetPagingQueryableExtensions
         }
 
         var skip = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Skip);
-        var take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take) ??
-            defaultPageSize;
-
+        var take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take) ?? defaultPageSize;
         var arguments = new OffsetPagingArguments(skip, take);
 
         if (totalCount is null && context.IsTotalCountSelected())

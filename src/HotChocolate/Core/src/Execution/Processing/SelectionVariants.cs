@@ -79,8 +79,8 @@ internal sealed class SelectionVariants : ISelectionVariants
 
     internal void AddSelectionSet(
         ObjectType typeContext,
-        IReadOnlyList<Selection> selections,
-        IReadOnlyList<Fragment>? fragments,
+        Selection[] selections,
+        Fragment[]? fragments,
         bool isConditional)
     {
         if (_readOnly)

@@ -32,8 +32,8 @@ public class CertificationTests
             }");
 
         // assert
-        Assert.IsType<ResultMap>(
-            Assert.IsType<ResultMap>(
+        Assert.IsType<ObjectResult>(
+            Assert.IsType<ObjectResult>(
                 Assert.IsType<QueryResult>(result).Data)
                     .GetValueOrDefault("_service"))
                         .GetValueOrDefault("sdl")

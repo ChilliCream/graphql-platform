@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -11,8 +12,8 @@ namespace HotChocolate.Execution.Processing;
 internal sealed class SelectionSet : ISelectionSet
 {
     private static readonly Fragment[] _empty = Array.Empty<Fragment>();
-    private readonly IReadOnlyList<Selection> _selections;
-    private readonly IReadOnlyList<Fragment> _fragments;
+    private readonly Selection[] _selections;
+    private readonly Fragment[] _fragments;
     private Flags _flags;
 
     /// <summary>
@@ -25,7 +26,7 @@ internal sealed class SelectionSet : ISelectionSet
     /// Defines if this list needs post processing for skip and include.
     /// </param>
     public SelectionSet(
-        IReadOnlyList<Selection> selections,
+        Selection[] selections,
         bool isConditional)
     {
         _selections = selections;
@@ -47,8 +48,8 @@ internal sealed class SelectionSet : ISelectionSet
     /// Defines if this list needs post processing for skip and include.
     /// </param>
     public SelectionSet(
-        IReadOnlyList<Selection> selections,
-        IReadOnlyList<Fragment>? fragments,
+        Selection[] selections,
+        Fragment[]? fragments,
         bool isConditional)
     {
         _selections = selections;
@@ -65,16 +66,11 @@ internal sealed class SelectionSet : ISelectionSet
     /// <inheritdoc />
     public IReadOnlyList<IFragment> Fragments => _fragments;
 
-    /// <summary>
-    /// Gets an empty selection set.
-    /// </summary>
-    public static SelectionSet Empty { get; } = new(Array.Empty<Selection>(), false);
-
     internal void Seal()
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
-            for (var i = 0; i < _selections.Count; i++)
+            for (var i = 0; i < _selections.Length; i++)
             {
                 _selections[i].Seal();
             }
@@ -82,6 +78,16 @@ internal sealed class SelectionSet : ISelectionSet
             _flags |= Flags.Sealed;
         }
     }
+
+    /// <summary>
+    /// Returns a reference to the 0th element of the underlying selections array.
+    /// If the selections array is empty, returns a reference to the location where the 0th element
+    /// would have been stored. Such a reference may or may not be null.
+    /// It can be used for pinning but must never be dereferenced.
+    /// This is only meant for use by the execution engine.
+    /// </summary>
+    internal ref Selection GetSelectionsReference()
+        => ref MemoryMarshal.GetReference(_selections.AsSpan());
 
     [Flags]
     private enum Flags

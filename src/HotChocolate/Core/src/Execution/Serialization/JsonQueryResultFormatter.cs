@@ -3,11 +3,13 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.JsonConstants;
 
@@ -191,9 +193,9 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         {
             writer.WritePropertyName(Data);
 
-            if (data is IResultMap resultMap)
+            if (data is ObjectResult resultMap)
             {
-                WriteResultMap(writer, resultMap);
+                WriteObjectResult(writer, resultMap);
             }
             else
             {
@@ -334,24 +336,60 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         writer.WriteEndObject();
     }
 
-    private void WriteResultMap(
+    private void WriteDictionary(
         Utf8JsonWriter writer,
-        IResultMap resultMap)
+        Dictionary<string, object?> dict)
     {
         writer.WriteStartObject();
 
-        for (var i = 0; i < resultMap.Count; i++)
+        foreach (var item in dict)
         {
-            var value = resultMap[i];
-            if (value.IsInitialized)
+            writer.WritePropertyName(item.Key);
+            WriteFieldValue(writer, item.Value);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private void WriteObjectResult(
+        Utf8JsonWriter writer,
+        ObjectResult objectResult)
+    {
+        writer.WriteStartObject();
+
+        ref var searchSpace = ref objectResult.GetReference();
+
+        for(var i = 0; i < objectResult.Capacity; i++)
+        {
+            var field = Unsafe.Add(ref searchSpace, i);
+            if (field.IsInitialized)
             {
-                writer.WritePropertyName(value.Name);
-                WriteFieldValue(writer, value.Value);
+                writer.WritePropertyName(field.Name);
+                WriteFieldValue(writer, field.Value);
             }
         }
 
         writer.WriteEndObject();
     }
+
+#if NET5_0_OR_GREATER
+    private void WriteListResult(
+        Utf8JsonWriter writer,
+        ListResult list)
+    {
+        writer.WriteStartArray();
+
+        ref var searchSpace = ref list.GetReference();
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            var element = Unsafe.Add(ref searchSpace, i);
+            WriteFieldValue(writer, element);
+        }
+
+        writer.WriteEndArray();
+    }
+#endif
 
     private void WriteList(
         Utf8JsonWriter writer,
@@ -362,27 +400,6 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         for (var i = 0; i < list.Count; i++)
         {
             WriteFieldValue(writer, list[i]);
-        }
-
-        writer.WriteEndArray();
-    }
-
-    private void WriteResultMapList(
-        Utf8JsonWriter writer,
-        IResultMapList list)
-    {
-        writer.WriteStartArray();
-
-        for (var i = 0; i < list.Count; i++)
-        {
-            if (list[i] is { } m)
-            {
-                WriteResultMap(writer, m);
-            }
-            else
-            {
-                WriteFieldValue(writer, null);
-            }
         }
 
         writer.WriteEndArray();
@@ -400,12 +417,17 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
         switch (value)
         {
-            case IResultMap resultMap:
-                WriteResultMap(writer, resultMap);
+            case ObjectResult resultMap:
+                WriteObjectResult(writer, resultMap);
                 break;
 
-            case IResultMapList resultMapList:
-                WriteResultMapList(writer, resultMapList);
+#if NET5_0_OR_GREATER
+            case ListResult resultMapList:
+                WriteListResult(writer, resultMapList);
+                break;
+#endif
+            case Dictionary<string, object?> dict:
+                WriteDictionary(writer, dict);
                 break;
 
             case IReadOnlyDictionary<string, object?> dict:

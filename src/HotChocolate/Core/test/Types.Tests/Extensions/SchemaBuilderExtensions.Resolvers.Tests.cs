@@ -56,12 +56,10 @@ public class SchemaBuilderExtensionsResolversTests
         builder.AddDocumentFromString("type Query { foo: String }");
 
         // act
-        SchemaBuilderExtensions
-            .AddResolver(
-                builder,
-                "Query",
-                "foo",
-                new Func<IResolverContext, object>(c => "bar"));
+        builder.AddResolver(
+            "Query",
+            "foo",
+            new Func<IResolverContext, object>(_ => "bar"));
 
         // assert
         await builder.Create()

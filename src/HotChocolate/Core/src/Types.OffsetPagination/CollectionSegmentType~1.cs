@@ -74,9 +74,8 @@ internal class CollectionSegmentType
         DefinitionBase definition,
         IDictionary<string, object?> contextData)
     {
-        context.Dependencies.Add(new(
-            context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType))));
-
+        var typeRef = context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType));
+        context.Dependencies.Add(new(typeRef));
         base.OnBeforeRegisterDependencies(context, definition, contextData);
     }
 
@@ -120,8 +119,7 @@ internal class CollectionSegmentType
         => await context.Parent<CollectionSegment>().GetTotalCountAsync(context.RequestAborted);
 
     private static bool IsItemsField(ObjectFieldDefinition field)
-        => field.CustomSettings.Count > 0 &&
-            field.CustomSettings[0].Equals(ContextDataKeys.Items);
+        => field.CustomSettings.Count > 0 && field.CustomSettings[0].Equals(ContextDataKeys.Items);
 
     internal static class Names
     {

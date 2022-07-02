@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
@@ -12,7 +13,7 @@ internal sealed partial class OperationContext
     private readonly ConcurrentBag<Action> _cleanupActions = new();
     private readonly ObjectPool<ResolverTask> _resolverTaskPool;
     private readonly WorkScheduler _workScheduler;
-    private readonly ResultHelper _resultHelper;
+    private readonly ResultBuilder _resultHelper;
     private readonly PooledPathFactory _pathFactory;
     private IRequestContext _requestContext = default!;
     private IOperation _operation = default!;
@@ -30,7 +31,7 @@ internal sealed partial class OperationContext
     {
         _resolverTaskPool = resolverTaskPool;
         _workScheduler = new WorkScheduler(this);
-        _resultHelper = new ResultHelper(resultPool);
+        _resultHelper = new ResultBuilder(resultPool);
         _pathFactory = new PooledPathFactory(indexerPathSegmentPool, namePathSegmentPool);
     }
 
@@ -82,6 +83,7 @@ internal sealed partial class OperationContext
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void AssertInitialized()
     {
         if (!_isInitialized)

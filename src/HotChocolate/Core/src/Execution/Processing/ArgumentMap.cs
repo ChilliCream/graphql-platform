@@ -10,11 +10,13 @@ namespace HotChocolate.Execution.Processing;
 internal sealed class ArgumentMap : IArgumentMap
 {
     private readonly IReadOnlyDictionary<string, ArgumentValue> _arguments;
+    private readonly bool _isFinal;
+    private readonly bool _hasErrors;
 
     public ArgumentMap(IReadOnlyDictionary<string, ArgumentValue> arguments)
     {
         _arguments = arguments;
-        IsFinal = true;
+        _isFinal = true;
 
         if (_arguments.Count > 0)
         {
@@ -22,12 +24,12 @@ internal sealed class ArgumentMap : IArgumentMap
             {
                 if (!argument.IsFullyCoerced)
                 {
-                    IsFinal = false;
+                    _isFinal = false;
                 }
 
                 if (argument.HasError)
                 {
-                    HasErrors = true;
+                    _hasErrors = true;
                 }
             }
         }
@@ -35,11 +37,11 @@ internal sealed class ArgumentMap : IArgumentMap
 
     public ArgumentValue this[string key] => _arguments[key];
 
-    public bool IsFinalNoErrors => IsFinal && !HasErrors;
+    public bool IsFinalNoErrors => _isFinal && !_hasErrors;
 
-    public bool IsFinal { get; }
+    public bool IsFinal => _isFinal;
 
-    public bool HasErrors { get; }
+    public bool HasErrors => _hasErrors;
 
     public IEnumerable<string> Keys => _arguments.Keys;
 

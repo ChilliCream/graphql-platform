@@ -54,7 +54,7 @@ internal sealed partial class ResolverTask : IExecutionTask
     /// <summary>
     /// Gets access to the internal result map into which the task will write the result.
     /// </summary>
-    public ResultMap ResultMap { get; private set; } = default!;
+    public ObjectResult ParentResult { get; private set; } = default!;
 
     /// <summary>
     /// Gets the completed value of this task.
@@ -95,21 +95,20 @@ internal sealed partial class ResolverTask : IExecutionTask
             // we will only try to complete the resolver value if there are no known errors.
             if (success)
             {
-                if (ValueCompletion.TryComplete(
+                completedValue = ValueCompletion.Complete(
                     _operationContext,
                     _resolverContext,
+                    _taskBuffer,
                     _resolverContext.Selection,
                     _resolverContext.Path,
                     _selection.Type,
                     _resolverContext.ResponseName,
                     _resolverContext.ResponseIndex,
-                    _resolverContext.Result,
-                    _taskBuffer,
-                    out completedValue) &&
-                    _selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
-                    completedValue is IHasResultDataParent result)
+                    _resolverContext.Result);
+
+                if (completedValue is ResultData result)
                 {
-                    result.Parent = _resolverContext.ResultMap;
+                    result.Parent = _resolverContext.ParentResult;
                 }
             }
         }
@@ -135,6 +134,12 @@ internal sealed partial class ResolverTask : IExecutionTask
         CompletedValue = completedValue;
         var isNonNullType = _selection.Type.Kind is TypeKind.NonNull;
 
+        _resolverContext.ParentResult.SetValueUnsafe(
+            _resolverContext.ResponseIndex,
+            _resolverContext.ResponseName,
+            completedValue,
+            !isNonNullType);
+
         if (completedValue is null && isNonNullType)
         {
             // if we detect a non-null violation we will stash it for later.
@@ -143,16 +148,8 @@ internal sealed partial class ResolverTask : IExecutionTask
             _operationContext.Result.AddNonNullViolation(
                 _resolverContext.Selection.SyntaxNode,
                 _resolverContext.Path,
-                _resolverContext.ResultMap);
+                _resolverContext.ParentResult);
             _taskBuffer.Clear();
-        }
-        else
-        {
-            _resolverContext.ResultMap.SetValue(
-                _resolverContext.ResponseIndex,
-                _resolverContext.ResponseName,
-                completedValue,
-                !isNonNullType);
         }
     }
 
@@ -162,7 +159,7 @@ internal sealed partial class ResolverTask : IExecutionTask
     public void Initialize(
         IOperationContext operationContext,
         ISelection selection,
-        ResultMap resultMap,
+        ObjectResult parentResult,
         int responseIndex,
         object? parent,
         Path path,
@@ -173,12 +170,12 @@ internal sealed partial class ResolverTask : IExecutionTask
         _resolverContext.Initialize(
             operationContext,
             selection,
-            resultMap,
+            parentResult,
             responseIndex,
             parent,
             path,
             scopedContextData);
-        ResultMap = resultMap;
+        ParentResult = parentResult;
     }
 
     /// <summary>
@@ -191,7 +188,7 @@ internal sealed partial class ResolverTask : IExecutionTask
         _operationContext = default!;
         _selection = default!;
         _resolverContext.Clean();
-        ResultMap = default!;
+        ParentResult = default!;
         CompletedValue = null;
         Status = ExecutionTaskStatus.WaitingToRun;
         IsSerial = false;

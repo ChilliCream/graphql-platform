@@ -108,25 +108,25 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgFragmentExample()
     {
         Snapshot.FullName();
-        await ExpectValid(@"
-                {
-                    leftComparison: hero(episode: EMPIRE) {
-                        ...comparisonFields
-                    }
-                    rightComparison: hero(episode: JEDI) {
-                        ...comparisonFields
+        await ExpectValid(
+            @"{
+                leftComparison: hero(episode: EMPIRE) {
+                    ...comparisonFields
+                }
+                rightComparison: hero(episode: JEDI) {
+                    ...comparisonFields
+                }
+            }
+
+            fragment comparisonFields on Character {
+                name
+                appearsIn
+                friends {
+                    nodes {
+                        name
                     }
                 }
-
-                fragment comparisonFields on Character {
-                    name
-                    appearsIn
-                    friends {
-                        nodes {
-                            name
-                        }
-                    }
-                }")
+            }")
             .MatchSnapshotAsync();
     }
 
@@ -573,7 +573,7 @@ public class StarWarsCodeFirstTests
 
         eventResult?.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task SubscribeToReview_WithInlineFragment()
     {
