@@ -134,6 +134,7 @@ internal static class ResolverTaskFactory
         var responseIndex = 0;
         var selectionsCount = selectionSet.Selections.Count;
         var parentResult = operationContext.Result.RentObject(selectionsCount);
+        var pathFactory = operationContext.PathFactory;
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
@@ -145,13 +146,15 @@ internal static class ResolverTaskFactory
 
             if (final || selection.IsIncluded(includeFlags))
             {
+                var selectionPath = pathFactory.Append(path, selection.ResponseName);
+
                 if (selection.Strategy is SelectionExecutionStrategy.Pure)
                 {
                     ResolveAndCompleteInline(
                         operationContext,
                         resolverContext,
                         selection,
-                        operationContext.PathFactory.Append(path, selection.ResponseName),
+                        selectionPath,
                         responseIndex++,
                         parentType,
                         parent,
@@ -160,14 +163,15 @@ internal static class ResolverTaskFactory
                 }
                 else
                 {
-                    bufferedTasks.Add(CreateResolverTask(
-                        operationContext,
-                        resolverContext,
-                        selection,
-                        operationContext.PathFactory.Append(path, selection.ResponseName),
-                        responseIndex++,
-                        parent,
-                        parentResult));
+                    bufferedTasks.Add(
+                        CreateResolverTask(
+                            operationContext,
+                            resolverContext,
+                            selection,
+                            selectionPath,
+                            responseIndex++,
+                            parent,
+                            parentResult));
                 }
             }
         }

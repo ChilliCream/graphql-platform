@@ -30,19 +30,11 @@ internal static partial class ValueCompletion
             var resultList = operationContext.Result.RentList(array.Length);
             resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
 
-#if NET6_0_OR_GREATER
-            ref var start = ref MemoryMarshal.GetArrayDataReference(array);
-#endif
-
             for (var i = 0; i < array.Length; i++)
             {
-#if NET6_0_OR_GREATER
-                ref var elementRef = ref Unsafe.Add(ref start, i);
-                ref var elementResult = ref Unsafe.As<byte, object>(ref elementRef);
-#else
                 var elementResult = array.GetValue(i);
-#endif
                 var elementPath = operationContext.PathFactory.Append(path, i);
+
                 if (!TryCompleteElement(resultList, elementPath, elementResult))
                 {
                     return null;
