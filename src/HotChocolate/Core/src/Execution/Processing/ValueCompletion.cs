@@ -20,27 +20,19 @@ internal static partial class ValueCompletion
         out object? completedResult)
     {
         var typeKind = fieldType.Kind;
+        var nonNull = false;
 
         if (typeKind is TypeKind.NonNull)
         {
-            return TryComplete(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                fieldType.InnerType(),
-                responseName,
-                responseIndex,
-                result,
-                bufferedTasks,
-                out completedResult) &&
-                completedResult is not null;
+            nonNull = true;
+            fieldType = fieldType.InnerType();
+            typeKind = fieldType.Kind;
         }
 
         if (result is null)
         {
             completedResult = null;
-            return true;
+            return !nonNull;
         }
 
         if (typeKind is TypeKind.List)
