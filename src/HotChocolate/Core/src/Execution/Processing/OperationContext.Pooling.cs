@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
@@ -82,6 +83,7 @@ internal sealed partial class OperationContext
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void AssertInitialized()
     {
         if (!_isInitialized)
