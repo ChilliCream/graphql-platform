@@ -17,7 +17,7 @@ internal sealed partial class ResultBuilder
     private readonly Dictionary<string, object?> _extensions = new();
     private readonly Dictionary<string, object?> _contextData = new();
 
-    private ResultMemoryOwner _resultOwner;
+    private ResultMemoryOwner _resultOwner = default!;
     private ObjectResult? _data;
     private Path? _path;
     private string? _label;

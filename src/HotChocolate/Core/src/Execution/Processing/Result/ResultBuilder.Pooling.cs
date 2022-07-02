@@ -2,13 +2,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
+
     public ResultBuilder(ResultPool resultPool)
     {
         _resultPool = resultPool;
-        
-        _resultOwner = new ResultMemoryOwner(resultPool);
-        _objectBucket = _resultPool.GetObjectBucket();
-        _listBucket = _resultPool.GetListBucket();
+        InitializeResult();
     }
 
     public void Clear()
@@ -19,13 +17,20 @@ internal sealed partial class ResultBuilder
         _extensions.Clear();
         _contextData.Clear();
 
-        _resultOwner = new ResultMemoryOwner(_resultPool);
-        _objectBucket = _resultPool.GetObjectBucket();
-        _listBucket = _resultPool.GetListBucket();
+        InitializeResult();
 
         _data = null;
         _path = null;
         _label = null;
         _hasNext = null;
+    }
+
+    private void InitializeResult()
+    {
+        _resultOwner = new ResultMemoryOwner(_resultPool);
+        _objectBucket = _resultPool.GetObjectBucket();
+        _resultOwner.ObjectBuckets.Add(_objectBucket);
+        _listBucket = _resultPool.GetListBucket();
+        _resultOwner.ListBuckets.Add(_listBucket);
     }
 }
