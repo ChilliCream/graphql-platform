@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public sealed class ListResult : ResultData, IReadOnlyList<object?>
 {
-    private object?[] _buffer = new object?[4];
+    private object?[] _buffer = Array.Empty<object?>();
     private int _capacity;
     private int _count;
 
@@ -56,16 +56,7 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
 
         if (_buffer.Length < capacity)
         {
-            var newCapacity = _buffer.Length * 2;
-
-            if (newCapacity < capacity)
-            {
-                newCapacity = capacity;
-            }
-
-            _capacity = newCapacity;
-
-            Array.Resize(ref _buffer, newCapacity);
+            Array.Resize(ref _buffer, capacity);
         }
 
         _capacity = capacity;

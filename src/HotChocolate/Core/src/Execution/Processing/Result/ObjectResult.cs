@@ -137,6 +137,7 @@ public sealed class ObjectResult
         {
             Unsafe.Add(ref searchSpace, i).Reset();
         }
+        
         _capacity = 0;
     }
 
