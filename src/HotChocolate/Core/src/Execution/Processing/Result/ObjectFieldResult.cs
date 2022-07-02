@@ -5,10 +5,12 @@ namespace HotChocolate.Execution.Processing;
 public sealed class ObjectFieldResult
 {
     private Flags _flags = Flags.Nullable;
+    private string _name = default!;
+    private object? _value;
 
-    public string Name { get; private set; } = default!;
+    public string Name => _name;
 
-    public object? Value { get; private set; }
+    public object? Value => _value;
 
     internal bool IsNullable => (_flags & Flags.Nullable) == Flags.Nullable;
 
@@ -16,8 +18,8 @@ public sealed class ObjectFieldResult
 
     internal void Set(string name, object? value, bool isNullable)
     {
-        Name = name;
-        Value = value;
+        _name = name;
+        _value = value;
 
         if (isNullable)
         {
@@ -31,8 +33,8 @@ public sealed class ObjectFieldResult
 
     internal void Reset()
     {
-        Name = default!;
-        Value = null;
+        _name = default!;
+        _value = null;
         _flags = Flags.Nullable;
     }
 

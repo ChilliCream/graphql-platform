@@ -156,6 +156,15 @@
     <Compile Update="Processing\ValueCompletion.Tools.cs">
       <DependentUpon>ValueCompletion.cs</DependentUpon>
     </Compile>
+    <Compile Update="Processing\Result\ResultBuilder.NonNullHandling.cs">
+      <DependentUpon>ResultBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\Result\ResultBuilder.ObjectResult.cs">
+      <DependentUpon>ResultBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\Result\ResultBuilder.Pooling.cs">
+      <DependentUpon>ResultBuilder.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

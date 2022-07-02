@@ -62,12 +62,15 @@ internal static class ResolverTaskFactory
                 scheduler.Register(bufferedTasks);
             }
 
-            TryHandleDeferredFragments(
-                operationContext,
-                selectionSet,
-                scopedContext,
-                path,
-                parent);
+            if (selectionSet.Fragments.Count > 0)
+            {
+                TryHandleDeferredFragments(
+                    operationContext,
+                    selectionSet,
+                    scopedContext,
+                    path,
+                    parent);
+            }
 
             return parentResult;
         }
@@ -176,12 +179,15 @@ internal static class ResolverTaskFactory
             }
         }
 
-        TryHandleDeferredFragments(
-            operationContext,
-            selectionSet,
-            resolverContext.ScopedContextData,
-            path,
-            parent);
+        if (selectionSet.Fragments.Count > 0)
+        {
+            TryHandleDeferredFragments(
+                operationContext,
+                selectionSet,
+                resolverContext.ScopedContextData,
+                path,
+                parent);
+        }
 
         return parentResult;
     }
@@ -395,24 +401,21 @@ internal static class ResolverTaskFactory
         Path path,
         object? parent)
     {
-        if (selectionSet.Fragments.Count > 0)
-        {
-            var fragments = selectionSet.Fragments;
-            var includeFlags = operationContext.IncludeFlags;
+        var fragments = selectionSet.Fragments;
+        var includeFlags = operationContext.IncludeFlags;
 
-            for (var i = 0; i < fragments.Count; i++)
+        for (var i = 0; i < fragments.Count; i++)
+        {
+            var fragment = fragments[i];
+            if (!fragment.IsConditional || fragment.IsIncluded(includeFlags))
             {
-                var fragment = fragments[i];
-                if (!fragment.IsConditional || fragment.IsIncluded(includeFlags))
-                {
-                    operationContext.Scheduler.DeferredWork.Register(
-                        new DeferredFragment(
-                            fragment,
-                            fragment.GetLabel(operationContext.Variables),
-                            path,
-                            parent,
-                            scopedContext));
-                }
+                operationContext.Scheduler.DeferredWork.Register(
+                    new DeferredFragment(
+                        fragment,
+                        fragment.GetLabel(operationContext.Variables),
+                        path,
+                        parent,
+                        scopedContext));
             }
         }
     }
