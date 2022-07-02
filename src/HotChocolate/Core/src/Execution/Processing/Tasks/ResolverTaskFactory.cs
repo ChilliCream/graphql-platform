@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types;
@@ -20,8 +21,8 @@ internal static class ResolverTaskFactory
         IImmutableDictionary<string, object?> scopedContext)
     {
         var responseIndex = 0;
-        var selections = selectionSet.Selections;
-        var parentResult = operationContext.Result.RentObject(selections.Count);
+        var selectionsCount = selectionSet.Selections.Count;
+        var parentResult = operationContext.Result.RentObject(selectionsCount);
         var scheduler = operationContext.Scheduler;
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
@@ -31,9 +32,12 @@ internal static class ResolverTaskFactory
 
         try
         {
-            for (var i = 0; i < selections.Count; i++)
+            ref var selectionSpace = ref ((SelectionSet)selectionSet).GetSelectionsReference();
+
+            for (var i = 0; i < selectionsCount; i++)
             {
-                var selection = selections[i];
+                ref var selection = ref Unsafe.Add(ref selectionSpace, i);
+
                 if (final || selection.IsIncluded(includeFlags))
                 {
                     bufferedTasks.Add(CreateResolverTask(
@@ -128,14 +132,16 @@ internal static class ResolverTaskFactory
         List<ResolverTask> bufferedTasks)
     {
         var responseIndex = 0;
-        var selections = selectionSet.Selections;
-        var parentResult = operationContext.Result.RentObject(selections.Count);
+        var selectionsCount = selectionSet.Selections.Count;
+        var parentResult = operationContext.Result.RentObject(selectionsCount);
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
-        for (var i = 0; i < selections.Count; i++)
+        ref var selectionSpace = ref ((SelectionSet)selectionSet).GetSelectionsReference();
+
+        for (var i = 0; i < selectionsCount; i++)
         {
-            var selection = selections[i];
+            ref var selection = ref Unsafe.Add(ref selectionSpace, i);
 
             if (final || selection.IsIncluded(includeFlags))
             {
@@ -187,41 +193,31 @@ internal static class ResolverTaskFactory
         ObjectResult parentResult,
         List<ResolverTask> bufferedTasks)
     {
-        var committed = false;
+        var executedSuccessfully = false;
         object? resolverResult = null;
 
         try
         {
-            if (TryExecute(out resolverResult))
+            // we first try to create a context for our pure resolver.
+            // this should actually only fail if we are unable to coerce
+            // the field arguments.
+            if (resolverContext.TryCreatePureContext(
+                selection, path, parentType, parent,
+                out var childContext))
             {
-                committed = true;
-
-                CompleteInline(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    selection.Type,
-                    path,
-                    responseIndex,
-                    parentResult,
-                    resolverResult,
-                    bufferedTasks);
+                // if we have a pure context we can execute out pure resolver.
+                resolverResult = selection.PureResolver!(childContext);
+                executedSuccessfully = true;
             }
         }
         catch (OperationCanceledException)
         {
             // If we run into this exception the request was aborted.
             // In this case we do nothing and just return.
+            return;
         }
         catch (Exception ex)
         {
-            if (operationContext.RequestAborted.IsCancellationRequested)
-            {
-                // if cancellation is request we do no longer report errors to the
-                // operation context.
-                return;
-            }
-
             ValueCompletion.ReportError(
                 operationContext,
                 resolverContext,
@@ -230,8 +226,25 @@ internal static class ResolverTaskFactory
                 ex);
         }
 
-        if (!committed)
+        if (executedSuccessfully)
         {
+            // if we were able to execute the resolver we will try to complete the
+            // resolver result inline and commit the value to the result..
+            CompleteInline(
+                operationContext,
+                resolverContext,
+                selection,
+                selection.Type,
+                path,
+                responseIndex,
+                parentResult,
+                resolverResult,
+                bufferedTasks);
+        }
+        else
+        {
+            // if we were not able to execute the resolver we will commit the null value
+            // of the resolver to the object result which could trigger a non-null propagation.
             CommitValue(
                 operationContext,
                 selection,
@@ -239,32 +252,6 @@ internal static class ResolverTaskFactory
                 responseIndex,
                 parentResult,
                 resolverResult);
-        }
-
-        bool TryExecute(out object? result)
-        {
-            try
-            {
-                if (resolverContext.TryCreatePureContext(
-                    selection, path, parentType, parent,
-                    out var childContext))
-                {
-                    result = selection.PureResolver!(childContext);
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                ValueCompletion.ReportError(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    path,
-                    ex);
-            }
-
-            result = null;
-            return false;
         }
     }
 
@@ -307,13 +294,6 @@ internal static class ResolverTaskFactory
         }
         catch (Exception ex)
         {
-            if (operationContext.RequestAborted.IsCancellationRequested)
-            {
-                // if cancellation is request we do no longer report errors to the
-                // operation context.
-                return;
-            }
-
             ValueCompletion.ReportError(
                 operationContext,
                 resolverContext,
