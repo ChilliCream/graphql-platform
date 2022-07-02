@@ -273,7 +273,7 @@ internal static class ResolverTaskFactory
         IOperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
-        IType elementType,
+        IType selectionType,
         Path path,
         int responseIndex,
         ResultMap resultMap,
@@ -284,19 +284,18 @@ internal static class ResolverTaskFactory
 
         try
         {
-            if (ValueCompletion.TryComplete(
+            completedValue = ValueCompletion.Complete(
                 operationContext,
                 resolverContext,
+                bufferedTasks,
                 selection,
                 path,
-                elementType,
+                selectionType,
                 selection.ResponseName,
                 responseIndex,
-                value,
-                bufferedTasks,
-                out completedValue) &&
-                elementType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
-                completedValue is IHasResultDataParent result)
+                value);
+
+            if (completedValue is IHasResultDataParent result)
             {
                 result.Parent = resultMap;
             }

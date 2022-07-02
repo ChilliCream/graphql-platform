@@ -95,19 +95,18 @@ internal sealed partial class ResolverTask : IExecutionTask
             // we will only try to complete the resolver value if there are no known errors.
             if (success)
             {
-                if (ValueCompletion.TryComplete(
+                completedValue = ValueCompletion.Complete(
                     _operationContext,
                     _resolverContext,
+                    _taskBuffer,
                     _resolverContext.Selection,
                     _resolverContext.Path,
                     _selection.Type,
                     _resolverContext.ResponseName,
                     _resolverContext.ResponseIndex,
-                    _resolverContext.Result,
-                    _taskBuffer,
-                    out completedValue) &&
-                    _selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
-                    completedValue is IHasResultDataParent result)
+                    _resolverContext.Result);
+
+                if (completedValue is IHasResultDataParent result)
                 {
                     result.Parent = _resolverContext.ResultMap;
                 }
@@ -184,7 +183,6 @@ internal sealed partial class ResolverTask : IExecutionTask
     /// <summary>
     /// Resets the resolver task before returning it to the pool.
     /// </summary>
-    /// <returns></returns>
     internal bool Reset()
     {
         _completionStatus = ExecutionTaskStatus.Completed;
