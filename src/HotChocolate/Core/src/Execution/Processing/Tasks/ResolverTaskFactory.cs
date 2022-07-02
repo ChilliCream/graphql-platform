@@ -70,7 +70,7 @@ internal static class ResolverTaskFactory
         finally
         {
             bufferedTasks.Clear();
-            Interlocked.Exchange(ref _pooled, bufferedTasks);
+            Interlocked.Exchange(ref _pooled!, bufferedTasks);
         }
     }
 
@@ -272,7 +272,7 @@ internal static class ResolverTaskFactory
         IOperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
-        IType elementType,
+        IType selectionType,
         Path path,
         int responseIndex,
         ObjectResult resultMap,
@@ -283,19 +283,18 @@ internal static class ResolverTaskFactory
 
         try
         {
-            if (ValueCompletion.TryComplete(
+            completedValue = ValueCompletion.Complete(
                 operationContext,
                 resolverContext,
+                bufferedTasks,
                 selection,
                 path,
-                elementType,
+                selectionType,
                 selection.ResponseName,
                 responseIndex,
-                value,
-                bufferedTasks,
-                out completedValue) &&
-                elementType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
-                completedValue is ResultData result)
+                value);
+
+            if (completedValue is ResultData result)
             {
                 result.Parent = resultMap;
             }

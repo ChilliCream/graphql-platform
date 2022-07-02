@@ -5,7 +5,7 @@ namespace HotChocolate.Execution.Processing;
 /// <summary>
 /// Represents a result data object like an object or list.
 /// </summary>
-public class ResultData
+public abstract class ResultData
 {
     /// <summary>
     /// Gets the parent result data object.
