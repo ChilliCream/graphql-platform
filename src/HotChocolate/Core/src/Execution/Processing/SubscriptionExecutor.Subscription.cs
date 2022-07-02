@@ -292,7 +292,7 @@ internal sealed partial class SubscriptionExecutor
             }
             finally
             {
-                operationContext.Result.DropResult();
+                operationContext.Result.DiscardResult();
                 _operationContextPool.Return(operationContext);
             }
         }

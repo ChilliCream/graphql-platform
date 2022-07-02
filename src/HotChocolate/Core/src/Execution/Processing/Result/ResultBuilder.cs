@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 
@@ -23,12 +22,6 @@ internal sealed partial class ResultBuilder
     private Path? _path;
     private string? _label;
     private bool? _hasNext;
-
-    public ResultBuilder(ResultPool resultPool)
-    {
-        _resultPool = resultPool;
-        _resultOwner = new ResultMemoryOwner(resultPool);
-    }
 
     public IReadOnlyList<IError> Errors => _errors;
 
@@ -138,7 +131,9 @@ internal sealed partial class ResultBuilder
         return ImmutableDictionary.CreateRange(data);
     }
 
-    public void DropResult() => _resultOwner.Dispose();
+    public void DiscardResult()
+        => _resultOwner.Dispose();
+
 }
 
 
