@@ -16,17 +16,8 @@ public sealed class ObjectResult
     , IReadOnlyDictionary<string, object?>
     , IEnumerable<ObjectFieldResult>
 {
-    private ObjectFieldResult[] _buffer;
+    private ObjectFieldResult[] _buffer = Array.Empty<ObjectFieldResult>();
     private int _capacity;
-
-    public ObjectResult()
-        => _buffer = new[]
-        {
-            new ObjectFieldResult { Parent = this },
-            new ObjectFieldResult { Parent = this },
-            new ObjectFieldResult { Parent = this },
-            new ObjectFieldResult { Parent = this },
-        };
 
     /// <summary>
     /// Gets the capacity of this object result.
@@ -123,18 +114,11 @@ public sealed class ObjectResult
         if (_buffer.Length < capacity)
         {
             var oldCapacity = _buffer.Length;
-            var newCapacity = _buffer.Length * 2;
-
-            if (newCapacity < capacity)
-            {
-                newCapacity = capacity;
-            }
-
-            Array.Resize(ref _buffer, newCapacity);
+            Array.Resize(ref _buffer, capacity);
 
             for (var i = oldCapacity; i < _buffer.Length; i++)
             {
-                var field = new ObjectFieldResult { Parent = this };
+                var field = new ObjectFieldResult();
                 _buffer[i] = field;
             }
         }
