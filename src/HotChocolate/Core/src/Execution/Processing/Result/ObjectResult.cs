@@ -147,22 +147,12 @@ public sealed class ObjectResult
     /// </summary>
     internal void Reset()
     {
-        if (_capacity > 4)
-        {
-            ref var searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
-            for(var i = 0; i < _capacity; i++)
-            {
-                Unsafe.Add(ref searchSpace, i).Reset();
-            }
-        }
-        else
-        {
-            for (var j = _capacity - 1; j >= 0; j--)
-            {
-                _buffer[j].Reset();
-            }
-        }
+        ref var searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
 
+        for(var i = 0; i < _capacity; i++)
+        {
+            Unsafe.Add(ref searchSpace, i).Reset();
+        }
         _capacity = 0;
     }
 
@@ -233,7 +223,8 @@ public sealed class ObjectResult
         }
     }
 
-    IEnumerator<KeyValuePair<string, object?>> IEnumerable<KeyValuePair<string, object?>>.GetEnumerator()
+    IEnumerator<KeyValuePair<string, object?>>
+        IEnumerable<KeyValuePair<string, object?>>.GetEnumerator()
     {
         for (var i = 0; i < _capacity; i++)
         {

@@ -127,18 +127,12 @@ internal sealed partial class ResultBuilder
         return result;
     }
 
-    private IReadOnlyDictionary<string, object?>? CreateExtensionData(
+    private static IReadOnlyDictionary<string, object?>? CreateExtensionData(
         Dictionary<string, object?> data)
     {
         if (data.Count == 0)
         {
             return null;
-        }
-
-        if (data.Count == 1)
-        {
-            var value = data.Single();
-            return new SingleValueExtensionData(value.Key, value.Value);
         }
 
         return ImmutableDictionary.CreateRange(data);

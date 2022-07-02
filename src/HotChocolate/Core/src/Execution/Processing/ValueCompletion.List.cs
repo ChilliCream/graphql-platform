@@ -1,9 +1,6 @@
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution.Processing.Tasks;
@@ -14,38 +11,6 @@ namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    private static readonly IReadOnlyList<ParameterExpression> _completeListParams = new[]
-    {
-        Expression.Parameter(typeof(IOperationContext)),
-        Expression.Parameter(typeof(MiddlewareContext)),
-        Expression.Parameter(typeof(ISelection)),
-        Expression.Parameter(typeof(Path)),
-        Expression.Parameter(typeof(IType)),
-        Expression.Parameter(typeof(string)),
-        Expression.Parameter(typeof(int)),
-        Expression.Parameter(typeof(object)),
-        Expression.Parameter(typeof(List<ResolverTask>))
-    };
-
-    private static readonly MethodInfo _completeArrayMethod =
-        typeof(ValueCompletion).GetMethod(
-            nameof(CompleteArrayInternal),
-            BindingFlags.Static | BindingFlags.NonPublic)!;
-
-#if NET5_0_OR_GREATER
-    private static readonly MethodInfo _completeListMethod =
-        typeof(ValueCompletion).GetMethod(
-            nameof(CompleteListInternal),
-            BindingFlags.Static | BindingFlags.NonPublic)!;
-#endif
-
-    private static readonly MethodInfo _completeEnumerableMethod =
-        typeof(ValueCompletion).GetMethod(
-            nameof(CompleteEnumerableInternal),
-            BindingFlags.Static | BindingFlags.NonPublic)!;
-
-    private static readonly ConcurrentDictionary<Type, CompleteList> _compiledListDelegates = new();
-
     private static bool TryCompleteListValue(
         IOperationContext operationContext,
         MiddlewareContext resolverContext,
@@ -60,77 +25,51 @@ internal static partial class ValueCompletion
     {
         var resultType = result.GetType();
 
-        if (_compiledListDelegates.TryGetValue(resultType, out var complete))
+        if (resultType.IsArray)
         {
-            completedValue = complete(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                fieldType,
-                responseName,
-                responseIndex,
-                result,
-                bufferedTasks);
+            completedValue =
+                CompleteArrayInternal(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    fieldType,
+                    responseName,
+                    responseIndex,
+                    result,
+                    bufferedTasks);
             return true;
         }
 
-        if (resultType.IsArray)
+        if (typeof(IList).IsAssignableFrom(resultType))
         {
-            var method = _completeArrayMethod.MakeGenericMethod(resultType.GetElementType()!);
-            var call = Expression.Call(method, _completeListParams);
-            complete = Expression.Lambda<CompleteList>(call, _completeListParams).Compile();
-            _compiledListDelegates.TryAdd(resultType, complete);
-        }
-#if NET5_0_OR_GREATER
-        else if (resultType.IsGenericType &&
-            resultType.GetGenericTypeDefinition() == typeof(List<>))
-        {
-            var method = _completeListMethod.MakeGenericMethod(resultType.GetGenericArguments()[0]);
-            var call = Expression.Call(method, _completeListParams);
-            complete = Expression.Lambda<CompleteList>(call, _completeListParams).Compile();
-            _compiledListDelegates.TryAdd(resultType, complete);
-        }
-#endif
-        else if (typeof(IEnumerable).IsAssignableFrom(resultType))
-        {
-            var interfaceTypes = resultType.GetInterfaces();
-            Type? enumerableType = null;
-
-            for (var i = 0; i < interfaceTypes.Length; i++)
-            {
-                var interfaceType = interfaceTypes[i];
-
-                if (interfaceType.IsGenericType &&
-                    interfaceType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                {
-                    enumerableType = interfaceType;
-                    break;
-                }
-            }
-
-            if (enumerableType is not null)
-            {
-                var elementType = enumerableType.GetGenericArguments()[0];
-                var method = _completeEnumerableMethod.MakeGenericMethod(resultType, elementType);
-                var call = Expression.Call(method, _completeListParams);
-                complete = Expression.Lambda<CompleteList>(call, _completeListParams).Compile();
-                _compiledListDelegates.TryAdd(resultType, complete);
-            }
+            completedValue =
+                CompleteListInternal(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    fieldType,
+                    responseName,
+                    responseIndex,
+                    result,
+                    bufferedTasks);
+            return true;
         }
 
-        if (complete is not null)
+        if (typeof(IEnumerable).IsAssignableFrom(resultType))
         {
-            completedValue = complete(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                fieldType,
-                responseName,
-                responseIndex,
-                result,
-                bufferedTasks);
+            completedValue =
+                CompleteEnumerableInternal(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    fieldType,
+                    responseName,
+                    responseIndex,
+                    result,
+                    bufferedTasks);
             return true;
         }
 
@@ -144,7 +83,7 @@ internal static partial class ValueCompletion
         return false;
     }
 
-    private static object? CompleteArrayInternal<T>(
+    private static object? CompleteArrayInternal(
         IOperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
@@ -155,18 +94,26 @@ internal static partial class ValueCompletion
         object result,
         List<ResolverTask> bufferedTasks)
     {
-        var array = (T[])result;
+        var array = (Array)result;
         var arrayLength = array.Length;
         var elementType = fieldType.InnerType();
         var isLeaf = elementType.IsLeafType();
 
         var resultList = operationContext.Result.RentList(arrayLength);
         resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
-        ref var start = ref MemoryMarshal.GetReference(array.AsSpan());
+
+#if NET6_0_OR_GREATER
+        ref var start = ref MemoryMarshal.GetArrayDataReference(array);
+#endif
 
         for (var i = 0; i < arrayLength; i++)
         {
-            var elementResult = Unsafe.Add(ref start, i);
+#if NET6_0_OR_GREATER
+            ref var elementRef = ref Unsafe.Add(ref start, i);
+            ref var elementResult = ref Unsafe.As<byte, object>(ref elementRef);
+#else
+            var elementResult = array.GetValue(i);
+#endif
             var elementPath = operationContext.PathFactory.Append(path, i);
 
             if (TryComplete(
@@ -184,7 +131,7 @@ internal static partial class ValueCompletion
             {
                 resultList.AddUnsafe(completedElement);
 
-                if (isLeaf)
+                if (!isLeaf)
                 {
                     ((ResultData)completedElement).Parent = resultList;
                 }
@@ -206,8 +153,7 @@ internal static partial class ValueCompletion
         return resultList;
     }
 
-#if NET5_0_OR_GREATER
-     private static object? CompleteListInternal<T>(
+    private static object? CompleteListInternal(
         IOperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
@@ -218,7 +164,7 @@ internal static partial class ValueCompletion
         object result,
         List<ResolverTask> bufferedTasks)
     {
-        var list = (List<T>)result;
+        var list = (IList)result;
         var listLength = list.Count;
         var elementType = fieldType.InnerType();
         var isLeaf = elementType.IsLeafType();
@@ -226,12 +172,9 @@ internal static partial class ValueCompletion
         var resultList = operationContext.Result.RentList(listLength);
         resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
 
-        var span = CollectionsMarshal.AsSpan(list);
-        ref var start = ref MemoryMarshal.GetReference(span);
-
         for (var i = 0; i < listLength; i++)
         {
-            var elementResult = Unsafe.Add(ref start, i);
+            var elementResult = list[i];
             var elementPath = operationContext.PathFactory.Append(path, i);
 
             if (TryComplete(
@@ -249,7 +192,7 @@ internal static partial class ValueCompletion
             {
                 resultList.AddUnsafe(completedElement);
 
-                if (isLeaf)
+                if (!isLeaf)
                 {
                     ((ResultData)completedElement).Parent = resultList;
                 }
@@ -270,9 +213,8 @@ internal static partial class ValueCompletion
 
         return resultList;
     }
-#endif
 
-     private static object? CompleteEnumerableInternal<TEnumerable, TValue>(
+     private static object? CompleteEnumerableInternal(
         IOperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
@@ -282,10 +224,9 @@ internal static partial class ValueCompletion
         int responseIndex,
         object result,
         List<ResolverTask> bufferedTasks)
-        where TEnumerable : IEnumerable<TValue>
-    {
+     {
         var index = 0;
-        var enumerable = (TEnumerable)result;
+        var enumerable = (IEnumerable)result;
         var elementType = fieldType.InnerType();
         var isLeaf = elementType.IsLeafType();
         var resultList = operationContext.Result.RentList(4);
@@ -315,7 +256,7 @@ internal static partial class ValueCompletion
             {
                 resultList.AddUnsafe(completedElement);
 
-                if (isLeaf)
+                if (!isLeaf)
                 {
                     ((ResultData)completedElement).Parent = resultList;
                 }
@@ -336,15 +277,4 @@ internal static partial class ValueCompletion
 
         return resultList;
     }
-
-    private delegate object? CompleteList(
-        IOperationContext operationContext,
-        MiddlewareContext resolverContext,
-        ISelection selection,
-        Path path,
-        IType fieldType,
-        string responseName,
-        int responseIndex,
-        object result,
-        List<ResolverTask> bufferedTasks);
 }

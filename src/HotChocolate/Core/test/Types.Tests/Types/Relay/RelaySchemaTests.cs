@@ -132,12 +132,10 @@ public class RelaySchemaTests
 
         await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(d => d.Field("user")
+            .AddQueryType(d => d
+                .Field("user")
                 .Type<UserType>()
-                .Resolve(c => new User
-                {
-                    Name = "TEST"
-                }))
+                .Resolve(_ => new User { Name = "TEST" }))
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("query { user { id name } } ")
             .MatchSnapshotAsync();

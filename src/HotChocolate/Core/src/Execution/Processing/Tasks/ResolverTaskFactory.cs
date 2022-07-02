@@ -342,6 +342,12 @@ internal static class ResolverTaskFactory
     {
         var isNonNullType = selection.Type.Kind is TypeKind.NonNull;
 
+        parentResult.SetValueUnsafe(
+            responseIndex,
+            selection.ResponseName,
+            completedValue,
+            !isNonNullType);
+
         if (completedValue is null && isNonNullType)
         {
             // if we detect a non-null violation we will stash it for later.
@@ -350,14 +356,6 @@ internal static class ResolverTaskFactory
                 selection.SyntaxNode,
                 path,
                 parentResult);
-        }
-        else
-        {
-            parentResult.SetValueUnsafe(
-                responseIndex,
-                selection.ResponseName,
-                completedValue,
-                !isNonNullType);
         }
     }
 

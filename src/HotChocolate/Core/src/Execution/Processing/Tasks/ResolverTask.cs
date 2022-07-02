@@ -135,6 +135,12 @@ internal sealed partial class ResolverTask : IExecutionTask
         CompletedValue = completedValue;
         var isNonNullType = _selection.Type.Kind is TypeKind.NonNull;
 
+        _resolverContext.ParentResult.SetValueUnsafe(
+            _resolverContext.ResponseIndex,
+            _resolverContext.ResponseName,
+            completedValue,
+            !isNonNullType);
+
         if (completedValue is null && isNonNullType)
         {
             // if we detect a non-null violation we will stash it for later.
@@ -145,14 +151,6 @@ internal sealed partial class ResolverTask : IExecutionTask
                 _resolverContext.Path,
                 _resolverContext.ParentResult);
             _taskBuffer.Clear();
-        }
-        else
-        {
-            _resolverContext.ParentResult.SetValueUnsafe(
-                _resolverContext.ResponseIndex,
-                _resolverContext.ResponseName,
-                completedValue,
-                !isNonNullType);
         }
     }
 

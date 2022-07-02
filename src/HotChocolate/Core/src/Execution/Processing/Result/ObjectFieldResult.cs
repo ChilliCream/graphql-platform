@@ -35,7 +35,6 @@ public sealed class ObjectFieldResult : ResultData
 
         if (isNullable)
         {
-
             _flags = Flags.Nullable | Flags.Initialized;
         }
         else
