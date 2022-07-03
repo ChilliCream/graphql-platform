@@ -277,7 +277,7 @@ public Task<IEnumerable<Customer>> GetCustomers(
     PersonByIdDataLoader personByIdDataLoader,
     CustomerByIdsDataLoader customerByIdsDataloader)
 {
-    Person person = await personByIdDataLoader.LoadAsync(id);
+    Person person = await personByIdDataLoader.LoadAsync(personId);
     return await customerByIdsDataloader.LoadAsync(person.CustomerIds);
 }
 ```
