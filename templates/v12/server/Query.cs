@@ -2,25 +2,10 @@
 
 public class Query
 {
-    public Book GetBook() =>
-        new Book
-        {
-            Title = "C# in depth.",
-            Author = new Author
-            {
-                Name = "Jon Skeet"
-            }
-        };
+    public Book GetBook()
+        => new Book("C# in depth.", new Author("Jon Skeet"));
 }
 
-public class Book
-{
-    public string Title { get; set; }
+public record Book(string Title, Author Author);
 
-    public Author Author { get; set; }
-}
-
-public class Author
-{
-    public string Name { get; set; }
-}
+public record Author(string Name);
