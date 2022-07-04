@@ -55,9 +55,7 @@ public class RequestClassMiddlewareFactoryTests
         private readonly RequestDelegate _next;
         private readonly T _injectedValue;
 
-        public StubMiddleware(
-            RequestDelegate next,
-            T injectedValue)
+        public StubMiddleware(RequestDelegate next, T injectedValue)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _injectedValue = injectedValue;

@@ -51,7 +51,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         }
 
         // if we at this point already know the name we will just commit it.
-        if (_definition.Name is not null)
+        if (!string.IsNullOrEmpty(_definition.Name))
         {
             Name = _definition.Name;
         }
