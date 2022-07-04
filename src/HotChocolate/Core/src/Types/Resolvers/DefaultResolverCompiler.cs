@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using FastExpressionCompiler;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
@@ -174,7 +175,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         var owner = CreateResolverOwner(_context, sourceType, resolverType);
         Expression resolver = Invoke(lambda, owner);
         resolver = EnsureResolveResult(resolver, lambda.ReturnType);
-        return new(Lambda<FieldResolverDelegate>(resolver, _context).Compile());
+        return new(Lambda<FieldResolverDelegate>(resolver, _context).CompileFast());
     }
 
     /// <inheritdoc />
@@ -238,7 +239,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             var parameterExpr = CreateParameters(_context, parameters, _empty);
             Expression subscribeResolver = Call(owner, method, parameterExpr);
             subscribeResolver = EnsureSubscribeResult(subscribeResolver, method.ReturnType);
-            return Lambda<SubscribeResolverDelegate>(subscribeResolver, _context).Compile();
+            return Lambda<SubscribeResolverDelegate>(subscribeResolver, _context).CompileFast();
         }
 
         throw new ArgumentException(
@@ -303,7 +304,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             fieldParameterExpressionBuilders);
         Expression resolver = Call(method, parameters);
         resolver = EnsureResolveResult(resolver, method.ReturnType);
-        return Lambda<FieldResolverDelegate>(resolver, _context).Compile();
+        return Lambda<FieldResolverDelegate>(resolver, _context).CompileFast();
     }
 
     private FieldResolverDelegate CreateResolver(
@@ -317,7 +318,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             var owner = CreateResolverOwner(_context, source, resolverType);
             Expression propResolver = Property(owner, property);
             propResolver = EnsureResolveResult(propResolver, property.PropertyType);
-            return Lambda<FieldResolverDelegate>(propResolver, _context).Compile();
+            return Lambda<FieldResolverDelegate>(propResolver, _context).CompileFast();
         }
 
         if (member is MethodInfo method)
@@ -330,7 +331,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
                 fieldParameterExpressionBuilders);
             Expression methodResolver = Call(owner, method, parameterExpr);
             methodResolver = EnsureResolveResult(methodResolver, method.ReturnType);
-            return Lambda<FieldResolverDelegate>(methodResolver, _context).Compile();
+            return Lambda<FieldResolverDelegate>(methodResolver, _context).CompileFast();
         }
 
         throw new NotSupportedException(
@@ -353,7 +354,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
                 propertyResolver = Convert(propertyResolver, typeof(object));
             }
 
-            return Lambda<PureFieldDelegate>(propertyResolver, _pureContext).Compile();
+            return Lambda<PureFieldDelegate>(propertyResolver, _pureContext).CompileFast();
         }
 
         if (member is MethodInfo method)
@@ -374,7 +375,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
                     methodResolver = Convert(methodResolver, typeof(object));
                 }
 
-                return Lambda<PureFieldDelegate>(methodResolver, _pureContext).Compile();
+                return Lambda<PureFieldDelegate>(methodResolver, _pureContext).CompileFast();
             }
         }
 

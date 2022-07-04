@@ -18,7 +18,7 @@ internal sealed class QueryableStreamAdapter : IAsyncEnumerable<object?>
     public async IAsyncEnumerator<object?> GetAsyncEnumerator(
         CancellationToken cancellationToken = default)
     {
-        List<object?> list = await ToListAsync(cancellationToken).ConfigureAwait(false);
+        var list = await ToListAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var item in list)
         {
@@ -64,9 +64,9 @@ internal sealed class QueryableStreamAdapter<T> : IAsyncEnumerable<object?>
     public async IAsyncEnumerator<object?> GetAsyncEnumerator(
         CancellationToken cancellationToken = default)
     {
-        List<T> list = await ToListAsync(cancellationToken).ConfigureAwait(false);
+        var list = await ToListAsync(cancellationToken).ConfigureAwait(false);
 
-        foreach (T? item in list)
+        foreach (var item in list)
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -83,7 +83,7 @@ internal sealed class QueryableStreamAdapter<T> : IAsyncEnumerable<object?>
         {
             var items = new List<T>();
 
-            foreach (T o in _query)
+            foreach (var o in _query)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
