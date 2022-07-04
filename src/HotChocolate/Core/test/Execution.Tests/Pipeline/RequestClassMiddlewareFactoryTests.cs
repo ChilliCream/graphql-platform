@@ -18,10 +18,10 @@ public class RequestClassMiddlewareFactoryTests
     public async Task Create_CoreMiddleware_InjectOptimizers()
     {
         // arrange
-        var middleware = Create<StubMiddleware<IEnumerable<ISelectionSetOptimizer>>>();
+        var middleware = Create<StubMiddleware<IEnumerable<IOperationCompilerOptimizer>>>();
         var applicationServices = new ServiceCollection().BuildServiceProvider();
         var schemaServices = new ServiceCollection()
-            .AddSingleton<ISelectionSetOptimizer, StubOptimizer>()
+            .AddSingleton<IOperationCompilerOptimizer, StubOptimizer>()
             .BuildServiceProvider();
         var schemaName = "_Default";
         IRequestExecutorOptionsAccessor optionsAccessor = new RequestExecutorOptions();
@@ -47,7 +47,7 @@ public class RequestClassMiddlewareFactoryTests
         await compiledMiddleware(context);
 
         // assert
-        Assert.Single((context.ContextData["result"] as IEnumerable<ISelectionSetOptimizer>)!);
+        Assert.Single((context.ContextData["result"] as IEnumerable<IOperationCompilerOptimizer>)!);
     }
 
     private sealed class StubMiddleware<T>

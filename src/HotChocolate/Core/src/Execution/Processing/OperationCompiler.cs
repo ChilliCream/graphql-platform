@@ -11,6 +11,10 @@ using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Execution.Processing;
 
+/// <summary>
+/// The operation compiler will analyze a specific operation of a GraphQL request document
+/// and create from it an optimized executable operation tree.
+/// </summary>
 public sealed partial class OperationCompiler
 {
     private readonly InputParser _parser;
@@ -42,6 +46,33 @@ public sealed partial class OperationCompiler
         ISchema schema,
         IReadOnlyList<IOperationCompilerOptimizer>? optimizers = null)
     {
+        if (string.IsNullOrEmpty(operationId))
+        {
+            throw new ArgumentException(
+                OperationCompiler_OperationIdNullOrEmpty,
+                nameof(operationId));
+        }
+
+        if (operationDefinition is null)
+        {
+            throw new ArgumentNullException(nameof(operationDefinition));
+        }
+
+        if (operationType is null)
+        {
+            throw new ArgumentNullException(nameof(operationType));
+        }
+
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        if (schema is null)
+        {
+            throw new ArgumentNullException(nameof(schema));
+        }
+
         try
         {
             // prepare optimizers
