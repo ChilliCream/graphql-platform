@@ -12,6 +12,8 @@ using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.AspNetCore.Instrumentation;
 using System;
+using System.Net;
+using HotChocolate.Execution.Options;
 
 namespace HotChocolate.AspNetCore;
 
@@ -317,6 +319,34 @@ public class HttpPostMiddlewareTests : ServerTestBase
         // assert
         Assert.True(listenerA.Triggered);
         Assert.True(listenerB.Triggered);
+    }
+
+    [Fact]
+    public async Task Apollo_Tracing_Invalid_Field()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddApolloTracing());
+
+        // act
+        ClientRawResult response = await server.PostRawAsync(
+            new ClientQueryRequest
+            {
+                Query =
+                    @"{
+                        hero123(episode: NEW_HOPE)
+                        {
+                            name
+                        }
+                    }"
+
+            },
+            enableApolloTracing: true);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]

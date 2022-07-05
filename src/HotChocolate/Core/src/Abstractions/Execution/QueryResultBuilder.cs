@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 
 #nullable enable
 
@@ -153,14 +154,27 @@ public class QueryResultBuilder : IQueryResultBuilder
             builder._errors = new List<IError>(result.Errors);
         }
 
-        if (result.Extensions is ExtensionData d)
+        if (result.Extensions is ExtensionData ext)
         {
-            builder._extensionData = new ExtensionData(d);
+            builder._extensionData = new ExtensionData(ext);
         }
         else if (result.Extensions is not null)
         {
             builder._extensionData = new ExtensionData(result.Extensions);
         }
+
+        if (result.ContextData is ExtensionData cd)
+        {
+            builder._contextData = new ExtensionData(cd);
+        }
+        else if (result.ContextData is not null)
+        {
+            builder._contextData = new ExtensionData(result.ContextData);
+        }
+
+        builder._label = result.Label;
+        builder._path = result.Path;
+        builder._hasNext = result.HasNext;
 
         return builder;
     }

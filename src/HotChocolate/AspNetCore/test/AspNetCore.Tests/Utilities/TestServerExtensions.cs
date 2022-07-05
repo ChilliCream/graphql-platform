@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -72,7 +74,7 @@ public static class TestServerExtensions
         ClientQueryRequest request,
         string operationNames,
         string path = "/graphql",
-        Func<string, string> createOperationParameter = null)
+        Func<string, string>? createOperationParameter = null)
     {
         createOperationParameter ??= s => "batchOperations=[" + s + "]";
         HttpResponseMessage response =
@@ -159,13 +161,15 @@ public static class TestServerExtensions
     public static async Task<ClientRawResult> PostRawAsync(
         this TestServer testServer,
         ClientQueryRequest request,
-        string path = "/graphql")
+        string path = "/graphql",
+        bool enableApolloTracing = false)
     {
         HttpResponseMessage response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
-                path);
+                path,
+                enableApolloTracing: enableApolloTracing);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -311,7 +315,7 @@ public static class TestServerExtensions
     public static Task<HttpResponseMessage> SendGetRequestAsync(
         this TestServer testServer,
         string query,
-        string path = null) =>
+        string? path = null) =>
         testServer.CreateClient().GetAsync($"{CreateUrl(path)}/?{query}");
 
     public static string CreateUrl(string? path)
