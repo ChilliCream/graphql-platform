@@ -62,13 +62,13 @@ public class StreamFile : IFile
         CancellationToken cancellationToken = default)
     {
 #if NETSTANDARD2_0 || NETSTANDARD2_1
-            using Stream stream = OpenReadStream();
+        using Stream stream = OpenReadStream();
 #else
         await using Stream stream = OpenReadStream();
 #endif
 
 #if NETSTANDARD2_0
-            await stream.CopyToAsync(target, 1024, cancellationToken).ConfigureAwait(false);
+        await stream.CopyToAsync(target, 1024, cancellationToken).ConfigureAwait(false);
 #else
         await stream.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
 #endif

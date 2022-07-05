@@ -25,8 +25,8 @@ public class HttpPostMiddlewareBase : MiddlewareBase
     {
         RequestParser = requestParser ??
             throw new ArgumentNullException(nameof(requestParser));
-        DiagnosticEvents = diagnosticEvents
-            ?? throw new ArgumentNullException(nameof(diagnosticEvents));
+        DiagnosticEvents = diagnosticEvents ?? 
+            throw new ArgumentNullException(nameof(diagnosticEvents));
     }
 
     protected IHttpRequestParser RequestParser { get; }
@@ -153,15 +153,15 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // Most GraphQL requests will be of this type where we want to execute
                 // a single GraphQL query or mutation.
                 case 1:
-                    {
-                        result = await ExecuteSingleAsync(
-                            context,
-                            requestExecutor,
-                            requestInterceptor,
-                            DiagnosticEvents,
-                            requests[0]);
-                        break;
-                    }
+                {
+                    result = await ExecuteSingleAsync(
+                        context,
+                        requestExecutor,
+                        requestInterceptor,
+                        DiagnosticEvents,
+                        requests[0]);
+                    break;
+                }
 
                 // if the HTTP request body contains more than one GraphQL request than
                 // we need to execute a request batch where we need to execute multiple
