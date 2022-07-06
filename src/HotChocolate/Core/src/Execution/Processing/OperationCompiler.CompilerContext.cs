@@ -24,6 +24,8 @@ public sealed partial class OperationCompiler
 
         public SelectionSetInfo[] SelectionInfos { get; private set; } = default!;
 
+        public SelectionPath Path { get; private set; } = SelectionPath.Root;
+
         public Dictionary<string, Selection> Fields { get; } =
             new(Ordinal);
 
@@ -38,11 +40,13 @@ public sealed partial class OperationCompiler
             ObjectType type,
             SelectionVariants selectionVariants,
             SelectionSetInfo[] selectionInfos,
+            SelectionPath path,
             IImmutableList<ISelectionSetOptimizer>? optimizers = null)
         {
             Type = type;
             SelectionVariants = selectionVariants;
             SelectionInfos = selectionInfos;
+            Path = path;
             Optimizers = optimizers ?? ImmutableList<ISelectionSetOptimizer>.Empty;
             Fields.Clear();
             Fragments.Clear();

@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing.Internal;
 using HotChocolate.Fetching;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -12,7 +11,6 @@ internal sealed partial class WorkScheduler
     private readonly object _sync = new();
     private readonly WorkQueue _work = new();
     private readonly WorkQueue _serial = new();
-    private readonly DeferredWorkBacklog _deferred = new();
     private readonly ProcessingPause _pause = new();
     private readonly OperationContext _operationContext;
 
@@ -52,7 +50,6 @@ internal sealed partial class WorkScheduler
     {
         _work.Clear();
         _serial.Clear();
-        _deferred.Clear();
         _pause.Reset();
 
         _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;

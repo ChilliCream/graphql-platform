@@ -32,20 +32,15 @@ internal sealed class QueryExecutor
         IOperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        var rootSelections = operationContext.Operation.RootSelectionSet;
-
         var resultMap = EnqueueResolverTasks(
             operationContext,
-            rootSelections,
+            operationContext.Operation.RootSelectionSet,
             operationContext.RootValue,
             Path.Root,
             scopedContext);
 
         await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
-        return operationContext
-            .TrySetNext()
-            .SetData(resultMap)
-            .BuildResult();
+        return operationContext.SetData(resultMap).BuildResult();
     }
 }

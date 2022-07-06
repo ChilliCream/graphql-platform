@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Tasks;
@@ -8,121 +9,57 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
-/// <summary>
-/// The internal operation execution context.
-/// </summary>
+
 internal interface IOperationContext : IHasContextData
 {
-    /// <summary>
-    /// Gets the schema on which the query is being executed.
-    /// </summary>
-    ISchema Schema { get; }
-
-    /// <summary>
-    /// Gets the request scoped services
-    /// </summary>
+    // services / di
     IServiceProvider Services { get; }
 
-    /// <summary>
-    /// Gets the error handler which adds additional context
-    /// data to errors and exceptions.
-    /// </summary>
-    IErrorHandler ErrorHandler { get; }
-
-    /// <summary>
-    /// Gets the diagnostic events.
-    /// </summary>
-    IExecutionDiagnosticEvents DiagnosticEvents { get; }
-
-    /// <summary>
-    /// Gets the operation that is being executed.
-    /// </summary>
-    IOperation Operation { get; }
-
-    /// <summary>
-    /// Gets the value representing the instance of the
-    /// <see cref="IOperation.RootType" />
-    /// </summary>
-    object? RootValue { get; }
-
-    /// <summary>
-    /// Gets the include flags for the current request.
-    /// </summary>
-    long IncludeFlags { get; }
-
-    /// <summary>
-    /// Gets the coerced variable values for the current operation.
-    /// </summary>
-    IVariableValueCollection Variables { get; }
-
-    /// <summary>
-    /// Gets a cancellation token is used to signal
-    /// if the request has be aborted.
-    /// </summary>
-    CancellationToken RequestAborted { get; }
-
-    /// <summary>
-    /// Gets the activator helper class.
-    /// </summary>
     IActivator Activator { get; }
 
-    /// <summary>
-    /// Gets the type converter service.
-    /// </summary>
-    /// <value></value>
+    // utilities
+    IErrorHandler ErrorHandler { get; }
+
     ITypeConverter Converter { get; }
 
-    /// <summary>
-    /// The result helper which provides utilities to build up the result.
-    /// </summary>
-    ResultBuilder Result { get; }
+    IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
-    /// <summary>
-    /// The work scheduler organizes the processing of request tasks.
-    /// </summary>
-    IWorkScheduler Scheduler { get; }
-
-    /// <summary>
-    /// The factory for path <see cref="Path"/>.
-    /// </summary>
     PathFactory PathFactory { get; }
 
-    /// <summary>
-    /// Gets the resolver task pool.
-    /// </summary>
-    ObjectPool<ResolverTask> ResolverTasks { get; }
+    // request
+    CancellationToken RequestAborted { get; }
 
-    /// <summary>
-    /// Get the fields for the specified selection set according to the execution plan.
-    /// The selection set will show all possibilities and needs to be pre-processed.
-    /// </summary>
-    /// <param name="selection">
-    /// The selection for which we want to get the compiled selection set.
-    /// </param>
-    /// <param name="typeContext">
-    /// The type context.
-    /// </param>
-    /// <returns></returns>
+    // operation
+    ISchema Schema { get; }
+
+    IOperation Operation { get; }
+
+    IVariableValueCollection Variables { get; }
+
+    object? RootValue { get; }
+
+    long IncludeFlags { get; }
+
     ISelectionSet CollectFields(
         ISelection selection,
         IObjectType typeContext);
 
-    /// <summary>
-    /// Register cleanup tasks that will be executed after resolver execution is finished.
-    /// </summary>
-    /// <param name="action">
-    /// Cleanup action.
-    /// </param>
+    T GetQueryRoot<T>();
+
+
+    // Execution
+    IWorkScheduler Scheduler { get; }
+
+    IDeferredWorkScheduler DeferredScheduler { get; }
+
+    ResultBuilder Result { get; }
+
     void RegisterForCleanup(Action action);
 
-    /// <summary>
-    /// Get the query root instance.
-    /// </summary>
-    /// <typeparam name="T">
-    /// The type of the query root.
-    /// </typeparam>
-    /// <returns>
-    /// Returns the query root instance.
-    /// </returns>
-    T GetQueryRoot<T>();
+    ResolverTask CreateResolverTask(ISelection selection,
+        object? parent,
+        ObjectResult parentResult,
+        int responseIndex,
+        Path path,
+        IImmutableDictionary<string, object?> scopedContextData);
 }

@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -24,6 +25,7 @@ internal static class ResolverTaskFactory
         var selectionsCount = selectionSet.Selections.Count;
         var parentResult = operationContext.Result.RentObject(selectionsCount);
         var scheduler = operationContext.Scheduler;
+        var pathFactory = operationContext.PathFactory;
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
@@ -40,14 +42,14 @@ internal static class ResolverTaskFactory
 
                 if (final || selection.IsIncluded(includeFlags))
                 {
-                    bufferedTasks.Add(CreateResolverTask(
-                        operationContext,
-                        selection,
-                        parent,
-                        responseIndex++,
-                        operationContext.PathFactory.Append(path, selection.ResponseName),
-                        parentResult,
-                        scopedContext));
+                    bufferedTasks.Add(
+                        operationContext.CreateResolverTask(
+                            selection,
+                            parent,
+                            parentResult,
+                            responseIndex++,
+                            pathFactory.Append(path, selection.ResponseName),
+                            scopedContext));
                 }
             }
 
@@ -348,52 +350,6 @@ internal static class ResolverTaskFactory
         }
     }
 
-    private static ResolverTask CreateResolverTask(
-        IOperationContext operationContext,
-        MiddlewareContext resolverContext,
-        ISelection selection,
-        Path path,
-        int responseIndex,
-        object parent,
-        ObjectResult parentResult)
-    {
-        var task = operationContext.ResolverTasks.Get();
-
-        task.Initialize(
-            operationContext,
-            selection,
-            parentResult,
-            responseIndex,
-            parent,
-            path,
-            resolverContext.ScopedContextData);
-
-        return task;
-    }
-
-    private static ResolverTask CreateResolverTask(
-        IOperationContext operationContext,
-        ISelection selection,
-        object? parent,
-        int responseIndex,
-        Path path,
-        ObjectResult result,
-        IImmutableDictionary<string, object?> scopedContext)
-    {
-        var task = operationContext.ResolverTasks.Get();
-
-        task.Initialize(
-            operationContext,
-            selection,
-            result,
-            responseIndex,
-            parent,
-            path,
-            scopedContext);
-
-        return task;
-    }
-
     private static void TryHandleDeferredFragments(
         IOperationContext operationContext,
         ISelectionSet selectionSet,
@@ -409,7 +365,7 @@ internal static class ResolverTaskFactory
             var fragment = fragments[i];
             if (!fragment.IsConditional || fragment.IsIncluded(includeFlags))
             {
-                operationContext.Scheduler.DeferredWork.Register(
+                operationContext.DeferredScheduler.Register(
                     new DeferredFragment(
                         fragment,
                         fragment.GetLabel(operationContext.Variables),

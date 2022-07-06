@@ -1,10 +1,10 @@
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-#nullable enable
-
-namespace HotChocolate.Execution.Processing.Internal;
+namespace HotChocolate.Execution.Processing;
 
 public class WorkQueueTests
 {
@@ -120,7 +120,6 @@ public class WorkQueueTests
         queue.Clear();
 
         // assert
-        Assert.Equal(0, queue.Count);
         Assert.False(queue.HasRunningTasks);
         Assert.True(queue.IsEmpty);
     }
@@ -129,7 +128,6 @@ public class WorkQueueTests
     public void New()
     {
         var queue = new WorkQueue();
-        Assert.Equal(0, queue.Count);
         Assert.False(queue.HasRunningTasks);
         Assert.True(queue.IsEmpty);
     }

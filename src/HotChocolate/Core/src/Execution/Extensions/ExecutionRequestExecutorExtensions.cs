@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static HotChocolate.Execution.Properties.Resources;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
 
 public static class ExecutionRequestExecutorExtensions

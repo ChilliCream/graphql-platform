@@ -5,7 +5,6 @@ using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution;
@@ -19,14 +18,12 @@ internal sealed class RequestContext : IRequestContext
         ISchema schema,
         ulong executorVersion,
         IErrorHandler errorHandler,
-        ITypeConverter converter,
         IActivator activator,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
         Schema = schema;
         ExecutorVersion = executorVersion;
         ErrorHandler = errorHandler;
-        Converter = converter;
         Activator = activator;
         DiagnosticEvents = diagnosticEvents;
     }
@@ -38,8 +35,6 @@ internal sealed class RequestContext : IRequestContext
     public IServiceProvider Services { get; private set; } = default!;
 
     public IErrorHandler ErrorHandler { get; }
-
-    public ITypeConverter Converter { get; }
 
     public IActivator Activator { get; }
 
@@ -55,11 +50,11 @@ internal sealed class RequestContext : IRequestContext
 
     public string? DocumentHash { get; set; }
 
+    public DocumentNode? Document { get; set; }
+
     public bool IsCachedDocument { get; set; }
 
     public bool IsPersistedDocument { get; set; }
-
-    public DocumentNode? Document { get; set; }
 
     public DocumentValidatorResult? ValidationResult
     {
@@ -82,42 +77,6 @@ internal sealed class RequestContext : IRequestContext
     public IExecutionResult? Result { get; set; }
 
     public Exception? Exception { get; set; }
-
-    public IRequestContext Clone()
-    {
-        var cloned = new RequestContext(
-            Schema,
-            ExecutorVersion,
-            ErrorHandler,
-            Converter,
-            Activator,
-            DiagnosticEvents)
-        {
-            Request = Request,
-            Services = Services,
-            RequestAborted = RequestAborted,
-            DocumentId = DocumentId,
-            DocumentHash = DocumentHash,
-            IsCachedDocument = IsCachedDocument,
-            Document = Document,
-            ValidationResult = ValidationResult,
-            OperationId = OperationId,
-            Operation = Operation,
-            Variables = Variables,
-            Result = Result,
-            Exception = Exception
-        };
-
-        if (_contextData is not null)
-        {
-            foreach (var item in ContextData)
-            {
-                cloned._contextData.TryAdd(item.Key, item.Value);
-            }
-        }
-
-        return cloned;
-    }
 
     public void Initialize(IQueryRequest request, IServiceProvider services)
     {

@@ -120,6 +120,43 @@ internal sealed partial class ResultBuilder
         return result;
     }
 
+    public IQueryResultBuilder BuildResultBuilder()
+    {
+        if (!ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors))
+        {
+            // The non-null violation cased the whole result being deleted.
+            _data = null;
+            _resultOwner.Dispose();
+        }
+
+        if (_data is null && _errors.Count == 0 && _hasNext is not false)
+        {
+            throw new InvalidOperationException(
+                Resources.ResultHelper_BuildResult_InvalidResult);
+        }
+
+        var builder = QueryResultBuilder.New();
+
+        builder.SetData(_data);
+
+        if (_errors is { Count: > 0 })
+        {
+            builder.AddErrors(_errors);
+        }
+
+        builder.SetExtensions(CreateExtensionData(_extensions));
+        builder.SetContextData(CreateExtensionData(_contextData));
+        builder.SetLabel(_label);
+        builder.SetPath(_path);
+
+        if (_data is not null)
+        {
+            builder.RegisterForCleanup(_resultOwner);
+        }
+
+        return builder;
+    }
+
     private static IReadOnlyDictionary<string, object?>? CreateExtensionData(
         Dictionary<string, object?> data)
     {

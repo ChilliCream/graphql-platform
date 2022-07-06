@@ -7,60 +7,52 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class OperationContext
 {
-    internal IRequestContext RequestContext
-    {
-        get
-        {
-            return _requestContext;
-        }
-        set
-        {
-            _requestContext = value;
-        }
-    }
-
+    /// <summary>
+    /// Gets the schema on which the query is being executed.
+    /// </summary>
     public ISchema Schema
     {
         get
         {
             AssertInitialized();
-            return _requestContext.Schema;
+            return _schema;
         }
     }
 
+    /// <summary>
+    /// Gets the error handler which adds additional context
+    /// data to errors and exceptions.
+    /// </summary>
     public IErrorHandler ErrorHandler
     {
         get
         {
             AssertInitialized();
-            return _requestContext.ErrorHandler;
+            return _errorHandler;
         }
     }
 
-    public ITypeConverter Converter
-    {
-        get
-        {
-            AssertInitialized();
-            return _requestContext.Converter;
-        }
-    }
-
+    /// <summary>
+    /// Gets the activator helper class.
+    /// </summary>
     public IActivator Activator
     {
         get
         {
             AssertInitialized();
-            return _requestContext.Activator;
+            return _activator;
         }
     }
 
+    /// <summary>
+    /// Gets the diagnostic events.
+    /// </summary>
     public IExecutionDiagnosticEvents DiagnosticEvents
     {
         get
         {
             AssertInitialized();
-            return _requestContext.DiagnosticEvents;
+            return _diagnosticEvents;
         }
     }
 
@@ -69,16 +61,20 @@ internal sealed partial class OperationContext
         get
         {
             AssertInitialized();
-            return _requestContext.ContextData;
+            return _contextData;
         }
     }
 
+    /// <summary>
+    /// Gets a cancellation token is used to signal
+    /// if the request has be aborted.
+    /// </summary>
     public CancellationToken RequestAborted
     {
         get
         {
             AssertInitialized();
-            return _requestContext.RequestAborted;
+            return _requestAborted;
         }
     }
 }

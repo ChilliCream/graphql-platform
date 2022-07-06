@@ -2,12 +2,19 @@ using System;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
+/// <summary>
+/// The internal context of the execution engine.
+/// </summary>
 internal sealed partial class OperationContext : IOperationContext
 {
+    /// <summary>
+    /// Gets the operation that is being executed.
+    /// </summary>
     public IOperation Operation
     {
         get
@@ -17,6 +24,10 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
+    /// <summary>
+    /// Gets the value representing the instance of the
+    /// <see cref="IOperation.RootType" />
+    /// </summary>
     public object? RootValue
     {
         get
@@ -26,6 +37,9 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
+    /// <summary>
+    /// Gets the coerced variable values for the current operation.
+    /// </summary>
     public IVariableValueCollection Variables
     {
         get
@@ -35,8 +49,14 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
+    /// <summary>
+    /// Gets the include flags for the current request.
+    /// </summary>
     public long IncludeFlags { get; private set; }
 
+    /// <summary>
+    /// Gets the request scoped services
+    /// </summary>
     public IServiceProvider Services
     {
         get
@@ -46,6 +66,15 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
+    /// <summary>
+    /// Gets the type converter service.
+    /// </summary>
+    /// <value></value>
+    public ITypeConverter Converter { get; }
+
+    /// <summary>
+    /// The result helper which provides utilities to build up the result.
+    /// </summary>
     public ResultBuilder Result
     {
         get
@@ -55,6 +84,9 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
+    /// <summary>
+    /// The work scheduler organizes the processing of request tasks.
+    /// </summary>
     public IWorkScheduler Scheduler
     {
         get
@@ -64,6 +96,22 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
+    /// <summary>
+    /// Gets the backlog of the task that shall be processed after
+    /// all the main tasks have been executed.
+    /// </summary>
+    public IDeferredWorkScheduler DeferredScheduler
+    {
+        get
+        {
+            AssertInitialized();
+            return _deferredWorkScheduler;
+        }
+    }
+
+    /// <summary>
+    /// Gets the resolver task pool.
+    /// </summary>
     public ObjectPool<ResolverTask> ResolverTasks
     {
         get
@@ -73,6 +121,9 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
+    /// <summary>
+    /// The factory for path <see cref="Path"/>.
+    /// </summary>
     public PathFactory PathFactory
     {
         get
@@ -82,12 +133,29 @@ internal sealed partial class OperationContext : IOperationContext
         }
     }
 
-    public ISelectionSet CollectFields(ISelection selection, IObjectType objectType)
+    /// <summary>
+    /// Get the fields for the specified selection set according to the execution plan.
+    /// The selection set will show all possibilities and needs to be pre-processed.
+    /// </summary>
+    /// <param name="selection">
+    /// The selection for which we want to get the compiled selection set.
+    /// </param>
+    /// <param name="typeContext">
+    /// The type context.
+    /// </param>
+    /// <returns></returns>
+    public ISelectionSet CollectFields(ISelection selection, IObjectType typeContext)
     {
         AssertInitialized();
-        return Operation.GetSelectionSet(selection, objectType);
+        return Operation.GetSelectionSet(selection, typeContext);
     }
 
+    /// <summary>
+    /// Register cleanup tasks that will be executed after resolver execution is finished.
+    /// </summary>
+    /// <param name="action">
+    /// Cleanup action.
+    /// </param>
     public void RegisterForCleanup(Action action)
     {
         if (action is null)
@@ -99,6 +167,15 @@ internal sealed partial class OperationContext : IOperationContext
         _cleanupActions.Add(action);
     }
 
+    /// <summary>
+    /// Get the query root instance.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The type of the query root.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the query root instance.
+    /// </returns>
     public T GetQueryRoot<T>()
     {
         AssertInitialized();

@@ -1,25 +1,10 @@
 using HotChocolate.Execution.Processing;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
 
 internal static class OperationContextExtensions
 {
-    public static IOperationContext TrySetNext(
-        this IOperationContext context,
-        bool alwaysSet = false)
-    {
-        if (context.Scheduler.DeferredWork.HasWork)
-        {
-            context.Result.SetHasNext(true);
-        }
-        else if (alwaysSet)
-        {
-            context.Result.SetHasNext(false);
-        }
-
-        return context;
-    }
-
     public static IOperationContext SetLabel(
         this IOperationContext context,
         string? label)
@@ -54,4 +39,8 @@ internal static class OperationContextExtensions
     public static IQueryResult BuildResult(
         this IOperationContext context) =>
         context.Result.BuildResult();
+
+    public static IQueryResultBuilder BuildResultBuilder(
+        this IOperationContext context) =>
+        context.Result.BuildResultBuilder();
 }

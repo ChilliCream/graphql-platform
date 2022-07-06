@@ -34,7 +34,7 @@ public class CancellationTests
         // assert
         Assert.True(query.Foo);
         Assert.True(query.FooDone);
-        Assert.False(query.Bar);
+        Assert.True(query.Bar);
     }
 
     public class Query

@@ -7,7 +7,6 @@ using HotChocolate.Utilities;
 using static System.StringComparer;
 using static HotChocolate.Execution.Properties.Resources;
 using static HotChocolate.Execution.ThrowHelper;
-using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -20,7 +19,7 @@ public sealed partial class OperationCompiler
     private readonly InputParser _parser;
     private readonly Stack<BacklogItem> _backlog = new();
     private readonly Dictionary<Selection, SelectionSetInfo[]> _selectionLookup = new();
-    private readonly Dictionary<SelectionSetNode, int> _selectionSetIdLookup = new(BySyntax);
+    private readonly Dictionary<SelectionSetRef, int> _selectionSetIdLookup = new();
     private readonly Dictionary<int, SelectionVariants> _selectionVariants = new();
     private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = new(Ordinal);
     private readonly Dictionary<string, object?> _contextData = new();
@@ -79,30 +78,33 @@ public sealed partial class OperationCompiler
             PrepareOptimizers(optimizers);
 
             var rootOptimizers = ImmutableList<ISelectionSetOptimizer>.Empty;
+
             if (_selectionSetOptimizers.Count > 0)
             {
                 rootOptimizers = ImmutableList.CreateRange(_selectionSetOptimizers);
             }
 
             // collect root fields
-            var id = GetOrCreateSelectionSetId(operationDefinition.SelectionSet);
+            var rootPath = SelectionPath.Root;
+            var id = GetOrCreateSelectionSetId(operationDefinition.SelectionSet, rootPath);
             var variants = GetOrCreateSelectionVariants(id);
             SelectionSetInfo[] infos = { new(operationDefinition.SelectionSet, 0) };
 
             var context = new CompilerContext(schema, document);
-            context.Initialize(operationType, variants, infos, rootOptimizers);
+            context.Initialize(operationType, variants, infos, rootPath, rootOptimizers);
             CompileSelectionSet(context);
 
             // process consecutive selections
             while (_backlog.Count > 0)
             {
                 var current = _backlog.Pop();
+                var type = current.Type;
                 variants = GetOrCreateSelectionVariants(current.SelectionSetId);
 
-                if (!variants.ContainsSelectionSet(current.Type))
+                if (!variants.ContainsSelectionSet(type))
                 {
                     infos = _selectionLookup[current.Selection];
-                    context.Initialize(current.Type, variants, infos, current.Optimizers);
+                    context.Initialize(type, variants, infos, current.Path, current.Optimizers);
                     CompileSelectionSet(context);
                 }
             }
@@ -256,20 +258,24 @@ public sealed partial class OperationCompiler
                     throw QueryCompiler_CompositeTypeSelectionSet(selection.SyntaxNode);
                 }
 
-                selectionSetId = GetOrCreateSelectionSetId(selection.SelectionSet);
+                var selectionPath = context.Path.Append(selection.ResponseName);
+                selectionSetId = GetOrCreateSelectionSetId(selection.SelectionSet, selectionPath);
                 var selectionVariants = GetOrCreateSelectionVariants(selectionSetId);
                 var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
                 for (var i = possibleTypes.Count - 1; i >= 0; i--)
                 {
                     var objectType = possibleTypes[i];
+
                     if (!selectionVariants.ContainsSelectionSet(objectType))
                     {
-                        _backlog.Push(new BacklogItem(
-                            objectType,
-                            selectionSetId,
-                            selection,
-                            ResolveOptimizers(context.Optimizers, selection.Field)));
+                        _backlog.Push(
+                            new BacklogItem(
+                                objectType,
+                                selectionSetId,
+                                selection,
+                                selectionPath,
+                                ResolveOptimizers(context.Optimizers, selection.Field)));
                     }
                 }
             }
@@ -454,20 +460,20 @@ public sealed partial class OperationCompiler
     {
         if (typeCondition is null ||
             (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
-            DoesTypeApply(typeCon, context.Type)))
+                DoesTypeApply(typeCon, context.Type)))
         {
             includeCondition |= GetSelectionIncludeCondition(selection, includeCondition);
 
             if (directives.IsDeferrable())
             {
-                var id = GetOrCreateSelectionSetId(selectionSet);
+                var id = GetOrCreateSelectionSetId(selectionSet, context.Path);
                 var variants = GetOrCreateSelectionVariants(id);
                 var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition) };
 
                 if (!variants.ContainsSelectionSet(context.Type))
                 {
                     var deferContext = RentContext(context);
-                    deferContext.Initialize(context.Type, variants, infos);
+                    deferContext.Initialize(context.Type, variants, infos, context.Path);
                     CompileSelectionSet(deferContext);
                     ReturnContext(deferContext);
                 }
@@ -520,9 +526,10 @@ public sealed partial class OperationCompiler
                 }
             }
 
-            throw new InvalidOperationException(string.Format(
-                OperationCompiler_FragmentNotFound,
-                fragmentName));
+            throw new InvalidOperationException(
+                string.Format(
+                    OperationCompiler_FragmentNotFound,
+                    fragmentName));
         }
 
         EXIT:
@@ -533,13 +540,16 @@ public sealed partial class OperationCompiler
 
     private int GetNextFragmentId() => _nextFragmentId++;
 
-    private int GetOrCreateSelectionSetId(SelectionSetNode selectionSet)
+    private int GetOrCreateSelectionSetId(SelectionSetNode selectionSet, SelectionPath path)
     {
-        if (!_selectionSetIdLookup.TryGetValue(selectionSet, out var selectionSetId))
+        var selectionSetRef = new SelectionSetRef(selectionSet, path);
+
+        if (!_selectionSetIdLookup.TryGetValue(selectionSetRef, out var selectionSetId))
         {
             selectionSetId = _nextSelectionSetId++;
-            _selectionSetIdLookup.Add(selectionSet, selectionSetId);
+            _selectionSetIdLookup.Add(selectionSetRef, selectionSetId);
         }
+
         return selectionSetId;
     }
 
@@ -642,5 +652,75 @@ public sealed partial class OperationCompiler
                 }
             }
         }
+    }
+
+    internal sealed class SelectionPath : IEquatable<SelectionPath>
+    {
+        private SelectionPath(string name, SelectionPath? parent = null)
+        {
+            Name = name;
+        }
+
+        public string Name { get; }
+
+        public SelectionPath? Parent { get; }
+
+        public static SelectionPath Root { get; } = new("$root");
+
+        public SelectionPath Append(string name) => new(name, this);
+
+        public bool Equals(SelectionPath? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (Name.EqualsOrdinal(other.Name))
+            {
+                if (ReferenceEquals(Parent, other.Parent))
+                {
+                    return true;
+                }
+
+                return Equals(Parent, other.Parent);
+            }
+
+            return false;
+        }
+
+        public override bool Equals(object? obj)
+            => ReferenceEquals(this, obj) || obj is SelectionPath other && Equals(other);
+
+        public override int GetHashCode()
+            => HashCode.Combine(Name, Parent);
+    }
+
+    private readonly struct SelectionSetRef : IEquatable<SelectionSetRef>
+    {
+        public SelectionSetRef(SelectionSetNode selectionSet, SelectionPath path)
+        {
+            SelectionSet = selectionSet;
+            Path = path;
+        }
+
+        public SelectionSetNode SelectionSet { get; }
+
+        public SelectionPath Path { get; }
+
+        public bool Equals(SelectionSetRef other)
+            => SelectionSet.Equals(other.SelectionSet, SyntaxComparison.Syntax) &&
+                Path.Equals(other.Path);
+
+        public override bool Equals(object? obj)
+            => obj is SelectionSetRef other && Equals(other);
+
+        public override int GetHashCode()
+            => HashCode.Combine(SelectionSet, Path);
     }
 }

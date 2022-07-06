@@ -37,19 +37,14 @@ public interface IRequestContext : IHasContextData
     IErrorHandler ErrorHandler { get; }
 
     /// <summary>
-    /// Gets the type converter service.
+    /// Gets the diagnostic events logger.
     /// </summary>
-    ITypeConverter Converter { get; }
+    IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
     /// <summary>
     /// Gets the activator helper class.
     /// </summary>
     IActivator Activator { get; }
-
-    /// <summary>
-    /// Gets the diagnostic events logger.
-    /// </summary>
-    IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
     /// <summary>
     /// Gets or sets the initial query request.
@@ -123,10 +118,4 @@ public interface IRequestContext : IHasContextData
     /// Gets or sets an unexpected execution exception.
     /// </summary>
     Exception? Exception { get; set; }
-
-    /// <summary>
-    /// Creates a copy of this request context.
-    /// </summary>
-    /// <returns></returns>
-    IRequestContext Clone();
 }

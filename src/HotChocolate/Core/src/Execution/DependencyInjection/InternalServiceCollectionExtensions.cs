@@ -5,6 +5,7 @@ using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
@@ -60,6 +61,8 @@ internal static class InternalServiceCollectionExtensions
             _ => new ExecutionTaskPool<ResolverTask>(
                 new ResolverTaskPoolPolicy(),
                 maximumRetained));
+        services.TryAddTransient(
+            sp => sp.GetRequiredService<ObjectPool<ResolverTask>>().Get());
         return services;
     }
 
@@ -71,6 +74,10 @@ internal static class InternalServiceCollectionExtensions
             _ => new IndexerPathSegmentPool(maximumRetained));
         services.TryAddSingleton<ObjectPool<PathSegmentBuffer<NamePathSegment>>>(
             _ => new NamePathSegmentPool(maximumRetained));
+        services.TryAddTransient(
+            sp => new PooledPathFactory(
+                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(),
+                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<NamePathSegment>>>()));
         return services;
     }
 
@@ -91,10 +98,40 @@ internal static class InternalServiceCollectionExtensions
             var policy = new OperationContextPooledObjectPolicy(
                 sp.GetRequiredService<ObjectPool<ResolverTask>>(),
                 sp.GetRequiredService<ResultPool>(),
-                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(),
-                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<NamePathSegment>>>());
+                sp.GetRequiredService<PooledPathFactory>(),
+                sp.GetRequiredService<DeferredWorkScheduler>());
             return provider.Create(policy);
         });
+
+        services.TryAddTransient(
+            sp => sp.GetRequiredService<ObjectPool<OperationContext>>().GetOwner());
+
+        services.TryAddSingleton<IFactory<OperationContextOwner>>(
+            sp => new ServiceFactory<OperationContextOwner>(sp));
+
+        return services;
+    }
+
+    internal static IServiceCollection TryAddDeferredWorkStatePool(
+        this IServiceCollection services)
+    {
+        services.TryAddSingleton(sp =>
+        {
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var policy = new DeferredWorkStatePooledObjectPolicy();
+            return provider.Create(policy);
+        });
+
+        services.TryAddScoped(sp =>
+        {
+            var pool = sp.GetRequiredService<ObjectPool<DeferredWorkState>>();
+            var state = pool.Get();
+
+            return new DeferredWorkStateOwner(state, pool);
+        });
+
+        services.TryAddScoped<IFactory<DeferredWorkStateOwner>>(
+            sp => new ServiceFactory<DeferredWorkStateOwner>(sp));
 
         return services;
     }
@@ -249,27 +286,31 @@ internal static class InternalServiceCollectionExtensions
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly ResultPool _resultPool;
-        private readonly ObjectPool<PathSegmentBuffer<IndexerPathSegment>> _indexerPathSegmentPool;
-        private readonly ObjectPool<PathSegmentBuffer<NamePathSegment>> _namePathSegmentPool;
+        private readonly PooledPathFactory _pathFactory;
+        private readonly DeferredWorkScheduler _deferredWorkScheduler;
 
         public OperationContextPooledObjectPolicy(
             ObjectPool<ResolverTask> resolverTaskPool,
             ResultPool resultPool,
-            ObjectPool<PathSegmentBuffer<IndexerPathSegment>> indexerPathSegmentPool,
-            ObjectPool<PathSegmentBuffer<NamePathSegment>> namePathSegmentPool)
+            PooledPathFactory pathFactory,
+            DeferredWorkScheduler deferredWorkScheduler)
         {
             _resolverTaskPool = resolverTaskPool ??
                 throw new ArgumentNullException(nameof(resolverTaskPool));
             _resultPool = resultPool ??
                 throw new ArgumentNullException(nameof(resultPool));
-            _indexerPathSegmentPool = indexerPathSegmentPool ??
-                throw new ArgumentNullException(nameof(indexerPathSegmentPool));
-            _namePathSegmentPool = namePathSegmentPool ??
-                throw new ArgumentNullException(nameof(namePathSegmentPool));
+            _pathFactory = pathFactory ??
+                throw new ArgumentNullException(nameof(pathFactory));
+            _deferredWorkScheduler = deferredWorkScheduler ??
+                throw new ArgumentNullException(nameof(deferredWorkScheduler));
         }
 
         public override OperationContext Create()
-            => new(_resolverTaskPool, _resultPool, _indexerPathSegmentPool, _namePathSegmentPool);
+            => new(
+                _resolverTaskPool,
+                _resultPool,
+                _pathFactory,
+                _deferredWorkScheduler);
 
         public override bool Return(OperationContext obj)
         {
@@ -290,6 +331,17 @@ internal static class InternalServiceCollectionExtensions
             // gracefully discarded and can be garbage collected.
             obj.Clean();
             return false;
+        }
+    }
+
+    private sealed class DeferredWorkStatePooledObjectPolicy : PooledObjectPolicy<DeferredWorkState>
+    {
+        public override DeferredWorkState Create() => new();
+
+        public override bool Return(DeferredWorkState obj)
+        {
+            obj.Reset();
+            return true;
         }
     }
 }

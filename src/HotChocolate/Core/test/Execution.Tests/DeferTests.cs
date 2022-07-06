@@ -20,13 +20,13 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... @defer {
-                                    name
-                                }
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... @defer {
+                                name
                             }
-                        }");
+                        }
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
@@ -51,15 +51,15 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            ... @defer {
-                                hero(episode: NEW_HOPE) {
-                                    id
-                                    name
-                                }
+                        ... @defer {
+                            hero(episode: NEW_HOPE) {
+                                id
+                                name
                             }
-                        }");
+                        }
+                    }");
 
-        await Assert.IsType<QueryResult>(result).MatchSnapshotAsync();
+        await Assert.IsType<ResponseStream>(result).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -72,17 +72,17 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            ... @defer {
-                                a: hero(episode: NEW_HOPE) {
-                                    id
-                                    name
-                                }
-                            }
-                            b: hero(episode: NEW_HOPE) {
+                        ... @defer {
+                            a: hero(episode: NEW_HOPE) {
                                 id
                                 name
                             }
-                        }");
+                        }
+                        b: hero(episode: NEW_HOPE) {
+                            id
+                            name
+                        }
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
@@ -107,20 +107,20 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... @defer(label: ""friends"") {
-                                    friends {
-                                        nodes {
-                                            id
-                                            ... @defer {
-                                                name
-                                            }
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... @defer(label: ""friends"") {
+                                friends {
+                                    nodes {
+                                        id
+                                        ... @defer {
+                                            name
                                         }
                                     }
                                 }
                             }
-                        }");
+                        }
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
@@ -145,19 +145,19 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            hero(episode: NEW_HOPE) {
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... deferred @defer(label: ""friends"")
+                        }
+                    }
+
+                    fragment deferred on Character {
+                        friends {
+                            nodes {
                                 id
-                                ... deferred @defer(label: ""friends"")
                             }
                         }
-
-                        fragment deferred on Character {
-                            friends {
-                                nodes {
-                                    id
-                                }
-                            }
-                        }");
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
@@ -172,7 +172,7 @@ public class DeferTests
         results.ToString().MatchSnapshot();
     }
 
-    [Fact(Skip = "needs to be fixed.")]
+    [Fact]
     public async Task Do_Not_Defer()
     {
         var result =

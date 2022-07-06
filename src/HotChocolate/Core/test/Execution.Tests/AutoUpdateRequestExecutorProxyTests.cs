@@ -48,12 +48,12 @@ public class AutoUpdateRequestExecutorProxyTests
         var updated = false;
 
         var innerProxy = new RequestExecutorProxy(resolver, Schema.DefaultName);
-        innerProxy.ExecutorEvicted += (sender, args) =>
+        innerProxy.ExecutorEvicted += (_, _) =>
         {
             evicted = true;
             updated = false;
         };
-        innerProxy.ExecutorUpdated += (sender, args) => updated = true;
+        innerProxy.ExecutorUpdated += (_, _) => updated = true;
 
         var proxy = await AutoUpdateRequestExecutorProxy.CreateAsync(innerProxy);
 

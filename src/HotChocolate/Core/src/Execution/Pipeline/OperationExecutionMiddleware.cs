@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -98,28 +97,15 @@ internal sealed class OperationExecutionMiddleware
                     context, batchDispatcher, operation, operationContext)
                     .ConfigureAwait(false);
 
-                if (operationContext.Scheduler.DeferredWork.HasWork &&
+                if (operationContext.DeferredScheduler.HasResults &&
                     context.Result is IQueryResult result)
                 {
-                    // if we have deferred query task we will take ownership
-                    // of the life time handling and return the operation context
-                    // once we handled all deferred tasks.
-                    var operationContextOwner = new OperationContextOwner(
-                        operationContext, _operationContextPool);
-
-                    // since the context is pooled we need to clone the context for
-                    // long running executions.
-                    operationContext.RequestContext = context.Clone();
-
-                    // also we set operation context to null so that it is not
-                    // given back to the pool.
-                    operationContext = null;
+                    var resultStream = operationContext.DeferredScheduler.CreateResultStream(result);
 
                     context.Result = new ResponseStream(
-                        () => new DeferredTaskExecutor(result, operationContextOwner),
+                        () => resultStream,
                         ExecutionResultKind.DeferredResult);
                     context.Result.RegisterForCleanup(result);
-                    context.Result.RegisterForCleanup(operationContextOwner);
                 }
 
                 await _next(context).ConfigureAwait(false);
@@ -140,7 +126,7 @@ internal sealed class OperationExecutionMiddleware
         IOperation operation,
         OperationContext operationContext)
     {
-        if (operation.Definition.Operation == OperationType.Query)
+        if (operation.Definition.Operation is OperationType.Query)
         {
             var query = GetQueryRootValue(context);
 
@@ -157,7 +143,7 @@ internal sealed class OperationExecutionMiddleware
                 .ExecuteAsync(operationContext)
                 .ConfigureAwait(false);
         }
-        else if (operation.Definition.Operation == OperationType.Mutation)
+        else if (operation.Definition.Operation is OperationType.Mutation)
         {
             using var transactionScope =
                 _transactionScopeHandler.Create(context);
