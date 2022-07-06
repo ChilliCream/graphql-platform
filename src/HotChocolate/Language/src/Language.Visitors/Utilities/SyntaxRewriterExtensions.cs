@@ -4,7 +4,7 @@ public static class SyntaxRewriterExtensions
 {
     private static readonly EmptySyntaxVisitorContext _empty = new();
 
-    public static ISyntaxNode Rewrite(
+    public static ISyntaxNode? Rewrite(
         this ISyntaxRewriter<ISyntaxVisitorContext> rewriter,
         ISyntaxNode node)
         => rewriter.Rewrite(node, _empty);

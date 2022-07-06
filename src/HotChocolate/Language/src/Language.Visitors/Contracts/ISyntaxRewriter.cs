@@ -15,7 +15,7 @@ public interface ISyntaxRewriter<in TContext> where TContext : ISyntaxVisitorCon
     /// <param name="node">The syntax node that shall be rewritten.</param>
     /// <param name="context">The visitor context.</param>
     /// <returns>
-    /// Returns the rewritten <see cref="ISyntaxNode"/>.
+    /// Returns the rewritten <see cref="ISyntaxNode"/> or null if the node should be removed.
     /// </returns>
-    ISyntaxNode Rewrite(ISyntaxNode node, TContext context);
+    ISyntaxNode? Rewrite(ISyntaxNode node, TContext context);
 }
