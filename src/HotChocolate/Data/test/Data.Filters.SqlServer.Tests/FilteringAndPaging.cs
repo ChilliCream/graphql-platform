@@ -36,7 +36,23 @@ public class FilteringAndPaging
         res1.MatchSqlSnapshot("true");
         res2.MatchSqlSnapshot("false");
     }
-    
+
+    [Fact]
+    public async Task Create_Empty_Expression()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
+
+        // act
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { }){ nodes { bar } }}")
+                .Create());
+
+        // assert
+        res1.MatchSqlSnapshot("empty");
+    }
+
     public class Foo
     {
         public int Id { get; set; }

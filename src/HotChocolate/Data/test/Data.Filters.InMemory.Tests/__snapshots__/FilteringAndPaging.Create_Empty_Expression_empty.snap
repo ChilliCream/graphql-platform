@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "root": {
+      "nodes": [
+        {
+          "bar": true
+        },
+        {
+          "bar": false
+        }
+      ]
+    }
+  }
+}

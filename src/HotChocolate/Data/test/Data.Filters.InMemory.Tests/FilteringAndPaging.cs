@@ -39,6 +39,22 @@ public class FilteringAndPaging
         res2.ToJson().MatchSnapshot(new SnapshotNameExtension("false"));
     }
 
+    [Fact]
+    public async Task Create_Empty_Expression()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
+
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { }){ nodes { bar } }}")
+                .Create());
+
+        res1.ToJson().MatchSnapshot(new SnapshotNameExtension("empty"));
+    }
+
     public class Foo
     {
         public int Id { get; set; }

@@ -16,7 +16,9 @@ public class QueryableCombinator
     {
         if (operations.Count == 0)
         {
-            throw ThrowHelper.Filtering_QueryableCombinator_QueueEmpty(this);
+            // very hard to make the override method signature happy with NRTs here.
+            combined = default!;
+            return false;
         }
 
         combined = operations.Dequeue();
