@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using static HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
-    private static bool ApplyNonNullViolations(
+    private bool ApplyNonNullViolations(
         List<IError> errors,
         List<NonNullViolation> violations,
         HashSet<ISelection> fieldErrors)
@@ -23,9 +24,10 @@ internal sealed partial class ResultBuilder
 
             if (!fieldErrors.Contains(violation.Selection))
             {
-                errors.Add(ErrorHelper.NonNullOutputFieldViolation(
-                    path,
-                    violation.Selection.SyntaxNode));
+                var error = NonNullOutputFieldViolation(path, violation.Selection.SyntaxNode);
+                error = _errorHandler.Handle(error);
+                _diagnosticEvents.ResolverError(_operation, violation.Selection, error);
+                errors.Add(error);
             }
 
             while (parent is not null)
@@ -76,16 +78,18 @@ internal sealed partial class ResultBuilder
     }
 
     private sealed class NonNullViolation
-   {
-       public NonNullViolation(ISelection selection, Path path, ObjectResult parent)
-       {
-           Selection = selection;
-           Path = path;
-           Parent = parent;
-       }
+    {
+        public NonNullViolation(ISelection selection, Path path, ObjectResult parent)
+        {
+            Selection = selection;
+            Path = path;
+            Parent = parent;
+        }
 
-       public ISelection Selection { get; }
-       public Path Path { get; }
-       public ObjectResult Parent { get; }
-   }
+        public ISelection Selection { get; }
+
+        public Path Path { get; }
+
+        public ObjectResult Parent { get; }
+    }
 }
