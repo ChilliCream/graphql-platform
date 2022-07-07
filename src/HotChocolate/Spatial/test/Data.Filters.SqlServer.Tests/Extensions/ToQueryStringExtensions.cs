@@ -14,21 +14,21 @@ public static class ToQueryStringExtensions
         this IQueryable<TEntity> query)
         where TEntity : class
     {
-        IEnumerator<TEntity>? enumerator = query
+        var enumerator = query
             .Provider
             .Execute<IEnumerable<TEntity>>(query.Expression)
            .GetEnumerator();
 
         var relationalCommandCache = enumerator.Private("_relationalCommandCache");
 
-        SelectExpression? selectExpression = relationalCommandCache
+        var selectExpression = relationalCommandCache
             .Private<SelectExpression>("_selectExpression");
 
-        IQuerySqlGeneratorFactory? factory = relationalCommandCache
+        var factory = relationalCommandCache
             .Private<IQuerySqlGeneratorFactory>("_querySqlGeneratorFactory");
 
-        QuerySqlGenerator? sqlGenerator = factory.Create();
-        IRelationalCommand? command = sqlGenerator.GetCommand(selectExpression);
+        var sqlGenerator = factory.Create();
+        var command = sqlGenerator.GetCommand(selectExpression);
 
         var sql = command.CommandText;
         return sql;
