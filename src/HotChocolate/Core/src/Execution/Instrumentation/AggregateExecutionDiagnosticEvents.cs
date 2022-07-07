@@ -193,6 +193,14 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
+    public void ResolverError(IOperation operation, ISelection selection, IError error)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].ResolverError(operation, selection, error);
+        }
+    }
+
     public IDisposable RunTask(IExecutionTask task)
     {
         if (_listeners.Length == 0)

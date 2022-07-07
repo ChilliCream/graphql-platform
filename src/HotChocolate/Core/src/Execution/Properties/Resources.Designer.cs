@@ -410,5 +410,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ThrowHelper_OneOfFieldMustBeNonNull", resourceCulture);
             }
         }
+        
+        internal static string OperationCompiler_OperationIdNullOrEmpty {
+            get {
+                return ResourceManager.GetString("OperationCompiler_OperationIdNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }

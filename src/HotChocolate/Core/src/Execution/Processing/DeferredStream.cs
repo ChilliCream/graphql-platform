@@ -3,13 +3,14 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Tasks;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
 /// Represents the work to executed the deferred elements of a stream.
 /// </summary>
-internal sealed class DeferredStream : IDeferredExecutionTask
+internal sealed class DeferredStream : DeferredExecutionTask
 {
     private StreamExecutionTask? _task;
 
@@ -24,6 +25,7 @@ internal sealed class DeferredStream : IDeferredExecutionTask
         int index,
         IAsyncEnumerator<object?> enumerator,
         IImmutableDictionary<string, object?> scopedContextData)
+        : base(scopedContextData)
     {
         Selection = selection;
         Label = label;
@@ -31,7 +33,6 @@ internal sealed class DeferredStream : IDeferredExecutionTask
         Parent = parent;
         Index = index;
         Enumerator = enumerator;
-        ScopedContextData = scopedContextData;
     }
 
     /// <summary>
@@ -67,56 +68,70 @@ internal sealed class DeferredStream : IDeferredExecutionTask
     /// </summary>
     public IAsyncEnumerator<object?> Enumerator { get; }
 
-    /// <summary>
-    /// Gets the preserved scoped context from the parent resolver.
-    /// </summary>
-    public IImmutableDictionary<string, object?> ScopedContextData { get; }
-
-    /// <inheritdoc/>
-    public IDeferredExecutionTask? Next { get; set; }
-
-    /// <inheritdoc/>
-    public IDeferredExecutionTask? Previous { get; set; }
-
-    /// <inheritdoc/>
-    public async Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext)
+    protected override async Task ExecuteAsync(
+        OperationContextOwner operationContextOwner,
+        uint resultId,
+        uint parentResultId)
     {
-        _task ??= new StreamExecutionTask(operationContext, this);
-        _task.Reset();
+        var operationContext = operationContextOwner.OperationContext;
+        var aborted = operationContext.RequestAborted;
+        var error = false;
 
-        operationContext.Scheduler.Register(_task);
-        await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
-
-        if (_task.ChildTask is null)
+        try
         {
-            return null;
+            _task ??= new StreamExecutionTask(operationContext, this);
+            _task.Reset(resultId);
+
+            operationContext.Scheduler.Register(_task);
+            await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
+
+            // if there is no child task, then there is no more data, so we can complete.
+            if (_task.ChildTask is null)
+            {
+                operationContext.DeferredScheduler.Complete(new(resultId, parentResultId));
+                operationContextOwner.Dispose();
+                return;
+            }
+
+            var result = operationContext
+                .SetLabel(Label)
+                .SetPath(operationContext.PathFactory.Append(Path, Index))
+                .SetData((ObjectResult)_task.ChildTask.ParentResult[0].Value!)
+                .BuildResultBuilder();
+
+            _task.ChildTask.CompleteUnsafe();
+
+            // we will register this same task again to get the next item.
+            operationContext.DeferredScheduler.Register(this);
+            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
         }
-
-        operationContext.Scheduler.DeferredWork.Register(this);
-
-        var result = operationContext
-            .TrySetNext(true)
-            .SetLabel(Label)
-            .SetPath(operationContext.PathFactory.Append(Path, Index))
-            .SetData((ObjectResult)_task.ChildTask.ParentResult[0].Value!)
-            .BuildResult();
-
-        _task.ChildTask.CompleteUnsafe();
-
-        return result;
+        catch
+        {
+            error = true;
+        }
+        finally
+        {
+            if (error || aborted.IsCancellationRequested)
+            {
+                operationContextOwner.Dispose();
+            }
+        }
     }
-
 
     private sealed class StreamExecutionTask : ExecutionTask
     {
-        private readonly IOperationContext _operationContext;
+        private readonly OperationContext _operationContext;
         private readonly DeferredStream _deferredStream;
+        private IImmutableDictionary<string, object?> _scopedContextData;
 
-        public StreamExecutionTask(IOperationContext operationContext, DeferredStream deferredStream)
+        public StreamExecutionTask(
+            OperationContext operationContext,
+            DeferredStream deferredStream)
         {
             _operationContext = operationContext;
             _deferredStream = deferredStream;
-            Context = (IExecutionTaskContext)operationContext;
+            _scopedContextData = _deferredStream.ScopedContextData;
+            Context = operationContext;
         }
 
         protected override IExecutionTaskContext Context { get; }
@@ -138,10 +153,14 @@ internal sealed class DeferredStream : IDeferredExecutionTask
                     _deferredStream.Path,
                     _deferredStream.Index,
                     _deferredStream.Enumerator,
-                    _deferredStream.ScopedContextData);
+                    _scopedContextData);
             }
         }
 
-        public new void Reset() => base.Reset();
+        public void Reset(uint taskId)
+        {
+            _scopedContextData =_scopedContextData.SetItem(DeferredResultId, taskId);
+            base.Reset();
+        }
     }
 }

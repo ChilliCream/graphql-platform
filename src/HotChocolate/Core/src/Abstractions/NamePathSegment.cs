@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using static System.StringComparison;
 
 namespace HotChocolate;
@@ -53,13 +54,7 @@ public sealed class NamePathSegment : Path
 
     /// <inheritdoc />
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hash = (Parent?.GetHashCode() ?? 0) * 3;
-            hash ^= Depth.GetHashCode() * 7;
-            hash ^= Name.GetHashCode() * 11;
-            return hash;
-        }
-    }
+        // ReSharper disable NonReadonlyMemberInGetHashCode
+        => HashCode.Combine(Parent, Depth, Name);
+        // ReSharper restore NonReadonlyMemberInGetHashCode
 }

@@ -12,7 +12,7 @@ namespace HotChocolate.Execution.Processing;
 internal static partial class ValueCompletion
 {
     private static ObjectResult? CompleteCompositeValue(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         List<ResolverTask> tasks,
         ISelection selection,
@@ -48,17 +48,13 @@ internal static partial class ValueCompletion
                 tasks);
         }
 
-        ReportError(
-            operationContext,
-            resolverContext,
-            selection,
-            ValueCompletion_CouldNotResolveAbstractType(selection.SyntaxNode, path, result));
-
+        var error = ValueCompletion_CouldNotResolveAbstractType(selection.SyntaxNode, path, result);
+        operationContext.ReportError(error, resolverContext, selection);
         return null;
     }
 
     private static bool TryResolveObjectType(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
         Path path,
@@ -92,23 +88,20 @@ internal static partial class ValueCompletion
                     return objectType is not null;
             }
 
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                UnableToResolveTheAbstractType(fieldType.Print(), selection.SyntaxNode, path));
+            var error = UnableToResolveTheAbstractType(
+                fieldType.Print(),
+                selection.SyntaxNode,
+                path);
+            operationContext.ReportError(error, resolverContext, selection);
         }
         catch (Exception ex)
         {
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                UnexpectedErrorWhileResolvingAbstractType(
-                    ex,
-                    fieldType.Print(),
-                    selection.SyntaxNode,
-                    path));
+            var error = UnexpectedErrorWhileResolvingAbstractType(
+                ex,
+                fieldType.Print(),
+                selection.SyntaxNode,
+                path);
+            operationContext.ReportError(error, resolverContext, selection);
         }
 
         objectType = null;

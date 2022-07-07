@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
-namespace HotChocolate.Execution.Processing.Internal;
+namespace HotChocolate.Execution.Processing;
 
 internal sealed class WorkQueue
 {
@@ -13,8 +13,6 @@ internal sealed class WorkQueue
     public bool IsEmpty => _stack.Count == 0;
 
     public bool HasRunningTasks => _running > 0;
-
-    public int Count => _stack.Count;
 
     public bool Complete()
     {

@@ -5,7 +5,7 @@ using HotChocolate.Utilities;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.ErrorHelper;
-using static HotChocolate.SchemaSerializer;
+using static HotChocolate.SchemaPrinter;
 namespace HotChocolate.AspNetCore;
 
 public sealed class HttpGetSchemaMiddleware : MiddlewareBase
@@ -113,14 +113,14 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
         context.Response.ContentType = ContentType.GraphQL;
         context.Response.Headers.SetContentDisposition(GetTypesFileName(types));
-        await SerializeAsync(types, context.Response.Body, indent, context.RequestAborted);
+        await PrintAsync(types, context.Response.Body, indent, context.RequestAborted);
     }
 
     private async Task WriteSchemaAsync(HttpContext context, ISchema schema, bool indent)
     {
         context.Response.ContentType = ContentType.GraphQL;
         context.Response.Headers.SetContentDisposition(GetSchemaFileName(schema));
-        await SerializeAsync(schema, context.Response.Body, indent, context.RequestAborted);
+        await PrintAsync(schema, context.Response.Body, indent, context.RequestAborted);
     }
 
     private string GetTypesFileName(List<INamedType> types)

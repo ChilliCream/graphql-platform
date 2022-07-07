@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
@@ -12,7 +10,7 @@ namespace HotChocolate.Execution.Processing;
 internal static partial class ValueCompletion
 {
     private static object? CompleteListValue(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         List<ResolverTask> tasks,
         ISelection selection,
@@ -84,11 +82,8 @@ internal static partial class ValueCompletion
             return resultList;
         }
 
-        ReportError(
-            operationContext,
-            resolverContext,
-            selection,
-            ListValueIsNotSupported(typeof(ListResult), selection.SyntaxNode, path));
+        var error = ListValueIsNotSupported(typeof(ListResult), selection.SyntaxNode, path);
+        operationContext.ReportError(error, resolverContext, selection);
 
         return null;
 

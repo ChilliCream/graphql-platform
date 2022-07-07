@@ -211,12 +211,12 @@ public partial class Schema
     /// Generates a schema document.
     /// </summary>
     public DocumentNode ToDocument(bool includeSpecScalars = false)
-        => SchemaSerializer.SerializeSchema(this, includeSpecScalars);
+        => SchemaPrinter.PrintSchema(this, includeSpecScalars);
 
     /// <summary>
     /// Returns the schema SDL representation.
     /// </summary>
-    public string Print() => SchemaSerializer.Serialize(this);
+    public string Print() => SchemaPrinter.Print(this);
 
     /// <summary>
     /// Returns the schema SDL representation.

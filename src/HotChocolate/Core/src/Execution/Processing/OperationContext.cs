@@ -1,125 +1,32 @@
-using System;
-using HotChocolate.Execution.Processing.Tasks;
-using HotChocolate.Execution.Properties;
-using HotChocolate.Types;
-using Microsoft.Extensions.ObjectPool;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class OperationContext : IOperationContext
+/// <summary>
+/// The internal context of the execution engine.
+/// </summary>
+internal sealed partial class OperationContext
 {
-    public IOperation Operation
+    public IDictionary<string, object?> ContextData
     {
         get
         {
             AssertInitialized();
-            return _operation;
+            return _contextData;
         }
     }
 
-    public object? RootValue
+    /// <summary>
+    /// Gets a cancellation token is used to signal
+    /// if the request has be aborted.
+    /// </summary>
+    public CancellationToken RequestAborted
     {
         get
         {
             AssertInitialized();
-            return _rootValue;
+            return _requestAborted;
         }
-    }
-
-    public IVariableValueCollection Variables
-    {
-        get
-        {
-            AssertInitialized();
-            return _variables;
-        }
-    }
-
-    public long IncludeFlags { get; private set; }
-
-    public IServiceProvider Services
-    {
-        get
-        {
-            AssertInitialized();
-            return _services;
-        }
-    }
-
-    public ResultBuilder Result
-    {
-        get
-        {
-            AssertInitialized();
-            return _resultHelper;
-        }
-    }
-
-    public IWorkScheduler Scheduler
-    {
-        get
-        {
-            AssertInitialized();
-            return _workScheduler;
-        }
-    }
-
-    public ObjectPool<ResolverTask> ResolverTasks
-    {
-        get
-        {
-            AssertInitialized();
-            return _resolverTaskPool;
-        }
-    }
-
-    public PathFactory PathFactory
-    {
-        get
-        {
-            AssertInitialized();
-            return _pathFactory;
-        }
-    }
-
-    public ISelectionSet CollectFields(ISelection selection, IObjectType objectType)
-    {
-        AssertInitialized();
-        return Operation.GetSelectionSet(selection, objectType);
-    }
-
-    public void RegisterForCleanup(Action action)
-    {
-        if (action is null)
-        {
-            throw new ArgumentNullException(nameof(action));
-        }
-
-        AssertInitialized();
-        _cleanupActions.Add(action);
-    }
-
-    public T GetQueryRoot<T>()
-    {
-        AssertInitialized();
-
-        var query = _resolveQueryRootValue();
-
-        if (query is null &&
-            typeof(T) == typeof(object) &&
-            new object() is T dummy)
-        {
-            return dummy;
-        }
-
-        if (query is T casted)
-        {
-            return casted;
-        }
-
-        throw new InvalidCastException(
-            string.Format(
-                Resources.OperationContext_GetQueryRoot_InvalidCast,
-                typeof(T).FullName ?? typeof(T).Name));
     }
 }

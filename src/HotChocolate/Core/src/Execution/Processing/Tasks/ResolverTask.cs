@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
@@ -14,7 +13,7 @@ internal sealed partial class ResolverTask : IExecutionTask
     private readonly ObjectPool<ResolverTask> _objectPool;
     private readonly MiddlewareContext _resolverContext = new();
     private readonly List<ResolverTask> _taskBuffer = new();
-    private IOperationContext _operationContext = default!;
+    private OperationContext _operationContext = default!;
     private ISelection _selection = default!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
     private Task? _task;
@@ -56,11 +55,6 @@ internal sealed partial class ResolverTask : IExecutionTask
     /// </summary>
     public ObjectResult ParentResult { get; private set; } = default!;
 
-    /// <summary>
-    /// Gets the completed value of this task.
-    /// </summary>
-    public object? CompletedValue { get; private set; }
-
     /// <inheritdoc />
     public object? State { get; set; }
 
@@ -80,123 +74,4 @@ internal sealed partial class ResolverTask : IExecutionTask
     /// <inheritdoc />
     public Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
         _task ?? Task.CompletedTask;
-
-    /// <summary>
-    /// Completes the resolver result.
-    /// </summary>
-    /// <param name="success">Defines if the resolver succeeded without errors.</param>
-    /// <param name="cancellationToken">The execution cancellation token.</param>
-    private void CompleteValue(bool success, CancellationToken cancellationToken)
-    {
-        object? completedValue = null;
-
-        try
-        {
-            // we will only try to complete the resolver value if there are no known errors.
-            if (success)
-            {
-                completedValue = ValueCompletion.Complete(
-                    _operationContext,
-                    _resolverContext,
-                    _taskBuffer,
-                    _resolverContext.Selection,
-                    _resolverContext.Path,
-                    _selection.Type,
-                    _resolverContext.ResponseName,
-                    _resolverContext.ResponseIndex,
-                    _resolverContext.Result);
-
-                if (completedValue is ResultData result)
-                {
-                    result.Parent = _resolverContext.ParentResult;
-                }
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // If we run into this exception the request was aborted.
-            // In this case we do nothing and just return.
-            _completionStatus = ExecutionTaskStatus.Faulted;
-            _resolverContext.Result = null;
-            return;
-        }
-        catch (Exception ex)
-        {
-            _resolverContext.Result = null;
-
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                _resolverContext.ReportError(ex);
-                completedValue = null;
-            }
-        }
-
-        CompletedValue = completedValue;
-        var isNonNullType = _selection.Type.Kind is TypeKind.NonNull;
-
-        _resolverContext.ParentResult.SetValueUnsafe(
-            _resolverContext.ResponseIndex,
-            _resolverContext.ResponseName,
-            completedValue,
-            !isNonNullType);
-
-        if (completedValue is null && isNonNullType)
-        {
-            // if we detect a non-null violation we will stash it for later.
-            // the non-null propagation is delayed so that we can parallelize better.
-            _completionStatus = ExecutionTaskStatus.Faulted;
-            _operationContext.Result.AddNonNullViolation(
-                _resolverContext.Selection.SyntaxNode,
-                _resolverContext.Path,
-                _resolverContext.ParentResult);
-            _taskBuffer.Clear();
-        }
-    }
-
-    /// <summary>
-    /// Initializes this task after it is retrieved from its pool.
-    /// </summary>
-    public void Initialize(
-        IOperationContext operationContext,
-        ISelection selection,
-        ObjectResult parentResult,
-        int responseIndex,
-        object? parent,
-        Path path,
-        IImmutableDictionary<string, object?> scopedContextData)
-    {
-        _operationContext = operationContext;
-        _selection = selection;
-        _resolverContext.Initialize(
-            operationContext,
-            selection,
-            parentResult,
-            responseIndex,
-            parent,
-            path,
-            scopedContextData);
-        ParentResult = parentResult;
-    }
-
-    /// <summary>
-    /// Resets the resolver task before returning it to the pool.
-    /// </summary>
-    /// <returns></returns>
-    internal bool Reset()
-    {
-        _completionStatus = ExecutionTaskStatus.Completed;
-        _operationContext = default!;
-        _selection = default!;
-        _resolverContext.Clean();
-        ParentResult = default!;
-        CompletedValue = null;
-        Status = ExecutionTaskStatus.WaitingToRun;
-        IsSerial = false;
-        IsRegistered = false;
-        Next = null;
-        Previous = null;
-        State = null;
-        _taskBuffer.Clear();
-        return true;
-    }
 }

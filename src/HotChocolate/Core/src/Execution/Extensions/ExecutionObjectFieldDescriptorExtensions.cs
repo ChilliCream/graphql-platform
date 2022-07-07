@@ -3,6 +3,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
 
 public static class ExecutionObjectFieldDescriptorExtensions

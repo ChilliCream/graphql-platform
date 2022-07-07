@@ -47,12 +47,9 @@ internal sealed partial class OperationContext : IExecutionTaskContext
 
         void ReportSingle(IError singleError)
         {
-            AddProcessedError(ErrorHandler.Handle(singleError));
-        }
+            var handled = ErrorHandler.Handle(singleError);
 
-        void AddProcessedError(IError processed)
-        {
-            if (processed is AggregateError ar)
+            if (handled is AggregateError ar)
             {
                 foreach (var ie in ar.Errors)
                 {
@@ -62,8 +59,8 @@ internal sealed partial class OperationContext : IExecutionTaskContext
             }
             else
             {
-                Result.AddError(processed);
-                DiagnosticEvents.TaskError(task, processed);
+                Result.AddError(handled);
+                DiagnosticEvents.TaskError(task, handled);
             }
         }
     }

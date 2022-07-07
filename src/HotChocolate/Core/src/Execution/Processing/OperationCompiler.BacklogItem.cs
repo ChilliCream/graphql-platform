@@ -11,11 +11,13 @@ public sealed partial class OperationCompiler
             ObjectType type,
             int selectionSetId,
             Selection selection,
+            SelectionPath path,
             IImmutableList<ISelectionSetOptimizer> optimizers)
         {
             Type = type;
             SelectionSetId = selectionSetId;
             Selection = selection;
+            Path = path;
             Optimizers = optimizers;
         }
 
@@ -24,6 +26,8 @@ public sealed partial class OperationCompiler
         public int SelectionSetId { get; }
 
         public Selection Selection { get; }
+
+        public SelectionPath Path { get; }
 
         public IImmutableList<ISelectionSetOptimizer> Optimizers { get; }
     }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Execution.Properties;
-using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -10,7 +9,7 @@ internal sealed partial class ResultBuilder
 {
     private readonly object _syncErrors = new();
     private readonly List<IError> _errors = new();
-    private readonly HashSet<FieldNode> _fieldErrors = new();
+    private readonly HashSet<ISelection> _fieldErrors = new();
     private readonly List<NonNullViolation> _nonNullViolations = new();
 
     private readonly object _syncExtensions = new();
@@ -53,7 +52,7 @@ internal sealed partial class ResultBuilder
     public void SetHasNext(bool value)
         => _hasNext = value;
 
-    public void AddError(IError error, FieldNode? selection = null)
+    public void AddError(IError error, ISelection? selection = null)
     {
         lock (_syncErrors)
         {
@@ -65,20 +64,7 @@ internal sealed partial class ResultBuilder
         }
     }
 
-    public void AddErrors(IEnumerable<IError> errors, FieldNode? selection = null)
-    {
-        lock (_syncErrors)
-        {
-            _errors.AddRange(errors);
-
-            if (selection is { })
-            {
-                _fieldErrors.Add(selection);
-            }
-        }
-    }
-
-    public void AddNonNullViolation(FieldNode selection, Path path, ObjectResult parent)
+    public void AddNonNullViolation(ISelection selection, Path path, ObjectResult parent)
     {
         lock (_syncErrors)
         {
@@ -118,6 +104,43 @@ internal sealed partial class ResultBuilder
         }
 
         return result;
+    }
+
+    public IQueryResultBuilder BuildResultBuilder()
+    {
+        if (!ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors))
+        {
+            // The non-null violation cased the whole result being deleted.
+            _data = null;
+            _resultOwner.Dispose();
+        }
+
+        if (_data is null && _errors.Count == 0 && _hasNext is not false)
+        {
+            throw new InvalidOperationException(
+                Resources.ResultHelper_BuildResult_InvalidResult);
+        }
+
+        var builder = QueryResultBuilder.New();
+
+        builder.SetData(_data);
+
+        if (_errors is { Count: > 0 })
+        {
+            builder.AddErrors(_errors);
+        }
+
+        builder.SetExtensions(CreateExtensionData(_extensions));
+        builder.SetContextData(CreateExtensionData(_contextData));
+        builder.SetLabel(_label);
+        builder.SetPath(_path);
+
+        if (_data is not null)
+        {
+            builder.RegisterForCleanup(_resultOwner);
+        }
+
+        return builder;
     }
 
     private static IReadOnlyDictionary<string, object?>? CreateExtensionData(

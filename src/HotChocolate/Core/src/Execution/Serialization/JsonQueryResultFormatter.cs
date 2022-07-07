@@ -189,7 +189,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? data)
     {
-        if (data is { Count: > 0 })
+        if (data is not null)
         {
             writer.WritePropertyName(Data);
 
@@ -261,7 +261,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
     private static void WritePath(Utf8JsonWriter writer, Path? path)
     {
-        if (path is not null && !path.IsRoot)
+        if (path is not null)
         {
             writer.WritePropertyName(JsonConstants.Path);
             WritePathValue(writer, path);

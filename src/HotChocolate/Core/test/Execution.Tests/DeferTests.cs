@@ -1,10 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Execution.QueryResultBuilder;
 
 namespace HotChocolate.Execution;
 
@@ -20,13 +25,13 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... @defer {
-                                    name
-                                }
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... @defer {
+                                name
                             }
-                        }");
+                        }
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
@@ -44,6 +49,8 @@ public class DeferTests
     [Fact]
     public async Task NoOptimization_Defer_Only_Root()
     {
+        Snapshot.FullName();
+
         var result =
             await new ServiceCollection()
                 .AddStarWarsRepositories()
@@ -51,15 +58,15 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            ... @defer {
-                                hero(episode: NEW_HOPE) {
-                                    id
-                                    name
-                                }
+                        ... @defer {
+                            hero(episode: NEW_HOPE) {
+                                id
+                                name
                             }
-                        }");
+                        }
+                    }");
 
-        await Assert.IsType<QueryResult>(result).MatchSnapshotAsync();
+        await Assert.IsType<ResponseStream>(result).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -72,17 +79,17 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            ... @defer {
-                                a: hero(episode: NEW_HOPE) {
-                                    id
-                                    name
-                                }
-                            }
-                            b: hero(episode: NEW_HOPE) {
+                        ... @defer {
+                            a: hero(episode: NEW_HOPE) {
                                 id
                                 name
                             }
-                        }");
+                        }
+                        b: hero(episode: NEW_HOPE) {
+                            id
+                            name
+                        }
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
@@ -107,28 +114,35 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... @defer(label: ""friends"") {
-                                    friends {
-                                        nodes {
-                                            id
-                                            ... @defer {
-                                                name
-                                            }
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... @defer(label: ""friends"") {
+                                friends {
+                                    nodes {
+                                        id
+                                        ... @defer {
+                                            name
                                         }
                                     }
                                 }
                             }
-                        }");
+                        }
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
-
-        var results = new StringBuilder();
+        var list = new List<(string, string)>();
 
         await foreach (var payload in stream.ReadResultsAsync())
         {
-            results.AppendLine(payload.ToJson());
+            var path = (payload.Path?.ToString() ?? string.Empty).Replace("/", "-");
+            list.Add((path, FromResult(payload).SetHasNext(null).Create().ToJson()));
+        }
+
+        var results = new StringBuilder();
+
+        foreach (var item in list.OrderBy(t => t.Item1))
+        {
+            results.AppendLine(item.Item2);
             results.AppendLine();
         }
 
@@ -145,19 +159,19 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            hero(episode: NEW_HOPE) {
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... deferred @defer(label: ""friends"")
+                        }
+                    }
+
+                    fragment deferred on Character {
+                        friends {
+                            nodes {
                                 id
-                                ... deferred @defer(label: ""friends"")
                             }
                         }
-
-                        fragment deferred on Character {
-                            friends {
-                                nodes {
-                                    id
-                                }
-                            }
-                        }");
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
@@ -172,9 +186,11 @@ public class DeferTests
         results.ToString().MatchSnapshot();
     }
 
-    [Fact(Skip = "needs to be fixed.")]
+    [Fact]
     public async Task Do_Not_Defer()
     {
+        Snapshot.FullName();
+
         var result =
             await new ServiceCollection()
                 .AddStarWarsRepositories()
@@ -196,6 +212,6 @@ public class DeferTests
                             }
                         }");
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        await Assert.IsType<ResponseStream>(result).MatchSnapshotAsync();
     }
 }

@@ -9,7 +9,7 @@ internal sealed partial class ResultBuilder
     private static bool ApplyNonNullViolations(
         List<IError> errors,
         List<NonNullViolation> violations,
-        HashSet<FieldNode> errorFields)
+        HashSet<ISelection> fieldErrors)
     {
         if (violations.Count is 0)
         {
@@ -21,9 +21,11 @@ internal sealed partial class ResultBuilder
             var path = violation.Path;
             ResultData? parent = violation.Parent;
 
-            if (!errorFields.Contains(violation.Selection))
+            if (!fieldErrors.Contains(violation.Selection))
             {
-                errors.Add(ErrorHelper.NonNullOutputFieldViolation(path, violation.Selection));
+                errors.Add(ErrorHelper.NonNullOutputFieldViolation(
+                    path,
+                    violation.Selection.SyntaxNode));
             }
 
             while (parent is not null)
@@ -36,7 +38,7 @@ internal sealed partial class ResultBuilder
                             return false;
                         }
 
-                        var field = obj.TryGetValue(nps.Name, out var index);
+                        var field = obj.TryGetValue(nps.Name, out _);
 
                         if (field is null)
                         {
@@ -75,14 +77,14 @@ internal sealed partial class ResultBuilder
 
     private sealed class NonNullViolation
    {
-       public NonNullViolation(FieldNode selection, Path path, ObjectResult parent)
+       public NonNullViolation(ISelection selection, Path path, ObjectResult parent)
        {
            Selection = selection;
            Path = path;
            Parent = parent;
        }
 
-       public FieldNode Selection { get; }
+       public ISelection Selection { get; }
        public Path Path { get; }
        public ObjectResult Parent { get; }
    }

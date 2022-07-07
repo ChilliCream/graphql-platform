@@ -35,13 +35,15 @@ internal class DirectiveValidationRule : ISchemaValidationRule
         DirectiveType type,
         ICollection<ISchemaError> errors)
     {
-        var firstTwoLetters = type.Name.AsSpan().Slice(0, 2);
-
-        if (firstTwoLetters.Length is 2 &&
-            firstTwoLetters[0] == _underscore &&
-            firstTwoLetters[1] == _underscore)
+        if (type.Name.Length > 2)
         {
-            errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
+            var firstTwoLetters = type.Name.AsSpan().Slice(0, 2);
+
+            if (firstTwoLetters[0] == _underscore &&
+                firstTwoLetters[1] == _underscore)
+            {
+                errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
+            }
         }
     }
 }

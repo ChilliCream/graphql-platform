@@ -13,15 +13,6 @@ internal sealed partial class WorkScheduler : IWorkScheduler
         }
     }
 
-    public IDeferredWorkBacklog DeferredWork
-    {
-        get
-        {
-            AssertNotPooled();
-            return _deferred;
-        }
-    }
-
     public void Register(IExecutionTask task)
     {
         AssertNotPooled();

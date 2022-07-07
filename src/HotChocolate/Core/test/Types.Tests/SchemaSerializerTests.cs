@@ -17,7 +17,7 @@ public class SchemaSerializerTests
     {
         // arrange
         // act
-        void Action() => SchemaSerializer.Serialize(null);
+        void Action() => SchemaPrinter.Print(null);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -28,7 +28,7 @@ public class SchemaSerializerTests
     {
         // arrange
         // act
-        void Action() => SchemaSerializer.Serialize(null, new StringWriter());
+        void Action() => SchemaPrinter.Serialize(null, new StringWriter());
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -44,7 +44,7 @@ public class SchemaSerializerTests
             .Create();
 
         // act
-        void Action() => SchemaSerializer.Serialize(schema, null);
+        void Action() => SchemaPrinter.Serialize(schema, null);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -55,7 +55,7 @@ public class SchemaSerializerTests
     {
         // arrange
         // act
-        async Task Action() => await SchemaSerializer.SerializeAsync(
+        async Task Action() => await SchemaPrinter.PrintAsync(
             default(ISchema),
             new MemoryStream());
 
@@ -73,7 +73,7 @@ public class SchemaSerializerTests
             .Create();
 
         // act
-        async Task Action() => await SchemaSerializer.SerializeAsync(schema, null);
+        async Task Action() => await SchemaPrinter.PrintAsync(schema, null);
 
         // assert
         Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -90,7 +90,7 @@ public class SchemaSerializerTests
         var stringBuilder = new StringBuilder();
 
         // act
-        SchemaSerializer.Serialize(schema, new StringWriter(stringBuilder));
+        SchemaPrinter.Serialize(schema, new StringWriter(stringBuilder));
 
         // assert
         stringBuilder.ToString().MatchSnapshot();
@@ -107,7 +107,7 @@ public class SchemaSerializerTests
         using var stream = new MemoryStream();
 
         // act
-        await SchemaSerializer.SerializeAsync(schema, stream);
+        await SchemaPrinter.PrintAsync(schema, stream);
 
         // assert
         Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
@@ -160,7 +160,7 @@ public class SchemaSerializerTests
 
         // act
         using var stream = new MemoryStream();
-        await SchemaSerializer.SerializeAsync(
+        await SchemaPrinter.PrintAsync(
             new INamedType[] { schema.QueryType },
             stream,
             true);
@@ -180,7 +180,7 @@ public class SchemaSerializerTests
 
         // act
         using var stream = new MemoryStream();
-        async Task Fail() => await SchemaSerializer.SerializeAsync(
+        async Task Fail() => await SchemaPrinter.PrintAsync(
             default(IEnumerable<INamedType>),
             stream,
             true);
@@ -200,7 +200,7 @@ public class SchemaSerializerTests
 
         // act
         using var stream = new MemoryStream();
-        async Task Fail() => await SchemaSerializer.SerializeAsync(
+        async Task Fail() => await SchemaPrinter.PrintAsync(
             new INamedType[] { schema.QueryType },
             null,
             true);

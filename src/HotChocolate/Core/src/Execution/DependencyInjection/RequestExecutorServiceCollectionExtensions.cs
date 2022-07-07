@@ -59,6 +59,7 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddResultPool()
             .TryAddResolverTaskPool()
             .TryAddOperationContextPool()
+            .TryAddDeferredWorkStatePool()
             .TryAddDataLoaderTaskCachePool()
             .TryAddPathSegmentPool()
             .TryAddOperationCompilerPool();
@@ -172,7 +173,7 @@ public static class RequestExecutorServiceCollectionExtensions
         services.RemoveAll<IComplexityAnalyzerCache>();
 
         services.AddSingleton<IPreparedOperationCache>(
-            sp => new DefaultPreparedOperationCache(capacity));
+            _ => new DefaultPreparedOperationCache(capacity));
         services.AddSingleton<IComplexityAnalyzerCache>(
             _ => new DefaultComplexityAnalyzerCache(capacity));
 

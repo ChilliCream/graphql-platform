@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Utilities;
 using Moq;
 using Xunit;
 using static HotChocolate.Execution.Pipeline.RequestClassMiddlewareFactory;
@@ -18,10 +17,10 @@ public class RequestClassMiddlewareFactoryTests
     public async Task Create_CoreMiddleware_InjectOptimizers()
     {
         // arrange
-        var middleware = Create<StubMiddleware<IEnumerable<ISelectionSetOptimizer>>>();
+        var middleware = Create<StubMiddleware<IEnumerable<IOperationCompilerOptimizer>>>();
         var applicationServices = new ServiceCollection().BuildServiceProvider();
         var schemaServices = new ServiceCollection()
-            .AddSingleton<ISelectionSetOptimizer, StubOptimizer>()
+            .AddSingleton<IOperationCompilerOptimizer, StubOptimizer>()
             .BuildServiceProvider();
         var schemaName = "_Default";
         IRequestExecutorOptionsAccessor optionsAccessor = new RequestExecutorOptions();
@@ -34,7 +33,6 @@ public class RequestClassMiddlewareFactoryTests
             new Mock<ISchema>().Object,
             1,
             new Mock<IErrorHandler>().Object,
-            new Mock<ITypeConverter>().Object,
             new Mock<IActivator>().Object,
             new Mock<IExecutionDiagnosticEvents>().Object);
 
@@ -47,7 +45,7 @@ public class RequestClassMiddlewareFactoryTests
         await compiledMiddleware(context);
 
         // assert
-        Assert.Single((context.ContextData["result"] as IEnumerable<ISelectionSetOptimizer>)!);
+        Assert.Single((context.ContextData["result"] as IEnumerable<IOperationCompilerOptimizer>)!);
     }
 
     private sealed class StubMiddleware<T>
@@ -55,9 +53,7 @@ public class RequestClassMiddlewareFactoryTests
         private readonly RequestDelegate _next;
         private readonly T _injectedValue;
 
-        public StubMiddleware(
-            RequestDelegate next,
-            T injectedValue)
+        public StubMiddleware(RequestDelegate next, T injectedValue)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _injectedValue = injectedValue;
