@@ -20,8 +20,8 @@ internal static class ResolverTaskFactory
         Path path,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        var responseIndex = 0;
         var selectionsCount = selectionSet.Selections.Count;
+        var responseIndex = selectionsCount;
         var parentResult = operationContext.Result.RentObject(selectionsCount);
         var scheduler = operationContext.Scheduler;
         var pathFactory = operationContext.PathFactory;
@@ -35,7 +35,13 @@ internal static class ResolverTaskFactory
         {
             ref var selectionSpace = ref ((SelectionSet)selectionSet).GetSelectionsReference();
 
-            for (var i = 0; i < selectionsCount; i++)
+            // we are iterating reverse so that in the case of a mutation the first
+            // synchronous root selection is executed first, since the work scheduler
+            // is using two stacks one for parallel work an one for synchronous work.
+            // the scheduler this tries to schedule new work first.
+            // coincidentally we can use that to schedule a mutation so that we honor the spec
+            // guarantees while executing efficient.
+            for (var i = selectionsCount - 1; i >= 0; i--)
             {
                 ref var selection = ref Unsafe.Add(ref selectionSpace, i);
 
@@ -46,7 +52,7 @@ internal static class ResolverTaskFactory
                             selection,
                             parent,
                             parentResult,
-                            responseIndex++,
+                            --responseIndex,
                             pathFactory.Append(path, selection.ResponseName),
                             scopedContext));
                 }

@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.PostgreSql" Version="0.8.1"/>
+    <PackageReference Include="Squadron.PostgreSql" Version="0.15.0"/>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">

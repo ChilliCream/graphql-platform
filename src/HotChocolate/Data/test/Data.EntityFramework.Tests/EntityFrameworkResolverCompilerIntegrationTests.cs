@@ -48,7 +48,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
 
         using AuthorFixture authorFixture = new();
 
-        using IServiceScope scope = new ServiceCollection()
+        using var scope = new ServiceCollection()
             .AddScoped(_ => authorFixture.Context)
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -58,7 +58,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .BuildServiceProvider()
             .CreateScope();
 
-        IExecutionResult result = await scope.ServiceProvider.ExecuteRequestAsync(
+        var result = await scope.ServiceProvider.ExecuteRequestAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ books { title } }")
                 .SetServices(scope.ServiceProvider)
@@ -74,7 +74,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
 
         using AuthorFixture authorFixture = new();
 
-        await using ServiceProvider service = new ServiceCollection()
+        await using var service = new ServiceCollection()
             .AddScoped(_ => authorFixture.Context)
             .AddGraphQL()
             .AddQueryType<Query>()

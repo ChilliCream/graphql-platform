@@ -95,11 +95,11 @@ public class ProjectToTests
     public async Task Execute_ManyToOne()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchema();
+        var tester = await CreateSchema();
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -121,11 +121,11 @@ public class ProjectToTests
     public async Task Execute_ManyToOne_Deep()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchema();
+        var tester = await CreateSchema();
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -156,11 +156,11 @@ public class ProjectToTests
     public async Task Execute_OneToOne()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchema();
+        var tester = await CreateSchema();
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -181,11 +181,11 @@ public class ProjectToTests
     public async Task Execute_OneToOne_Deep()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchema();
+        var tester = await CreateSchema();
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -210,11 +210,11 @@ public class ProjectToTests
     public async Task Execute_Derived_CompleteSelectionSet()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchema();
+        var tester = await CreateSchema();
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -234,11 +234,11 @@ public class ProjectToTests
     public async Task Execute_Derived_PartialSelectionSet()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchema();
+        var tester = await CreateSchema();
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -267,11 +267,11 @@ public class ProjectToTests
             mc.AddProfile(new AuthorProfile());
         });
 
-        IMapper mapper = mapperConfig.CreateMapper();
+        var mapper = mapperConfig.CreateMapper();
         services.AddSingleton(sp =>
         {
             // abusing the mapper factory to add to the database. You didnt see this.
-            BloggingContext context =
+            var context =
                 sp.GetRequiredService<IDbContextFactory<BloggingContext>>().CreateDbContext();
             context.Database.EnsureCreated();
             context.Blogs.AddRange(_blogEntries);

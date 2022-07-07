@@ -144,13 +144,13 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public IDisposable ExecuteStream(IRequestContext context)
+    public IDisposable ExecuteStream(IOperation operation)
     {
         var scopes = new IDisposable[_listeners.Length];
 
         for (var i = 0; i < _listeners.Length; i++)
         {
-            scopes[i] = _listeners[i].ExecuteStream(context);
+            scopes[i] = _listeners[i].ExecuteStream(operation);
         }
 
         return new AggregateActivityScope(scopes);

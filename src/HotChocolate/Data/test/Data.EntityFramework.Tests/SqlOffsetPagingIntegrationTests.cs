@@ -22,7 +22,7 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -45,7 +45,7 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -68,7 +68,7 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -91,7 +91,7 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -114,7 +114,7 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -137,7 +137,7 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -160,7 +160,7 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -183,7 +183,7 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -206,7 +206,7 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -229,7 +229,7 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
