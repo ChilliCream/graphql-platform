@@ -35,7 +35,6 @@ internal sealed class DeferredWorkState
             if (result.ParentTaskId is 0 || _completed.Contains(result.ParentTaskId))
             {
                 _completed.Add(result.TaskId);
-
                 EnqueueResult(result.Result);
 
                 var evaluateDeferredResults = _ready.Count > 0;
@@ -89,25 +88,33 @@ internal sealed class DeferredWorkState
 
         lock (_deliverSync)
         {
+            while (_deliverable.Count > 0)
+            {
 #if NETSTANDARD2_0
-            if (_deliverable.Count > 0)
-            {
-                var result = _deliverable.Dequeue();
+                if (_deliverable.Count > 0)
+                {
+                    var result = _deliverable.Dequeue();
 #else
-            if (_deliverable.TryDequeue(out var result))
-            {
+                if (_deliverable.TryDequeue(out var result))
+                {
 #endif
-                if (++_delivered == _taskId)
-                {
-                    _semaphore.Release();
-                    result.SetHasNext(false);
-                }
-                else
-                {
-                    result.SetHasNext(true);
+                    if (++_delivered == _taskId)
+                    {
+                        _semaphore.Release();
+                        result.SetHasNext(false);
+                    }
+                    else
+                    {
+                        result.SetHasNext(true);
+                    }
+
+                    return result.Create();
                 }
 
-                return result.Create();
+                if (++_delivered == _taskId)
+                {
+                    return new QueryResult(null, hasNext: false);
+                }
             }
         }
 

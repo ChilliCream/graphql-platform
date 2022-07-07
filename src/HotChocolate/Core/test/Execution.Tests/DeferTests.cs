@@ -1,10 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Execution.QueryResultBuilder;
 
 namespace HotChocolate.Execution;
 
@@ -123,12 +128,19 @@ public class DeferTests
                     }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
-
-        var results = new StringBuilder();
+        var list = new List<(string, string)>();
 
         await foreach (var payload in stream.ReadResultsAsync())
         {
-            results.AppendLine(payload.ToJson());
+            var path = (payload.Path?.ToString() ?? string.Empty).Replace("/", "-");
+            list.Add((path, FromResult(payload).SetHasNext(null).Create().ToJson()));
+        }
+
+        var results = new StringBuilder();
+
+        foreach (var item in list.OrderBy(t => t.Item1))
+        {
+            results.AppendLine(item.Item2);
             results.AppendLine();
         }
 
