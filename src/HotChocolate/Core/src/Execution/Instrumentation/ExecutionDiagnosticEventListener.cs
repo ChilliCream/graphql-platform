@@ -82,7 +82,7 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
         => EmptyScope;
 
     /// <inheritdoc />
-    public virtual IDisposable ExecuteStream(IRequestContext context)
+    public virtual IDisposable ExecuteStream(IOperation operation)
         => EmptyScope;
 
     public virtual IDisposable ExecuteDeferredTask()

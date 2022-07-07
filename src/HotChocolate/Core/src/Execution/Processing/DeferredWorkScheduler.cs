@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.DependencyInjection;
+using HotChocolate.Execution.Instrumentation;
 using static HotChocolate.Execution.QueryResultBuilder;
 
 namespace HotChocolate.Execution.Processing;
@@ -64,22 +66,36 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
         => StateOwner.State.Complete(result);
 
     public IAsyncEnumerable<IQueryResult> CreateResultStream(IQueryResult initialResult)
-        => new DeferResultStream(initialResult, StateOwner);
+        => new DeferResultStream(
+            initialResult,
+            StateOwner,
+            _parentContext.Operation,
+            _parentContext.DiagnosticEvents);
 
     private class DeferResultStream : IAsyncEnumerable<IQueryResult>
     {
         private readonly IQueryResult _initialResult;
         private readonly DeferredWorkStateOwner _stateOwner;
+        private readonly IOperation _operation;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
-        public DeferResultStream(IQueryResult initialResult, DeferredWorkStateOwner stateOwner)
+        public DeferResultStream(
+            IQueryResult initialResult,
+            DeferredWorkStateOwner stateOwner,
+            IOperation operation,
+            IExecutionDiagnosticEvents diagnosticEvents)
         {
             _initialResult = FromResult(initialResult).SetHasNext(true).Create();
             _stateOwner = stateOwner;
+            _operation = operation;
+            _diagnosticEvents = diagnosticEvents;
         }
 
         public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
+            var span = _diagnosticEvents.ExecuteStream(_operation);
+
             try
             {
 
@@ -102,6 +118,7 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
             finally
             {
                 _stateOwner.Dispose();
+                span.Dispose();
             }
         }
     }

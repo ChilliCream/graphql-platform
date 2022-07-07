@@ -44,11 +44,9 @@ internal sealed class NoopExecutionDiagnosticEvents
 
     public IDisposable CompileOperation(IRequestContext context) => this;
 
-    public IDisposable BuildQueryPlan(IRequestContext context) => this;
-
     public IDisposable ExecuteOperation(IRequestContext context) => this;
 
-    public IDisposable ExecuteStream(IRequestContext context) => this;
+    public IDisposable ExecuteStream(IOperation operation) => this;
 
     public IDisposable ExecuteDeferredTask() => this;
 

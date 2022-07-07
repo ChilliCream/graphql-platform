@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
@@ -25,7 +25,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer();
+            using var server = CreateInstrumentedServer();
 
             // act
             await server.PostAsync(new ClientQueryRequest
@@ -49,7 +49,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
 
             // act
@@ -74,7 +74,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
 
             // act
@@ -99,7 +99,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
 
             // act
@@ -125,7 +125,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o =>
                 {
                     o.Scopes = ActivityScopes.All;
@@ -155,7 +155,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o =>
                 {
                     o.Scopes = ActivityScopes.All;
@@ -185,7 +185,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
 
             // act
@@ -212,12 +212,12 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
+            using var server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
             var url = TestServerExtensions.CreateUrl("/graphql?sdl");
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
             // act
-            HttpResponseMessage response = await server.CreateClient().SendAsync(request);
+            var response = await server.CreateClient().SendAsync(request);
 
             // assert
             await response.Content.ReadAsStringAsync();
@@ -233,7 +233,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
+            using var server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
 
             // act
             await server.PostRawAsync(new ClientQueryRequest
@@ -262,7 +262,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
+            using var server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
 
             // act
             await server.PostRawAsync(new ClientQueryRequest
@@ -297,7 +297,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
+            using var server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
 
             // act
             await server.PostRawAsync(new ClientQueryRequest
@@ -332,7 +332,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o =>
                 {
                     o.Scopes = ActivityScopes.All;
@@ -359,7 +359,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o =>
                 {
                     o.Scopes = ActivityScopes.All;
