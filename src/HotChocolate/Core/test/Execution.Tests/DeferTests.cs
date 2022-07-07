@@ -49,6 +49,8 @@ public class DeferTests
     [Fact]
     public async Task NoOptimization_Defer_Only_Root()
     {
+        Snapshot.FullName();
+
         var result =
             await new ServiceCollection()
                 .AddStarWarsRepositories()

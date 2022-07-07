@@ -23,20 +23,18 @@ public class MultiPartResponseStreamSerializerTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... @defer(label: ""friends"") {
-                                    friends {
-                                        nodes {
-                                            id
-                                            ... @defer {
-                                                name
-                                            }
-                                        }
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... @defer(label: ""friends"") {
+                                friends {
+                                    nodes {
+                                        id
+                                        name
                                     }
                                 }
                             }
-                        }");
+                        }
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
@@ -48,7 +46,7 @@ public class MultiPartResponseStreamSerializerTests
 
         // assert
         memoryStream.Seek(0, SeekOrigin.Begin);
-        new StreamReader(memoryStream).ReadToEnd().MatchSnapshot();
+        (await new StreamReader(memoryStream).ReadToEndAsync()).MatchSnapshot();
     }
 
     [Fact]
