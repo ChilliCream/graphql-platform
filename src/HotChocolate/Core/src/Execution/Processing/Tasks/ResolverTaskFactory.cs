@@ -20,8 +20,8 @@ internal static class ResolverTaskFactory
         Path path,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        var responseIndex = 0;
         var selectionsCount = selectionSet.Selections.Count;
+        var responseIndex = selectionsCount;
         var parentResult = operationContext.Result.RentObject(selectionsCount);
         var scheduler = operationContext.Scheduler;
         var pathFactory = operationContext.PathFactory;
@@ -52,7 +52,7 @@ internal static class ResolverTaskFactory
                             selection,
                             parent,
                             parentResult,
-                            responseIndex++,
+                            --responseIndex,
                             pathFactory.Append(path, selection.ResponseName),
                             scopedContext));
                 }
