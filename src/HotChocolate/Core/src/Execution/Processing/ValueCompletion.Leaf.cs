@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Processing;
 internal static partial class ValueCompletion
 {
     private static object? CompleteLeafValue(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
         Path path,
@@ -30,23 +30,17 @@ internal static partial class ValueCompletion
         }
         catch (SerializationException ex)
         {
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                InvalidLeafValue(ex, selection.SyntaxNode, path));
+            var error = InvalidLeafValue(ex, selection.SyntaxNode, path);
+            operationContext.ReportError(error, resolverContext, selection);
         }
         catch (Exception ex)
         {
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                UnexpectedLeafValueSerializationError(
-                    ex,
-                    operationContext.ErrorHandler,
-                    selection.SyntaxNode,
-                    path));
+            var error = UnexpectedLeafValueSerializationError(
+                ex,
+                operationContext.ErrorHandler,
+                selection.SyntaxNode,
+                path);
+            operationContext.ReportError(error, resolverContext, selection);
         }
 
         return null;

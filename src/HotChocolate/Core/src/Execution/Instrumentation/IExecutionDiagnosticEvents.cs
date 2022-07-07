@@ -213,6 +213,20 @@ public interface IExecutionDiagnosticEvents
     void ResolverError(IMiddlewareContext context, IError error);
 
     /// <summary>
+    /// Called for field errors that do NOT occur within the resolver task.
+    /// </summary>
+    /// <param name="operation">
+    /// The operation that is being executed.
+    /// </param>
+    /// <param name="selection">
+    /// The selection that is affected by the error.
+    /// </param>
+    /// <param name="error">
+    /// The error object.
+    /// </param>
+    void ResolverError(IOperation operation, ISelection selection, IError error);
+
+    /// <summary>
     /// Called when starting to run an execution engine task.
     /// </summary>
     /// <remarks>

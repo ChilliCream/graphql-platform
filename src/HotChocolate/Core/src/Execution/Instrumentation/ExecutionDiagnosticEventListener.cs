@@ -98,6 +98,11 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
     }
 
     /// <inheritdoc />
+    public virtual void ResolverError(IOperation operation, ISelection selection, IError error)
+    {
+    }
+
+    /// <inheritdoc />
     public virtual IDisposable RunTask(IExecutionTask task)
         => EmptyScope;
 

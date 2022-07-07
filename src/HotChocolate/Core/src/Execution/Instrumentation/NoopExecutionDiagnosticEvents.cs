@@ -58,6 +58,10 @@ internal sealed class NoopExecutionDiagnosticEvents
     {
     }
 
+    public void ResolverError(IOperation operation, ISelection selection, IError error)
+    {
+    }
+
     public IDisposable RunTask(IExecutionTask task) => this;
 
     public void TaskError(IExecutionTask task, IError error)

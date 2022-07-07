@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Utilities;
 using Moq;
 using Xunit;
 using static HotChocolate.Execution.Pipeline.RequestClassMiddlewareFactory;
@@ -34,7 +33,6 @@ public class RequestClassMiddlewareFactoryTests
             new Mock<ISchema>().Object,
             1,
             new Mock<IErrorHandler>().Object,
-            new Mock<ITypeConverter>().Object,
             new Mock<IActivator>().Object,
             new Mock<IExecutionDiagnosticEvents>().Object);
 

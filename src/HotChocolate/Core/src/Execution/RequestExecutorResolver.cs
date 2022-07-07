@@ -252,7 +252,6 @@ internal sealed class RequestExecutorResolver
             var policy = new RequestContextPooledObjectPolicy(
                 sp.GetRequiredService<ISchema>(),
                 sp.GetRequiredService<IErrorHandler>(),
-                _applicationServices.GetRequiredService<ITypeConverter>(),
                 sp.GetRequiredService<IActivator>(),
                 sp.GetRequiredService<IExecutionDiagnosticEvents>(),
                 version);
@@ -564,14 +563,12 @@ internal sealed class RequestExecutorResolver
         private readonly ISchema _schema;
         private readonly ulong _executorVersion;
         private readonly IErrorHandler _errorHandler;
-        private readonly ITypeConverter _converter;
         private readonly IActivator _activator;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
         public RequestContextPooledObjectPolicy(
             ISchema schema,
             IErrorHandler errorHandler,
-            ITypeConverter converter,
             IActivator activator,
             IExecutionDiagnosticEvents diagnosticEvents,
             ulong executorVersion)
@@ -580,8 +577,6 @@ internal sealed class RequestExecutorResolver
                 throw new ArgumentNullException(nameof(schema));
             _errorHandler = errorHandler ??
                 throw new ArgumentNullException(nameof(errorHandler));
-            _converter = converter ??
-                throw new ArgumentNullException(nameof(converter));
             _activator = activator ??
                 throw new ArgumentNullException(nameof(activator));
             _diagnosticEvents = diagnosticEvents ??
@@ -591,12 +586,7 @@ internal sealed class RequestExecutorResolver
 
 
         public override RequestContext Create()
-            => new(_schema,
-                _executorVersion,
-                _errorHandler,
-                _converter,
-                _activator,
-                _diagnosticEvents);
+            => new(_schema, _executorVersion, _errorHandler, _activator, _diagnosticEvents);
 
         public override bool Return(RequestContext obj)
         {

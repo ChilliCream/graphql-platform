@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.DependencyInjection;
+using static HotChocolate.Execution.QueryResultBuilder;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -20,7 +21,7 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
         _deferredWorkStateFactory = deferredWorkStateFactory;
     }
 
-    private DeferredWorkState StateOwner
+    private DeferredWorkStateOwner StateOwner
     {
         get
         {
@@ -35,7 +36,7 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
                 }
             }
 
-            return _stateOwner.State;
+            return _stateOwner;
         }
     }
 
@@ -56,11 +57,11 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
     {
         var taskContextOwner = _operationContextFactory.Create();
         taskContextOwner.OperationContext.InitializeFrom(_parentContext);
-        task.Begin(taskContextOwner, StateOwner.CreateId());
+        task.Begin(taskContextOwner, StateOwner.State.CreateId());
     }
 
     public void Complete(DeferredExecutionTaskResult result)
-        => StateOwner.Complete(result);
+        => StateOwner.State.Complete(result);
 
     public IAsyncEnumerable<IQueryResult> CreateResultStream(IQueryResult initialResult)
         => new DeferResultStream(initialResult, StateOwner);
@@ -68,30 +69,39 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
     private class DeferResultStream : IAsyncEnumerable<IQueryResult>
     {
         private readonly IQueryResult _initialResult;
-        private readonly DeferredWorkState _state;
+        private readonly DeferredWorkStateOwner _stateOwner;
 
-        public DeferResultStream(IQueryResult initialResult, DeferredWorkState state)
+        public DeferResultStream(IQueryResult initialResult, DeferredWorkStateOwner stateOwner)
         {
-            _initialResult = initialResult;
-            _state = state;
+            _initialResult = FromResult(initialResult).SetHasNext(true).Create();
+            _stateOwner = stateOwner;
         }
 
         public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
-            var success = true;
-
-            yield return _initialResult;
-
-            while (success && !cancellationToken.IsCancellationRequested)
+            try
             {
-                var result = await _state.TryDequeueResultAsync(cancellationToken);
 
-                if (result is not null)
+                yield return _initialResult;
+
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    success = true;
-                    yield return result;
+                    var result = await _stateOwner.State.TryDequeueResultAsync(cancellationToken);
+                    if (result is not null)
+                    {
+                        yield return result;
+                    }
+                    else
+                    {
+
+                        yield break;
+                    }
                 }
+            }
+            finally
+            {
+                _stateOwner.Dispose();
             }
         }
     }

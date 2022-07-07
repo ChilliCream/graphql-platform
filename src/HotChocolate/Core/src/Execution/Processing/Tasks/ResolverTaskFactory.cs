@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -15,7 +14,7 @@ internal static class ResolverTaskFactory
     private static List<ResolverTask>? _pooled = new();
 
     public static ObjectResult EnqueueResolverTasks(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         ISelectionSet selectionSet,
         object? parent,
         Path path,
@@ -84,7 +83,7 @@ internal static class ResolverTaskFactory
     }
 
     public static ResolverTask EnqueueElementTasks(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         ISelection selection,
         object? parent,
         Path path,
@@ -96,14 +95,14 @@ internal static class ResolverTaskFactory
         var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
-        var resolverTask = CreateResolverTask(
-            operationContext,
-            selection,
-            parent,
-            0,
-            path,
-            parentResult,
-            scopedContext);
+        var resolverTask =
+            operationContext.CreateResolverTask(
+                selection,
+                parent,
+                parentResult,
+                0,
+                path,
+                scopedContext);
 
         try
         {
@@ -128,7 +127,7 @@ internal static class ResolverTaskFactory
     }
 
     public static ObjectResult EnqueueOrInlineResolverTasks(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         Path path,
         ObjectType parentType,
@@ -169,14 +168,13 @@ internal static class ResolverTaskFactory
                 else
                 {
                     bufferedTasks.Add(
-                        CreateResolverTask(
-                            operationContext,
-                            resolverContext,
+                        operationContext.CreateResolverTask(
                             selection,
-                            selectionPath,
-                            responseIndex++,
                             parent,
-                            parentResult));
+                            parentResult,
+                            responseIndex++,
+                            selectionPath,
+                            resolverContext.ScopedContextData));
                 }
             }
         }
@@ -195,7 +193,7 @@ internal static class ResolverTaskFactory
     }
 
     private static void ResolveAndCompleteInline(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
         Path path,
@@ -230,12 +228,7 @@ internal static class ResolverTaskFactory
         }
         catch (Exception ex)
         {
-            ValueCompletion.ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                ex);
+            operationContext.ReportError(ex, resolverContext, selection, path);
         }
 
         if (executedSuccessfully)
@@ -268,7 +261,7 @@ internal static class ResolverTaskFactory
     }
 
     private static void CompleteInline(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
         IType selectionType,
@@ -306,12 +299,7 @@ internal static class ResolverTaskFactory
         }
         catch (Exception ex)
         {
-            ValueCompletion.ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                ex);
+            operationContext.ReportError(ex, resolverContext, selection, path);
         }
 
         CommitValue(
@@ -324,7 +312,7 @@ internal static class ResolverTaskFactory
     }
 
     private static void CommitValue(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         ISelection selection,
         Path path,
         int responseIndex,
@@ -343,15 +331,12 @@ internal static class ResolverTaskFactory
         {
             // if we detect a non-null violation we will stash it for later.
             // the non-null propagation is delayed so that we can parallelize better.
-            operationContext.Result.AddNonNullViolation(
-                selection.SyntaxNode,
-                path,
-                parentResult);
+            operationContext.Result.AddNonNullViolation(selection, path, parentResult);
         }
     }
 
     private static void TryHandleDeferredFragments(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         ISelectionSet selectionSet,
         IImmutableDictionary<string, object?> scopedContext,
         Path path,
@@ -369,7 +354,7 @@ internal static class ResolverTaskFactory
                     new DeferredFragment(
                         fragment,
                         fragment.GetLabel(operationContext.Variables),
-                        path,
+                        path.Clone(),
                         parent,
                         scopedContext));
             }
@@ -378,9 +363,9 @@ internal static class ResolverTaskFactory
 
     private sealed class NoOpExecutionTask : ExecutionTask
     {
-        public NoOpExecutionTask(IOperationContext context)
+        public NoOpExecutionTask(OperationContext context)
         {
-            Context = (IExecutionTaskContext)context;
+            Context = context;
         }
 
         protected override IExecutionTaskContext Context { get; }

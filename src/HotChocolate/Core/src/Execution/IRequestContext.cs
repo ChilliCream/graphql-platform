@@ -3,7 +3,6 @@ using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
 #nullable enable
@@ -118,4 +117,9 @@ public interface IRequestContext : IHasContextData
     /// Gets or sets an unexpected execution exception.
     /// </summary>
     Exception? Exception { get; set; }
+
+    /// <summary>
+    /// Clones the request context.
+    /// </summary>
+    IRequestContext Clone();
 }

@@ -54,9 +54,6 @@
     <Compile Update="Processing\OperationContext.Pooling.cs">
       <DependentUpon>OperationContext.cs</DependentUpon>
     </Compile>
-    <Compile Update="Processing\OperationContext.Request.cs">
-      <DependentUpon>OperationContext.cs</DependentUpon>
-    </Compile>
     <Compile Update="Processing\OperationCompiler.SelectionSetInfo.cs">
       <DependentUpon>OperationCompiler.cs</DependentUpon>
     </Compile>
@@ -151,9 +148,6 @@
       <DependentUpon>ValueCompletion.cs</DependentUpon>
     </Compile>
     <Compile Update="Processing\ValueCompletion.Object.cs">
-      <DependentUpon>ValueCompletion.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Processing\ValueCompletion.Tools.cs">
       <DependentUpon>ValueCompletion.cs</DependentUpon>
     </Compile>
     <Compile Update="Processing\Result\ResultBuilder.NonNullHandling.cs">

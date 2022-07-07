@@ -175,6 +175,8 @@ public class DeferTests
     [Fact]
     public async Task Do_Not_Defer()
     {
+        Snapshot.FullName();
+
         var result =
             await new ServiceCollection()
                 .AddStarWarsRepositories()
@@ -196,6 +198,6 @@ public class DeferTests
                             }
                         }");
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        await Assert.IsType<ResponseStream>(result).MatchSnapshotAsync();
     }
 }

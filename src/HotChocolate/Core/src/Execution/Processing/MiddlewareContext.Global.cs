@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext : IMiddlewareContext
 {
-    private IOperationContext _operationContext = default!;
+    private OperationContext _operationContext = default!;
     private IServiceProvider _services = default!;
     private InputParser _parser = default!;
     private object? _resolverResult;
@@ -144,25 +144,23 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
         void ReportSingle(IError singleError)
         {
-            AddProcessedError(_operationContext.ErrorHandler.Handle(singleError));
-            HasErrors = true;
-        }
+            var handled = _operationContext.ErrorHandler.Handle(singleError);
 
-        void AddProcessedError(IError processed)
-        {
-            if (processed is AggregateError ar)
+            if (handled is AggregateError ar)
             {
                 foreach (var ie in ar.Errors)
                 {
-                    _operationContext.Result.AddError(ie, _selection.SyntaxNode);
+                    _operationContext.Result.AddError(ie, _selection);
                     _operationContext.DiagnosticEvents.ResolverError(this, ie);
                 }
             }
             else
             {
-                _operationContext.Result.AddError(processed, _selection.SyntaxNode);
-                _operationContext.DiagnosticEvents.ResolverError(this, processed);
+                _operationContext.Result.AddError(handled, _selection);
+                _operationContext.DiagnosticEvents.ResolverError(this, handled);
             }
+
+            HasErrors = true;
         }
     }
 

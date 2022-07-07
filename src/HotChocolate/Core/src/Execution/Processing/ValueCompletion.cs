@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Processing;
 internal static partial class ValueCompletion
 {
     public static object? Complete(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         List<ResolverTask> tasks,
         ISelection selection,
@@ -68,12 +68,8 @@ internal static partial class ValueCompletion
                 result);
         }
 
-        ReportError(
-            operationContext,
-            resolverContext,
-            selection,
-            UnexpectedValueCompletionError(selection.SyntaxNode, path));
-
+        var error = UnexpectedValueCompletionError(selection.SyntaxNode, path);
+        operationContext.ReportError(error, resolverContext, selection);
         return null;
     }
 }

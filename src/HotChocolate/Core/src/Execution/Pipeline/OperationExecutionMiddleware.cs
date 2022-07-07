@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -100,10 +101,10 @@ internal sealed class OperationExecutionMiddleware
                 if (operationContext.DeferredScheduler.HasResults &&
                     context.Result is IQueryResult result)
                 {
-                    var resultStream = operationContext.DeferredScheduler.CreateResultStream(result);
+                    var stream = operationContext.DeferredScheduler.CreateResultStream(result);
 
                     context.Result = new ResponseStream(
-                        () => resultStream,
+                        () => stream,
                         ExecutionResultKind.DeferredResult);
                     context.Result.RegisterForCleanup(result);
                 }

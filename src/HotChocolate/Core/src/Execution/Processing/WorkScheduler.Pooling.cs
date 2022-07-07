@@ -35,7 +35,6 @@ internal sealed partial class WorkScheduler
         _batchDispatcher = batchDispatcher;
         _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
 
-        _requestContext = _operationContext.RequestContext;
         _errorHandler = _operationContext.ErrorHandler;
         _result = _operationContext.Result;
         _diagnosticEvents = _operationContext.DiagnosticEvents;

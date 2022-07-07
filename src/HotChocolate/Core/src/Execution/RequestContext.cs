@@ -78,6 +78,38 @@ internal sealed class RequestContext : IRequestContext
 
     public Exception? Exception { get; set; }
 
+    public IRequestContext Clone()
+    {
+        var cloned = new RequestContext(
+            Schema,
+            ExecutorVersion,
+            ErrorHandler,
+            Activator,
+            DiagnosticEvents)
+        {
+            Request = Request,
+            Services = Services,
+            RequestAborted = RequestAborted,
+            DocumentId = DocumentId,
+            DocumentHash = DocumentHash,
+            IsCachedDocument = IsCachedDocument,
+            Document = Document,
+            ValidationResult = ValidationResult,
+            OperationId = OperationId,
+            Operation = Operation,
+            Variables = Variables,
+            Result = Result,
+            Exception = Exception
+        };
+
+        foreach (var item in _contextData)
+        {
+            cloned._contextData.TryAdd(item.Key, item.Value);
+        }
+
+        return cloned;
+    }
+
     public void Initialize(IQueryRequest request, IServiceProvider services)
     {
         Request = request;

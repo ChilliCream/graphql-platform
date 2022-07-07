@@ -8,11 +8,11 @@ namespace HotChocolate.Execution.Processing;
 internal sealed class QueryExecutor
 {
     public Task<IQueryResult> ExecuteAsync(
-        IOperationContext operationContext) =>
+        OperationContext operationContext) =>
         ExecuteAsync(operationContext, ImmutableDictionary<string, object?>.Empty);
 
     public Task<IQueryResult> ExecuteAsync(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
         if (operationContext is null)
@@ -29,7 +29,7 @@ internal sealed class QueryExecutor
     }
 
     private static async Task<IQueryResult> ExecuteInternalAsync(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
         var resultMap = EnqueueResolverTasks(

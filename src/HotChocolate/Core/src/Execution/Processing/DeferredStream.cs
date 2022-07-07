@@ -120,18 +120,18 @@ internal sealed class DeferredStream : DeferredExecutionTask
 
     private sealed class StreamExecutionTask : ExecutionTask
     {
-        private readonly IOperationContext _operationContext;
+        private readonly OperationContext _operationContext;
         private readonly DeferredStream _deferredStream;
         private IImmutableDictionary<string, object?> _scopedContextData;
 
         public StreamExecutionTask(
-            IOperationContext operationContext,
+            OperationContext operationContext,
             DeferredStream deferredStream)
         {
             _operationContext = operationContext;
             _deferredStream = deferredStream;
             _scopedContextData = _deferredStream.ScopedContextData;
-            Context = (IExecutionTaskContext)operationContext;
+            Context = operationContext;
         }
 
         protected override IExecutionTaskContext Context { get; }

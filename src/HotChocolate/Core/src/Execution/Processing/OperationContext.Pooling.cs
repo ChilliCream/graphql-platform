@@ -3,11 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing;
 internal sealed partial class OperationContext
 {
     private readonly ConcurrentBag<Action> _cleanupActions = new();
-    private readonly ObjectPool<ResolverTask> _resolverTaskPool;
+    private readonly IFactory<ResolverTask> _resolverTaskFactory;
     private readonly WorkScheduler _workScheduler;
     private readonly DeferredWorkScheduler _deferredWorkScheduler;
     private readonly ResultBuilder _resultHelper;
@@ -35,17 +35,17 @@ internal sealed partial class OperationContext
     private bool _isInitialized;
 
     public OperationContext(
-        ObjectPool<ResolverTask> resolverTaskPool,
+        IFactory<ResolverTask> resolverTaskFactory,
+        PooledPathFactory pathFactory,
         ResultPool resultPool,
         ITypeConverter typeConverter,
-        PooledPathFactory pathFactory,
         DeferredWorkScheduler deferredWorkScheduler)
     {
-        _resolverTaskPool = resolverTaskPool;
+        _resolverTaskFactory = resolverTaskFactory;
+        _pathFactory = pathFactory;
         _workScheduler = new(this);
         _deferredWorkScheduler = deferredWorkScheduler;
         _resultHelper = new(resultPool);
-        _pathFactory = pathFactory;
         Converter = typeConverter;
     }
 
@@ -77,6 +77,7 @@ internal sealed partial class OperationContext
         IncludeFlags = _operation.CreateIncludeFlags(variables);
         _workScheduler.Initialize(batchDispatcher);
         _deferredWorkScheduler.Initialize(this);
+        _resultHelper.Initialize(_operation, _errorHandler, _diagnosticEvents);
     }
 
     public void InitializeFrom(OperationContext context)
@@ -98,6 +99,7 @@ internal sealed partial class OperationContext
         IncludeFlags = _operation.CreateIncludeFlags(_variables);
         _workScheduler.Initialize(_batchDispatcher);
         _deferredWorkScheduler.InitializeFrom(this, context._deferredWorkScheduler);
+        _resultHelper.Initialize(_operation, _errorHandler, _diagnosticEvents);
     }
 
     public void Clean()

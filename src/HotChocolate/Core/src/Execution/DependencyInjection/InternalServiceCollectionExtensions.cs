@@ -61,8 +61,9 @@ internal static class InternalServiceCollectionExtensions
             _ => new ExecutionTaskPool<ResolverTask>(
                 new ResolverTaskPoolPolicy(),
                 maximumRetained));
-        services.TryAddTransient(
-            sp => sp.GetRequiredService<ObjectPool<ResolverTask>>().Get());
+        services.TryAddSingleton<IFactory<ResolverTask>>(
+            sp => new PooledServiceFactory<ResolverTask>(
+                sp.GetRequiredService<ObjectPool<ResolverTask>>()));
         return services;
     }
 
@@ -96,18 +97,20 @@ internal static class InternalServiceCollectionExtensions
         {
             var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new OperationContextPooledObjectPolicy(
-                sp.GetRequiredService<ObjectPool<ResolverTask>>(),
-                sp.GetRequiredService<ResultPool>(),
-                sp.GetRequiredService<PooledPathFactory>(),
-                sp.GetRequiredService<DeferredWorkScheduler>());
+                sp.GetRequiredService<IFactory<OperationContext>>());
             return provider.Create(policy);
         });
+
+        services.TryAddTransient<OperationContext>();
 
         services.TryAddTransient(
             sp => sp.GetRequiredService<ObjectPool<OperationContext>>().GetOwner());
 
         services.TryAddSingleton<IFactory<OperationContextOwner>>(
             sp => new ServiceFactory<OperationContextOwner>(sp));
+
+        services.TryAddSingleton<IFactory<OperationContext>>(
+            sp => new ServiceFactory<OperationContext>(sp));
 
         return services;
     }
@@ -130,8 +133,13 @@ internal static class InternalServiceCollectionExtensions
             return new DeferredWorkStateOwner(state, pool);
         });
 
+        services.TryAddTransient<DeferredWorkScheduler>();
+
         services.TryAddScoped<IFactory<DeferredWorkStateOwner>>(
             sp => new ServiceFactory<DeferredWorkStateOwner>(sp));
+
+        services.TryAddScoped<IFactory<DeferredWorkScheduler>>(
+            sp => new ServiceFactory<DeferredWorkScheduler>(sp));
 
         return services;
     }
@@ -284,33 +292,16 @@ internal static class InternalServiceCollectionExtensions
 
     private sealed class OperationContextPooledObjectPolicy : PooledObjectPolicy<OperationContext>
     {
-        private readonly ObjectPool<ResolverTask> _resolverTaskPool;
-        private readonly ResultPool _resultPool;
-        private readonly PooledPathFactory _pathFactory;
-        private readonly DeferredWorkScheduler _deferredWorkScheduler;
+        private readonly IFactory<OperationContext> _contextFactory;
 
-        public OperationContextPooledObjectPolicy(
-            ObjectPool<ResolverTask> resolverTaskPool,
-            ResultPool resultPool,
-            PooledPathFactory pathFactory,
-            DeferredWorkScheduler deferredWorkScheduler)
+        public OperationContextPooledObjectPolicy(IFactory<OperationContext> contextFactory)
         {
-            _resolverTaskPool = resolverTaskPool ??
-                throw new ArgumentNullException(nameof(resolverTaskPool));
-            _resultPool = resultPool ??
-                throw new ArgumentNullException(nameof(resultPool));
-            _pathFactory = pathFactory ??
-                throw new ArgumentNullException(nameof(pathFactory));
-            _deferredWorkScheduler = deferredWorkScheduler ??
-                throw new ArgumentNullException(nameof(deferredWorkScheduler));
+            _contextFactory = contextFactory ??
+                throw new ArgumentNullException(nameof(contextFactory));
         }
 
         public override OperationContext Create()
-            => new(
-                _resolverTaskPool,
-                _resultPool,
-                _pathFactory,
-                _deferredWorkScheduler);
+            => _contextFactory.Create();
 
         public override bool Return(OperationContext obj)
         {
