@@ -11,6 +11,7 @@ public class ProjectionVisitor<TContext>
 {
     public virtual void Visit(TContext context)
     {
+        context.Selection.Push((ISelection)context.Context.Selection);
         Visit(context.Context.Selection.Field, context);
     }
 
