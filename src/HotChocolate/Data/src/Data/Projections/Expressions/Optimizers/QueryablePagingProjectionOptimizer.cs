@@ -108,8 +108,8 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         List<ISelectionNode> selections)
     {
-        if (context.Selections.Values
-                .FirstOrDefault(x => x.Field.Name == "edges") is { } edgeSelection)
+        if (context.Selections.Values.FirstOrDefault(
+                x => x.Field.Name == "edges") is { } edgeSelection)
         {
             foreach (var edgeSubField in edgeSelection.SelectionSet!.Selections)
             {
@@ -119,7 +119,9 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
                 {
                     foreach (var nodeField in edgeSubFieldNode.SelectionSet.Selections)
                     {
-                        selections.Add(_cloneSelectionSetRewriter.Rewrite(nodeField));
+                        selections.Add(
+                            _cloneSelectionSetRewriter.Rewrite(nodeField) ??
+                                throw new SyntaxNodeCannotBeNullException(nodeField));
                     }
                 }
             }
@@ -135,7 +137,9 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         {
             foreach (var nodeField in itemSelection.SelectionSet!.Selections)
             {
-                selections.Add(_cloneSelectionSetRewriter.Rewrite(nodeField));
+                selections.Add(
+                    _cloneSelectionSetRewriter.Rewrite(nodeField) ??
+                        throw new SyntaxNodeCannotBeNullException(nodeField));
             }
         }
     }
@@ -144,12 +148,14 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         List<ISelectionNode> selections)
     {
-        if (context.Selections.Values
-                .FirstOrDefault(x => x.Field.Name == "nodes") is { } nodeSelection)
+        if (context.Selections.Values.FirstOrDefault(
+                x => x.Field.Name == "nodes") is { } nodeSelection)
         {
             foreach (var nodeField in nodeSelection.SelectionSet!.Selections)
             {
-                selections.Add(_cloneSelectionSetRewriter.Rewrite(nodeField));
+                selections.Add(
+                    _cloneSelectionSetRewriter.Rewrite(nodeField) ??
+                        throw new SyntaxNodeCannotBeNullException(nodeField));
             }
         }
     }
