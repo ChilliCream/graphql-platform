@@ -12,8 +12,7 @@ public class ServiceCollectionExtensionTests
         var serviceCollection = new ServiceCollection();
 
         // act
-        HotChocolateAspNetCoreServiceCollectionExtensions
-            .AddHttpResultSerializer<DefaultHttpResultSerializer>(serviceCollection);
+        serviceCollection.AddHttpResultSerializer<DefaultHttpResultSerializer>();
 
         // assert
         Assert.Collection(

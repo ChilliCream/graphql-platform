@@ -5,5 +5,4 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public interface IOperationCompilerOptimizer
 {
-
 }

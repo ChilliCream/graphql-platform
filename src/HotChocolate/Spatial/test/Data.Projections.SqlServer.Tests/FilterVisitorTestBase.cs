@@ -33,9 +33,9 @@ public class ProjectionVisitorTestBase
             "CREATE EXTENSION postgis;\n" + sql,
             databaseName);
 
-        DbSet<T> set = dbContext.Set<T>();
+        var set = dbContext.Set<T>();
 
-        foreach (T result in results)
+        foreach (var result in results)
         {
             set.Add(result);
             await dbContext.SaveChangesAsync();
@@ -49,7 +49,7 @@ public class ProjectionVisitorTestBase
         ProjectionConvention? convention = null)
         where TEntity : class
     {
-        Func<IResolverContext, IEnumerable<TEntity>> resolver =
+        var resolver =
             await BuildResolverAsync(entities);
 
         return await new ServiceCollection()
