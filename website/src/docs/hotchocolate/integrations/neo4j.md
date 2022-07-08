@@ -18,7 +18,7 @@ dotnet add package HotChocolate.Data.Neo4J
 To use the HotChocolate AspNetCore integration, you need to install the package `HotChocolate.AspNetCore`.
 
 ```bash
-dotnet add Neo4j package HotChocolate.AspNetCore
+dotnet add package HotChocolate.AspNetCore
 ```
 
 ```csharp
