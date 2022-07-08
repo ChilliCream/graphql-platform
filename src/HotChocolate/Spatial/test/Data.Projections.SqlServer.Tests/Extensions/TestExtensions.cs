@@ -23,7 +23,7 @@ public static class TestExtensions
         {
             result.MatchSnapshot(snapshotName + postfix);
             if (result.ContextData is { } &&
-                result.ContextData.TryGetValue("sql", out object? queryResult))
+                result.ContextData.TryGetValue("sql", out var queryResult))
             {
                 queryResult.MatchSnapshot(
                     new SnapshotNameExtension(snapshotName + "_sql" + postfix));
