@@ -1,5 +1,4 @@
 using System;
-using HotChocolate;
 using HotChocolate.Stitching.Redis;
 using HotChocolate.Stitching.SchemaDefinitions;
 using StackExchange.Redis;
