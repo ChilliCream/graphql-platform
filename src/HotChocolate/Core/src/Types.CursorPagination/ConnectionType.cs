@@ -169,6 +169,7 @@ internal class ConnectionType
         {
             definition.Fields.Add(new(
                 Names.TotalCount,
+                ConnectionType_TotalCount_Description,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
                 resolver: GetTotalCountAsync));
         }
