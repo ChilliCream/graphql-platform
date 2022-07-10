@@ -158,9 +158,7 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        var error =
-            Assert.Throws<ArgumentException>(() => CreateSchemaWith(type, convention));
-        Assert.Equal("Name", error.ParamName);
+        Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
     }
 
     [Fact]

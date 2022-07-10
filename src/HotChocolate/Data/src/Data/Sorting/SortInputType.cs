@@ -168,7 +168,7 @@ public class SortInputType
             ITypeCompletionContext context,
             SortInputTypeDefinition definition)
         {
-            if (!string.IsNullOrEmpty(definition.Name))
+            if (definition.IsNamed)
             {
                 return;
             }

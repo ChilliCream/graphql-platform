@@ -93,6 +93,7 @@ public class SortInputTypeDescriptor
     public ISortInputTypeDescriptor Name(string value)
     {
         Definition.Name = value;
+        Definition.IsNamed = true;
         return this;
     }
 
@@ -247,7 +248,7 @@ public class SortInputTypeDescriptor
         // This resets the name on the definition. This way we can check if the user has
         // set a custom name. The context the user specifying descriptor.Name("Foo") is
         // preserved this way.
-        descriptor.Definition.Name = default!;
+        descriptor.Definition.IsNamed = false;
 
         return descriptor;
     }
@@ -264,7 +265,7 @@ public class SortInputTypeDescriptor
         // This resets the name on the definition. This way we can check if the user has
         // set a custom name. The context the user specifying descriptor.Name("Foo") is
         // preserved this way.
-        descriptor.Definition.Name = default!;
+        descriptor.Definition.IsNamed = false;
 
         return descriptor;
     }

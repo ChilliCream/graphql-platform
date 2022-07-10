@@ -5,7 +5,7 @@ using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Data.Projections.Handlers;
 
-public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
+public sealed class QueryableFilterProjectionOptimizer : IProjectionOptimizer
 {
     public bool CanHandle(ISelection field) =>
         field.Field.Member is { } &&

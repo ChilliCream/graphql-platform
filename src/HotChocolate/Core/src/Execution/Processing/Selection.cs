@@ -80,7 +80,7 @@ public class Selection : ISelection
     public int Id { get; }
 
     /// <inheritdoc />
-    public SelectionExecutionStrategy Strategy { get; private set;}
+    public SelectionExecutionStrategy Strategy { get; private set; }
 
     /// <inheritdoc />
     public IObjectType DeclaringType { get; }
@@ -120,7 +120,8 @@ public class Selection : ISelection
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
 
     /// <inheritdoc />
-    public bool IsConditional => _includeConditions.Length > 0;
+    public bool IsConditional
+        => _includeConditions.Length > 0 || (_flags & Flags.Internal) == Flags.Internal;
 
     public bool IsIncluded(long includeFlags, bool allowInternals = false)
     {

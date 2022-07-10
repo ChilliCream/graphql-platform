@@ -26,6 +26,7 @@ public sealed partial class OperationCompiler
     private readonly List<IOperationOptimizer> _operationOptimizers = new();
     private readonly List<ISelectionSetOptimizer> _selectionSetOptimizers = new();
     private readonly List<Selection> _selections = new();
+    private readonly List<Selection> _newSelections = new();
     private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
     private CompilerContext? _deferContext;
     private int _nextSelectionId;
@@ -132,6 +133,7 @@ public sealed partial class OperationCompiler
             _operationOptimizers.Clear();
             _selectionSetOptimizers.Clear();
             _selections.Clear();
+            _newSelections.Clear();
 
             _includeConditions = Array.Empty<IncludeCondition>();
             _deferContext = null;
@@ -654,11 +656,14 @@ public sealed partial class OperationCompiler
         }
     }
 
+    internal void RegisterNewSelection(Selection selection) => _newSelections.Add(selection);
+
     internal sealed class SelectionPath : IEquatable<SelectionPath>
     {
         private SelectionPath(string name, SelectionPath? parent = null)
         {
             Name = name;
+            Parent = parent;
         }
 
         public string Name { get; }

@@ -52,11 +52,11 @@ public class QueryableProjectionISetTests
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -81,11 +81,11 @@ public class QueryableProjectionISetTests
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"

@@ -22,12 +22,27 @@ public partial class OperationCompiler
         if (context.Optimizers.Count == 1)
         {
             context.Optimizers[0].OptimizeSelectionSet(optimizerContext);
-            return;
+        }
+        else
+        {
+            for (var i = 0; i < context.Optimizers.Count; i++)
+            {
+                context.Optimizers[i].OptimizeSelectionSet(optimizerContext);
+            }
         }
 
-        for (var i = 0; i < context.Optimizers.Count; i++)
+        if (_newSelections.Count > 0)
         {
-            context.Optimizers[i].OptimizeSelectionSet(optimizerContext);
+            for (var i = 0; i < _newSelections.Count; i++)
+            {
+                if (_newSelections[i].SelectionSet is not null)
+                {
+                    var selectionSetInfo = new SelectionSetInfo(_newSelections[i].SelectionSet!, 0);
+                    _selectionLookup.Add(_newSelections[i], new[] { selectionSetInfo });
+                }
+            }
+
+            _newSelections.Clear();
         }
     }
 
@@ -35,7 +50,8 @@ public partial class OperationCompiler
         IImmutableList<ISelectionSetOptimizer> optimizers,
         IObjectField field)
     {
-        if (!OperationCompilerOptimizerHelper.TryGetOptimizers(field.ContextData, out var fieldOptimizers))
+        if (!OperationCompilerOptimizerHelper.TryGetOptimizers(field.ContextData,
+                out var fieldOptimizers))
         {
             return optimizers;
         }

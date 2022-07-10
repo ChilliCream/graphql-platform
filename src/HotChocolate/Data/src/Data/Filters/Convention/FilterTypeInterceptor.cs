@@ -44,6 +44,7 @@ public class FilterTypeInterceptor
         {
             return;
         }
+
         _definitions[discoveryContext.Type] = def;
 
         var convention = GetConvention(discoveryContext.DescriptorContext, def.Scope);

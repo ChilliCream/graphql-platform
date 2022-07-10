@@ -108,11 +108,11 @@ public class QueryableFirstOrDefaultTests
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -137,11 +137,11 @@ public class QueryableFirstOrDefaultTests
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -163,15 +163,15 @@ public class QueryableFirstOrDefaultTests
         res1.MatchSqlSnapshot();
     }
 
-    [Fact(Skip = "Currently not supported by SQLLite")]
+    [Fact(Skip = "Currently not supported by SQLite")]
     public async Task Create_DeepFilterObjectTwoProjections_Nullable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -192,15 +192,15 @@ public class QueryableFirstOrDefaultTests
         res1.MatchSqlSnapshot();
     }
 
-    [Fact(Skip = "Currently not supported by SQLLite")]
+    [Fact(Skip = "Currently not supported by SQLite")]
     public async Task Create_ListObjectDifferentLevelProjection_Nullable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -226,11 +226,11 @@ public class QueryableFirstOrDefaultTests
     public async Task Create_DeepFilterObjectTwoProjections_Executable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
