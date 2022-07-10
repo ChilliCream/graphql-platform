@@ -20,7 +20,7 @@ can return NetTopologySuite shapes and they will be transformed into GeoJSON.
 
 # Getting Started
 
-You first need to add the `HotChocolate.Spatial` package references to your project. You can do this with the `dotnet` cli:
+You first need to add the `HotChocolate.Spatial` package reference to your project. You can do this with the `dotnet` cli:
 
 ```bash
 dotnet add package HotChocolate.Spatial
