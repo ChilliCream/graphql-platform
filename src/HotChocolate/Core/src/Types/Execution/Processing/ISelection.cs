@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Diagnostics.SymbolStore;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -32,14 +33,19 @@ public interface ISelection : IOptionalSelection
     IType Type { get; }
 
     /// <summary>
-    /// The type that declares the field that is selected by this selection.
-    /// </summary>
-    IObjectType DeclaringType { get; }
-
-    /// <summary>
     /// Gets the type kind of the selection.
     /// </summary>
     TypeKind TypeKind { get; }
+
+    /// <summary>
+    /// Specifies if the return type fo this selection is a list.
+    /// </summary>
+    bool IsList { get; }
+
+    /// <summary>
+    /// The type that declares the field that is selected by this selection.
+    /// </summary>
+    IObjectType DeclaringType { get; }
 
     /// <summary>
     /// Gets the field selection syntax node.

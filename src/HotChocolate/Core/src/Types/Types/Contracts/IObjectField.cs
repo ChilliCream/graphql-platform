@@ -62,9 +62,4 @@ public interface IObjectField : IOutputField
     /// this property will return <see cref="Member"/>.
     /// </summary>
     MemberInfo? ResolverMember { get; }
-
-    /// <summary>
-    /// Defines that the result of this field might be a stream.
-    /// </summary>
-    bool MaybeStream { get; }
 }

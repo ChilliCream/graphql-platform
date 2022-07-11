@@ -49,6 +49,11 @@ public class Selection : ISelection
             : new[] { includeCondition };
 
         _flags = isInternal ? Flags.Internal : Flags.None;
+
+        if (Type.IsListType())
+        {
+            _flags |= Flags.List;
+        }
     }
 
     protected Selection(Selection selection)
@@ -93,6 +98,9 @@ public class Selection : ISelection
 
     /// <inheritdoc />
     public TypeKind TypeKind => Type.Kind;
+
+    /// <inheritdoc />
+    public bool IsList => (_flags & Flags.List) == Flags.List;
 
     /// <inheritdoc />
     public FieldNode SyntaxNode { get; private set; }
@@ -298,6 +306,8 @@ public class Selection : ISelection
     {
         None = 0,
         Internal = 1,
-        Sealed = 2
+        Sealed = 2,
+        List = 4,
+        Stream = 8
     }
 }
