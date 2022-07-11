@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public readonly struct IncludeCondition : IEquatable<IncludeCondition>
 {
-    private IncludeCondition(IValueNode skip, IValueNode include)
+    internal IncludeCondition(IValueNode skip, IValueNode include)
     {
         Skip = skip;
         Include = include;
@@ -29,9 +29,7 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// If <see cref="Skip"/> and <see cref="Include"/> are null then
     /// there is no valid include condition.
     /// </summary>
-    public bool IsDefault
-        => ReferenceEquals(Skip, null) &&
-            ReferenceEquals(Include, null);
+    public bool IsDefault => Skip is null && Include is null;
 
     /// <summary>
     /// Specifies if selections with this include condition are included with the
@@ -127,6 +125,11 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// </returns>
     public static IncludeCondition FromSelection(ISelectionNode selection)
     {
+        if (selection is null)
+        {
+            throw new ArgumentNullException(nameof(selection));
+        }
+
         IValueNode? skip = null;
         IValueNode? include = null;
 

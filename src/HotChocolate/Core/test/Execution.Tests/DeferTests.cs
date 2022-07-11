@@ -198,19 +198,87 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            hero(episode: NEW_HOPE) {
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... deferred @defer(label: ""friends"", if: false)
+                        }
+                    }
+
+                    fragment deferred on Character {
+                        friends {
+                            nodes {
                                 id
-                                ... deferred @defer(label: ""friends"", if: false)
                             }
                         }
+                    }");
 
-                        fragment deferred on Character {
-                            friends {
-                                nodes {
-                                    id
-                                }
-                            }
-                        }");
+        await Assert.IsType<QueryResult>(result).MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Do_Not_Defer_If_Variable_Set_To_False()
+    {
+        Snapshot.FullName();
+
+        var request = QueryRequestBuilder.New()
+            .SetQuery(
+                @"query($if: Boolean!) {
+                    hero(episode: NEW_HOPE) {
+                        id
+                        ... deferred @defer(label: ""friends"", if: $if)
+                    }
+                }
+
+                fragment deferred on Character {
+                    friends {
+                        nodes {
+                            id
+                        }
+                    }
+                }")
+            .SetVariableValue("if", false)
+            .Create();
+
+        var result =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWarsTypes()
+                .ExecuteRequestAsync(request);
+
+        await Assert.IsType<QueryResult>(result).MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Do_Defer_If_Variable_Set_To_True()
+    {
+        Snapshot.FullName();
+
+        var request = QueryRequestBuilder.New()
+            .SetQuery(
+                @"query($if: Boolean!) {
+                    hero(episode: NEW_HOPE) {
+                        id
+                        ... deferred @defer(label: ""friends"", if: $if)
+                    }
+                }
+
+                fragment deferred on Character {
+                    friends {
+                        nodes {
+                            id
+                        }
+                    }
+                }")
+            .SetVariableValue("if", true)
+            .Create();
+
+        var result =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWarsTypes()
+                .ExecuteRequestAsync(request);
 
         await Assert.IsType<ResponseStream>(result).MatchSnapshotAsync();
     }

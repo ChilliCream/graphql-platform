@@ -119,13 +119,13 @@ internal sealed partial class ResolverTask
             return;
         }
 
-        /*
         // if we are not a list we do not need any further result processing.
-        if (!Selection.IsList)
+        if (!_selection.IsList)
         {
             return;
         }
 
+        /*
         if (Selection.IsStreamable)
         {
             StreamDirective streamDirective =

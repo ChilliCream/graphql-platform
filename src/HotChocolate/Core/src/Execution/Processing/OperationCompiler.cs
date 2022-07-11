@@ -278,6 +278,15 @@ public sealed partial class OperationCompiler
                                 ResolveOptimizers(context.Optimizers, selection.Field)));
                     }
                 }
+
+                // We are waiting for the latest stream and defer spec discussions to be codified
+                // before we change the overall stream handling.
+                //
+                // For now we only allow streams on lists of composite types.
+                //if (selection.SyntaxNode.IsStreamable())
+                // {
+                // var streamDirective = selection.SyntaxNode.GetStreamDirective();
+                // }
             }
 
             selection.SetSelectionSetId(selectionSetId);
@@ -462,10 +471,21 @@ public sealed partial class OperationCompiler
             (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
                 DoesTypeApply(typeCon, context.Type)))
         {
-            includeCondition |= GetSelectionIncludeCondition(selection, includeCondition);
+            includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
 
             if (directives.IsDeferrable())
             {
+                var deferDirective = directives.GetDeferDirective();
+                var nullValue = NullValueNode.Default;
+                var ifValue = deferDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
+
+                long ifConditionFlags = 0;
+                if (ifValue.Kind is not SyntaxKind.NullValue)
+                {
+                    var ifCondition = new IncludeCondition(ifValue, nullValue);
+                    ifConditionFlags = GetSelectionIncludeCondition(ifCondition, includeCondition);
+                }
+
                 var id = GetOrCreateSelectionSetId(selectionSet, context.Path);
                 var variants = GetOrCreateSelectionVariants(id);
                 var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition) };
@@ -485,9 +505,20 @@ public sealed partial class OperationCompiler
                     directives,
                     selectionSetId: id,
                     variants.GetSelectionSet(context.Type),
-                    includeCondition);
+                    includeCondition,
+                    ifConditionFlags);
 
                 context.Fragments.Add(fragment);
+
+                // if we have if condition flags there will be a runtime validation if something
+                // shall be deferred, so we need to prepare for both cases.
+                //
+                // this means that we will collect the fields with our if condition flags as
+                // if the fragment was not deferred.
+                if (ifConditionFlags is not 0)
+                {
+                    CollectFields(context, selectionSet, ifConditionFlags);
+                }
             }
             else
             {
@@ -608,6 +639,44 @@ public sealed partial class OperationCompiler
         return parentIncludeCondition;
     }
 
+    private long GetSelectionIncludeCondition(
+        IncludeCondition condition,
+        long parentIncludeCondition)
+    {
+        var pos = Array.IndexOf(_includeConditions, condition);
+
+        if (pos == -1)
+        {
+            pos = _includeConditions.Length;
+
+            if (pos == 64)
+            {
+                throw new InvalidOperationException(OperationCompiler_ToManyIncludeConditions);
+            }
+
+            if (_includeConditions.Length == 0)
+            {
+                _includeConditions = new IncludeCondition[1];
+            }
+            else
+            {
+                Array.Resize(ref _includeConditions, pos + 1);
+            }
+
+            _includeConditions[pos] = condition;
+        }
+
+        long selectionIncludeCondition = 2 ^ pos;
+
+        if (parentIncludeCondition == 0)
+        {
+            return selectionIncludeCondition;
+        }
+
+        parentIncludeCondition |= selectionIncludeCondition;
+        return parentIncludeCondition;
+    }
+
     private CompilerContext RentContext(CompilerContext context)
     {
         if (_deferContext is null)
@@ -681,7 +750,7 @@ public sealed partial class OperationCompiler
 
         public bool Equals(SelectionPath? other)
         {
-            if (ReferenceEquals(null, other))
+            if (other is null)
             {
                 return false;
             }
@@ -705,7 +774,7 @@ public sealed partial class OperationCompiler
         }
 
         public override bool Equals(object? obj)
-            => ReferenceEquals(this, obj) || obj is SelectionPath other && Equals(other);
+            => ReferenceEquals(this, obj) || (obj is SelectionPath other && Equals(other));
 
         public override int GetHashCode()
             => HashCode.Combine(Name, Parent);

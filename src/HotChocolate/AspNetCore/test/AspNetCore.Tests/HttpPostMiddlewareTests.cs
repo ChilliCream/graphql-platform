@@ -351,6 +351,68 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Ensure_Multipart_Format_Is_Correct_With_Defer_If_Condition_True()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostRawAsync(new ClientQueryRequest
+            {
+                Query = @"
+                    query ($if: Boolean!){
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            ... on Droid @defer(label: ""my_id"", if: $if)
+                            {
+                                id
+                            }
+                        }
+                    }",
+                Variables = new Dictionary<string, object>
+                {
+                    ["if"] = true
+                }
+            });
+
+        // assert
+        result.Content.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_JSON_Format_Is_Correct_With_Defer_If_Condition_False()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result =
+            await server.PostRawAsync(new ClientQueryRequest
+            {
+                Query = @"
+                    query ($if: Boolean!){
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            ... on Droid @defer(label: ""my_id"", if: $if)
+                            {
+                                id
+                            }
+                        }
+                    }",
+                Variables = new Dictionary<string, object>
+                {
+                    ["if"] = false
+                }
+            });
+
+        // assert
+        result.Content.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Ensure_Multipart_Format_Is_Correct_With_Stream()
     {
         // arrange
