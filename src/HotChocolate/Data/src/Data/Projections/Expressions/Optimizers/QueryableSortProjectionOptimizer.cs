@@ -4,7 +4,7 @@ using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 
 namespace HotChocolate.Data.Projections.Handlers;
 
-public class QueryableSortProjectionOptimizer : IProjectionOptimizer
+public sealed class QueryableSortProjectionOptimizer : IProjectionOptimizer
 {
     public bool CanHandle(ISelection field) =>
         field.Field.Member is { } &&

@@ -136,11 +136,11 @@ public class QueryableProjectionFilterTests
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -172,11 +172,11 @@ public class QueryableProjectionFilterTests
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -209,11 +209,11 @@ public class QueryableProjectionFilterTests
     public async Task Create_DeepFilterObjectTwoProjections_Nullable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -245,11 +245,11 @@ public class QueryableProjectionFilterTests
     public async Task Create_ListObjectDifferentLevelProjection_Nullable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -282,11 +282,11 @@ public class QueryableProjectionFilterTests
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
+        var tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -306,11 +306,11 @@ public class QueryableProjectionFilterTests
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_TwoFields()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
+        var tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -332,11 +332,11 @@ public class QueryableProjectionFilterTests
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_Deep()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
+        var tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"

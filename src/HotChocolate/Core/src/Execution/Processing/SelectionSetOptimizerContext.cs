@@ -106,13 +106,9 @@ public readonly ref struct SelectionSetOptimizerContext
     /// </exception>
     public void AddSelection(string responseName, Selection newSelection)
     {
-        if (!NameUtils.IsValidGraphQLName(responseName))
-        {
-            throw new ArgumentException(
-                string.Format(SelectionSetOptimizerContext_InvalidFieldName, responseName));
-        }
-
+        responseName.EnsureGraphQLName();
         _compilerContext.Fields.Add(responseName, newSelection);
+        _compiler.RegisterNewSelection(newSelection);
     }
 
     /// <summary>

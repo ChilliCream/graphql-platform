@@ -146,7 +146,7 @@ public class FilterInputTypeDescriptor<T>
             // This resets the name on the definition. This way we can check if the user has
             // set a custom name. The context the user specifying descriptor.Name("Foo") is
             // preserved this way.
-            fieldDescriptor.Definition.Name = default!;
+            fieldDescriptor.Definition.IsNamed = false;
 
             // we deactivate And and Or by default.
             fieldDescriptor.Definition.UseAnd = false;

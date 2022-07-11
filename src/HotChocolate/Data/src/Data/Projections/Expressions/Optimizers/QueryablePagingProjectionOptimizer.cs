@@ -10,7 +10,7 @@ using static HotChocolate.Data.Projections.WellKnownProjectionFields;
 
 namespace HotChocolate.Data.Projections.Handlers;
 
-public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
+public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
 {
     public bool CanHandle(ISelection field) =>
         field.DeclaringType is IPageType &&
@@ -20,6 +20,13 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         Selection selection)
     {
+        // The selection optimizer will also process the field we just added
+        // we have to avoid processing this field twice.
+        if (context.Selections.ContainsKey(CombinedEdgeField))
+        {
+            return selection;
+        }
+
         if (context.Type.NamedType() is not IPageType pageType)
         {
             throw ThrowHelper

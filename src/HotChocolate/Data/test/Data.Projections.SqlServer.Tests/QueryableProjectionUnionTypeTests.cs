@@ -49,12 +49,12 @@ public class QueryableProjectionUnionTypeTests
     public async Task Create_Union()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -77,7 +77,7 @@ public class QueryableProjectionUnionTypeTests
     public async Task Create_Union_Pagination()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             _cache.CreateSchema(_barEntities,
                 OnModelCreating,
                 configure: x =>
@@ -97,7 +97,7 @@ public class QueryableProjectionUnionTypeTests
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -122,12 +122,12 @@ public class QueryableProjectionUnionTypeTests
     public async Task Create_Union_Nested()
     {
         // arrange
-        IRequestExecutor tester = _cache
+        var tester = _cache
             .CreateSchema(_barNestedEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -152,12 +152,12 @@ public class QueryableProjectionUnionTypeTests
     public async Task Create_Union_NestedList()
     {
         // arrange
-        IRequestExecutor tester = _cache
+        var tester = _cache
             .CreateSchema(_barListEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -182,12 +182,12 @@ public class QueryableProjectionUnionTypeTests
     public async Task Create_Union_Without_Missing()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"

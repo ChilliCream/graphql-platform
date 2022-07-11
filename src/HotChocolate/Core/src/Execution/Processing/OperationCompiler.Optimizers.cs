@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -22,12 +23,13 @@ public partial class OperationCompiler
         if (context.Optimizers.Count == 1)
         {
             context.Optimizers[0].OptimizeSelectionSet(optimizerContext);
-            return;
         }
-
-        for (var i = 0; i < context.Optimizers.Count; i++)
+        else
         {
-            context.Optimizers[i].OptimizeSelectionSet(optimizerContext);
+            for (var i = 0; i < context.Optimizers.Count; i++)
+            {
+                context.Optimizers[i].OptimizeSelectionSet(optimizerContext);
+            }
         }
     }
 
@@ -35,7 +37,7 @@ public partial class OperationCompiler
         IImmutableList<ISelectionSetOptimizer> optimizers,
         IObjectField field)
     {
-        if (!OperationCompilerOptimizerHelper.TryGetOptimizers(field.ContextData, out var fieldOptimizers))
+        if (!TryGetOptimizers(field.ContextData, out var fieldOptimizers))
         {
             return optimizers;
         }

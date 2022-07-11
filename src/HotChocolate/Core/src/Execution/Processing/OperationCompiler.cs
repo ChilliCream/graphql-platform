@@ -654,11 +654,21 @@ public sealed partial class OperationCompiler
         }
     }
 
+    internal void RegisterNewSelection(Selection newSelection)
+    {
+        if (newSelection.SyntaxNode.SelectionSet is not null)
+        {
+            var selectionSetInfo = new SelectionSetInfo(newSelection.SelectionSet!, 0);
+            _selectionLookup.Add(newSelection, new[] { selectionSetInfo });
+        }
+    }
+
     internal sealed class SelectionPath : IEquatable<SelectionPath>
     {
         private SelectionPath(string name, SelectionPath? parent = null)
         {
             Name = name;
+            Parent = parent;
         }
 
         public string Name { get; }

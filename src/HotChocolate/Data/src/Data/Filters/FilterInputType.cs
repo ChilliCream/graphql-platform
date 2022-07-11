@@ -216,7 +216,7 @@ public class FilterInputType
             ITypeCompletionContext context,
             FilterInputTypeDefinition definition)
         {
-            if (!string.IsNullOrEmpty(definition.Name))
+            if (definition.IsNamed)
             {
                 return;
             }

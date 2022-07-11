@@ -475,9 +475,7 @@ public class FilterInputTypeTest : FilterTestBase
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Chapters, d => d.Directive("Foobar")).AllowEquals();
-            descriptor.Field(
-                x => x.Author,
-                d => d.Directive("Foobar").Field(x => x.Id));
+            descriptor.Field( x => x.Author, d => d.Directive("Foobar").Field(x => x.Id));
         }, x => x.AddDirectiveType(
             new DirectiveType(x => x
                 .Name("Foobar")
