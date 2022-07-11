@@ -20,6 +20,11 @@ public interface IFile
     long? Length { get; }
 
     /// <summary>
+    /// Gets the content type of the file if it is available.
+    /// </summary>
+    string? ContentType { get; }
+
+    /// <summary>
     /// Asynchronously copies the contents of the uploaded file to the target stream.
     /// </summary>
     /// <param name="target">
@@ -28,9 +33,7 @@ public interface IFile
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    Task CopyToAsync(
-        Stream target,
-        CancellationToken cancellationToken = default);
+    Task CopyToAsync(Stream target, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Opens the request stream for reading the uploaded file.
