@@ -1413,6 +1413,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ConnectionType_TotalCount_Description {
+            get {
+                return ResourceManager.GetString("ConnectionType_TotalCount_Description", resourceCulture);
+            }
+        }
+
         internal static string CollectionSegmentType_PageInfo_Description {
             get {
                 return ResourceManager.GetString("CollectionSegmentType_PageInfo_Description", resourceCulture);

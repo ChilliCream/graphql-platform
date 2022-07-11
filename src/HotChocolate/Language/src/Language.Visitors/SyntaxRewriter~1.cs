@@ -177,7 +177,6 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-
     protected virtual EnumTypeExtensionNode? RewriteEnumTypeExtension(
         EnumTypeExtensionNode node,
         TContext context)
@@ -296,8 +295,7 @@ public class SyntaxRewriter<TContext>
         TContext context)
     {
         var name = RewriteNode(node.Name, context);
-        var variableDefinitions =
-            RewriteList(node.VariableDefinitions, context);
+        var variableDefinitions = RewriteList(node.VariableDefinitions, context);
         var typeCondition = RewriteNode(node.TypeCondition, context);
         var directives = RewriteList(node.Directives, context);
         var selectionSet = RewriteNode(node.SelectionSet, context);

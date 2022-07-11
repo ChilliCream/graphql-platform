@@ -132,7 +132,7 @@ Below you will find the different types of data loaders with examples for class 
 
 > One - To - One, usually used for fields like `personById` or one to one relations
 
-The batch data loader collects requests for entities and send them as a batch request to the data source. Moreover, the data loader caches the retrieved entries within a request.
+The batch data loader collects requests for entities and sends them as a batch request to the data source. Moreover, the data loader caches the retrieved entries within a request.
 
 The batch data loader gets the keys as `IReadOnlyList<TKey>` and returns an `IReadOnlyDictionary<TKey, TValue>`.
 
@@ -190,7 +190,7 @@ public Task<Person> GetPerson(
 }
 ```
 
-_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/graphql-workshop/blob/master/code/complete/GraphQL/DataLoader/TrackByIdDataLoader.cs)._
+_An example with the **Batch DataLoader** can be found [here](https://github.com/ChilliCream/graphql-workshop/blob/master/code/complete/GraphQL/DataLoader/TrackByIdDataLoader.cs)._
 
 ## Group DataLoader
 
