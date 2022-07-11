@@ -109,6 +109,11 @@ internal static class DirectiveCollectionExtensions
     }
 
     internal static StreamDirective? GetStreamDirective(
+        this ISelection selection,
+        IVariableValueCollection variables) =>
+        selection.SyntaxNode.Directives.GetStreamDirective(variables);
+
+    internal static StreamDirective? GetStreamDirective(
         this IReadOnlyList<DirectiveNode> directives,
         IVariableValueCollection variables)
     {
@@ -180,6 +185,10 @@ internal static class DirectiveCollectionExtensions
     internal static DirectiveNode? GetDeferDirective(
         this IReadOnlyList<DirectiveNode> directives) =>
         GetDirective(directives, WellKnownDirectives.Defer);
+
+    internal static DirectiveNode? GetStreamDirective(
+        this FieldNode selection) =>
+        GetDirective(selection.Directives, WellKnownDirectives.Stream);
 
     internal static DirectiveNode? GetStreamDirective(
         this IReadOnlyList<DirectiveNode> directives) =>

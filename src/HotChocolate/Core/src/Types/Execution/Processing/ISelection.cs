@@ -81,4 +81,6 @@ public interface ISelection : IOptionalSelection
     /// The arguments that have been pre-coerced for this field selection.
     /// </summary>
     IArgumentMap Arguments { get; }
+
+    bool IsStream(long includeFlags);
 }

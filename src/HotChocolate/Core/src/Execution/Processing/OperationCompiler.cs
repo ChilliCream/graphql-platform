@@ -283,10 +283,21 @@ public sealed partial class OperationCompiler
                 // before we change the overall stream handling.
                 //
                 // For now we only allow streams on lists of composite types.
-                //if (selection.SyntaxNode.IsStreamable())
-                // {
-                // var streamDirective = selection.SyntaxNode.GetStreamDirective();
-                // }
+                if (selection.SyntaxNode.IsStreamable())
+                {
+                     var streamDirective = selection.SyntaxNode.GetStreamDirective();
+                     var nullValue = NullValueNode.Default;
+                     var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
+                     long ifConditionFlags = 0;
+
+                     if (ifValue.Kind is not SyntaxKind.NullValue)
+                     {
+                         var ifCondition = new IncludeCondition(ifValue, nullValue);
+                         ifConditionFlags = GetSelectionIncludeCondition(ifCondition, 0);
+                     }
+
+                     selection.MarkAsStream(ifConditionFlags);
+                }
             }
 
             selection.SetSelectionSetId(selectionSetId);
