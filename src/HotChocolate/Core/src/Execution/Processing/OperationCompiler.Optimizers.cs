@@ -31,20 +31,6 @@ public partial class OperationCompiler
                 context.Optimizers[i].OptimizeSelectionSet(optimizerContext);
             }
         }
-
-        if (_newSelections.Count > 0)
-        {
-            for (var i = 0; i < _newSelections.Count; i++)
-            {
-                if (_newSelections[i].SelectionSet is not null)
-                {
-                    var selectionSetInfo = new SelectionSetInfo(_newSelections[i].SelectionSet!, 0);
-                    _selectionLookup.Add(_newSelections[i], new[] { selectionSetInfo });
-                }
-            }
-
-            _newSelections.Clear();
-        }
     }
 
     private IImmutableList<ISelectionSetOptimizer> ResolveOptimizers(
