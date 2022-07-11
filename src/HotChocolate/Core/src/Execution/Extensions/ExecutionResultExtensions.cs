@@ -7,6 +7,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 using static HotChocolate.Execution.Properties.Resources;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate;
 
 public static class ExecutionResultExtensions

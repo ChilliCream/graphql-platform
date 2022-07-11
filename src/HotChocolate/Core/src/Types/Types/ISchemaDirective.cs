@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a schema building directive that allows to rewrite 
+/// Represents a schema building directive that allows to rewrite
 /// the schema when using SDL first.
 /// </summary>
 public interface ISchemaDirective
@@ -14,10 +14,10 @@ public interface ISchemaDirective
     /// <summary>
     /// Gets the name of the schema directive.
     /// </summary>
-    NameString Name { get; }
+    string Name { get; }
 
     /// <summary>
-    /// Applies the configuration of this directive 
+    /// Applies the configuration of this directive
     /// to the annotated type system member.
     /// </summary>
     /// <param name="context">

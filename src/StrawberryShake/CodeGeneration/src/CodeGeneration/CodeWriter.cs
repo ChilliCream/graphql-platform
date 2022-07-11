@@ -96,7 +96,7 @@ public class CodeWriter : TextWriter
         WriteLine();
 
 #pragma warning disable CA2000
-        IDisposable indent = IncreaseIndent();
+        var indent = IncreaseIndent();
 #pragma warning restore CA2000
 
         return new Block(() =>

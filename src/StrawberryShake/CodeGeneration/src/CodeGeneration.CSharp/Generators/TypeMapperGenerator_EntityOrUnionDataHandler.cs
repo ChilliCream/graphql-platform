@@ -33,7 +33,7 @@ public partial class TypeMapperGenerator
         var dataHandlerMethodName =
             MapMethodNameFromTypeName(complexTypeDescriptor) + "Entity";
 
-        MethodBuilder complexDataHandler = MethodBuilder
+        var complexDataHandler = MethodBuilder
             .New()
             .SetReturnType(
                 complexTypeDescriptor.RuntimeType.ToString().MakeNullable(!isNonNullable))
@@ -52,7 +52,7 @@ public partial class TypeMapperGenerator
         var entityDataHandlerMethodName =
             MapMethodNameFromTypeName(complexTypeDescriptor) + "Data";
 
-        MethodBuilder entityDataHandler = MethodBuilder
+        var entityDataHandler = MethodBuilder
             .New()
             .SetReturnType(
                 complexTypeDescriptor.RuntimeType.ToString().MakeNullable(!isNonNullable))
@@ -72,7 +72,7 @@ public partial class TypeMapperGenerator
 
         var parameterName = isNonNullable ? _dataParameterName : $"{_dataParameterName}.Value";
 
-        IfBuilder ifBuilder = IfBuilder
+        var ifBuilder = IfBuilder
             .New()
             .SetCondition($"{parameterName}.EntityId is {{ }} id")
             .AddCode(MethodCallBuilder

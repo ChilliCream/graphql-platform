@@ -18,8 +18,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
     public void Create_MethodSimple_Expression()
     {
         // arrange
-        IValueNode value = Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
-        ExecutorBuilder tester = CreateProviderTester(
+        var value = Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
+        var tester = CreateProviderTester(
             new FooFilterInput(),
             new FilterConvention(
                 x =>
@@ -35,7 +35,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 }));
 
         // act
-        Func<Foo, bool> func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -49,7 +49,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
     public void Create_MethodComplex_Expression()
     {
         // arrange
-        ExecutorBuilder tester = CreateProviderTester(
+        var tester = CreateProviderTester(
             new FooFilterInput(),
             new FilterConvention(
                 x =>
@@ -64,14 +64,14 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                                 .AddDefaultFieldHandlers()));
                 }));
 
-        IValueNode valueTrue = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var valueTrue = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ complex: {parameter:\"a\", eq:\"a\" }}");
 
-        IValueNode valueFalse = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var valueFalse = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ complex: {parameter:\"a\", eq:\"b\" }}");
         // act
-        Func<Foo, bool> funcTrue = tester.Build<Foo>(valueTrue);
-        Func<Foo, bool> funcFalse = tester.Build<Foo>(valueFalse);
+        var funcTrue = tester.Build<Foo>(valueTrue);
+        var funcFalse = tester.Build<Foo>(valueFalse);
 
         // assert
         var a = new Foo();
@@ -191,7 +191,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                     throw new InvalidOperationException();
                 }
 
-                object? value =
+                var value =
                     _inputParser
                         .ParseLiteral(parameterNode, operationType.Fields["parameter"].Type);
 

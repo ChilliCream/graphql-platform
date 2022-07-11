@@ -9,8 +9,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Neo4J.Sorting;
 
 /// <inheritdoc />
-public class Neo4JSortProvider
-    : SortProvider<Neo4JSortVisitorContext>
+public class Neo4JSortProvider : SortProvider<Neo4JSortVisitorContext>
 {
     /// <inheritdoc/>
     public Neo4JSortProvider()
@@ -30,7 +29,7 @@ public class Neo4JSortProvider
         = new();
 
     /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
     {
         return next => context => ExecuteAsync(next, context);
 
@@ -38,8 +37,8 @@ public class Neo4JSortProvider
             FieldDelegate next,
             IMiddlewareContext context)
         {
-            IInputField argument = context.Field.Arguments[argumentName];
-            IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
+            var argument = context.Selection.Arguments[argumentName];
+            var filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
             if (filter is not NullValueNode &&
                 argument.Type is ListType listType &&
@@ -50,20 +49,18 @@ public class Neo4JSortProvider
 
                 Visitor.Visit(filter, visitorContext);
 
-                if (!visitorContext.TryCreateQuery(out Neo4JSortDefinition[]? sorts) ||
+                if (!visitorContext.TryCreateQuery(out var sorts) ||
                     visitorContext.Errors.Count > 0)
                 {
                     context.Result = Array.Empty<TEntityType>();
-                    foreach (IError error in visitorContext.Errors)
+                    foreach (var error in visitorContext.Errors)
                     {
                         context.ReportError(error.WithPath(context.Path));
                     }
                 }
                 else
                 {
-                    context.LocalContextData =
-                        context.LocalContextData.SetItem("Sorting", sorts);
-
+                    context.SetLocalState("Sorting", sorts);
                     await next(context).ConfigureAwait(false);
 
                     if (context.Result is INeo4JExecutable executable)

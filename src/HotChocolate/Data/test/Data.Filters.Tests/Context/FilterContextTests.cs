@@ -47,9 +47,9 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        IFilterFieldInfo field = Assert.Single(context!.GetFields());
+        var field = Assert.Single(context!.GetFields());
         Assert.Empty(context.GetOperations());
-        IFilterOperationInfo operation =
+        var operation =
             Assert.Single(Assert.IsType<FilterInfo>(field.Value).GetOperations());
         Assert.Empty(Assert.IsType<FilterInfo>(field.Value).GetFields());
         Assert.Equal("title", field.Field.Name);
@@ -90,9 +90,9 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        IFilterFieldInfo field = Assert.Single(context!.GetFields());
+        var field = Assert.Single(context!.GetFields());
         Assert.Empty(context.GetOperations());
-        IFilterOperationInfo operation =
+        var operation =
             Assert.Single(Assert.IsType<FilterInfo>(field.Value).GetOperations());
         Assert.Empty(Assert.IsType<FilterInfo>(field.Value).GetFields());
         Assert.Equal("title", field.Field.Name);
@@ -141,7 +141,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        IFilterOperationInfo operation = Assert.Single(context!.GetOperations());
+        var operation = Assert.Single(context!.GetOperations());
         Assert.Empty(context!.GetFields());
         var valueCollection = Assert.IsType<FilterValueCollection>(operation.Value);
         var field0 = Assert.Single(Assert.IsType<FilterInfo>(valueCollection[0]).GetFields());
@@ -189,11 +189,11 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        IFilterFieldInfo author = Assert.Single(context!.GetFields());
+        var author = Assert.Single(context!.GetFields());
         Assert.Empty(context.GetOperations());
-        IFilterFieldInfo name = Assert.Single(Assert.IsType<FilterInfo>(author.Value).GetFields());
+        var name = Assert.Single(Assert.IsType<FilterInfo>(author.Value).GetFields());
         Assert.Empty(Assert.IsType<FilterInfo>(author.Value).GetOperations());
-        IFilterOperationInfo operation =
+        var operation =
             Assert.Single(Assert.IsType<FilterInfo>(name.Value).GetOperations());
         Assert.Empty(Assert.IsType<FilterInfo>(name.Value).GetFields());
         Assert.Equal("author", author.Field.Name);

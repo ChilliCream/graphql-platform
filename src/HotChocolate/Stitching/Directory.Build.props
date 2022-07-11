@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <LibraryTargetFrameworks>net6.0</LibraryTargetFrameworks>
+    <TestTargetFrameworks>net6.0</TestTargetFrameworks>
   </PropertyGroup>
 
 </Project>

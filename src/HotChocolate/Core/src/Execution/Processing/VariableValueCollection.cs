@@ -18,7 +18,7 @@ internal class VariableValueCollection : IVariableValueCollection
     public static VariableValueCollection Empty { get; } =
         new(new Dictionary<string, VariableValueOrLiteral>());
 
-    public T? GetVariable<T>(NameString name)
+    public T? GetVariable<T>(string name)
     {
         if (TryGetVariable(name, out T? value))
         {
@@ -33,11 +33,16 @@ internal class VariableValueCollection : IVariableValueCollection
         throw ThrowHelper.VariableNotFound(name);
     }
 
-    public bool TryGetVariable<T>(NameString name, out T? value)
+    public bool TryGetVariable<T>(string name, out T? value)
     {
-        if (_coercedValues.TryGetValue(name.Value, out VariableValueOrLiteral variableValue))
+        if (string.IsNullOrEmpty(name))
         {
-            Type requestedType = typeof(T);
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        if (_coercedValues.TryGetValue(name, out var variableValue))
+        {
+            var requestedType = typeof(T);
 
             if (requestedType == typeof(IValueNode))
             {
@@ -82,10 +87,10 @@ internal class VariableValueCollection : IVariableValueCollection
 
     public IEnumerator<VariableValue> GetEnumerator()
     {
-        foreach (KeyValuePair<string, VariableValueOrLiteral> item in _coercedValues)
+        foreach (var item in _coercedValues)
         {
-            IInputType type = item.Value.Type;
-            IValueNode value = item.Value.ValueLiteral;
+            var type = item.Value.Type;
+            var value = item.Value.ValueLiteral;
             yield return new VariableValue(item.Key, type, value);
         }
     }

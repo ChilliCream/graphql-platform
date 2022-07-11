@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using HotChocolate.Diagnostics.Scopes;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
@@ -102,7 +103,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             return EmptyScope;
         }
 
-        Activity? activity = Source.StartActivity();
+        var activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -134,7 +135,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             return EmptyScope;
         }
 
-        Activity? activity = Source.StartActivity();
+        var activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -154,7 +155,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
             var activity = (Activity)value;
 
-            foreach (IError error in errors)
+            foreach (var error in errors)
             {
                 _enricher.EnrichValidationError(context, activity, error);
             }
@@ -171,7 +172,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             return EmptyScope;
         }
 
-        Activity? activity = Source.StartActivity();
+        var activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -227,7 +228,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             return EmptyScope;
         }
 
-        Activity? activity = Source.StartActivity();
+        var activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -244,7 +245,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             return EmptyScope;
         }
 
-        Activity? activity = Source.StartActivity();
+        var activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -261,7 +262,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             return EmptyScope;
         }
 
-        Activity? activity = Source.StartActivity();
+        var activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -271,9 +272,9 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return new ExecuteOperationScope(_enricher, context, activity);
     }
 
-    public override IDisposable ExecuteStream(IRequestContext context)
+    public override IDisposable ExecuteStream(IOperation operation)
     {
-        Activity? activity = Source.StartActivity();
+        var activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -288,7 +289,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
     public override IDisposable OnSubscriptionEvent(SubscriptionEventContext subscription)
     {
-        Activity? activity = Source.StartActivity();
+        var activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -305,7 +306,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             return EmptyScope;
         }
 
-        Activity? activity = Source.StartActivity();
+        var activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -318,7 +319,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
         context.SetLocalState(ResolverActivity, activity);
 
-        return activity!;
+        return activity;
     }
 
     public override void ResolverError(IMiddlewareContext context, IError error)
@@ -335,4 +336,3 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         }
     }
 }
-

@@ -14,27 +14,27 @@ public class PostalCodeType : StringType
     /// </summary>
     private static readonly Regex[] _validationPatterns =
         new[]
-            {
-                    PostalCodePatterns.US,
-                    PostalCodePatterns.UK,
-                    PostalCodePatterns.DE,
-                    PostalCodePatterns.CA,
-                    PostalCodePatterns.FR,
-                    PostalCodePatterns.IT,
-                    PostalCodePatterns.AU,
-                    PostalCodePatterns.NL,
-                    PostalCodePatterns.ES,
-                    PostalCodePatterns.DK,
-                    PostalCodePatterns.SE,
-                    PostalCodePatterns.BE,
-                    PostalCodePatterns.IN,
-                    PostalCodePatterns.AT,
-                    PostalCodePatterns.PT,
-                    PostalCodePatterns.CH,
-                    PostalCodePatterns.LU
-            }
-            .Select(x => new Regex(x, RegexOptions.Compiled | RegexOptions.IgnoreCase))
-            .ToArray();
+        {
+            PostalCodePatterns.US,
+            PostalCodePatterns.UK,
+            PostalCodePatterns.DE,
+            PostalCodePatterns.CA,
+            PostalCodePatterns.FR,
+            PostalCodePatterns.IT,
+            PostalCodePatterns.AU,
+            PostalCodePatterns.NL,
+            PostalCodePatterns.ES,
+            PostalCodePatterns.DK,
+            PostalCodePatterns.SE,
+            PostalCodePatterns.BE,
+            PostalCodePatterns.IN,
+            PostalCodePatterns.AT,
+            PostalCodePatterns.PT,
+            PostalCodePatterns.CH,
+            PostalCodePatterns.LU
+        }
+        .Select(x => new Regex(x, RegexOptions.Compiled | RegexOptions.IgnoreCase))
+        .ToArray();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostalCodeType"/> class.
@@ -50,7 +50,7 @@ public class PostalCodeType : StringType
     /// Initializes a new instance of the <see cref="PostalCodeType"/> class.
     /// </summary>
     public PostalCodeType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, description, bind)

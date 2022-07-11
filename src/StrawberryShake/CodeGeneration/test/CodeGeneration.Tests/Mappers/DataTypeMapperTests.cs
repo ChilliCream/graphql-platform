@@ -15,7 +15,7 @@ public class DataTypeMapperTests
     public async Task MapDataTypeDescriptors_SimpleCase()
     {
         // arrange
-        ClientModel clientModel = await CreateClientModelAsync(
+        var clientModel = await CreateClientModelAsync(
             @"query GetHeroNodes {
                   hero(episode: NEW_HOPE) {
                     friends {
@@ -114,7 +114,7 @@ public class DataTypeMapperTests
     public void MapDataTypeDescriptors_DataUnionType()
     {
         // arrange
-        ClientModel clientModel =
+        var clientModel =
             CreateClientModelAsync("union.query3.graphql", "union.schema.graphql");
 
         // act

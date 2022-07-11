@@ -75,7 +75,7 @@ internal class InputObjectToDictionaryConverter
 
             for (var i = 0; i < type.Fields.Count; i++)
             {
-                InputField field = type.Fields[i];
+                var field = type.Fields[i];
                 void SetField(object value) => dict[field.Name] = value;
                 VisitValue(field.Type, fieldValues[i], SetField, processed);
             }
@@ -105,7 +105,7 @@ internal class InputObjectToDictionaryConverter
     {
         if (type is IHasRuntimeType hasClrType)
         {
-            Type currentType = obj.GetType();
+            var currentType = obj.GetType();
             var normalized = currentType == hasClrType.RuntimeType
                 ? obj
                 : _converter.Convert(currentType, hasClrType.RuntimeType, obj);

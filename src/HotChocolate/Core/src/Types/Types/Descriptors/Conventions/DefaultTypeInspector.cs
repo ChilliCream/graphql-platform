@@ -68,7 +68,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 
     private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored)
     {
-        foreach (MemberInfo member in type.GetMembers(Instance | Public))
+        foreach (var member in type.GetMembers(Instance | Public))
         {
             if (CanBeHandled(member, includeIgnored))
             {
@@ -156,7 +156,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             throw new ArgumentNullException(nameof(parameter));
         }
 
-        IExtendedType argumentType = GetArgumentTypeInternal(parameter);
+        var argumentType = GetArgumentTypeInternal(parameter);
         return ignoreAttributes
             ? argumentType
             : ApplyTypeAttributes(argumentType, parameter);
@@ -166,7 +166,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     {
         var method = (MethodInfo)parameter.Member;
 
-        if (!_methods.TryGetValue(method, out ExtendedMethodInfo? info))
+        if (!_methods.TryGetValue(method, out var info))
         {
             info = ExtendedType.FromMethod(method, _typeCache);
             _methods[method] = info;
@@ -252,7 +252,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             throw new ArgumentNullException(nameof(value));
         }
 
-        Type enumType = value.GetType();
+        var enumType = value.GetType();
 
         if (enumType.IsEnum)
         {
@@ -297,7 +297,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         // if we have a resolver type on the other hand the load method must
         // include the type name and can be an instance method.
         // first we will check for static load methods.
-        MethodInfo? method = resolverType
+        var method = resolverType
             .GetMembers(Static | Public | FlattenHierarchy)
             .OfType<MethodInfo>()
             .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
@@ -370,7 +370,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         IDescriptor descriptor,
         ICustomAttributeProvider attributeProvider)
     {
-        foreach (DescriptorAttribute attr in
+        foreach (var attr in
             GetCustomAttributes<DescriptorAttribute>(attributeProvider, true)
                 .OrderBy(t => t.Order))
         {
@@ -542,7 +542,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         IExtendedType type,
         [NotNullWhen(true)] out ITypeInfo? typeInfo)
     {
-        if (TypeInfo.TryCreate(type, _typeCache, out TypeInfo? t))
+        if (TypeInfo.TryCreate(type, _typeCache, out var t))
         {
             typeInfo = t;
             return true;
@@ -556,7 +556,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         IExtendedType type,
         ICustomAttributeProvider attributeProvider)
     {
-        IExtendedType resultType = type;
+        var resultType = type;
 
         var hasGraphQLTypeAttribute = false;
 
@@ -660,7 +660,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         {
             if (returnType.IsGenericType)
             {
-                Type returnTypeDefinition = returnType.GetGenericTypeDefinition();
+                var returnTypeDefinition = returnType.GetGenericTypeDefinition();
 
                 if (returnTypeDefinition == typeof(ValueTask<>) ||
                     returnTypeDefinition == typeof(Task<>))
@@ -730,7 +730,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 
         if (parameter.ParameterType.IsGenericType)
         {
-            Type parameterTypeDefinition = parameter.ParameterType.GetGenericTypeDefinition();
+            var parameterTypeDefinition = parameter.ParameterType.GetGenericTypeDefinition();
 
             if (parameterTypeDefinition == typeof(ValueTask<>) ||
                 parameterTypeDefinition == typeof(Task<>))
@@ -798,11 +798,11 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         out object? defaultValue)
     {
         defaultValue = null;
-        ConstructorInfo[] constructors = property.DeclaringType!.GetConstructors();
+        var constructors = property.DeclaringType!.GetConstructors();
 
         if (constructors.Length == 1)
         {
-            foreach (ParameterInfo parameter in constructors[0].GetParameters())
+            foreach (var parameter in constructors[0].GetParameters())
             {
                 if (parameter.Name.EqualsOrdinal(property.Name))
                 {

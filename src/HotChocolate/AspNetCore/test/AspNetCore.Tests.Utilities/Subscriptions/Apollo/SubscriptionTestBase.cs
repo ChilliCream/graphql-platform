@@ -25,7 +25,7 @@ public class SubscriptionTestBase : ServerTestBase
         CancellationToken cancellationToken)
         => WaitForMessage(webSocket, type, TimeSpan.FromMilliseconds(500), cancellationToken);
 
-    protected async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
+    protected async Task<IReadOnlyDictionary<string, object>?> WaitForMessage(
         WebSocket webSocket,
         string type,
         TimeSpan timeout,
@@ -108,7 +108,7 @@ public class SubscriptionTestBase : ServerTestBase
 
     protected static WebSocketClient CreateWebSocketClient(TestServer testServer)
     {
-        WebSocketClient client = testServer.CreateWebSocketClient();
+        var client = testServer.CreateWebSocketClient();
         client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");
         return client;
     }
@@ -117,7 +117,7 @@ public class SubscriptionTestBase : ServerTestBase
     {
         // we will try four times ....
         using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 60_000);
-        CancellationToken ct = cts.Token;
+        var ct = cts.Token;
         var count = 0;
         var wait = 50;
 

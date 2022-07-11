@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
+using HotChocolate.Execution.Internal;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -18,6 +17,20 @@ internal sealed partial class ResolverTask
             {
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
+
+                switch (_taskBuffer.Count)
+                {
+                    case 0:
+                        break;
+
+                    case 1:
+                        _operationContext.Scheduler.Register(_taskBuffer[0]);
+                        break;
+
+                    default:
+                        _operationContext.Scheduler.Register(_taskBuffer);
+                        break;
+                }
             }
 
             Status = _completionStatus;
@@ -36,9 +49,11 @@ internal sealed partial class ResolverTask
             Status = ExecutionTaskStatus.Faulted;
             _resolverContext.Result = null;
         }
-
-        _operationContext.Scheduler.Complete(this);
-        _objectPool.Return(this);
+        finally
+        {
+            _operationContext.Scheduler.Complete(this);
+            _objectPool.Return(this);
+        }
     }
 
     private async ValueTask<bool> TryExecuteAsync(CancellationToken cancellationToken)
@@ -65,9 +80,7 @@ internal sealed partial class ResolverTask
 
             // if this field has arguments that contain variables we first need to coerce them
             // before we can start executing the resolver.
-            if (Selection.Arguments.TryCoerceArguments(
-                _resolverContext,
-                out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
+            if (Selection.Arguments.TryCoerceArguments(_resolverContext, out var coercedArgs))
             {
                 _resolverContext.Arguments = coercedArgs;
                 await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
@@ -106,6 +119,7 @@ internal sealed partial class ResolverTask
             return;
         }
 
+        /*
         // if we are not a list we do not need any further result processing.
         if (!Selection.IsList)
         {
@@ -133,6 +147,7 @@ internal sealed partial class ResolverTask
                     .ConfigureAwait(false);
             return;
         }
+        */
 
         switch (_resolverContext.Result)
         {
@@ -162,6 +177,7 @@ internal sealed partial class ResolverTask
         }
     }
 
+    /*
     private async ValueTask<List<object?>> CreateStreamResultAsync(
         StreamDirective streamDirective)
     {
@@ -233,6 +249,7 @@ internal sealed partial class ResolverTask
 
         return list;
     }
+    */
 
     public void CompleteUnsafe()
     {

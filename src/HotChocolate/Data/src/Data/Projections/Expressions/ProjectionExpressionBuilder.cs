@@ -13,7 +13,7 @@ internal static class ProjectionExpressionBuilder
         Type type,
         IEnumerable<MemberBinding> expressions)
     {
-        NewExpression ctor = Expression.New(type);
+        var ctor = Expression.New(type);
         return Expression.MemberInit(ctor, expressions);
     }
 

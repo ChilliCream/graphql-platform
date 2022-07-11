@@ -25,7 +25,7 @@ public static class SyntaxPrinter
     /// </returns>
     public static string Print(this ISyntaxNode node, bool indented = true)
     {
-        StringSyntaxWriter writer = StringSyntaxWriter.Rent();
+        var writer = StringSyntaxWriter.Rent();
 
         try
         {

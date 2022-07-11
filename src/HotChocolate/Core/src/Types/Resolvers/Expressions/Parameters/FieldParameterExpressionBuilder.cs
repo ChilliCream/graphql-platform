@@ -22,7 +22,7 @@ internal sealed class FieldParameterExpressionBuilder
 
     public override Expression Build(ParameterInfo parameter, Expression context)
     {
-        Expression expression = base.Build(parameter, context);
+        var expression = base.Build(parameter, context);
 
         return parameter.ParameterType != typeof(IOutputField)
             ? Expression.Convert(expression, parameter.ParameterType)

@@ -24,14 +24,14 @@ public class QueryableProjectionExtensionsTests
     public async Task Extensions_Should_ProjectQuery()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddProjections()
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ shouldWork { bar baz }}")
@@ -45,14 +45,14 @@ public class QueryableProjectionExtensionsTests
     public async Task Extension_Should_BeTypeMissMatch()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddProjections()
             .CreateExecptionExecutor();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ typeMissmatch { bar baz }}")
@@ -66,14 +66,14 @@ public class QueryableProjectionExtensionsTests
     public async Task Extension_Should_BeMissingMiddleware()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddProjections()
             .CreateExecptionExecutor();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ missingMiddleware { bar baz }}")

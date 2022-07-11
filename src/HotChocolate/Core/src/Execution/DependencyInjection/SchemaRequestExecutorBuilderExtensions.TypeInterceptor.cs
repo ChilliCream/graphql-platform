@@ -2,9 +2,9 @@ using System;
 using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions

@@ -34,7 +34,7 @@ public class BsonType : ScalarType
     /// Initializes a new instance of the <see cref="BsonType"/> class.
     /// </summary>
     public BsonType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

@@ -25,7 +25,7 @@ public class QueryableFilteringExtensionsTests
     public async Task Test()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x =>
             {
@@ -40,7 +40,7 @@ public class QueryableFilteringExtensionsTests
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
@@ -54,14 +54,14 @@ public class QueryableFilteringExtensionsTests
     public async Task Extensions_Should_FilterQuery()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddFiltering()
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
@@ -75,14 +75,14 @@ public class QueryableFilteringExtensionsTests
     public async Task Extension_Should_BeTypeMissMatch()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddFiltering()
             .CreateExecptionExecutor();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ typeMissmatch(where: {bar: {eq: true}}) { bar baz }}")
@@ -96,14 +96,14 @@ public class QueryableFilteringExtensionsTests
     public async Task Extension_Should_BeMissingMiddleware()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddFiltering()
             .CreateExecptionExecutor();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ missingMiddleware { bar baz }}")

@@ -25,7 +25,7 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     protected override ObjectTypeDefinition CreateDefinition(
         ITypeDiscoveryContext context)
     {
-        ObjectTypeExtensionDescriptor<T> descriptor =
+        var descriptor =
             ObjectTypeDescriptor.NewExtension<T>(context.DescriptorContext);
 
         _configure!(descriptor);

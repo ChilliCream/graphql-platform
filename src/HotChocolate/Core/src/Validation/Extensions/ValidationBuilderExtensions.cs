@@ -143,7 +143,7 @@ public static partial class HotChocolateValidationBuilderExtensions
         return builder.ConfigureValidation((s, m) =>
             m.Modifiers.Add(o =>
             {
-                T instance = factory(s, o);
+                var instance = factory(s, o);
                 if (o.Rules.All(t => t.GetType() != instance.GetType()))
                 {
                     o.Rules.Add(instance);

@@ -47,7 +47,7 @@ internal class CostTypeInterceptor : TypeInterceptor
             definition is ObjectTypeDefinition objectDef &&
             objectDef.Fields.Any(CanApplyDefaultCost))
         {
-            IExtendedType directive =
+            var directive =
                 discoveryContext.TypeInspector.GetType(typeof(CostDirectiveType));
 
             discoveryContext.Dependencies.Add(new(
@@ -69,7 +69,7 @@ internal class CostTypeInterceptor : TypeInterceptor
         if (!completionContext.IsIntrospectionType &&
             definition is ObjectTypeDefinition objectDef)
         {
-            foreach (ObjectFieldDefinition field in objectDef.Fields)
+            foreach (var field in objectDef.Fields)
             {
                 if (CanApplyDefaultCost(field))
                 {
@@ -119,13 +119,13 @@ internal class CostTypeInterceptor : TypeInterceptor
             return false;
         }
 
-        IReadOnlyList<DirectiveDefinition> directives = field.GetDirectives();
+        var directives = field.GetDirectives();
         return directives is { Count: 0 } || !directives.Any(IsCostDirective);
     }
 
     private static bool IsCostDirective(DirectiveDefinition directive)
     {
-        if (directive.Reference is NameDirectiveReference { Name: { Value: "cost" } })
+        if (directive.Reference is NameDirectiveReference { Name: "cost" })
         {
             return true;
         }
@@ -154,7 +154,7 @@ internal class CostTypeInterceptor : TypeInterceptor
             return true;
         }
 
-        MemberInfo? resolver = field.ResolverMember ?? field.Member;
+        var resolver = field.ResolverMember ?? field.Member;
 
         if (resolver is MethodInfo method)
         {

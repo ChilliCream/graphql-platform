@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -31,11 +30,11 @@ public static class DataTypeDescriptorMapper
             .OfType<UnionType>()
             .ToList();
 
-        var dataTypeInfos = new Dictionary<NameString, DataTypeInfo>();
+        var dataTypeInfos = new Dictionary<string, DataTypeInfo>(StringComparer.Ordinal);
 
-        foreach (ObjectTypeDescriptor dataType in dataTypes)
+        foreach (var dataType in dataTypes)
         {
-            ObjectType objectType = model.Schema.GetType<ObjectType>(dataType.Name);
+            var objectType = model.Schema.GetType<ObjectType>(dataType.Name);
 
             var abstractTypes = new List<INamedType>();
             abstractTypes.AddRange(unionTypes.Where(t => t.ContainsType(dataType.Name)));
@@ -45,7 +44,7 @@ public static class DataTypeDescriptorMapper
             {
                 dataTypeInfo = new DataTypeInfo(dataType.Name, dataType.Description);
                 dataTypeInfo.AbstractTypeParentName.AddRange(
-                    abstractTypes.Select(abstractType => abstractType.Name.Value));
+                    abstractTypes.Select(abstractType => abstractType.Name));
                 dataTypeInfos.Add(dataType.Name, dataTypeInfo);
             }
 
@@ -54,7 +53,7 @@ public static class DataTypeDescriptorMapper
 
         var handledAbstractTypes = new HashSet<string>();
 
-        foreach (DataTypeInfo dataTypeInfo in dataTypeInfos.Values)
+        foreach (var dataTypeInfo in dataTypeInfos.Values)
         {
             var implements = new List<string>();
 
@@ -89,19 +88,19 @@ public static class DataTypeDescriptorMapper
 
     private sealed class DataTypeInfo
     {
-        public DataTypeInfo(NameString name, string? description)
+        public DataTypeInfo(string name, string? description)
         {
             Name = name;
-            Components = new HashSet<NameString>();
+            Components = new HashSet<string>();
             AbstractTypeParentName = new List<string>();
             Description = description;
         }
 
-        public NameString Name { get; }
+        public string Name { get; }
 
         public string? Description { get; }
 
-        public HashSet<NameString> Components { get; }
+        public HashSet<string> Components { get; }
 
         public List<string> AbstractTypeParentName { get; }
     }

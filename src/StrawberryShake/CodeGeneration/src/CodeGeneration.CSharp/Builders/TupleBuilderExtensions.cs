@@ -20,7 +20,7 @@ public static class TupleBuilderExtensions
         this TupleBuilder builder,
         IEnumerable<ICode> range)
     {
-        foreach (ICode member in range)
+        foreach (var member in range)
         {
             builder.AddMember(member);
         }

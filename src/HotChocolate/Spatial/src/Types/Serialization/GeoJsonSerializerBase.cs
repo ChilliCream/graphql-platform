@@ -154,7 +154,7 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
         foreach (var field in obj.Fields)
         {
             var fieldName = field.Name.Value;
-            IValueNode syntaxNode = field.Value;
+            var syntaxNode = field.Value;
 
             if (TypeFieldName.EqualsInvariantIgnoreCase(fieldName))
             {

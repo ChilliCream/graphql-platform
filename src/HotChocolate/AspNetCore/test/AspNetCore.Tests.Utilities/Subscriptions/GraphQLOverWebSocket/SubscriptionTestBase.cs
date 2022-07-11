@@ -108,7 +108,7 @@ public class SubscriptionTestBase : ServerTestBase
 
     protected static WebSocketClient CreateWebSocketClient(TestServer testServer)
     {
-        WebSocketClient client = testServer.CreateWebSocketClient();
+        var client = testServer.CreateWebSocketClient();
         client.ConfigureRequest = r => r.Headers.Add(
             "Sec-WebSocket-Protocol",
             WellKnownProtocols.GraphQL_Transport_WS);
@@ -119,7 +119,7 @@ public class SubscriptionTestBase : ServerTestBase
     {
         // we will try four times ....
         using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 15_000);
-        CancellationToken ct = cts.Token;
+        var ct = cts.Token;
         var count = 0;
         var wait = 50;
 

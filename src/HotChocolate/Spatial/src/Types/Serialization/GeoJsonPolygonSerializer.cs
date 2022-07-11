@@ -51,12 +51,12 @@ internal class GeoJsonPolygonSerializer
             throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
 
-        GeometryFactory factory = crs is null
+        var factory = crs is null
             ? NtsGeometryServices.Instance.CreateGeometryFactory()
             : NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 
-        LinearRing ringSrid = factory.CreateLinearRing((Coordinate[])ringsCoordinates[0]);
-        LinearRing[] holes = Array.Empty<LinearRing>();
+        var ringSrid = factory.CreateLinearRing((Coordinate[])ringsCoordinates[0]);
+        var holes = Array.Empty<LinearRing>();
         if (ringsCoordinates.Length > 1)
         {
             holes = new LinearRing[ringsCoordinates.Length - 1];

@@ -1514,5 +1514,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaTypes_DefinitionInvalid", resourceCulture);
             }
         }
+        
+        internal static string InputObjectTypeDescriptor_OnlyProperties {
+            get {
+                return ResourceManager.GetString("InputObjectTypeDescriptor_OnlyProperties", resourceCulture);
+            }
+        }
+        
+        internal static string InterfaceTypeDescriptor_MustBePropertyOrMethod {
+            get {
+                return ResourceManager.GetString("InterfaceTypeDescriptor_MustBePropertyOrMethod", resourceCulture);
+            }
+        }
     }
 }

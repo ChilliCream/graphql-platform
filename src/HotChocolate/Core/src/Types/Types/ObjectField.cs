@@ -7,6 +7,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -150,13 +151,12 @@ public class ObjectField
         IEnumerable<IDirective> directives)
     {
         List<IDirective>? executableDirectives = null;
-        foreach (IDirective directive in directives.Where(t => t.Type.HasMiddleware))
+        foreach (var directive in directives.Where(t => t.Type.HasMiddleware))
         {
             executableDirectives ??= new List<IDirective>(_executableDirectives);
             if (!processed.Add(directive.Name) && !directive.Type.IsRepeatable)
             {
-                IDirective remove = executableDirectives
-                    .First(t => t.Name.Equals(directive.Name));
+                var remove = executableDirectives.First(t => t.Name.EqualsOrdinal(directive.Name));
                 executableDirectives.Remove(remove);
             }
             executableDirectives.Add(directive);
@@ -173,15 +173,14 @@ public class ObjectField
         ObjectFieldDefinition definition)
     {
         var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
-        IReadOnlyList<FieldMiddlewareDefinition> fieldMiddlewareDefinitions =
-            definition.GetMiddlewareDefinitions();
-        IReadOnlySchemaOptions options = context.DescriptorContext.Options;
+        var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
+        var options = context.DescriptorContext.Options;
 
         var skipMiddleware =
-            options.FieldMiddleware != FieldMiddlewareApplication.AllFields &&
+            options.FieldMiddleware is not FieldMiddlewareApplication.AllFields &&
             isIntrospectionField;
 
-        FieldResolverDelegates resolvers = CompileResolver(context, definition);
+        var resolvers = CompileResolver(context, definition);
 
         Resolver = resolvers.Resolver;
 
@@ -236,7 +235,7 @@ public class ObjectField
         ITypeCompletionContext context,
         ObjectFieldDefinition definition)
     {
-        FieldResolverDelegates resolvers = definition.Resolvers;
+        var resolvers = definition.Resolvers;
 
         if (!resolvers.HasResolvers)
         {

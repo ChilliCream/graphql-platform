@@ -14,12 +14,12 @@ public class QueryableFilterVisitorDateOnlyTests
     public void Create_ShortEqual_Expression()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ value: { eq: \"2020-12-12\" }}");
-        ExecutorBuilder tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool> func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Value = new DateOnly(2020,12,12) };
@@ -33,12 +33,12 @@ public class QueryableFilterVisitorDateOnlyTests
     public void Create_ShortNotEqual_Expression()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ value: { neq: \"2020-12-12\" }}");
-        ExecutorBuilder tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool> func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
 
         // assert
@@ -53,12 +53,12 @@ public class QueryableFilterVisitorDateOnlyTests
     public void Create_ShortNullableEqual_Expression()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ value: { eq: null }}");
-        ExecutorBuilder tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool> func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { Value = null };

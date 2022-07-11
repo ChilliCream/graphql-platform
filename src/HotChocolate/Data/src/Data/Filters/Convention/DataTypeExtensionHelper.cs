@@ -92,7 +92,7 @@ internal static class DataTypeExtensionHelper
             context,
             extensionFields,
             typeFields,
-            (fields, extensionField, typeField) =>
+            (_, extensionField, typeField) =>
             {
                 if (typeField is FilterFieldDefinition filterTypeField &&
                     extensionField is FilterFieldDefinition filterExtensionField)
@@ -114,7 +114,7 @@ internal static class DataTypeExtensionHelper
             context,
             extensionFields,
             typeFields,
-            (fields, extensionField, typeField) =>
+            (_, extensionField, typeField) =>
             {
                 if (typeField is SortEnumValueDefinition filterTypeField &&
                     extensionField is SortEnumValueDefinition filterExtensionField)
@@ -135,7 +135,7 @@ internal static class DataTypeExtensionHelper
             context,
             extensionFields,
             typeFields,
-            (fields, extensionField, typeField) =>
+            (_, extensionField, typeField) =>
             {
                 if (typeField is SortFieldDefinition filterTypeField &&
                     extensionField is SortFieldDefinition filterExtensionField)
@@ -155,7 +155,7 @@ internal static class DataTypeExtensionHelper
         Action<IList<InputFieldDefinition>, InputFieldDefinition, InputFieldDefinition>
             action)
     {
-        foreach (InputFieldDefinition? extensionField in extensionFields)
+        foreach (var extensionField in extensionFields)
         {
             InputFieldDefinition? typeField;
             if (extensionField is FilterOperationFieldDefinition operationFieldDefinition)
@@ -166,7 +166,7 @@ internal static class DataTypeExtensionHelper
             else
             {
                 typeField = typeFields.FirstOrDefault(
-                    t => t.Name.Value.EqualsOrdinal(extensionField.Name));
+                    t => t.Name.EqualsOrdinal(extensionField.Name));
             }
 
             if (typeField is null)
@@ -194,7 +194,7 @@ internal static class DataTypeExtensionHelper
         Action<IList<EnumValueDefinition>, EnumValueDefinition, EnumValueDefinition>
             action)
     {
-        foreach (EnumValueDefinition? extensionField in extensionFields)
+        foreach (var extensionField in extensionFields)
         {
             EnumValueDefinition? typeField;
             if (extensionField is SortEnumValueDefinition sortEnumValueDefinition)
@@ -205,7 +205,7 @@ internal static class DataTypeExtensionHelper
             else
             {
                 typeField = typeFields.FirstOrDefault(
-                    t => t.Name.Value.EqualsOrdinal(extensionField.Name));
+                    t => t.Name.EqualsOrdinal(extensionField.Name));
             }
 
             if (typeField is null)
@@ -233,10 +233,10 @@ internal static class DataTypeExtensionHelper
         Action<IList<InputFieldDefinition>, InputFieldDefinition, InputFieldDefinition>
             action)
     {
-        foreach (InputFieldDefinition? extensionField in extensionFields)
+        foreach (var extensionField in extensionFields)
         {
-            InputFieldDefinition? typeField = typeFields.FirstOrDefault(
-                t => t.Name.Value.EqualsOrdinal(extensionField.Name));
+            var typeField = typeFields.FirstOrDefault(
+                t => t.Name.EqualsOrdinal(extensionField.Name));
 
             if (typeField is null)
             {

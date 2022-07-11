@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using HotChocolate.CodeGeneration.Neo4J.Types;
 using HotChocolate.CodeGeneration.Types;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static HotChocolate.CodeGeneration.TypeNames;
 using static HotChocolate.CodeGeneration.Neo4J.Neo4JTypeNames;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -19,7 +19,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
         {
             var result = new CodeGenerationResult();
 
-            ISchema schema = SchemaHelper.CreateSchema(context.Documents);
+            var schema = SchemaHelper.CreateSchema(context.Documents);
 
             GenerateTypes(
                 result,
@@ -56,7 +56,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
             CodeGeneratorContext generatorContext,
             IReadOnlyList<IObjectType> objectTypes)
         {
-            ClassDeclarationSyntax queryDeclaration =
+            var queryDeclaration =
                 ClassDeclaration("Query") // todo : we need to read the name from the config
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
@@ -64,25 +64,27 @@ namespace HotChocolate.CodeGeneration.Neo4J
                     .AddGeneratedAttribute()
                     .AddExtendObjectTypeAttribute("Query");
 
-            foreach (IObjectType? objectType in objectTypes)
+            foreach (var objectType in objectTypes)
             {
                 queryDeclaration = queryDeclaration.AddMembers(
                     CreateQueryResolver(dataContext, generatorContext, objectType));
 
-                GenerateObjectType(result, generatorContext.Namespace!, objectType);
+                GenerateObjectType(result, generatorContext.Namespace, objectType);
             }
 
-            NamespaceDeclarationSyntax namespaceDeclaration =
-                NamespaceDeclaration(IdentifierName(generatorContext.Namespace!))
+            var namespaceDeclaration =
+                NamespaceDeclaration(IdentifierName(generatorContext.Namespace))
                     .AddMembers(queryDeclaration);
 
-            CompilationUnitSyntax compilationUnit =
+            var compilationUnit =
                 CompilationUnit()
                     .AddMembers(namespaceDeclaration);
 
             compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
-            result.AddSource(generatorContext.Namespace! + ".Query.cs", compilationUnit.ToFullString());
+            result.AddSource(
+                generatorContext.Namespace + ".Query.cs",
+                compilationUnit.ToFullString());
         }
 
         private static void GenerateObjectType(
@@ -90,20 +92,19 @@ namespace HotChocolate.CodeGeneration.Neo4J
             string @namespace,
             IObjectType objectType)
         {
-            TypeNameDirective? typeNameDirective =
-                objectType.GetFirstDirective<TypeNameDirective>("typeName");
-            var typeName = typeNameDirective?.Name ?? objectType.Name.Value;
+            var typeNameDirective = objectType.GetFirstDirective<TypeNameDirective>("typeName");
+            var typeName = typeNameDirective?.Name ?? objectType.Name;
 
-            ClassDeclarationSyntax modelDeclaration =
+            var modelDeclaration =
                 ClassDeclaration(typeName)
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute();
 
-            foreach (IObjectField field in objectType.Fields.Where(t => !t.IsIntrospectionField))
+            foreach (var field in objectType.Fields.Where(t => !t.IsIntrospectionField))
             {
-                RelationshipDirective? relationship =
+                var relationship =
                     field.GetFirstDirective<RelationshipDirective>("relationship");
 
                 modelDeclaration =
@@ -125,11 +126,11 @@ namespace HotChocolate.CodeGeneration.Neo4J
                         });
             }
 
-            NamespaceDeclarationSyntax namespaceDeclaration =
+            var namespaceDeclaration =
                 NamespaceDeclaration(IdentifierName(@namespace))
                     .AddMembers(modelDeclaration);
 
-            CompilationUnitSyntax compilationUnit =
+            var compilationUnit =
                 CompilationUnit()
                     .AddMembers(namespaceDeclaration);
 
@@ -147,12 +148,12 @@ namespace HotChocolate.CodeGeneration.Neo4J
 
             dataContext = DataGeneratorContext.FromMember(objectType, dataContext);
 
-            TypeNameDirective? typeNameDirective =
+            var typeNameDirective =
                 objectType.GetFirstDirective<TypeNameDirective>("typeName");
-            var typeName = typeNameDirective?.Name ?? objectType.Name.Value;
+            var typeName = typeNameDirective?.Name ?? objectType.Name;
             var pluralTypeName = typeNameDirective?.PluralName ?? typeName + "s";
 
-            MethodDeclarationSyntax resolverSyntax =
+            var resolverSyntax =
                 MethodDeclaration(
                     GenericName(Identifier(Global(Neo4JExecutable)))
                         .WithTypeArgumentList(
@@ -198,7 +199,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
         {
             var typeName = generatorContext.Name + "RequestExecutorBuilderExtensions";
 
-            ClassDeclarationSyntax dependencyInjectionCode =
+            var dependencyInjectionCode =
                 ClassDeclaration(typeName)
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
@@ -215,7 +216,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
                 ReturnStatement(IdentifierName("builder"))
             };
 
-            MethodDeclarationSyntax addTypes =
+            var addTypes =
                 MethodDeclaration(
                     IdentifierName(Global(IRequestExecutorBuilder)),
                     Identifier("Add" + generatorContext.Name + "Types"))
@@ -234,11 +235,11 @@ namespace HotChocolate.CodeGeneration.Neo4J
             dependencyInjectionCode =
                 dependencyInjectionCode.AddMembers(addTypes);
 
-            NamespaceDeclarationSyntax namespaceDeclaration =
+            var namespaceDeclaration =
                 NamespaceDeclaration(IdentifierName(DependencyInjection))
                     .AddMembers(dependencyInjectionCode);
 
-            CompilationUnitSyntax compilationUnit =
+            var compilationUnit =
                 CompilationUnit()
                     .AddMembers(namespaceDeclaration);
 
@@ -261,7 +262,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
                                     IdentifierName(typeExtensions))))))
                 .WithArgumentList(
                     ArgumentList(
-                        SingletonSeparatedList<ArgumentSyntax>(
+                        SingletonSeparatedList(
                             Argument(IdentifierName("builder"))))));
         }
 
@@ -275,7 +276,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
                         IdentifierName("AddNeo4JFiltering")))
                 .WithArgumentList(
                     ArgumentList(
-                        SingletonSeparatedList<ArgumentSyntax>(
+                        SingletonSeparatedList(
                             Argument(IdentifierName("builder"))))));
         }
 
@@ -289,7 +290,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
                         IdentifierName("AddNeo4JSorting")))
                 .WithArgumentList(
                     ArgumentList(
-                        SingletonSeparatedList<ArgumentSyntax>(
+                        SingletonSeparatedList(
                             Argument(IdentifierName("builder"))))));
         }
 
@@ -303,7 +304,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
                         IdentifierName("AddNeo4JProjections")))
                 .WithArgumentList(
                     ArgumentList(
-                        SingletonSeparatedList<ArgumentSyntax>(
+                        SingletonSeparatedList(
                             Argument(IdentifierName("builder"))))));
         }
 

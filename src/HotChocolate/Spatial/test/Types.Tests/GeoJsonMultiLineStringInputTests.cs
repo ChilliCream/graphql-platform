@@ -42,7 +42,7 @@ public class GeoJsonMultiLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseResult(
@@ -70,7 +70,7 @@ public class GeoJsonMultiLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(
@@ -100,7 +100,7 @@ public class GeoJsonMultiLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(NullValueNode.Default, type);
@@ -114,7 +114,7 @@ public class GeoJsonMultiLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -127,7 +127,7 @@ public class GeoJsonMultiLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -144,7 +144,7 @@ public class GeoJsonMultiLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -163,7 +163,7 @@ public class GeoJsonMultiLineStringInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -179,7 +179,7 @@ public class GeoJsonMultiLineStringInputTests
     public async Task Execution_Tests()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("Query")
                 .Field("test")
@@ -187,10 +187,10 @@ public class GeoJsonMultiLineStringInputTests
                 .Resolve(ctx => ctx.ArgumentValue<MultiLineString>("arg").ToString()))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test(arg: { type: MultiLineString, coordinates: [ [" +
             "[10, 10], [20, 20], [10, 40]], [[40, 40], [30, 30], [40, 20], [30, 10]] ] })}");
 
@@ -215,7 +215,7 @@ public class GeoJsonMultiLineStringInputTests
 
     private InputObjectType CreateInputType()
     {
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
         return schema.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
     }
 }

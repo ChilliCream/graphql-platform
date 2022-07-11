@@ -83,7 +83,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
             if (query is { Length: > 0 })
             {
-                byte[] buffer = Encoding.UTF8.GetBytes(query);
+                var buffer = Encoding.UTF8.GetBytes(query);
                 document = Utf8GraphQLParser.Parse(buffer);
                 queryHash = _documentHashProvider.ComputeHash(buffer);
             }
@@ -187,7 +187,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         var requestParser = new Utf8GraphQLParser(graphQLData, _parserOptions);
 
         var queryHash = _documentHashProvider.ComputeHash(graphQLData);
-        DocumentNode document = requestParser.Parse();
+        var document = requestParser.Parse();
 
         return new[] { new GraphQLRequest(document, queryHash) };
     }

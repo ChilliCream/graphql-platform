@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -31,7 +30,7 @@ public class FilterConvention
     private IDictionary<Type, Type> _bindings = default!;
     private IDictionary<ITypeReference, List<ConfigureFilterInputType>> _configs = default!;
 
-    private NameString _argumentName;
+    private string _argumentName = default!;
     private IFilterProvider _provider = default!;
     private ITypeInspector _typeInspector = default!;
     private bool _useAnd;
@@ -112,7 +111,7 @@ public class FilterConvention
 
         if (_provider is IFilterProviderConvention init)
         {
-            IReadOnlyList<IFilterProviderExtension> extensions =
+            var extensions =
                 CollectExtensions(context.Services, Definition);
             init.Initialize(context, this);
             MergeExtensions(context, init, extensions);
@@ -127,7 +126,7 @@ public class FilterConvention
     }
 
     /// <inheritdoc />
-    public virtual NameString GetTypeName(Type runtimeType)
+    public virtual string GetTypeName(Type runtimeType)
     {
         if (runtimeType is null)
         {
@@ -138,10 +137,8 @@ public class FilterConvention
             runtimeType.GenericTypeArguments.Length == 1 &&
             runtimeType.GetGenericTypeDefinition() == typeof(EnumOperationFilterInputType<>))
         {
-            NameString genericName =
-                _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
-
-            return genericName.Value + "OperationFilterInput";
+            var genericName = _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
+            return genericName + "OperationFilterInput";
         }
 
         if (typeof(IComparableOperationFilterInputType).IsAssignableFrom(runtimeType) &&
@@ -149,18 +146,18 @@ public class FilterConvention
             runtimeType.GetGenericTypeDefinition() ==
             typeof(ComparableOperationFilterInputType<>))
         {
-            NameString genericName =
-                _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
+            var genericName = _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
 
-            return $"Comparable{genericName.Value}OperationFilterInput";
+            return $"Comparable{genericName}OperationFilterInput";
         }
 
         if (typeof(IListFilterInputType).IsAssignableFrom(runtimeType) &&
             runtimeType.GenericTypeArguments.Length == 1 &&
             runtimeType.GetGenericTypeDefinition() == typeof(ListFilterInputType<>))
         {
-            Type genericType = runtimeType.GenericTypeArguments[0];
-            NameString genericName;
+            var genericType = runtimeType.GenericTypeArguments[0];
+            string genericName;
+
             if (typeof(FilterInputType).IsAssignableFrom(genericType))
             {
                 genericName = GetTypeName(genericType);
@@ -170,10 +167,10 @@ public class FilterConvention
                 genericName = _namingConventions.GetTypeName(genericType);
             }
 
-            return "List" + genericName.Value;
+            return "List" + genericName;
         }
 
-        string name = _namingConventions.GetTypeName(runtimeType);
+        var name = _namingConventions.GetTypeName(runtimeType);
 
         var isInputObjectType = typeof(FilterInputType).IsAssignableFrom(runtimeType);
         var isEndingInput = name.EndsWith(_inputPostFix, StringComparison.Ordinal);
@@ -198,14 +195,14 @@ public class FilterConvention
     }
 
     /// <inheritdoc />
-    public NameString GetTypeName(
+    public string GetTypeName(
         IFilterInputType parentType,
         FilterFieldDefinition fieldDefinition)
     {
         const string operationInputPostFix = $"Operation{_inputPostFix}";
         const string operationInputTypePostFix = $"Operation{_inputTypePostFix}";
 
-        string parentName = parentType.Name;
+        var parentName = parentType.Name;
         if (parentName.EndsWith(_inputPostFix, StringComparison.Ordinal))
         {
             parentName = parentName.Remove(parentName.Length - _inputPostFix.Length);
@@ -231,7 +228,7 @@ public class FilterConvention
         _namingConventions.GetTypeDescription(runtimeType, TypeKind.InputObject);
 
     /// <inheritdoc />
-    public virtual NameString GetFieldName(MemberInfo member) =>
+    public virtual string GetFieldName(MemberInfo member) =>
         _namingConventions.GetMemberName(member, MemberKind.InputObjectField);
 
     /// <inheritdoc />
@@ -246,7 +243,7 @@ public class FilterConvention
             throw new ArgumentNullException(nameof(member));
         }
 
-        if (TryCreateFilterType(_typeInspector.GetReturnType(member, true), out Type? rt))
+        if (TryCreateFilterType(_typeInspector.GetReturnType(member, true), out var rt))
         {
             return _typeInspector.GetTypeRef(rt, TypeContext.Input, Scope);
         }
@@ -255,9 +252,9 @@ public class FilterConvention
     }
 
     /// <inheritdoc />
-    public NameString GetOperationName(int operation)
+    public string GetOperationName(int operation)
     {
-        if (_operations.TryGetValue(operation, out FilterOperation? operationConvention))
+        if (_operations.TryGetValue(operation, out var operationConvention))
         {
             return operationConvention.Name;
         }
@@ -268,7 +265,7 @@ public class FilterConvention
     /// <inheritdoc />
     public string? GetOperationDescription(int operationId)
     {
-        if (_operations.TryGetValue(operationId, out FilterOperation? operationConvention))
+        if (_operations.TryGetValue(operationId, out var operationConvention))
         {
             return operationConvention.Description;
         }
@@ -277,7 +274,7 @@ public class FilterConvention
     }
 
     /// <inheritdoc />
-    public NameString GetArgumentName() => _argumentName;
+    public string GetArgumentName() => _argumentName;
 
     /// <inheritdoc cref="IFilterConvention"/>
     public void ApplyConfigurations(
@@ -286,9 +283,9 @@ public class FilterConvention
     {
         if (_configs.TryGetValue(
             typeReference,
-            out List<ConfigureFilterInputType>? configurations))
+            out var configurations))
         {
-            foreach (ConfigureFilterInputType configure in configurations)
+            foreach (var configure in configurations)
             {
                 configure(descriptor);
             }
@@ -317,7 +314,7 @@ public class FilterConvention
         IFilterFieldDefinition fieldDefinition,
         [NotNullWhen(true)] out IFilterFieldHandler? handler)
     {
-        foreach (IFilterFieldHandler filterFieldHandler in _provider.FieldHandlers)
+        foreach (var filterFieldHandler in _provider.FieldHandlers)
         {
             if (filterFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
             {
@@ -348,7 +345,7 @@ public class FilterConvention
         if (runtimeType.IsArrayOrList)
         {
             if (runtimeType.ElementType is { } &&
-                TryCreateFilterType(runtimeType.ElementType, out Type? elementType))
+                TryCreateFilterType(runtimeType.ElementType, out var elementType))
             {
                 type = typeof(ListFilterInputType<>).MakeGenericType(elementType);
                 return true;
@@ -376,13 +373,13 @@ public class FilterConvention
         IServiceProvider serviceProvider,
         FilterConventionDefinition definition)
     {
-        List<IFilterProviderExtension> extensions = new List<IFilterProviderExtension>();
+        var extensions = new List<IFilterProviderExtension>();
         extensions.AddRange(definition.ProviderExtensions);
-        foreach (Type? extensionType in definition.ProviderExtensionsTypes)
+        foreach (var extensionType in definition.ProviderExtensionsTypes)
         {
             if (serviceProvider.TryGetOrCreateService<IFilterProviderExtension>(
                 extensionType,
-                out IFilterProviderExtension? createdExtension))
+                out var createdExtension))
             {
                 extensions.Add(createdExtension);
             }

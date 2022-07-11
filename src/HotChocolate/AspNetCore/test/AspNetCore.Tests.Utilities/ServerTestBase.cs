@@ -77,7 +77,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                 .UseRouting()
                 .UseEndpoints(endpoints =>
                 {
-                    GraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
+                    var builder = endpoints.MapGraphQL(pattern);
 
                     configureConventions?.Invoke(builder);
                     endpoints.MapGraphQL("/evict", "evict");

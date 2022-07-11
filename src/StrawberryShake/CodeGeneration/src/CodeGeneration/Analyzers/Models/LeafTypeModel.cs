@@ -1,32 +1,32 @@
 using System;
-using HotChocolate;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
 public class LeafTypeModel : ITypeModel
 {
     public LeafTypeModel(
-        NameString name,
+        string name,
         string? description,
         ILeafType type,
         string serializationType,
         string runtimeType)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         Description = description;
-        Type = type ?? 
+        Type = type ??
                throw new ArgumentNullException(nameof(type));
-        SerializationType = serializationType ?? 
+        SerializationType = serializationType ??
                             throw new ArgumentNullException(nameof(serializationType));
-        RuntimeType = runtimeType ?? 
+        RuntimeType = runtimeType ??
                       throw new ArgumentNullException(nameof(runtimeType));
     }
 
     /// <summary>
     /// Gets the enum name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the enum xml documentation summary.

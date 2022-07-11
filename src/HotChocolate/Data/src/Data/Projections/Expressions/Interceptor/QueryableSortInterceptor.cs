@@ -1,18 +1,18 @@
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Data.Projections.Handlers;
 
 public class QueryableSortInterceptor : IProjectionFieldInterceptor<QueryableProjectionContext>
@@ -27,29 +27,27 @@ public class QueryableSortInterceptor : IProjectionFieldInterceptor<QueryablePro
         QueryableProjectionContext context,
         ISelection selection)
     {
-        IObjectField field = selection.Field;
-        IReadOnlyDictionary<string, object?> contextData = field.ContextData;
+        var field = selection.Field;
+        var contextData = field.ContextData;
 
         if (contextData.TryGetValue(ContextArgumentNameKey, out var arg) &&
-            arg is NameString argumentName &&
+            arg is string argumentName &&
             contextData.TryGetValue(ContextVisitSortArgumentKey, out var argVisitor) &&
             argVisitor is VisitSortArgument argumentVisitor &&
             context.Selection.Count > 0 &&
-            context.Selection.Peek()
-                .Arguments.TryCoerceArguments(
-                    context.Context,
-                    out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs) &&
-            coercedArgs.TryGetValue(argumentName, out ArgumentValue? argumentValue) &&
+            context.Selection.Peek().Arguments
+                .TryCoerceArguments(context.Context, out var coercedArgs) &&
+            coercedArgs.TryGetValue(argumentName, out var argumentValue) &&
             argumentValue.Type is ListType lt &&
             lt.ElementType is NonNullType nn &&
             nn.NamedType() is ISortInputType sortInputType &&
             argumentValue.ValueLiteral is { } valueNode &&
             valueNode is not NullValueNode)
         {
-            QueryableSortContext sortContext =
+            var sortContext =
                 argumentVisitor(valueNode, sortInputType, false);
 
-            Expression instance = context.PopInstance();
+            var instance = context.PopInstance();
             if (sortContext.Errors.Count == 0)
             {
                 context.PushInstance(sortContext.Compile(instance));

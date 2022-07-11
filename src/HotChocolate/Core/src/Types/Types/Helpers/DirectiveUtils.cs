@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Helpers;
 
@@ -26,30 +27,30 @@ public static class DirectiveUtils
                 directivesContainer.Directives.Add(
                     new DirectiveDefinition(node));
                 break;
-            case string s:
+            case string directiveName:
                 AddDirective(
                     directivesContainer,
-                    new NameString(s),
+                    directiveName,
                     Array.Empty<ArgumentNode>());
                 break;
             default:
                 directivesContainer.Directives.Add(
                     new DirectiveDefinition(
                         directive,
-                        typeInspector.GetTypeRef(directive.GetType(), TypeContext.None)));
+                        typeInspector.GetTypeRef(directive.GetType())));
                 break;
         }
     }
 
     public static void AddDirective(
         this IHasDirectiveDefinition directivesContainer,
-        NameString name,
+        string name,
         IEnumerable<ArgumentNode> arguments)
     {
         directivesContainer.Directives.Add(
             new DirectiveDefinition(
                 new DirectiveNode(
-                    name.EnsureNotEmpty(nameof(name)),
+                    name.EnsureGraphQLName(),
                     arguments.ToArray())));
     }
 }

@@ -20,7 +20,7 @@ public class InputField : FieldBase<InputFieldDefinition>, IInputField
         DefaultValue = definition.DefaultValue;
         Property = definition.Property;
 
-        IReadOnlyList<IInputValueFormatter> formatters = definition.GetFormatters();
+        var formatters = definition.GetFormatters();
         Formatter = formatters.Count switch
         {
             0 => null,

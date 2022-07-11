@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using TypeThrowHelper = HotChocolate.Utilities.ThrowHelper;
@@ -23,19 +22,13 @@ public static class SchemaExtensions
     /// Returns the root operation object type.
     /// </returns>
     public static ObjectType? GetOperationType(this ISchema schema, OperationType operation)
-    {
-        switch (operation)
+        => operation switch
         {
-            case Language.OperationType.Query:
-                return schema.QueryType;
-            case Language.OperationType.Mutation:
-                return schema.MutationType;
-            case Language.OperationType.Subscription:
-                return schema.SubscriptionType;
-            default:
-                throw new NotSupportedException();
-        }
-    }
+            OperationType.Query => schema.QueryType,
+            OperationType.Mutation => schema.MutationType,
+            OperationType.Subscription => schema.SubscriptionType,
+            _ => throw new NotSupportedException()
+        };
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
@@ -50,7 +43,7 @@ public static class SchemaExtensions
     /// The resolved type system member.
     /// </param>
     /// <returns>
-    /// <c>true</c> if a type system member was found with the given 
+    /// <c>true</c> if a type system member was found with the given
     /// <paramref name="coordinateString"/>; otherwise, <c>false</c>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
@@ -83,7 +76,7 @@ public static class SchemaExtensions
     /// The resolved type system member.
     /// </param>
     /// <returns>
-    /// <c>true</c> if a type system member was found with the given 
+    /// <c>true</c> if a type system member was found with the given
     /// <paramref name="coordinate"/>; otherwise, <c>false</c>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
@@ -109,7 +102,7 @@ public static class SchemaExtensions
                     return true;
                 }
 
-                if (directive.Arguments.TryGetField(coordinate.ArgumentName.Value, out var arg))
+                if (directive.Arguments.TryGetField(coordinate.ArgumentName, out var arg))
                 {
                     member = arg;
                     return true;
@@ -133,7 +126,7 @@ public static class SchemaExtensions
                 if (type.Kind is TypeKind.Enum)
                 {
                     var enumType = (EnumType)type;
-                    if (enumType.TryGetValue(coordinate.MemberName.Value, out var enumValue))
+                    if (enumType.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
                         member = enumValue;
                         return true;
@@ -143,7 +136,7 @@ public static class SchemaExtensions
                 if (type.Kind is TypeKind.InputObject)
                 {
                     var inputType = (InputObjectType)type;
-                    if (inputType.Fields.TryGetField(coordinate.MemberName.Value, out var input))
+                    if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
                     {
                         member = input;
                         return true;
@@ -158,7 +151,7 @@ public static class SchemaExtensions
             }
 
             var complexType = (IComplexOutputType)type;
-            if (complexType.Fields.TryGetField(coordinate.MemberName.Value, out var field))
+            if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
                 if (coordinate.ArgumentName is null)
                 {
@@ -166,7 +159,7 @@ public static class SchemaExtensions
                     return true;
                 }
 
-                if (field.Arguments.TryGetField(coordinate.ArgumentName.Value, out var fieldArg))
+                if (field.Arguments.TryGetField(coordinate.ArgumentName, out var fieldArg))
                 {
                     member = fieldArg;
                     return true;
@@ -182,7 +175,7 @@ public static class SchemaExtensions
     /// Gets a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
     /// </summary>
     /// <param name="schema">
-    /// The schema on which the <paramref name="member"/> shall be resolved.
+    /// The schema on which the member shall be resolved.
     /// </param>
     /// <param name="coordinateString">
     /// A string representing a schema coordinate.
@@ -197,7 +190,7 @@ public static class SchemaExtensions
     /// The <paramref name="coordinateString"/> has invalid syntax.
     /// </exception>
     /// <exception cref="InvalidSchemaCoordinateException">
-    /// Unable to resolve a type system member with the 
+    /// Unable to resolve a type system member with the
     /// specified <paramref name="coordinateString"/>.
     /// </exception>
     public static ITypeSystemMember GetMember(
@@ -209,7 +202,7 @@ public static class SchemaExtensions
     /// Gets a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
     /// </summary>
     /// <param name="schema">
-    /// The schema on which the <paramref name="member"/> shall be resolved.
+    /// The schema on which the member shall be resolved.
     /// </param>
     /// <param name="coordinate">
     /// A schema coordinate.
@@ -221,8 +214,8 @@ public static class SchemaExtensions
     /// <paramref name="schema"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="InvalidSchemaCoordinateException">
-    /// Unable to resolve a type system member with the 
-    /// specified <paramref name="coordinateString"/>.
+    /// Unable to resolve a type system member with the
+    /// specified <paramref name="coordinate"/>.
     /// </exception>
     public static ITypeSystemMember GetMember(
         this ISchema schema,
@@ -242,7 +235,7 @@ public static class SchemaExtensions
                     return directive;
                 }
 
-                if (directive.Arguments.TryGetField(coordinate.ArgumentName.Value, out var arg))
+                if (directive.Arguments.TryGetField(coordinate.ArgumentName, out var arg))
                 {
                     return arg;
                 }
@@ -265,7 +258,7 @@ public static class SchemaExtensions
                 if (type.Kind is TypeKind.Enum)
                 {
                     var enumType = (EnumType)type;
-                    if (enumType.TryGetValue(coordinate.MemberName.Value, out var enumValue))
+                    if (enumType.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
                         return enumValue;
                     }
@@ -276,7 +269,7 @@ public static class SchemaExtensions
                 if (type.Kind is TypeKind.InputObject)
                 {
                     var inputType = (InputObjectType)type;
-                    if (inputType.Fields.TryGetField(coordinate.MemberName.Value, out var input))
+                    if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
                     {
                         return input;
                     }
@@ -291,14 +284,14 @@ public static class SchemaExtensions
             }
 
             var complexType = (IComplexOutputType)type;
-            if (complexType.Fields.TryGetField(coordinate.MemberName.Value, out var field))
+            if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
                 if (coordinate.ArgumentName is null)
                 {
                     return field;
                 }
 
-                if (field.Arguments.TryGetField(coordinate.ArgumentName.Value, out var fieldArg))
+                if (field.Arguments.TryGetField(coordinate.ArgumentName, out var fieldArg))
                 {
                     return fieldArg;
                 }

@@ -24,7 +24,7 @@ public static class ListFilterDescriptorExtensions
         Expression<Func<T, IEnumerable<TField?>?>> propertyOrMember,
         Action<IListOperationTypeDescriptor<TField>> configure)
     {
-        IFilterFieldDescriptor fieldDescriptor = descriptor.Field(propertyOrMember);
+        var fieldDescriptor = descriptor.Field(propertyOrMember);
         fieldDescriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
         return fieldDescriptor;
 

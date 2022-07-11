@@ -1,19 +1,18 @@
 using System;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.Sorting
+namespace HotChocolate.Types.Sorting;
+
+[Obsolete("Use HotChocolate.Data.")]
+public interface ISortingNamingConvention : IConvention
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public interface ISortingNamingConvention : IConvention
-    {
-        NameString ArgumentName { get; }
+    string ArgumentName { get; }
 
-        NameString SortKindAscName { get; }
+    string SortKindAscName { get; }
 
-        NameString SortKindDescName { get; }
+    string SortKindDescName { get; }
 
-        NameString GetSortingTypeName(IDescriptorContext context, Type entityType);
+    string GetSortingTypeName(IDescriptorContext context, Type entityType);
 
-        NameString GetSortingOperationKindTypeName(IDescriptorContext context, Type entityType);
-    }
+    string GetSortingOperationKindTypeName(IDescriptorContext context, Type entityType);
 }

@@ -65,7 +65,7 @@ public static class SchemaTypeResolver
                 typeInspector.GetType(
                     typeof(EnumType<>).MakeGenericType(typeInfo.RuntimeType)));
         }
-        else if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type? scalarType))
+        else if (Scalars.TryGetScalar(unresolvedType.Type.Type, out var scalarType))
         {
             schemaType = unresolvedType.With(typeInspector.GetType(scalarType));
         }
@@ -194,7 +194,7 @@ public static class SchemaTypeResolver
         private static ITypeAttribute? GetTypeAttributeInternal(
             ExtendedTypeReference unresolvedType)
         {
-            Type runtimeType = unresolvedType.Type.Type;
+            var runtimeType = unresolvedType.Type.Type;
 
             foreach (var attribute in
                 runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), false))
@@ -228,7 +228,7 @@ public static class SchemaTypeResolver
 
             if (!isComplexType && unresolvedType.Type.IsGeneric)
             {
-                Type? typeDefinition = unresolvedType.Type.Definition;
+                var typeDefinition = unresolvedType.Type.Definition;
                 return typeDefinition == _keyValuePair;
             }
 

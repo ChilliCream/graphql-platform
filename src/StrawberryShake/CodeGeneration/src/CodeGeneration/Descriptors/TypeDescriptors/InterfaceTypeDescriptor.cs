@@ -6,11 +6,11 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 public sealed class InterfaceTypeDescriptor : ComplexTypeDescriptor
 {
     public InterfaceTypeDescriptor(
-        NameString name,
+        string name,
         TypeKind typeKind,
         RuntimeTypeInfo runtimeType,
         IReadOnlyCollection<ObjectTypeDescriptor> implementedBy,
-        IReadOnlyList<NameString> implements,
+        IReadOnlyList<string> implements,
         IReadOnlyList<DeferredFragmentDescriptor>? deferred,
         string? description,
         RuntimeTypeInfo? parentRuntimeType = null)

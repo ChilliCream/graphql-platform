@@ -59,7 +59,7 @@ public sealed class ScalarTypeDefinitionNode : NamedSyntaxNode, ITypeDefinitionN
 
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

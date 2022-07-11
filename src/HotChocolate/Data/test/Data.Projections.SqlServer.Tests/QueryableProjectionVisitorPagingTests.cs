@@ -29,13 +29,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task Create_ProjectsTwoProperties_Nodes()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ nodes { bar baz } }}")
                 .Create());
@@ -47,13 +47,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task Create_ProjectsOneProperty_Nodes()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ nodes { baz } }}")
                 .Create());
@@ -65,13 +65,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task Create_ProjectsTwoProperties_Edges()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ edges { node { bar baz }} }}")
                 .Create());
@@ -83,13 +83,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task Create_ProjectsOneProperty_Edges()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ edges { node { baz }} }}")
                 .Create());
@@ -101,13 +101,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task Create_ProjectsTwoProperties_EdgesAndNodes()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ nodes{ baz } edges { node { bar }} }}")
                 .Create());
@@ -119,13 +119,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task Create_ProjectsOneProperty_EdgesAndNodesOverlap()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ nodes{ baz } edges { node { baz }} }}")
                 .Create());
@@ -137,13 +137,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateNullable_ProjectsTwoProperties_Nodes()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooNullableEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ nodes { bar baz } }}")
                 .Create());
@@ -155,13 +155,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateNullable_ProjectsOneProperty_Nodes()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooNullableEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ nodes { baz } }}")
                 .Create());
@@ -173,13 +173,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateNullable_ProjectsTwoProperties_Edges()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooNullableEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ edges { node { bar baz }} }}")
                 .Create());
@@ -191,13 +191,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateNullable_ProjectsOneProperty_Edges()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooNullableEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ edges { node { baz }} }}")
                 .Create());
@@ -209,13 +209,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateNullable_ProjectsTwoProperties_EdgesAndNodes()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooNullableEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ nodes{ baz } edges { node { bar }} }}")
                 .Create());
@@ -227,13 +227,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateNullable_ProjectsOneProperty_EdgesAndNodesOverlap()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooNullableEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ nodes{ baz } edges { node { baz }} }}")
                 .Create());
@@ -245,13 +245,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task Create_Projection_Should_Stop_When_UseProjectionEncountered()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ nodes{ bar list { barBaz } } }}")
                 .Create());
@@ -263,13 +263,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task Create_Projection_Should_Stop_When_UsePagingEncountered()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ nodes{ bar paging { nodes {barBaz }} } }}")
                 .Create());
@@ -281,13 +281,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateOffsetPaging_ProjectsTwoProperties_Items_WithArgs()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             useOffsetPaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(take:10, skip:1){ items { bar baz } }}")
                 .Create());
@@ -299,13 +299,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateOffsetPaging_ProjectsTwoProperties_Items()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             useOffsetPaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ items { bar baz } }}")
                 .Create());
@@ -317,13 +317,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateOffsetPaging_ProjectsOneProperty_Items()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             useOffsetPaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ items { baz } }}")
                 .Create());
@@ -336,13 +336,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateOffsetPagingNullable_ProjectsTwoProperties_Items()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooNullableEntities,
             useOffsetPaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ items { bar baz } }}")
                 .Create());
@@ -354,13 +354,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateOffsetPagingNullable_ProjectsOneProperty_Items()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooNullableEntities,
             useOffsetPaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ items { baz } }}")
                 .Create());
@@ -372,13 +372,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateOffsetPaging_Projection_Should_Stop_When_UseProjectionEncountered()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             useOffsetPaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ items{ bar list { barBaz } } }}")
                 .Create());
@@ -390,13 +390,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateOffsetPaging_Projection_Should_Stop_When_UsePagingEncountered()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             useOffsetPaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ items{ bar paging { nodes {barBaz }} } }}")
                 .Create());
@@ -408,13 +408,13 @@ public class QueryableProjectionVisitorPagingTests
     public async Task CreateNullable_NodesAndEdgesWithAliases()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooNullableEntities,
             usePaging: true);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ b: nodes{ baz } a: edges { node { bar }} }}")
                 .Create());

@@ -100,7 +100,7 @@ public class FieldBuilder : ICodeBuilder
             throw new ArgumentNullException(nameof(_type));
         }
 
-        string modifier = _accessModifier.ToString().ToLowerInvariant();
+        var modifier = _accessModifier.ToString().ToLowerInvariant();
 
         writer.WriteIndent();
         writer.Write($"{modifier} ");

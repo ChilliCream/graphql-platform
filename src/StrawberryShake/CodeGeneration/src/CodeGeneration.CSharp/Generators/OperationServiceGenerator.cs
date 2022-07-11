@@ -37,7 +37,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         path = null;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
             .SetComment(
                 XmlCommentBuilder
@@ -50,7 +50,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             .AddImplements(descriptor.InterfaceType.ToString())
             .SetName(fileName);
 
-        ConstructorBuilder constructorBuilder = classBuilder
+        var constructorBuilder = classBuilder
             .AddConstructor()
             .SetTypeName(fileName);
 
@@ -83,7 +83,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             .AsLambda($"typeof({resultTypeName})")
             .SetInterface(TypeNames.IOperationRequestFactory);
 
-        MethodCallBuilder createRequestCall = MethodCallBuilder
+        var createRequestCall = MethodCallBuilder
             .New()
             .SetReturn()
             .SetMethodName(_createRequest);
@@ -145,7 +145,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
         foreach (var property in neededSerializers.Values)
         {
-            if (property.Type.GetName().Value is { } name)
+            if (property.Type.GetName() is { } name)
             {
                 var fieldName = $"{GetFieldName(name)}Formatter";
                 constructorBuilder
@@ -179,7 +179,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
     private MethodCallBuilder CreateRequestMethodCall(OperationDescriptor operationDescriptor)
     {
-        MethodCallBuilder createRequestMethodCall = MethodCallBuilder
+        var createRequestMethodCall = MethodCallBuilder
             .Inline()
             .SetMethodName(_createRequest);
 
@@ -195,7 +195,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         OperationDescriptor descriptor,
         string runtimeTypeName)
     {
-        MethodBuilder watchMethod =
+        var watchMethod =
             MethodBuilder
                 .New()
                 .SetPublic()
@@ -236,7 +236,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         OperationDescriptor operationDescriptor,
         string runtimeTypeName)
     {
-        MethodBuilder executeMethod = MethodBuilder
+        var executeMethod = MethodBuilder
             .New()
             .SetPublic()
             .SetAsync()
@@ -280,9 +280,9 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
     private MethodBuilder CreateRequestVariablesMethod(OperationDescriptor descriptor)
     {
-        string typeName = CreateDocumentTypeName(descriptor.RuntimeType.Name);
+        var typeName = CreateDocumentTypeName(descriptor.RuntimeType.Name);
 
-        MethodBuilder method = MethodBuilder
+        var method = MethodBuilder
             .New()
             .SetName(_createRequest)
             .SetReturnType(TypeNames.OperationRequest)
@@ -293,7 +293,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                         .WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable())
                         .MakeNullable()));
 
-        MethodCallBuilder newOperationRequest = MethodCallBuilder
+        var newOperationRequest = MethodCallBuilder
             .New()
             .SetReturn()
             .SetNew()
@@ -315,12 +315,12 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
     private MethodBuilder CreateRequestMethod(OperationDescriptor descriptor)
     {
-        MethodBuilder method = MethodBuilder
+        var method = MethodBuilder
             .New()
             .SetName(_createRequest)
             .SetReturnType(TypeNames.OperationRequest);
 
-        MethodCallBuilder createRequestWithVariables = MethodCallBuilder
+        var createRequestWithVariables = MethodCallBuilder
             .New()
             .SetReturn()
             .SetMethodName(_createRequest);

@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -18,8 +19,7 @@ public class InterfaceTypeDescriptor<T>
     protected internal InterfaceTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
     {
-        Definition.Fields.BindingBehavior =
-            context.Options.DefaultBindingBehavior;
+        Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
     }
 
     protected internal InterfaceTypeDescriptor(
@@ -32,16 +32,14 @@ public class InterfaceTypeDescriptor<T>
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
     protected override void OnCompleteFields(
-        IDictionary<NameString, InterfaceFieldDefinition> fields,
+        IDictionary<string, InterfaceFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
         if (Definition.Fields.IsImplicitBinding())
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
-                p => InterfaceFieldDescriptor
-                    .New(Context, p)
-                    .CreateDefinition(),
+                p => InterfaceFieldDescriptor.New(Context, p).CreateDefinition(),
                 fields,
                 handledMembers);
         }
@@ -56,7 +54,7 @@ public class InterfaceTypeDescriptor<T>
         return this;
     }
 
-    public new IInterfaceTypeDescriptor<T> Name(NameString value)
+    public new IInterfaceTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
         return this;
@@ -123,24 +121,23 @@ public class InterfaceTypeDescriptor<T>
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        MemberInfo member = propertyOrMethod.ExtractMember();
-        if (member is PropertyInfo || member is MethodInfo)
+        var member = propertyOrMethod.ExtractMember();
+        if (member is PropertyInfo or MethodInfo)
         {
-            InterfaceFieldDescriptor fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Member == member);
-            if (fieldDescriptor is { })
+            var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Member == member);
+
+            if (fieldDescriptor is not null)
             {
                 return fieldDescriptor;
             }
 
-            fieldDescriptor = new InterfaceFieldDescriptor(
-                Context, member);
+            fieldDescriptor = new InterfaceFieldDescriptor(Context, member);
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
         throw new ArgumentException(
-            "A field of an entity can only be a property or a method.",
+            InterfaceTypeDescriptor_MustBePropertyOrMethod,
             nameof(propertyOrMethod));
     }
 
@@ -167,7 +164,7 @@ public class InterfaceTypeDescriptor<T>
     }
 
     public new IInterfaceTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);

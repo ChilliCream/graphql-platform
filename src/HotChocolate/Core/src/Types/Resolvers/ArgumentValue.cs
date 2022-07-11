@@ -77,7 +77,7 @@ public sealed class ArgumentValue : IInputFieldInfo
     /// <summary>
     /// Gets the argument name.
     /// </summary>
-    public NameString Name => _argument.Name;
+    public string Name => _argument.Name;
 
     /// <summary>
     /// Gets the argument field coordinate.

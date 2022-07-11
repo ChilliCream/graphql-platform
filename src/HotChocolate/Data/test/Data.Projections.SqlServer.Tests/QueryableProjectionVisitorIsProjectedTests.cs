@@ -31,11 +31,11 @@ public class QueryableProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithOneProps()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());
@@ -47,11 +47,11 @@ public class QueryableProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithTwoProps()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse isProjectedTrue  }}")
                 .Create());
@@ -63,11 +63,11 @@ public class QueryableProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_True()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());
@@ -79,11 +79,11 @@ public class QueryableProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_TrueAndMultiple()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooMultipleEntities);
+        var tester = _cache.CreateSchema(_fooMultipleEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());
@@ -95,11 +95,11 @@ public class QueryableProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_NotFailWhenSelectionSetSkippedCompletely()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(_barEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());

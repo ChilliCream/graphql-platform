@@ -1,3 +1,4 @@
+using System.Globalization;
 using HotChocolate.Types;
 
 #nullable enable
@@ -285,4 +286,17 @@ internal static class ErrorHelper
 
         return errorBuilder;
     }
+
+    public static ISchemaError InterfaceHasNoImplementation(
+        InterfaceType interfaceType)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "There is no object type implementing interface `{0}`.",
+                    interfaceType.Name))
+            .SetCode(ErrorCodes.Schema.InterfaceNotImplemented)
+            .SetTypeSystemObject(interfaceType)
+            .AddSyntaxNode(interfaceType.SyntaxNode)
+            .Build();
 }

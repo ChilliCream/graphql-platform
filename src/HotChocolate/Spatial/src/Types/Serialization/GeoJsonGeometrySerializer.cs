@@ -116,7 +116,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
             if (GeoJsonTypeSerializer.Default.TryParseString(
                     typeName,
-                    out GeoJsonGeometryType kind))
+                    out var kind))
             {
                 return Serializers[kind].ParseResult(type, resultValue);
             }
@@ -150,7 +150,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
             throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
         }
 
-        if (!TryGetGeometryKind(geometry, out GeoJsonGeometryType kind))
+        if (!TryGetGeometryKind(geometry, out var kind))
         {
             throw Geometry_Parse_TypeIsUnknown(type, geometry.GeometryType);
         }
@@ -186,7 +186,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
             throw Geometry_Serialize_InvalidGeometryType(type, runtimeValue.GetType());
         }
 
-        if (!TryGetGeometryKind(geometry, out GeoJsonGeometryType kind))
+        if (!TryGetGeometryKind(geometry, out var kind))
         {
             throw Geometry_Serialize_TypeIsUnknown(type, geometry.GeometryType);
         }
@@ -208,7 +208,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
         if (resultValue is Geometry geometry)
         {
-            if (!TryGetGeometryKind(geometry, out GeoJsonGeometryType kind))
+            if (!TryGetGeometryKind(geometry, out var kind))
             {
                 throw Geometry_Deserialize_TypeIsUnknown(type, geometry.GeometryType);
             }
@@ -226,7 +226,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
             if (GeoJsonTypeSerializer.Default.TryParseString(
                     typeName,
-                    out GeoJsonGeometryType kind))
+                    out var kind))
             {
                 return Serializers[kind].Deserialize(type, resultValue);
             }
@@ -288,7 +288,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
         IType type,
         ObjectValueNode objectSyntax)
     {
-        if (!TryGetGeometryKind(type, objectSyntax, out GeoJsonGeometryType geometryType))
+        if (!TryGetGeometryKind(type, objectSyntax, out var geometryType))
         {
             throw Geometry_Parse_InvalidType(type);
         }
@@ -311,7 +311,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
         ObjectValueNode valueSyntax,
         out GeoJsonGeometryType geometryType)
     {
-        IReadOnlyList<ObjectFieldNode> fields = valueSyntax.Fields;
+        var fields = valueSyntax.Fields;
 
         for (var i = 0; i < fields.Count; i++)
         {

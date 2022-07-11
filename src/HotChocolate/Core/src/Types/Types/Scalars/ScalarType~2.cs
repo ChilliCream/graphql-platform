@@ -16,7 +16,7 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     where TLiteral : IValueNode
 {
     /// <inheritdoc />
-    protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
+    protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
     }

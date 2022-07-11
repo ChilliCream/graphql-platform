@@ -56,7 +56,7 @@ public static class QueryableSortExtensions
     {
         if (context.LocalContextData.TryGetValue(
                 QueryableSortProvider.ContextApplySortingKey,
-                out object? applicatorObj) &&
+                out var applicatorObj) &&
             applicatorObj is ApplySorting applicator)
         {
             var resultObj = applicator(context, input);

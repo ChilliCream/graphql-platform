@@ -867,4 +867,10 @@ Type: `{0}`</value>
   <data name="SchemaTypes_DefinitionInvalid" xml:space="preserve">
     <value>The schema types definition is in an invalid state.</value>
   </data>
+  <data name="InputObjectTypeDescriptor_OnlyProperties" xml:space="preserve">
+    <value>Only properties are allowed for input types.</value>
+  </data>
+  <data name="InterfaceTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
+    <value>A field of an interface can only be inferred from a property or a method.</value>
+  </data>
 </root>

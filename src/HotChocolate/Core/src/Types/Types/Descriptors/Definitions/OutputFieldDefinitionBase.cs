@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -39,7 +40,7 @@ public class OutputFieldDefinitionBase
         {
             target._arguments = new List<ArgumentDefinition>();
 
-            foreach (ArgumentDefinition argument in _arguments)
+            foreach (var argument in _arguments)
             {
                 var newArgument = new ArgumentDefinition();
                 argument.CopyTo(newArgument);
@@ -58,10 +59,10 @@ public class OutputFieldDefinitionBase
         {
             target._arguments ??= new List<ArgumentDefinition>();
 
-            foreach (ArgumentDefinition argument in _arguments)
+            foreach (var argument in _arguments)
             {
-                ArgumentDefinition? targetArgument =
-                    target._arguments.FirstOrDefault(t => t.Name.Equals(argument.Name));
+                var targetArgument =
+                    target._arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(argument.Name));
 
                 if (targetArgument is null)
                 {

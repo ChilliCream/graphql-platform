@@ -16,7 +16,7 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
         if (definition is ObjectTypeDefinition objectTypeDefinition)
         {
             var position = 0;
-            IDescriptorContext context = completionContext.DescriptorContext;
+            var context = completionContext.DescriptorContext;
 
             if (completionContext.IsQueryType ?? false)
             {

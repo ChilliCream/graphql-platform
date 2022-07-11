@@ -63,7 +63,7 @@ internal sealed class TypeNameQueryRewriter : SyntaxRewriter<TypeNameQueryRewrit
         SelectionSetNode node,
         Context context)
     {
-        SelectionSetNode current = base.RewriteSelectionSet(node, context);
+        var current = base.RewriteSelectionSet(node, context);
 
         if (context.Nodes.Peek() is FieldNode &&
             !current.Selections

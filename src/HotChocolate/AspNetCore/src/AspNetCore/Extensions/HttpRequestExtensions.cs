@@ -8,7 +8,7 @@ internal static class HttpRequestExtensions
 {
     internal static bool AcceptHeaderContainsHtml(this HttpRequest request)
     {
-        return request.Headers.TryGetValue(HeaderNames.Accept, out StringValues values) &&
+        return request.Headers.TryGetValue(HeaderNames.Accept, out var values) &&
             values.Count > 0 && values[0].Contains("text/html");
     }
 
@@ -28,7 +28,7 @@ internal static class HttpRequestExtensions
         bool forDirectory,
         out PathString subpath)
     {
-        PathString path = request.Path;
+        var path = request.Path;
 
         if (forDirectory && !request.PathEndsInSlash())
         {

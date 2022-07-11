@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations;
 public class MutationOperationDescriptor : OperationDescriptor
 {
     public MutationOperationDescriptor(
-        NameString name,
+        string name,
         string @namespace,
         ITypeDescriptor resultTypeReference,
         IReadOnlyList<PropertyDescriptor> arguments,

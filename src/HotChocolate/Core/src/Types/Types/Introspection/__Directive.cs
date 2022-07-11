@@ -18,12 +18,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference stringType = Create(ScalarNames.String);
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-        SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-        SyntaxTypeReference booleanType = Parse($"{ScalarNames.Boolean}");
-        SyntaxTypeReference argumentListType = Parse($"[{nameof(__InputValue)}!]!");
-        SyntaxTypeReference locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
+        var stringType = Create(ScalarNames.String);
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        var booleanType = Parse($"{ScalarNames.Boolean}");
+        var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
+        var locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
 
         return new ObjectTypeDefinition(
             Names.__Directive,
@@ -87,7 +87,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
 
         public static object Arguments(IPureResolverContext context)
         {
-            DirectiveType directive = context.Parent<DirectiveType>();
+            var directive = context.Parent<DirectiveType>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)
                 ? directive.Arguments
                 : directive.Arguments.Where(t => !t.IsDeprecated);
@@ -95,7 +95,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
 
         public static object OnOperation(IPureResolverContext context)
         {
-            ICollection<DirectiveLocation> locations =
+            var locations =
                 context.Parent<DirectiveType>().Locations;
 
             return locations.Contains(DirectiveLocation.Query)
@@ -105,7 +105,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
 
         public static object OnFragment(IPureResolverContext context)
         {
-            ICollection<DirectiveLocation> locations =
+            var locations =
                 context.Parent<DirectiveType>().Locations;
 
             return locations.Contains(DirectiveLocation.InlineFragment)
@@ -115,7 +115,7 @@ internal sealed class __Directive : ObjectType<DirectiveType>
 
         public static object OnField(IPureResolverContext context)
         {
-            ICollection<DirectiveLocation> locations =
+            var locations =
                 context.Parent<DirectiveType>().Locations;
 
             return locations.Contains(DirectiveLocation.Field);

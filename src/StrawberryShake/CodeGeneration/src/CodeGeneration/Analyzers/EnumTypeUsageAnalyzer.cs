@@ -29,7 +29,7 @@ internal sealed class EnumTypeUsageAnalyzer : QuerySyntaxWalker<object?>
         OperationDefinitionNode node,
         object? context)
     {
-        ObjectType operationType = _schema.GetOperationType(node.Operation)!;
+        var operationType = _schema.GetOperationType(node.Operation)!;
 
         _typeContext.Push(operationType);
 
@@ -44,7 +44,7 @@ internal sealed class EnumTypeUsageAnalyzer : QuerySyntaxWalker<object?>
     {
         if (_schema.TryGetType<INamedType>(
                 node.Type.NamedType().Name.Value,
-                out INamedType? type) &&
+                out var type) &&
             type is IInputType inputType)
         {
             VisitInputType(inputType);
@@ -53,12 +53,12 @@ internal sealed class EnumTypeUsageAnalyzer : QuerySyntaxWalker<object?>
 
     protected override void VisitField(FieldNode node, object? context)
     {
-        IType currentType = _typeContext.Peek();
+        var currentType = _typeContext.Peek();
 
         if (currentType is IComplexOutputType complexType &&
-            complexType.Fields.TryGetField(node.Name.Value, out IOutputField? field))
+            complexType.Fields.TryGetField(node.Name.Value, out var field))
         {
-            INamedType fieldType = field.Type.NamedType();
+            var fieldType = field.Type.NamedType();
             if (fieldType is IInputType inputType)
             {
                 VisitInputType(inputType);
@@ -78,7 +78,7 @@ internal sealed class EnumTypeUsageAnalyzer : QuerySyntaxWalker<object?>
         FragmentDefinitionNode node,
         object? context)
     {
-        INamedType type = _schema!.GetType<INamedType>(node.TypeCondition.Name.Value);
+        var type = _schema!.GetType<INamedType>(node.TypeCondition.Name.Value);
 
         _typeContext.Push(type);
 
@@ -126,7 +126,7 @@ internal sealed class EnumTypeUsageAnalyzer : QuerySyntaxWalker<object?>
     {
         if (node.TypeCondition != null)
         {
-            INamedType type = _schema!.GetType<INamedType>(node.TypeCondition.Name.Value);
+            var type = _schema!.GetType<INamedType>(node.TypeCondition.Name.Value);
             _typeContext.Push(type);
         }
 

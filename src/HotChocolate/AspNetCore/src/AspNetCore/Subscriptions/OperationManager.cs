@@ -118,7 +118,7 @@ public sealed class OperationManager : IOperationManager
 
         try
         {
-            if (_subs.TryGetValue(sessionId, out IOperationSession? session))
+            if (_subs.TryGetValue(sessionId, out var session))
             {
                 _subs.Remove(sessionId);
                 session.Dispose();
@@ -163,7 +163,7 @@ public sealed class OperationManager : IOperationManager
             _lock.ExitReadLock();
         }
 
-        foreach (IOperationSession session in items)
+        foreach (var session in items)
         {
             yield return session;
         }

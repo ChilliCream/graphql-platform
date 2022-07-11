@@ -20,11 +20,11 @@ public class QueryableProjectionNestedTests
     public async Task Create_Object()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -44,11 +44,11 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectNotSettable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -68,11 +68,11 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectNotSettableList()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -92,11 +92,11 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectMethod()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -116,11 +116,11 @@ public class QueryableProjectionNestedTests
     public async Task Create_ObjectMethodList()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"

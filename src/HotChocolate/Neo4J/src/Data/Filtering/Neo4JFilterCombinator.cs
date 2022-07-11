@@ -40,7 +40,7 @@ public class Neo4JFilterCombinator
         }
 
         var conditions = new CompoundCondition(Operator.And);
-        foreach (Condition condition in operations)
+        foreach (var condition in operations)
         {
             conditions.And(condition);
         }
@@ -56,7 +56,7 @@ public class Neo4JFilterCombinator
         }
 
         var conditions = new CompoundCondition(Operator.Or);
-        foreach (Condition condition in operations)
+        foreach (var condition in operations)
         {
             conditions.Or(condition);
         }

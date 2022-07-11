@@ -19,11 +19,11 @@ public class QueryableProjectionVisitorScalarTests
     public async Task Create_NotSettable_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ notSettable }}")
                 .Create());
@@ -35,11 +35,11 @@ public class QueryableProjectionVisitorScalarTests
     public async Task Create_Computed_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ computed }}")
                 .Create());
@@ -51,11 +51,11 @@ public class QueryableProjectionVisitorScalarTests
     public async Task Create_ProjectsTwoProperties_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ bar baz }}")
                 .Create());
@@ -67,11 +67,11 @@ public class QueryableProjectionVisitorScalarTests
     public async Task Create_ProjectsOneProperty_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ baz }}")
                 .Create());
@@ -83,7 +83,7 @@ public class QueryableProjectionVisitorScalarTests
     public async Task Create_ProjectsOneProperty_WithResolver()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             objectType: new ObjectType<Foo>(
                 x => x
@@ -93,7 +93,7 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ baz foo }}")
                 .Create());

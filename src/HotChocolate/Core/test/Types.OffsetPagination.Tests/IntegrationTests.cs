@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Pagination
         [Fact]
         public async Task Simple_StringList_Schema()
         {
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Pagination
         [Fact]
         public async Task Attribute_Simple_StringList_Schema()
         {
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -76,7 +76,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -104,7 +104,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -132,7 +132,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -159,7 +159,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -186,7 +186,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -213,7 +213,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -240,7 +240,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -267,7 +267,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -295,7 +295,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -323,7 +323,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -351,7 +351,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -378,7 +378,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -405,7 +405,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -435,7 +435,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<ExecutableQueryType>()
@@ -465,7 +465,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -495,7 +495,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
@@ -525,7 +525,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -555,7 +555,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            ISchema schema =
+            var schema =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -583,7 +583,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            ISchema schema =
+            var schema =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
@@ -605,7 +605,7 @@ namespace HotChocolate.Types.Pagination
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<FluentPaging>()
@@ -629,7 +629,7 @@ namespace HotChocolate.Types.Pagination
             // arrange
             Snapshot.FullName();
 
-            IRequestExecutor executor = await new ServiceCollection()
+            var executor = await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<CustomCollectionSegmentQuery>()
                 .BuildRequestExecutorAsync();
@@ -643,7 +643,7 @@ namespace HotChocolate.Types.Pagination
             }
             ";
 
-            IExecutionResult result = await executor.ExecuteAsync(query);
+            var result = await executor.ExecuteAsync(query);
 
             // assert
             result.ToJson().MatchSnapshot();

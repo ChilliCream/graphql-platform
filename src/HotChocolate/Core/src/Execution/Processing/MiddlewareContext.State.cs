@@ -18,7 +18,7 @@ internal partial class MiddlewareContext
 
     public IType? ValueType { get; set; }
 
-    public ResultMap ResultMap { get; private set; } = default!;
+    public ObjectResult ParentResult { get; private set; } = default!;
 
     public bool HasErrors { get; private set; }
 
@@ -36,14 +36,14 @@ internal partial class MiddlewareContext
 
     public T Parent<T>()
     {
-        if (_parent is null)
-        {
-            return default!;
-        }
-
         if (_parent is T casted)
         {
             return casted;
+        }
+
+        if (_parent is null)
+        {
+            return default!;
         }
 
         if (_operationContext.Converter.TryConvert(_parent, out casted))

@@ -38,7 +38,7 @@ public sealed class GeoJsonPolygonType
     {
         public Coordinate[][] GetCoordinates([Parent] Polygon polygon)
         {
-            Coordinate[][] coordinates = new Coordinate[polygon.NumInteriorRings + 1][];
+            var coordinates = new Coordinate[polygon.NumInteriorRings + 1][];
             coordinates[0] = polygon.ExteriorRing.Coordinates;
 
             for (var i = 0; i < polygon.InteriorRings.Length; i++)

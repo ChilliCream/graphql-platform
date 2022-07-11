@@ -19,7 +19,7 @@ public interface IFilterInputTypeDescriptor<T>
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    new IFilterInputTypeDescriptor<T> Name(NameString value);
+    new IFilterInputTypeDescriptor<T> Name(string value);
 
     /// <summary>
     /// Adds explanatory text of the <see cref="FilterInputType{T}"/>
@@ -94,7 +94,7 @@ public interface IFilterInputTypeDescriptor<T>
     /// <param name="name">
     /// The name of the field.
     /// </param>
-    new IFilterInputTypeDescriptor<T> Ignore(NameString name);
+    new IFilterInputTypeDescriptor<T> Ignore(string name);
 
     /// <summary>
     /// Ignore the specified property.
@@ -151,6 +151,6 @@ public interface IFilterInputTypeDescriptor<T>
     /// The directive argument values.
     /// </param>
     new IFilterInputTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 }

@@ -34,7 +34,7 @@ public class GeoJsonPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(
@@ -63,7 +63,7 @@ public class GeoJsonPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(
@@ -94,7 +94,7 @@ public class GeoJsonPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(NullValueNode.Default, type);
@@ -108,7 +108,7 @@ public class GeoJsonPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -121,7 +121,7 @@ public class GeoJsonPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -138,7 +138,7 @@ public class GeoJsonPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -155,7 +155,7 @@ public class GeoJsonPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -171,7 +171,7 @@ public class GeoJsonPolygonInputTests
     public async Task Execution_Tests()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 d => d
                     .Name("Query")
@@ -180,10 +180,10 @@ public class GeoJsonPolygonInputTests
                     .Resolve(ctx => ctx.ArgumentValue<Polygon>("arg").ToString()))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test(arg: { type: Polygon, coordinates:[ [30, 10], [40, 40], [20, 40], [10, 20], [30, 10] ] })}");
 
         // assert
@@ -195,7 +195,7 @@ public class GeoJsonPolygonInputTests
     {
         // arrange
         // act
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -213,7 +213,7 @@ public class GeoJsonPolygonInputTests
 
     private InputObjectType CreateInputType()
     {
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
         return schema.GetType<InputObjectType>("GeoJSONPolygonInput");
     }
 }

@@ -93,7 +93,7 @@ public interface IFilterConventionDescriptor
     /// <paramref name="argumentName"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IFilterConventionDescriptor ArgumentName(NameString argumentName);
+    IFilterConventionDescriptor ArgumentName(string argumentName);
 
     /// <summary>
     /// Add a extensions that is applied to <see cref="FilterProvider{TContext}"/>

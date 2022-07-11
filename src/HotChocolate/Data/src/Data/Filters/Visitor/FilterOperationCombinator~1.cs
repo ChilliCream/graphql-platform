@@ -38,7 +38,7 @@ public abstract class FilterOperationCombinator<TContext, T>
                 contextOfT,
                 operationsOfT,
                 combinator,
-                out T combinedOfT) &&
+                out var combinedOfT) &&
             combinedOfT is TOperation combinedOperation)
         {
             combined = combinedOperation;

@@ -9,54 +9,53 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class ArgumentMap : IArgumentMap
 {
-    private readonly IReadOnlyDictionary<NameString, ArgumentValue> _arguments;
+    private readonly IReadOnlyDictionary<string, ArgumentValue> _arguments;
+    private readonly bool _isFinal;
+    private readonly bool _hasErrors;
 
-    public ArgumentMap(IReadOnlyDictionary<NameString, ArgumentValue> arguments)
+    public ArgumentMap(IReadOnlyDictionary<string, ArgumentValue> arguments)
     {
         _arguments = arguments;
-
-        IsFinalNoErrors = arguments.Count == 0;
+        _isFinal = true;
 
         if (_arguments.Count > 0)
         {
-            foreach (ArgumentValue argument in arguments.Values)
+            foreach (var argument in arguments.Values)
             {
                 if (!argument.IsFullyCoerced)
                 {
-                    IsFinal = false;
+                    _isFinal = false;
                 }
 
                 if (argument.HasError)
                 {
-                    HasErrors = true;
+                    _hasErrors = true;
                 }
             }
-
-            IsFinalNoErrors = IsFinal && !HasErrors;
         }
     }
 
-    public ArgumentValue this[NameString key] => _arguments[key];
+    public ArgumentValue this[string key] => _arguments[key];
 
-    public bool IsFinalNoErrors { get; }
+    public bool IsFinalNoErrors => _isFinal && !_hasErrors;
 
-    public bool IsFinal { get; } = true;
+    public bool IsFinal => _isFinal;
 
-    public bool HasErrors { get; }
+    public bool HasErrors => _hasErrors;
 
-    public IEnumerable<NameString> Keys => _arguments.Keys;
+    public IEnumerable<string> Keys => _arguments.Keys;
 
     public IEnumerable<ArgumentValue> Values => _arguments.Values;
 
     public int Count => _arguments.Count;
 
-    public bool ContainsKey(NameString key) => _arguments.ContainsKey(key);
+    public bool ContainsKey(string key) => _arguments.ContainsKey(key);
 
-    public bool TryGetValue(NameString key, [MaybeNullWhen(false)] out ArgumentValue value) =>
-        _arguments.TryGetValue(key, out value);
+    public bool TryGetValue(string key, [MaybeNullWhen(false)] out ArgumentValue value)
+        => _arguments.TryGetValue(key, out value);
 
-    public IEnumerator<KeyValuePair<NameString, ArgumentValue>> GetEnumerator() =>
-        _arguments.GetEnumerator();
+    public IEnumerator<KeyValuePair<string, ArgumentValue>> GetEnumerator()
+        => _arguments.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

@@ -6,7 +6,7 @@
         id
         alias: field1(first: 10, after: $foo) @include(if: $foo) {
           id
-          ... frag@onFragmentSpread
+          ... frag @onFragmentSpread
         }
       }
       field3!

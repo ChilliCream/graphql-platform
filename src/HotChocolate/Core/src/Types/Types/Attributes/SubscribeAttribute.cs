@@ -54,7 +54,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 
         if (MessageType is null)
         {
-            ParameterInfo? messageParameter =
+            var messageParameter =
                 method.GetParameters()
                     .FirstOrDefault(t => t.IsDefined(typeof(EventMessageAttribute)));
 
@@ -68,16 +68,16 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 
         if (string.IsNullOrEmpty(With))
         {
-            (string? name, string? value, Type type) topic = ResolveTopic(method);
+            var topic = ResolveTopic(method);
 
             if (topic.value is { })
             {
-                MethodInfo config = _constantTopic.MakeGenericMethod(MessageType);
+                var config = _constantTopic.MakeGenericMethod(MessageType);
                 config.Invoke(null, new object?[] { descriptor, topic.value });
             }
             else
             {
-                MethodInfo config = _argumentTopic.MakeGenericMethod(topic.type, MessageType);
+                var config = _argumentTopic.MakeGenericMethod(topic.type, MessageType);
                 config.Invoke(null, new object?[] { descriptor, topic.name });
             }
         }
@@ -86,7 +86,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 
             descriptor.Extend().OnBeforeCreate(d =>
             {
-                MethodInfo? subscribeResolver = member.DeclaringType?.GetMethod(
+                var subscribeResolver = member.DeclaringType?.GetMethod(
                     With!, BindingFlags.Public | BindingFlags.Instance);
 
                 if (subscribeResolver is null)
@@ -102,7 +102,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 
     private (string? name, string? value, Type type) ResolveTopic(MethodInfo method)
     {
-        ParameterInfo? topicParameter =
+        var topicParameter =
             method.GetParameters()
                 .FirstOrDefault(t => t.IsDefined(typeof(TopicAttribute)));
 
@@ -110,7 +110,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         {
             if (topicParameter is null)
             {
-                string name = method.GetCustomAttribute<TopicAttribute>()?.Name ?? method.Name;
+                var name = method.GetCustomAttribute<TopicAttribute>()?.Name ?? method.Name;
                 return (null, name, typeof(string));
             }
 
