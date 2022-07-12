@@ -19,7 +19,7 @@ public class SerializerResolver : ISerializerResolver
     /// A enumerable of <see cref="ISerializer"/> that shall be known to the resolver
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// In case <param name="serializers"></param> is null
+    /// In case <paramref name="serializers"></param> is null
     /// </exception>
     public SerializerResolver(IEnumerable<ISerializer> serializers)
     {

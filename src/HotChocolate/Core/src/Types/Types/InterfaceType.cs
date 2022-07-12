@@ -41,7 +41,7 @@ namespace HotChocolate.Types;
 ///   age: Int
 /// }
 ///
-/// type Business implements NamedEntity & ValuedEntity {
+/// type Business implements NamedEntity &amp; ValuedEntity {
 ///   name: String
 ///   value: Int
 ///   employeeCount: Int

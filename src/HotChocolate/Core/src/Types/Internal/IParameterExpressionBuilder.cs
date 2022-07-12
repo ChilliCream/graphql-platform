@@ -32,9 +32,6 @@ public interface IParameterExpressionBuilder : IParameterHandler
     /// <param name="parameter">
     /// The parameter that needs to be resolved.
     /// </param>
-    /// <param name="source">
-    /// The runtime type of the object that is being resolved.
-    /// </param>
     /// <param name="context">
     /// An expression that represents the resolver context.
     /// </param>

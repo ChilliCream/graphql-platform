@@ -41,8 +41,7 @@ public interface IInterfaceTypeDescriptor<T>
     /// Specifies an interface that is implemented by the
     /// <see cref="InterfaceType"/>.
     /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    /// <typeparam name="TInterface"></typeparam>
+    /// <typeparam name="TInterface">The interface that is being implemented.</typeparam>
     [Obsolete("Use Implements.")]
     IInterfaceTypeDescriptor<T> Interface<TInterface>()
         where TInterface : InterfaceType;
@@ -51,8 +50,7 @@ public interface IInterfaceTypeDescriptor<T>
     /// Specifies an interface that is implemented by the
     /// <see cref="InterfaceType"/>.
     /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    /// <typeparam name="TInterface"></typeparam>
+    /// <typeparam name="TInterface">The interface that is being implemented.</typeparam>
     [Obsolete("Use Implements.")]
     IInterfaceTypeDescriptor<T> Interface<TInterface>(TInterface type)
         where TInterface : InterfaceType;
@@ -71,8 +69,7 @@ public interface IInterfaceTypeDescriptor<T>
     /// Specifies an interface that is implemented by the
     /// <see cref="InterfaceType"/>.
     /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    /// <typeparam name="TInterface"></typeparam>
+    /// <typeparam name="TInterface">The interface that is being implemented.</typeparam>
     IInterfaceTypeDescriptor<T> Implements<TInterface>()
         where TInterface : InterfaceType;
 
@@ -80,8 +77,7 @@ public interface IInterfaceTypeDescriptor<T>
     /// Specifies an interface that is implemented by the
     /// <see cref="InterfaceType"/>.
     /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
-    /// <typeparam name="TInterface"></typeparam>
+    /// <typeparam name="TInterface">The interface that is being implemented.</typeparam>
     IInterfaceTypeDescriptor<T> Implements<TInterface>(TInterface type)
         where TInterface : InterfaceType;
 

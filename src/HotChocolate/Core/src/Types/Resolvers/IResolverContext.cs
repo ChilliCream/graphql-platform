@@ -99,7 +99,7 @@ public interface IResolverContext : IPureResolverContext
     void ReportError(Exception exception, Action<IErrorBuilder>? configure = null);
 
     /// <summary>
-    /// Gets the pre-compiled selections for the <paramref name="selectionSet" />
+    /// Gets the pre-compiled selections for the selection-set
     /// with the specified <paramref name="typeContext" />.
     /// type context.
     /// </summary>

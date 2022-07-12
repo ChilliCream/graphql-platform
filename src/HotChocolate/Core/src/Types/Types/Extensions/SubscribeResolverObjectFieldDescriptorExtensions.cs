@@ -89,6 +89,9 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     /// <typeparam name="TMessage">
     /// The type of the message / event payload.
     /// </typeparam>
+    /// <typeparam name="TTopic">
+    /// The topic type.
+    /// </typeparam>
     public static IObjectFieldDescriptor SubscribeToTopic<TTopic, TMessage>(
         this IObjectFieldDescriptor descriptor,
         string argumentName) =>

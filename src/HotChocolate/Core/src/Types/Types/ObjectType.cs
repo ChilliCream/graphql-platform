@@ -113,7 +113,7 @@ public partial class ObjectType
     /// The result that shall be checked.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the <see cref="resolverResult"/> is an instance of this type;
+    /// <c>true</c> if the <see cref="context"/> is an instance of this type;
     /// otherwise, <c>false</c>.
     /// </returns>
     [Obsolete("Use IsInstanceOfType")]

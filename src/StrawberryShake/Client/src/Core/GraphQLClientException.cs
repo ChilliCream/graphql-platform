@@ -44,7 +44,7 @@ public class GraphQLClientException : Exception
     }
 
     /// <summary>
-    /// Creates a new exception that is caused by the specified client <see cref="errors"/>.
+    /// Creates a new exception that is caused by the specified client <paramref cref="errors"/>.
     /// </summary>
     /// <param name="errors">
     /// The client errors.
@@ -85,7 +85,7 @@ public class GraphQLClientException : Exception
     }
 
     /// <summary>
-    /// Creates a new exception that is caused by the specified client <see cref="errors"/>.
+    /// Creates a new exception that is caused by the specified client <paramref cref="errors"/>.
     /// </summary>
     /// <param name="errors">
     /// The client errors.
