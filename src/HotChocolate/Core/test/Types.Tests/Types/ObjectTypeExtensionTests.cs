@@ -456,6 +456,22 @@ public class ObjectTypeExtensionTests
             .MatchSnapshotAsync();
     }
 
+#if NET6_0_OR_GREATER
+    [Fact]
+    public async Task BindByType_With_Generic_Attribute()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddType<Query>()
+            .AddTypeExtension<Extensions2>()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+#endif
+
     [Fact]
     public async Task BindResolver_With_Property()
     {
@@ -766,6 +782,41 @@ public class ObjectTypeExtensionTests
             return new();
         }
     }
+
+#if NET6_0_OR_GREATER
+    [ExtendObjectType<IMarker>]
+    public class Extensions2
+    {
+        // introduces a new field on all types that apply the parent
+        public string? Any([Parent] object parent)
+        {
+            if (parent is Query q)
+            {
+                return q.Foo;
+            }
+
+            if (parent is Bar b)
+            {
+                return b.Baz;
+            }
+
+            return null;
+        }
+
+        // replaces the original field baz on bar
+        [GraphQLName("baz")]
+        public string? BazEx([Parent] Bar bar)
+        {
+            return bar.Baz;
+        }
+
+        // introduces a new field to query
+        public Bar? FooEx([Parent] Query query)
+        {
+            return new();
+        }
+    }
+#endif
 
     public interface IMarker
     {
