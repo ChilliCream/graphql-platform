@@ -53,28 +53,28 @@ public class QueryableFilterVisitorIntersectsTests
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                bar: {
-                                    intersects: {
-                                        geometry: {
-                                            type: Polygon,
-                                            coordinates: [
-                                                [
-                                                    [10 10],
-                                                    [10 90],
-                                                    [90 90],
-                                                    [90 10],
-                                                    [10 10]
-                                                ]
+                        root(where: {
+                            bar: {
+                                intersects: {
+                                    geometry: {
+                                        type: Polygon,
+                                        coordinates: [
+                                            [
+                                                [10 10],
+                                                [10 90],
+                                                [90 90],
+                                                [90 10],
+                                                [10 10]
                                             ]
-                                        }
+                                        ]
                                     }
                                 }
-                            }){
-                                id
                             }
-                        }")
-                .Create());
+                        }){
+                            id
+                        }
+                    }")
+            .Create());
 
         res1.MatchSqlSnapshot("true");
 
@@ -82,28 +82,28 @@ public class QueryableFilterVisitorIntersectsTests
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                bar: {
-                                    nintersects: {
-                                        geometry: {
-                                            type: Polygon,
-                                            coordinates: [
-                                                [
-                                                    [10 10],
-                                                    [10 90],
-                                                    [90 90],
-                                                    [90 10],
-                                                    [10 10]
-                                                ]
+                        root(where: {
+                            bar: {
+                                nintersects: {
+                                    geometry: {
+                                        type: Polygon,
+                                        coordinates: [
+                                            [
+                                                [10 10],
+                                                [10 90],
+                                                [90 90],
+                                                [90 10],
+                                                [10 10]
                                             ]
-                                        }
+                                        ]
                                     }
                                 }
-                            }){
-                                id
                             }
-                        }")
-                .Create());
+                        }){
+                            id
+                        }
+                    }")
+            .Create());
 
         res2.MatchSqlSnapshot("false");
     }
