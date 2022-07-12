@@ -26,7 +26,7 @@ partial class Build
         .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
-            IReadOnlyCollection<AbsolutePath> packages = PackageDirectory.GlobFiles("*.nupkg");
+            var packages = PackageDirectory.GlobFiles("HotChocolate.*.nupkg");
 
             DotNetNuGetPush(
                 _ => _
@@ -123,7 +123,7 @@ partial class Build
         .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
-            IReadOnlyCollection<AbsolutePath> packages = PackageDirectory.GlobFiles("*.nupkg");
+            var packages = PackageDirectory.GlobFiles("HotChocolate.*.nupkg");
 
             DotNetNuGetPush(
                 _ => _
