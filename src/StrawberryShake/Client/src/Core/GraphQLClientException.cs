@@ -71,7 +71,7 @@ public class GraphQLClientException : Exception
         {
             var message = new StringBuilder("Multiple errors occurred:");
 
-            foreach (IClientError error in errors)
+            foreach (var error in errors)
             {
                 message.AppendLine();
                 message.Append("- ");

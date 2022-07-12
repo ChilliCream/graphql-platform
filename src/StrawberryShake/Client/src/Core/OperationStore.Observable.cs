@@ -1,40 +1,27 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using StrawberryShake.Extensions;
 
 namespace StrawberryShake;
 
 public sealed partial class OperationStore
 {
-    private void BeginProcessOperationUpdates() =>
+    private void BeginProcessOperationUpdates(CancellationToken ct) =>
         Task<Task?>.Factory.StartNew(
-            ProcessOperationUpdates,
-            _cts.Token,
+            () => ProcessOperationUpdates(ct),
+            ct,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
 
-    private async Task ProcessOperationUpdates()
+    private async Task ProcessOperationUpdates(CancellationToken ct)
     {
         try
         {
-            while (!_cts.Token.IsCancellationRequested ||
-                   !_updates.Reader.Completion.IsCompleted)
+            while (!ct.IsCancellationRequested || !_updates.Reader.Completion.IsCompleted)
             {
-                var update = await _updates.Reader.ReadAsync(_cts.Token);
-
-                if (_cts.Token.IsCancellationRequested)
-                {
-                    break;
-                }
-
+                var update = await _updates.Reader.ReadAsync(ct);
                 _operationStoreObservable.Next(update);
             }
         }
@@ -68,7 +55,7 @@ public sealed partial class OperationStore
 
         public void Next(OperationUpdate operationUpdate)
         {
-            ImmutableList<OperationStoreSession> sessions = _sessions;
+            var sessions = _sessions;
 
             foreach (var session in sessions)
             {
@@ -78,7 +65,7 @@ public sealed partial class OperationStore
 
         public void Complete()
         {
-            ImmutableList<OperationStoreSession> sessions = _sessions;
+            var sessions = _sessions;
 
             foreach (var session in sessions)
             {
@@ -108,7 +95,7 @@ public sealed partial class OperationStore
 
         public void Dispose()
         {
-            ImmutableList<OperationStoreSession> sessions = _sessions;
+            var sessions = _sessions;
 
             foreach (var session in sessions)
             {

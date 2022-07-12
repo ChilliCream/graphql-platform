@@ -304,7 +304,7 @@ public class StreamTests
         }
 
         [StreamResult]
-        public PersonStream GetPersons2() => new PersonStream();
+        public PersonStream GetPersons2() => new();
     }
 
     public class PersonStream : IAsyncEnumerable<Person>
