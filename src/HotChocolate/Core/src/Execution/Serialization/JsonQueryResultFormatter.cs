@@ -372,7 +372,6 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         writer.WriteEndObject();
     }
 
-#if NET5_0_OR_GREATER
     private void WriteListResult(
         Utf8JsonWriter writer,
         ListResult list)
@@ -389,7 +388,6 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
         writer.WriteEndArray();
     }
-#endif
 
     private void WriteList(
         Utf8JsonWriter writer,
@@ -421,11 +419,10 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
                 WriteObjectResult(writer, resultMap);
                 break;
 
-#if NET5_0_OR_GREATER
             case ListResult resultMapList:
                 WriteListResult(writer, resultMapList);
                 break;
-#endif
+
             case Dictionary<string, object?> dict:
                 WriteDictionary(writer, dict);
                 break;
