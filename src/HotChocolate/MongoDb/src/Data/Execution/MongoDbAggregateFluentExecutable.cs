@@ -45,7 +45,7 @@ public class MongoDbAggregateFluentExecutable<T> : MongoDbExecutable<T>
     public override string Print() => BuildPipeline().ToString() ?? "";
 
     /// <summary>
-    /// Applies filtering sorting and projections on the <see cref="IExecutable{T}.Source"/>
+    /// Applies filtering sorting and projections on the <see cref="IExecutable.Source"/>
     /// </summary>
     /// <returns>A aggregate fluent including the configuration of this executable</returns>
     public IAggregateFluent<T> BuildPipeline()

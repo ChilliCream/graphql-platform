@@ -1,4 +1,5 @@
 using HotChocolate.Data.Filters;
+using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 

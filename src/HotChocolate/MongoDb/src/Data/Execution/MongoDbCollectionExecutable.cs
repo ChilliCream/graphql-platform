@@ -89,7 +89,7 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     public override string Print() => BuildPipeline().ToString() ?? "";
 
     /// <summary>
-    /// Applies filtering sorting and projections on the <see cref="IExecutable{T}.Source"/>
+    /// Applies filtering sorting and projections on the <see cref="IExecutable.Source"/>
     /// </summary>
     /// <returns>A find fluent including the configuration of this executable</returns>
     public IFindFluent<T, T> BuildPipeline()
