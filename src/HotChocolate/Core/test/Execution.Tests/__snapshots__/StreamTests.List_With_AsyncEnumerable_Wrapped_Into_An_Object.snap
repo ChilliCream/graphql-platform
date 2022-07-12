@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "persons2": [
+      {
+        "name": "Foo"
+      },
+      {
+        "name": "Bar"
+      }
+    ]
+  }
+}

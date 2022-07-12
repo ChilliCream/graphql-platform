@@ -159,6 +159,12 @@
     <Compile Update="Processing\Result\ResultBuilder.Pooling.cs">
       <DependentUpon>ResultBuilder.cs</DependentUpon>
     </Compile>
+    <Compile Update="Processing\Tasks\ResolverTask.CompleteValue.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\Tasks\ResolverTask.Pooling.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

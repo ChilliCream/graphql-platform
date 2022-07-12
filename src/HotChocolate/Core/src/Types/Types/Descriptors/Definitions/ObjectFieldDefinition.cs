@@ -25,7 +25,10 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
-    public ObjectFieldDefinition() { }
+    public ObjectFieldDefinition()
+    {
+        IsParallelExecutable = true;
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
@@ -42,6 +45,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         Type = type;
         Resolver = resolver;
         PureResolver = pureResolver;
+        IsParallelExecutable = true;
     }
 
     /// <summary>
@@ -142,12 +146,60 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// Defines if this field configuration represents an introspection field.
     /// </summary>
-    public bool IsIntrospectionField { get; internal set; }
+    public bool IsIntrospectionField
+    {
+        get => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
+        internal set
+        {
+            if (value)
+            {
+                Flags |= FieldFlags.Introspection;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.Introspection;
+            }
+        }
+    }
 
     /// <summary>
     /// Defines if this field can be executed in parallel with other fields.
     /// </summary>
-    public bool IsParallelExecutable { get; set; } = true;
+    public bool IsParallelExecutable
+    {
+        get => (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
+        set
+        {
+            if (value)
+            {
+                Flags |= FieldFlags.ParallelExecutable;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.ParallelExecutable;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Defines that the resolver pipeline returns an
+    /// <see cref="IAsyncEnumerable{T}"/> as its result.
+    /// </summary>
+    public bool HasStreamResult
+    {
+        get => (Flags & FieldFlags.Stream) == FieldFlags.Stream;
+        set
+        {
+            if (value)
+            {
+                Flags |= FieldFlags.Stream;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.Stream;
+            }
+        }
+    }
 
     /// <summary>
     /// A list of middleware components which will be used to form the field pipeline.
@@ -229,6 +281,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         target.SubscribeResolver = SubscribeResolver;
         target.IsIntrospectionField = IsIntrospectionField;
         target.IsParallelExecutable = IsParallelExecutable;
+        target.HasStreamResult = HasStreamResult;
     }
 
     internal void MergeInto(ObjectFieldDefinition target)
@@ -258,6 +311,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         if (!IsParallelExecutable)
         {
             target.IsParallelExecutable = false;
+        }
+
+        if (!HasStreamResult)
+        {
+            target.HasStreamResult = false;
         }
 
         if (ResolverType is not null)
@@ -386,4 +444,16 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             }
         }
     }
+}
+
+[Flags]
+internal enum FieldFlags
+{
+    None = 0,
+    Introspection = 2,
+    Deprecated = 4,
+    Ignored = 8,
+    ParallelExecutable = 16,
+    Stream = 32,
+    Sealed = 64,
 }

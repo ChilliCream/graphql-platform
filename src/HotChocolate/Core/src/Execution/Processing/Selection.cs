@@ -55,6 +55,11 @@ public class Selection : ISelection
         {
             _flags |= Flags.List;
         }
+
+        if (Field.HasStreamResult)
+        {
+            _flags |= Flags.StreamResult;
+        }
     }
 
     protected Selection(Selection selection)
@@ -123,10 +128,17 @@ public class Selection : ISelection
     /// <inheritdoc />
     public IArgumentMap Arguments { get; }
 
-    public bool IsStream(long includeFlags)
+    /// <inheritdoc />
+    public bool HasStreamResult => (_flags & Flags.StreamResult) == Flags.StreamResult;
+
+    /// <inheritdoc />
+    public bool HasStreamDirective(long includeFlags)
         => (_flags & Flags.Stream) == Flags.Stream &&
             (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
 
+    /// <summary>
+    /// Specifies if the current selection is immutable.
+    /// </summary>
     public bool IsReadOnly => (_flags & Flags.Sealed) == Flags.Sealed;
 
     /// <inheritdoc />
@@ -324,6 +336,7 @@ public class Selection : ISelection
         Internal = 1,
         Sealed = 2,
         List = 4,
-        Stream = 8
+        Stream = 8,
+        StreamResult = 16
     }
 }

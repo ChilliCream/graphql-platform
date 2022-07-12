@@ -1418,7 +1418,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ConnectionType_TotalCount_Description", resourceCulture);
             }
         }
-
+        
         internal static string CollectionSegmentType_PageInfo_Description {
             get {
                 return ResourceManager.GetString("CollectionSegmentType_PageInfo_Description", resourceCulture);
@@ -1524,6 +1524,12 @@ namespace HotChocolate.Properties {
         internal static string InterfaceTypeDescriptor_MustBePropertyOrMethod {
             get {
                 return ResourceManager.GetString("InterfaceTypeDescriptor_MustBePropertyOrMethod", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_FieldBase_Sealed {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FieldBase_Sealed", resourceCulture);
             }
         }
     }

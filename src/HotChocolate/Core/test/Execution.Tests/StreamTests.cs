@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -166,6 +167,23 @@ public class StreamTests
     }
 
     [Fact]
+    public async Task List_With_AsyncEnumerable_Wrapped_Into_An_Object()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    @"{
+                        persons2 {
+                            name
+                        }
+                    }");
+
+        await Assert.IsType<QueryResult>(result).MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task Stream_With_AsyncEnumerable()
     {
         var result =
@@ -278,6 +296,21 @@ public class StreamTests
     public class Query
     {
         public async IAsyncEnumerable<Person> GetPersonsAsync()
+        {
+            await Task.Delay(1);
+            yield return new Person { Name = "Foo" };
+            await Task.Delay(1);
+            yield return new Person { Name = "Bar" };
+        }
+
+        [StreamResult]
+        public PersonStream GetPersons2() => new PersonStream();
+    }
+
+    public class PersonStream : IAsyncEnumerable<Person>
+    {
+        public async IAsyncEnumerator<Person> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
         {
             await Task.Delay(1);
             yield return new Person { Name = "Foo" };

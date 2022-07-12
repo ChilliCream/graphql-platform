@@ -1,5 +1,5 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -145,6 +145,13 @@ public class ObjectFieldDescriptor
         base.OnCreateDefinition(definition);
 
         CompleteArguments(definition);
+
+        if (!definition.HasStreamResult &&
+            definition.ResultType?.IsGenericType is true &&
+            definition.ResultType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+        {
+            definition.HasStreamResult = true;
+        }
     }
 
     private void CompleteArguments(ObjectFieldDefinition definition)
@@ -231,6 +238,13 @@ public class ObjectFieldDescriptor
     public new IObjectFieldDescriptor Type(Type type)
     {
         base.Type(type);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IObjectFieldDescriptor StreamResult(bool hasStreamResult = true)
+    {
+        Definition.HasStreamResult = hasStreamResult;
         return this;
     }
 

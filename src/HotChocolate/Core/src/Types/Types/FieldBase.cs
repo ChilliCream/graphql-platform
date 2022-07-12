@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -16,6 +17,7 @@ public abstract class FieldBase<TDefinition>
     where TDefinition : FieldDefinitionBase, IHasSyntaxNode
 {
     private TDefinition? _definition;
+    private FieldFlags _flags;
 
     protected FieldBase(TDefinition definition, int index)
     {
@@ -25,6 +27,7 @@ public abstract class FieldBase<TDefinition>
         SyntaxNode = definition.SyntaxNode;
         Name = definition.Name.EnsureGraphQLName();
         Description = definition.Description;
+        Flags = definition.Flags;
         DeclaringType = default!;
         ContextData = default!;
         Directives = default!;
@@ -54,6 +57,16 @@ public abstract class FieldBase<TDefinition>
     /// <inheritdoc />
     public abstract Type RuntimeType { get; }
 
+    internal FieldFlags Flags
+    {
+        get => _flags;
+        set
+        {
+            AssertMutable();
+            _flags = value;
+        }
+    }
+
     /// <inheritdoc />
     public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
 
@@ -61,10 +74,13 @@ public abstract class FieldBase<TDefinition>
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember)
     {
+        AssertMutable();
+
         OnCompleteField(context, declaringMember, _definition!);
 
         ContextData = _definition!.GetContextData();
         _definition = null;
+        _flags |= FieldFlags.Sealed;
     }
 
     protected virtual void OnCompleteField(
@@ -78,10 +94,19 @@ public abstract class FieldBase<TDefinition>
             : new FieldCoordinate(context.Type.Name, definition.Name);
         Directives = DirectiveCollection.CreateAndComplete(
             context, this, definition.GetDirectives());
+        Flags = definition.Flags;
     }
 
     void IFieldCompletion.CompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember)
         => CompleteField(context, declaringMember);
+
+    private void AssertMutable()
+    {
+        if ((_flags & FieldFlags.Sealed) == FieldFlags.Sealed)
+        {
+            throw ThrowHelper.FieldBase_Sealed();
+        }
+    }
 }

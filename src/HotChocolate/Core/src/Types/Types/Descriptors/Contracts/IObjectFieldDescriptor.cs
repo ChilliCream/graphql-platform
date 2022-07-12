@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -90,6 +91,12 @@ public interface IObjectFieldDescriptor
     /// Defines the type of the object field.
     /// </summary>
     IObjectFieldDescriptor Type(Type type);
+
+    /// <summary>
+    /// Defines weather the resolver pipeline will return <see cref="IAsyncEnumerable{T}"/>
+    /// as its result.
+    /// </summary>
+    IObjectFieldDescriptor StreamResult(bool hasStreamResult = true);
 
     /// <summary>
     /// Defines a field argument.
