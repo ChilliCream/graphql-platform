@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Internal;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 

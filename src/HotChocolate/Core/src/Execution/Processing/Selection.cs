@@ -124,10 +124,8 @@ public class Selection : ISelection
     public IArgumentMap Arguments { get; }
 
     public bool IsStream(long includeFlags)
-    {
-        return (_flags & Flags.Stream) == Flags.Stream &&
-            (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) == _streamIfCondition);
-    }
+        => (_flags & Flags.Stream) == Flags.Stream &&
+            (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
 
     public bool IsReadOnly => (_flags & Flags.Sealed) == Flags.Sealed;
 

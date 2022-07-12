@@ -121,9 +121,15 @@ public class StreamTests
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
+        var temp = new List<IQueryResult>();
         var results = new StringBuilder();
 
         await foreach (var payload in stream.ReadResultsAsync())
+        {
+            temp.Add(payload);
+        }
+
+        foreach (var payload in temp.OrderBy(t => t.Path?.ToString() ?? string.Empty))
         {
             results.AppendLine(payload.ToJson());
             results.AppendLine();

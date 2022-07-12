@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Net;
 using HotChocolate.Execution.Properties;
 
 namespace HotChocolate.Execution.Processing;
@@ -87,6 +88,11 @@ internal sealed partial class ResultBuilder
                 Resources.ResultHelper_BuildResult_InvalidResult);
         }
 
+        if (_errors.Count > 0)
+        {
+            _errors.Sort(ErrorComparer.Default);
+        }
+
         var result = new QueryResult
         (
             _data,
@@ -125,8 +131,9 @@ internal sealed partial class ResultBuilder
 
         builder.SetData(_data);
 
-        if (_errors is { Count: > 0 })
+        if (_errors.Count > 0)
         {
+            _errors.Sort(ErrorComparer.Default);
             builder.AddErrors(_errors);
         }
 
@@ -157,6 +164,44 @@ internal sealed partial class ResultBuilder
     public void DiscardResult()
         => _resultOwner.Dispose();
 
+    private sealed class ErrorComparer : IComparer<IError>
+    {
+        public int Compare(IError? x, IError? y)
+        {
+            if (ReferenceEquals(x, y))
+            {
+                return 0;
+            }
+
+            if (ReferenceEquals(null, y))
+            {
+                return 1;
+            }
+
+            if (ReferenceEquals(null, x))
+            {
+                return -1;
+            }
+
+            if (y.Locations?.Count > 0)
+            {
+                if (x.Locations?.Count > 0)
+                {
+                    return x.Locations[0].CompareTo(y.Locations[0]);
+                }
+                return 1;
+            }
+
+            if (x.Locations?.Count > 0)
+            {
+                return -1;
+            }
+
+            return 0;
+        }
+
+        public static readonly ErrorComparer Default = new();
+    }
 }
 
 
