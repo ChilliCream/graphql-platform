@@ -29,9 +29,7 @@ public class ProjectionVisitorTestBase
 
         var sql = dbContext.Database.GenerateCreateScript();
         await _resource.CreateDatabaseAsync(databaseName);
-        await _resource.RunSqlScriptAsync(
-            "CREATE EXTENSION postgis;\n" + sql,
-            databaseName);
+        await _resource.RunSqlScriptAsync("CREATE EXTENSION postgis;\n" + sql, databaseName);
 
         var set = dbContext.Set<T>();
 
@@ -49,8 +47,7 @@ public class ProjectionVisitorTestBase
         ProjectionConvention? convention = null)
         where TEntity : class
     {
-        var resolver =
-            await BuildResolverAsync(entities);
+        var resolver = await BuildResolverAsync(entities);
 
         return await new ServiceCollection()
             .AddGraphQL()

@@ -52,8 +52,7 @@ public class FilterVisitorTestBase
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
-        var resolver =
-            await BuildResolverAsync(entities);
+        var resolver = await BuildResolverAsync(entities);
 
         return await new ServiceCollection()
             .AddGraphQL()

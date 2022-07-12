@@ -54,7 +54,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         result.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "We are currently reworking the query plans.")]
     public async Task Include_Query_Plan()
     {
         // arrange

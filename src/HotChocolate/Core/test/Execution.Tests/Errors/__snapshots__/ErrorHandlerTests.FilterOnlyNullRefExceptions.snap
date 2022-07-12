@@ -10,11 +10,7 @@
       ],
       "path": [
         "foo"
-      ],
-      "extensions": {
-        "message": "Foo",
-        "stackTrace": "   at HotChocolate.Execution.Errors.ErrorHandlerTests.\u003C\u003Ec.\u003CFilterOnlyNullRefExceptions\u003Eb__1_1(IResolverContext _) in /Users/michael/local/hc-0/src/HotChocolate/Core/test/Execution.Tests/Errors/ErrorHandlerTests.cs:line 34\n   at HotChocolate.SchemaBuilderExtensions.\u003C\u003Ec__DisplayClass28_0.\u003CAddResolver\u003Eb__0(IResolverContext ctx) in /Users/michael/local/hc-0/src/HotChocolate/Core/src/Types/Extensions/SchemaBuilderExtensions.Resolvers.cs:line 136\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.\u003C\u003Ec__DisplayClass9_0.\u003C\u003CCreateResolverMiddleware\u003Eb__0\u003Ed.MoveNext() in /Users/michael/local/hc-0/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 128\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-0/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 111\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-0/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 80"
-      }
+      ]
     },
     {
       "message": "Unexpected Execution Error",
@@ -28,8 +24,6 @@
         "bar"
       ],
       "extensions": {
-        "message": "Foo",
-        "stackTrace": "   at HotChocolate.Execution.Errors.ErrorHandlerTests.\u003C\u003Ec.\u003CFilterOnlyNullRefExceptions\u003Eb__1_2(IResolverContext _) in /Users/michael/local/hc-0/src/HotChocolate/Core/test/Execution.Tests/Errors/ErrorHandlerTests.cs:line 35\n   at HotChocolate.SchemaBuilderExtensions.\u003C\u003Ec__DisplayClass28_0.\u003CAddResolver\u003Eb__0(IResolverContext ctx) in /Users/michael/local/hc-0/src/HotChocolate/Core/src/Types/Extensions/SchemaBuilderExtensions.Resolvers.cs:line 136\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.\u003C\u003Ec__DisplayClass9_0.\u003C\u003CCreateResolverMiddleware\u003Eb__0\u003Ed.MoveNext() in /Users/michael/local/hc-0/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 128\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-0/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 111\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-0/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 80",
         "code": "NullRef"
       }
     }
