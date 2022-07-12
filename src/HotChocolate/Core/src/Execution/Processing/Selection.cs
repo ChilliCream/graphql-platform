@@ -17,6 +17,7 @@ public class Selection : ISelection
         new(new Dictionary<string, ArgumentValue>());
 
     private long[] _includeConditions;
+    private long _streamIfCondition;
     private Flags _flags;
 
     public Selection(
@@ -121,6 +122,10 @@ public class Selection : ISelection
 
     /// <inheritdoc />
     public IArgumentMap Arguments { get; }
+
+    public bool IsStream(long includeFlags)
+        => (_flags & Flags.Stream) == Flags.Stream &&
+            (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
 
     public bool IsReadOnly => (_flags & Flags.Sealed) == Flags.Sealed;
 
@@ -273,6 +278,17 @@ public class Selection : ISelection
         }
 
         SelectionSetId = selectionSetId;
+    }
+
+    internal void MarkAsStream(long ifCondition)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        _streamIfCondition = ifCondition;
+        _flags |= Flags.Stream;
     }
 
     internal void Seal()

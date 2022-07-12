@@ -95,6 +95,7 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
             CancellationToken cancellationToken = default)
         {
             var span = _diagnosticEvents.ExecuteStream(_operation);
+            var hasNext = true;
 
             try
             {
@@ -106,11 +107,15 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
                     var result = await _stateOwner.State.TryDequeueResultAsync(cancellationToken);
                     if (result is not null)
                     {
+                        hasNext = result.HasNext ?? false;
                         yield return result;
                     }
                     else
                     {
-
+                        if (hasNext)
+                        {
+                            yield return new QueryResult(null, hasNext: false);
+                        }
                         yield break;
                     }
                 }

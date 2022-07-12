@@ -79,8 +79,8 @@ internal sealed class DeferredStream : DeferredExecutionTask
 
         try
         {
-            _task ??= new StreamExecutionTask(operationContext, this);
-            _task.Reset(resultId);
+            _task ??= new StreamExecutionTask(this);
+            _task.Reset(operationContext, resultId);
 
             operationContext.Scheduler.Register(_task);
             await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
@@ -120,21 +120,17 @@ internal sealed class DeferredStream : DeferredExecutionTask
 
     private sealed class StreamExecutionTask : ExecutionTask
     {
-        private readonly OperationContext _operationContext;
         private readonly DeferredStream _deferredStream;
+        private OperationContext _operationContext = default!;
         private IImmutableDictionary<string, object?> _scopedContextData;
 
-        public StreamExecutionTask(
-            OperationContext operationContext,
-            DeferredStream deferredStream)
+        public StreamExecutionTask(DeferredStream deferredStream)
         {
-            _operationContext = operationContext;
             _deferredStream = deferredStream;
             _scopedContextData = _deferredStream.ScopedContextData;
-            Context = operationContext;
         }
 
-        protected override IExecutionTaskContext Context { get; }
+        protected override IExecutionTaskContext Context => _operationContext;
 
         public ResolverTask? ChildTask { get; private set; }
 
@@ -157,9 +153,10 @@ internal sealed class DeferredStream : DeferredExecutionTask
             }
         }
 
-        public void Reset(uint taskId)
+        public void Reset(OperationContext operationContext, uint taskId)
         {
-            _scopedContextData =_scopedContextData.SetItem(DeferredResultId, taskId);
+            _operationContext = operationContext;
+            _scopedContextData = _scopedContextData.SetItem(DeferredResultId, taskId);
             base.Reset();
         }
     }

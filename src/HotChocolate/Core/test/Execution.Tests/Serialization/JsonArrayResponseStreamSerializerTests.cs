@@ -23,20 +23,18 @@ public class JsonArrayResponseStreamSerializerTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... @defer(label: ""friends"") {
-                                    friends {
-                                        nodes {
-                                            id
-                                            ... @defer {
-                                                name
-                                            }
-                                        }
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... @defer(label: ""friends"") {
+                                friends {
+                                    nodes {
+                                        id
+                                        name
                                     }
                                 }
                             }
-                        }");
+                        }
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
