@@ -106,10 +106,10 @@ public class ScalarExecutionErrorTests
         {
             descriptor.Field(t => t.StringToName(default!))
                 .Argument("name", a => a.Type<StringType>())
-                .Type<StringType>();
+                .Type<NameType>();
 
             descriptor.Field(t => t.NameToString(default!))
-                .Argument("name", a => a.Type<StringType>())
+                .Argument("name", a => a.Type<NameType>())
                 .Type<StringType>();
 
             descriptor.Field(t => t.StringToFoo(default!))
@@ -203,7 +203,7 @@ public class ScalarExecutionErrorTests
                 return true;
             }
 
-            if (runtimeValue is string and "a")
+            if (runtimeValue is "a")
             {
                 resultValue = new StringValueNode("a");
                 return true;
@@ -232,5 +232,48 @@ public class ScalarExecutionErrorTests
             runtimeValue = null;
             return false;
         }
+    }
+}
+
+public sealed class NameType : ScalarType<string, StringValueNode>
+{
+    public NameType() : base("Name", bind: BindingBehavior.Implicit)
+    {
+    }
+
+    protected override bool IsInstanceOfType(StringValueNode valueSyntax)
+    {
+        if (string.IsNullOrWhiteSpace(valueSyntax.Value))
+        {
+            return false;
+        }
+
+        return base.IsInstanceOfType(valueSyntax);
+    }
+
+    protected override string ParseLiteral(StringValueNode valueSyntax)
+    {
+        if (string.IsNullOrWhiteSpace(valueSyntax.Value))
+        {
+            throw new SerializationException("Not a valid name.", this);
+        }
+
+        return valueSyntax.Value;
+    }
+
+    protected override StringValueNode ParseValue(string runtimeValue)
+        => new(runtimeValue);
+
+    public override IValueNode ParseResult(object? resultValue)
+        => ParseValue(resultValue);
+
+    public override object? Serialize(object? runtimeValue)
+    {
+        if (runtimeValue is not string s || string.IsNullOrWhiteSpace(s))
+        {
+            throw new SerializationException("Name cannot serialize the given value.", this);
+        }
+
+        return base.Serialize(runtimeValue);
     }
 }
