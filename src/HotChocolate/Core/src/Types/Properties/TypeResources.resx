@@ -873,4 +873,7 @@ Type: `{0}`</value>
   <data name="InterfaceTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
     <value>A field of an interface can only be inferred from a property or a method.</value>
   </data>
+  <data name="ThrowHelper_FieldBase_Sealed" xml:space="preserve">
+    <value>The field is already sealed and cannot be mutated.</value>
+  </data>
 </root>

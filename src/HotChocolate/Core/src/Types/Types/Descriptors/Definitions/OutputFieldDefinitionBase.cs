@@ -14,13 +14,13 @@ public class OutputFieldDefinitionBase
 {
     private List<ArgumentDefinition>? _arguments;
 
-    public IList<ArgumentDefinition> Arguments =>
-        _arguments ??= new List<ArgumentDefinition>();
+    public IList<ArgumentDefinition> Arguments
+        => _arguments ??= new List<ArgumentDefinition>();
 
     /// <summary>
     /// Specifies if this field has any arguments.
     /// </summary>
-    public bool HasArguments => _arguments is { Count: > 0 };
+    public bool HasArguments => _arguments?.Count > 0;
 
     public IReadOnlyList<ArgumentDefinition> GetArguments()
     {
@@ -36,7 +36,7 @@ public class OutputFieldDefinitionBase
     {
         base.CopyTo(target);
 
-        if (_arguments is { Count: > 0 })
+        if (_arguments?.Count > 0)
         {
             target._arguments = new List<ArgumentDefinition>();
 

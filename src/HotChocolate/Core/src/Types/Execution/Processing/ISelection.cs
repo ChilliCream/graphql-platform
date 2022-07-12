@@ -1,6 +1,6 @@
 #nullable enable
 
-using System.Diagnostics.SymbolStore;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -38,7 +38,7 @@ public interface ISelection : IOptionalSelection
     TypeKind TypeKind { get; }
 
     /// <summary>
-    /// Specifies if the return type fo this selection is a list.
+    /// Specifies if the return type of this selection is a list type.
     /// </summary>
     bool IsList { get; }
 
@@ -82,5 +82,21 @@ public interface ISelection : IOptionalSelection
     /// </summary>
     IArgumentMap Arguments { get; }
 
-    bool IsStream(long includeFlags);
+    /// <summary>
+    /// Defines that the resolver pipeline returns an
+    /// <see cref="IAsyncEnumerable{T}"/> as its result.
+    /// </summary>
+    bool HasStreamResult { get; }
+
+    /// <summary>
+    /// Defines if this selection is annotated with the stream directive.
+    /// </summary>
+    /// <param name="includeFlags">
+    /// The execution include flags that determine if the stream directive is applied for the
+    /// current execution run.
+    /// </param>
+    /// <returns>
+    /// Returns if this selection is annotated with the stream directive.
+    /// </returns>
+    bool HasStreamDirective(long includeFlags);
 }

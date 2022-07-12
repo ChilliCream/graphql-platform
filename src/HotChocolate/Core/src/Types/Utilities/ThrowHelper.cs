@@ -524,4 +524,7 @@ internal static class ThrowHelper
                 "A type with the name `{0}` was not found.",
                 coordinate.Name),
             coordinate);
+
+    public static InvalidOperationException FieldBase_Sealed()
+        => new(ThrowHelper_FieldBase_Sealed);
 }

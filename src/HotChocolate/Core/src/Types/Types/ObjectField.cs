@@ -33,8 +33,6 @@ public class ObjectField
         Resolver = definition.Resolver!;
         ResolverExpression = definition.Expression;
         SubscribeResolver = definition.SubscribeResolver;
-        IsIntrospectionField = definition.IsIntrospectionField;
-        IsParallelExecutable = definition.IsParallelExecutable;
     }
 
     /// <summary>
@@ -47,7 +45,31 @@ public class ObjectField
     /// <summary>
     /// Defines if this field can be executed in parallel with other fields.
     /// </summary>
-    public bool IsParallelExecutable { get; private set; }
+    public bool IsParallelExecutable
+    {
+        get
+        {
+            return (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
+        }
+        private set
+        {
+            if (value)
+            {
+                Flags |= FieldFlags.ParallelExecutable;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.ParallelExecutable;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Defines that the resolver pipeline returns an
+    /// <see cref="IAsyncEnumerable{T}"/> as its result.
+    /// </summary>
+    public bool HasStreamResult
+        => (Flags & FieldFlags.Stream) == FieldFlags.Stream;
 
     /// <summary>
     /// Gets the field resolver middleware.
@@ -103,11 +125,6 @@ public class ObjectField
     /// This expression can be <c>null</c>.
     /// </summary>
     public Expression? ResolverExpression { get; }
-
-    /// <summary>
-    /// Defines if this field as a introspection field.
-    /// </summary>
-    public override bool IsIntrospectionField { get; }
 
     protected override void OnCompleteField(
         ITypeCompletionContext context,

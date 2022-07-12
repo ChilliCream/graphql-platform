@@ -130,9 +130,15 @@ internal sealed partial class ResolverTask
             return;
         }
 
-        if (_selection.IsStream(_operationContext.IncludeFlags))
+        if (_selection.HasStreamDirective(_operationContext.IncludeFlags))
         {
             _resolverContext.Result = await CreateStreamResultAsync(result).ConfigureAwait(false);
+            return;
+        }
+
+        if (_selection.HasStreamResult)
+        {
+            _resolverContext.Result = await CreateListFromStreamAsync(result).ConfigureAwait(false);
             return;
         }
 
