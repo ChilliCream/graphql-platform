@@ -201,7 +201,7 @@ internal sealed partial class ResolverTask
                     new DeferredStream(
                         Selection,
                         streamDirective.Label,
-                        _resolverContext.Path,
+                        _resolverContext.Path.Clone(),
                         _resolverContext.Parent<object>(),
                         count - 1,
                         enumerator,
