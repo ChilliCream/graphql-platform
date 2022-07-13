@@ -19,18 +19,18 @@ internal class ScopedServiceParameterExpressionBuilder
     public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
-        => ServiceExpressionHelper.TryGetServiceKind(parameter, out ServiceKind kind) &&
+        => ServiceExpressionHelper.TryGetServiceKind(parameter, out var kind) &&
            kind is not ServiceKind.Default;
 
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
-        ServiceExpressionHelper.TryGetServiceKind(parameter, out ServiceKind kind);
+        ServiceExpressionHelper.TryGetServiceKind(parameter, out var kind);
         ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, kind);
     }
 
     public Expression Build(ParameterInfo parameter, Expression context)
     {
-        ServiceExpressionHelper.TryGetServiceKind(parameter, out ServiceKind kind);
+        ServiceExpressionHelper.TryGetServiceKind(parameter, out var kind);
         return ServiceExpressionHelper.Build(parameter, context, kind);
     }
 }

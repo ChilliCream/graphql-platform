@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -37,7 +38,7 @@ public abstract class ObjectTypeDescriptorBase<T>
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
     protected override void OnCompleteFields(
-        IDictionary<NameString, ObjectFieldDefinition> fields,
+        IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
         HashSet<string> subscribeResolver = null;
@@ -74,9 +75,9 @@ public abstract class ObjectTypeDescriptorBase<T>
 
         bool IncludeField(IReadOnlyList<MemberInfo> all, MemberInfo current)
         {
-            NameString name = Context.Naming.GetMemberName(current, MemberKind.ObjectField);
+            var name = Context.Naming.GetMemberName(current, MemberKind.ObjectField);
 
-            if (Fields.Any(t => t.Definition.Name.Equals(name)))
+            if (Fields.Any(t => t.Definition.Name.EqualsOrdinal(name)))
             {
                 return false;
             }
@@ -85,7 +86,7 @@ public abstract class ObjectTypeDescriptorBase<T>
             {
                 subscribeResolver = new HashSet<string>();
 
-                foreach (MemberInfo member in all)
+                foreach (var member in all)
                 {
                     HandlePossibleSubscribeMember(member);
                 }
@@ -106,7 +107,7 @@ public abstract class ObjectTypeDescriptorBase<T>
         }
     }
 
-    public new IObjectTypeDescriptor<T> Name(NameString value)
+    public new IObjectTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
         return this;
@@ -200,7 +201,7 @@ public abstract class ObjectTypeDescriptorBase<T>
     }
 
     public new IObjectTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);

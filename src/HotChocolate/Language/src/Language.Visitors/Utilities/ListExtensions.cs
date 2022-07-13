@@ -6,15 +6,15 @@ internal static class ListExtensions
 {
     public static T Pop<T>(this IList<T> list)
     {
-        int lastIndex = list.Count - 1;
-        T p = list[lastIndex];
+        var lastIndex = list.Count - 1;
+        var p = list[lastIndex];
         list.RemoveAt(lastIndex);
         return p;
     }
 
     public static T Peek<T>(this IList<T> list)
     {
-        int lastIndex = list.Count - 1;
+        var lastIndex = list.Count - 1;
         return list[lastIndex];
     }
 
@@ -26,7 +26,7 @@ internal static class ListExtensions
             return false;
         }
 
-        item = Peek<T>(list);
+        item = Peek(list);
         return true;
     }
 

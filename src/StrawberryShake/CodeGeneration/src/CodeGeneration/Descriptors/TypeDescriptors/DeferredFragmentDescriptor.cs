@@ -15,14 +15,14 @@ public sealed class DeferredFragmentDescriptor
     /// <param name="className">The class name of the deferred fragment.</param>
     public DeferredFragmentDescriptor(
         string label,
-        NameString interfaceName,
-        NameString className)
+        string interfaceName,
+        string className)
     {
         Label = label;
         InterfaceName = interfaceName;
         ClassName = className;
-        FragmentIndicator = $"Is{ClassName.Value}Fulfilled";
-        FragmentIndicatorField = $"_is{ClassName.Value}Fulfilled";
+        FragmentIndicator = $"Is{ClassName}Fulfilled";
+        FragmentIndicatorField = $"_is{ClassName}Fulfilled";
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ public sealed class DeferredFragmentDescriptor
     /// <summary>
     /// Gets the interface name of the deferred fragment.
     /// </summary>
-    public NameString InterfaceName { get; }
+    public string InterfaceName { get; }
 
     /// <summary>
     /// The interface descriptor representing this deferred fragment.
@@ -43,7 +43,7 @@ public sealed class DeferredFragmentDescriptor
     /// <summary>
     /// Gets the class name of the deferred fragment.
     /// </summary>
-    public NameString ClassName { get; }
+    public string ClassName { get; }
 
     /// <summary>
     /// The class descriptor representing this deferred fragment.
@@ -53,12 +53,12 @@ public sealed class DeferredFragmentDescriptor
     /// <summary>
     /// The entity property that represents the fragment indicator.
     /// </summary>
-    public NameString FragmentIndicator { get; private set; }
+    public string FragmentIndicator { get; private set; }
 
     /// <summary>
     /// The result field that represents the fragment indicator.
     /// </summary>
-    public NameString FragmentIndicatorField { get; private set; }
+    public string FragmentIndicatorField { get; private set; }
 
     internal void Complete(
         InterfaceTypeDescriptor @interface,

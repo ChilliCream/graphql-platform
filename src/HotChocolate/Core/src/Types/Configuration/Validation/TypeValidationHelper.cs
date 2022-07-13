@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
@@ -9,7 +10,7 @@ namespace HotChocolate.Configuration.Validation;
 
 internal static class TypeValidationHelper
 {
-    private const string _twoUnderscores = "__";
+    private const char _underscore = '_';
 
     public static void EnsureTypeHasFields(
         IComplexOutputType type,
@@ -28,7 +29,7 @@ internal static class TypeValidationHelper
     {
         for (var i = 0; i < type.Fields.Count; i++)
         {
-            IInputField field = type.Fields[i];
+            var field = type.Fields[i];
 
             if (field.IsDeprecated && field.Type.IsNonNullType())
             {
@@ -43,10 +44,10 @@ internal static class TypeValidationHelper
     {
         for (var i = 0; i < type.Fields.Count; i++)
         {
-            IOutputField field = type.Fields[i];
+            var field = type.Fields[i];
             for (var j = 0; j < field.Arguments.Count; j++)
             {
-                IInputField argument = field.Arguments[j];
+                var argument = field.Arguments[j];
 
                 if (argument.IsDeprecated && argument.Type.IsNonNullType())
                 {
@@ -62,7 +63,7 @@ internal static class TypeValidationHelper
     {
         for (var i = 0; i < type.Arguments.Count; i++)
         {
-            Argument argument = type.Arguments[i];
+            var argument = type.Arguments[i];
             if (argument.IsDeprecated && argument.Type.IsNonNullType())
             {
                 errors.Add(RequiredArgumentCannotBeDeprecated(type, argument));
@@ -86,20 +87,19 @@ internal static class TypeValidationHelper
     {
         for (var i = 0; i < type.Fields.Count; i++)
         {
-            IOutputField field = type.Fields[i];
+            var field = type.Fields[i];
 
             if (!field.IsIntrospectionField)
             {
-                if (field.Name.Value.StartsWith(_twoUnderscores))
+                if (StartsWithTwoUnderscores(field.Name))
                 {
                     errors.Add(TwoUnderscoresNotAllowedField(type, field));
                 }
 
                 for (var j = 0; j < field.Arguments.Count; j++)
                 {
-                    IInputField argument = field.Arguments[j];
-
-                    if (argument.Name.Value.StartsWith(_twoUnderscores))
+                    var argument = field.Arguments[j];
+                    if (StartsWithTwoUnderscores(argument.Name))
                     {
                         errors.Add(TwoUnderscoresNotAllowedOnArgument(
                             type,
@@ -117,9 +117,8 @@ internal static class TypeValidationHelper
     {
         for (var i = 0; i < type.Fields.Count; i++)
         {
-            InputField field = type.Fields[i];
-
-            if (field.Name.Value.StartsWith(_twoUnderscores))
+            var field = type.Fields[i];
+            if (StartsWithTwoUnderscores(field.Name))
             {
                 errors.Add(TwoUnderscoresNotAllowedField(type, field));
             }
@@ -133,8 +132,7 @@ internal static class TypeValidationHelper
         for (var i = 0; i < type.Arguments.Count; i++)
         {
             IInputField field = type.Arguments[i];
-
-            if (field.Name.Value.StartsWith(_twoUnderscores))
+            if (StartsWithTwoUnderscores(field.Name))
             {
                 errors.Add(TwoUnderscoresNotAllowedOnArgument(type, field));
             }
@@ -147,7 +145,7 @@ internal static class TypeValidationHelper
     {
         if (type.Implements.Count > 0)
         {
-            foreach (IInterfaceType implementedType in type.Implements)
+            foreach (var implementedType in type.Implements)
             {
                 ValidateImplementation(type, implementedType, errors);
             }
@@ -165,9 +163,9 @@ internal static class TypeValidationHelper
             errors.Add(NotTransitivelyImplemented(type, implementedType));
         }
 
-        foreach (IOutputField implementedField in implementedType.Fields)
+        foreach (var implementedField in implementedType.Fields)
         {
-            if (type.Fields.TryGetField(implementedField.Name, out IOutputField? field))
+            if (type.Fields.TryGetField(implementedField.Name, out var field))
             {
                 ValidateArguments(field, implementedField, errors);
 
@@ -190,9 +188,9 @@ internal static class TypeValidationHelper
     {
         var implArgs = implementedField.Arguments.ToDictionary(t => t.Name);
 
-        foreach (IInputField? argument in field.Arguments)
+        foreach (var argument in field.Arguments)
         {
-            if (implArgs.TryGetValue(argument.Name, out IInputField? implementedArgument))
+            if (implArgs.TryGetValue(argument.Name, out var implementedArgument))
             {
                 implArgs.Remove(argument.Name);
                 if (!argument.Type.IsEqualTo(implementedArgument.Type))
@@ -213,7 +211,7 @@ internal static class TypeValidationHelper
             }
         }
 
-        foreach (IInputField? missingArgument in implArgs.Values)
+        foreach (var missingArgument in implArgs.Values)
         {
             errors.Add(ArgumentNotImplemented(
                 field,
@@ -226,7 +224,7 @@ internal static class TypeValidationHelper
         IComplexOutputType type,
         IInterfaceType implementedType)
     {
-        foreach (IInterfaceType? interfaceType in implementedType.Implements)
+        foreach (var interfaceType in implementedType.Implements)
         {
             if (!type.IsImplementing(interfaceType))
             {
@@ -278,6 +276,22 @@ internal static class TypeValidationHelper
             complexType.IsImplementing(interfaceType))
         {
             return true;
+        }
+
+        return false;
+    }
+
+    private static bool StartsWithTwoUnderscores(string name)
+    {
+        if (name.Length > 2)
+        {
+            var firstTwoLetters = name.AsSpan().Slice(0, 2);
+
+            if (firstTwoLetters[0] == _underscore &&
+                firstTwoLetters[1] == _underscore)
+            {
+                return true;
+            }
         }
 
         return false;

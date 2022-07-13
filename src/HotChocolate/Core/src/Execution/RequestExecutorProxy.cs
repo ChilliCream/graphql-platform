@@ -9,11 +9,11 @@ namespace HotChocolate.Execution;
 /// The <see cref="RequestExecutorProxy"/> is a helper class that represents a executor for
 /// one specific schema and handles the resolving and hot-swapping the specific executor.
 /// </summary>
-public class RequestExecutorProxy : IDisposable
+public sealed class RequestExecutorProxy : IDisposable
 {
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly IRequestExecutorResolver _executorResolver;
-    private readonly NameString _schemaName;
+    private readonly string _schemaName;
     private IRequestExecutor? _executor;
     private bool _disposed;
 
@@ -21,13 +21,16 @@ public class RequestExecutorProxy : IDisposable
 
     public event EventHandler? ExecutorEvicted;
 
-    public RequestExecutorProxy(
-        IRequestExecutorResolver executorResolver,
-        NameString schemaName)
+    public RequestExecutorProxy(IRequestExecutorResolver executorResolver, string schemaName)
     {
+        if (string.IsNullOrEmpty(schemaName))
+        {
+            throw new ArgumentNullException(nameof(schemaName));
+        }
+
         _executorResolver = executorResolver ??
             throw new ArgumentNullException(nameof(executorResolver));
-        _schemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+        _schemaName = schemaName;
         _executorResolver.RequestExecutorEvicted += EvictRequestExecutor;
     }
 
@@ -64,11 +67,11 @@ public class RequestExecutorProxy : IDisposable
             throw new ArgumentNullException(nameof(request));
         }
 
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-        IExecutionResult result =
+        var result =
             await executor
                 .ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);
@@ -82,9 +85,6 @@ public class RequestExecutorProxy : IDisposable
     /// <param name="requestBatch">
     /// The GraphQL request batch.
     /// </param>
-    /// <param name="allowParallelExecution">
-    /// Defines if the executor is allowed to execute the batch in parallel.
-    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -92,8 +92,7 @@ public class RequestExecutorProxy : IDisposable
     /// Returns a stream of query results.
     /// </returns>
     public async Task<IResponseStream> ExecuteBatchAsync(
-        IEnumerable<IQueryRequest> requestBatch,
-        bool allowParallelExecution = false,
+        IReadOnlyList<IQueryRequest> requestBatch,
         CancellationToken cancellationToken = default)
     {
         if (requestBatch == null)
@@ -101,13 +100,13 @@ public class RequestExecutorProxy : IDisposable
             throw new ArgumentNullException(nameof(requestBatch));
         }
 
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-        IResponseStream result =
+        var result =
             await executor
-                .ExecuteBatchAsync(requestBatch, allowParallelExecution, cancellationToken)
+                .ExecuteBatchAsync(requestBatch, cancellationToken)
                 .ConfigureAwait(false);
 
         return result;
@@ -125,7 +124,7 @@ public class RequestExecutorProxy : IDisposable
     public async ValueTask<ISchema> GetSchemaAsync(
         CancellationToken cancellationToken)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
         return executor.Schema;
@@ -143,7 +142,7 @@ public class RequestExecutorProxy : IDisposable
     public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
         CancellationToken cancellationToken)
     {
-        IRequestExecutor? executor = _executor;
+        var executor = _executor;
 
         if (executor is null)
         {
@@ -196,13 +195,7 @@ public class RequestExecutorProxy : IDisposable
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed && disposing)
+        if (!_disposed)
         {
             _executor = null;
             _semaphore.Dispose();

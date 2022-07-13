@@ -1,6 +1,7 @@
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -12,15 +13,15 @@ public class KeyDirectiveTests : FederationTypesTestBase
     public void AddKeyDirective_EnsureAvailableInSchema()
     {
         // arrange
-        ISchema schema = CreateSchema(b =>
+        var schema = CreateSchema(b =>
         {
             b.AddDirectiveType<KeyDirectiveType>();
         });
 
         // act
-        DirectiveType? directive =
+        var directive =
             schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.Equals(WellKnownTypeNames.Key));
+                t => t.Name.EqualsOrdinal(WellKnownTypeNames.Key));
 
         // assert
         Assert.NotNull(directive);
@@ -40,7 +41,7 @@ public class KeyDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema? schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(o => o
                 .Name("Query")
                 .Field("someField")
@@ -60,7 +61,7 @@ public class KeyDirectiveTests : FederationTypesTestBase
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("TestType");
+        var testType = schema.GetType<ObjectType>("TestType");
 
         // assert
         Assert.Collection(
@@ -81,7 +82,7 @@ public class KeyDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                     type TestType @key(fields: ""id"") {
@@ -102,7 +103,7 @@ public class KeyDirectiveTests : FederationTypesTestBase
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("TestType");
+        var testType = schema.GetType<ObjectType>("TestType");
 
         // assert
         Assert.Collection(testType.Directives,
@@ -125,13 +126,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypeClassDirective>>()
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("TestTypeClassDirective");
+        var testType = schema.GetType<ObjectType>("TestTypeClassDirective");
 
         // assert
         Assert.Collection(testType.Directives,
@@ -154,13 +155,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypePropertyDirective>>()
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("TestTypePropertyDirective");
+        var testType = schema.GetType<ObjectType>("TestTypePropertyDirective");
 
         // assert
         Assert.Collection(testType.Directives,
@@ -183,13 +184,13 @@ public class KeyDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypePropertyDirectives>>()
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("TestTypePropertyDirectives");
+        var testType = schema.GetType<ObjectType>("TestTypePropertyDirectives");
 
         // assert
         Assert.Collection(testType.Directives,

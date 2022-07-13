@@ -16,8 +16,8 @@ internal sealed class PingPongJob
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
-        ISocketConnection connection = _session.Connection;
-        IProtocolHandler protocolHandler = _session.Protocol;
+        var connection = _session.Connection;
+        var protocolHandler = _session.Protocol;
 
         try
         {
@@ -36,7 +36,7 @@ internal sealed class PingPongJob
             // keep alive messages to the client.
             if (_options.KeepAliveInterval is not null)
             {
-                TimeSpan interval = _options.KeepAliveInterval.Value;
+                var interval = _options.KeepAliveInterval.Value;
 
                 while (!connection.IsClosed && !cancellationToken.IsCancellationRequested)
                 {

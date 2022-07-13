@@ -6,9 +6,9 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters.Spatial;
 
+[Collection("Postgres")]
 public class QueryableFilterVisitorIntersectsTests
     : SchemaCache
-    , IClassFixture<PostgreSqlResource<PostgisConfig>>
 {
     private static readonly Polygon _truePolygon =
         new Polygon(new LinearRing(new[]
@@ -45,65 +45,65 @@ public class QueryableFilterVisitorIntersectsTests
     public async Task Create_Intersects_Query()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                bar: {
-                                    intersects: {
-                                        geometry: {
-                                            type: Polygon,
-                                            coordinates: [
-                                                [
-                                                    [10 10],
-                                                    [10 90],
-                                                    [90 90],
-                                                    [90 10],
-                                                    [10 10]
-                                                ]
+                        root(where: {
+                            bar: {
+                                intersects: {
+                                    geometry: {
+                                        type: Polygon,
+                                        coordinates: [
+                                            [
+                                                [10 10],
+                                                [10 90],
+                                                [90 90],
+                                                [90 10],
+                                                [10 10]
                                             ]
-                                        }
+                                        ]
                                     }
                                 }
-                            }){
-                                id
                             }
-                        }")
-                .Create());
+                        }){
+                            id
+                        }
+                    }")
+            .Create());
 
         res1.MatchSqlSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                bar: {
-                                    nintersects: {
-                                        geometry: {
-                                            type: Polygon,
-                                            coordinates: [
-                                                [
-                                                    [10 10],
-                                                    [10 90],
-                                                    [90 90],
-                                                    [90 10],
-                                                    [10 10]
-                                                ]
+                        root(where: {
+                            bar: {
+                                nintersects: {
+                                    geometry: {
+                                        type: Polygon,
+                                        coordinates: [
+                                            [
+                                                [10 10],
+                                                [10 90],
+                                                [90 90],
+                                                [90 10],
+                                                [10 10]
                                             ]
-                                        }
+                                        ]
                                     }
                                 }
-                            }){
-                                id
                             }
-                        }")
-                .Create());
+                        }){
+                            id
+                        }
+                    }")
+            .Create());
 
         res2.MatchSqlSnapshot("false");
     }

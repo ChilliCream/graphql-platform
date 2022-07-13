@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
 
 namespace HotChocolate.Stitching.Types.Pipeline;
 
@@ -17,7 +18,7 @@ public interface ISchemaMergeContext
     /// <summary>
     /// Gets or sets the schema documents that are being transformed by the schema merge pipeline.
     /// </summary>
-    IImmutableList<DocumentNode> Documents { get; set; }
+    IImmutableList<Document> Documents { get; set; }
 
     /// <summary>
     /// Gets the errors that occured while merging multiple schemas.
@@ -29,4 +30,17 @@ public interface ISchemaMergeContext
     /// middleware.
     /// </summary>
     IDictionary<string, object?> ContextData { get; }
+}
+
+public sealed class Document
+{
+    public Document(string name, DocumentNode syntaxTree)
+    {
+        Name = name;
+        SyntaxTree = syntaxTree;
+    }
+
+    public string Name { get; }
+
+    public DocumentNode SyntaxTree { get; }
 }

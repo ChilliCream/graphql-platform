@@ -11,9 +11,9 @@ public class SchemaCache
     , IDisposable
 {
     private readonly ConcurrentDictionary<(Type, Type, object), Task<IRequestExecutor>> _cache =
-        new ConcurrentDictionary<(Type, Type, object), Task<IRequestExecutor>>();
+        new();
 
-    public SchemaCache(PostgreSqlResource<PostgisConfig> resouce) : base(resouce)
+    public SchemaCache(PostgreSqlResource<PostgisConfig> resource) : base(resource)
     {
     }
 
@@ -22,7 +22,7 @@ public class SchemaCache
         where TType : FilterInputType<T>
     {
         (Type, Type, T[] entites) key = (typeof(T), typeof(TType), entities);
-        return _cache.GetOrAdd(key, k => base.CreateSchemaAsync<T, TType>(entities));
+        return _cache.GetOrAdd(key, _ => base.CreateSchemaAsync<T, TType>(entities));
     }
 
     public void Dispose()

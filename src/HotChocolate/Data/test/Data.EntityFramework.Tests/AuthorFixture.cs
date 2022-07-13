@@ -30,7 +30,7 @@ public class AuthorFixture : IDisposable
     public AuthorFixture()
     {
         _fileName = Guid.NewGuid().ToString("N") + ".db";
-        BookContext context = new ServiceCollection()
+        var context = new ServiceCollection()
             .AddDbContext<BookContext>(
                 b => b.UseSqlite("Data Source=" + _fileName))
             .AddGraphQL()

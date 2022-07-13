@@ -22,7 +22,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -51,7 +51,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -80,7 +80,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -109,7 +109,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -138,7 +138,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -167,7 +167,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -196,7 +196,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -225,7 +225,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -254,7 +254,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"
@@ -283,7 +283,7 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor = CreateSchema(Data);
+        var executor = CreateSchema(Data);
 
         await executor
             .ExecuteAsync(@"

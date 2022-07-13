@@ -11,7 +11,7 @@ public class StringOperationInputTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")
@@ -31,7 +31,7 @@ public class StringOperationInputTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")
@@ -51,7 +51,7 @@ public class StringOperationInputTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")

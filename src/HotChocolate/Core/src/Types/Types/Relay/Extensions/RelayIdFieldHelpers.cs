@@ -29,7 +29,7 @@ internal static class RelayIdFieldHelpers
     /// <exception cref="ArgumentNullException"></exception>
     public static void ApplyIdToField(
         IDescriptor<ArgumentDefinition> descriptor,
-        NameString typeName = default)
+        string? typeName = default)
     {
         if (descriptor is null)
         {
@@ -60,7 +60,7 @@ internal static class RelayIdFieldHelpers
     /// <exception cref="ArgumentNullException"></exception>
     public static void ApplyIdToField(
         IDescriptor<OutputFieldDefinitionBase> descriptor,
-        NameString typeName = default)
+        string? typeName = default)
     {
         if (descriptor is null)
         {
@@ -92,8 +92,8 @@ internal static class RelayIdFieldHelpers
     {
         if (definition.Type is ExtendedTypeReference typeReference)
         {
-            ITypeInfo typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
-            IExtendedType type = RewriteType(context.TypeInspector, typeInfo);
+            var typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
+            var type = RewriteType(context.TypeInspector, typeInfo);
             definition.Type = typeReference.WithType(type);
         }
         else
@@ -106,11 +106,11 @@ internal static class RelayIdFieldHelpers
 
     private static IExtendedType RewriteType(ITypeInspector typeInspector, ITypeInfo typeInfo)
     {
-        Type current = typeof(IdType);
+        var current = typeof(IdType);
 
         if (typeInfo.Components.Count > 1)
         {
-            foreach (TypeComponent component in typeInfo.Components.Reverse().Skip(1))
+            foreach (var component in typeInfo.Components.Reverse().Skip(1))
             {
                 if (component.Kind == TypeComponentKind.NonNull)
                 {
@@ -129,9 +129,9 @@ internal static class RelayIdFieldHelpers
     private static void AddSerializerToInputField(
         ITypeCompletionContext completionContext,
         ArgumentDefinition definition,
-        NameString typeName)
+        string? typeName)
     {
-        ITypeInspector typeInspector = completionContext.TypeInspector;
+        var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
 
         if (definition is InputFieldDefinition { RuntimeType: { } runtimeType })
@@ -165,9 +165,9 @@ internal static class RelayIdFieldHelpers
         ITypeCompletionContext completionContext,
         ObjectFieldDefinition definition,
         ResultConverterDefinition placeholder,
-        NameString typeName)
+        string? typeName)
     {
-        ITypeInspector typeInspector = completionContext.TypeInspector;
+        var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
 
         if (definition.ResultType is not null)
@@ -186,19 +186,16 @@ internal static class RelayIdFieldHelpers
                 .Build());
         }
 
-        NameString schemaName = default;
+        string? schemaName = default;
         completionContext.DescriptorContext.SchemaCompleted += (_, args) =>
             schemaName = args.Schema.Name;
 
-        IIdSerializer serializer =
+        var serializer =
             completionContext.Services.GetService<IIdSerializer>() ??
             new IdSerializer();
         var index = definition.ResultConverters.IndexOf(placeholder);
 
-        if (typeName.IsEmpty)
-        {
-            typeName = completionContext.Type.Name;
-        }
+        typeName ??= completionContext.Type.Name;
 
         definition.ResultConverters[index] = new((_, result) =>
             {
@@ -230,16 +227,16 @@ internal static class RelayIdFieldHelpers
     private static IInputValueFormatter CreateSerializer(
         ITypeCompletionContext completionContext,
         IExtendedType resultType,
-        NameString typeName)
+        string? typeName)
     {
-        IIdSerializer serializer =
+        var serializer =
             completionContext.Services.GetService<IIdSerializer>() ??
             (_idSerializer ??= new IdSerializer());
 
         return new GlobalIdInputValueFormatter(
-            typeName.HasValue ? typeName : completionContext.Type.Name,
+            typeName ?? completionContext.Type.Name,
             serializer,
             resultType,
-            typeName.HasValue);
+            typeName is not null);
     }
 }

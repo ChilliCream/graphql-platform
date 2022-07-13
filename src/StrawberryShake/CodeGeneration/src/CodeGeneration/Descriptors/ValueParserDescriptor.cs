@@ -1,11 +1,9 @@
-using HotChocolate;
-
 namespace StrawberryShake.CodeGeneration.Descriptors;
 
 public readonly struct ValueParserDescriptor
 {
     public ValueParserDescriptor(
-        NameString name,
+        string name,
         RuntimeTypeInfo runtimeType,
         RuntimeTypeInfo serializedType)
     {
@@ -17,7 +15,7 @@ public readonly struct ValueParserDescriptor
     /// <summary>
     /// Gets the GraphQL type name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     public RuntimeTypeInfo RuntimeType { get; }
 

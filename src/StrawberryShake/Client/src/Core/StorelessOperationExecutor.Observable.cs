@@ -40,10 +40,10 @@ public partial class StorelessOperationExecutor<TData, TResult>
         {
             try
             {
-                CancellationToken token = session.RequestSession.Token;
-                IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
+                var token = session.RequestSession.Token;
+                var resultBuilder = _resultBuilder();
 
-                await foreach (Response<TData> response in
+                await foreach (var response in
                     _connection.ExecuteAsync(_request)
                         .WithCancellation(token)
                         .ConfigureAwait(false))

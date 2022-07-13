@@ -19,7 +19,7 @@ public class MethodOperationInputTests
             });
 
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<QueryExplicit>()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
@@ -36,7 +36,7 @@ public class MethodOperationInputTests
         var convention = new FilterConvention(x => x.UseMock().Operation(155).Name("Method155"));
 
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()

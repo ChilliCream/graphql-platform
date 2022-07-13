@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -75,10 +76,10 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
 
         for (var i = 0; i < node.Definitions.Count; i++)
         {
-            IDefinitionNode definition = node.Definitions[i];
+            var definition = node.Definitions[i];
             if (definition.Kind == SyntaxKind.FragmentDefinition)
             {
-                FragmentDefinitionNode fragment = (FragmentDefinitionNode)definition;
+                var fragment = (FragmentDefinitionNode)definition;
                 if (!context.Names.Add(fragment.Name.Value))
                 {
                     context.ReportError(context.FragmentNameNotUnique(fragment));
@@ -95,7 +96,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         DocumentNode node,
         IDocumentValidatorContext context)
     {
-        foreach (string fragmentName in context.Fragments.Keys)
+        foreach (var fragmentName in context.Fragments.Keys)
         {
             if (context.Names.Add(fragmentName))
             {
@@ -110,14 +111,14 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        if (IntrospectionFields.TypeName.Equals(node.Name.Value))
+        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
         {
             return Skip;
         }
 
-        if (context.Types.TryPeek(out IType? type) &&
+        if (context.Types.TryPeek(out var type) &&
             type.NamedType() is IComplexOutputType ot &&
-            ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
+            ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             context.OutputFields.Push(of);
             context.Types.Push(of.Type);
@@ -145,7 +146,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
 
         if (context.Schema.TryGetType<INamedOutputType>(
             node.TypeCondition.Name.Value,
-            out INamedOutputType? type))
+            out var type))
         {
             if (type.IsCompositeType())
             {
@@ -184,7 +185,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
 
         if (context.Schema.TryGetType<INamedOutputType>(
             node.TypeCondition.Name.Value,
-            out INamedOutputType? type))
+            out var type))
         {
             if (type.IsCompositeType())
             {
@@ -210,7 +211,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
     {
         if (context.Fragments.TryGetValue(
             node.Name.Value,
-            out FragmentDefinitionNode? fragment))
+            out var fragment))
         {
             if (context.Path.Contains(fragment))
             {
@@ -250,9 +251,9 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         IReadOnlyCollection<ObjectType> types1 = context.Schema.GetPossibleTypes(parentType);
         IReadOnlyCollection<ObjectType> types2 = context.Schema.GetPossibleTypes(typeCondition);
 
-        foreach (ObjectType a in types1)
+        foreach (var a in types1)
         {
-            foreach (ObjectType b in types2)
+            foreach (var b in types2)
             {
                 if (ReferenceEquals(a, b))
                 {

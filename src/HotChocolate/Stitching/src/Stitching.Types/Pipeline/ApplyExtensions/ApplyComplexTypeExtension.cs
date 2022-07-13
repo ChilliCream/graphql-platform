@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using static HotChocolate.Stitching.Types.ThrowHelper;
 
 namespace HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
 
@@ -107,7 +108,7 @@ internal abstract class ApplyComplexTypeExtension<TDef, TExt>
         // we first need to validate that the field structure can be merged.
         if (definition.Arguments.Count != extension.Arguments.Count)
         {
-            throw ExceptionHelper.ApplyExtensionsMiddleware_ArgumentCountMismatch(typeName, definition, extension);
+            throw ApplyExtensionsMiddleware_ArgumentCountMismatch(typeName, definition, extension);
         }
 
         IReadOnlyList<InputValueDefinitionNode> arguments = definition.Arguments;
@@ -124,7 +125,7 @@ internal abstract class ApplyComplexTypeExtension<TDef, TExt>
 
                 if (!arg.Name.Equals(argExt.Name, SyntaxComparison.Syntax))
                 {
-                    throw ExceptionHelper.ApplyExtensionsMiddleware_UnexpectedArgumentName(
+                    throw ApplyExtensionsMiddleware_UnexpectedArgumentName(
                         arg.Name.Value,
                         argExt.Name.Value,
                         i,
@@ -134,7 +135,7 @@ internal abstract class ApplyComplexTypeExtension<TDef, TExt>
 
                 if (!arg.Type.Equals(argExt.Type, SyntaxComparison.Syntax))
                 {
-                    throw ExceptionHelper.ApplyExtensionsMiddleware_ArgumentTypeMismatch(
+                    throw ApplyExtensionsMiddleware_ArgumentTypeMismatch(
                         arg,
                         argExt,
                         i,

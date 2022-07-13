@@ -27,7 +27,7 @@ internal sealed class AggregateSchemaInterceptor : SchemaInterceptor
             return;
         }
 
-        foreach (ISchemaInterceptor interceptor in _interceptors)
+        foreach (var interceptor in _interceptors)
         {
             interceptor.OnBeforeCreate(context, schemaBuilder);
         }
@@ -40,7 +40,7 @@ internal sealed class AggregateSchemaInterceptor : SchemaInterceptor
             return;
         }
 
-        foreach (ISchemaInterceptor interceptor in _interceptors)
+        foreach (var interceptor in _interceptors)
         {
             interceptor.OnAfterCreate(context, schema);
         }
@@ -53,7 +53,7 @@ internal sealed class AggregateSchemaInterceptor : SchemaInterceptor
             return;
         }
 
-        foreach (ISchemaInterceptor interceptor in _interceptors)
+        foreach (var interceptor in _interceptors)
         {
             interceptor.OnError(context, exception);
         }

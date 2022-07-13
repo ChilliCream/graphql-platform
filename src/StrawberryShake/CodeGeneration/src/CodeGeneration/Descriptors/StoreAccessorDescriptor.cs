@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors;
 public sealed class StoreAccessorDescriptor : ICodeDescriptor
 {
     public StoreAccessorDescriptor(
-        NameString name,
+        string name,
         string @namespace)
     {
         RuntimeType = new(name, @namespace);
@@ -17,7 +17,7 @@ public sealed class StoreAccessorDescriptor : ICodeDescriptor
     /// <summary>
     /// The name of the client
     /// </summary>
-    public NameString Name => RuntimeType.Name;
+    public string Name => RuntimeType.Name;
 
     public RuntimeTypeInfo RuntimeType { get; }
 }

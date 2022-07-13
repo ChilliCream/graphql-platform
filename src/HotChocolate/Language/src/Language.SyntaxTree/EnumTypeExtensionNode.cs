@@ -44,12 +44,12 @@ public sealed class EnumTypeExtensionNode : EnumTypeDefinitionNodeBase, ITypeExt
     {
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
 
-        foreach (EnumValueDefinitionNode value in Values)
+        foreach (var value in Values)
         {
             yield return value;
         }

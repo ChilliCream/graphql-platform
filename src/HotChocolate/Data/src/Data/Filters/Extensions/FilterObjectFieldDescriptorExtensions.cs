@@ -54,7 +54,7 @@ public static class FilterObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        Type filterType =
+        var filterType =
             typeof(IFilterInputType).IsAssignableFrom(typeof(T))
                 ? typeof(T)
                 : typeof(FilterInputType<>).MakeGenericType(typeof(T));
@@ -113,7 +113,7 @@ public static class FilterObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        Type filterType =
+        var filterType =
             typeof(IFilterInputType).IsAssignableFrom(type)
                 ? type
                 : typeof(FilterInputType<>).MakeGenericType(type);
@@ -129,7 +129,7 @@ public static class FilterObjectFieldDescriptorExtensions
     {
         FieldMiddlewareDefinition placeholder = new(_ => _ => default);
 
-        string argumentPlaceholder =
+        var argumentPlaceholder =
             "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
         descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
@@ -139,7 +139,7 @@ public static class FilterObjectFieldDescriptorExtensions
             .OnBeforeCreate(
                 (c, definition) =>
                 {
-                    IFilterConvention convention = c.GetFilterConvention(scope);
+                    var convention = c.GetFilterConvention(scope);
                     ITypeReference argumentTypeReference;
 
                     if (filterTypeInstance is not null)
@@ -152,7 +152,7 @@ public static class FilterObjectFieldDescriptorExtensions
                             definition.ResultType == typeof(object) ||
                             !c.TypeInspector.TryCreateTypeInfo(
                                 definition.ResultType,
-                                out ITypeInfo? typeInfo))
+                                out var typeInfo))
                         {
                             throw new ArgumentException(
                                 FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType,
@@ -210,13 +210,13 @@ public static class FilterObjectFieldDescriptorExtensions
         FieldMiddlewareDefinition placeholder,
         string? scope)
     {
-        IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
-        IFilterConvention convention = context.DescriptorContext.GetFilterConvention(scope);
+        var type = context.GetType<IFilterInputType>(argumentTypeReference);
+        var convention = context.DescriptorContext.GetFilterConvention(scope);
 
         var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);
         convention.ConfigureField(fieldDescriptor);
 
-        MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
+        var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
         var middleware = (FieldMiddleware)factory.Invoke(null,
             new object[]
             {

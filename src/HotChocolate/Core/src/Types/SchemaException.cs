@@ -48,9 +48,9 @@ public class SchemaException
         message.AppendLine("For more details look at the `Errors` property.");
         message.AppendLine();
 
-        for (int i = 0; i < errors.Count; i++)
+        for (var i = 0; i < errors.Count; i++)
         {
-            ISchemaError error = errors[i];
+            var error = errors[i];
 
             message.Append($"{i + 1}. {error.Message}");
 

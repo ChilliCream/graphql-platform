@@ -18,7 +18,7 @@ public class DateSerializer : ScalarSerializer<string, DateTime>
 
     public override DateTime Parse(string serializedValue)
     {
-        if (TryDeserializeFromString(serializedValue, out DateTime? date))
+        if (TryDeserializeFromString(serializedValue, out var date))
         {
             return date.Value;
         }
@@ -39,7 +39,7 @@ public class DateSerializer : ScalarSerializer<string, DateTime>
             serialized,
             CultureInfo.InvariantCulture,
             DateTimeStyles.AssumeLocal,
-            out DateTime dateTime))
+            out var dateTime))
         {
             value = dateTime.Date;
             return true;

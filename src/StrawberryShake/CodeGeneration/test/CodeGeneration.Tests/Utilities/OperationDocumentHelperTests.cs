@@ -18,11 +18,11 @@ public class OperationDocumentHelperTests
     public void Extract_Operation_Documents()
     {
         // arrange
-        DocumentNode query = Parse(Open("simple.query1.graphql"));
+        var query = Parse(Open("simple.query1.graphql"));
         List<DocumentNode> queries = new() { query };
 
         // act
-        OperationDocuments operations = CreateOperationDocuments(queries);
+        var operations = CreateOperationDocuments(queries);
 
         // assert
         Assert.Collection(
@@ -37,12 +37,12 @@ public class OperationDocumentHelperTests
     public void Merge_Multiple_Documents()
     {
         // arrange
-        DocumentNode query1 = Parse(Open("simple.query1.graphql"));
-        DocumentNode query2 = Parse(Open("simple.query2.graphql"));
+        var query1 = Parse(Open("simple.query1.graphql"));
+        var query2 = Parse(Open("simple.query2.graphql"));
         List<DocumentNode> queries = new() { query1, query2 };
 
         // act
-        OperationDocuments operations = CreateOperationDocuments(queries);
+        var operations = CreateOperationDocuments(queries);
 
         // assert
         Assert.Collection(
@@ -72,8 +72,8 @@ public class OperationDocumentHelperTests
     public void Duplicate_Operation()
     {
         // arrange
-        DocumentNode query1 = Parse(Open("simple.query2.graphql"));
-        DocumentNode query2 = Parse(Open("simple.query2.graphql"));
+        var query1 = Parse(Open("simple.query2.graphql"));
+        var query2 = Parse(Open("simple.query2.graphql"));
         List<DocumentNode> queries = new() { query1, query2 };
 
         // act
@@ -87,8 +87,8 @@ public class OperationDocumentHelperTests
     public void Duplicate_Fragment()
     {
         // arrange
-        DocumentNode query1 = Parse(Open("simple.query1.graphql"));
-        DocumentNode query2 = query1.WithDefinitions(query1.Definitions.Skip(2).ToArray());
+        var query1 = Parse(Open("simple.query1.graphql"));
+        var query2 = query1.WithDefinitions(query1.Definitions.Skip(2).ToArray());
         List<DocumentNode> queries = new() { query1, query2 };
 
         // act

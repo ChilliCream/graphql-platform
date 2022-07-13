@@ -20,7 +20,7 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
     {
         // arrange
         // act
-        IExecutable<Author> executable = _context.Authors.AsExecutable();
+        var executable = _context.Authors.AsExecutable();
 
         // assert
         Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
@@ -32,7 +32,7 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
     {
         // arrange
         // act
-        IExecutable<Author> executable = _context
+        var executable = _context
             .Authors
             .AsQueryable()
             .AsEntityFrameworkExecutable();
@@ -47,7 +47,7 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
     {
         // arrange
-        IExecutable<Author> executable = _context
+        var executable = _context
             .Authors
             .AsExecutable();
 

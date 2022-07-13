@@ -34,12 +34,12 @@ internal static class OperationDocumentHelper
             throw new ArgumentNullException(nameof(documents));
         }
 
-        DocumentNode mergedDocument = MergeDocuments(documents);
+        var mergedDocument = MergeDocuments(documents);
         mergedDocument = RemovedUnusedFragmentRewriter.Rewrite(mergedDocument);
 
         if (schema is not null)
         {
-            IDocumentValidator validator =
+            var validator =
                 new ServiceCollection()
                     .AddValidation()
                     .Services
@@ -47,7 +47,7 @@ internal static class OperationDocumentHelper
                     .GetRequiredService<IDocumentValidatorFactory>()
                     .CreateValidator();
 
-            DocumentValidatorResult result = validator.Validate(schema, mergedDocument);
+            var result = validator.Validate(schema, mergedDocument);
 
             if (result.HasErrors)
             {
@@ -55,7 +55,7 @@ internal static class OperationDocumentHelper
             }
         }
 
-        Dictionary<string, DocumentNode> operationDocs = ExportOperations(mergedDocument);
+        var operationDocs = ExportOperations(mergedDocument);
         return new OperationDocuments(mergedDocument, operationDocs);
     }
 
@@ -63,9 +63,9 @@ internal static class OperationDocumentHelper
     {
         var definitions = new List<IDefinitionNode>();
 
-        foreach (DocumentNode document in documents)
+        foreach (var document in documents)
         {
-            foreach (IDefinitionNode definition in document.Definitions)
+            foreach (var definition in document.Definitions)
             {
                 if (definition is OperationDefinitionNode { Name: { } name } op)
                 {

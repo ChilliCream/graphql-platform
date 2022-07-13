@@ -57,8 +57,8 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
         }
 
         var maxElementCount = int.MaxValue;
-        Func<CancellationToken, ValueTask<int>> executeCount = totalCount is null ?
-            ct => CountAsync(query, ct)
+        Func<CancellationToken, ValueTask<int>> executeCount = totalCount is null
+            ? ct => CountAsync(query, ct)
             : _ => new ValueTask<int>(totalCount.Value);
 
         // We only need the maximal element count if no `before` counter is set and no `first`
@@ -68,12 +68,12 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             var count = await executeCount(cancellationToken);
             maxElementCount = count;
 
-            // in case we already know the total count, we override the countAsync parameter
-            // so that we do not have to fetch the count twice
-            executeCount = _ => new ValueTask<int>(count);
+            // in case we already know the total count, we set the totalCount parameter
+            // so that we do not have have to fetch the count twice
+            executeCount = _ => new(count);
         }
 
-        CursorPagingRange range = SliceRange(arguments, maxElementCount);
+        var range = SliceRange(arguments, maxElementCount);
 
         var skip = range.Start;
         var take = range.Count();
@@ -84,7 +84,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             take++;
         }
 
-        TQuery slicedSource = query;
+        var slicedSource = query;
         if (skip != 0)
         {
             slicedSource = ApplySkip(query, skip);
@@ -95,7 +95,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             slicedSource = ApplyTake(slicedSource, take);
         }
 
-        IReadOnlyList<Edge<TEntity>> selectedEdges =
+        var selectedEdges =
             await ExecuteAsync(slicedSource, skip, cancellationToken);
 
         var moreItemsReturnedThanRequested = selectedEdges.Count > range.Count();
@@ -105,7 +105,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             selectedEdges,
             moreItemsReturnedThanRequested);
 
-        ConnectionPageInfo pageInfo =
+        var pageInfo =
             CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, selectedEdges);
 
         return new Connection<TEntity>(selectedEdges, pageInfo, executeCount);

@@ -22,7 +22,7 @@ internal sealed class __DirectiveArgument : ObjectType<ArgumentNode>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
 
         return new ObjectTypeDefinition(
             Names.__DirectiveArgument,

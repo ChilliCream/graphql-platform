@@ -7,7 +7,7 @@ public static class ResultFromEntityMapper
 {
     public static void Map(IMapperContext context)
     {
-        foreach (ObjectTypeDescriptor objectType in
+        foreach (var objectType in
              context.Types.OfType<ObjectTypeDescriptor>()
                  .Where(t => t.Kind is TypeKind.Entity))
         {
@@ -20,7 +20,7 @@ public static class ResultFromEntityMapper
             result.CompleteProperties(objectType.Properties);
             context.Register(result);
 
-            foreach (DeferredFragmentDescriptor fragmentDescriptor in objectType.Deferred)
+            foreach (var fragmentDescriptor in objectType.Deferred)
             {
                 var fragmentResult = new ResultFromEntityDescriptor(
                     objectType.Name,

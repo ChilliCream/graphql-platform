@@ -32,7 +32,7 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
     /// <param name="bind">
     /// Defines if this scalar shall bind implicitly to <see cref="SelectionSetNode"/>.
     /// </param>
-    public FieldSetType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
+    public FieldSetType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
         Description = FederationResources.FieldsetType_Description;

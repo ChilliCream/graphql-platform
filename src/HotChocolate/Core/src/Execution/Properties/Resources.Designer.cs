@@ -368,5 +368,53 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ExecutionResultExtensions_OnlyQueryResults", resourceCulture);
             }
         }
+        
+        internal static string SelectionVariants_ReadOnly {
+            get {
+                return ResourceManager.GetString("SelectionVariants_ReadOnly", resourceCulture);
+            }
+        }
+        
+        internal static string OperationCompiler_FragmentNotFound {
+            get {
+                return ResourceManager.GetString("OperationCompiler_FragmentNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string SelectionSetOptimizerContext_InvalidFieldName {
+            get {
+                return ResourceManager.GetString("SelectionSetOptimizerContext_InvalidFieldName", resourceCulture);
+            }
+        }
+        
+        internal static string OperationCompiler_ToManyIncludeConditions {
+            get {
+                return ResourceManager.GetString("OperationCompiler_ToManyIncludeConditions", resourceCulture);
+            }
+        }
+        
+        internal static string SelectionVariants_TypeContextInvalid {
+            get {
+                return ResourceManager.GetString("SelectionVariants_TypeContextInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SelectionSet_TypeAlreadyAdded {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SelectionSet_TypeAlreadyAdded", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_OneOfFieldMustBeNonNull {
+            get {
+                return ResourceManager.GetString("ThrowHelper_OneOfFieldMustBeNonNull", resourceCulture);
+            }
+        }
+        
+        internal static string OperationCompiler_OperationIdNullOrEmpty {
+            get {
+                return ResourceManager.GetString("OperationCompiler_OperationIdNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }

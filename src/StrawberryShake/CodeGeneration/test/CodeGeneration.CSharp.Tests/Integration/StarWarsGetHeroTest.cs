@@ -23,8 +23,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
         public async Task Execute_StarWarsGetHero_Test()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
-            using IWebHost host = TestServerHelper.CreateServer(
+            var ct = new CancellationTokenSource(20_000).Token;
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -37,10 +37,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                     c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsGetHeroClient client = services.GetRequiredService<StarWarsGetHeroClient>();
+            var client = services.GetRequiredService<StarWarsGetHeroClient>();
 
             // act
-            IOperationResult<IGetHeroResult> result = await client.GetHero.ExecuteAsync(ct);
+            var result = await client.GetHero.ExecuteAsync(ct);
 
             // assert
             Assert.Equal("R2-D2", result.Data!.Hero!.Name);
@@ -50,8 +50,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
         public async Task Watch_StarWarsGetHero_Test()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
-            using IWebHost host = TestServerHelper.CreateServer(
+            var ct = new CancellationTokenSource(20_000).Token;
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -63,11 +63,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                     c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsGetHeroClient client = services.GetRequiredService<StarWarsGetHeroClient>();
+            var client = services.GetRequiredService<StarWarsGetHeroClient>();
 
             // act
             string? name = null;
-            IDisposable session =
+            var session =
                 client.GetHero
                     .Watch()
                     .Subscribe(result => name = result.Data?.Hero?.Name);
@@ -87,8 +87,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
         public async Task Watch_CacheFirst_StarWarsGetHero_Test()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
-            using IWebHost host = TestServerHelper.CreateServer(
+            var ct = new CancellationTokenSource(20_000).Token;
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -100,13 +100,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                     c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsGetHeroClient client = services.GetRequiredService<StarWarsGetHeroClient>();
+            var client = services.GetRequiredService<StarWarsGetHeroClient>();
 
             // act
             await client.GetHero.ExecuteAsync(ct);
 
             string? name = null;
-            IDisposable session =
+            var session =
                 client.GetHero
                     .Watch(ExecutionStrategy.CacheFirst)
                     .Subscribe(result =>
@@ -130,7 +130,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
         {
             // arrange
             using var cts = new CancellationTokenSource(20_000);
-            using IWebHost host = TestServerHelper.CreateServer(
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -150,7 +150,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             await client.GetHero.ExecuteAsync(cts.Token);
 
             string? name = null;
-            IDisposable session =
+            var session =
                 client.GetHero
                     .Watch(ExecutionStrategy.CacheFirst)
                     .Subscribe(result => name = result.Data?.Hero?.Name);
@@ -191,8 +191,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
         [Fact]
         public async Task Watch_Interact_With_Persistence()
         {
-            string fileName = Path.GetTempFileName();
-            string connectionString = "Data Source=" + fileName;
+            var fileName = Path.GetTempFileName();
+            var connectionString = "Data Source=" + fileName;
             File.Delete(fileName);
 
             try
@@ -200,7 +200,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                 {
                     // arrange
                     using var cts = new CancellationTokenSource(100_20_000);
-                    using IWebHost host = TestServerHelper.CreateServer(
+                    using var host = TestServerHelper.CreateServer(
                         _ => { },
                         out var port);
                     var serviceCollection = new ServiceCollection();
@@ -225,7 +225,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                     await client.GetHero.ExecuteAsync(cts.Token);
 
                     string? name = null;
-                    IDisposable session =
+                    var session =
                         client.GetHero
                             .Watch(ExecutionStrategy.CacheFirst)
                             .Subscribe(result => name = result.Data?.Hero?.Name);
@@ -267,7 +267,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                 {
                     // arrange
                     using var cts = new CancellationTokenSource(100_20_000);
-                    using IWebHost host = TestServerHelper.CreateServer(
+                    using var host = TestServerHelper.CreateServer(
                         _ => { },
                         out var port);
                     var serviceCollection = new ServiceCollection();
@@ -315,8 +315,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
         public async Task Update_Once()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
-            using IWebHost host = TestServerHelper.CreateServer(
+            var ct = new CancellationTokenSource(20_000).Token;
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -329,13 +329,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                     c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsGetHeroClient client = services.GetRequiredService<StarWarsGetHeroClient>();
+            var client = services.GetRequiredService<StarWarsGetHeroClient>();
 
             await client.GetHero.ExecuteAsync(ct);
 
             // act
             var count = 0;
-            using IDisposable session =
+            using var session =
                 client.GetHero
                     .Watch(ExecutionStrategy.CacheAndNetwork)
                     .Subscribe(_ =>
@@ -353,8 +353,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
         public async Task Update_Once_With_Cache_And_Network()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
-            using IWebHost host = TestServerHelper.CreateServer(
+            var ct = new CancellationTokenSource(20_000).Token;
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -367,11 +367,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                     c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsGetHeroClient client = services.GetRequiredService<StarWarsGetHeroClient>();
+            var client = services.GetRequiredService<StarWarsGetHeroClient>();
 
             // act
             var count = 0;
-            using IDisposable session =
+            using var session =
                 client.GetHero
                     .Watch(ExecutionStrategy.CacheAndNetwork)
                     .Subscribe(_ =>

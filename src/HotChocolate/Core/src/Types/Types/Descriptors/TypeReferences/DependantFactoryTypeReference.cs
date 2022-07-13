@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -9,7 +10,7 @@ public sealed class DependantFactoryTypeReference
     , IEquatable<DependantFactoryTypeReference>
 {
     public DependantFactoryTypeReference(
-        NameString name,
+        string name,
         ITypeReference dependency,
         Func<IDescriptorContext, TypeSystemObjectBase> factory,
         TypeContext context,
@@ -19,7 +20,7 @@ public sealed class DependantFactoryTypeReference
             context,
             scope)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         Dependency = dependency ?? throw new ArgumentNullException(nameof(dependency));
         Factory = factory ?? throw new ArgumentNullException(nameof(factory));
     }
@@ -27,7 +28,7 @@ public sealed class DependantFactoryTypeReference
     /// <summary>
     /// Gets the name of this reference.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the reference to the type this type is dependant on.
@@ -78,7 +79,7 @@ public sealed class DependantFactoryTypeReference
             return false;
         }
 
-        return Name.Equals(other.Name) && Dependency.Equals(other.Dependency);
+        return Name.EqualsOrdinal(other.Name) && Dependency.Equals(other.Dependency);
     }
 
     /// <inheritdoc />
@@ -118,7 +119,7 @@ public sealed class DependantFactoryTypeReference
         => $"{Context}: {Name}->{Dependency}";
 
     public DependantFactoryTypeReference With(
-        Optional<NameString> name = default,
+        Optional<string> name = default,
         Optional<ITypeReference> dependency = default,
         Optional<Func<IDescriptorContext, TypeSystemObjectBase>> factory = default,
         Optional<TypeContext> context = default,
@@ -128,7 +129,7 @@ public sealed class DependantFactoryTypeReference
             name.HasValue ? name.Value! : Name,
             dependency.HasValue ? dependency.Value! : Dependency,
             factory.HasValue ? factory.Value! : Factory,
-            context.HasValue ? context.Value! : Context,
+            context.HasValue ? context.Value : Context,
             scope.HasValue ? scope.Value! : Scope);
     }
 }

@@ -82,7 +82,7 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
         => EmptyScope;
 
     /// <inheritdoc />
-    public virtual IDisposable ExecuteStream(IRequestContext context)
+    public virtual IDisposable ExecuteStream(IOperation operation)
         => EmptyScope;
 
     public virtual IDisposable ExecuteDeferredTask()
@@ -94,6 +94,11 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
 
     /// <inheritdoc />
     public virtual void ResolverError(IMiddlewareContext context, IError error)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void ResolverError(IOperation operation, ISelection selection, IError error)
     {
     }
 

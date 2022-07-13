@@ -11,7 +11,7 @@ public static class CodeWriterExtensions
             throw new ArgumentNullException(nameof(writer));
         }
 
-        string version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
+        var version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
 
 #if DEBUG
         writer.WriteIndentedLine(

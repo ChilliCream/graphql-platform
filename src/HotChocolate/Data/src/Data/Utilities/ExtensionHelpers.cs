@@ -9,9 +9,9 @@ internal static class ExtensionHelpers
         IDictionary<TKey, List<TValue>> to)
         where TKey : notnull
     {
-        foreach (KeyValuePair<TKey, List<TValue>> element in from)
+        foreach (var element in from)
         {
-            if (to.TryGetValue(element.Key, out List<TValue>? configurations))
+            if (to.TryGetValue(element.Key, out var configurations))
             {
                 configurations.AddRange(element.Value);
             }
@@ -27,7 +27,7 @@ internal static class ExtensionHelpers
         IDictionary<TKey, TValue> to)
         where TKey : notnull
     {
-        foreach (KeyValuePair<TKey, TValue> element in from)
+        foreach (var element in from)
         {
             to[element.Key] = element.Value;
         }

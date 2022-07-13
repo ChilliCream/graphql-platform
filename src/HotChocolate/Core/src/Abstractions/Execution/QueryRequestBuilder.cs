@@ -397,7 +397,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
 
     public static QueryRequestBuilder From(GraphQLRequest request)
     {
-        QueryRequestBuilder builder = New();
+        var builder = New();
 
         builder
             .SetQueryId(request.QueryId)

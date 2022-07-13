@@ -22,10 +22,10 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        Result result = await GetAsync(server);
+        var result = await GetAsync(server);
 
         // assert
         result.MatchSnapshot();
@@ -35,10 +35,10 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route()
     {
         // arrange
-        TestServer server = CreateServer(b => b.MapBananaCakePop());
+        var server = CreateServer(b => b.MapBananaCakePop());
 
         // act
-        Result result = await GetAsync(server, "/graphql/ui");
+        var result = await GetAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -48,14 +48,14 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Combined()
     {
         // arrange
-        TestServer server = CreateServer(b =>
+        var server = CreateServer(b =>
         {
             b.MapGraphQLHttp();
             b.MapBananaCakePop();
         });
 
         // act
-        Result result = await GetAsync(server, "/graphql/ui");
+        var result = await GetAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -65,10 +65,10 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Explicit_Path()
     {
         // arrange
-        TestServer server = CreateServer(b => b.MapBananaCakePop("/foo/bar"));
+        var server = CreateServer(b => b.MapBananaCakePop("/foo/bar"));
 
         // act
-        Result result = await GetAsync(server, "/foo/bar");
+        var result = await GetAsync(server, "/foo/bar");
 
         // assert
         result.MatchSnapshot();
@@ -78,7 +78,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_When_Disabled()
     {
         // arrange
-        TestServer server = CreateStarWarsServer(
+        var server = CreateStarWarsServer(
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
@@ -86,7 +86,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
                 }));
 
         // act
-        Result result = await GetAsync(server);
+        var result = await GetAsync(server);
 
         // assert
         result.MatchSnapshot();
@@ -115,11 +115,11 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
                     DisableTelemetry = true
                 }
         };
-        TestServer server = CreateStarWarsServer("/graphql",
+        var server = CreateStarWarsServer("/graphql",
             configureConventions: builder => builder.WithOptions(options));
 
         // act
-        Result result = await GetAsync(server);
+        var result = await GetAsync(server);
 
         // assert
         result.MatchSnapshot();
@@ -129,10 +129,10 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_MapBananaCakePop_Tool_Config()
     {
         // arrange
-        TestServer server = CreateServer(endpoint => endpoint.MapBananaCakePop());
+        var server = CreateServer(endpoint => endpoint.MapBananaCakePop());
 
         // act
-        Result result = await GetAsync(server, "/graphql/ui");
+        var result = await GetAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -140,7 +140,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
 
     private async Task<Result> GetAsync(TestServer server, string url = "/graphql")
     {
-        HttpResponseMessage response = await server.CreateClient().GetAsync(
+        var response = await server.CreateClient().GetAsync(
             TestServerExtensions.CreateUrl($"{url}/bcp-config.json"));
         var content = await response.Content.ReadAsStringAsync();
 

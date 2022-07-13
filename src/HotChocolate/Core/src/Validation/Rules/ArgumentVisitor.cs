@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -46,7 +47,7 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
     {
         context.Names.Clear();
 
-        if (IntrospectionFields.TypeName.Equals(node.Name.Value))
+        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
         {
             ValidateArguments(
                 context, node, node.Arguments,
@@ -55,9 +56,9 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out IType? type) &&
+        if (context.Types.TryPeek(out var type) &&
             type.NamedType() is IComplexOutputType ot &&
-            ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
+            ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             ValidateArguments(
                 context, node, node.Arguments,
@@ -87,7 +88,7 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
     {
         context.Names.Clear();
 
-        if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType? d))
+        if (context.Schema.TryGetDirectiveType(node.Name.Value, out var d))
         {
             context.Directives.Push(d);
 
@@ -122,11 +123,11 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
     {
         context.Names.Clear();
 
-        for (int i = 0; i < argumentNodes.Count; i++)
+        for (var i = 0; i < argumentNodes.Count; i++)
         {
-            ArgumentNode argument = argumentNodes[i];
+            var argument = argumentNodes[i];
 
-            if (arguments.TryGetField(argument.Name.Value, out IInputField? arg))
+            if (arguments.TryGetField(argument.Name.Value, out var arg))
             {
                 if (!context.Names.Add(argument.Name.Value))
                 {
@@ -149,9 +150,9 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        for (int i = 0; i < arguments.Count; i++)
+        for (var i = 0; i < arguments.Count; i++)
         {
-            IInputField argument = arguments[i];
+            var argument = arguments[i];
 
             if (argument.Type.IsNonNullType() &&
                 argument.DefaultValue.IsNull() &&

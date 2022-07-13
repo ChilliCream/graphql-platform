@@ -15,13 +15,13 @@ public class ReferenceResolverAttributeTests
     public async void InClassRefResolver_PureCodeFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ObjectType type = schema.GetType<ObjectType>(nameof(InClassRefResolver));
+        var type = schema.GetType<ObjectType>(nameof(InClassRefResolver));
 
         // assert
         var result = await ResolveRef(schema, type);
@@ -34,13 +34,13 @@ public class ReferenceResolverAttributeTests
     public async void ExternalRefResolver_PureCodeFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ObjectType type = schema.GetType<ObjectType>(nameof(ExternalRefResolver));
+        var type = schema.GetType<ObjectType>(nameof(ExternalRefResolver));
 
         // assert
         var result = await ResolveRef(schema, type);
@@ -54,13 +54,13 @@ public class ReferenceResolverAttributeTests
     public async void SingleKey_CompiledResolver()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<QueryWithSingleKeyResolver>()
             .Create();
 
         // act
-        ObjectType type = schema.GetType<ObjectType>(nameof(ExternalSingleKeyResolver));
+        var type = schema.GetType<ObjectType>(nameof(ExternalSingleKeyResolver));
 
         // assert
         var result = await ResolveRef(schema, type);
@@ -72,13 +72,13 @@ public class ReferenceResolverAttributeTests
     public async void ExternalFields_Set()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<QueryWithExternalField>()
             .Create();
 
         // act
-        ObjectType type = schema.GetType<ObjectType>(nameof(ExternalFields));
+        var type = schema.GetType<ObjectType>(nameof(ExternalFields));
         var representation = new ObjectValueNode(
             new ObjectFieldNode("id", "id_123"),
             new ObjectFieldNode("foo", "bar"));
@@ -93,13 +93,13 @@ public class ReferenceResolverAttributeTests
     public async void ExternalFields_Not_Set()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<QueryWithExternalField>()
             .Create();
 
         // act
-        ObjectType type = schema.GetType<ObjectType>(nameof(ExternalFields));
+        var type = schema.GetType<ObjectType>(nameof(ExternalFields));
         var representation = new ObjectValueNode(new ObjectFieldNode("id", "id_123"));
 
         // assert
@@ -112,12 +112,12 @@ public class ReferenceResolverAttributeTests
     public async void MultiKey_CompiledResolver()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<QueryWithMultiKeyResolver>()
             .Create();
 
-        ObjectType type = schema.GetType<ObjectType>(nameof(ExternalMultiKeyResolver));
+        var type = schema.GetType<ObjectType>(nameof(ExternalMultiKeyResolver));
 
         // act
         var resultId = await ResolveRef(schema, type, new(new ObjectFieldNode("id", "id_123")));
@@ -132,13 +132,13 @@ public class ReferenceResolverAttributeTests
     public async void ExternalRefResolver_RenamedMethod_PureCodeFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ObjectType type = schema.GetType<ObjectType>(nameof(ExternalRefResolverRenamedMethod));
+        var type = schema.GetType<ObjectType>(nameof(ExternalRefResolverRenamedMethod));
 
         // assert
         var result = await ResolveRef(schema, type);
@@ -191,9 +191,9 @@ public class ReferenceResolverAttributeTests
     {
         var inClassResolverContextObject = type.ContextData[EntityResolver];
         Assert.NotNull(inClassResolverContextObject);
-        FieldResolverDelegate inClassResolverDelegate =
+        var inClassResolverDelegate =
             Assert.IsType<FieldResolverDelegate>(inClassResolverContextObject);
-        IResolverContext context = CreateResolverContext(schema, type);
+        var context = CreateResolverContext(schema, type);
 
         context.SetLocalState(DataField, representation);
         context.SetLocalState(TypeField, type);

@@ -30,7 +30,7 @@ internal sealed class FieldInfoListBuffer
 
     public IList<FieldInfo> Pop()
     {
-        if (TryPop(out IList<FieldInfo>? list))
+        if (TryPop(out var list))
         {
             return list;
         }

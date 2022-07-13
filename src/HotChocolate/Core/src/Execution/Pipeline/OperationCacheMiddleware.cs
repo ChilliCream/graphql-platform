@@ -45,9 +45,9 @@ internal sealed class OperationCacheMiddleware
                 context.OperationId = operationId;
             }
 
-            string cacheId = context.CreateCacheId(operationId);
+            var cacheId = context.CreateCacheId(operationId);
 
-            if (_operationCache.TryGetOperation(cacheId, out IPreparedOperation? operation))
+            if (_operationCache.TryGetOperation(cacheId, out var operation))
             {
                 context.Operation = operation;
                 addToCache = false;

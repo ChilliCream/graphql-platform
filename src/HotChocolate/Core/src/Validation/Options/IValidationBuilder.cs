@@ -10,7 +10,7 @@ public interface IValidationBuilder
     /// <summary>
     /// Gets the name of the schema for which this rule is configure.
     /// </summary>
-    NameString Name { get; }
+    string Name { get; }
 
     /// <summary>
     /// Gets the application service collection.

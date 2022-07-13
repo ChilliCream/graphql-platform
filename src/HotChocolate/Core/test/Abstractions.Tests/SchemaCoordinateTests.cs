@@ -51,7 +51,7 @@ public class SchemaCoordinateTests
         void Fail() => new SchemaCoordinate("abc", argumentName: "def");
 
         // assert
-        ArgumentException ex = Assert.Throws<ArgumentException>(Fail);
+        var ex = Assert.Throws<ArgumentException>(Fail);
         Assert.Equal("argumentName", ex.ParamName);
         Assert.StartsWith(
             "A argument name without a member name is only allowed on directive coordinates",
@@ -88,7 +88,7 @@ public class SchemaCoordinateTests
         void Fail() => new SchemaCoordinate("abc", memberName: "def", ofDirective: true);
 
         // assert
-        ArgumentException ex = Assert.Throws<ArgumentException>(Fail);
+        var ex = Assert.Throws<ArgumentException>(Fail);
         Assert.Equal("memberName", ex.ParamName);
         Assert.StartsWith("A directive cannot contain a member name.", ex.Message);
     }

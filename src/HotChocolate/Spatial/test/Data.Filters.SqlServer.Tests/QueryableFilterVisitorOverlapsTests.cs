@@ -6,9 +6,9 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters.Spatial;
 
+[Collection("Postgres")]
 public class QueryableFilterVisitorOverlapsTests
     : SchemaCache
-    , IClassFixture<PostgreSqlResource<PostgisConfig>>
 {
     private static readonly Polygon _truePolygon =
         new Polygon(new LinearRing(new[]
@@ -47,11 +47,11 @@ public class QueryableFilterVisitorOverlapsTests
     public async Task Create_Overlaps_Query()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
@@ -82,7 +82,7 @@ public class QueryableFilterVisitorOverlapsTests
 
         res1.MatchSqlSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{

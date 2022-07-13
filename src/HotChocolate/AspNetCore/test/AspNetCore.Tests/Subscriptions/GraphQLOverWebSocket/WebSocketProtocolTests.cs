@@ -32,9 +32,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
             await webSocket.SendConnectionInitAsync(ct);
@@ -50,9 +50,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             await webSocket.SendConnectionInitAsync(ct);
             await WaitForMessage(webSocket, Messages.ConnectionAccept, ct);
@@ -71,15 +71,15 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer(
+            using var testServer = CreateStarWarsServer(
                 configureConventions: mapping => mapping.WithOptions(
                     new GraphQLServerOptions { Sockets =
                     {
                         ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(1000),
                         KeepAliveInterval = TimeSpan.FromMilliseconds(150)
                     }}));
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
             await webSocket.SendConnectionInitAsync(ct);
@@ -100,17 +100,17 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer(
+            using var testServer = CreateStarWarsServer(
                 configureConventions: mapping => mapping.WithOptions(
                     new GraphQLServerOptions { Sockets =
                     {
                         ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
                         KeepAliveInterval = TimeSpan.FromMilliseconds(150)
                     }}));
-            WebSocketClient client = CreateWebSocketClient(testServer);
+            var client = CreateWebSocketClient(testServer);
 
             // act
-            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // assert
             await webSocket.ReceiveServerMessageAsync(ct);
@@ -124,12 +124,12 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         {
             // arrange
             var interceptor = new AuthInterceptor();
-            using TestServer testServer = CreateStarWarsServer(
+            using var testServer = CreateStarWarsServer(
                 configureServices: s => s
                     .AddGraphQLServer()
                     .AddSocketSessionInterceptor(_ => interceptor));
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
             await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc " }, ct);
@@ -146,12 +146,12 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         {
             // arrange
             var interceptor = new AuthInterceptor();
-            using TestServer testServer = CreateStarWarsServer(
+            using var testServer = CreateStarWarsServer(
                 configureServices: s => s
                     .AddGraphQLServer()
                     .AddSocketSessionInterceptor(_ => interceptor));
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
             await webSocket.SendConnectionInitAsync(ct);
@@ -167,9 +167,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateServer(b => b.MapGraphQLWebSocket());
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(
+            using var testServer = CreateServer(b => b.MapGraphQLWebSocket());
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(
                 new("ws://localhost:5000/graphql/ws"),
                 ct);
 
@@ -187,9 +187,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateServer(b => b.MapGraphQLWebSocket("/foo/bar"));
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(
+            using var testServer = CreateServer(b => b.MapGraphQLWebSocket("/foo/bar"));
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(
                 new("ws://localhost:5000/foo/bar"),
                 ct);
 
@@ -207,12 +207,12 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = testServer.CreateWebSocketClient();
+            using var testServer = CreateStarWarsServer();
+            var client = testServer.CreateWebSocketClient();
 
             // act
             client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "foo");
-            using WebSocket socket = await client.ConnectAsync(SubscriptionUri, ct);
+            using var socket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // assert
             await socket.ReceiveServerMessageAsync(ct);
@@ -224,14 +224,14 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact(Skip = "Flaky")]
     public Task Subscribe_ReceiveDataOnMutation()
     {
-        SnapshotFullName snapshotName = Snapshot.FullName();
+        var snapshotName = Snapshot.FullName();
 
         return TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             var payload = new SubscribePayload(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -267,9 +267,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         return TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             var payload = new SubscribePayload(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -291,8 +291,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
             using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
@@ -312,9 +312,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             // act
 
@@ -331,9 +331,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             // act
 
@@ -350,9 +350,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             var payload = new SubscribePayload(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -398,14 +398,14 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Subscribe_SyntaxError()
     {
-        SnapshotFullName snapshotName = Snapshot.FullName();
+        var snapshotName = Snapshot.FullName();
 
         return TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             var payload = new SubscribePayload(
                 "subscription { onReview(episode: NEW_HOPE) { 123 } }");
@@ -424,14 +424,14 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Subscribe_ValidationError()
     {
-        SnapshotFullName snapshotName = Snapshot.FullName();
+        var snapshotName = Snapshot.FullName();
 
         return TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             var payload = new SubscribePayload(
                 "subscription { onReview(episode: NEW_HOPE) { _stars } }");
@@ -450,18 +450,18 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Ping()
     {
-        SnapshotFullName snapshotName = Snapshot.FullName();
+        var snapshotName = Snapshot.FullName();
 
         return TryTest(async ct =>
         {
             // arrange
             var interceptor = new PingPongInterceptor();
-            using TestServer testServer = CreateStarWarsServer(
+            using var testServer = CreateStarWarsServer(
                 configureServices: s => s
                     .AddGraphQLServer()
                     .AddSocketSessionInterceptor(_ => interceptor));
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             // act
             await webSocket.SendPingAsync(ct);
@@ -476,18 +476,18 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Ping_With_Payload()
     {
-        SnapshotFullName snapshotName = Snapshot.FullName();
+        var snapshotName = Snapshot.FullName();
 
         return TryTest(async ct =>
         {
             // arrange
             var interceptor = new PingPongInterceptor();
-            using TestServer testServer = CreateStarWarsServer(
+            using var testServer = CreateStarWarsServer(
                 configureServices: s => s
                     .AddGraphQLServer()
                     .AddSocketSessionInterceptor(_ => interceptor));
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             // act
             await webSocket.SendPingAsync(new Dictionary<string, object?> { ["abc"] = "def" }, ct);
@@ -505,12 +505,12 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         {
             // arrange
             var interceptor = new PingPongInterceptor();
-            using TestServer testServer = CreateStarWarsServer(
+            using var testServer = CreateStarWarsServer(
                 configureServices: s => s
                     .AddGraphQLServer()
                     .AddSocketSessionInterceptor(_ => interceptor));
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             // act
             await webSocket.SendPongAsync(ct);
@@ -523,18 +523,18 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Pong_With_Payload()
     {
-        SnapshotFullName snapshotName = Snapshot.FullName();
+        var snapshotName = Snapshot.FullName();
 
         return TryTest(async ct =>
         {
             // arrange
             var interceptor = new PingPongInterceptor();
-            using TestServer testServer = CreateStarWarsServer(
+            using var testServer = CreateStarWarsServer(
                 configureServices: s => s
                     .AddGraphQLServer()
                     .AddSocketSessionInterceptor(_ => interceptor));
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             // act
             await webSocket.SendPongAsync(new Dictionary<string, object?> { ["abc"] = "def" }, ct);
@@ -550,9 +550,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
             await webSocket.SendMessageAsync("hello", ct);
@@ -568,9 +568,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
             await webSocket.SendMessageAsync("{ }", ct);
@@ -586,9 +586,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await ConnectToServerAsync(client, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
 
             // act
             await webSocket.SendMessageAsync("{ \"type\": \"abc\" }", ct);
@@ -604,9 +604,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
             await webSocket.SendMessageAsync("[]", ct);
@@ -623,19 +623,19 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         {
             // arrange
             var interceptor = new AuthInterceptor();
-            using TestServer testServer = CreateStarWarsServer(
+            using var testServer = CreateStarWarsServer(
                 configureServices: s => s
                     .AddGraphQLServer()
                     .AddSocketSessionInterceptor(_ => interceptor));
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            using WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
             await webSocket.SendConnectionInitAsync(ct);
 
             // act
             async Task Close() => await webSocket.CloseAsync(NormalClosure, "I want to close.", ct);
 
             // assert
-            IOException error = await Assert.ThrowsAsync<IOException>(Close);
+            var error = await Assert.ThrowsAsync<IOException>(Close);
             Assert.Equal("The remote end closed the connection.", error.Message);
         });
 
@@ -646,7 +646,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
-            Auth? payload = connectionInitMessage.As<Auth>();
+            var payload = connectionInitMessage.As<Auth>();
 
             if (payload?.Token is not null)
             {
@@ -673,7 +673,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             IOperationMessagePayload pingMessage,
             CancellationToken cancellationToken = default)
         {
-            Dictionary<string, string?>? payload = pingMessage.As<Dictionary<string, string?>>();
+            var payload = pingMessage.As<Dictionary<string, string?>>();
             var responsePayload = new Dictionary<string, object?> { ["touched"] = true };
 
             if (payload is not null)

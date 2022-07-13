@@ -27,7 +27,7 @@ internal class HashCodeBuilder : ICode
         {
             writer.WriteIndentedLine($"int {VariableName} = 5;");
             writer.WriteLine();
-            foreach (ICode check in _code)
+            foreach (var check in _code)
             {
                 check.Build(writer);
                 writer.WriteLine();

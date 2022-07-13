@@ -1,8 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -10,6 +10,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.ExecutionStrategy;
 
 #nullable enable
 
@@ -27,13 +28,13 @@ public class ObjectFieldDescriptor
     /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
-        NameString fieldName)
+        string fieldName)
         : base(context)
     {
-        Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
+        Definition.Name = fieldName;
         Definition.ResultType = typeof(object);
         Definition.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+            context.Options.DefaultResolverStrategy is Parallel;
     }
 
     /// <summary>
@@ -46,18 +47,16 @@ public class ObjectFieldDescriptor
         Type? resolverType = null)
         : base(context)
     {
-        Definition.Member = member ??
-            throw new ArgumentNullException(nameof(member));
-        Definition.Name = context.Naming.GetMemberName(member, MemberKind.ObjectField);
-        Definition.Description =
-            context.Naming.GetMemberDescription(member, MemberKind.ObjectField);
+        var naming = context.Naming;
+        Definition.Member = member ?? throw new ArgumentNullException(nameof(member));
+        Definition.Name = naming.GetMemberName(member, MemberKind.ObjectField);
+        Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Definition.SourceType = sourceType;
         Definition.ResolverType = resolverType == sourceType ? null : resolverType;
-        Definition.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
 
-        if (context.Naming.IsDeprecated(member, out var reason))
+        if (naming.IsDeprecated(member, out var reason))
         {
             Deprecated(reason);
         }
@@ -65,7 +64,7 @@ public class ObjectFieldDescriptor
         if (member is MethodInfo m)
         {
             _parameterInfos = m.GetParameters();
-            Parameters = _parameterInfos.ToDictionary(t => new NameString(t.Name!));
+            Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
             Definition.ResultType = m.ReturnType;
         }
         else if (member is PropertyInfo p)
@@ -84,26 +83,21 @@ public class ObjectFieldDescriptor
         Type? resolverType = null)
         : base(context)
     {
-        Definition.Expression = expression
-            ?? throw new ArgumentNullException(nameof(expression));
+        Definition.Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         Definition.SourceType = sourceType;
         Definition.ResolverType = resolverType;
-        Definition.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
+        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
 
-        MemberInfo? member = expression.TryExtractCallMember();
+        var member = expression.TryExtractCallMember();
 
         if (member is not null)
         {
-            Definition.Name = context.Naming.GetMemberName(
-                member,
-                MemberKind.ObjectField);
-            Definition.Description = context.Naming.GetMemberDescription(
-                member,
-                MemberKind.ObjectField);
+            var naming = context.Naming;
+            Definition.Name = naming.GetMemberName(member, MemberKind.ObjectField);
+            Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
             Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
-            if (context.Naming.IsDeprecated(member, out var reason))
+            if (naming.IsDeprecated(member, out var reason))
             {
                 Deprecated(reason);
             }
@@ -140,7 +134,7 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     protected override void OnCreateDefinition(ObjectFieldDefinition definition)
     {
-        MemberInfo? member = definition.ResolverMember ?? definition.Member;
+        var member = definition.ResolverMember ?? definition.Member;
 
         if (!Definition.AttributesAreApplied && member is not null)
         {
@@ -151,6 +145,13 @@ public class ObjectFieldDescriptor
         base.OnCreateDefinition(definition);
 
         CompleteArguments(definition);
+
+        if (!definition.HasStreamResult &&
+            definition.ResultType?.IsGenericType is true &&
+            definition.ResultType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+        {
+            definition.HasStreamResult = true;
+        }
     }
 
     private void CompleteArguments(ObjectFieldDefinition definition)
@@ -178,7 +179,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
-    public new IObjectFieldDescriptor Name(NameString value)
+    public new IObjectFieldDescriptor Name(string value)
     {
         base.Name(value);
         return this;
@@ -241,8 +242,15 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
+    public IObjectFieldDescriptor StreamResult(bool hasStreamResult = true)
+    {
+        Definition.HasStreamResult = hasStreamResult;
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IObjectFieldDescriptor Argument(
-        NameString argumentName,
+        string argumentName,
         Action<IArgumentDescriptor> argumentDescriptor)
     {
         base.Argument(argumentName, argumentDescriptor);
@@ -298,9 +306,9 @@ public class ObjectFieldDescriptor
 
             if (resultType.IsGenericType)
             {
-                Type resultTypeDef = resultType.GetGenericTypeDefinition();
+                var resultTypeDef = resultType.GetGenericTypeDefinition();
 
-                Type clrResultType = resultTypeDef == typeof(NativeType<>)
+                var clrResultType = resultTypeDef == typeof(NativeType<>)
                     ? resultType.GetGenericArguments()[0]
                     : resultType;
 
@@ -389,7 +397,7 @@ public class ObjectFieldDescriptor
 
     /// <inheritdoc />
     public new IObjectFieldDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
@@ -404,7 +412,7 @@ public class ObjectFieldDescriptor
     /// <returns>An instance of <see cref="DirectiveArgumentDescriptor"/></returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
-        NameString fieldName) =>
+        string fieldName) =>
         new(context, fieldName);
 
     /// <summary>

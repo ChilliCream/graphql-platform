@@ -20,7 +20,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new FilterInputType<Foo>(
                     d => d
@@ -37,7 +37,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new FilterInputType<Foo>(
                     d => d.Name(dep => dep.Name + "Foo")
@@ -53,7 +53,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new FilterInputType<Foo>(
@@ -69,15 +69,9 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
-            s => s.AddDirectiveType<FooDirectiveType>()
-                .AddType(
-                    new FilterInputType<Foo>(
-                        d => d.Directive(new NameString("foo"))
-                            .Field(x => x.Bar)
-                    )
-                )
-        );
+        var schema = CreateSchema(s => s
+            .AddDirectiveType<FooDirectiveType>()
+            .AddType(new FilterInputType<Foo>(d => d.Directive("foo").Field(x => x.Bar))));
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -88,11 +82,10 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
-            s => s.AddDirectiveType<FooDirectiveType>()
-                .AddType(
-                    new FilterInputType<Foo>(
-                        d => d.Directive(new DirectiveNode("foo")).Field(x => x.Bar))));
+        var schema = CreateSchema(s => s
+            .AddDirectiveType<FooDirectiveType>()
+            .AddType(new FilterInputType<Foo>(d => d
+                .Directive(new DirectiveNode("foo")).Field(x => x.Bar))));
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -103,7 +96,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new FilterInputType<Foo>(
@@ -120,7 +113,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new FilterInputType<Foo>(
@@ -137,7 +130,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new FilterInputType<Foo>(
                     d => d.Description("Test").Field(x => x.Bar))));
@@ -151,7 +144,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new FilterInputType<Foo>(
                     d => d.Name("Test").Field(x => x.Bar))));
@@ -165,7 +158,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .ModifyOptions(x => x.DefaultBindingBehavior = BindingBehavior.Explicit)
             .AddFiltering()
             .AddType(new ObjectType<Foo>(x => x.Field(x => x.Bar)))
@@ -187,7 +180,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .ModifyOptions(x => x.DefaultBindingBehavior = BindingBehavior.Explicit)
             .AddFiltering()
             .AddType(new ObjectType<Foo>(x => x.Field(x => x.Bar)))
@@ -209,7 +202,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .ModifyOptions(x => x.DefaultBindingBehavior = BindingBehavior.Implicit)
             .AddFiltering()
             .AddQueryType(
@@ -230,7 +223,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .ModifyOptions(x => x.DefaultBindingBehavior = BindingBehavior.Implicit)
             .AddFiltering()
             .AddQueryType(
@@ -251,7 +244,7 @@ public class FilterInputTypeTest : FilterTestBase
     public void FilterInputType_Should_ThrowException_WhenNoConventionIsRegistered()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddQueryType(
                 c =>
                     c.Name("Query")
@@ -261,7 +254,7 @@ public class FilterInputTypeTest : FilterTestBase
 
         // act
         // assert
-        SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(() => builder.Create());
         exception.Message.MatchSnapshot();
     }
 
@@ -269,7 +262,7 @@ public class FilterInputTypeTest : FilterTestBase
     public void FilterInputType_Should_ThrowException_WhenNoConventionIsRegisteredDefault()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddQueryType(
                 c =>
                     c.Name("Query")
@@ -279,7 +272,7 @@ public class FilterInputTypeTest : FilterTestBase
 
         // act
         // assert
-        SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(() => builder.Create());
         exception.Message.MatchSnapshot();
     }
 
@@ -287,7 +280,7 @@ public class FilterInputTypeTest : FilterTestBase
     public void FilterInputType_Should_UseCustomFilterInput_When_Nested()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<UserQueryType>();
 
@@ -300,7 +293,7 @@ public class FilterInputTypeTest : FilterTestBase
     public void FilterInputType_Should_NotOverrideHandler_OnBeforeCreate()
     {
         // arrange
-        ISchema builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<CustomHandlerQueryType>()
             .Create();
@@ -308,7 +301,7 @@ public class FilterInputTypeTest : FilterTestBase
         // act
         builder.TryGetType<CustomHandlerFilterInputType>(
             "TestName",
-            out CustomHandlerFilterInputType? type);
+            out var type);
 
         // assert
         Assert.NotNull(type);
@@ -319,7 +312,7 @@ public class FilterInputTypeTest : FilterTestBase
     public void FilterInputType_Should_NotOverrideHandler_OnBeforeCompletion()
     {
         // arrange
-        ISchema builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<CustomHandlerQueryType>()
             .Create();
@@ -327,7 +320,7 @@ public class FilterInputTypeTest : FilterTestBase
         // act
         builder.TryGetType<CustomHandlerFilterInputType>(
             "TestName",
-            out CustomHandlerFilterInputType? type);
+            out var type);
 
         // assert
         Assert.NotNull(type);
@@ -341,7 +334,7 @@ public class FilterInputTypeTest : FilterTestBase
     public void FilterInputType_Should_IgnoreFieldWithoutCallingConvention()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering(
                 x => x.AddDefaultOperations()
                     .BindRuntimeType<string, StringOperationFilterInputType>()
@@ -354,7 +347,7 @@ public class FilterInputTypeTest : FilterTestBase
                         .UseFiltering<IgnoreTestFilterInputType>()));
 
         // act
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -364,13 +357,13 @@ public class FilterInputTypeTest : FilterTestBase
     public void FilterInputType_Should_InfereType_When_ItIsAInterface()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<TestingType<ITest<Foo>>>()
             .AddObjectType<ITest<Foo>>();
 
         // act
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -382,7 +375,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Foo>(
+        var schema = CreateSchemaWithFilter<Foo>(
             x => x.BindFieldsExplicitly()
                 .Field(x => x.Bar)
                 .AllowOperation(DefaultFilterOperations.NotEquals)
@@ -397,7 +390,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(x => x
+        var schema = CreateSchemaWithFilter<Book>(x => x
             .BindFieldsExplicitly()
             .Field(x => x.Author, d => d.Field(x => x.Name)));
 
@@ -410,7 +403,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(x => x
+        var schema = CreateSchemaWithFilter<Book>(x => x
             .BindFieldsExplicitly()
             .Field(x => x.Author, d => d.Field(x => x.Name).AllowEquals().AllowNotEquals()));
 
@@ -423,7 +416,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        var schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Chapters, d => d.Name("ChaptersInput")).AllowEquals();
@@ -441,7 +434,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        var schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Chapters).AllowAnd().AllowOr();
@@ -466,7 +459,7 @@ public class FilterInputTypeTest : FilterTestBase
         });
 
         // assert
-        SchemaException ex = Assert.Throws<SchemaException>(Call);
+        var ex = Assert.Throws<SchemaException>(Call);
         ex.Errors
             .Single(x => x.Code == ErrorCodes.Data.InlineFilterTypeNoFields)
             .Message
@@ -478,13 +471,11 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        var schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Chapters, d => d.Directive("Foobar")).AllowEquals();
-            descriptor.Field(
-                x => x.Author,
-                d => d.Directive("Foobar").Field(x => x.Id));
+            descriptor.Field( x => x.Author, d => d.Directive("Foobar").Field(x => x.Id));
         }, x => x.AddDirectiveType(
             new DirectiveType(x => x
                 .Name("Foobar")
@@ -499,7 +490,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        var schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Chapters, d => d.Description("Test")).AllowEquals();
@@ -517,7 +508,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        var schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Author, d => d.BindFieldsImplicitly());
@@ -532,7 +523,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        var schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Chapters).AllowEquals().AllowNotEquals();
@@ -559,7 +550,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        var schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(
@@ -576,7 +567,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        var schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(
@@ -601,7 +592,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        var schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(
@@ -618,7 +609,7 @@ public class FilterInputTypeTest : FilterTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithFilter<Book>(descriptor =>
+        var schema = CreateSchemaWithFilter<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(

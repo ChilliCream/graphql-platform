@@ -102,7 +102,7 @@ public sealed class EntityResolverDescriptor<TEntity>
             throw new ArgumentNullException(nameof(method));
         }
 
-        MemberInfo member = method.TryExtractMember(true);
+        var member = method.TryExtractMember(true);
 
         if (member is MethodInfo m)
         {
@@ -131,7 +131,7 @@ public sealed class EntityResolverDescriptor<TEntity>
 
         var argumentBuilder = new ReferenceResolverArgumentExpressionBuilder();
 
-        FieldResolverDelegates resolver =
+        var resolver =
             Context.ResolverCompiler.CompileResolve(
                 method,
                 sourceType: typeof(object),

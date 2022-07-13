@@ -26,7 +26,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -39,7 +39,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -56,7 +56,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_OnlyOneItem_When_SingleOrDefault()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -71,7 +71,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -88,7 +88,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultMoreThanOne()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -106,7 +106,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -123,7 +123,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_ReturnNull_When_SingleOrDefaultZero()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -141,7 +141,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -158,7 +158,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -173,7 +173,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -190,7 +190,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_ReturnNull_When_FirstOrDefaultZero()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -208,7 +208,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -226,7 +226,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     {
         // arrange
         // act
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddPooledDbContextFactory<BookContext>(
                 b => b.UseInMemoryDatabase("Data Source=EF.OffsetPagingExecutable.db"))
             .AddGraphQL()
@@ -237,7 +237,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // assert
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query Test {
                     authorOffsetPagingExecutable {
                         items {
@@ -258,7 +258,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync_AsyncEnumerable()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -274,7 +274,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -291,7 +291,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_OnlyOneItem_When_SingleOrDefault_AsyncEnumerable()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -310,7 +310,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -327,7 +327,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultMoreThanOne_AsyncEnumerable()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -345,7 +345,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -362,7 +362,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_ReturnNull_When_SingleOrDefaultZero_AsyncEnumerable()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -380,7 +380,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -397,7 +397,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault_AsyncEnumerable()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -415,7 +415,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -432,7 +432,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_ReturnNull_When_FirstOrDefaultZero_AsyncEnumerable()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -450,7 +450,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {

@@ -21,7 +21,7 @@ public sealed class EntityIdFactoryDescriptor : ICodeDescriptor
     /// The namespace of this class.
     /// </param>
     public EntityIdFactoryDescriptor(
-        NameString name,
+        string name,
         IReadOnlyList<EntityIdDescriptor> entities,
         string @namespace)
     {
@@ -34,7 +34,7 @@ public sealed class EntityIdFactoryDescriptor : ICodeDescriptor
     /// <summary>
     /// Gets the class name of the entity id factory.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the namespace of this factory class.

@@ -7,7 +7,7 @@ internal sealed class UploadedFile : StreamFile
     private readonly IFormFile _file;
 
     public UploadedFile(IFormFile file)
-        : base(file.FileName, file.OpenReadStream, file.Length)
+        : base(file.FileName, file.OpenReadStream, file.Length, file.ContentType)
     {
         _file = file ?? throw new ArgumentNullException(nameof(file));
     }

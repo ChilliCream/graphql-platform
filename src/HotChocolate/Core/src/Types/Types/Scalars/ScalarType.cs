@@ -233,7 +233,7 @@ public abstract partial class ScalarType
         ValueKind expectedKind,
         out T value)
     {
-        if (Scalars.TryGetKind(serialized, out ValueKind kind)
+        if (Scalars.TryGetKind(serialized, out var kind)
             && kind == expectedKind
             && _converter.TryConvert(serialized, out T c))
         {

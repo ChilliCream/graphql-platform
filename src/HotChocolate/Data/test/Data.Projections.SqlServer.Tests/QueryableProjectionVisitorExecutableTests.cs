@@ -19,11 +19,11 @@ public class QueryableProjectionVisitorExecutableTests
     public async Task Create_ProjectsTwoProperties_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable{ bar baz }}")
                 .Create());
@@ -35,11 +35,11 @@ public class QueryableProjectionVisitorExecutableTests
     public async Task Create_ProjectsOneProperty_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable{ baz }}")
                 .Create());
@@ -51,7 +51,7 @@ public class QueryableProjectionVisitorExecutableTests
     public async Task Create_ProjectsOneProperty_WithResolver()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(
+        var tester = _cache.CreateSchema(
             _fooEntities,
             objectType: new ObjectType<Foo>(
                 x => x
@@ -61,7 +61,7 @@ public class QueryableProjectionVisitorExecutableTests
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable{ baz foo }}")
                 .Create());

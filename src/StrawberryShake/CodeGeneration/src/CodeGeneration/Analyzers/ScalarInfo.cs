@@ -1,20 +1,21 @@
 using HotChocolate;
+using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public readonly struct LeafTypeInfo
 {
     public LeafTypeInfo(
-        NameString typeName,
+        string typeName,
         string? runtimeTypeType = null,
         string? serializationType = null)
     {
-        TypeName = typeName.EnsureNotEmpty(nameof(typeName));
+        TypeName = typeName.EnsureGraphQLName();
         RuntimeType = runtimeTypeType ?? TypeNames.String;
         SerializationType = serializationType ?? TypeNames.String;
     }
 
-    public NameString TypeName { get; }
+    public string TypeName { get; }
 
     public string RuntimeType { get; }
 

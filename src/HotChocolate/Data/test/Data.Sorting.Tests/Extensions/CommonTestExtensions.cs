@@ -40,7 +40,7 @@ public static class CommonTestExtensions
         {
             result.MatchSnapshot(snapshotName);
             if (result.ContextData is { } &&
-                result.ContextData.TryGetValue("ex", out object? queryResult))
+                result.ContextData.TryGetValue("ex", out var queryResult))
             {
                 queryResult.MatchSnapshot(new SnapshotNameExtension(snapshotName + "_ex"));
             }

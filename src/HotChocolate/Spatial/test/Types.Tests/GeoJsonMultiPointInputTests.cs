@@ -31,7 +31,7 @@ public class GeoJsonMultiPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(
@@ -57,7 +57,7 @@ public class GeoJsonMultiPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(
@@ -85,7 +85,7 @@ public class GeoJsonMultiPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(NullValueNode.Default, type);
@@ -99,7 +99,7 @@ public class GeoJsonMultiPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -112,7 +112,7 @@ public class GeoJsonMultiPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -129,7 +129,7 @@ public class GeoJsonMultiPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -146,7 +146,7 @@ public class GeoJsonMultiPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -162,7 +162,7 @@ public class GeoJsonMultiPointInputTests
     public async Task Execution_Tests()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 d => d
                     .Name("Query")
@@ -171,10 +171,10 @@ public class GeoJsonMultiPointInputTests
                     .Resolve(ctx => ctx.ArgumentValue<MultiPoint>("arg").ToString()))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
                     test(arg: {
                         type: MultiPoint,
@@ -190,7 +190,7 @@ public class GeoJsonMultiPointInputTests
     public void Schema_Tests()
     {
         // arrange
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
 
         // act
         // assert
@@ -211,7 +211,7 @@ public class GeoJsonMultiPointInputTests
 
     private InputObjectType CreateInputType()
     {
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
         return schema.GetType<InputObjectType>("GeoJSONMultiPointInput");
     }
 }

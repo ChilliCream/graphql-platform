@@ -24,14 +24,14 @@ public class QueryableSortingExtensionsTests
     public async Task Extensions_Should_SortQuery()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ shouldWork(order: {bar: DESC}) { bar baz }}")
@@ -45,14 +45,14 @@ public class QueryableSortingExtensionsTests
     public async Task Extension_Should_BeTypeMissMatch()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
             .CreateExecptionExecutor();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ typeMissmatch(order: {bar: DESC}) { bar baz }}")
@@ -66,14 +66,14 @@ public class QueryableSortingExtensionsTests
     public async Task Extension_Should_BeMissingMiddleware()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
             .CreateExecptionExecutor();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ missingMiddleware { bar baz }}")
