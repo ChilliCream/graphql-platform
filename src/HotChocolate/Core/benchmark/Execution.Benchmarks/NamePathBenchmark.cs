@@ -1,10 +1,10 @@
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using BenchmarkDotNet.Attributes;
-using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Benchmarks;
@@ -395,7 +395,7 @@ public class NamePathBenchmark
             {
                 Parent = null;
                 Depth = 0;
-                Name = default;
+                Name = default!;
             }
 
             /// <inheritdoc />
@@ -784,7 +784,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public string Name { get; internal set; }
+            public string Name { get; internal set; } = default!;
 
             /// <inheritdoc />
             public override string Print()
@@ -863,7 +863,7 @@ public class NamePathBenchmark
                 if (other is IndexerPathSegment indexer &&
                     Depth.Equals(indexer.Depth) &&
                     Index.Equals(indexer.Index) &&
-                    Parent.Equals(indexer.Parent))
+                    Equals(Parent, indexer.Parent))
                 {
                     return true;
                 }
@@ -873,15 +873,7 @@ public class NamePathBenchmark
 
             /// <inheritdoc />
             public override int GetHashCode()
-            {
-                unchecked
-                {
-                    var hash = Parent.GetHashCode() * 3;
-                    hash ^= Depth.GetHashCode() * 7;
-                    hash ^= Index.GetHashCode() * 11;
-                    return hash;
-                }
-            }
+                => HashCode.Combine(Parent, Depth, Index);
         }
 
         public sealed class RootPathSegment : Path
@@ -890,7 +882,7 @@ public class NamePathBenchmark
             {
                 Parent = null;
                 Depth = 0;
-                Name = default;
+                Name = default!;
             }
 
             /// <summary>
@@ -1331,7 +1323,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public string Name { get; internal set; }
+            public string Name { get; internal set; } = default!;
 
             /// <inheritdoc />
             public override string Print()
@@ -1432,7 +1424,7 @@ public class NamePathBenchmark
         {
             private RootPathSegment()
             {
-                Name = default;
+                Name = default!;
             }
 
             /// <summary>
@@ -1873,7 +1865,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public string Name { get; internal set; }
+            public string Name { get; internal set; } = default!;
 
             /// <inheritdoc />
             public override string Print()
@@ -1974,7 +1966,7 @@ public class NamePathBenchmark
         {
             private RootPathSegment()
             {
-                Name = default;
+                Name = default!;
             }
 
             /// <summary>

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
