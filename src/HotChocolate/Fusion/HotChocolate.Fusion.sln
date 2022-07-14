@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{748FCFC6-3EE7-4CFD-AFB3-B0F7B1ACD026}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion", "src\Core\HotChocolate.Fusion.csproj", "{0355AF0F-B91D-4852-8C9F-8E13CE5C88F3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{0EF9C546-286E-407F-A02E-731804507FDE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.Tests", "test\Core.Tests\HotChocolate.Fusion.Tests.csproj", "{8B39E90B-DC1D-4F2C-851A-33333F67BDCC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0355AF0F-B91D-4852-8C9F-8E13CE5C88F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0355AF0F-B91D-4852-8C9F-8E13CE5C88F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0355AF0F-B91D-4852-8C9F-8E13CE5C88F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0355AF0F-B91D-4852-8C9F-8E13CE5C88F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B39E90B-DC1D-4F2C-851A-33333F67BDCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B39E90B-DC1D-4F2C-851A-33333F67BDCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B39E90B-DC1D-4F2C-851A-33333F67BDCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B39E90B-DC1D-4F2C-851A-33333F67BDCC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0355AF0F-B91D-4852-8C9F-8E13CE5C88F3} = {748FCFC6-3EE7-4CFD-AFB3-B0F7B1ACD026}
+		{8B39E90B-DC1D-4F2C-851A-33333F67BDCC} = {0EF9C546-286E-407F-A02E-731804507FDE}
+	EndGlobalSection
+EndGlobal

@@ -81,7 +81,7 @@ public class ToolStaticFileMiddleware
         string contentType,
         out StaticFileInfo staticFileInfo)
     {
-        var fileInfo = _fileProvider.GetFileInfo(subPath.Value);
+        var fileInfo = _fileProvider.GetFileInfo(subPath);
 
         if (fileInfo.Exists)
         {
