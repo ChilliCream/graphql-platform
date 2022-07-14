@@ -1,5 +1,4 @@
 using HotChocolate.AspNetCore.Serialization;
-using Xunit;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

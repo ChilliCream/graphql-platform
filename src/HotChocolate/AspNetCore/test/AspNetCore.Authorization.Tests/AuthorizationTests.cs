@@ -1,7 +1,5 @@
-using System;
 using System.Net;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -10,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 

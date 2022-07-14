@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using Microsoft.AspNetCore.TestHost;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 
@@ -19,13 +14,13 @@ public class SubscriptionTestBase : ServerTestBase
 
     protected Uri SubscriptionUri { get; } = new("ws://localhost:5000/graphql");
 
-    protected Task<IReadOnlyDictionary<string, object>> WaitForMessage(
+    protected Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
         WebSocket webSocket,
         string type,
         CancellationToken cancellationToken)
         => WaitForMessage(webSocket, type, TimeSpan.FromMilliseconds(500), cancellationToken);
 
-    protected async Task<IReadOnlyDictionary<string, object>?> WaitForMessage(
+    protected async Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
         WebSocket webSocket,
         string type,
         TimeSpan timeout,
@@ -49,7 +44,7 @@ public class SubscriptionTestBase : ServerTestBase
                     return message;
                 }
 
-                if (message?[MessageProperties.Type].Equals("ka") == false)
+                if (message?[MessageProperties.Type]?.Equals("ka") is false)
                 {
                     throw new InvalidOperationException(
                         $"Unexpected message type: {message[MessageProperties.Type]}");
@@ -102,7 +97,7 @@ public class SubscriptionTestBase : ServerTestBase
         await webSocket.SendConnectionInitializeAsync(cancellationToken);
         var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
         Assert.NotNull(message);
-        Assert.Equal("connection_ack", message[MessageProperties.Type]);
+        Assert.Equal("connection_ack", message?[MessageProperties.Type]);
         return webSocket;
     }
 

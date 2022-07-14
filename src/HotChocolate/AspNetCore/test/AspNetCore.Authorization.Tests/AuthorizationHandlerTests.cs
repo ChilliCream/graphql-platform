@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -6,7 +5,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 

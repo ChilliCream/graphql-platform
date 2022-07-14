@@ -1,8 +1,6 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;

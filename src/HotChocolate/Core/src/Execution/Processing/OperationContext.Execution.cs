@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Immutable;
 using HotChocolate.Execution.Processing.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing;
 
