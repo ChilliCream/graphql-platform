@@ -42,8 +42,8 @@ internal static class ActivatorHelper
 
         return _cache.GetOrAdd(type, _ =>
         {
-            ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
-            NewExpression newInstance = CreateNewInstance(type, services);
+            var services = Expression.Parameter(typeof(IServiceProvider));
+            var newInstance = CreateNewInstance(type, services);
             return Expression.Lambda<CreateServiceDelegate>(newInstance, services).Compile();
         });
     }
@@ -52,8 +52,8 @@ internal static class ActivatorHelper
         Type type,
         ParameterExpression services)
     {
-        ConstructorInfo constructor = ResolveConstructor(type);
-        IEnumerable<Expression> arguments = CreateParameters(
+        var constructor = ResolveConstructor(type);
+        var arguments = CreateParameters(
             constructor.GetParameters(), services);
         return Expression.New(constructor, arguments);
     }
@@ -69,7 +69,7 @@ internal static class ActivatorHelper
                     type.FullName));
         }
 
-        ConstructorInfo[] constructors = type
+        var constructors = type
             .GetConstructors()
             .Where(t => t.IsPublic)
             .ToArray();
@@ -88,7 +88,7 @@ internal static class ActivatorHelper
         IEnumerable<ParameterInfo> parameters,
         Expression services)
     {
-        foreach (ParameterInfo parameter in parameters)
+        foreach (var parameter in parameters)
         {
             yield return Expression.Convert(Expression.Call(
                 services,

@@ -1,38 +1,31 @@
-﻿using System;
-using System.Linq;
-using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using HotChocolate.Utilities;
-using Snapshooter.Xunit;
+﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.PersistedQueries.FileSystem
+namespace HotChocolate.PersistedQueries.InMemory;
+
+public class RequestExecutorBuilderTests
 {
-    public class RequestExecutorBuilderTests
+    [Fact]
+    public void AddFileSystemQueryStorage_2_Services_Is_Null()
     {
-        [Fact]
-        public void AddFileSystemQueryStorage_2_Services_Is_Null()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                HotChocolateInMemoryPersistedQueriesRequestExecutorBuilderExtensions
-                    .AddInMemoryQueryStorage(null!);
+        // arrange
+        // act
+        void Action()
+            => HotChocolateInMemoryPersistedQueriesRequestExecutorBuilderExtensions
+                .AddInMemoryQueryStorage(null!);
 
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        Assert.Throws<ArgumentNullException>(Action);
+    }
 
-        [Fact]
-        public void AddReadOnlyFileSystemQueryStorage_Services_Is_Null()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                HotChocolateInMemoryPersistedQueriesRequestExecutorBuilderExtensions
-                    .AddReadOnlyInMemoryQueryStorage(null!);
+    [Fact]
+    public void AddReadOnlyFileSystemQueryStorage_Services_Is_Null()
+    {
+        // arrange
+        // act
+        void Action()
+            => HotChocolateInMemoryPersistedQueriesRequestExecutorBuilderExtensions
+                .AddReadOnlyInMemoryQueryStorage(null!);
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
     }
 }
