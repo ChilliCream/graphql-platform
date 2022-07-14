@@ -1,6 +1,0 @@
-HotChocolate.Data.Internal.DbContextKind
-HotChocolate.Data.Internal.DbContextKind.Pooled = 1 -> HotChocolate.Data.Internal.DbContextKind
-HotChocolate.Data.Internal.DbContextKind.Resolver = 2 -> HotChocolate.Data.Internal.DbContextKind
-HotChocolate.Data.Internal.DbContextKind.Synchronized = 0 -> HotChocolate.Data.Internal.DbContextKind
-Microsoft.Extensions.DependencyInjection.EntityFrameworkRequestExecutorBuilderExtensions
-static Microsoft.Extensions.DependencyInjection.EntityFrameworkRequestExecutorBuilderExtensions.RegisterDbContext<TDbContext>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, HotChocolate.Data.Internal.DbContextKind kind = HotChocolate.Data.Internal.DbContextKind.Synchronized) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
