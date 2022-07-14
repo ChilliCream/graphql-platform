@@ -111,7 +111,7 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
@@ -141,7 +141,7 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
@@ -171,7 +171,7 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
@@ -197,8 +197,8 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } },
-                Extensions = new Dictionary<string, object> { { "test", "abc" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
             });
 
             // assert
