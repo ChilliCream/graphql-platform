@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
 using DirectiveLoc = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Validation.Rules;

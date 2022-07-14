@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
@@ -81,7 +80,7 @@ public class ToolStaticFileMiddleware
         string contentType,
         out StaticFileInfo staticFileInfo)
     {
-        var fileInfo = _fileProvider.GetFileInfo(subPath.Value);
+        var fileInfo = _fileProvider.GetFileInfo(subPath);
 
         if (fileInfo.Exists)
         {

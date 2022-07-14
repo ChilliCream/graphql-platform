@@ -48,7 +48,7 @@ public class ToolDefaultFileMiddleware
             context.Request.TryMatchPath(_matchUrl, true, out var subPath) &&
             (context.GetGraphQLToolOptions()?.Enable ?? true))
         {
-            var dirContents = _fileProvider.GetDirectoryContents(subPath.Value);
+            var dirContents = _fileProvider.GetDirectoryContents(subPath);
 
             if (dirContents.Exists)
             {

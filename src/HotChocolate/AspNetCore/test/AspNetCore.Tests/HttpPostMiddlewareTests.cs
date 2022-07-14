@@ -1,19 +1,11 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 using HotChocolate.AspNetCore.Instrumentation;
-using System;
 using System.Net;
-using System.Net.Http;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Newtonsoft.Json;
 

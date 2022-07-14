@@ -833,7 +833,7 @@ public class SyntaxNodeVisitor
     protected VisitorAction GetDefaultAction(SyntaxKind kind)
     {
         if (_actions != null
-            && _actions.TryGetValue(kind, out VisitorAction action))
+            && _actions.TryGetValue(kind, out var action))
         {
             return action;
         }

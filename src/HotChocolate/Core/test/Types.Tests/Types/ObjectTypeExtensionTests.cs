@@ -11,7 +11,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 

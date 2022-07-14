@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.Configuration.Validation;
 using Xunit;
 

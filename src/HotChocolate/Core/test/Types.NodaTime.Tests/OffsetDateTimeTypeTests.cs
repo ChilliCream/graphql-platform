@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 namespace HotChocolate.AspNetCore;
@@ -9,7 +8,7 @@ internal static class HttpRequestExtensions
     internal static bool AcceptHeaderContainsHtml(this HttpRequest request)
     {
         return request.Headers.TryGetValue(HeaderNames.Accept, out var values) &&
-            values.Count > 0 && values[0].Contains("text/html");
+            values.Count > 0 && (values[0]?.Contains("text/html") ?? false);
     }
 
     internal static bool IsGetOrHeadMethod(this HttpRequest request)
@@ -26,7 +25,7 @@ internal static class HttpRequestExtensions
         this HttpRequest request,
         PathString matchUrl,
         bool forDirectory,
-        out PathString subpath)
+        out PathString subPath)
     {
         var path = request.Path;
 
@@ -35,7 +34,7 @@ internal static class HttpRequestExtensions
             path += new PathString("/");
         }
 
-        if (path.StartsWithSegments(matchUrl, out subpath))
+        if (path.StartsWithSegments(matchUrl, out subPath))
         {
             return true;
         }

@@ -3,9 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.MongoDb.Filters.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>

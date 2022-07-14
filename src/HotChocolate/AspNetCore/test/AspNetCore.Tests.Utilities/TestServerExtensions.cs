@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
 
@@ -61,7 +57,7 @@ public static class TestServerExtensions
         foreach (var item in result)
         {
             item.StatusCode = response.StatusCode;
-            item.ContentType = response.Content.Headers.ContentType.ToString();
+            item.ContentType = response.Content.Headers.ContentType?.ToString();
         }
 
         return result;
@@ -96,7 +92,7 @@ public static class TestServerExtensions
             foreach (var item in result)
             {
                 item.StatusCode = response.StatusCode;
-                item.ContentType = response.Content.Headers.ContentType.ToString();
+                item.ContentType = response.Content.Headers.ContentType?.ToString();
             }
 
             return result;
@@ -105,7 +101,7 @@ public static class TestServerExtensions
         {
             var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
             result.StatusCode = response.StatusCode;
-            result.ContentType = response.Content.Headers.ContentType.ToString();
+            result.ContentType = response.Content.Headers.ContentType?.ToString();
             return new[] { result };
         }
     }
@@ -129,7 +125,7 @@ public static class TestServerExtensions
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
         result.StatusCode = response.StatusCode;
-        result.ContentType = response.Content.Headers.ContentType.ToString();
+        result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
     }
 
@@ -152,7 +148,7 @@ public static class TestServerExtensions
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
         result.StatusCode = response.StatusCode;
-        result.ContentType = response.Content.Headers.ContentType.ToString();
+        result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
     }
 
@@ -196,7 +192,7 @@ public static class TestServerExtensions
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
         result.StatusCode = response.StatusCode;
-        result.ContentType = response.Content.Headers.ContentType.ToString();
+        result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
     }
 
@@ -220,7 +216,7 @@ public static class TestServerExtensions
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
         result.StatusCode = response.StatusCode;
-        result.ContentType = response.Content.Headers.ContentType.ToString();
+        result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
     }
 
@@ -247,7 +243,7 @@ public static class TestServerExtensions
         var json = await response.Content.ReadAsStringAsync();
         var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
         result.StatusCode = response.StatusCode;
-        result.ContentType = response.Content.Headers.ContentType.ToString();
+        result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
     }
 

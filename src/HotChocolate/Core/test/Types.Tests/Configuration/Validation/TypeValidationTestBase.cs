@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 

@@ -3,10 +3,6 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Data.Spatial</PackageId>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <Nullable>enable</Nullable>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NeutralLanguage>en</NeutralLanguage>
     <Description>Contains extensions for seamless integration of NetTopologySuite into the HotChocolate.Data package</Description>
   </PropertyGroup>
 
@@ -24,13 +20,11 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DataResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="DataResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>DataResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
+
 </Project>

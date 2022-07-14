@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <AssemblyName>HotChocolate.CodeGeneration.Neo4J</AssemblyName>
     <RootNamespace>HotChocolate.CodeGeneration.Neo4J</RootNamespace>
     <Description>Contains source generators for Neo4J.</Description>
@@ -17,9 +13,5 @@
   <ItemGroup>
     <ProjectReference Include="..\CodeGeneration\HotChocolate.CodeGeneration.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
 
 </Project>

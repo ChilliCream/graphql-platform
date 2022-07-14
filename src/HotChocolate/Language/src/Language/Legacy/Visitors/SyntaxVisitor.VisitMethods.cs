@@ -303,7 +303,7 @@ public partial class SyntaxVisitor<TStart, TContext>
         TContext context,
         Action<T, TContext> action)
     {
-        foreach (T item in items)
+        foreach (var item in items)
         {
             action(item, context);
         }

@@ -1,5 +1,4 @@
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using Xunit;
 
 namespace HotChocolate.Types;

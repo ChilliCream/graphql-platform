@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
+using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
