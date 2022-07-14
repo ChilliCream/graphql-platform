@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
@@ -39,7 +40,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -64,7 +69,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -89,7 +98,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -115,7 +128,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -145,7 +162,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -175,7 +196,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -202,7 +227,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -223,7 +252,11 @@ public class ServerInstrumentationTests : ServerTestBase
             await response.Content.ReadAsStringAsync();
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -252,7 +285,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -287,7 +324,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -322,7 +363,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -349,7 +394,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -376,7 +425,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
