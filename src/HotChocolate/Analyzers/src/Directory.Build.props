@@ -5,8 +5,4 @@
     <TargetFrameworks>$(SourceGenTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
-
 </Project>
