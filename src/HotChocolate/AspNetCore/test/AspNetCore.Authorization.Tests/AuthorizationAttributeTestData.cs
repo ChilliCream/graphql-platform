@@ -9,24 +9,24 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
     public class Query
     {
         [Authorize]
-        public string GetDefault() => "foo";
+        public string? GetDefault() => "foo";
 
         [Authorize(Policy = "HasAgeDefined")]
-        public string GetAge() => "foo";
+        public string? GetAge() => "foo";
 
         [Authorize(Roles = new[] { "a" })]
-        public string GetRoles() => "foo";
+        public string? GetRoles() => "foo";
 
         [Authorize(Roles = new[] { "a", "b" })]
         [GraphQLName("roles_ab")]
-        public string GetRolesAb() => "foo";
+        public string? GetRolesAb() => "foo";
 
         [Authorize(Policy = "a")]
         [Authorize(Policy = "b")]
-        public string GetPiped() => "foo";
+        public string? GetPiped() => "foo";
 
         [Authorize(Policy = "a", Apply = ApplyPolicy.AfterResolver)]
-        public string GetAfterResolver() => "foo";
+        public string? GetAfterResolver() => "foo";
     }
 
     private Action<IRequestExecutorBuilder> CreateSchema() =>

@@ -24,23 +24,22 @@ public class AuthorizationTests : ServerTestBase
     public async Task DefaultPolicy_NotFound(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
                 builder.Services.AddAuthorization(options =>
                 {
-                    options.DefaultPolicy = null;
+                    options.DefaultPolicy = null!;
                 });
             },
             context =>
             {
-                context.User = new ClaimsPrincipal(
-                    new ClaimsIdentity("testauth"));
+                context.User = new ClaimsPrincipal(new ClaimsIdentity("testauth"));
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
 
         // assert
@@ -54,7 +53,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task NoAuthServices_Authenticated_True(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -66,7 +65,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
 
         // assert
@@ -80,7 +79,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task NoAuthServices_Authenticated_False(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -92,7 +91,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
 
         // assert
@@ -106,7 +105,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_NotFound(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -125,7 +124,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // ac
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
@@ -139,7 +138,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
            builder =>
             {
                 configure(builder);
@@ -158,7 +157,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
@@ -172,7 +171,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_Resources_Is_IResolverContext(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -190,7 +189,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
@@ -204,7 +203,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_Authorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -226,7 +225,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
@@ -241,7 +240,7 @@ public class AuthorizationTests : ServerTestBase
         Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -253,7 +252,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
 
         // assert
@@ -267,7 +266,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Roles_UserHasDifferentRoles_NotAuthorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -282,7 +281,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
 
         // assert
@@ -296,7 +295,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Roles_UserHasNoneOfTheRoles_NotAuthorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -311,7 +310,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
 
         // assert
@@ -325,7 +324,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Roles_UserHasAllOfTheRoles_Authorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -343,7 +342,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
 
         // assert
@@ -358,7 +357,7 @@ public class AuthorizationTests : ServerTestBase
         Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -373,7 +372,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ roles_ab }" });
 
         // assert
@@ -387,7 +386,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Roles_Authorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -402,7 +401,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ roles }" });
 
         // assert
@@ -417,7 +416,7 @@ public class AuthorizationTests : ServerTestBase
         Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -447,7 +446,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ piped }" });
 
         // assert
@@ -462,7 +461,7 @@ public class AuthorizationTests : ServerTestBase
         Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -489,7 +488,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ piped }" });
 
         // assert
@@ -503,7 +502,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_Is_Executed_After_Resolver_User_Is_Allowed(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -532,7 +531,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ afterResolver }" });
 
         // assert
@@ -546,7 +545,7 @@ public class AuthorizationTests : ServerTestBase
     public async Task Policy_Is_Executed_After_Resolver_User_Is_Denied(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -575,7 +574,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.PostAsync(new ClientQueryRequest { Query = "{ afterResolver }" });
 
         // assert

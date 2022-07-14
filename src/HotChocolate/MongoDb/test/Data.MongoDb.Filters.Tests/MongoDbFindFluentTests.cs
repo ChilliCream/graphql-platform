@@ -46,10 +46,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
     public async Task BsonElement_Rename()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Foo> collection =
+                var collection =
                     _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
 
                 collection.InsertMany(_fooEntities);
@@ -59,14 +59,14 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
         res1.MatchDocumentSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
@@ -83,10 +83,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .SetSerializer(new DateTimeOffsetSerializer(BsonType.String))
                 .SetElementName("testName"));
 
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Bar> collection =
+                var collection =
                     _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
 
                 collection.InsertMany(_barEntities);
@@ -96,14 +96,14 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
                 .Create());
 
         res1.MatchDocumentSnapshot("2020-01-11");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
                 .Create());
@@ -115,10 +115,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
     public async Task FindFluent_CombineQuery()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Baz> collection =
+                var collection =
                     _resource.CreateCollection<Baz>("data_" + Guid.NewGuid().ToString("N"));
 
                 collection.InsertMany(_bazEntities);
@@ -130,14 +130,14 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2020-01-11T00:00:00Z\"}}){ bar}}")
                 .Create());
 
         res1.MatchDocumentSnapshot("2020-01-11");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2020-01-12T00:00:00Z\"}}){ bar}}")
                 .Create());
@@ -194,7 +194,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 next => async context =>
                 {
                     await next(context);
-                    if (context.ContextData.TryGetValue("query", out object? queryString))
+                    if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
                             QueryResultBuilder

@@ -15,8 +15,5 @@
         "code": "AUTH_POLICY_NOT_FOUND"
       }
     }
-  ],
-  "data": {
-    "bar": null
-  }
+  ]
 }

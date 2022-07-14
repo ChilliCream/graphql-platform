@@ -17,7 +17,7 @@ public class FilterVisitorTestBase
         params TResult[] results)
         where TResult : class
     {
-        IMongoCollection<TResult> collection =
+        var collection =
             mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
 
         collection.InsertMany(results);
@@ -32,7 +32,7 @@ public class FilterVisitorTestBase
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
-        Func<IResolverContext, IExecutable<TEntity>> resolver = BuildResolver(
+        var resolver = BuildResolver(
             mongoResource,
             entities);
 

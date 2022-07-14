@@ -41,18 +41,18 @@ public class MongoDbFilterVisitorDateOnlyTests
     public async Task Create_DateOnlyEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("2022-01-16");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
                 .Create());
@@ -64,18 +64,18 @@ public class MongoDbFilterVisitorDateOnlyTests
     public async Task Create_DateOnlyNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("2022-01-15");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
                 .Create());
@@ -87,26 +87,26 @@ public class MongoDbFilterVisitorDateOnlyTests
     public async Task Create_NullableDateOnlyEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = CreateSchema<FooNullable, FooNullableFilterType>(
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("2022-01-16");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
                 .Create());
 
         res2.MatchDocumentSnapshot("2022-01-15");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null } }){ bar } }")
                 .Create());
@@ -118,26 +118,26 @@ public class MongoDbFilterVisitorDateOnlyTests
     public async Task Create_NullableDateOnlyNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("2022-01-15");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
                 .Create());
 
         res2.MatchDocumentSnapshot("2022-01-16");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null } }){ bar } }")
                 .Create());
@@ -197,8 +197,8 @@ public class MongoDbFilterVisitorDateOnlyTests
             BsonDeserializationContext context,
             BsonDeserializationArgs args)
         {
-            long ticks = context.Reader.ReadDateTime();
-            DateTime dateTime = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(ticks);
+            var ticks = context.Reader.ReadDateTime();
+            var dateTime = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(ticks);
             return new DateOnly(dateTime.Year, dateTime.Month, dateTime.Day);
         }
     }

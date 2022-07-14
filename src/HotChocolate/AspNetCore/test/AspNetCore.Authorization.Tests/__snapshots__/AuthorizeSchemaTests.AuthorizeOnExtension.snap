@@ -15,8 +15,5 @@
         "code": "AUTH_NOT_AUTHENTICATED"
       }
     }
-  ],
-  "data": {
-    "bar": null
-  }
+  ]
 }

@@ -79,7 +79,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Authorize()
@@ -109,7 +109,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Authorize("MyPolicy")
@@ -140,7 +140,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Authorize(new[] { "MyRole" })
@@ -170,7 +170,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -188,7 +188,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -206,7 +206,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -237,7 +237,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -255,7 +255,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -273,7 +273,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -304,7 +304,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")

@@ -34,18 +34,18 @@ public class MongoDbFilterVisitorBooleanTests
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
         res1.MatchDocumentSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
@@ -57,18 +57,18 @@ public class MongoDbFilterVisitorBooleanTests
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
         res1.MatchDocumentSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
@@ -80,26 +80,26 @@ public class MongoDbFilterVisitorBooleanTests
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = CreateSchema<FooNullable, FooNullableFilterType>(
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
         res1.MatchDocumentSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
         res2.MatchDocumentSnapshot("false");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
@@ -111,26 +111,26 @@ public class MongoDbFilterVisitorBooleanTests
     public async Task Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
         res1.MatchDocumentSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
 
         res2.MatchDocumentSnapshot("false");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Create());

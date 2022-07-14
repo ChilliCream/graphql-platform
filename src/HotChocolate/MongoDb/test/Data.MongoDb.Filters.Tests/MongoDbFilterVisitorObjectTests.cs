@@ -123,11 +123,11 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectShortEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { eq: 12}}}) " +
@@ -136,7 +136,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("12");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { eq: 13}}}) " +
@@ -145,7 +145,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("13");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { eq: null}}}) " +
@@ -158,9 +158,9 @@ public class MongoDbFilterVisitorObjectTests
     [Fact]
     public async Task Create_ObjectShortIn_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
@@ -169,7 +169,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("12and13");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) " +
@@ -178,7 +178,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("13and14");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) " +
@@ -192,12 +192,12 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectNullableShortEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { eq: 12}}}) " +
@@ -206,7 +206,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("12");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { eq: 13}}}) " +
@@ -215,7 +215,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("13");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { eq: null}}}) " +
@@ -228,10 +228,10 @@ public class MongoDbFilterVisitorObjectTests
     [Fact]
     public async Task Create_ObjectNullableShortIn_Expression()
     {
-        IRequestExecutor tester =
+        var tester =
             CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
@@ -240,7 +240,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("12and13");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
@@ -249,7 +249,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("13and14");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { in: [ 13, null ]}}}) " +
@@ -263,11 +263,11 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectBooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barBool: { eq: true}}}) " +
@@ -276,7 +276,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barBool: { eq: false}}}) " +
@@ -290,12 +290,12 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectNullableBooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<BarNullable, BarNullableFilterType>(
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(
             _barNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barBool: { eq: true}}}) " +
@@ -304,7 +304,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barBool: { eq: false}}}) " +
@@ -313,7 +313,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("false");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barBool: { eq: null}}}) " +
@@ -326,11 +326,11 @@ public class MongoDbFilterVisitorObjectTests
     [Fact]
     public async Task Create_ObjectEnumEqual_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
@@ -339,7 +339,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("BAR");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
@@ -348,7 +348,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { eq: null}}}) " +
@@ -361,11 +361,11 @@ public class MongoDbFilterVisitorObjectTests
     [Fact]
     public async Task Create_ObjectEnumIn_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
@@ -374,7 +374,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("BarAndFoo");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
@@ -383,7 +383,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
@@ -396,12 +396,12 @@ public class MongoDbFilterVisitorObjectTests
     [Fact]
     public async Task Create_ObjectNullableEnumEqual_Expression()
     {
-        IRequestExecutor tester = CreateSchema<BarNullable, BarNullableFilterType>(
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(
             _barNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
@@ -410,7 +410,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("BAR");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
@@ -419,7 +419,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { eq: null}}}) " +
@@ -432,12 +432,12 @@ public class MongoDbFilterVisitorObjectTests
     [Fact]
     public async Task Create_ObjectNullableEnumIn_Expression()
     {
-        IRequestExecutor tester = CreateSchema<BarNullable, BarNullableFilterType>(
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(
             _barNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
@@ -446,7 +446,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("BarAndFoo");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
@@ -455,7 +455,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
@@ -469,11 +469,11 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barString: { eq: \"testatest\"}}}) " +
@@ -482,7 +482,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("testatest");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barString: { eq: \"testbtest\"}}}) " +
@@ -491,7 +491,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("testbtest");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barString: { eq: null}}}){ foo{ barString}}}")
@@ -504,11 +504,11 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectStringIn_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barString: { in: " +
@@ -518,7 +518,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("testatestAndtestb");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barString: { in: [\"testbtest\" null]}}}) " +
@@ -527,7 +527,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("testbtestAndNull");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barString: { in: [ \"testatest\" ]}}}) " +
@@ -541,11 +541,11 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ArrayObjectNestedArraySomeStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo:{ objectArray: { " +
@@ -555,7 +555,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("a");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo:{ objectArray: { " +
@@ -565,7 +565,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("d");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo:{ objectArray: { " +
@@ -580,11 +580,11 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ArrayObjectNestedArrayAnyStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { objectArray: { any: false}}}) " +
@@ -593,7 +593,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res1.MatchDocumentSnapshot("false");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { objectArray: { any: true}}}) " +
@@ -602,7 +602,7 @@ public class MongoDbFilterVisitorObjectTests
 
         res2.MatchDocumentSnapshot("true");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { objectArray: { any: null}}}) " +

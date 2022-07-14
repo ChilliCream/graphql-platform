@@ -14,7 +14,7 @@ public static class TestExtensions
         {
             result.ToJson().MatchSnapshot(new SnapshotNameExtension(snapshotName));
             if (result.ContextData is { } &&
-                result.ContextData.TryGetValue("query", out object? queryResult) &&
+                result.ContextData.TryGetValue("query", out var queryResult) &&
                 queryResult is string queryString &&
                 !string.IsNullOrWhiteSpace(queryString))
             {

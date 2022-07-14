@@ -124,11 +124,11 @@ public class MongoDbFilterVisitorListTests
     public async Task Create_ArraySomeObjectStringEqualWithNull_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
@@ -150,7 +150,7 @@ public class MongoDbFilterVisitorListTests
 
         res1.MatchDocumentSnapshot("a");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { some: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
@@ -158,7 +158,7 @@ public class MongoDbFilterVisitorListTests
 
         res2.MatchDocumentSnapshot("d");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { some: {bar: { eq: null}}}}){ fooNested {bar}}}")
@@ -171,11 +171,11 @@ public class MongoDbFilterVisitorListTests
     public async Task Create_ArrayNoneObjectStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
@@ -183,7 +183,7 @@ public class MongoDbFilterVisitorListTests
 
         res1.MatchDocumentSnapshot("a");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
@@ -191,7 +191,7 @@ public class MongoDbFilterVisitorListTests
 
         res2.MatchDocumentSnapshot("d");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { none: {bar: { eq: null}}}}){ fooNested {bar}}}")
@@ -204,11 +204,11 @@ public class MongoDbFilterVisitorListTests
     public async Task Create_ArrayAllObjectStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
@@ -216,7 +216,7 @@ public class MongoDbFilterVisitorListTests
 
         res1.MatchDocumentSnapshot("a");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
@@ -224,7 +224,7 @@ public class MongoDbFilterVisitorListTests
 
         res2.MatchDocumentSnapshot("d");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
@@ -237,25 +237,25 @@ public class MongoDbFilterVisitorListTests
     public async Task Create_ArrayAnyObjectStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
                 .Create());
 
         res1.MatchDocumentSnapshot("false");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
                 .Create());
 
         res2.MatchDocumentSnapshot("true");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
                 .Create());
@@ -267,11 +267,11 @@ public class MongoDbFilterVisitorListTests
     public async Task Create_ArraySomeStringEqualWithNull_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
+        var tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
@@ -289,7 +289,7 @@ public class MongoDbFilterVisitorListTests
 
         res1.MatchDocumentSnapshot("a");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { some: { eq: \"d\"}}}){ bar }}")
@@ -297,7 +297,7 @@ public class MongoDbFilterVisitorListTests
 
         res2.MatchDocumentSnapshot("d");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { some: { eq: null}}}){ bar }}")
@@ -310,11 +310,11 @@ public class MongoDbFilterVisitorListTests
     public async Task Create_ArrayNoneStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
+        var tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { none: { eq: \"a\"}}}){ bar }}")
@@ -322,7 +322,7 @@ public class MongoDbFilterVisitorListTests
 
         res1.MatchDocumentSnapshot("a");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { none: { eq: \"d\"}}}){ bar }}")
@@ -330,7 +330,7 @@ public class MongoDbFilterVisitorListTests
 
         res2.MatchDocumentSnapshot("d");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { none: { eq: null}}}){ bar }}")
@@ -343,11 +343,11 @@ public class MongoDbFilterVisitorListTests
     public async Task Create_ArrayAllStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
+        var tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { all: { eq: \"a\"}}}){ bar }}")
@@ -355,7 +355,7 @@ public class MongoDbFilterVisitorListTests
 
         res1.MatchDocumentSnapshot("a");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { all: { eq: \"d\"}}}){ bar }}")
@@ -363,7 +363,7 @@ public class MongoDbFilterVisitorListTests
 
         res2.MatchDocumentSnapshot("d");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { all: { eq: null}}}){ bar }}")
@@ -376,25 +376,25 @@ public class MongoDbFilterVisitorListTests
     public async Task Create_ArrayAnyStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
+        var tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { any: false}}){ bar }}")
                 .Create());
 
         res1.MatchDocumentSnapshot("false");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { any: true}}){ bar }}")
                 .Create());
 
         res2.MatchDocumentSnapshot("true");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { all: null}}){ bar }}")
                 .Create());

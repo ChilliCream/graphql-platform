@@ -37,25 +37,25 @@ public class MongoDbFilterVisitorEnumTests
     [Fact]
     public async Task Create_EnumEqual_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("BAR");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
                 .Create());
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: null } }) { barEnum } }")
                 .Create());
@@ -66,25 +66,25 @@ public class MongoDbFilterVisitorEnumTests
     [Fact]
     public async Task Create_EnumNotEqual_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("BAR");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
                 .Create());
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: null } }){ barEnum } }")
                 .Create());
@@ -95,25 +95,25 @@ public class MongoDbFilterVisitorEnumTests
     [Fact]
     public async Task Create_EnumIn_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
                 .Create());
 
         res1.MatchDocumentSnapshot("BarAndFoo");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
                 .Create());
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
                 .Create());
@@ -124,25 +124,25 @@ public class MongoDbFilterVisitorEnumTests
     [Fact]
     public async Task Create_EnumNotIn_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ] } }) { barEnum } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("BarAndFoo");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
                 .Create());
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
                 .Create());
@@ -153,26 +153,26 @@ public class MongoDbFilterVisitorEnumTests
     [Fact]
     public async Task Create_NullableEnumEqual_Expression()
     {
-        IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("BAR");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
                 .Create());
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: null } }){ barEnum } }")
                 .Create());
@@ -183,26 +183,26 @@ public class MongoDbFilterVisitorEnumTests
     [Fact]
     public async Task Create_NullableEnumNotEqual_Expression()
     {
-        IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("BAR");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
                 .Create());
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: null } }) { barEnum } }")
                 .Create());
@@ -213,26 +213,26 @@ public class MongoDbFilterVisitorEnumTests
     [Fact]
     public async Task Create_NullableEnumIn_Expression()
     {
-        IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ] } }) { barEnum } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("BarAndFoo");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ FOO ] } }) { barEnum } }")
                 .Create());
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ null FOO ] } }) { barEnum } }")
                 .Create());
@@ -243,26 +243,26 @@ public class MongoDbFilterVisitorEnumTests
     [Fact]
     public async Task Create_NullableEnumNotIn_Expression()
     {
-        IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ] } }){ barEnum } }")
                 .Create());
 
         res1.MatchDocumentSnapshot("BarAndFoo");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
                 .Create());
 
         res2.MatchDocumentSnapshot("FOO");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
                 .Create());
