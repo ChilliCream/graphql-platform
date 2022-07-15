@@ -62,11 +62,11 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArraySomeObjectStringEqualWithNull_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
@@ -88,7 +88,7 @@ public class QueryableFilterVisitorListTests
 
         res1.MatchSqlSnapshot("a");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { some: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
@@ -96,7 +96,7 @@ public class QueryableFilterVisitorListTests
 
         res2.MatchSqlSnapshot("d");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { some: {bar: { eq: null}}}}){ fooNested {bar}}}")
@@ -109,11 +109,11 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayNoneObjectStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
@@ -121,7 +121,7 @@ public class QueryableFilterVisitorListTests
 
         res1.MatchSqlSnapshot("a");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
@@ -129,7 +129,7 @@ public class QueryableFilterVisitorListTests
 
         res2.MatchSqlSnapshot("d");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { none: {bar: { eq: null}}}}){ fooNested {bar}}}")
@@ -142,11 +142,11 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayAllObjectStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
@@ -154,7 +154,7 @@ public class QueryableFilterVisitorListTests
 
         res1.MatchSqlSnapshot("a");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
@@ -162,7 +162,7 @@ public class QueryableFilterVisitorListTests
 
         res2.MatchSqlSnapshot("d");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
@@ -175,12 +175,12 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayAllObjectStringEqual_Expression_CustomAllow()
     {
         // arrange
-        IRequestExecutor? tester =
+        var tester =
             _cache.CreateSchema<Foo, FooCustomAllowsFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
@@ -188,7 +188,7 @@ public class QueryableFilterVisitorListTests
 
         res1.MatchSqlSnapshot("a");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
@@ -196,7 +196,7 @@ public class QueryableFilterVisitorListTests
 
         res2.MatchSqlSnapshot("d");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
@@ -209,11 +209,11 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayAnyObjectStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
@@ -221,7 +221,7 @@ public class QueryableFilterVisitorListTests
 
         res1.MatchSqlSnapshot("false");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
@@ -229,7 +229,7 @@ public class QueryableFilterVisitorListTests
 
         res2.MatchSqlSnapshot("true");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")

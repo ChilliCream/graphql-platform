@@ -100,6 +100,7 @@ Variables:
   }
 }
 ---------------
+
 Extensions:
 ---------------
 {
@@ -119,6 +120,7 @@ Extensions:
   ]
 }
 ---------------
+
 Query:
 ---------------
 query queryName($foo: ComplexType, $site: Site = MOBILE) {
@@ -173,3 +175,4 @@ fragment frag on Friend {
   unnamed(truthy: true, falsey: false, nullish: null)
   query
 }
+---------------

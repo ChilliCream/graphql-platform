@@ -173,7 +173,7 @@ public sealed class Snapshot
             var before = await File.ReadAllTextAsync(snapshotFile, cancellationToken);
             var after = _encoding.GetString(writer.WrittenSpan);
 
-            if (!MatchSnapshot(before, after, out var diff))
+            if (!MatchSnapshot(before, after, false, out var diff))
             {
                 EnsureDirectoryExists(mismatchFile);
 
@@ -204,7 +204,7 @@ public sealed class Snapshot
             var before = File.ReadAllText(snapshotFile);
             var after = _encoding.GetString(writer.WrittenSpan);
 
-            if (!MatchSnapshot(before, after, out var diff))
+            if (!MatchSnapshot(before, after, false, out var diff))
             {
                 EnsureDirectoryExists(mismatchFile);
 
@@ -212,6 +212,19 @@ public sealed class Snapshot
                 stream.Write(writer.WrittenSpan);
                 throw new Xunit.Sdk.XunitException(diff);
             }
+        }
+    }
+
+    public void MatchInline(string expected)
+    {
+        var writer = new ArrayBufferWriter<byte>();
+        WriteSegments(writer);
+
+        var after = _encoding.GetString(writer.WrittenSpan);
+
+        if (!MatchSnapshot(expected, after, true, out var diff))
+        {
+            throw new Xunit.Sdk.XunitException(diff);
         }
     }
 
@@ -255,6 +268,7 @@ public sealed class Snapshot
     private static bool MatchSnapshot(
         string before,
         string after,
+        bool inline,
         [NotNullWhen(false)] out string? snapshotDiff)
     {
         var diff = InlineDiffBuilder.Diff(before, after);
@@ -282,6 +296,13 @@ public sealed class Snapshot
                 }
 
                 output.AppendLine(line.Text);
+            }
+
+            if (inline)
+            {
+                output.AppendLine();
+                output.AppendLine("The new snapshot:");
+                output.AppendLine(after);
             }
 
             snapshotDiff = output.ToString();

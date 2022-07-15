@@ -25,25 +25,25 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_StringConcatExpression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { displayName: { eq: \"Sam Sampleman\"}}){ name lastName}}")
             .Create());
 
         res1.MatchSqlSnapshot("Sam_Sampleman");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { displayName: { eq: \"NoMatch\"}}){ name lastName}}")
             .Create());
 
         res2.MatchSqlSnapshot("NoMatch");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { displayName: { eq: null}}){ name lastName}}")
             .Create());
@@ -55,25 +55,25 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { barLength: { eq: 1}}){ name lastName}}")
             .Create());
 
         res1.MatchSqlSnapshot("1");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { barLength: { eq: 0}}){ name lastName}}")
             .Create());
 
         res2.MatchSqlSnapshot("0");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { barLength: { eq: null}}){ name lastName}}")
             .Create());

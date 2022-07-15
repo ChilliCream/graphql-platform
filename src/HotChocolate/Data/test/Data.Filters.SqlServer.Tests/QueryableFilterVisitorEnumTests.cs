@@ -28,25 +28,25 @@ public class QueryableFilterVisitorEnumTests
     [Fact]
     public async Task Create_EnumEqual_Expression()
     {
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
                 .Create());
 
         res1.MatchSqlSnapshot("BAR");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
                 .Create());
 
         res2.MatchSqlSnapshot("FOO");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: null } }) { barEnum } }")
                 .Create());
@@ -57,25 +57,25 @@ public class QueryableFilterVisitorEnumTests
     [Fact]
     public async Task Create_EnumNotEqual_Expression()
     {
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
                 .Create());
 
         res1.MatchSqlSnapshot("BAR");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
                 .Create());
 
         res2.MatchSqlSnapshot("FOO");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: null } }){ barEnum } }")
                 .Create());
@@ -86,25 +86,25 @@ public class QueryableFilterVisitorEnumTests
     [Fact]
     public async Task Create_EnumIn_Expression()
     {
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
                 .Create());
 
         res1.MatchSqlSnapshot("BarAndFoo");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
                 .Create());
 
         res2.MatchSqlSnapshot("FOO");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
                 .Create());
@@ -115,25 +115,25 @@ public class QueryableFilterVisitorEnumTests
     [Fact]
     public async Task Create_EnumNotIn_Expression()
     {
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ] } }) { barEnum } }")
                 .Create());
 
         res1.MatchSqlSnapshot("BarAndFoo");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
                 .Create());
 
         res2.MatchSqlSnapshot("FOO");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
                 .Create());
@@ -144,26 +144,26 @@ public class QueryableFilterVisitorEnumTests
     [Fact]
     public async Task Create_NullableEnumEqual_Expression()
     {
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
                 .Create());
 
         res1.MatchSqlSnapshot("BAR");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
                 .Create());
 
         res2.MatchSqlSnapshot("FOO");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: null } }){ barEnum } }")
                 .Create());
@@ -174,26 +174,26 @@ public class QueryableFilterVisitorEnumTests
     [Fact]
     public async Task Create_NullableEnumNotEqual_Expression()
     {
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
                 .Create());
 
         res1.MatchSqlSnapshot("BAR");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
                 .Create());
 
         res2.MatchSqlSnapshot("FOO");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: null } }) { barEnum } }")
                 .Create());
@@ -204,26 +204,26 @@ public class QueryableFilterVisitorEnumTests
     [Fact]
     public async Task Create_NullableEnumIn_Expression()
     {
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ] } }) { barEnum } }")
                 .Create());
 
         res1.MatchSqlSnapshot("BarAndFoo");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ FOO ] } }) { barEnum } }")
                 .Create());
 
         res2.MatchSqlSnapshot("FOO");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ null FOO ] } }) { barEnum } }")
                 .Create());
@@ -234,26 +234,26 @@ public class QueryableFilterVisitorEnumTests
     [Fact]
     public async Task Create_NullableEnumNotIn_Expression()
     {
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ] } }){ barEnum } }")
                 .Create());
 
         res1.MatchSqlSnapshot("BarAndFoo");
 
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
                 .Create());
 
         res2.MatchSqlSnapshot("FOO");
 
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
                 .Create());

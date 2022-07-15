@@ -9,8 +9,9 @@ public class QueryableFilterVisitorExecutableTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true }, new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
@@ -31,18 +32,18 @@ public class QueryableFilterVisitorExecutableTests
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
         res1.MatchSqlSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
                 .Create());
@@ -54,18 +55,18 @@ public class QueryableFilterVisitorExecutableTests
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
         res1.MatchSqlSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
                 .Create());
@@ -77,26 +78,26 @@ public class QueryableFilterVisitorExecutableTests
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
         res1.MatchSqlSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
         res2.MatchSqlSnapshot("false");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { eq: null}}){ bar}}")
                 .Create());
@@ -108,26 +109,26 @@ public class QueryableFilterVisitorExecutableTests
     public async Task Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
         res1.MatchSqlSnapshot("true");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
                 .Create());
 
         res2.MatchSqlSnapshot("false");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { neq: null}}){ bar}}")
                 .Create());

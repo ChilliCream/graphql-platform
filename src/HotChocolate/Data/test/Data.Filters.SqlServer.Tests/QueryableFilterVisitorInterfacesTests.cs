@@ -30,7 +30,7 @@ public class QueryableFilterVisitorInterfacesTests
     public async Task Create_InterfaceStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache
+        var tester = _cache
             .CreateSchema<BarInterface, FilterInputType<BarInterface>>(
                 _barEntities,
                 configure: Configure,
@@ -38,7 +38,7 @@ public class QueryableFilterVisitorInterfacesTests
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { test: { prop: { eq: \"a\"}}}) " +
@@ -47,7 +47,7 @@ public class QueryableFilterVisitorInterfacesTests
 
         res1.MatchSnapshot("a");
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { test: { prop: { eq: \"b\"}}}) " +
@@ -56,7 +56,7 @@ public class QueryableFilterVisitorInterfacesTests
 
         res2.MatchSnapshot("b");
 
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { test: { prop: { eq: null}}}) " +
