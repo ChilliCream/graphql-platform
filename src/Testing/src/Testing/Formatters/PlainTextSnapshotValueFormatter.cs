@@ -2,12 +2,12 @@ using System.Buffers;
 
 namespace Testing;
 
-internal sealed class PlainTextSnapshotValueSerializer : ISnapshotValueSerializer
+internal sealed class PlainTextSnapshotValueFormatter : ISnapshotValueFormatter
 {
     public bool CanHandle(object? value)
         => value is string;
 
-    public void Serialize(IBufferWriter<byte> snapshot, object? value)
+    public void Format(IBufferWriter<byte> snapshot, object? value)
     {
         if (value?.ToString() is { } s)
         {

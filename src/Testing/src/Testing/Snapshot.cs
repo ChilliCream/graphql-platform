@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -16,14 +17,14 @@ public sealed class Snapshot
 {
     private static readonly object _sync = new();
     private static readonly UTF8Encoding _encoding = new();
-    private static ImmutableStack<ISnapshotValueSerializer> _serializers =
-        CreateRange(new ISnapshotValueSerializer[]
+    private static ImmutableStack<ISnapshotValueFormatter> _formatters =
+        CreateRange(new ISnapshotValueFormatter[]
         {
-            new PlainTextSnapshotValueSerializer(),
-            new GraphQLSnapshotValueSerializer(),
-            new ExecutionResultSnapshotValueSerializer()
+            new PlainTextSnapshotValueFormatter(),
+            new GraphQLSnapshotValueFormatter(),
+            new ExecutionResultSnapshotValueFormatter()
         });
-    private static readonly JsonSnapshotValueSerializer _defaultSerializer = new();
+    private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
     private readonly List<SnapshotSegment> _segments = new();
     private readonly string _fileName;
@@ -44,10 +45,10 @@ public sealed class Snapshot
         object? value,
         string? postFix = null,
         string? extension = null,
-        ISnapshotValueSerializer? serializer = null)
+        ISnapshotValueFormatter? serializer = null)
     {
         var snapshot = new Snapshot(postFix, extension);
-        snapshot.Add(value, serializer: serializer);
+        snapshot.Add(value, formatter: serializer);
         snapshot.Match();
     }
 
@@ -56,11 +57,11 @@ public sealed class Snapshot
         object? value2,
         string? postFix = null,
         string? extension = null,
-        ISnapshotValueSerializer? serializer = null)
+        ISnapshotValueFormatter? serializer = null)
     {
         var snapshot = new Snapshot(postFix, extension);
-        snapshot.Add(value1, serializer: serializer);
-        snapshot.Add(value2, serializer: serializer);
+        snapshot.Add(value1, formatter: serializer);
+        snapshot.Add(value2, formatter: serializer);
         snapshot.Match();
     }
 
@@ -70,37 +71,74 @@ public sealed class Snapshot
         object? value3,
         string? postFix = null,
         string? extension = null,
-        ISnapshotValueSerializer? serializer = null)
+        ISnapshotValueFormatter? serializer = null)
     {
         var snapshot = new Snapshot(postFix, extension);
-        snapshot.Add(value1, serializer: serializer);
-        snapshot.Add(value2, serializer: serializer);
-        snapshot.Add(value3, serializer: serializer);
+        snapshot.Add(value1, formatter: serializer);
+        snapshot.Add(value2, formatter: serializer);
+        snapshot.Add(value3, formatter: serializer);
         snapshot.Match();
     }
 
-    public static void Register(ISnapshotValueSerializer serializer)
+    public static void RegisterFormatter(
+        ISnapshotValueFormatter formatter)
     {
+        if (formatter is null)
+        {
+            throw new ArgumentNullException(nameof(formatter));
+        }
+
         lock (_sync)
         {
-            _serializers = _serializers.Push(serializer);
+            _formatters = _formatters.Push(formatter);
+        }
+    }
+
+    public static void TryRegisterFormatter(
+        ISnapshotValueFormatter formatter,
+        bool typeCheck = true)
+    {
+        if (formatter is null)
+        {
+            throw new ArgumentNullException(nameof(formatter));
+        }
+
+        lock (_sync)
+        {
+            if (typeCheck)
+            {
+                var type = formatter.GetType();
+                if (_formatters.Any(t => t.GetType() == type))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                if (_formatters.Contains(formatter))
+                {
+                    return;
+                }
+            }
+
+            _formatters = _formatters.Push(formatter);
         }
     }
 
     public Snapshot Add(
         object? value,
         string? name = null,
-        ISnapshotValueSerializer? serializer = null)
+        ISnapshotValueFormatter? formatter = null)
     {
-        serializer ??= FindSerializer(value);
-        _segments.Add(new SnapshotSegment(name, value, serializer));
+        formatter ??= FindSerializer(value);
+        _segments.Add(new SnapshotSegment(name, value, formatter));
         return this;
     }
 
-    private static ISnapshotValueSerializer FindSerializer(object? value)
+    private static ISnapshotValueFormatter FindSerializer(object? value)
     {
         // we capture the current immutable serializer list
-        var serializers = _serializers;
+        var serializers = _formatters;
 
         // the we iterate over the captured stack.
         foreach (var serializer in serializers)
@@ -111,7 +149,7 @@ public sealed class Snapshot
             }
         }
 
-        return _defaultSerializer;
+        return _defaultFormatter;
     }
 
     public async ValueTask MatchAsync(CancellationToken cancellationToken = default)
@@ -129,44 +167,18 @@ public sealed class Snapshot
         else
         {
             var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateSnapshotFileName());
-
-            if (File.Exists(mismatchFile))
-            {
-                File.Delete(mismatchFile);
-            }
+            EnsureFileDoesNotExist(mismatchFile);
 
             var before = await File.ReadAllTextAsync(snapshotFile, cancellationToken);
             var after = _encoding.GetString(writer.WrittenSpan);
-            var diff = InlineDiffBuilder.Diff(before, after);
 
-            if (diff.HasDifferences)
+            if (!MatchSnapshot(before, after, out var diff))
             {
-                var output = new StringBuilder();
-                output.AppendLine("The snapshot does not match:");
-
-                foreach (var line in diff.Lines)
-                {
-                    switch (line.Type)
-                    {
-                        case ChangeType.Inserted:
-                            output.Append("+ ");
-                            break;
-
-                        case ChangeType.Deleted:
-                            output.Append("- ");
-                            break;
-
-                        default:
-                            output.Append("  ");
-                            break;
-                    }
-
-                    output.AppendLine(line.Text);
-                }
+                EnsureDirectoryExists(mismatchFile);
 
                 await using var stream = File.Create(mismatchFile);
                 await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
-                throw new Xunit.Sdk.XunitException(output.ToString());
+                throw new Xunit.Sdk.XunitException(diff);
             }
         }
     }
@@ -186,44 +198,18 @@ public sealed class Snapshot
         else
         {
             var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateSnapshotFileName());
-
-            if (File.Exists(mismatchFile))
-            {
-                File.Delete(mismatchFile);
-            }
+            EnsureFileDoesNotExist(mismatchFile);
 
             var before = File.ReadAllText(snapshotFile);
             var after = _encoding.GetString(writer.WrittenSpan);
-            var diff = InlineDiffBuilder.Diff(before, after);
 
-            if (diff.HasDifferences)
+            if (!MatchSnapshot(before, after, out var diff))
             {
-                var output = new StringBuilder();
-                output.AppendLine("The snapshot does not match:");
-
-                foreach (var line in diff.Lines)
-                {
-                    switch (line.Type)
-                    {
-                        case ChangeType.Inserted:
-                            output.Append("+ ");
-                            break;
-
-                        case ChangeType.Deleted:
-                            output.Append("- ");
-                            break;
-
-                        default:
-                            output.Append("  ");
-                            break;
-                    }
-
-                    output.AppendLine(line.Text);
-                }
+                EnsureDirectoryExists(mismatchFile);
 
                 using var stream = File.Create(mismatchFile);
                 stream.Write(writer.WrittenSpan);
-                throw new Xunit.Sdk.XunitException(output.ToString());
+                throw new Xunit.Sdk.XunitException(diff);
             }
         }
     }
@@ -233,7 +219,7 @@ public sealed class Snapshot
         if (_segments.Count == 1)
         {
             var segment = _segments[0];
-            segment.Serializer.Serialize(writer, segment.Value);
+            segment.Formatter.Format(writer, segment.Value);
             return;
         }
 
@@ -255,7 +241,7 @@ public sealed class Snapshot
             writer.AppendSeparator();
             writer.AppendLine();
 
-            segment.Serializer.Serialize(writer, segment.Value);
+            segment.Formatter.Format(writer, segment.Value);
 
             writer.AppendLine();
             writer.AppendSeparator();
@@ -265,6 +251,46 @@ public sealed class Snapshot
         }
     }
 
+    private static bool MatchSnapshot(
+        string before,
+        string after,
+        [NotNullWhen(false)] out string? snapshotDiff)
+    {
+        var diff = InlineDiffBuilder.Diff(before, after);
+
+        if (diff.HasDifferences)
+        {
+            var output = new StringBuilder();
+            output.AppendLine("The snapshot does not match:");
+
+            foreach (var line in diff.Lines)
+            {
+                switch (line.Type)
+                {
+                    case ChangeType.Inserted:
+                        output.Append("+ ");
+                        break;
+
+                    case ChangeType.Deleted:
+                        output.Append("- ");
+                        break;
+
+                    default:
+                        output.Append("  ");
+                        break;
+                }
+
+                output.AppendLine(line.Text);
+            }
+
+            snapshotDiff = output.ToString();
+            return false;
+        }
+
+        snapshotDiff = null;
+        return true;
+    }
+
     private string CreateMismatchDirectoryName()
         => CreateSnapshotDirectoryName(true);
 
@@ -272,12 +298,17 @@ public sealed class Snapshot
     {
         var directoryName = GetDirectoryName(_fileName)!;
 
-        var directory = mismatch
+        return mismatch
             ? Combine(directoryName, "__snapshots__", "__MISMATCH__")
             : Combine(directoryName, "__snapshots__");
+    }
 
+    private static void EnsureDirectoryExists(string file)
+    {
         try
         {
+            var directory = GetDirectoryName(file)!;
+
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
@@ -287,8 +318,14 @@ public sealed class Snapshot
         {
             // we ignore exception that could happen due to collisions
         }
+    }
 
-        return directory;
+    private static void EnsureFileDoesNotExist(string file)
+    {
+        if (File.Exists(file))
+        {
+            File.Delete(file);
+        }
     }
 
     private string CreateSnapshotFileName()
@@ -372,17 +409,17 @@ public sealed class Snapshot
 
     private struct SnapshotSegment
     {
-        public SnapshotSegment(string? name, object? value, ISnapshotValueSerializer serializer)
+        public SnapshotSegment(string? name, object? value, ISnapshotValueFormatter formatter)
         {
             Name = name;
             Value = value;
-            Serializer = serializer;
+            Formatter = formatter;
         }
 
         public string? Name { get; }
 
         public object? Value { get; }
 
-        public ISnapshotValueSerializer Serializer { get; }
+        public ISnapshotValueFormatter Formatter { get; }
     }
 }

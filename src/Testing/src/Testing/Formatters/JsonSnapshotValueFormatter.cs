@@ -6,7 +6,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace Testing;
 
-internal sealed class JsonSnapshotValueSerializer : ISnapshotValueSerializer
+internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter
 {
     private static readonly JsonSerializerSettings _settings =
         new()
@@ -23,11 +23,8 @@ internal sealed class JsonSnapshotValueSerializer : ISnapshotValueSerializer
     public bool CanHandle(object? value)
         => true;
 
-    public void Serialize(IBufferWriter<byte> snapshot, object? value)
-    {
-        var serialized = JsonConvert.SerializeObject(value, _settings);
-        snapshot.Append(serialized);
-    }
+    public void Format(IBufferWriter<byte> snapshot, object? value)
+        => snapshot.Append(JsonConvert.SerializeObject(value, _settings));
 
     private class ChildFirstContractResolver : DefaultContractResolver
     {

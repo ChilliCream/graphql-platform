@@ -95,7 +95,7 @@ public class SnapshotTests
     [Fact]
     public void SnapshotBuilder_Segment_Custom_Global_Serializer()
     {
-        Snapshot.Register(new CustomSerializer());
+        Snapshot.RegisterFormatter(new CustomSerializer());
 
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass { Foo = "123" });
@@ -116,12 +116,12 @@ public class SnapshotTests
         public string Foo { get; set; } = "Bar";
     }
 
-    public class CustomSerializer : ISnapshotValueSerializer
+    public class CustomSerializer : ISnapshotValueFormatter
     {
         public bool CanHandle(object? value)
             => value is MyClass { Foo: "123" };
 
-        public void Serialize(IBufferWriter<byte> snapshot, object? value)
+        public void Format(IBufferWriter<byte> snapshot, object? value)
         {
             var myClass = (MyClass)value!;
             Encoding.UTF8.GetBytes(myClass.Foo.AsSpan(), snapshot);

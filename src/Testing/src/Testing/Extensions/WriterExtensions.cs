@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Testing;
 
-internal static class WriterHelper
+internal static class WriterExtensions
 {
     private static readonly Encoding _utf8 = Encoding.UTF8;
 

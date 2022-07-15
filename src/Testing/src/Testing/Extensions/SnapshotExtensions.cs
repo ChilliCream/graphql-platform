@@ -8,7 +8,7 @@ public static class SnapshotExtensions
         this object? value,
         string? postFix = null,
         string? extension = null,
-        ISnapshotValueSerializer? serializer = null)
+        ISnapshotValueFormatter? serializer = null)
         => Snapshot.Match(value, postFix, extension, serializer);
 
     public static void MatchSnapshot(
@@ -18,5 +18,5 @@ public static class SnapshotExtensions
             value,
             postFix, 
             extension: ".graphql",
-            serializer: SnapshotValueSerializers.GraphQL);
+            serializer: SnapshotValueFormatters.GraphQL);
 }

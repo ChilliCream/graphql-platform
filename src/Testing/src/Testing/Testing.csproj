@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>false</IsPackable>
+    <AssemblyName>CookieCrumble</AssemblyName>
+    <RootNamespace>CookieCrumble</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

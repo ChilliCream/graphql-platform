@@ -1,7 +1,7 @@
 using System.Buffers;
 using HotChocolate.Execution;
 using Testing;
-using static Testing.SnapshotValueSerializers;
+using static Testing.SnapshotValueFormatters;
 
 namespace HotChocolate.Data.Projections;
 
