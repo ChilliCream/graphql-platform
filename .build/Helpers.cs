@@ -32,7 +32,7 @@ static class Helpers
         Path.Combine("StrawberryShake", "CodeGeneration"),
         Path.Combine("StrawberryShake", "SourceGenerator"),
         Path.Combine("StrawberryShake", "Tooling"),
-        "Testing"
+        "CookieCrumble"
     };
 
     static IEnumerable<string> GetAllProjects(
