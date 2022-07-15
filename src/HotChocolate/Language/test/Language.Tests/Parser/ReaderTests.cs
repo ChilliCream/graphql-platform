@@ -36,7 +36,7 @@ public class ReaderTests
     public void Read_NameBraceTokens()
     {
         // arrange
-        byte[] sourceText = Encoding.UTF8.GetBytes("{ x { y } }");
+        var sourceText = Encoding.UTF8.GetBytes("{ x { y } }");
 
         // act
         var tokens = new List<SyntaxTokenInfo>();
@@ -55,7 +55,7 @@ public class ReaderTests
     public void Read_Comment()
     {
         // arrange
-        byte[] sourceText = Encoding.UTF8.GetBytes(
+        var sourceText = Encoding.UTF8.GetBytes(
             "{ #test me foo bar \n me }");
 
         // act
@@ -75,7 +75,7 @@ public class ReaderTests
     public void Read_StringValue()
     {
         // arrange
-        byte[] sourceText = Encoding.UTF8.GetBytes(
+        var sourceText = Encoding.UTF8.GetBytes(
             "{ me(a: \"Abc¢def\\n\") }");
 
         // act
@@ -95,7 +95,7 @@ public class ReaderTests
     public void Read_BlockStringValue()
     {
         // arrange
-        byte[] sourceText = Encoding.UTF8.GetBytes(
+        var sourceText = Encoding.UTF8.GetBytes(
             "{ me(a: \"\"\"\n     Abcdef\n\"\"\") }");
 
         // act
@@ -115,7 +115,7 @@ public class ReaderTests
     public void Read_KitchenSinkQuery()
     {
         // arrange
-        byte[] sourceText = Encoding.UTF8.GetBytes(
+        var sourceText = Encoding.UTF8.GetBytes(
             FileResource.Open("kitchen-sink.graphql")
                 .NormalizeLineBreaks());
 
@@ -136,7 +136,7 @@ public class ReaderTests
     public void Read_BlockString_SkipEscapes()
     {
         // arrange
-        byte[] sourceText = Encoding.UTF8.GetBytes(
+        var sourceText = Encoding.UTF8.GetBytes(
             "abc \"\"\"def\\\"\"\"\"\"\" ghi");
 
         // act
@@ -156,7 +156,7 @@ public class ReaderTests
     public void Read_String_SkipEscapes()
     {
         // arrange
-        byte[] sourceText = Encoding.UTF8.GetBytes(
+        var sourceText = Encoding.UTF8.GetBytes(
             "abc \"def\\\"\" ghi");
 
         // act
@@ -176,7 +176,7 @@ public class ReaderTests
     public void Skip_Boml()
     {
         // arrange
-        byte[] sourceText = new[]
+        var sourceText = new[]
         {
                 (byte)239,
                 (byte)187,
@@ -204,7 +204,7 @@ public class ReaderTests
     public void OneGraph_Schema()
     {
         // arrange
-        byte[] sourceText = Encoding.UTF8.GetBytes(FileResource.Open("onegraph.graphql"));
+        var sourceText = Encoding.UTF8.GetBytes(FileResource.Open("onegraph.graphql"));
 
         // act
         var reader = new Utf8GraphQLReader(sourceText);

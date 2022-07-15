@@ -1,4 +1,4 @@
-﻿{
+{
   field(parameter: "привет") {
     subField
   }

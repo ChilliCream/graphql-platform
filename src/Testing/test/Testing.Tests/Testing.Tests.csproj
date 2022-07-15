@@ -22,6 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\HotChocolate\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\Language\src\Language.Utf8\HotChocolate.Language.Utf8.csproj" />
     <ProjectReference Include="..\..\src\Testing\Testing.csproj" />
   </ItemGroup>
 

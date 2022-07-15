@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Text;
+using HotChocolate.Language;
 
 namespace Testing.Tests;
 
@@ -38,7 +39,7 @@ public class SnapshotTests
     [Fact]
     public void SnapshotBuilder()
     {
-        var snapshot = Snapshot.Create();
+        var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
         snapshot.Add(new MyClass { Foo = "Bar" });
         snapshot.Add(new MyClass { Foo = "Baz" });
@@ -48,7 +49,7 @@ public class SnapshotTests
     [Fact]
     public async Task SnapshotBuilderAsync()
     {
-        var snapshot = Snapshot.Create();
+        var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
         snapshot.Add(new MyClass { Foo = "Bar" });
         snapshot.Add(new MyClass { Foo = "Baz" });
@@ -58,7 +59,7 @@ public class SnapshotTests
     [Fact]
     public void SnapshotBuilder_Segment_Name()
     {
-        var snapshot = Snapshot.Create();
+        var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
         snapshot.Add(new MyClass { Foo = "Bar" }, "Bar");
         snapshot.Add(new MyClass { Foo = "Baz" });
@@ -68,7 +69,7 @@ public class SnapshotTests
     [Fact]
     public void SnapshotBuilder_Segment_Custom_Serializer_For_Segment()
     {
-        var snapshot = Snapshot.Create();
+        var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
         snapshot.Add(new MyClass { Foo = "Bar" }, "Bar", new CustomSerializer());
         snapshot.Add(new MyClass { Foo = "Baz" });
@@ -80,8 +81,17 @@ public class SnapshotTests
     {
         Snapshot.Register(new CustomSerializer());
 
-        var snapshot = Snapshot.Create();
+        var snapshot = new Snapshot();
         snapshot.Add(new MyClass { Foo = "123" });
+        snapshot.Match();
+    }
+
+    [Fact]
+    public void SnapshotBuilder_GraphQL_Segment()
+    {
+        var snapshot = new Snapshot();
+        snapshot.Add(new MyClass { Foo = "123" });
+        snapshot.Add(Utf8GraphQLParser.Parse("{ abc }"));
         snapshot.Match();
     }
 

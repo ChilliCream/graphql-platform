@@ -7,6 +7,7 @@ using System.Text;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Xunit;
+using static System.Collections.Immutable.ImmutableStack;
 using static System.IO.Path;
 
 namespace Testing;
@@ -16,7 +17,7 @@ public sealed class Snapshot
     private static readonly object _sync = new();
     private static readonly UTF8Encoding _encoding = new();
     private static ImmutableStack<ISnapshotValueSerializer> _serializers =
-        ImmutableStack<ISnapshotValueSerializer>.Empty;
+        CreateRange<ISnapshotValueSerializer>(new[] { new GraphQLSnapshotValueSerializer() });
     private static readonly JsonSnapshotValueSerializer _defaultSerializer = new();
 
     private readonly List<SnapshotSegment> _segments = new();
@@ -24,15 +25,12 @@ public sealed class Snapshot
     private readonly string? _postFix;
     private readonly string _extension;
 
-    private Snapshot(string? postFix, string? extension)
+    public Snapshot(string? postFix = null, string? extension = null)
     {
         _fileName = CreateFileName();
         _postFix = postFix;
         _extension = extension ?? ".snap";
     }
-
-    public static Snapshot Create(string? postFix = null, string? extension = null)
-        => new(postFix, extension);
 
     public static void Match(
         object? value,
@@ -40,7 +38,7 @@ public sealed class Snapshot
         string? extension = null,
         ISnapshotValueSerializer? serializer = null)
     {
-        var snapshot = Snapshot.Create(postFix, extension);
+        var snapshot = new Snapshot(postFix, extension);
         snapshot.Add(value, serializer: serializer);
         snapshot.Match();
     }
@@ -52,7 +50,7 @@ public sealed class Snapshot
         string? extension = null,
         ISnapshotValueSerializer? serializer = null)
     {
-        var snapshot = Snapshot.Create(postFix, extension);
+        var snapshot = new Snapshot(postFix, extension);
         snapshot.Add(value1, serializer: serializer);
         snapshot.Add(value2, serializer: serializer);
         snapshot.Match();
@@ -66,7 +64,7 @@ public sealed class Snapshot
         string? extension = null,
         ISnapshotValueSerializer? serializer = null)
     {
-        var snapshot = Snapshot.Create(postFix, extension);
+        var snapshot = new Snapshot(postFix, extension);
         snapshot.Add(value1, serializer: serializer);
         snapshot.Add(value2, serializer: serializer);
         snapshot.Add(value3, serializer: serializer);
@@ -139,6 +137,13 @@ public sealed class Snapshot
         }
         else
         {
+            var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateSnapshotFileName());
+
+            if (File.Exists(mismatchFile))
+            {
+                File.Delete(mismatchFile);
+            }
+
             var before = await File.ReadAllTextAsync(snapshotFile, cancellationToken);
             var after = _encoding.GetString(writer.WrittenSpan);
             var diff = InlineDiffBuilder.Diff(before, after);
@@ -168,7 +173,6 @@ public sealed class Snapshot
                     output.AppendLine(line.Text);
                 }
 
-                var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateSnapshotFileName());
                 await using var stream = File.Create(mismatchFile);
                 await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
                 throw new Xunit.Sdk.XunitException(output.ToString());
@@ -211,6 +215,13 @@ public sealed class Snapshot
         }
         else
         {
+            var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateSnapshotFileName());
+
+            if (File.Exists(mismatchFile))
+            {
+                File.Delete(mismatchFile);
+            }
+
             var before = File.ReadAllText(snapshotFile);
             var after = _encoding.GetString(writer.WrittenSpan);
             var diff = InlineDiffBuilder.Diff(before, after);
@@ -240,7 +251,6 @@ public sealed class Snapshot
                     output.AppendLine(line.Text);
                 }
 
-                var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateSnapshotFileName());
                 using var stream = File.Create(mismatchFile);
                 stream.Write(writer.WrittenSpan);
                 throw new Xunit.Sdk.XunitException(output.ToString());

@@ -6,10 +6,10 @@ using Newtonsoft.Json.Serialization;
 
 namespace Testing;
 
-public sealed class JsonSnapshotValueSerializer : ISnapshotValueSerializer
+internal sealed class JsonSnapshotValueSerializer : ISnapshotValueSerializer
 {
     private static readonly JsonSerializerSettings _settings =
-        new JsonSerializerSettings
+        new()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             Formatting = Formatting.Indented,

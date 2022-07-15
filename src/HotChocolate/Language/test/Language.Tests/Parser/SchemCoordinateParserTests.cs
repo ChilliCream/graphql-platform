@@ -11,11 +11,11 @@ public class SchemaCoordinateParserTests
     public void ParseName()
     {
         // arrange
-        string sourceText = "MyType";
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var sourceText = "MyType";
+        var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
-        SchemaCoordinateNode result = Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
+        var result = Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
 
         // assert
         result.MatchSnapshot();
@@ -25,11 +25,11 @@ public class SchemaCoordinateParserTests
     public void ParseNameAndMemberName()
     {
         // arrange
-        string sourceText = "MyType.MemberName";
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var sourceText = "MyType.MemberName";
+        var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
-        SchemaCoordinateNode result = Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
+        var result = Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
 
         // assert
         result.MatchSnapshot();
@@ -39,8 +39,8 @@ public class SchemaCoordinateParserTests
     public void ParseNameNameName()
     {
         // arrange
-        string sourceText = "Name.Name.Name";
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var sourceText = "Name.Name.Name";
+        var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
         void Fail() => Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
@@ -53,11 +53,11 @@ public class SchemaCoordinateParserTests
     public void ParseNameAndMemberNameAndArg()
     {
         // arrange
-        string sourceText = "MyType.MemberName(arg:)";
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var sourceText = "MyType.MemberName(arg:)";
+        var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
-        SchemaCoordinateNode result = Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
+        var result = Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
 
         // assert
         result.MatchSnapshot();
@@ -67,11 +67,11 @@ public class SchemaCoordinateParserTests
     public void ParseDirectiveName()
     {
         // arrange
-        string sourceText = "@foo";
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var sourceText = "@foo";
+        var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
-        SchemaCoordinateNode result = Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
+        var result = Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
 
         // assert
         result.MatchSnapshot();
@@ -81,11 +81,11 @@ public class SchemaCoordinateParserTests
     public void ParseDirectiveNameAndArg()
     {
         // arrange
-        string sourceText = "@foo(arg:)";
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var sourceText = "@foo(arg:)";
+        var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
-        SchemaCoordinateNode result = Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
+        var result = Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
 
         // assert
         result.MatchSnapshot();
@@ -97,10 +97,10 @@ public class SchemaCoordinateParserTests
     public void RejectsInvalidPatterns(string sourceText)
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
-        Exception ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
         {
             Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
         });
