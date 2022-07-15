@@ -12,6 +12,18 @@ public class SnapshotTests
     }
 
     [Fact]
+    public void OneSnapshot_Txt_Extension()
+    {
+        Snapshot.Match(new MyClass(), extension: ".txt");
+    }
+
+    [Fact]
+    public void OneSnapshot_Post_Fix()
+    {
+        Snapshot.Match(new MyClass(), "ABC");
+    }
+
+    [Fact]
     public void TwoSnapshot()
     {
         Snapshot.Match(new MyClass(), new MyClass());
