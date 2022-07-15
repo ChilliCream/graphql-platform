@@ -1,4 +1,0 @@
-﻿SELECT "b"."BlogId" IS NULL, "i"."ImageId" IS NULL, "i"."Url", "b"."Url", COALESCE("p"."PostId", 0), "p"."Title"
-FROM "Posts" AS "p"
-LEFT JOIN "Blogs" AS "b" ON "p"."BlogId" = "b"."BlogId"
-LEFT JOIN "Images" AS "i" ON "b"."ImageId" = "i"."ImageId"

@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\HotChocolate\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
   </ItemGroup>
 
 </Project>

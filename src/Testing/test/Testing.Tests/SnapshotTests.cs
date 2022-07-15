@@ -7,6 +7,12 @@ namespace Testing.Tests;
 public class SnapshotTests
 {
     [Fact]
+    public void MatchSnapshot()
+    {
+        new MyClass().MatchSnapshot();
+    }
+
+    [Fact]
     public void OneSnapshot()
     {
         Snapshot.Match(new MyClass());
@@ -21,7 +27,7 @@ public class SnapshotTests
     [Fact]
     public void OneSnapshot_Post_Fix()
     {
-        Snapshot.Match(new MyClass(), "ABC");
+        Snapshot.Match(new MyClass(), "ABC:");
     }
 
     [Fact]
@@ -61,8 +67,18 @@ public class SnapshotTests
     {
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
-        snapshot.Add(new MyClass { Foo = "Bar" }, "Bar");
+        snapshot.Add(new MyClass { Foo = "Bar" }, "Bar:");
         snapshot.Add(new MyClass { Foo = "Baz" });
+        snapshot.Match();
+    }
+
+    [Fact]
+    public void SnapshotBuilder_Segment_Name_All()
+    {
+        var snapshot = new Snapshot();
+        snapshot.Add(new MyClass(), "Segment 1:");
+        snapshot.Add(new MyClass { Foo = "Bar" }, "Segment 2:");
+        snapshot.Add(new MyClass { Foo = "Baz" }, "Segment 3:");
         snapshot.Match();
     }
 
@@ -71,7 +87,7 @@ public class SnapshotTests
     {
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
-        snapshot.Add(new MyClass { Foo = "Bar" }, "Bar", new CustomSerializer());
+        snapshot.Add(new MyClass { Foo = "Bar" }, "Bar:", new CustomSerializer());
         snapshot.Add(new MyClass { Foo = "Baz" });
         snapshot.Match();
     }
@@ -90,7 +106,7 @@ public class SnapshotTests
     public void SnapshotBuilder_GraphQL_Segment()
     {
         var snapshot = new Snapshot();
-        snapshot.Add(new MyClass { Foo = "123" });
+        snapshot.Add(new MyClass { Foo = "def" });
         snapshot.Add(Utf8GraphQLParser.Parse("{ abc }"));
         snapshot.Match();
     }

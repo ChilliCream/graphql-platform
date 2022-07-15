@@ -17,7 +17,12 @@ public sealed class Snapshot
     private static readonly object _sync = new();
     private static readonly UTF8Encoding _encoding = new();
     private static ImmutableStack<ISnapshotValueSerializer> _serializers =
-        CreateRange<ISnapshotValueSerializer>(new[] { new GraphQLSnapshotValueSerializer() });
+        CreateRange(new ISnapshotValueSerializer[]
+        {
+            new PlainTextSnapshotValueSerializer(),
+            new GraphQLSnapshotValueSerializer(),
+            new ExecutionResultSnapshotValueSerializer()
+        });
     private static readonly JsonSnapshotValueSerializer _defaultSerializer = new();
 
     private readonly List<SnapshotSegment> _segments = new();
@@ -31,6 +36,9 @@ public sealed class Snapshot
         _postFix = postFix;
         _extension = extension ?? ".snap";
     }
+
+    public static Snapshot Create(string? postFix = null, string? extension = null)
+        => new(postFix, extension);
 
     public static void Match(
         object? value,
@@ -79,10 +87,14 @@ public sealed class Snapshot
         }
     }
 
-    public void Add(object? value, string? name = null, ISnapshotValueSerializer? serializer = null)
+    public Snapshot Add(
+        object? value,
+        string? name = null,
+        ISnapshotValueSerializer? serializer = null)
     {
         serializer ??= FindSerializer(value);
         _segments.Add(new SnapshotSegment(name, value, serializer));
+        return this;
     }
 
     private static ISnapshotValueSerializer FindSerializer(object? value)
@@ -104,29 +116,8 @@ public sealed class Snapshot
 
     public async ValueTask MatchAsync(CancellationToken cancellationToken = default)
     {
-        var next = false;
         var writer = new ArrayBufferWriter<byte>();
-
-        foreach (var segment in _segments)
-        {
-            if (next)
-            {
-                writer.AppendLine();
-                writer.AppendSeparator();
-                writer.AppendLine();
-            }
-
-            if (!string.IsNullOrEmpty(segment.Name))
-            {
-                writer.Append(segment.Name);
-                writer.AppendLine();
-                writer.AppendSeparator();
-                writer.AppendLine();
-            }
-
-            segment.Serializer.Serialize(writer, segment.Value);
-            next = true;
-        }
+        WriteSegments(writer);
 
         var snapshotFile = Combine(CreateSnapshotDirectoryName(), CreateSnapshotFileName());
 
@@ -182,29 +173,8 @@ public sealed class Snapshot
 
     public void Match()
     {
-        var next = false;
         var writer = new ArrayBufferWriter<byte>();
-
-        foreach (var segment in _segments)
-        {
-            if (next)
-            {
-                writer.AppendLine();
-                writer.AppendSeparator();
-                writer.AppendLine();
-            }
-
-            if (!string.IsNullOrEmpty(segment.Name))
-            {
-                writer.Append(segment.Name);
-                writer.AppendLine();
-                writer.AppendSeparator();
-                writer.AppendLine();
-            }
-
-            segment.Serializer.Serialize(writer, segment.Value);
-            next = true;
-        }
+        WriteSegments(writer);
 
         var snapshotFile = Combine(CreateSnapshotDirectoryName(), CreateSnapshotFileName());
 
@@ -255,6 +225,43 @@ public sealed class Snapshot
                 stream.Write(writer.WrittenSpan);
                 throw new Xunit.Sdk.XunitException(output.ToString());
             }
+        }
+    }
+
+    private void WriteSegments(IBufferWriter<byte> writer)
+    {
+        if (_segments.Count == 1)
+        {
+            var segment = _segments[0];
+            segment.Serializer.Serialize(writer, segment.Value);
+            return;
+        }
+
+        var next = false;
+
+        foreach (var segment in _segments)
+        {
+            if (next)
+            {
+                writer.AppendLine();
+            }
+
+            if (!string.IsNullOrEmpty(segment.Name))
+            {
+                writer.Append(segment.Name);
+                writer.AppendLine();
+            }
+
+            writer.AppendSeparator();
+            writer.AppendLine();
+
+            segment.Serializer.Serialize(writer, segment.Value);
+
+            writer.AppendLine();
+            writer.AppendSeparator();
+            writer.AppendLine();
+
+            next = true;
         }
     }
 

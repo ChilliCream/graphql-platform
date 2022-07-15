@@ -31,15 +31,15 @@ public class FilterVisitorTestBase
     {
         convention ??= new FilterConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
-        Func<IResolverContext, IEnumerable<TEntity>> resolver = BuildResolver(entities);
+        var resolver = BuildResolver(entities);
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
             .AddQueryType(
                 c =>
                 {
-                    IObjectFieldDescriptor field = c
+                    var field = c
                         .Name("Query")
                         .Field("root")
                         .Resolve(resolver);
@@ -66,7 +66,7 @@ public class FilterVisitorTestBase
 
         configure?.Invoke(builder);
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         return schema.MakeExecutable();
     }

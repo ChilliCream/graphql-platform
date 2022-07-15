@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Testing\src\Testing\Testing.csproj" />
     <ProjectReference Include="..\..\src\AutoMapper\HotChocolate.Data.AutoMapper.csproj" />
     <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
     <ProjectReference Include="..\..\src\EntityFramework\HotChocolate.Data.EntityFramework.csproj" />
