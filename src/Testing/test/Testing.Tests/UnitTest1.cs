@@ -1,3 +1,6 @@
+using System.Buffers;
+using System.Text;
+
 namespace Testing.Tests;
 
 public class SnapshotTests
@@ -40,7 +43,7 @@ public class SnapshotTests
         await snapshot.MatchAsync();
     }
 
-     [Fact]
+    [Fact]
     public void SnapshotBuilder_Segment_Name()
     {
         var snapshot = Snapshot.Create();
@@ -50,8 +53,40 @@ public class SnapshotTests
         snapshot.Match();
     }
 
+    [Fact]
+    public void SnapshotBuilder_Segment_Custom_Serializer_For_Segment()
+    {
+        var snapshot = Snapshot.Create();
+        snapshot.Add(new MyClass());
+        snapshot.Add(new MyClass { Foo = "Bar" }, "Bar", new CustomSerializer());
+        snapshot.Add(new MyClass { Foo = "Baz" });
+        snapshot.Match();
+    }
+
+    [Fact]
+    public void SnapshotBuilder_Segment_Custom_Global_Serializer()
+    {
+        Snapshot.Register(new CustomSerializer());
+
+        var snapshot = Snapshot.Create();
+        snapshot.Add(new MyClass { Foo = "123" });
+        snapshot.Match();
+    }
+
     public class MyClass
     {
         public string Foo { get; set; } = "Bar";
+    }
+
+    public class CustomSerializer : ISnapshotValueSerializer
+    {
+        public bool CanHandle(object? value)
+            => value is MyClass { Foo: "123" };
+
+        public void Serialize(IBufferWriter<byte> snapshot, object? value)
+        {
+            var myClass = (MyClass)value!;
+            Encoding.UTF8.GetBytes(myClass.Foo.AsSpan(), snapshot);
+        }
     }
 }
