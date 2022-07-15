@@ -1,7 +1,7 @@
 using System.Text;
 using CookieCrumble;
 using Xunit;
-using static Testing.SnapshotValueSerializers;
+using static CookieCrumble.Formatters.SnapshotValueFormatters;
 
 namespace HotChocolate.Language;
 
