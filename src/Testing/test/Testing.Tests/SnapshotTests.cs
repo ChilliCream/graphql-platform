@@ -1,8 +1,9 @@
 using System.Buffers;
 using System.Text;
+using CookieCrumble.Formatters;
 using HotChocolate.Language;
 
-namespace Testing.Tests;
+namespace CookieCrumble;
 
 public class SnapshotTests
 {

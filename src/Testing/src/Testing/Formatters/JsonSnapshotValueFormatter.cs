@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
-namespace Testing;
+namespace CookieCrumble.Formatters;
 
 internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter
 {

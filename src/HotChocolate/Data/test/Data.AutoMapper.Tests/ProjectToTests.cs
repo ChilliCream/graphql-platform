@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using Testing;
+
 namespace HotChocolate.Data.Projections;
 
 public class ProjectToTests

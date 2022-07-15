@@ -1,6 +1,7 @@
+using CookieCrumble.Formatters;
 using HotChocolate.Language;
 
-namespace Testing;
+namespace CookieCrumble;
 
 public static class SnapshotExtensions
 {
@@ -8,15 +9,15 @@ public static class SnapshotExtensions
         this object? value,
         string? postFix = null,
         string? extension = null,
-        ISnapshotValueFormatter? serializer = null)
-        => Snapshot.Match(value, postFix, extension, serializer);
+        ISnapshotValueFormatter? formatter = null)
+        => Snapshot.Match(value, postFix, extension, formatter);
 
     public static void MatchSnapshot(
         this ISyntaxNode? value,
         string? postFix = null)
         => Snapshot.Match(
             value,
-            postFix, 
+            postFix,
             extension: ".graphql",
-            serializer: SnapshotValueFormatters.GraphQL);
+            formatter: SnapshotValueFormatters.GraphQL);
 }

@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Text;
 
-namespace Testing;
+namespace CookieCrumble;
 
 internal static class WriterExtensions
 {

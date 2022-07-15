@@ -5,13 +5,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using CookieCrumble.Formatters;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Xunit;
 using static System.Collections.Immutable.ImmutableStack;
 using static System.IO.Path;
 
-namespace Testing;
+namespace CookieCrumble;
 
 public sealed class Snapshot
 {
@@ -45,10 +46,10 @@ public sealed class Snapshot
         object? value,
         string? postFix = null,
         string? extension = null,
-        ISnapshotValueFormatter? serializer = null)
+        ISnapshotValueFormatter? formatter = null)
     {
         var snapshot = new Snapshot(postFix, extension);
-        snapshot.Add(value, formatter: serializer);
+        snapshot.Add(value, formatter: formatter);
         snapshot.Match();
     }
 
@@ -57,11 +58,11 @@ public sealed class Snapshot
         object? value2,
         string? postFix = null,
         string? extension = null,
-        ISnapshotValueFormatter? serializer = null)
+        ISnapshotValueFormatter? formatter = null)
     {
         var snapshot = new Snapshot(postFix, extension);
-        snapshot.Add(value1, formatter: serializer);
-        snapshot.Add(value2, formatter: serializer);
+        snapshot.Add(value1, formatter: formatter);
+        snapshot.Add(value2, formatter: formatter);
         snapshot.Match();
     }
 
@@ -71,12 +72,12 @@ public sealed class Snapshot
         object? value3,
         string? postFix = null,
         string? extension = null,
-        ISnapshotValueFormatter? serializer = null)
+        ISnapshotValueFormatter? formatter = null)
     {
         var snapshot = new Snapshot(postFix, extension);
-        snapshot.Add(value1, formatter: serializer);
-        snapshot.Add(value2, formatter: serializer);
-        snapshot.Add(value3, formatter: serializer);
+        snapshot.Add(value1, formatter: formatter);
+        snapshot.Add(value2, formatter: formatter);
+        snapshot.Add(value3, formatter: formatter);
         snapshot.Match();
     }
 

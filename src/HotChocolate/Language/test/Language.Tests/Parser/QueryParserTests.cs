@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Text;
-using Testing;
+using CookieCrumble;
 using Xunit;
 using static Testing.SnapshotValueSerializers;
 

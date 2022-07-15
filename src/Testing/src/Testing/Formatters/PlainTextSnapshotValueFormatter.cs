@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace Testing;
+namespace CookieCrumble.Formatters;
 
 internal sealed class PlainTextSnapshotValueFormatter : ISnapshotValueFormatter
 {

@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace Testing;
+namespace CookieCrumble.Formatters;
 
 /// <summary>
 /// Formats a snapshot segment value for the snapshot file.

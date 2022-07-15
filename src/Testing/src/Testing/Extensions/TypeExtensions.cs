@@ -1,4 +1,4 @@
-namespace Testing;
+namespace CookieCrumble;
 
 /// <summary>
 /// Some extensions for Type, to support snapshot testing.

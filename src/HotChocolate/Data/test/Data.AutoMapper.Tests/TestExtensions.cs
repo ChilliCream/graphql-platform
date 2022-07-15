@@ -1,7 +1,7 @@
 using System.Buffers;
+using CookieCrumble;
 using HotChocolate.Execution;
-using Testing;
-using static Testing.SnapshotValueFormatters;
+using static CookieCrumble.Formatters.SnapshotValueFormatters;
 
 namespace HotChocolate.Data.Projections;
 

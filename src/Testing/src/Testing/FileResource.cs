@@ -1,4 +1,4 @@
-namespace Testing;
+namespace CookieCrumble;
 
 public static class FileResource
 {

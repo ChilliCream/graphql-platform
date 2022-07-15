@@ -2,7 +2,7 @@ using System.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 
-namespace Testing;
+namespace CookieCrumble.Formatters;
 
 internal sealed class GraphQLSnapshotValueFormatter : SnapshotValueFormatter<ISyntaxNode>
 {

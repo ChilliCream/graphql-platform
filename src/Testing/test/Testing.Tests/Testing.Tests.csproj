@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
+
+    <AssemblyName>CookieCrumble.Tests</AssemblyName>
+
+    <RootNamespace>CookieCrumble</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

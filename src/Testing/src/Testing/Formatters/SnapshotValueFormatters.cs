@@ -1,4 +1,4 @@
-namespace Testing;
+namespace CookieCrumble.Formatters;
 
 /// <summary>
 /// Provides access to well-known snapshot value formatters.

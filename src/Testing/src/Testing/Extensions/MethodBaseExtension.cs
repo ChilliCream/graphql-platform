@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Reflection;
 
-namespace Testing;
+namespace CookieCrumble;
 
 /// <summary>
 /// The method base extension is used to add more functionality

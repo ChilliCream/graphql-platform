@@ -2,7 +2,7 @@ using System.Buffers;
 using HotChocolate;
 using HotChocolate.Execution;
 
-namespace Testing;
+namespace CookieCrumble.Formatters;
 
 internal sealed class ExecutionResultSnapshotValueFormatter
     : SnapshotValueFormatter<IExecutionResult>
