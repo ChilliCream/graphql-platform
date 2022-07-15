@@ -19,7 +19,7 @@ internal static class MethodBaseExtension
     public static string ToName(this MethodBase methodBase)
         => string.Concat(
             methodBase.ReflectedType!.Name.ToString(CultureInfo.InvariantCulture), ".",
-            methodBase.Name.ToString(CultureInfo.InvariantCulture));
+            methodBase.Name.ToString(CultureInfo.InvariantCulture), ".snap");
 }
 
 internal static class WriterHelper

@@ -11,7 +11,7 @@ using static System.IO.Path;
 
 namespace Testing;
 
-public class Snapshot
+public sealed class Snapshot
 {
     private static readonly object _sync = new();
     private static readonly UTF8Encoding _encoding = new();
@@ -34,6 +34,45 @@ public class Snapshot
     public static Snapshot Create(string? postFix = null, string? extension = null)
         => new(postFix, extension);
 
+    public static void Match(
+        object? value,
+        string? postFix = null,
+        string? extension = null,
+        ISnapshotValueSerializer? serializer = null)
+    {
+        var snapshot = Snapshot.Create(postFix, extension);
+        snapshot.Add(value, serializer: serializer);
+        snapshot.Match();
+    }
+
+    public static void Match(
+        object? value1,
+        object? value2,
+        string? postFix = null,
+        string? extension = null,
+        ISnapshotValueSerializer? serializer = null)
+    {
+        var snapshot = Snapshot.Create(postFix, extension);
+        snapshot.Add(value1, serializer: serializer);
+        snapshot.Add(value2, serializer: serializer);
+        snapshot.Match();
+    }
+
+    public static void Match(
+        object? value1,
+        object? value2,
+        object? value3,
+        string? postFix = null,
+        string? extension = null,
+        ISnapshotValueSerializer? serializer = null)
+    {
+        var snapshot = Snapshot.Create(postFix, extension);
+        snapshot.Add(value1, serializer: serializer);
+        snapshot.Add(value2, serializer: serializer);
+        snapshot.Add(value3, serializer: serializer);
+        snapshot.Match();
+    }
+
     public static void Register(ISnapshotValueSerializer serializer)
     {
         lock (_sync)
@@ -50,8 +89,10 @@ public class Snapshot
 
     private static ISnapshotValueSerializer FindSerializer(object? value)
     {
+        // we capture the current immutable serializer list
         var serializers = _serializers;
 
+        // the we iterate over the captured stack.
         foreach (var serializer in serializers)
         {
             if (serializer.CanHandle(value))
@@ -74,6 +115,7 @@ public class Snapshot
             {
                 writer.AppendLine();
                 writer.AppendSeparator();
+                writer.AppendLine();
             }
 
             if (!string.IsNullOrEmpty(segment.Name))
@@ -81,6 +123,7 @@ public class Snapshot
                 writer.Append(segment.Name);
                 writer.AppendLine();
                 writer.AppendSeparator();
+                writer.AppendLine();
             }
 
             segment.Serializer.Serialize(writer, segment.Value);
@@ -133,6 +176,78 @@ public class Snapshot
         }
     }
 
+    public void Match()
+    {
+        var next = false;
+        var writer = new ArrayBufferWriter<byte>();
+
+        foreach (var segment in _segments)
+        {
+            if (next)
+            {
+                writer.AppendLine();
+                writer.AppendSeparator();
+                writer.AppendLine();
+            }
+
+            if (!string.IsNullOrEmpty(segment.Name))
+            {
+                writer.Append(segment.Name);
+                writer.AppendLine();
+                writer.AppendSeparator();
+                writer.AppendLine();
+            }
+
+            segment.Serializer.Serialize(writer, segment.Value);
+            next = true;
+        }
+
+        var snapshotFile = Combine(CreateSnapshotDirectoryName(), CreateSnapshotFileName());
+
+        if (!File.Exists(snapshotFile))
+        {
+            using var stream = File.Create(snapshotFile);
+            stream.Write(writer.WrittenSpan);
+        }
+        else
+        {
+            var before = File.ReadAllText(snapshotFile);
+            var after = _encoding.GetString(writer.WrittenSpan);
+            var diff = InlineDiffBuilder.Diff(before, after);
+
+            if (diff.HasDifferences)
+            {
+                var output = new StringBuilder();
+                output.AppendLine("The snapshot does not match:");
+
+                foreach (var line in diff.Lines)
+                {
+                    switch (line.Type)
+                    {
+                        case ChangeType.Inserted:
+                            output.Append("+ ");
+                            break;
+
+                        case ChangeType.Deleted:
+                            output.Append("- ");
+                            break;
+
+                        default:
+                            output.Append("  ");
+                            break;
+                    }
+
+                    output.AppendLine(line.Text);
+                }
+
+                var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateSnapshotFileName());
+                using var stream = File.Create(mismatchFile);
+                stream.Write(writer.WrittenSpan);
+                throw new Xunit.Sdk.XunitException(output.ToString());
+            }
+        }
+    }
+
     private string CreateMismatchDirectoryName()
         => CreateSnapshotDirectoryName(true);
 
@@ -170,9 +285,7 @@ public class Snapshot
 
     private static string CreateFileName()
     {
-        var stackFrames = new StackTrace(true).GetFrames();
-
-        foreach (var stackFrame in stackFrames)
+        foreach (var stackFrame in new StackTrace(true).GetFrames())
         {
             var method = stackFrame?.GetMethod();
             var fileName = stackFrame?.GetFileName();
