@@ -1,10 +1,10 @@
+using CookieCrumble;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static System.Net.WebSockets.WebSocketCloseStatus;
 
 #nullable enable
@@ -215,7 +215,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact(Skip = "Flaky")]
     public Task Subscribe_ReceiveDataOnMutation()
     {
-        var snapshotName = Snapshot.FullName();
+        var snapshot = new Snapshot();
 
         return TryTest(async ct =>
         {
@@ -248,7 +248,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await WaitForMessage(webSocket, Messages.Next, ct);
             Assert.NotNull(message);
-            Snapshot.Match(message, snapshotName);
+            await snapshot.Add(message).MatchAsync(ct);
         });
     }
 
@@ -389,7 +389,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Subscribe_SyntaxError()
     {
-        var snapshotName = Snapshot.FullName();
+        var snapshot = new Snapshot();
 
         return TryTest(async ct =>
         {
@@ -408,7 +408,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await WaitForMessage(webSocket, Messages.Error, ct);
             Assert.NotNull(message);
-            Snapshot.Match(message, snapshotName);
+            await snapshot.Add(message).MatchAsync(ct);
         });
     }
 

@@ -1,7 +1,7 @@
 using System.Net;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.AspNetCore;
 

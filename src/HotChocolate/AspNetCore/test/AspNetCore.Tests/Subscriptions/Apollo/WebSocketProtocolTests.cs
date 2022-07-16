@@ -6,7 +6,6 @@ using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 #nullable enable
 

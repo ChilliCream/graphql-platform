@@ -7,7 +7,6 @@ using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 #nullable enable
 

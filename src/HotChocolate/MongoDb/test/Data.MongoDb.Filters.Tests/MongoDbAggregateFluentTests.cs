@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -10,7 +8,6 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
