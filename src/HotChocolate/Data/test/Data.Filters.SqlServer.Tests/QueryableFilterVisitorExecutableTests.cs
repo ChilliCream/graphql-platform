@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Xunit;
 
@@ -15,15 +16,14 @@ public class QueryableFilterVisitorExecutableTests
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { Bar = true },
-            new FooNullable { Bar = null },
-            new FooNullable { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
+    };
 
     private readonly SchemaCache _cache;
 
-    public QueryableFilterVisitorExecutableTests(
-        SchemaCache cache)
+    public QueryableFilterVisitorExecutableTests(SchemaCache cache)
     {
         _cache = cache;
     }
@@ -35,20 +35,22 @@ public class QueryableFilterVisitorExecutableTests
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
                 .Create());
-
-        res1.MatchSqlSnapshot("true");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("false");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .MatchAsync();
     }
 
     [Fact]
@@ -58,82 +60,84 @@ public class QueryableFilterVisitorExecutableTests
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
                 .Create());
-
-        res1.MatchSqlSnapshot("true");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("false");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
                 .Create());
-
-        res1.MatchSqlSnapshot("true");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("false");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { eq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
                 .Create());
-
-        res1.MatchSqlSnapshot("true");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("false");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable(where: { bar: { neq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     public class Foo
@@ -150,13 +154,11 @@ public class QueryableFilterVisitorExecutableTests
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
+    public class FooFilterInput : FilterInputType<Foo>
     {
     }
 
-    public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
+    public class FooNullableFilterInput : FilterInputType<FooNullable>
     {
     }
 }

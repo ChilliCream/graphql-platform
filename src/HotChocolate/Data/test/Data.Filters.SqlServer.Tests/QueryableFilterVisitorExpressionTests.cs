@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Xunit;
 
@@ -10,8 +11,21 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     {
-        new Foo { Name = "Foo", LastName = "Galoo", Bars = new Bar[]{ new Bar { Value="A"} } },
-        new Foo { Name = "Sam", LastName = "Sampleman", Bars = Array.Empty<Bar>() }
+        new()
+        {
+            Name = "Foo",
+            LastName = "Galoo",
+            Bars = new[]
+            {
+                new Bar { Value="A" }
+            }
+        },
+        new()
+        {
+            Name = "Sam",
+            LastName = "Sampleman",
+            Bars = Array.Empty<Bar>()
+        }
     };
 
     private readonly SchemaCache _cache;
@@ -28,27 +42,28 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
         var tester = _cache.CreateSchema<Foo, FooFilterInputType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { displayName: { eq: \"Sam Sampleman\"}}){ name lastName}}")
             .Create());
-
-        res1.MatchSqlSnapshot("Sam_Sampleman");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { displayName: { eq: \"NoMatch\"}}){ name lastName}}")
             .Create());
 
-        res2.MatchSqlSnapshot("NoMatch");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { displayName: { eq: null}}){ name lastName}}")
             .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "Sam_Sampleman")
+            .AddSqlFrom(res2, "NoMatch")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -58,27 +73,28 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
         var tester = _cache.CreateSchema<Foo, FooFilterInputType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { barLength: { eq: 1}}){ name lastName}}")
             .Create());
-
-        res1.MatchSqlSnapshot("1");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { barLength: { eq: 0}}){ name lastName}}")
             .Create());
 
-        res2.MatchSqlSnapshot("0");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(where: { barLength: { eq: null}}){ name lastName}}")
             .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "1")
+            .AddSqlFrom(res2, "0")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     public class Foo

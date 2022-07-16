@@ -138,6 +138,7 @@ extend schema @onSchema {
   subscription: SubscriptionType
 }
 ---------------
+
 AST:
 ---------------
 {
@@ -3536,3 +3537,4 @@ AST:
     }
   ]
 }
+---------------

@@ -1,32 +1,33 @@
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
-using Snapshooter;
-using Snapshooter.Xunit;
+using static CookieCrumble.Formatters.SnapshotValueFormatters;
 
 namespace HotChocolate.Data.Filters;
 
 public static class TestExtensions
 {
-    public static void MatchSqlSnapshot(
-        this IExecutionResult? result,
-        string snapshotName)
+    public static Snapshot AddSqlFrom(
+        this Snapshot snapshot,
+        IExecutionResult result,
+        string name)
     {
-#if NET5_0
-            const string postfix = "_NET5_0";
-#elif NET6_0
-        const string postfix = "_NET6_0";
-#else
-            const string postfix = "";
-#endif
-        if (result is not null)
+        snapshot.Add(result.ToJson(), $"{name} Result:");
+
+        if (result.ContextData is null)
         {
-            result.MatchSnapshot(snapshotName + postfix);
-            if (result.ContextData is not null &&
-                result.ContextData.TryGetValue("sql", out var queryResult))
-            {
-                queryResult.MatchSnapshot(
-                    new SnapshotNameExtension(snapshotName + "_sql" + postfix));
-            }
+            return snapshot;
         }
+
+        if (result.ContextData.TryGetValue("sql", out var sql))
+        {
+            snapshot.Add(sql, $"{name} SQL:", PlainText);
+        }
+
+        if (result.ContextData.TryGetValue("expression", out var expression))
+        {
+            snapshot.Add(expression, $"{name} Expression:", PlainText);
+        }
+
+        return snapshot;
     }
 }

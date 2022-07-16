@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Xunit;
 
@@ -8,137 +9,145 @@ public class QueryableFilterVisitorEnumTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { BarEnum = FooEnum.BAR },
-            new Foo { BarEnum = FooEnum.BAZ },
-            new Foo { BarEnum = FooEnum.FOO },
-            new Foo { BarEnum = FooEnum.QUX }
-        };
+        new() { BarEnum = FooEnum.BAR },
+        new() { BarEnum = FooEnum.BAZ },
+        new() { BarEnum = FooEnum.FOO },
+        new() { BarEnum = FooEnum.QUX }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { BarEnum = FooEnum.BAR },
-            new FooNullable { BarEnum = FooEnum.BAZ },
-            new FooNullable { BarEnum = FooEnum.FOO },
-            new FooNullable { BarEnum = null },
-            new FooNullable { BarEnum = FooEnum.QUX }
-        };
+        new() { BarEnum = FooEnum.BAR },
+        new() { BarEnum = FooEnum.BAZ },
+        new() { BarEnum = FooEnum.FOO },
+        new() { BarEnum = null },
+        new() { BarEnum = FooEnum.QUX }
+    };
 
-    private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new();
 
     [Fact]
     public async Task Create_EnumEqual_Expression()
     {
+        // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
                 .Create());
-
-        res1.MatchSqlSnapshot("BAR");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
                 .Create());
 
-        res2.MatchSqlSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: null } }) { barEnum } }")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BAR")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_EnumNotEqual_Expression()
     {
+        // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
                 .Create());
-
-        res1.MatchSqlSnapshot("BAR");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
                 .Create());
 
-        res2.MatchSqlSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: null } }){ barEnum } }")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BAR")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_EnumIn_Expression()
     {
+        // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
                 .Create());
-
-        res1.MatchSqlSnapshot("BarAndFoo");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("nullAndFoo");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BarAndFoo")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "nullAndFoo")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_EnumNotIn_Expression()
     {
+        // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ] } }) { barEnum } }")
                 .Create());
-
-        res1.MatchSqlSnapshot("BarAndFoo");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
                 .Create());
 
-        res2.MatchSqlSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
                 .Create());
 
-        res3.MatchSqlSnapshot("nullAndFoo");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BarAndFoo")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "nullAndFoo")
+            .MatchAsync();
     }
 
     [Fact]
@@ -154,21 +163,23 @@ public class QueryableFilterVisitorEnumTests
                 .SetQuery("{ root(where: { barEnum: { eq: BAR } }) { barEnum } }")
                 .Create());
 
-        res1.MatchSqlSnapshot("BAR");
-
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: FOO } }) { barEnum } }")
                 .Create());
-
-        res2.MatchSqlSnapshot("FOO");
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { eq: null } }){ barEnum } }")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BAR")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]

@@ -48,9 +48,9 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "null")
             .MatchAsync();
     }
 
@@ -79,9 +79,9 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "null")
             .MatchAsync();
     }
 
@@ -115,10 +115,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -152,10 +152,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -190,10 +190,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -227,10 +227,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -264,10 +264,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -301,10 +301,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -339,10 +339,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -376,10 +376,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -408,9 +408,9 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12and13")
-            .Add(res2, "13and14")
-            .Add(res3, "nullAnd14")
+            .AddSqlFrom(res1, "12and13")
+            .AddSqlFrom(res2, "13and14")
+            .AddSqlFrom(res3, "nullAnd14")
             .MatchAsync();
     }
 
@@ -439,9 +439,9 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12and13")
-            .Add(res2, "13and14")
-            .Add(res3, "nullAnd14")
+            .AddSqlFrom(res1, "12and13")
+            .AddSqlFrom(res2, "13and14")
+            .AddSqlFrom(res3, "nullAnd14")
             .MatchAsync();
     }
 
@@ -470,9 +470,9 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "null")
             .MatchAsync();
     }
 
@@ -501,9 +501,9 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "null")
             .MatchAsync();
     }
 
@@ -538,10 +538,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -575,10 +575,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -613,10 +613,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -650,10 +650,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -687,10 +687,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -724,10 +724,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -762,10 +762,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -799,10 +799,10 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12")
-            .Add(res2, "13")
-            .Add(res3, "14")
-            .Add(res4, "null")
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
             .MatchAsync();
     }
 
@@ -831,9 +831,9 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12and13")
-            .Add(res2, "13and14")
-            .Add(res3, "13andNull")
+            .AddSqlFrom(res1, "12and13")
+            .AddSqlFrom(res2, "13and14")
+            .AddSqlFrom(res3, "13andNull")
             .MatchAsync();
     }
 
@@ -862,9 +862,9 @@ public class QueryableFilterVisitorComparableTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "12and13")
-            .Add(res2, "13and14")
-            .Add(res3, "13andNull")
+            .AddSqlFrom(res1, "12and13")
+            .AddSqlFrom(res2, "13and14")
+            .AddSqlFrom(res3, "13andNull")
             .MatchAsync();
     }
 

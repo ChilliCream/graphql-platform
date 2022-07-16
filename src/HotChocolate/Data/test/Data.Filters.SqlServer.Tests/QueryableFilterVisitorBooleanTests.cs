@@ -42,8 +42,8 @@ public class QueryableFilterVisitorBooleanTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "true")
-            .Add(res2, "false")
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
             .MatchAsync();
     }
 
@@ -67,8 +67,8 @@ public class QueryableFilterVisitorBooleanTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "true")
-            .Add(res2, "false")
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
             .MatchAsync();
     }
 
@@ -97,9 +97,9 @@ public class QueryableFilterVisitorBooleanTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "true")
-            .Add(res2, "false")
-            .Add(res3, "null")
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .AddSqlFrom(res3, "null")
             .MatchAsync();
     }
 
@@ -129,9 +129,9 @@ public class QueryableFilterVisitorBooleanTests
         // assert
         await Snapshot
             .Create()
-            .Add(res1, "true")
-            .Add(res2, "false")
-            .Add(res3, "null")
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .AddSqlFrom(res3, "null")
             .MatchAsync();
     }
 

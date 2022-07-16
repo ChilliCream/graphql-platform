@@ -93,6 +93,7 @@ fragment frag on Friend@onFragmentDefinition {
   __typename
 }
 ---------------
+
 AST:
 ---------------
 {
@@ -3367,3 +3368,4 @@ AST:
     }
   ]
 }
+---------------
