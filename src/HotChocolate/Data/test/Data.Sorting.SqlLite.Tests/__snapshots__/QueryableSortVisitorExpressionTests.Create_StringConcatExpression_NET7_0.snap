@@ -1,0 +1,79 @@
+DESC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "name": "Sam",
+        "lastName": "Sampleman"
+      },
+      {
+        "name": "Foo",
+        "lastName": "Galoo"
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "name": "Sam",
+        "lastName": "Sampleman"
+      },
+      {
+        "name": "Foo",
+        "lastName": "Galoo"
+      }
+    ]
+  }
+}
+---------------
+
+DESC SQL:
+---------------
+SELECT "d"."Id", "d"."LastName", "d"."Name"
+FROM "Data" AS "d"
+ORDER BY (COALESCE("d"."Name", '') || ' ') || COALESCE("d"."LastName", '') DESCSELECT "d"."Id", "d"."LastName", "d"."Name"
+FROM "Data" AS "d"
+ORDER BY (COALESCE("d"."Name", '') || ' ') || COALESCE("d"."LastName", '') DESC
+---------------
+
+ASC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "name": "Foo",
+        "lastName": "Galoo"
+      },
+      {
+        "name": "Sam",
+        "lastName": "Sampleman"
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "name": "Foo",
+        "lastName": "Galoo"
+      },
+      {
+        "name": "Sam",
+        "lastName": "Sampleman"
+      }
+    ]
+  }
+}
+---------------
+
+ASC SQL:
+---------------
+SELECT "d"."Id", "d"."LastName", "d"."Name"
+FROM "Data" AS "d"
+ORDER BY (COALESCE("d"."Name", '') || ' ') || COALESCE("d"."LastName", '')SELECT "d"."Id", "d"."LastName", "d"."Name"
+FROM "Data" AS "d"
+ORDER BY (COALESCE("d"."Name", '') || ' ') || COALESCE("d"."LastName", '')
+---------------

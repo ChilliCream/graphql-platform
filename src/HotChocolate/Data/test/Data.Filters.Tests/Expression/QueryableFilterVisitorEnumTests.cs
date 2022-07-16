@@ -1,6 +1,6 @@
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
@@ -224,7 +224,7 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         var schema = CreateSchema(new FilterInputType<EntityWithTypeAttribute>());
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Foo

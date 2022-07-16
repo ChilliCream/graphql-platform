@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
@@ -36,15 +35,15 @@ public class QueryableSortVisitorEnumTests
     public async Task Create_Enum_OrderBy()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { barEnum: ASC}){ barEnum}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { barEnum: DESC}){ barEnum}}")
                 .Create());
@@ -58,16 +57,16 @@ public class QueryableSortVisitorEnumTests
     public async Task Create_Enum_OrderBy_Nullable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
             _fooNullableEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { barEnum: ASC}){ barEnum}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { barEnum: DESC}){ barEnum}}")
                 .Create());

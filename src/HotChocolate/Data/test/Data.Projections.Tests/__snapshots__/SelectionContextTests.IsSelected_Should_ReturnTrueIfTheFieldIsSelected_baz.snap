@@ -1,3 +1,5 @@
-﻿foo:False
+foo:False
+foo.bar:True
+foo.bar.baz:Falsefoo:False
 foo.bar:True
 foo.bar.baz:False

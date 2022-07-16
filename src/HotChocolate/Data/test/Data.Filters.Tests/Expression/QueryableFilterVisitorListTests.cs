@@ -505,8 +505,7 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         public string? Bar { get; set; }
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
+    public class FooFilterInput : FilterInputType<Foo>
     {
         protected override void Configure(
             IFilterInputTypeDescriptor<Foo> descriptor)
@@ -515,8 +514,7 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         }
     }
 
-    public class FooSimpleFilterInput
-        : FilterInputType<FooSimple>
+    public class FooSimpleFilterInput : FilterInputType<FooSimple>
     {
         protected override void Configure(
             IFilterInputTypeDescriptor<FooSimple> descriptor)

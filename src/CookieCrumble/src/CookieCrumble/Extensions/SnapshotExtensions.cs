@@ -32,6 +32,14 @@ public static class SnapshotExtensions
             extension: ".graphql",
             formatter: SnapshotValueFormatters.Schema);
 
+    public static void MatchSnapshot(
+        this IExecutable? value,
+        string? postFix = null)
+        => Snapshot.Match(
+            value,
+            postFix,
+            formatter: SnapshotValueFormatters.PlainText);
+
     public static Snapshot AddSqlFrom(
         this Snapshot snapshot,
         IExecutionResult result,

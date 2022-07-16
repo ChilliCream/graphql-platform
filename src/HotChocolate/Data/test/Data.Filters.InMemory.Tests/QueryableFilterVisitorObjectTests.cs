@@ -2,13 +2,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
-public class QueryableFilterVisitorObjectTests
-    : IClassFixture<SchemaCache>
+public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
 {
     private static readonly Bar[] _barEntities =
     {

@@ -25,7 +25,8 @@ public sealed class Snapshot
             new GraphQLSnapshotValueFormatter(),
             new ExecutionResultSnapshotValueFormatter(),
             new SchemaSnapshotValueFormatter(),
-            new ExceptionSnapshotValueFormatter()
+            new ExceptionSnapshotValueFormatter(),
+            new SchemaErrorSnapshotValueFormatter(),
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 

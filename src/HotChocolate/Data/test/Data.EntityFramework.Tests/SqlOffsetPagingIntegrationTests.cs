@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -20,225 +18,235 @@ public class SqlOffsetPagingIntegrationTests : SqlLiteOffsetTestBase
     [Fact]
     public async Task Simple_StringList_Default_Items()
     {
-        Snapshot.FullName();
-
+        // arrange
         var executor = CreateSchema(Data);
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        items {
-                            foo
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    items {
+                        foo
                     }
-                }")
-            .MatchSnapshotAsync();
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task No_Boundaries_Set()
     {
-        Snapshot.FullName();
-
+        // arrange
         var executor = CreateSchema(Data);
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        items {
-                            foo
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    items {
+                        foo
                     }
-                }")
-            .MatchSnapshotAsync();
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Attribute_Simple_StringList_Default_Items()
     {
-        Snapshot.FullName();
-
+        // arrange
         var executor = CreateSchema(Data);
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        items {
-                            foo
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    items {
+                        foo
                     }
-                }")
-            .MatchSnapshotAsync();
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Simple_StringList_Skip_2()
     {
-        Snapshot.FullName();
-
+        // arrange
         var executor = CreateSchema(Data);
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root(take: 2) {
-                        items {
-                            foo
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root(take: 2) {
+                    items {
+                        foo
                     }
-                }")
-            .MatchSnapshotAsync();
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Attribute_Simple_StringList_Skip_2()
     {
-        Snapshot.FullName();
-
+        // arrange
         var executor = CreateSchema(Data);
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root(take: 2) {
-                        items {
-                            foo
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root(take: 2) {
+                    items {
+                        foo
                     }
-                }")
-            .MatchSnapshotAsync();
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Simple_StringList_Skip_2_After()
     {
-        Snapshot.FullName();
-
+        // arrange
         var executor = CreateSchema(Data);
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root(take: 2) {
-                        items {
-                            foo
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root(take: 2) {
+                    items {
+                        foo
                     }
-                }")
-            .MatchSnapshotAsync();
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Attribute_Simple_StringList_Skip_2_After()
     {
-        Snapshot.FullName();
-
+        // arrange
         var executor = CreateSchema(Data);
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root(take: 2) {
-                        items {
-                            foo
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root(take: 2) {
+                    items {
+                        foo
                     }
-                }")
-            .MatchSnapshotAsync();
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Simple_StringList_Global_DefaultItem_2()
     {
-        Snapshot.FullName();
-
+        // arrange
         var executor = CreateSchema(Data);
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        items {
-                            foo
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    items {
+                        foo
                     }
-                }")
-            .MatchSnapshotAsync();
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Attribute_Simple_StringList_Global_DefaultItem_2()
     {
-        Snapshot.FullName();
-
+        // arrange
         var executor = CreateSchema(Data);
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        items {
-                            foo
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    items {
+                        foo
                     }
-                }")
-            .MatchSnapshotAsync();
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task TotalCount_Should_Be_Correct()
     {
-        Snapshot.FullName();
-
+        // arrange
         var executor = CreateSchema(Data);
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        totalCount
-                    }
-                }")
-            .MatchSnapshotAsync();
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    totalCount
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     public class TestData

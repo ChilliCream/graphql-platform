@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -31,15 +30,15 @@ public class QueryableSortVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_String_OrderBy()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                 .Create());
@@ -53,16 +52,16 @@ public class QueryableSortVisitorStringTests : IClassFixture<SchemaCache>
     public async Task Create_String_OrderBy_Nullable()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
             _fooNullableEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                 .Create());

@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 

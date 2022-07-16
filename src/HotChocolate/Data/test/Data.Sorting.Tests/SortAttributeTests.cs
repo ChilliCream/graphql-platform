@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using CookieCrumble;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
+
 using Xunit;
 
 namespace HotChocolate.Data.Sorting;
@@ -21,7 +22,7 @@ public class SortAttributeTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -35,7 +36,7 @@ public class SortAttributeTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -49,7 +50,7 @@ public class SortAttributeTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -63,7 +64,7 @@ public class SortAttributeTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Query1

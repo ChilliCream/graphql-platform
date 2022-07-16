@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
+
 using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;

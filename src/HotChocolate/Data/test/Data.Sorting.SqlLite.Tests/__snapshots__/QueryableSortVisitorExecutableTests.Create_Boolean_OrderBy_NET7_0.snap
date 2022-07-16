@@ -1,0 +1,53 @@
+ASC Result:
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": false
+      },
+      {
+        "bar": true
+      }
+    ]
+  }
+}{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": false
+      },
+      {
+        "bar": true
+      }
+    ]
+  }
+}
+---------------
+
+DESC Result:
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
