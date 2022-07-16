@@ -1,0 +1,9 @@
+For more details look at the `Errors` property.
+
+1. The sort provider `HotChocolate.Data.Sorting.Expressions.QueryableSortProvider` does not specify and field handler.
+
+For more details look at the `Errors` property.
+
+1. The sort provider `HotChocolate.Data.Sorting.Expressions.QueryableSortProvider` does not specify and field handler.
+
+HotChocolate.SchemaException

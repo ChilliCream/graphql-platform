@@ -1,10 +1,8 @@
-﻿{
+ASC
+---------------
+{
   "data": {
     "root": [
-      {
-        "foo": null
-      },
-      null,
       {
         "foo": {
           "barEnum": "FOO"
@@ -19,12 +17,33 @@
         "foo": {
           "barEnum": "BAZ"
         }
+      }
+    ]
+  }
+}
+---------------
+
+DESC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "BAZ"
+        }
       },
       {
         "foo": {
-          "barEnum": "QUX"
+          "barEnum": "BAR"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "FOO"
         }
       }
     ]
   }
 }
+---------------

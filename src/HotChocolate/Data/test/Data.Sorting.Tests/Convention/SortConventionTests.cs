@@ -77,7 +77,7 @@ public class SortConventionTests
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
-        error.Errors[0].MatchSnapshot();
+        error.Errors.MatchSnapshot();
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class SortConventionTests
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
-        error.Errors[0].MatchSnapshot();
+        error.Errors.MatchSnapshot();
     }
 
     [Fact]

@@ -81,7 +81,7 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // assert
         var ex = await Assert.ThrowsAsync<SchemaException>(Call);
-        ex.Errors.Single().MatchSnapshot();
+        ex.Errors.MatchSnapshot();
     }
 
     [Fact]

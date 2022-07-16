@@ -1,10 +1,8 @@
-﻿{
+ASC
+---------------
+{
   "data": {
     "root": [
-      {
-        "foo": null
-      },
-      null,
       {
         "foo": {
           "barString": "testatest"
@@ -19,12 +17,33 @@
         "foo": {
           "barString": "testctest"
         }
+      }
+    ]
+  }
+}
+---------------
+
+DESC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testctest"
+        }
       },
       {
         "foo": {
-          "barString": "testdtest"
+          "barString": "testbtest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testatest"
         }
       }
     ]
   }
 }
+---------------

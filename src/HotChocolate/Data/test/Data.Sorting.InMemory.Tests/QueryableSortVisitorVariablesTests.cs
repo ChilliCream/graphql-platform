@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
@@ -41,8 +40,11 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        res1.MatchSnapshot("ASC");
-        res2.MatchSnapshot("DESC");
+        await Snapshot
+            .Create()
+            .Add(res1, "ASC")
+            .Add(res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
@@ -67,8 +69,11 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        res1.MatchSnapshot("ASC");
-        res2.MatchSnapshot("DESC");
+        await Snapshot
+            .Create()
+            .Add(res1, "ASC")
+            .Add(res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]

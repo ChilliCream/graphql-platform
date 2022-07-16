@@ -1,5 +1,0 @@
-foo:True
-foo.bar:False
-foo.bar.baz:Falsefoo:True
-foo.bar:False
-foo.bar.baz:False

@@ -1,0 +1,31 @@
+ASC
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": false
+      },
+      {
+        "bar": true
+      }
+    ]
+  }
+}
+---------------
+
+DESC
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------

@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -44,8 +44,11 @@ public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        res1.MatchSnapshot("ASC");
-        res2.MatchSnapshot("DESC");
+        await Snapshot
+            .Create()
+            .Add(res1, "ASC")
+            .Add(res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
@@ -66,8 +69,11 @@ public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        res1.MatchSnapshot("ASC");
-        res2.MatchSnapshot("DESC");
+        await Snapshot
+            .Create()
+            .Add(res1, "ASC")
+            .Add(res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
@@ -89,8 +95,11 @@ public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        res1.MatchSnapshot("ASC");
-        res2.MatchSnapshot("DESC");
+        await Snapshot
+            .Create()
+            .Add(res1, "ASC")
+            .Add(res2, "DESC")
+            .MatchAsync();
     }
 
     public class Foo
