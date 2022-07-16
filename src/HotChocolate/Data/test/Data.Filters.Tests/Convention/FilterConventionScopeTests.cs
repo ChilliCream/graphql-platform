@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -21,7 +19,7 @@ public class FilterConventionScopeTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -36,7 +34,7 @@ public class FilterConventionScopeTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -52,7 +50,7 @@ public class FilterConventionScopeTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class QueryType : ObjectType
@@ -73,15 +71,15 @@ public class FilterConventionScopeTests
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
         {
-            descriptor.Field("foos")
+            descriptor
+                .Field("foos")
                 .Resolve(Array.Empty<Foo>().AsQueryable())
-                .UseFiltering<Foo>(descriptor => descriptor.Field(x => x.Bar).AllowContains());
+                .UseFiltering<Foo>(d => d.Field(x => x.Bar).AllowContains());
 
-            descriptor.Field("foosBar")
+            descriptor
+                .Field("foosBar")
                 .Resolve(Array.Empty<Foo>().AsQueryable())
-                .UseFiltering<Foo>(
-                    descriptor => descriptor.Field(x => x.Bar).AllowContains(),
-                    "Bar");
+                .UseFiltering<Foo>(d => d.Field(x => x.Bar).AllowContains(), "Bar");
         }
     }
 

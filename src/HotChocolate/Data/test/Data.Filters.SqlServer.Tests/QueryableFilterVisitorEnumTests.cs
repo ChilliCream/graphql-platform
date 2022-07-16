@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
-using Xunit;
 
-namespace HotChocolate.Data.Filters.Expressions;
+namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorEnumTests
 {
@@ -185,91 +184,94 @@ public class QueryableFilterVisitorEnumTests
     [Fact]
     public async Task Create_NullableEnumNotEqual_Expression()
     {
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        // arrange
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: BAR } }) { barEnum } }")
                 .Create());
-
-        res1.MatchSqlSnapshot("BAR");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: FOO } }) { barEnum } }")
                 .Create());
 
-        res2.MatchSqlSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { neq: null } }) { barEnum } }")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BAR")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableEnumIn_Expression()
     {
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        // arrange
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ] } }) { barEnum } }")
                 .Create());
-
-        res1.MatchSqlSnapshot("BarAndFoo");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ FOO ] } }) { barEnum } }")
                 .Create());
 
-        res2.MatchSqlSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { in: [ null FOO ] } }) { barEnum } }")
                 .Create());
 
-        res3.MatchSqlSnapshot("nullAndFoo");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BarAndFoo")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "nullAndFoo")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableEnumNotIn_Expression()
     {
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        // arrange
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ] } }){ barEnum } }")
                 .Create());
-
-        res1.MatchSqlSnapshot("BarAndFoo");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ FOO ] } }) { barEnum } }")
                 .Create());
 
-        res2.MatchSqlSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ] } }) { barEnum } }")
                 .Create());
 
-        res3.MatchSqlSnapshot("nullAndFoo");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BarAndFoo")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "nullAndFoo")
+            .MatchAsync();
     }
 
     public class Foo
@@ -294,13 +296,11 @@ public class QueryableFilterVisitorEnumTests
         QUX
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
+    public class FooFilterInput : FilterInputType<Foo>
     {
     }
 
-    public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
+    public class FooNullableFilterInput : FilterInputType<FooNullable>
     {
     }
 }

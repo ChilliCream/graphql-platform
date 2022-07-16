@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Filters.SqlServer.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Data</RootNamespace>
+    <RootNamespace>HotChocolate.Data.Filters</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

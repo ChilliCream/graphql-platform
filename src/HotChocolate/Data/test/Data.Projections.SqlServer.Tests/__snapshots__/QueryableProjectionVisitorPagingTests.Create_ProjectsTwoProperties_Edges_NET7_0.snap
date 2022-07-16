@@ -1,0 +1,49 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "edges": [
+        {
+          "node": {
+            "bar": true,
+            "baz": "a"
+          }
+        },
+        {
+          "node": {
+            "bar": false,
+            "baz": "b"
+          }
+        }
+      ]
+    }
+  }
+}{
+  "data": {
+    "root": {
+      "edges": [
+        {
+          "node": {
+            "bar": true,
+            "baz": "a"
+          }
+        },
+        {
+          "node": {
+            "bar": false,
+            "baz": "b"
+          }
+        }
+      ]
+    }
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "d"."Bar", "d"."Baz"
+FROM "Data" AS "d"SELECT "d"."Bar", "d"."Baz"
+FROM "Data" AS "d"
+---------------

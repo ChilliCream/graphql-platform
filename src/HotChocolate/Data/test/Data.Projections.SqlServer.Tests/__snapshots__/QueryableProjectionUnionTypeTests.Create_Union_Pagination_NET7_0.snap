@@ -1,0 +1,27 @@
+{
+  "data": {
+    "root": {
+      "nodes": [
+        {
+          "barProp": "BarProp"
+        },
+        {
+          "fooProp": "FooProp"
+        }
+      ]
+    }
+  }
+}{
+  "data": {
+    "root": {
+      "nodes": [
+        {
+          "barProp": "BarProp"
+        },
+        {
+          "fooProp": "FooProp"
+        }
+      ]
+    }
+  }
+}

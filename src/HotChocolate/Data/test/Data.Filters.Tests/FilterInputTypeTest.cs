@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
+using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Tests;
 
@@ -29,7 +26,7 @@ public class FilterInputTypeTest : FilterTestBase
                         .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -45,7 +42,7 @@ public class FilterInputTypeTest : FilterTestBase
                         .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -61,7 +58,7 @@ public class FilterInputTypeTest : FilterTestBase
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -74,7 +71,7 @@ public class FilterInputTypeTest : FilterTestBase
             .AddType(new FilterInputType<Foo>(d => d.Directive("foo").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -88,7 +85,7 @@ public class FilterInputTypeTest : FilterTestBase
                 .Directive(new DirectiveNode("foo")).Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -105,7 +102,7 @@ public class FilterInputTypeTest : FilterTestBase
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -122,7 +119,7 @@ public class FilterInputTypeTest : FilterTestBase
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -136,7 +133,7 @@ public class FilterInputTypeTest : FilterTestBase
                     d => d.Description("Test").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -150,7 +147,7 @@ public class FilterInputTypeTest : FilterTestBase
                     d => d.Name("Test").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -172,7 +169,7 @@ public class FilterInputTypeTest : FilterTestBase
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -194,7 +191,7 @@ public class FilterInputTypeTest : FilterTestBase
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -215,7 +212,7 @@ public class FilterInputTypeTest : FilterTestBase
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -237,7 +234,7 @@ public class FilterInputTypeTest : FilterTestBase
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -350,7 +347,7 @@ public class FilterInputTypeTest : FilterTestBase
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -366,8 +363,7 @@ public class FilterInputTypeTest : FilterTestBase
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
-        schema.Print().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -382,7 +378,7 @@ public class FilterInputTypeTest : FilterTestBase
                 .AllowOperation(DefaultFilterOperations.Equals));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -395,7 +391,7 @@ public class FilterInputTypeTest : FilterTestBase
             .Field(x => x.Author, d => d.Field(x => x.Name)));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -408,7 +404,7 @@ public class FilterInputTypeTest : FilterTestBase
             .Field(x => x.Author, d => d.Field(x => x.Name).AllowEquals().AllowNotEquals()));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -426,7 +422,7 @@ public class FilterInputTypeTest : FilterTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -444,7 +440,7 @@ public class FilterInputTypeTest : FilterTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -482,7 +478,7 @@ public class FilterInputTypeTest : FilterTestBase
                 .Location(Types.DirectiveLocation.InputObject))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -500,7 +496,7 @@ public class FilterInputTypeTest : FilterTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -515,7 +511,7 @@ public class FilterInputTypeTest : FilterTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -542,7 +538,7 @@ public class FilterInputTypeTest : FilterTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -559,7 +555,7 @@ public class FilterInputTypeTest : FilterTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -584,7 +580,7 @@ public class FilterInputTypeTest : FilterTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -601,7 +597,7 @@ public class FilterInputTypeTest : FilterTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -626,7 +622,7 @@ public class FilterInputTypeTest : FilterTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]

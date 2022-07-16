@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -371,8 +370,7 @@ public class QueryableFilterVisitorStringTests
     public async Task Create_NullableStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

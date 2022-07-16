@@ -23,14 +23,16 @@ public sealed class Snapshot
         {
             new PlainTextSnapshotValueFormatter(),
             new GraphQLSnapshotValueFormatter(),
-            new ExecutionResultSnapshotValueFormatter()
+            new ExecutionResultSnapshotValueFormatter(),
+            new SchemaSnapshotValueFormatter(),
+            new ExceptionSnapshotValueFormatter()
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
     private readonly List<SnapshotSegment> _segments = new();
     private readonly string _fileName;
-    private readonly string? _postFix;
-    private readonly string _extension;
+    private string _extension;
+    private string? _postFix;
 
     public Snapshot(string? postFix = null, string? extension = null)
     {
@@ -136,6 +138,28 @@ public sealed class Snapshot
         return this;
     }
 
+    public Snapshot SetExtension(string extension)
+    {
+        if (string.IsNullOrEmpty(extension))
+        {
+            throw new ArgumentNullException(nameof(extension));
+        }
+
+        _extension = extension;
+        return this;
+    }
+
+    public Snapshot SetPostFix(string postFix)
+    {
+        if (string.IsNullOrEmpty(postFix))
+        {
+            throw new ArgumentNullException(nameof(postFix));
+        }
+
+        _postFix = postFix;
+        return this;
+    }
+
     private static ISnapshotValueFormatter FindSerializer(object? value)
     {
         // we capture the current immutable serializer list
@@ -162,6 +186,7 @@ public sealed class Snapshot
 
         if (!File.Exists(snapshotFile))
         {
+            EnsureDirectoryExists(snapshotFile);
             await using var stream = File.Create(snapshotFile);
             await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
         }
@@ -176,7 +201,6 @@ public sealed class Snapshot
             if (!MatchSnapshot(before, after, false, out var diff))
             {
                 EnsureDirectoryExists(mismatchFile);
-
                 await using var stream = File.Create(mismatchFile);
                 await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
                 throw new Xunit.Sdk.XunitException(diff);
@@ -193,6 +217,7 @@ public sealed class Snapshot
 
         if (!File.Exists(snapshotFile))
         {
+            EnsureDirectoryExists(snapshotFile);
             using var stream = File.Create(snapshotFile);
             stream.Write(writer.WrittenSpan);
         }
@@ -200,14 +225,12 @@ public sealed class Snapshot
         {
             var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateSnapshotFileName());
             EnsureFileDoesNotExist(mismatchFile);
-
             var before = File.ReadAllText(snapshotFile);
             var after = _encoding.GetString(writer.WrittenSpan);
 
             if (!MatchSnapshot(before, after, false, out var diff))
             {
                 EnsureDirectoryExists(mismatchFile);
-
                 using var stream = File.Create(mismatchFile);
                 stream.Write(writer.WrittenSpan);
                 throw new Xunit.Sdk.XunitException(diff);

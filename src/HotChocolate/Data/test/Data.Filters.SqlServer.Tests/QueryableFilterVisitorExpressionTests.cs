@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 

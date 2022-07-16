@@ -1,0 +1,49 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "notSettableList": [
+          {
+            "barString": "Worked"
+          }
+        ]
+      },
+      {
+        "notSettableList": [
+          {
+            "barString": "Worked"
+          }
+        ]
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "notSettableList": [
+          {
+            "barString": "Worked"
+          }
+        ]
+      },
+      {
+        "notSettableList": [
+          {
+            "barString": "Worked"
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT 1
+FROM "Data" AS "d"SELECT 1
+FROM "Data" AS "d"
+---------------

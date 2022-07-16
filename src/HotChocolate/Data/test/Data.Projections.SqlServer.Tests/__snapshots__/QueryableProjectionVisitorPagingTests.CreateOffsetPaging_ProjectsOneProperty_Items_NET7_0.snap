@@ -1,0 +1,37 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "baz": "a"
+        },
+        {
+          "baz": "b"
+        }
+      ]
+    }
+  }
+}{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "baz": "a"
+        },
+        {
+          "baz": "b"
+        }
+      ]
+    }
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "d"."Baz"
+FROM "Data" AS "d"SELECT "d"."Baz"
+FROM "Data" AS "d"
+---------------

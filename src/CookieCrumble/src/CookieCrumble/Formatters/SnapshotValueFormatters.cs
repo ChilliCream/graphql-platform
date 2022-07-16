@@ -5,6 +5,9 @@ namespace CookieCrumble.Formatters;
 /// </summary>
 public static class SnapshotValueFormatters
 {
+    public static ISnapshotValueFormatter Schema { get; } =
+        new SchemaSnapshotValueFormatter();
+
     public static ISnapshotValueFormatter GraphQL { get; } =
         new GraphQLSnapshotValueFormatter();
 

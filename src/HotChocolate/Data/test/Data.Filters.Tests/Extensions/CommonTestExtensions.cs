@@ -2,14 +2,12 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Data;
 
 public static class CommonTestExtensions
 {
-    public static ValueTask<IRequestExecutor> CreateExecptionExecutor(
+    public static ValueTask<IRequestExecutor> CreateExceptionExecutor(
         this IRequestExecutorBuilder builder)
     {
         return builder.UseRequest(
@@ -30,20 +28,5 @@ public static class CommonTestExtensions
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorResolver>()
             .GetRequestExecutorAsync();
-    }
-
-    public static void MatchException(
-        this IExecutionResult? result,
-        string snapshotName = "")
-    {
-        if (result is { })
-        {
-            result.MatchSnapshot(snapshotName);
-            if (result.ContextData is { } &&
-                result.ContextData.TryGetValue("ex", out var queryResult))
-            {
-                queryResult.MatchSnapshot(new SnapshotNameExtension(snapshotName + "_ex"));
-            }
-        }
     }
 }

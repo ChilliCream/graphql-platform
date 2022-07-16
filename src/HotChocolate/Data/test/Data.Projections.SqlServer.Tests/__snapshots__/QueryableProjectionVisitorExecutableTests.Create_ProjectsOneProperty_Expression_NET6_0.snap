@@ -1,0 +1,31 @@
+Result:
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "baz": "a"
+      },
+      {
+        "baz": "b"
+      }
+    ]
+  }
+}{
+  "data": {
+    "rootExecutable": [
+      {
+        "baz": "a"
+      },
+      {
+        "baz": "b"
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+Microsoft.EntityFrameworkCore.Query.Internal.EntityQueryable`1[HotChocolate.Data.Projections.QueryableProjectionVisitorExecutableTests+Foo]Microsoft.EntityFrameworkCore.Query.Internal.EntityQueryable`1[HotChocolate.Data.Projections.QueryableProjectionVisitorExecutableTests+Foo]
+---------------

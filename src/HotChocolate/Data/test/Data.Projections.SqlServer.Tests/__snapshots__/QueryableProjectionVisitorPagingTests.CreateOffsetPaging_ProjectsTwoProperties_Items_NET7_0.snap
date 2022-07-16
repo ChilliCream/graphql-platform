@@ -1,0 +1,41 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "bar": true,
+          "baz": "a"
+        },
+        {
+          "bar": false,
+          "baz": "b"
+        }
+      ]
+    }
+  }
+}{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "bar": true,
+          "baz": "a"
+        },
+        {
+          "bar": false,
+          "baz": "b"
+        }
+      ]
+    }
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "d"."Bar", "d"."Baz"
+FROM "Data" AS "d"SELECT "d"."Bar", "d"."Baz"
+FROM "Data" AS "d"
+---------------

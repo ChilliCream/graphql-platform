@@ -1,8 +1,6 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
@@ -13,8 +11,7 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortEqual_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { eq: 12 }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { eq: 12 }}");
         var tester = CreateProviderTester(new FooFilterInput());
 
         // act
@@ -32,13 +29,11 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortNotEqual_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { neq: 12 }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { neq: 12 }}");
         var tester = CreateProviderTester(new FooFilterInput());
 
         // act
         var func = tester.Build<Foo>(value);
-
 
         // assert
         var a = new Foo { BarShort = 13 };

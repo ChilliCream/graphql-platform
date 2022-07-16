@@ -1,0 +1,116 @@
+testatestAndtestb Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testatestAndtestb SQL:
+---------------
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" IN ('testatest', 'testbtest')SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" IN ('testatest', 'testbtest')
+---------------
+
+testbtestAndNull Result:
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060in\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 28
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "[String!]",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060in\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 28
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "[String!]",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" = 'testatest'SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" = 'testatest'
+---------------

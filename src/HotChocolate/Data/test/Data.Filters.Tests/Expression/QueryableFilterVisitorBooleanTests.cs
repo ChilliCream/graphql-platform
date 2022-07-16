@@ -1,18 +1,14 @@
-using System;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
-public class QueryableFilterVisitorBooleanTests
-    : FilterVisitorTestBase
+public class QueryableFilterVisitorBooleanTests : FilterVisitorTestBase
 {
     [Fact]
     public void Create_BooleanEqual_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ bar: { eq: true }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq: true }}");
         var tester = CreateProviderTester(new FooFilterInput());
 
         // act
@@ -30,8 +26,7 @@ public class QueryableFilterVisitorBooleanTests
     public void Create_BooleanNotEqual_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ bar: { eq: false }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq: false }}");
         var tester = CreateProviderTester(new FooFilterInput());
 
         // act
@@ -49,8 +44,7 @@ public class QueryableFilterVisitorBooleanTests
     public void Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ bar: { eq: true }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq: true }}");
         var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
@@ -71,8 +65,7 @@ public class QueryableFilterVisitorBooleanTests
     public void Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ bar: { eq: false }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq: false }}");
         var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
@@ -99,13 +92,11 @@ public class QueryableFilterVisitorBooleanTests
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
+    public class FooFilterInput : FilterInputType<Foo>
     {
     }
 
-    public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
+    public class FooNullableFilterInput : FilterInputType<FooNullable>
     {
     }
 }

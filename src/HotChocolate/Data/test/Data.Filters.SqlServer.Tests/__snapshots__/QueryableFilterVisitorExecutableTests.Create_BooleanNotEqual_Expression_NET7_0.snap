@@ -1,0 +1,41 @@
+true Result:
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": false
+      }
+    ]
+  }
+}{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+false Result:
+---------------
+{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      }
+    ]
+  }
+}{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      }
+    ]
+  }
+}
+---------------

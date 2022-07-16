@@ -1,0 +1,33 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barProp": "BarProp"
+      },
+      {
+        "fooProp": "FooProp"
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "barProp": "BarProp"
+      },
+      {
+        "fooProp": "FooProp"
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "d"."d" = 'bar', "d"."BarProp", "d"."d" = 'foo', "d"."FooProp"
+FROM "Data" AS "d"SELECT "d"."d" = 'bar', "d"."BarProp", "d"."d" = 'foo', "d"."FooProp"
+FROM "Data" AS "d"
+---------------

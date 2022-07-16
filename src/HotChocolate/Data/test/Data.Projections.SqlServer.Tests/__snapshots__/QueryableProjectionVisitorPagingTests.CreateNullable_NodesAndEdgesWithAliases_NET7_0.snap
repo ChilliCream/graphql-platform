@@ -1,0 +1,77 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "b": [
+        {
+          "baz": "a"
+        },
+        {
+          "baz": null
+        },
+        {
+          "baz": "c"
+        }
+      ],
+      "a": [
+        {
+          "node": {
+            "bar": true
+          }
+        },
+        {
+          "node": {
+            "bar": null
+          }
+        },
+        {
+          "node": {
+            "bar": false
+          }
+        }
+      ]
+    }
+  }
+}{
+  "data": {
+    "root": {
+      "b": [
+        {
+          "baz": "a"
+        },
+        {
+          "baz": null
+        },
+        {
+          "baz": "c"
+        }
+      ],
+      "a": [
+        {
+          "node": {
+            "bar": true
+          }
+        },
+        {
+          "node": {
+            "bar": null
+          }
+        },
+        {
+          "node": {
+            "bar": false
+          }
+        }
+      ]
+    }
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "d"."Baz", "d"."Bar"
+FROM "Data" AS "d"SELECT "d"."Baz", "d"."Bar"
+FROM "Data" AS "d"
+---------------

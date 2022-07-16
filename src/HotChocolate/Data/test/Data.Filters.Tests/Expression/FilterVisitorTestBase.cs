@@ -15,12 +15,11 @@ public class FilterVisitorTestBase
         var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .TryAddTypeInterceptor<FilterTypeInterceptor>()
-            .AddQueryType(
-                c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolve("bar"))
+            .AddQueryType(c => c
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
             .AddType(type)
             .AddType(new TimeSpanType(TimeSpanFormat.DotNet));
 
