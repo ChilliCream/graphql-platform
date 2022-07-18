@@ -1,4 +1,5 @@
 using System.Net.WebSockets;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -33,7 +34,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message!["type"]);
         });
 
     [Fact]
@@ -99,7 +100,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message[MessageProperties.Type]);
+            Assert.Equal("connection_ack", message![MessageProperties.Type]);
         });
 
     [Fact]
@@ -142,7 +143,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message!["type"]);
         });
 
     [Fact]
@@ -162,7 +163,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message!["type"]);
         });
 
     [Fact]
@@ -208,7 +209,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact(Skip = "Flaky")]
     public Task Send_Start_ReceiveDataOnMutation()
     {
-        var snapshotName = Snapshot.FullName();
+        var snapshot = new Snapshot();
 
         return TryTest(async ct =>
         {
@@ -242,7 +243,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
             var message = await WaitForMessage(webSocket, "data", ct);
             Assert.NotNull(message);
-            Snapshot.Match(message, snapshotName);
+            await snapshot.Add(message).MatchAsync(ct);
         });
     }
 
@@ -312,7 +313,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Subscribe_SyntaxError()
     {
-        var snapshotName = Snapshot.FullName();
+        var snapshot = new Snapshot();
 
         return TryTest(
             async ct =>
@@ -336,7 +337,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
                 // assert
                 var message = await WaitForMessage(webSocket, "error", ct);
-                message.MatchSnapshot(snapshotName);
+                await snapshot.Add(message).MatchAsync(ct);
             });
     }
 
@@ -425,7 +426,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Start_ValidationError()
     {
-        var snapshotName = Snapshot.FullName();
+        var snapshot = new Snapshot();
 
         return TryTest(async ct =>
         {
@@ -445,7 +446,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await WaitForMessage(webSocket, "error", ct);
             Assert.NotNull(message);
-            Snapshot.Match(message, snapshotName);
+            await snapshot.Add(message).MatchAsync(ct);
         });
     }
 

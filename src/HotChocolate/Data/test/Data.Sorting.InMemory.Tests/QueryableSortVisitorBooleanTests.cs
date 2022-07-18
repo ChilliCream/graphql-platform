@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 
 namespace HotChocolate.Data.Sorting;
 

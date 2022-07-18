@@ -415,7 +415,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Subscribe_ValidationError()
     {
-        var snapshotName = Snapshot.FullName();
+        var snapshot = new Snapshot();
 
         return TryTest(async ct =>
         {
@@ -434,14 +434,14 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await WaitForMessage(webSocket, Messages.Error, ct);
             Assert.NotNull(message);
-            Snapshot.Match(message, snapshotName);
+            await snapshot.Add(message).MatchAsync(ct);
         });
     }
 
     [Fact]
     public Task Send_Ping()
     {
-        var snapshotName = Snapshot.FullName();
+        var snapshot = new Snapshot();
 
         return TryTest(async ct =>
         {
@@ -460,14 +460,14 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await WaitForMessage(webSocket, Messages.Pong, ct);
             Assert.NotNull(message);
-            message.MatchSnapshot(snapshotName);
+            await snapshot.Add(message).MatchAsync(ct);
         });
     }
 
     [Fact]
     public Task Send_Ping_With_Payload()
     {
-        var snapshotName = Snapshot.FullName();
+        var snapshot = new Snapshot();
 
         return TryTest(async ct =>
         {
@@ -486,7 +486,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             // assert
             var message = await WaitForMessage(webSocket, Messages.Pong, ct);
             Assert.NotNull(message);
-            message.MatchSnapshot(snapshotName);
+            await snapshot.Add(message).MatchAsync(ct);
         });
     }
 
@@ -514,7 +514,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     [Fact]
     public Task Send_Pong_With_Payload()
     {
-        var snapshotName = Snapshot.FullName();
+        var snapshot = new Snapshot();
 
         return TryTest(async ct =>
         {
@@ -532,7 +532,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
             // assert
             await WaitForConditions(() => interceptor.OnPongInvoked, ct);
-            interceptor.Payload.MatchSnapshot(snapshotName);
+            await snapshot.Add(interceptor.Payload).MatchAsync(ct);
         });
     }
 
