@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -15,105 +12,105 @@ public class MongoDbFilterVisitorListTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo
+        new()
+        {
+            FooNested = new[]
             {
-                FooNested = new[]
-                {
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "a" }
-                }
-            },
-            new Foo
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "a" }
+            }
+        },
+        new()
+        {
+            FooNested = new[]
             {
-                FooNested = new[]
-                {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "a" }
-                }
-            },
-            new Foo
+                new FooNested { Bar = "c" },
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "a" }
+            }
+        },
+        new()
+        {
+            FooNested = new[]
             {
-                FooNested = new[]
-                {
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
-                }
-            },
-            new Foo
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "d" },
+                new FooNested { Bar = "b" }
+            }
+        },
+        new()
+        {
+            FooNested = new[]
             {
-                FooNested = new[]
-                {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
-                }
-            },
-            new Foo
+                new FooNested { Bar = "c" },
+                new FooNested { Bar = "d" },
+                new FooNested { Bar = "b" }
+            }
+        },
+        new()
+        {
+            FooNested = new[]
             {
-                FooNested = new[]
-                {
-                    new FooNested { Bar = null },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
-                }
-            },
-            new Foo { FooNested = null },
-            new Foo { FooNested = new FooNested[0] }
-        };
+                new FooNested { Bar = null },
+                new FooNested { Bar = "d" },
+                new FooNested { Bar = "b" }
+            }
+        },
+        new() { FooNested = null },
+        new() { FooNested = Array.Empty<FooNested>() }
+    };
 
-    private static readonly FooSimple[] _fooSimple = new[]
+    private static readonly FooSimple[] _fooSimple =
     {
-            new FooSimple
+        new()
+        {
+            Bar = new[]
             {
-                Bar = new[]
-                {
-                    "a",
-                    "a",
-                    "a"
-                }
-            },
-            new FooSimple
+                "a",
+                "a",
+                "a"
+            }
+        },
+        new()
+        {
+            Bar = new[]
             {
-                Bar = new[]
-                {
-                    "c",
-                    "a",
-                    "a"
-                }
-            },
-            new FooSimple
+                "c",
+                "a",
+                "a"
+            }
+        },
+        new()
+        {
+            Bar = new[]
             {
-                Bar = new[]
-                {
-                    "a",
-                    "d",
-                    "b"
-                }
-            },
-            new FooSimple
+                "a",
+                "d",
+                "b"
+            }
+        },
+        new()
+        {
+            Bar = new[]
             {
-                Bar = new[]
-                {
-                    "c",
-                    "d",
-                    "b"
-                }
-            },
-            new FooSimple
+                "c",
+                "d",
+                "b"
+            }
+        },
+        new()
+        {
+            Bar = new[]
             {
-                Bar = new[]
-                {
-                    null,
-                    "d",
-                    "b"
-                }
-            },
-            new FooSimple { Bar = null },
-            new FooSimple { Bar = new string[0] }
-        };
+                null,
+                "d",
+                "b"
+            }
+        },
+        new() { Bar = null },
+        new() { Bar = Array.Empty<string>() }
+    };
 
     public MongoDbFilterVisitorListTests(MongoResource resource)
     {
@@ -127,7 +124,6 @@ public class MongoDbFilterVisitorListTests
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -148,15 +144,11 @@ public class MongoDbFilterVisitorListTests
                         }")
                 .Create());
 
-        res1.MatchDocumentSnapshot("a");
-
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { some: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
                 .Create());
-
-        res2.MatchDocumentSnapshot("d");
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -164,7 +156,13 @@ public class MongoDbFilterVisitorListTests
                     "{ root(where: { fooNested: { some: {bar: { eq: null}}}}){ fooNested {bar}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "a")
+            .AddSqlFrom(res2, "d")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -174,14 +172,11 @@ public class MongoDbFilterVisitorListTests
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("a");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -189,15 +184,19 @@ public class MongoDbFilterVisitorListTests
                     "{ root(where: { fooNested: { none: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("d");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { none: {bar: { eq: null}}}}){ fooNested {bar}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "a")
+            .AddSqlFrom(res2, "d")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -207,14 +206,11 @@ public class MongoDbFilterVisitorListTests
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("a");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -222,15 +218,19 @@ public class MongoDbFilterVisitorListTests
                     "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("d");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "a")
+            .AddSqlFrom(res2, "d")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -240,27 +240,28 @@ public class MongoDbFilterVisitorListTests
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("false");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("true");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "false")
+            .AddSqlFrom(res2, "true")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -275,19 +276,17 @@ public class MongoDbFilterVisitorListTests
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                bar: {
-                                    some: {
-                                        eq: ""a""
-                                    }
+                        root(where: {
+                            bar: {
+                                some: {
+                                    eq: ""a""
                                 }
-                            }){
-                                bar
                             }
-                        }")
+                        }){
+                            bar
+                        }
+                    }")
                 .Create());
-
-        res1.MatchDocumentSnapshot("a");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -295,15 +294,19 @@ public class MongoDbFilterVisitorListTests
                     "{ root(where: { bar: { some: { eq: \"d\"}}}){ bar }}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("d");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { some: { eq: null}}}){ bar }}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "a")
+            .AddSqlFrom(res2, "d")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -313,14 +316,11 @@ public class MongoDbFilterVisitorListTests
         var tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { none: { eq: \"a\"}}}){ bar }}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("a");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -328,15 +328,19 @@ public class MongoDbFilterVisitorListTests
                     "{ root(where: { bar: { none: { eq: \"d\"}}}){ bar }}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("d");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { none: { eq: null}}}){ bar }}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "a")
+            .AddSqlFrom(res2, "d")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -346,14 +350,11 @@ public class MongoDbFilterVisitorListTests
         var tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { all: { eq: \"a\"}}}){ bar }}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("a");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -361,15 +362,19 @@ public class MongoDbFilterVisitorListTests
                     "{ root(where: { bar: { all: { eq: \"d\"}}}){ bar }}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("d");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { all: { eq: null}}}){ bar }}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "a")
+            .AddSqlFrom(res2, "d")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -379,27 +384,28 @@ public class MongoDbFilterVisitorListTests
         var tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { any: false}}){ bar }}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("false");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { any: true}}){ bar }}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("true");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { all: null}}){ bar }}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "false")
+            .AddSqlFrom(res2, "true")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     public class Foo

@@ -1,0 +1,95 @@
+true Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": null
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "bar": null
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+true Query:
+---------------
+find({ "Bar" : { "$ne" : true } })find({ "Bar" : { "$ne" : true } })
+---------------
+
+false Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+false Query:
+---------------
+find({ "Bar" : { "$ne" : false } })find({ "Bar" : { "$ne" : false } })
+---------------
+
+null Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+null Query:
+---------------
+find({ "Bar" : { "$ne" : null } })find({ "Bar" : { "$ne" : null } })
+---------------

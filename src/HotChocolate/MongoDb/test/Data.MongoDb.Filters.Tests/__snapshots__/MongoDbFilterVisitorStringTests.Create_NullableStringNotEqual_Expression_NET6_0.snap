@@ -1,0 +1,95 @@
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testatest Query:
+---------------
+find({ "Bar" : { "$ne" : "testatest" } })find({ "Bar" : { "$ne" : "testatest" } })
+---------------
+
+testbtest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testbtest Query:
+---------------
+find({ "Bar" : { "$ne" : "testbtest" } })find({ "Bar" : { "$ne" : "testbtest" } })
+---------------
+
+null Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+null Query:
+---------------
+find({ "Bar" : { "$ne" : null } })find({ "Bar" : { "$ne" : null } })
+---------------

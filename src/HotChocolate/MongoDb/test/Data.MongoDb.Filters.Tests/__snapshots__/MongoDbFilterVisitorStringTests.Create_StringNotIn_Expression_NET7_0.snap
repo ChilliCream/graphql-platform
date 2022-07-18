@@ -1,0 +1,94 @@
+testatestAndtestb Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+testatestAndtestb Query:
+---------------
+find({ "Bar" : { "$nin" : ["testatest", "testbtest"] } })find({ "Bar" : { "$nin" : ["testatest", "testbtest"] } })
+---------------
+
+testbtestAndNull Result:
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060nin\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 29
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "[String!]",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060nin\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 29
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "[String!]",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testatest Query:
+---------------
+find({ "Bar" : { "$nin" : ["testatest"] } })find({ "Bar" : { "$nin" : ["testatest"] } })
+---------------
