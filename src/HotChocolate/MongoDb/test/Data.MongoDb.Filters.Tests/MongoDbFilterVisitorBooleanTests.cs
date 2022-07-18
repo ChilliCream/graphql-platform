@@ -1,10 +1,8 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -14,16 +12,16 @@ public class MongoDbFilterVisitorBooleanTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true },
-            new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { Bar = true },
-            new FooNullable { Bar = null },
-            new FooNullable { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
+    };
 
     public MongoDbFilterVisitorBooleanTests(MongoResource resource)
     {
@@ -43,14 +41,17 @@ public class MongoDbFilterVisitorBooleanTests
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("true");
-
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("false");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .MatchAsync();
     }
 
     [Fact]
@@ -66,14 +67,17 @@ public class MongoDbFilterVisitorBooleanTests
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("true");
-
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("false");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .MatchAsync();
     }
 
     [Fact]
@@ -84,27 +88,28 @@ public class MongoDbFilterVisitorBooleanTests
             _fooNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("true");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("false");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -115,27 +120,28 @@ public class MongoDbFilterVisitorBooleanTests
             _fooNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("true");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("false");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     public class Foo

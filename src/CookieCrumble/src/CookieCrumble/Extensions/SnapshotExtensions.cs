@@ -53,6 +53,16 @@ public static class SnapshotExtensions
             return snapshot;
         }
 
+        if (result.ContextData.TryGetValue("query", out var queryResult) &&
+            queryResult is string queryString &&
+            !string.IsNullOrWhiteSpace(queryString))
+        {
+            snapshot.Add(
+                queryString,
+                string.IsNullOrEmpty(name) ? "Query:" : $"{name} Query:",
+                SnapshotValueFormatters.PlainText);
+        }
+
         if (result.ContextData.TryGetValue("sql", out var sql))
         {
             snapshot.Add(

@@ -1,13 +1,9 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using MongoDB.Bson.Serialization.Attributes;
-using Snapshooter;
-using Snapshooter.Xunit;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -17,42 +13,42 @@ public class MongoDbFilterVisitorComparableTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new()
-            {
-                BarShort = 12,
-                BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
-            },
-            new()
-            {
-                BarShort = 14,
-                BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
-            },
-            new()
-            {
-                BarShort = 13,
-                BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
-            }
-        };
+        new()
+        {
+            BarShort = 12,
+            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new()
+        {
+            BarShort = 14,
+            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new()
+        {
+            BarShort = 13,
+            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+        }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new()
-            {
-                BarShort = 12,
-                BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
-            },
-            new() { BarShort = null, BarDateTime = null },
-            new()
-            {
-                BarShort = 14,
-                BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
-            },
-            new()
-            {
-                BarShort = 13,
-                BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
-            }
-        };
+        new()
+        {
+            BarShort = 12,
+            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new() { BarShort = null, BarDateTime = null },
+        new()
+        {
+            BarShort = 14,
+            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new()
+        {
+            BarShort = 13,
+            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+        }
+    };
 
     public MongoDbFilterVisitorComparableTests(MongoResource resource)
     {
@@ -66,14 +62,11 @@ public class MongoDbFilterVisitorComparableTests
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00Z\"}})" +
                     "{ barDateTime}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -81,14 +74,18 @@ public class MongoDbFilterVisitorComparableTests
                     "{ barDateTime}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barDateTime: { eq: null}}){ barDateTime}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -99,14 +96,11 @@ public class MongoDbFilterVisitorComparableTests
             CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
                     "{ barDateTime}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -114,14 +108,18 @@ public class MongoDbFilterVisitorComparableTests
                     "{ barDateTime}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barDateTime: { eq: null}}){ barDateTime}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -131,27 +129,28 @@ public class MongoDbFilterVisitorComparableTests
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: 12}}){ barShort}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: 13}}){ barShort}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: null}}){ barShort}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -166,238 +165,247 @@ public class MongoDbFilterVisitorComparableTests
                 .SetQuery("{ root(where: { barShort: { neq: 12}}){ barShort}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("12");
-
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: 13}}){ barShort}}")
                 .Create());
-
-        res2.MatchDocumentSnapshot("13");
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: null}}){ barShort}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
+
     }
 
     [Fact]
     public async Task Create_ShortGreaterThan_Expression()
     {
+        // arrange
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gt: 12}}){ barShort}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gt: 13}}){ barShort}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gt: 14}}){ barShort}}")
                 .Create());
-
-        res3.MatchDocumentSnapshot("14");
 
         var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gt: null}}){ barShort}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortNotGreaterThan_Expression()
     {
+        // arrange
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngt: 12}}){ barShort}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngt: 13}}){ barShort}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngt: 14}}){ barShort}}")
                 .Create());
-
-        res3.MatchDocumentSnapshot("14");
 
         var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngt: null}}){ barShort}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
+            .MatchAsync();
     }
 
 
     [Fact]
     public async Task Create_ShortGreaterThanOrEquals_Expression()
     {
+        // arrange
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gte: 12}}){ barShort}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gte: 13}}){ barShort}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gte: 14}}){ barShort}}")
                 .Create());
-
-        res3.MatchDocumentSnapshot("14");
 
         var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gte: null}}){ barShort}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortNotGreaterThanOrEquals_Expression()
     {
+        // arrange
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngte: 12}}){ barShort}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngte: 13}}){ barShort}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngte: 14}}){ barShort}}")
                 .Create());
-
-        res3.MatchDocumentSnapshot("14");
 
         var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngte: null}}){ barShort}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortLowerThan_Expression()
     {
+        // arrange
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lt: 12}}){ barShort}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lt: 13}}){ barShort}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lt: 14}}){ barShort}}")
                 .Create());
-
-        res3.MatchDocumentSnapshot("14");
 
         var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lt: null}}){ barShort}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortNotLowerThan_Expression()
     {
+        // arrange
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlt: 12}}){ barShort}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlt: 13}}){ barShort}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlt: 14}}){ barShort}}")
                 .Create());
-
-        res3.MatchDocumentSnapshot("14");
 
         var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlt: null}}){ barShort}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "14")
+            .AddSqlFrom(res4, "null")
+            .MatchAsync();
     }
 
 
