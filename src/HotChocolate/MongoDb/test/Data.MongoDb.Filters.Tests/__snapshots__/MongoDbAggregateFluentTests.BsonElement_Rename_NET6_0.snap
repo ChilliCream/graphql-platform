@@ -8,20 +8,12 @@ true Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": true
-      }
-    ]
-  }
 }
 ---------------
 
 true Query:
 ---------------
-aggregate([{ "$match" : { "renameTest" : { "$eq" : true } } }])aggregate([{ "$match" : { "renameTest" : { "$eq" : true } } }])
+aggregate([{ "$match" : { "renameTest" : { "$eq" : true } } }])
 ---------------
 
 false Result:
@@ -34,18 +26,10 @@ false Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": false
-      }
-    ]
-  }
 }
 ---------------
 
 false Query:
 ---------------
-aggregate([{ "$match" : { "renameTest" : { "$eq" : false } } }])aggregate([{ "$match" : { "renameTest" : { "$eq" : false } } }])
+aggregate([{ "$match" : { "renameTest" : { "$eq" : false } } }])
 ---------------

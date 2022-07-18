@@ -17,29 +17,12 @@ BAR Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barEnum": "BAZ"
-      },
-      {
-        "barEnum": "FOO"
-      },
-      {
-        "barEnum": null
-      },
-      {
-        "barEnum": "QUX"
-      }
-    ]
-  }
 }
 ---------------
 
 BAR Query:
 ---------------
-find({ "BarEnum" : { "$ne" : 1 } })find({ "BarEnum" : { "$ne" : 1 } })
+find({ "BarEnum" : { "$ne" : 1 } })
 ---------------
 
 FOO Result:
@@ -61,29 +44,12 @@ FOO Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barEnum": "BAR"
-      },
-      {
-        "barEnum": "BAZ"
-      },
-      {
-        "barEnum": null
-      },
-      {
-        "barEnum": "QUX"
-      }
-    ]
-  }
 }
 ---------------
 
 FOO Query:
 ---------------
-find({ "BarEnum" : { "$ne" : 0 } })find({ "BarEnum" : { "$ne" : 0 } })
+find({ "BarEnum" : { "$ne" : 0 } })
 ---------------
 
 null Result:
@@ -105,27 +71,10 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barEnum": "BAR"
-      },
-      {
-        "barEnum": "BAZ"
-      },
-      {
-        "barEnum": "FOO"
-      },
-      {
-        "barEnum": "QUX"
-      }
-    ]
-  }
 }
 ---------------
 
 null Query:
 ---------------
-find({ "BarEnum" : { "$ne" : null } })find({ "BarEnum" : { "$ne" : null } })
+find({ "BarEnum" : { "$ne" : null } })
 ---------------

@@ -8,20 +8,12 @@ testatest Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testatest"
-      }
-    ]
-  }
 }
 ---------------
 
 testatest Query:
 ---------------
-find({ "Bar" : { "$eq" : "testatest" } })find({ "Bar" : { "$eq" : "testatest" } })
+find({ "Bar" : { "$eq" : "testatest" } })
 ---------------
 
 testbtest Result:
@@ -34,20 +26,12 @@ testbtest Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testbtest"
-      }
-    ]
-  }
 }
 ---------------
 
 testbtest Query:
 ---------------
-find({ "Bar" : { "$eq" : "testbtest" } })find({ "Bar" : { "$eq" : "testbtest" } })
+find({ "Bar" : { "$eq" : "testbtest" } })
 ---------------
 
 null Result:
@@ -60,18 +44,10 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": null
-      }
-    ]
-  }
 }
 ---------------
 
 null Query:
 ---------------
-find({ "Bar" : { "$eq" : null } })find({ "Bar" : { "$eq" : null } })
+find({ "Bar" : { "$eq" : null } })
 ---------------

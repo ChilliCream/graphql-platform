@@ -8,20 +8,12 @@ true Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": false
-      }
-    ]
-  }
 }
 ---------------
 
 true Query:
 ---------------
-find({ "Bar" : { "$ne" : true } })find({ "Bar" : { "$ne" : true } })
+find({ "Bar" : { "$ne" : true } })
 ---------------
 
 false Result:
@@ -34,18 +26,10 @@ false Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": true
-      }
-    ]
-  }
 }
 ---------------
 
 false Query:
 ---------------
-find({ "Bar" : { "$ne" : false } })find({ "Bar" : { "$ne" : false } })
+find({ "Bar" : { "$ne" : false } })
 ---------------

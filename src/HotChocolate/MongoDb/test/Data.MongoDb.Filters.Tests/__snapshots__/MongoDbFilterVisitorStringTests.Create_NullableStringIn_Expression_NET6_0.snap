@@ -11,23 +11,12 @@ testatestAndtestb Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testatest"
-      },
-      {
-        "bar": "testbtest"
-      }
-    ]
-  }
 }
 ---------------
 
 testatestAndtestb Query:
 ---------------
-find({ "Bar" : { "$in" : ["testatest", "testbtest"] } })find({ "Bar" : { "$in" : ["testatest", "testbtest"] } })
+find({ "Bar" : { "$in" : ["testatest", "testbtest"] } })
 ---------------
 
 testbtestAndNull Result:
@@ -43,23 +32,12 @@ testbtestAndNull Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testbtest"
-      },
-      {
-        "bar": null
-      }
-    ]
-  }
 }
 ---------------
 
 testbtestAndNull Query:
 ---------------
-find({ "Bar" : { "$in" : ["testbtest", null] } })find({ "Bar" : { "$in" : ["testbtest", null] } })
+find({ "Bar" : { "$in" : ["testbtest", null] } })
 ---------------
 
 testatest Result:
@@ -72,18 +50,10 @@ testatest Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testatest"
-      }
-    ]
-  }
 }
 ---------------
 
 testatest Query:
 ---------------
-find({ "Bar" : { "$in" : ["testatest"] } })find({ "Bar" : { "$in" : ["testatest"] } })
+find({ "Bar" : { "$in" : ["testatest"] } })
 ---------------

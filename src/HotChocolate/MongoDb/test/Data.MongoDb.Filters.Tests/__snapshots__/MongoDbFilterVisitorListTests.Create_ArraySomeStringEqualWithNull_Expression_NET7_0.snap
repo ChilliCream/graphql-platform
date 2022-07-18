@@ -26,38 +26,12 @@ a Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": [
-          "a",
-          "a",
-          "a"
-        ]
-      },
-      {
-        "bar": [
-          "c",
-          "a",
-          "a"
-        ]
-      },
-      {
-        "bar": [
-          "a",
-          "d",
-          "b"
-        ]
-      }
-    ]
-  }
 }
 ---------------
 
 a Query:
 ---------------
-find({ "Bar" : { "$elemMatch" : { "$eq" : "a" } } })find({ "Bar" : { "$elemMatch" : { "$eq" : "a" } } })
+find({ "Bar" : { "$elemMatch" : { "$eq" : "a" } } })
 ---------------
 
 d Result:
@@ -88,38 +62,12 @@ d Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": [
-          "a",
-          "d",
-          "b"
-        ]
-      },
-      {
-        "bar": [
-          "c",
-          "d",
-          "b"
-        ]
-      },
-      {
-        "bar": [
-          null,
-          "d",
-          "b"
-        ]
-      }
-    ]
-  }
 }
 ---------------
 
 d Query:
 ---------------
-find({ "Bar" : { "$elemMatch" : { "$eq" : "d" } } })find({ "Bar" : { "$elemMatch" : { "$eq" : "d" } } })
+find({ "Bar" : { "$elemMatch" : { "$eq" : "d" } } })
 ---------------
 
 null Result:
@@ -136,22 +84,10 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": [
-          null,
-          "d",
-          "b"
-        ]
-      }
-    ]
-  }
 }
 ---------------
 
 null Query:
 ---------------
-find({ "Bar" : { "$elemMatch" : { "$eq" : null } } })find({ "Bar" : { "$elemMatch" : { "$eq" : null } } })
+find({ "Bar" : { "$elemMatch" : { "$eq" : null } } })
 ---------------

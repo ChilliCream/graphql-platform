@@ -8,20 +8,12 @@
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": 12
-      }
-    ]
-  }
 }
 ---------------
 
 12 Query:
 ---------------
-find({ "BarShort" : { "$not" : { "$gt" : 12 } } })find({ "BarShort" : { "$not" : { "$gt" : 12 } } })
+find({ "BarShort" : { "$not" : { "$gt" : 12 } } })
 ---------------
 
 13 Result:
@@ -37,23 +29,12 @@ find({ "BarShort" : { "$not" : { "$gt" : 12 } } })find({ "BarShort" : { "$not" :
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": 12
-      },
-      {
-        "barShort": 13
-      }
-    ]
-  }
 }
 ---------------
 
 13 Query:
 ---------------
-find({ "BarShort" : { "$not" : { "$gt" : 13 } } })find({ "BarShort" : { "$not" : { "$gt" : 13 } } })
+find({ "BarShort" : { "$not" : { "$gt" : 13 } } })
 ---------------
 
 14 Result:
@@ -72,54 +53,17 @@ find({ "BarShort" : { "$not" : { "$gt" : 13 } } })find({ "BarShort" : { "$not" :
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": 12
-      },
-      {
-        "barShort": 14
-      },
-      {
-        "barShort": 13
-      }
-    ]
-  }
 }
 ---------------
 
 14 Query:
 ---------------
-find({ "BarShort" : { "$not" : { "$gt" : 14 } } })find({ "BarShort" : { "$not" : { "$gt" : 14 } } })
+find({ "BarShort" : { "$not" : { "$gt" : 14 } } })
 ---------------
 
 null Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "The provided value for filter \u0060ngt\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 34
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "Short!",
-        "filterType": "ShortOperationFilterInput"
-      }
-    }
-  ],
-  "data": {
-    "root": []
-  }
-}{
   "errors": [
     {
       "message": "The provided value for filter \u0060ngt\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",

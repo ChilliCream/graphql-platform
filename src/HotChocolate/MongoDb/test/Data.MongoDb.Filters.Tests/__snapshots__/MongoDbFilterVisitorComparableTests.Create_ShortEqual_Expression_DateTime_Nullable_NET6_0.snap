@@ -8,20 +8,12 @@
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barDateTime": "2000-01-12T00:00:00.000Z"
-      }
-    ]
-  }
 }
 ---------------
 
 12 Query:
 ---------------
-find({ "BarDateTime" : { "$eq" : ISODate("2000-01-12T00:00:00Z") } })find({ "BarDateTime" : { "$eq" : ISODate("2000-01-12T00:00:00Z") } })
+find({ "BarDateTime" : { "$eq" : ISODate("2000-01-12T00:00:00Z") } })
 ---------------
 
 13 Result:
@@ -34,20 +26,12 @@ find({ "BarDateTime" : { "$eq" : ISODate("2000-01-12T00:00:00Z") } })find({ "Bar
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barDateTime": "2000-01-12T00:00:00.000Z"
-      }
-    ]
-  }
 }
 ---------------
 
 13 Query:
 ---------------
-find({ "BarDateTime" : { "$eq" : ISODate("2000-01-12T00:00:00Z") } })find({ "BarDateTime" : { "$eq" : ISODate("2000-01-12T00:00:00Z") } })
+find({ "BarDateTime" : { "$eq" : ISODate("2000-01-12T00:00:00Z") } })
 ---------------
 
 null Result:
@@ -60,18 +44,10 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barDateTime": null
-      }
-    ]
-  }
 }
 ---------------
 
 null Query:
 ---------------
-find({ "BarDateTime" : { "$eq" : null } })find({ "BarDateTime" : { "$eq" : null } })
+find({ "BarDateTime" : { "$eq" : null } })
 ---------------

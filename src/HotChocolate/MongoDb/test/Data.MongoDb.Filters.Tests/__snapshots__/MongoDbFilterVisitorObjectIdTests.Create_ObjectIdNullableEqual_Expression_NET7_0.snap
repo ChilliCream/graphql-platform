@@ -8,20 +8,12 @@ a Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "objectId": "6124e80f3f5fc839830c1f69"
-      }
-    ]
-  }
 }
 ---------------
 
 a Query:
 ---------------
-find({ "ObjectId" : { "$eq" : ObjectId("6124e80f3f5fc839830c1f69") } })find({ "ObjectId" : { "$eq" : ObjectId("6124e80f3f5fc839830c1f69") } })
+find({ "ObjectId" : { "$eq" : ObjectId("6124e80f3f5fc839830c1f69") } })
 ---------------
 
 6124e80f3f5fc839830c1f6a Result:
@@ -34,20 +26,12 @@ find({ "ObjectId" : { "$eq" : ObjectId("6124e80f3f5fc839830c1f69") } })find({ "O
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "objectId": "6124e80f3f5fc839830c1f6a"
-      }
-    ]
-  }
 }
 ---------------
 
 6124e80f3f5fc839830c1f6a Query:
 ---------------
-find({ "ObjectId" : { "$eq" : ObjectId("6124e80f3f5fc839830c1f6a") } })find({ "ObjectId" : { "$eq" : ObjectId("6124e80f3f5fc839830c1f6a") } })
+find({ "ObjectId" : { "$eq" : ObjectId("6124e80f3f5fc839830c1f6a") } })
 ---------------
 
 null Result:
@@ -60,18 +44,10 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "objectId": null
-      }
-    ]
-  }
 }
 ---------------
 
 null Query:
 ---------------
-find({ "ObjectId" : { "$eq" : null } })find({ "ObjectId" : { "$eq" : null } })
+find({ "ObjectId" : { "$eq" : null } })
 ---------------

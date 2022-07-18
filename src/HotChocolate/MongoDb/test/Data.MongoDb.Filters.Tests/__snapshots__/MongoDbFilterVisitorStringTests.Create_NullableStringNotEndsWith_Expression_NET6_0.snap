@@ -11,23 +11,12 @@ atest Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testbtest"
-      },
-      {
-        "bar": null
-      }
-    ]
-  }
 }
 ---------------
 
 atest Query:
 ---------------
-find({ "Bar" : { "$not" : { "$regex" : /atest$/ } } })find({ "Bar" : { "$not" : { "$regex" : /atest$/ } } })
+find({ "Bar" : { "$not" : { "$regex" : /atest$/ } } })
 ---------------
 
 btest Result:
@@ -43,51 +32,17 @@ btest Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testatest"
-      },
-      {
-        "bar": null
-      }
-    ]
-  }
 }
 ---------------
 
 btest Query:
 ---------------
-find({ "Bar" : { "$not" : { "$regex" : /btest$/ } } })find({ "Bar" : { "$not" : { "$regex" : /btest$/ } } })
+find({ "Bar" : { "$not" : { "$regex" : /btest$/ } } })
 ---------------
 
 null Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "The provided value for filter \u0060nendsWith\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 35
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "String!",
-        "filterType": "StringOperationFilterInput"
-      }
-    }
-  ],
-  "data": {
-    "root": []
-  }
-}{
   "errors": [
     {
       "message": "The provided value for filter \u0060nendsWith\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",

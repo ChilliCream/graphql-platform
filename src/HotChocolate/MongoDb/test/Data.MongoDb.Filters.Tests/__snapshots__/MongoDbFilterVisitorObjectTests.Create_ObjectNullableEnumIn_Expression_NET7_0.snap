@@ -15,27 +15,12 @@ BarAndFoo Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barEnum": "BAR"
-        }
-      },
-      {
-        "foo": {
-          "barEnum": "FOO"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 BarAndFoo Query:
 ---------------
-find({ "Foo.BarEnum" : { "$in" : [1, 0] } })find({ "Foo.BarEnum" : { "$in" : [1, 0] } })
+find({ "Foo.BarEnum" : { "$in" : [1, 0] } })
 ---------------
 
 FOO Result:
@@ -50,22 +35,12 @@ FOO Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barEnum": "FOO"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 FOO Query:
 ---------------
-find({ "Foo.BarEnum" : { "$in" : [0] } })find({ "Foo.BarEnum" : { "$in" : [0] } })
+find({ "Foo.BarEnum" : { "$in" : [0] } })
 ---------------
 
 nullAndFoo Result:
@@ -80,20 +55,10 @@ nullAndFoo Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barEnum": "FOO"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 nullAndFoo Query:
 ---------------
-find({ "Foo.BarEnum" : { "$in" : [null, 0] } })find({ "Foo.BarEnum" : { "$in" : [null, 0] } })
+find({ "Foo.BarEnum" : { "$in" : [null, 0] } })
 ---------------

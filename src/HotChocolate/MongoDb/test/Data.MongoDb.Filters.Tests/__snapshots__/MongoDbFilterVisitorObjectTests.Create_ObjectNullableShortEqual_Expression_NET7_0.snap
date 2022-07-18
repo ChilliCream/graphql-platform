@@ -10,22 +10,12 @@
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barShort": 12
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 12 Query:
 ---------------
-find({ "Foo.BarShort" : { "$eq" : 12 } })find({ "Foo.BarShort" : { "$eq" : 12 } })
+find({ "Foo.BarShort" : { "$eq" : 12 } })
 ---------------
 
 13 Result:
@@ -40,22 +30,12 @@ find({ "Foo.BarShort" : { "$eq" : 12 } })find({ "Foo.BarShort" : { "$eq" : 12 } 
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barShort": 13
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 13 Query:
 ---------------
-find({ "Foo.BarShort" : { "$eq" : 13 } })find({ "Foo.BarShort" : { "$eq" : 13 } })
+find({ "Foo.BarShort" : { "$eq" : 13 } })
 ---------------
 
 null Result:
@@ -70,20 +50,10 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barShort": null
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 null Query:
 ---------------
-find({ "Foo.BarShort" : { "$eq" : null } })find({ "Foo.BarShort" : { "$eq" : null } })
+find({ "Foo.BarShort" : { "$eq" : null } })
 ---------------

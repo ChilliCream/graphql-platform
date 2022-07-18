@@ -11,23 +11,12 @@
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": null
-      },
-      {
-        "barShort": 14
-      }
-    ]
-  }
 }
 ---------------
 
 12and13 Query:
 ---------------
-find({ "BarShort" : { "$nin" : [12, 13] } })find({ "BarShort" : { "$nin" : [12, 13] } })
+find({ "BarShort" : { "$nin" : [12, 13] } })
 ---------------
 
 13and14 Result:
@@ -43,23 +32,12 @@ find({ "BarShort" : { "$nin" : [12, 13] } })find({ "BarShort" : { "$nin" : [12, 
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": 12
-      },
-      {
-        "barShort": null
-      }
-    ]
-  }
 }
 ---------------
 
 13and14 Query:
 ---------------
-find({ "BarShort" : { "$nin" : [13, 14] } })find({ "BarShort" : { "$nin" : [13, 14] } })
+find({ "BarShort" : { "$nin" : [13, 14] } })
 ---------------
 
 13andNull Result:
@@ -75,21 +53,10 @@ find({ "BarShort" : { "$nin" : [13, 14] } })find({ "BarShort" : { "$nin" : [13, 
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": 12
-      },
-      {
-        "barShort": 14
-      }
-    ]
-  }
 }
 ---------------
 
 13andNull Query:
 ---------------
-find({ "BarShort" : { "$nin" : [13, null] } })find({ "BarShort" : { "$nin" : [13, null] } })
+find({ "BarShort" : { "$nin" : [13, null] } })
 ---------------

@@ -11,23 +11,12 @@
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "objectId": "6124e80f3f5fc839830c1f69"
-      },
-      {
-        "objectId": "6124e80f3f5fc839830c1f6a"
-      }
-    ]
-  }
 }
 ---------------
 
 6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a Query:
 ---------------
-find({ "ObjectId" : { "$in" : [ObjectId("6124e80f3f5fc839830c1f69"), ObjectId("6124e80f3f5fc839830c1f6a")] } })find({ "ObjectId" : { "$in" : [ObjectId("6124e80f3f5fc839830c1f69"), ObjectId("6124e80f3f5fc839830c1f6a")] } })
+find({ "ObjectId" : { "$in" : [ObjectId("6124e80f3f5fc839830c1f69"), ObjectId("6124e80f3f5fc839830c1f6a")] } })
 ---------------
 
 band6124e80f3f5fc839830c1f6b Result:
@@ -43,23 +32,12 @@ band6124e80f3f5fc839830c1f6b Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "objectId": "6124e80f3f5fc839830c1f6a"
-      },
-      {
-        "objectId": "6124e80f3f5fc839830c1f6b"
-      }
-    ]
-  }
 }
 ---------------
 
 band6124e80f3f5fc839830c1f6b Query:
 ---------------
-find({ "ObjectId" : { "$in" : [ObjectId("6124e80f3f5fc839830c1f6a"), ObjectId("6124e80f3f5fc839830c1f6b")] } })find({ "ObjectId" : { "$in" : [ObjectId("6124e80f3f5fc839830c1f6a"), ObjectId("6124e80f3f5fc839830c1f6b")] } })
+find({ "ObjectId" : { "$in" : [ObjectId("6124e80f3f5fc839830c1f6a"), ObjectId("6124e80f3f5fc839830c1f6b")] } })
 ---------------
 
 bandNull Result:
@@ -75,21 +53,10 @@ bandNull Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "objectId": null
-      },
-      {
-        "objectId": "6124e80f3f5fc839830c1f6a"
-      }
-    ]
-  }
 }
 ---------------
 
 bandNull Query:
 ---------------
-find({ "ObjectId" : { "$in" : [ObjectId("6124e80f3f5fc839830c1f6a"), null] } })find({ "ObjectId" : { "$in" : [ObjectId("6124e80f3f5fc839830c1f6a"), null] } })
+find({ "ObjectId" : { "$in" : [ObjectId("6124e80f3f5fc839830c1f6a"), null] } })
 ---------------

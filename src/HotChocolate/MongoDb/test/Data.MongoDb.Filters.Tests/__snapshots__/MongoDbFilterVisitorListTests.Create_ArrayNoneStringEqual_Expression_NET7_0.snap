@@ -12,24 +12,12 @@ a Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": [
-          "c",
-          "d",
-          "b"
-        ]
-      }
-    ]
-  }
 }
 ---------------
 
 a Query:
 ---------------
-find({ "Bar" : { "$exists" : true, "$nin" : [[], null], "$not" : { "$elemMatch" : { "$eq" : "a" } } } })find({ "Bar" : { "$exists" : true, "$nin" : [[], null], "$not" : { "$elemMatch" : { "$eq" : "a" } } } })
+find({ "Bar" : { "$exists" : true, "$nin" : [[], null], "$not" : { "$elemMatch" : { "$eq" : "a" } } } })
 ---------------
 
 d Result:
@@ -53,31 +41,12 @@ d Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": [
-          "a",
-          "a",
-          "a"
-        ]
-      },
-      {
-        "bar": [
-          "c",
-          "a",
-          "a"
-        ]
-      }
-    ]
-  }
 }
 ---------------
 
 d Query:
 ---------------
-find({ "Bar" : { "$exists" : true, "$nin" : [[], null], "$not" : { "$elemMatch" : { "$eq" : "d" } } } })find({ "Bar" : { "$exists" : true, "$nin" : [[], null], "$not" : { "$elemMatch" : { "$eq" : "d" } } } })
+find({ "Bar" : { "$exists" : true, "$nin" : [[], null], "$not" : { "$elemMatch" : { "$eq" : "d" } } } })
 ---------------
 
 null Result:
@@ -115,43 +84,10 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": [
-          "a",
-          "a",
-          "a"
-        ]
-      },
-      {
-        "bar": [
-          "c",
-          "a",
-          "a"
-        ]
-      },
-      {
-        "bar": [
-          "a",
-          "d",
-          "b"
-        ]
-      },
-      {
-        "bar": [
-          "c",
-          "d",
-          "b"
-        ]
-      }
-    ]
-  }
 }
 ---------------
 
 null Query:
 ---------------
-find({ "Bar" : { "$exists" : true, "$nin" : [[], null], "$not" : { "$elemMatch" : { "$eq" : null } } } })find({ "Bar" : { "$exists" : true, "$nin" : [[], null], "$not" : { "$elemMatch" : { "$eq" : null } } } })
+find({ "Bar" : { "$exists" : true, "$nin" : [[], null], "$not" : { "$elemMatch" : { "$eq" : null } } } })
 ---------------

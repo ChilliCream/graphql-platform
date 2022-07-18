@@ -10,22 +10,12 @@ BAR Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barEnum": "BAR"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 BAR Query:
 ---------------
-find({ "Foo.BarEnum" : { "$eq" : 1 } })find({ "Foo.BarEnum" : { "$eq" : 1 } })
+find({ "Foo.BarEnum" : { "$eq" : 1 } })
 ---------------
 
 FOO Result:
@@ -40,22 +30,12 @@ FOO Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barEnum": "FOO"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 FOO Query:
 ---------------
-find({ "Foo.BarEnum" : { "$eq" : 0 } })find({ "Foo.BarEnum" : { "$eq" : 0 } })
+find({ "Foo.BarEnum" : { "$eq" : 0 } })
 ---------------
 
 null Result:
@@ -64,14 +44,10 @@ null Result:
   "data": {
     "root": []
   }
-}{
-  "data": {
-    "root": []
-  }
 }
 ---------------
 
 null Query:
 ---------------
-find({ "Foo.BarEnum" : { "$eq" : null } })find({ "Foo.BarEnum" : { "$eq" : null } })
+find({ "Foo.BarEnum" : { "$eq" : null } })
 ---------------

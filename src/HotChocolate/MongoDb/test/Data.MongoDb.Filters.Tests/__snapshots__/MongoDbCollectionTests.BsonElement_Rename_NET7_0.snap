@@ -8,20 +8,12 @@ true Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": true
-      }
-    ]
-  }
 }
 ---------------
 
 true Query:
 ---------------
-find({ "renameTest" : { "$eq" : true } })find({ "renameTest" : { "$eq" : true } })
+find({ "renameTest" : { "$eq" : true } })
 ---------------
 
 false Result:
@@ -34,18 +26,10 @@ false Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": false
-      }
-    ]
-  }
 }
 ---------------
 
 false Query:
 ---------------
-find({ "renameTest" : { "$eq" : false } })find({ "renameTest" : { "$eq" : false } })
+find({ "renameTest" : { "$eq" : false } })
 ---------------

@@ -12,24 +12,12 @@ a Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": [
-          "a",
-          "a",
-          "a"
-        ]
-      }
-    ]
-  }
 }
 ---------------
 
 a Query:
 ---------------
-find({ "Bar" : { "$exists" : true, "$nin" : [[], null] }, "$nor" : [{ "Bar" : { "$elemMatch" : { "$not" : { "$eq" : "a" } } } }] })find({ "Bar" : { "$exists" : true, "$nin" : [[], null] }, "$nor" : [{ "Bar" : { "$elemMatch" : { "$not" : { "$eq" : "a" } } } }] })
+find({ "Bar" : { "$exists" : true, "$nin" : [[], null] }, "$nor" : [{ "Bar" : { "$elemMatch" : { "$not" : { "$eq" : "a" } } } }] })
 ---------------
 
 d Result:
@@ -38,16 +26,12 @@ d Result:
   "data": {
     "root": []
   }
-}{
-  "data": {
-    "root": []
-  }
 }
 ---------------
 
 d Query:
 ---------------
-find({ "Bar" : { "$exists" : true, "$nin" : [[], null] }, "$nor" : [{ "Bar" : { "$elemMatch" : { "$not" : { "$eq" : "d" } } } }] })find({ "Bar" : { "$exists" : true, "$nin" : [[], null] }, "$nor" : [{ "Bar" : { "$elemMatch" : { "$not" : { "$eq" : "d" } } } }] })
+find({ "Bar" : { "$exists" : true, "$nin" : [[], null] }, "$nor" : [{ "Bar" : { "$elemMatch" : { "$not" : { "$eq" : "d" } } } }] })
 ---------------
 
 null Result:
@@ -56,14 +40,10 @@ null Result:
   "data": {
     "root": []
   }
-}{
-  "data": {
-    "root": []
-  }
 }
 ---------------
 
 null Query:
 ---------------
-find({ "Bar" : { "$exists" : true, "$nin" : [[], null] }, "$nor" : [{ "Bar" : { "$elemMatch" : { "$not" : { "$eq" : null } } } }] })find({ "Bar" : { "$exists" : true, "$nin" : [[], null] }, "$nor" : [{ "Bar" : { "$elemMatch" : { "$not" : { "$eq" : null } } } }] })
+find({ "Bar" : { "$exists" : true, "$nin" : [[], null] }, "$nor" : [{ "Bar" : { "$elemMatch" : { "$not" : { "$eq" : null } } } }] })
 ---------------

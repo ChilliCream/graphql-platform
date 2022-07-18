@@ -15,55 +15,17 @@
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barShort": 12
-        }
-      },
-      {
-        "foo": {
-          "barShort": 13
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 12and13 Query:
 ---------------
-find({ "Foo.BarShort" : { "$in" : [12, 13] } })find({ "Foo.BarShort" : { "$in" : [12, 13] } })
+find({ "Foo.BarShort" : { "$in" : [12, 13] } })
 ---------------
 
 13and14 Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "The provided value for filter \u0060in\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 40
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "[Short!]",
-        "filterType": "ShortOperationFilterInput"
-      }
-    }
-  ],
-  "data": {
-    "root": []
-  }
-}{
   "errors": [
     {
       "message": "The provided value for filter \u0060in\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
@@ -92,29 +54,6 @@ find({ "Foo.BarShort" : { "$in" : [12, 13] } })find({ "Foo.BarShort" : { "$in" :
 nullAnd14 Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "The provided value for filter \u0060in\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 40
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "[Short!]",
-        "filterType": "ShortOperationFilterInput"
-      }
-    }
-  ],
-  "data": {
-    "root": []
-  }
-}{
   "errors": [
     {
       "message": "The provided value for filter \u0060in\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
