@@ -1,1 +1,1 @@
-﻿MATCH (u:User) RETURN u
+MATCH (u:User) RETURN u
