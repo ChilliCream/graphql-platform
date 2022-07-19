@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -20,12 +21,12 @@ public class UnionTypeDefinition : TypeDefinitionBase<UnionTypeDefinitionNode>
     /// Initializes a new instance of <see cref="UnionTypeDefinition"/>.
     /// </summary>
     public UnionTypeDefinition(
-        NameString name,
+        string name,
         string? description = null,
         Type? runtimeType = null)
         : base(runtimeType ?? typeof(object))
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
     }
 

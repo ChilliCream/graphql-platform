@@ -26,7 +26,7 @@ public class FilterVisitor<TContext, T>
                 context,
                 field,
                 node,
-                out ISyntaxVisitorAction? action))
+                out var action))
         {
             return action;
         }
@@ -43,7 +43,7 @@ public class FilterVisitor<TContext, T>
                 context,
                 field,
                 node,
-                out ISyntaxVisitorAction? action))
+                out var action))
         {
             return action;
         }

@@ -1,7 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
+using static System.StringComparison;
 using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate;
@@ -44,13 +45,13 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     /// on directive coordinates.
     /// </exception>
     public SchemaCoordinate(
-        NameString name,
-        NameString? memberName = null,
-        NameString? argumentName = null,
+        string name,
+        string? memberName = null,
+        string? argumentName = null,
         bool ofDirective = false)
     {
-        memberName?.EnsureNotEmpty(nameof(memberName));
-        argumentName?.EnsureNotEmpty(nameof(argumentName));
+        memberName?.EnsureGraphQLName(nameof(memberName));
+        argumentName?.EnsureGraphQLName(nameof(argumentName));
 
         if (ofDirective && memberName is not null)
         {
@@ -66,7 +67,7 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
                 nameof(argumentName));
         }
 
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         MemberName = memberName;
         ArgumentName = argumentName;
         OfDirective = ofDirective;
@@ -80,26 +81,26 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     /// <summary>
     /// The name of the referenced <see cref="INamedSyntaxNode"/>
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// The optional name of the referenced field or enum value
     /// </summary>
-    public NameString? MemberName { get; }
+    public string? MemberName { get; }
 
     /// <summary>
     /// The optional name of the referenced argument
     /// </summary>
-    public NameString? ArgumentName { get; }
+    public string? ArgumentName { get; }
 
     /// <summary>
     /// Gets the syntax representation of this <see cref="SchemaCoordinate"/>.
     /// </summary>
     public SchemaCoordinateNode ToSyntax()
     {
-        NameNode? memberName = MemberName is null ? null : new(MemberName.Value);
-        NameNode? argumentName = ArgumentName is null ? null : new(ArgumentName.Value);
-        return new(null, OfDirective, new(Name.Value), memberName, argumentName);
+        NameNode? memberName = MemberName is null ? null : new(MemberName);
+        NameNode? argumentName = ArgumentName is null ? null : new(ArgumentName);
+        return new(null, OfDirective, new(Name), memberName, argumentName);
     }
 
     /// <summary>
@@ -161,14 +162,8 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     /// </returns>
     public static SchemaCoordinate FromSyntax(SchemaCoordinateNode node)
     {
-        NameString? memberName = node.MemberName is null
-            ? null
-            : (NameString?)node.MemberName.Value;
-
-        NameString? argumentName = node.ArgumentName is null
-            ? null
-            : (NameString?)node.ArgumentName.Value;
-
+        var memberName = node.MemberName?.Value;
+        var argumentName = node.ArgumentName?.Value;
         return new(node.Name.Value, memberName, argumentName, node.OfDirective);
     }
 
@@ -184,7 +179,7 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     /// </returns>
     public bool Equals(SchemaCoordinate other)
         => OfDirective == other.OfDirective &&
-            Name.Equals(other.Name) &&
+            string.Equals(Name, other.Name, Ordinal) &&
             Nullable.Equals(MemberName, other.MemberName) &&
             Nullable.Equals(ArgumentName, other.ArgumentName);
 
@@ -208,16 +203,7 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     /// A 32-bit signed integer that is the hash code for this instance.
     /// </returns>
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hashCode = OfDirective.GetHashCode();
-            hashCode = (hashCode * 397) ^ Name.GetHashCode();
-            hashCode = (hashCode * 397) ^ MemberName.GetHashCode();
-            hashCode = (hashCode * 397) ^ ArgumentName.GetHashCode();
-            return hashCode;
-        }
-    }
+        => HashCode.Combine(OfDirective, Name, MemberName, ArgumentName);
 
     public static bool operator ==(SchemaCoordinate left, SchemaCoordinate right)
         => left.Equals(right);

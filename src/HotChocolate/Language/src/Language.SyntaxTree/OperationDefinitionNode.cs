@@ -48,12 +48,12 @@ public sealed class OperationDefinitionNode
             yield return Name;
         }
 
-        foreach (VariableDefinitionNode variable in VariableDefinitions)
+        foreach (var variable in VariableDefinitions)
         {
             yield return variable;
         }
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

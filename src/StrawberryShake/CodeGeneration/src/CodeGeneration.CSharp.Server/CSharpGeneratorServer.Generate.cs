@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using DotNet.Globbing;
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using StrawberryShake.Tools.Configuration;
 using static System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.ErrorHelper;

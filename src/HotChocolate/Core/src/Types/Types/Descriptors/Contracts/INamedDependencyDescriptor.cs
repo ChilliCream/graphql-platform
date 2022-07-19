@@ -14,9 +14,7 @@ public interface INamedDependencyDescriptor
 
     INamedDependencyDescriptor DependsOn(Type schemaType, bool mustBeNamed);
 
-    INamedDependencyDescriptor DependsOn(NameString typeName);
+    INamedDependencyDescriptor DependsOn(string typeName);
 
-    INamedDependencyDescriptor DependsOn(
-        NameString typeName,
-        bool mustBeNamed);
+    INamedDependencyDescriptor DependsOn(string typeName, bool mustBeNamed);
 }

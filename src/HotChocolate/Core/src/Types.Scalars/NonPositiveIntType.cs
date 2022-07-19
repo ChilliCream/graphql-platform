@@ -22,7 +22,7 @@ public class NonPositiveIntType : IntType
     /// Initializes a new instance of <see cref="NonPositiveIntType"/>
     /// </summary>
     public NonPositiveIntType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, description, int.MinValue, 0, bind)

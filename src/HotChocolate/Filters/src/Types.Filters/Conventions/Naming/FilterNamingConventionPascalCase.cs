@@ -1,83 +1,48 @@
 using System;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate.Types.Filters;
+
+[Obsolete("Use HotChocolate.Data.")]
+public class FilterNamingConventionPascalCase : FilterNamingConventionBase
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public class FilterNamingConventionPascalCase : FilterNamingConventionBase
-    {
-        public override NameString ArgumentName => "Where";
+    public override string ArgumentName => "Where";
 
-        public override NameString CreateFieldName(
-            FilterFieldDefintion definition,
-            FilterOperationKind kind)
+    public override string CreateFieldName(
+        FilterFieldDefintion definition,
+        FilterOperationKind kind)
+        => kind switch
         {
-            switch (kind)
-            {
-                case FilterOperationKind.Equals:
-                    return GetNameForDefinition(definition);
-                case FilterOperationKind.NotEquals:
-                    return GetNameForDefinition(definition) + "_Not";
+            FilterOperationKind.Equals => GetNameForDefinition(definition),
+            FilterOperationKind.NotEquals => GetNameForDefinition(definition) + "_Not",
+            FilterOperationKind.Contains => GetNameForDefinition(definition) + "_Contains",
+            FilterOperationKind.NotContains => GetNameForDefinition(definition) + "_Not_Contains",
+            FilterOperationKind.In => GetNameForDefinition(definition) + "_In",
+            FilterOperationKind.NotIn => GetNameForDefinition(definition) + "_Not_In",
+            FilterOperationKind.StartsWith => GetNameForDefinition(definition) + "_StartsWith",
+            FilterOperationKind.NotStartsWith => GetNameForDefinition(definition) +
+                "_Not_StartsWith",
+            FilterOperationKind.EndsWith => GetNameForDefinition(definition) + "_EndsWith",
+            FilterOperationKind.NotEndsWith => GetNameForDefinition(definition) + "_Not_EndsWith",
+            FilterOperationKind.GreaterThan => GetNameForDefinition(definition) + "_Gt",
+            FilterOperationKind.NotGreaterThan => GetNameForDefinition(definition) + "_Not_Gt",
+            FilterOperationKind.GreaterThanOrEquals => GetNameForDefinition(definition) + "_Gte",
+            FilterOperationKind.NotGreaterThanOrEquals => GetNameForDefinition(definition) +
+                "_Not_Gte",
+            FilterOperationKind.LowerThan => GetNameForDefinition(definition) + "_Lt",
+            FilterOperationKind.NotLowerThan => GetNameForDefinition(definition) + "_Not_Lt",
+            FilterOperationKind.LowerThanOrEquals => GetNameForDefinition(definition) + "_Lte",
+            FilterOperationKind.NotLowerThanOrEquals => GetNameForDefinition(definition) +
+                "_Not_Lte",
+            FilterOperationKind.Object => GetNameForDefinition(definition),
+            FilterOperationKind.ArraySome => definition.Name + "_Some",
+            FilterOperationKind.ArrayNone => definition.Name + "_None",
+            FilterOperationKind.ArrayAll => definition.Name + "_All",
+            FilterOperationKind.ArrayAny => definition.Name + "_Any",
+            _ => throw new NotSupportedException()
+        };
 
-                case FilterOperationKind.Contains:
-                    return GetNameForDefinition(definition) + "_Contains";
-                case FilterOperationKind.NotContains:
-                    return GetNameForDefinition(definition) + "_Not_Contains";
-
-                case FilterOperationKind.In:
-                    return GetNameForDefinition(definition) + "_In";
-                case FilterOperationKind.NotIn:
-                    return GetNameForDefinition(definition) + "_Not_In";
-
-                case FilterOperationKind.StartsWith:
-                    return GetNameForDefinition(definition) + "_StartsWith";
-                case FilterOperationKind.NotStartsWith:
-                    return GetNameForDefinition(definition) + "_Not_StartsWith";
-
-                case FilterOperationKind.EndsWith:
-                    return GetNameForDefinition(definition) + "_EndsWith";
-                case FilterOperationKind.NotEndsWith:
-                    return GetNameForDefinition(definition) + "_Not_EndsWith";
-
-                case FilterOperationKind.GreaterThan:
-                    return GetNameForDefinition(definition) + "_Gt";
-                case FilterOperationKind.NotGreaterThan:
-                    return GetNameForDefinition(definition) + "_Not_Gt";
-
-                case FilterOperationKind.GreaterThanOrEquals:
-                    return GetNameForDefinition(definition) + "_Gte";
-                case FilterOperationKind.NotGreaterThanOrEquals:
-                    return GetNameForDefinition(definition) + "_Not_Gte";
-
-                case FilterOperationKind.LowerThan:
-                    return GetNameForDefinition(definition) + "_Lt";
-                case FilterOperationKind.NotLowerThan:
-                    return GetNameForDefinition(definition) + "_Not_Lt";
-
-                case FilterOperationKind.LowerThanOrEquals:
-                    return GetNameForDefinition(definition) + "_Lte";
-                case FilterOperationKind.NotLowerThanOrEquals:
-                    return GetNameForDefinition(definition) + "_Not_Lte";
-
-                case FilterOperationKind.Object:
-                    return GetNameForDefinition(definition);
-
-                case FilterOperationKind.ArraySome:
-                    return definition.Name + "_Some";
-                case FilterOperationKind.ArrayNone:
-                    return definition.Name + "_None";
-                case FilterOperationKind.ArrayAll:
-                    return definition.Name + "_All";
-                case FilterOperationKind.ArrayAny:
-                    return definition.Name + "_Any";
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        private static string GetNameForDefinition(FilterFieldDefintion definition) =>
-            definition.Name.Value is { Length: > 1 } name
-                ? name.Substring(0, 1).ToUpperInvariant() + name.Substring(1)
-                : definition.Name.Value.ToUpperInvariant();
-    }
+    private static string GetNameForDefinition(FilterFieldDefintion definition) =>
+        definition.Name is { Length: > 1 } name
+            ? name.Substring(0, 1).ToUpperInvariant() + name.Substring(1)
+            : definition.Name.ToUpperInvariant();
 }

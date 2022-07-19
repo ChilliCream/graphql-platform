@@ -103,19 +103,19 @@ public class QueryableSortVisitorDescTests
     [InlineData("d", "c", "b", "a")]
     public void Sort_NullableStringDesc(params string[] data)
     {
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: DESC}");
-        ExecutorBuilder tester = CreateProviderTester(new FooNullableSortType<string>());
-        string[] expected = data.OrderByDescending(x => x).ToArray();
+        var tester = CreateProviderTester(new FooNullableSortType<string>());
+        var expected = data.OrderByDescending(x => x).ToArray();
 
         // act
-        Func<FooNullable<string>[], FooNullable<string>[]> func =
+        var func =
             tester.Build<FooNullable<string>>(value);
 
         // assert
-        FooNullable<string>[] inputs =
+        var inputs =
             data.Select(x => new FooNullable<string> { Bar = x }).ToArray();
-        FooNullable<string>[] sorted = func(inputs);
+        var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
         {
@@ -126,17 +126,17 @@ public class QueryableSortVisitorDescTests
     protected void Test_Desc<T>(params T[] data)
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: DESC}");
-        ExecutorBuilder tester = CreateProviderTester(new FooSortType<T>());
-        T[] expected = data.OrderByDescending(x => x).ToArray();
+        var tester = CreateProviderTester(new FooSortType<T>());
+        var expected = data.OrderByDescending(x => x).ToArray();
 
         // act
-        Func<Foo<T>[], Foo<T>[]>? func = tester.Build<Foo<T>>(value);
+        var func = tester.Build<Foo<T>>(value);
 
         // assert
-        Foo<T>[] inputs = data.Select(x => new Foo<T> { Bar = x }).ToArray();
-        Foo<T>[] sorted = func(inputs);
+        var inputs = data.Select(x => new Foo<T> { Bar = x }).ToArray();
+        var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
         {

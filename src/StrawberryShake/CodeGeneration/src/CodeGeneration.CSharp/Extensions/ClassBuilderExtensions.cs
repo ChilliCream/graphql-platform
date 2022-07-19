@@ -15,7 +15,7 @@ internal static class ClassBuilderExtensions
 {
     public static MethodBuilder AddMethod(this ClassBuilder builder, string? name = null)
     {
-        MethodBuilder methodBuilder = MethodBuilder.New();
+        var methodBuilder = MethodBuilder.New();
 
         if (name is not null)
         {
@@ -31,7 +31,7 @@ internal static class ClassBuilderExtensions
         string name,
         Action<MethodBuilder> configure)
     {
-        MethodBuilder methodBuilder = MethodBuilder.New().SetName(name);
+        var methodBuilder = MethodBuilder.New().SetName(name);
         configure(methodBuilder);
         builder.AddMethod(methodBuilder);
         return builder;
@@ -39,7 +39,7 @@ internal static class ClassBuilderExtensions
 
     public static FieldBuilder AddField(this ClassBuilder builder, string? name = null)
     {
-        FieldBuilder fieldBuilder = FieldBuilder.New();
+        var fieldBuilder = FieldBuilder.New();
 
         if (name is not null)
         {
@@ -55,7 +55,7 @@ internal static class ClassBuilderExtensions
         string name,
         Action<PropertyBuilder> configure)
     {
-        PropertyBuilder propertyBuilder = PropertyBuilder.New().SetName(name);
+        var propertyBuilder = PropertyBuilder.New().SetName(name);
         configure(propertyBuilder);
         builder.AddProperty(propertyBuilder);
         return builder;
@@ -63,14 +63,14 @@ internal static class ClassBuilderExtensions
 
     public static PropertyBuilder AddProperty(this ClassBuilder builder, string name)
     {
-        PropertyBuilder propertyBuilder = PropertyBuilder.New().SetName(name);
+        var propertyBuilder = PropertyBuilder.New().SetName(name);
         builder.AddProperty(propertyBuilder);
         return propertyBuilder;
     }
 
     public static PropertyBuilder AddProperty(this AbstractTypeBuilder builder, string name)
     {
-        PropertyBuilder propertyBuilder = PropertyBuilder.New().SetName(name);
+        var propertyBuilder = PropertyBuilder.New().SetName(name);
         builder.AddProperty(propertyBuilder);
         return propertyBuilder;
     }
@@ -207,7 +207,7 @@ internal static class ClassBuilderExtensions
     {
         const string other = nameof(other);
 
-        ConditionBuilder equalCondition =
+        var equalCondition =
             ConditionBuilder
                 .New()
                 .SetReturn()
@@ -219,7 +219,7 @@ internal static class ClassBuilderExtensions
         }
         else
         {
-            foreach (PropertyDescriptor property in properties)
+            foreach (var property in properties)
             {
                 equalCondition.And(ConditionBuilder
                     .New()

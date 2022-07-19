@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
@@ -229,5 +228,5 @@ public interface IArgumentDescriptor
     /// </summary>
     /// <param name="name">The name of the directive</param>
     /// <param name="arguments">The arguments of the directive</param>
-    IArgumentDescriptor Directive(NameString name, params ArgumentNode[] arguments);
+    IArgumentDescriptor Directive(string name, params ArgumentNode[] arguments);
 }

@@ -1,3 +1,0 @@
-﻿SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-WHERE NOT (("d"."Bar" <> NULL) AND ((@__p_0 = '') OR (("d"."Bar" <> NULL) AND ((@__p_0 <> NULL) AND ((("d"."Bar" LIKE @__p_0 || '%') AND (substr("d"."Bar", 1, length(@__p_0)) = @__p_0)) OR (@__p_0 = ''))))))

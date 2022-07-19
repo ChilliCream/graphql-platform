@@ -28,5 +28,5 @@ public interface IProjectionConvention : IConvention
     /// <returns>
     /// Returns the selection optimizer for this projection convention.
     /// </returns>
-    ISelectionOptimizer CreateOptimizer();
+    ISelectionSetOptimizer CreateOptimizer();
 }

@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations;
 public class QueryOperationDescriptor : OperationDescriptor
 {
     public QueryOperationDescriptor(
-        NameString name,
+        string name,
         string @namespace,
         ITypeDescriptor resultTypeReference,
         IReadOnlyList<PropertyDescriptor> arguments,

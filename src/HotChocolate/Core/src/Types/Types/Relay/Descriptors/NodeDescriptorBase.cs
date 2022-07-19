@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
@@ -63,11 +62,11 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
             throw new ArgumentNullException(nameof(method));
         }
 
-        MemberInfo? member = method.TryExtractMember();
+        var member = method.TryExtractMember();
 
         if (member is MethodInfo m)
         {
-            FieldResolverDelegates resolver =
+            var resolver =
                 Context.ResolverCompiler.CompileResolve(
                     m,
                     typeof(object),
@@ -88,7 +87,7 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
             throw new ArgumentNullException(nameof(method));
         }
 
-        FieldResolverDelegates resolver =
+        var resolver =
             Context.ResolverCompiler.CompileResolve(
                 method,
                 typeof(object),
@@ -109,7 +108,7 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
 
         public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
         {
-            IList<ResultConverterDefinition> converters =
+            var converters =
                 descriptor.Extend().Definition.ResultConverters;
 
             if (!converters.Contains(Converter))

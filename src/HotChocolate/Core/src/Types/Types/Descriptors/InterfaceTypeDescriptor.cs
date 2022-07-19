@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -42,7 +43,7 @@ public class InterfaceTypeDescriptor
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
 
-        foreach (InterfaceFieldDefinition field in definition.Fields)
+        foreach (var field in definition.Fields)
         {
             Fields.Add(InterfaceFieldDescriptor.From(Context, field));
         }
@@ -66,7 +67,7 @@ public class InterfaceTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<NameString, InterfaceFieldDefinition>();
+        var fields = new Dictionary<string, InterfaceFieldDefinition>();
         var handledMembers = new HashSet<MemberInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
@@ -83,7 +84,7 @@ public class InterfaceTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<NameString, InterfaceFieldDefinition> fields,
+        IDictionary<string, InterfaceFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
     }
@@ -95,9 +96,9 @@ public class InterfaceTypeDescriptor
         return this;
     }
 
-    public IInterfaceTypeDescriptor Name(NameString value)
+    public IInterfaceTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -159,19 +160,16 @@ public class InterfaceTypeDescriptor
         return this;
     }
 
-    public IInterfaceFieldDescriptor Field(NameString name)
+    public IInterfaceFieldDescriptor Field(string name)
     {
-        InterfaceFieldDescriptor fieldDescriptor =
-            Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+        var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
 
         if (fieldDescriptor is not null)
         {
             return fieldDescriptor;
         }
 
-        fieldDescriptor = InterfaceFieldDescriptor.New(
-            Context,
-            name.EnsureNotEmpty(nameof(name)));
+        fieldDescriptor = InterfaceFieldDescriptor.New(Context, name);
         Fields.Add(fieldDescriptor);
         return fieldDescriptor;
     }
@@ -198,41 +196,35 @@ public class InterfaceTypeDescriptor
         return this;
     }
 
-    public IInterfaceTypeDescriptor Directive(
-        NameString name,
-        params ArgumentNode[] arguments)
+    public IInterfaceTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
         return this;
     }
 
-    public static InterfaceTypeDescriptor New(
-        IDescriptorContext context) =>
-        new InterfaceTypeDescriptor(context);
+    public static InterfaceTypeDescriptor New(IDescriptorContext context)
+        => new(context);
 
-    public static InterfaceTypeDescriptor New(
-        IDescriptorContext context, Type clrType) =>
-        new InterfaceTypeDescriptor(context, clrType);
+    public static InterfaceTypeDescriptor New(IDescriptorContext context, Type clrType)
+        => new(context, clrType);
 
-    public static InterfaceTypeDescriptor<T> New<T>(
-        IDescriptorContext context) =>
-        new InterfaceTypeDescriptor<T>(context);
+    public static InterfaceTypeDescriptor<T> New<T>(IDescriptorContext context) => new(context);
 
     public static InterfaceTypeDescriptor FromSchemaType(
         IDescriptorContext context, Type schemaType)
     {
-        InterfaceTypeDescriptor descriptor = New(context, schemaType);
+        var descriptor = New(context, schemaType);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }
 
     public static InterfaceTypeDescriptor From(
         IDescriptorContext context,
-        InterfaceTypeDefinition definition) =>
-        new InterfaceTypeDescriptor(context, definition);
+        InterfaceTypeDefinition definition)
+        => new(context, definition);
 
     public static InterfaceTypeDescriptor<T> From<T>(
         IDescriptorContext context,
-        InterfaceTypeDefinition definition) =>
-        new InterfaceTypeDescriptor<T>(context, definition);
+        InterfaceTypeDefinition definition)
+        => new(context, definition);
 }

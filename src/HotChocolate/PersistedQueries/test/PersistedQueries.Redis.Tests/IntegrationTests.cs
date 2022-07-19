@@ -1,12 +1,9 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
-using Xunit;
 
 namespace HotChocolate.PersistedQueries.Redis;
 
@@ -29,7 +26,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         var storage = new RedisQueryStorage(_database);
         await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
@@ -50,7 +47,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+        var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
 
         // assert
         result.MatchSnapshot();
@@ -62,7 +59,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var queryId = Guid.NewGuid().ToString("N");
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
@@ -83,14 +80,14 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .BuildRequestExecutorAsync();
 
         // ... write query to cache
-        IWriteStoredQueries cache = executor.Services.GetRequiredService<IWriteStoredQueries>();
+        var cache = executor.Services.GetRequiredService<IWriteStoredQueries>();
         await cache.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
 
         // ... wait for query to expire
         await Task.Delay(100).ConfigureAwait(false);
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+        var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
 
         // assert
         Assert.Collection(
@@ -111,11 +108,11 @@ public class IntegrationTests : IClassFixture<RedisResource>
         var storage = new RedisQueryStorage(_database, TimeSpan.FromMilliseconds(10000));
         await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddRedisQueryStorage(s => _database)
+                .AddRedisQueryStorage(_ => _database)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
@@ -132,7 +129,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+        var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
 
         // assert
         Assert.Null(result.ExpectQueryResult().Errors);
@@ -148,7 +145,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         var storage = new RedisQueryStorage(_database);
         await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 // we register the multiplexer on the application services
                 .AddSingleton(_multiplexer)
@@ -172,7 +169,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result =
+        var result =
             await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
 
         // assert
@@ -187,7 +184,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         var storage = new RedisQueryStorage(_database);
         await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 // we register the multiplexer on the application services
                 .AddSingleton(_multiplexer)
@@ -211,7 +208,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result =
+        var result =
             await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
 
         // assert
@@ -226,11 +223,11 @@ public class IntegrationTests : IClassFixture<RedisResource>
         var storage = new RedisQueryStorage(_database);
         await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddRedisQueryStorage(s => _database)
+                .AddRedisQueryStorage(_ => _database)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
@@ -247,7 +244,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result =
+        var result =
             await executor.ExecuteAsync(new QueryRequest(queryId: "does_not_exist"));
 
         // assert

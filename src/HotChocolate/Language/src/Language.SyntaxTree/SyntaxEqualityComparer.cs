@@ -230,8 +230,8 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(FloatValueNode x, FloatValueNode y)
     {
-        ReadOnlyMemory<byte> ourMem = x.AsMemory();
-        ReadOnlyMemory<byte> otherMem = y.AsMemory();
+        var ourMem = x.AsMemory();
+        var otherMem = y.AsMemory();
 
         // memory is not doing a deep equality check,
         // but it will be equal if we are referring to the same
@@ -301,8 +301,8 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(IntValueNode x, IntValueNode y)
     {
-        ReadOnlyMemory<byte> ourMem = x.AsMemory();
-        ReadOnlyMemory<byte> otherMem = y.AsMemory();
+        var ourMem = x.AsMemory();
+        var otherMem = y.AsMemory();
 
         // memory is not doing a deep equality check,
         // but it will be equal if we are referring to the same
@@ -422,8 +422,8 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(StringValueNode x, StringValueNode y)
     {
-        ReadOnlyMemory<byte> ourMem = x.AsMemory();
-        ReadOnlyMemory<byte> otherMem = y.AsMemory();
+        var ourMem = x.AsMemory();
+        var otherMem = y.AsMemory();
 
         // memory is not doing a deep equality check,
         // but it will be equal if we are referring to the same
@@ -640,13 +640,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Arguments.Count; i++)
         {
-            InputValueDefinitionNode argument = node.Arguments[i];
+            var argument = node.Arguments[i];
             hashCode.Add(GetHashCode(argument));
         }
 
         for (var i = 0; i < node.Locations.Count; i++)
         {
-            NameNode location = node.Locations[i];
+            var location = node.Locations[i];
             hashCode.Add(GetHashCode(location));
         }
 
@@ -661,7 +661,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Arguments.Count; i++)
         {
-            ArgumentNode argument = node.Arguments[i];
+            var argument = node.Arguments[i];
             hashCode.Add(GetHashCode(argument));
         }
 
@@ -675,7 +675,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Definitions.Count; i++)
         {
-            IDefinitionNode definition = node.Definitions[i];
+            var definition = node.Definitions[i];
             hashCode.Add(GetHashCode(definition));
         }
 
@@ -691,13 +691,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Values.Count; i++)
         {
-            EnumValueDefinitionNode value = node.Values[i];
+            var value = node.Values[i];
             hashCode.Add(GetHashCode(value));
         }
 
@@ -712,13 +712,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Values.Count; i++)
         {
-            EnumValueDefinitionNode value = node.Values[i];
+            var value = node.Values[i];
             hashCode.Add(GetHashCode(value));
         }
 
@@ -740,13 +740,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Arguments.Count; i++)
         {
-            InputValueDefinitionNode argument = node.Arguments[i];
+            var argument = node.Arguments[i];
             hashCode.Add(GetHashCode(argument));
         }
 
@@ -764,13 +764,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Arguments.Count; i++)
         {
-            ArgumentNode argument = node.Arguments[i];
+            var argument = node.Arguments[i];
             hashCode.Add(GetHashCode(argument));
         }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
@@ -804,13 +804,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.VariableDefinitions.Count; i++)
         {
-            VariableDefinitionNode variableDefinition = node.VariableDefinitions[i];
+            var variableDefinition = node.VariableDefinitions[i];
             hashCode.Add(GetHashCode(variableDefinition));
         }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
@@ -827,7 +827,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
@@ -842,7 +842,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
@@ -860,13 +860,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
-            InputValueDefinitionNode field = node.Fields[i];
+            var field = node.Fields[i];
             hashCode.Add(GetHashCode(field));
         }
 
@@ -881,13 +881,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
-            InputValueDefinitionNode field = node.Fields[i];
+            var field = node.Fields[i];
             hashCode.Add(GetHashCode(field));
         }
 
@@ -905,7 +905,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
@@ -921,19 +921,19 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Interfaces.Count; i++)
         {
-            NamedTypeNode interfaceName = node.Interfaces[i];
+            var interfaceName = node.Interfaces[i];
             hashCode.Add(GetHashCode(interfaceName));
         }
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
-            FieldDefinitionNode field = node.Fields[i];
+            var field = node.Fields[i];
             hashCode.Add(GetHashCode(field));
         }
 
@@ -948,19 +948,19 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Interfaces.Count; i++)
         {
-            NamedTypeNode interfaceName = node.Interfaces[i];
+            var interfaceName = node.Interfaces[i];
             hashCode.Add(GetHashCode(interfaceName));
         }
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
-            FieldDefinitionNode field = node.Fields[i];
+            var field = node.Fields[i];
             hashCode.Add(GetHashCode(field));
         }
 
@@ -1010,6 +1010,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             SyntaxKind.BooleanValue => GetHashCode((BooleanValueNode)node),
             SyntaxKind.EnumValue => GetHashCode((EnumValueNode)node),
             SyntaxKind.ObjectValue => GetHashCode((ObjectValueNode)node),
+            SyntaxKind.ListValue => GetHashCode((ListValueNode)node),
             SyntaxKind.NullValue => GetHashCode((NullValueNode)node),
             SyntaxKind.Variable => GetHashCode((VariableNode)node),
             _ => throw new ArgumentOutOfRangeException()
@@ -1029,7 +1030,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Items.Count; i++)
         {
-            IValueNode item = node.Items[i];
+            var item = node.Items[i];
             hashCode.Add(GetHashCode(item));
         }
 
@@ -1060,19 +1061,19 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Interfaces.Count; i++)
         {
-            NamedTypeNode interfaceName = node.Interfaces[i];
+            var interfaceName = node.Interfaces[i];
             hashCode.Add(GetHashCode(interfaceName));
         }
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
-            FieldDefinitionNode field = node.Fields[i];
+            var field = node.Fields[i];
             hashCode.Add(GetHashCode(field));
         }
 
@@ -1087,19 +1088,19 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Interfaces.Count; i++)
         {
-            NamedTypeNode interfaceName = node.Interfaces[i];
+            var interfaceName = node.Interfaces[i];
             hashCode.Add(GetHashCode(interfaceName));
         }
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
-            FieldDefinitionNode field = node.Fields[i];
+            var field = node.Fields[i];
             hashCode.Add(GetHashCode(field));
         }
 
@@ -1113,7 +1114,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
-            ObjectFieldNode field = node.Fields[i];
+            var field = node.Fields[i];
             hashCode.Add(GetHashCode(field));
         }
 
@@ -1129,13 +1130,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.VariableDefinitions.Count; i++)
         {
-            VariableDefinitionNode variableDefinition = node.VariableDefinitions[i];
+            var variableDefinition = node.VariableDefinitions[i];
             hashCode.Add(GetHashCode(variableDefinition));
         }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
@@ -1162,7 +1163,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
@@ -1177,7 +1178,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
@@ -1200,13 +1201,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.OperationTypes.Count; i++)
         {
-            OperationTypeDefinitionNode operationType = node.OperationTypes[i];
+            var operationType = node.OperationTypes[i];
             hashCode.Add(GetHashCode(operationType));
         }
 
@@ -1220,13 +1221,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.OperationTypes.Count; i++)
         {
-            OperationTypeDefinitionNode operationType = node.OperationTypes[i];
+            var operationType = node.OperationTypes[i];
             hashCode.Add(GetHashCode(operationType));
         }
 
@@ -1245,7 +1246,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Selections.Count; i++)
         {
-            ISelectionNode selection = node.Selections[i];
+            var selection = node.Selections[i];
             hashCode.Add(GetHashCode(selection));
         }
 
@@ -1278,13 +1279,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Types.Count; i++)
         {
-            NamedTypeNode type = node.Types[i];
+            var type = node.Types[i];
             hashCode.Add(GetHashCode(type));
         }
 
@@ -1299,13 +1300,13 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 
         for (var i = 0; i < node.Types.Count; i++)
         {
-            NamedTypeNode type = node.Types[i];
+            var type = node.Types[i];
             hashCode.Add(GetHashCode(type));
         }
 
@@ -1322,7 +1323,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Directives.Count; i++)
         {
-            DirectiveNode directive = node.Directives[i];
+            var directive = node.Directives[i];
             hashCode.Add(GetHashCode(directive));
         }
 

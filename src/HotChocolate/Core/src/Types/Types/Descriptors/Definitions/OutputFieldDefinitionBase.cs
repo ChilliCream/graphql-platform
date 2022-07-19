@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -13,13 +14,13 @@ public class OutputFieldDefinitionBase
 {
     private List<ArgumentDefinition>? _arguments;
 
-    public IList<ArgumentDefinition> Arguments =>
-        _arguments ??= new List<ArgumentDefinition>();
+    public IList<ArgumentDefinition> Arguments
+        => _arguments ??= new List<ArgumentDefinition>();
 
     /// <summary>
     /// Specifies if this field has any arguments.
     /// </summary>
-    public bool HasArguments => _arguments is { Count: > 0 };
+    public bool HasArguments => _arguments?.Count > 0;
 
     public IReadOnlyList<ArgumentDefinition> GetArguments()
     {
@@ -35,11 +36,11 @@ public class OutputFieldDefinitionBase
     {
         base.CopyTo(target);
 
-        if (_arguments is { Count: > 0 })
+        if (_arguments?.Count > 0)
         {
             target._arguments = new List<ArgumentDefinition>();
 
-            foreach (ArgumentDefinition argument in _arguments)
+            foreach (var argument in _arguments)
             {
                 var newArgument = new ArgumentDefinition();
                 argument.CopyTo(newArgument);
@@ -58,10 +59,10 @@ public class OutputFieldDefinitionBase
         {
             target._arguments ??= new List<ArgumentDefinition>();
 
-            foreach (ArgumentDefinition argument in _arguments)
+            foreach (var argument in _arguments)
             {
-                ArgumentDefinition? targetArgument =
-                    target._arguments.FirstOrDefault(t => t.Name.Equals(argument.Name));
+                var targetArgument =
+                    target._arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(argument.Name));
 
                 if (targetArgument is null)
                 {

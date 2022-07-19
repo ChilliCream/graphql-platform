@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -13,37 +13,48 @@ internal static class ResolverTaskFactory
 {
     private static List<ResolverTask>? _pooled = new();
 
-    public static ResultMap EnqueueResolverTasks(
-        IOperationContext operationContext,
+    public static ObjectResult EnqueueResolverTasks(
+        OperationContext operationContext,
         ISelectionSet selectionSet,
         object? parent,
         Path path,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        var responseIndex = 0;
-        IReadOnlyList<ISelection> selections = selectionSet.Selections;
-        ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
-        IWorkScheduler scheduler = operationContext.Scheduler;
+        var selectionsCount = selectionSet.Selections.Count;
+        var responseIndex = selectionsCount;
+        var parentResult = operationContext.Result.RentObject(selectionsCount);
+        var scheduler = operationContext.Scheduler;
+        var pathFactory = operationContext.PathFactory;
+        var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
-        List<ResolverTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
         try
         {
-            for (var i = 0; i < selections.Count; i++)
+            ref var selectionSpace = ref ((SelectionSet)selectionSet).GetSelectionsReference();
+
+            // we are iterating reverse so that in the case of a mutation the first
+            // synchronous root selection is executed first, since the work scheduler
+            // is using two stacks one for parallel work an one for synchronous work.
+            // the scheduler this tries to schedule new work first.
+            // coincidentally we can use that to schedule a mutation so that we honor the spec
+            // guarantees while executing efficient.
+            for (var i = selectionsCount - 1; i >= 0; i--)
             {
-                ISelection selection = selections[i];
-                if (final || selection.IsIncluded(operationContext.Variables))
+                ref var selection = ref Unsafe.Add(ref selectionSpace, i);
+
+                if (final || selection.IsIncluded(includeFlags))
                 {
-                    bufferedTasks.Add(CreateResolverTask(
-                        operationContext,
-                        selection,
-                        parent,
-                        responseIndex++,
-                        operationContext.PathFactory.Append(path, selection.ResponseName),
-                        resultMap,
-                        scopedContext));
+                    bufferedTasks.Add(
+                        operationContext.CreateResolverTask(
+                            selection,
+                            parent,
+                            parentResult,
+                            --responseIndex,
+                            pathFactory.Append(path, selection.ResponseName),
+                            scopedContext));
                 }
             }
 
@@ -58,24 +69,27 @@ internal static class ResolverTaskFactory
                 scheduler.Register(bufferedTasks);
             }
 
-            TryHandleDeferredFragments(
-                operationContext,
-                selectionSet,
-                scopedContext,
-                path,
-                parent);
+            if (selectionSet.Fragments.Count > 0)
+            {
+                TryHandleDeferredFragments(
+                    operationContext,
+                    selectionSet,
+                    scopedContext,
+                    path,
+                    parent);
+            }
 
-            return resultMap;
+            return parentResult;
         }
         finally
         {
             bufferedTasks.Clear();
-            Interlocked.Exchange(ref _pooled, bufferedTasks);
+            Interlocked.Exchange(ref _pooled!, bufferedTasks);
         }
     }
 
     public static ResolverTask EnqueueElementTasks(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         ISelection selection,
         object? parent,
         Path path,
@@ -83,19 +97,18 @@ internal static class ResolverTaskFactory
         IAsyncEnumerator<object?> value,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        ResultMap resultMap = operationContext.Result.RentResultMap(1);
-
-        List<ResolverTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+        var parentResult = operationContext.Result.RentObject(1);
+        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
-        ResolverTask resolverTask = CreateResolverTask(
-            operationContext,
-            selection,
-            parent,
-            0,
-            path,
-            resultMap,
-            scopedContext);
+        var resolverTask =
+            operationContext.CreateResolverTask(
+                selection,
+                parent,
+                parentResult,
+                0,
+                path,
+                scopedContext);
 
         try
         {
@@ -106,7 +119,7 @@ internal static class ResolverTaskFactory
                 selection.Type.ElementType(),
                 operationContext.PathFactory.Append(path, index),
                 0,
-                resultMap,
+                parentResult,
                 value.Current,
                 bufferedTasks);
         }
@@ -119,164 +132,148 @@ internal static class ResolverTaskFactory
         return resolverTask;
     }
 
-    public static ResultMap EnqueueOrInlineResolverTasks(
-        IOperationContext operationContext,
+    public static ObjectResult EnqueueOrInlineResolverTasks(
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         Path path,
-        ObjectType resultType,
-        object result,
+        ObjectType parentType,
+        object parent,
         ISelectionSet selectionSet,
         List<ResolverTask> bufferedTasks)
     {
         var responseIndex = 0;
-        IReadOnlyList<ISelection> selections = selectionSet.Selections;
-        ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
-        IVariableValueCollection variables = operationContext.Variables;
+        var selectionsCount = selectionSet.Selections.Count;
+        var parentResult = operationContext.Result.RentObject(selectionsCount);
+        var pathFactory = operationContext.PathFactory;
+        var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
-        for (var i = 0; i < selections.Count; i++)
-        {
-            ISelection selection = selections[i];
+        ref var selectionSpace = ref ((SelectionSet)selectionSet).GetSelectionsReference();
 
-            if (final || selection.IsIncluded(variables))
+        for (var i = 0; i < selectionsCount; i++)
+        {
+            ref var selection = ref Unsafe.Add(ref selectionSpace, i);
+
+            if (final || selection.IsIncluded(includeFlags))
             {
+                var selectionPath = pathFactory.Append(path, selection.ResponseName);
+
                 if (selection.Strategy is SelectionExecutionStrategy.Pure)
                 {
                     ResolveAndCompleteInline(
                         operationContext,
                         resolverContext,
                         selection,
-                        operationContext.PathFactory.Append(path, selection.ResponseName),
+                        selectionPath,
                         responseIndex++,
-                        resultType,
-                        result,
-                        resultMap,
+                        parentType,
+                        parent,
+                        parentResult,
                         bufferedTasks);
                 }
                 else
                 {
-                    bufferedTasks.Add(CreateResolverTask(
-                        operationContext,
-                        resolverContext,
-                        selection,
-                        operationContext.PathFactory.Append(path, selection.ResponseName),
-                        responseIndex++,
-                        result,
-                        resultMap));
+                    bufferedTasks.Add(
+                        operationContext.CreateResolverTask(
+                            selection,
+                            parent,
+                            parentResult,
+                            responseIndex++,
+                            selectionPath,
+                            resolverContext.ScopedContextData));
                 }
             }
         }
 
-        TryHandleDeferredFragments(
-            operationContext,
-            selectionSet,
-            resolverContext.ScopedContextData,
-            path,
-            result);
+        if (selectionSet.Fragments.Count > 0)
+        {
+            TryHandleDeferredFragments(
+                operationContext,
+                selectionSet,
+                resolverContext.ScopedContextData,
+                path,
+                parent);
+        }
 
-        return resultMap;
+        return parentResult;
     }
 
     private static void ResolveAndCompleteInline(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
         Path path,
         int responseIndex,
         ObjectType parentType,
         object parent,
-        ResultMap resultMap,
+        ObjectResult parentResult,
         List<ResolverTask> bufferedTasks)
     {
-        var committed = false;
+        var executedSuccessfully = false;
         object? resolverResult = null;
 
         try
         {
-            if (TryExecute(out resolverResult))
+            // we first try to create a context for our pure resolver.
+            // this should actually only fail if we are unable to coerce
+            // the field arguments.
+            if (resolverContext.TryCreatePureContext(
+                selection, path, parentType, parent,
+                out var childContext))
             {
-                committed = true;
-
-                CompleteInline(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    selection.Type,
-                    path,
-                    responseIndex,
-                    resultMap,
-                    resolverResult,
-                    bufferedTasks);
+                // if we have a pure context we can execute out pure resolver.
+                resolverResult = selection.PureResolver!(childContext);
+                executedSuccessfully = true;
             }
         }
         catch (OperationCanceledException)
         {
             // If we run into this exception the request was aborted.
             // In this case we do nothing and just return.
+            return;
         }
         catch (Exception ex)
         {
-            if (operationContext.RequestAborted.IsCancellationRequested)
-            {
-                // if cancellation is request we do no longer report errors to the
-                // operation context.
-                return;
-            }
+            operationContext.ReportError(ex, resolverContext, selection, path);
+        }
 
-            ValueCompletion.ReportError(
+        if (executedSuccessfully)
+        {
+            // if we were able to execute the resolver we will try to complete the
+            // resolver result inline and commit the value to the result..
+            CompleteInline(
                 operationContext,
                 resolverContext,
                 selection,
+                selection.Type,
                 path,
-                ex);
+                responseIndex,
+                parentResult,
+                resolverResult,
+                bufferedTasks);
         }
-
-        if (!committed)
+        else
         {
+            // if we were not able to execute the resolver we will commit the null value
+            // of the resolver to the object result which could trigger a non-null propagation.
             CommitValue(
                 operationContext,
                 selection,
                 path,
                 responseIndex,
-                resultMap,
+                parentResult,
                 resolverResult);
-        }
-
-        bool TryExecute(out object? result)
-        {
-            try
-            {
-                if (resolverContext.TryCreatePureContext(
-                    selection, path, parentType, parent,
-                    out IPureResolverContext? childContext))
-                {
-                    result = selection.PureResolver!(childContext);
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                ValueCompletion.ReportError(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    path,
-                    ex);
-            }
-
-            result = null;
-            return false;
         }
     }
 
     private static void CompleteInline(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
-        IType elementType,
+        IType selectionType,
         Path path,
         int responseIndex,
-        ResultMap resultMap,
+        ObjectResult resultMap,
         object? value,
         List<ResolverTask> bufferedTasks)
     {
@@ -284,19 +281,18 @@ internal static class ResolverTaskFactory
 
         try
         {
-            if (ValueCompletion.TryComplete(
+            completedValue = ValueCompletion.Complete(
                 operationContext,
                 resolverContext,
+                bufferedTasks,
                 selection,
                 path,
-                elementType,
+                selectionType,
                 selection.ResponseName,
                 responseIndex,
-                value,
-                bufferedTasks,
-                out completedValue) &&
-                elementType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
-                completedValue is IHasResultDataParent result)
+                value);
+
+            if (completedValue is ResultData result)
             {
                 result.Parent = resultMap;
             }
@@ -309,19 +305,7 @@ internal static class ResolverTaskFactory
         }
         catch (Exception ex)
         {
-            if (operationContext.RequestAborted.IsCancellationRequested)
-            {
-                // if cancellation is request we do no longer report errors to the
-                // operation context.
-                return;
-            }
-
-            ValueCompletion.ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                path,
-                ex);
+            operationContext.ReportError(ex, resolverContext, selection, path);
         }
 
         CommitValue(
@@ -334,112 +318,60 @@ internal static class ResolverTaskFactory
     }
 
     private static void CommitValue(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         ISelection selection,
         Path path,
         int responseIndex,
-        ResultMap resultMap,
+        ObjectResult parentResult,
         object? completedValue)
     {
-        var isNonNullType = selection.Type.IsNonNullType();
+        var isNonNullType = selection.Type.Kind is TypeKind.NonNull;
+
+        parentResult.SetValueUnsafe(
+            responseIndex,
+            selection.ResponseName,
+            completedValue,
+            !isNonNullType);
 
         if (completedValue is null && isNonNullType)
         {
             // if we detect a non-null violation we will stash it for later.
             // the non-null propagation is delayed so that we can parallelize better.
-            operationContext.Result.AddNonNullViolation(
-                selection.SyntaxNode,
-                path,
-                resultMap);
+            operationContext.Result.AddNonNullViolation(selection, path, parentResult);
         }
-        else
-        {
-            resultMap.SetValue(
-                responseIndex,
-                selection.ResponseName,
-                completedValue,
-                !isNonNullType);
-        }
-    }
-
-    private static ResolverTask CreateResolverTask(
-        IOperationContext operationContext,
-        MiddlewareContext resolverContext,
-        ISelection selection,
-        Path path,
-        int responseIndex,
-        object parent,
-        ResultMap resultMap)
-    {
-        ResolverTask task = operationContext.ResolverTasks.Get();
-
-        task.Initialize(
-            operationContext,
-            selection,
-            resultMap,
-            responseIndex,
-            parent,
-            path,
-            resolverContext.ScopedContextData);
-
-        return task;
-    }
-
-    private static ResolverTask CreateResolverTask(
-        IOperationContext operationContext,
-        ISelection selection,
-        object? parent,
-        int responseIndex,
-        Path path,
-        ResultMap resultMap,
-        IImmutableDictionary<string, object?> scopedContext)
-    {
-        ResolverTask task = operationContext.ResolverTasks.Get();
-
-        task.Initialize(
-            operationContext,
-            selection,
-            resultMap,
-            responseIndex,
-            parent,
-            path,
-            scopedContext);
-
-        return task;
     }
 
     private static void TryHandleDeferredFragments(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         ISelectionSet selectionSet,
         IImmutableDictionary<string, object?> scopedContext,
         Path path,
         object? parent)
     {
-        if (selectionSet.Fragments.Count > 0)
+        var fragments = selectionSet.Fragments;
+        var includeFlags = operationContext.IncludeFlags;
+
+        for (var i = 0; i < fragments.Count; i++)
         {
-            IReadOnlyList<IFragment> fragments = selectionSet.Fragments;
-            for (var i = 0; i < fragments.Count; i++)
+            var fragment = fragments[i];
+            if (!fragment.IsConditional || fragment.IsIncluded(includeFlags))
             {
-                IFragment fragment = fragments[i];
-                if (!fragment.IsConditional || fragment.IsIncluded(operationContext.Variables))
-                {
-                    operationContext.Scheduler.DeferredWork.Register(
-                        new DeferredFragment(
-                            fragment,
-                            fragment.GetLabel(operationContext.Variables),
-                            path,
-                            parent,
-                            scopedContext));
-                }
+                operationContext.DeferredScheduler.Register(
+                    new DeferredFragment(
+                        fragment,
+                        fragment.GetLabel(operationContext.Variables),
+                        path.Clone(),
+                        parent,
+                        scopedContext));
             }
         }
     }
 
     private sealed class NoOpExecutionTask : ExecutionTask
     {
-        public NoOpExecutionTask(IOperationContext context)
+        public NoOpExecutionTask(OperationContext context)
         {
-            Context = (IExecutionTaskContext)context;
+            Context = context;
         }
 
         protected override IExecutionTaskContext Context { get; }

@@ -34,7 +34,7 @@ public static class TestHelper
             additionalMockSetup(mock);
         }
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = ImmutableDictionary<string, object?>.Empty;
         context.LocalContextData = ImmutableDictionary<string, object?>.Empty;
         return context;

@@ -23,6 +23,6 @@ public interface IInternalRequestExecutorResolver
     /// given configuration <paramref name="schemaName" />.
     /// </returns>
     ValueTask<IRequestExecutor> GetRequestExecutorNoLockAsync(
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default);
 }

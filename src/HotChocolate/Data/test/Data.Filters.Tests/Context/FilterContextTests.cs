@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -21,14 +20,14 @@ public class FilterContextTests
         IFilterContext? context = null;
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
+            .AddQueryType(t => t
                 .Name("Query")
                 .Field("test")
                 .Type<ListType<ObjectType<Book>>>()
                 .UseFiltering()
-                .Resolve(x =>
+                .Resolve(ctx =>
                 {
-                    context = x.GetFilterContext();
+                    context = ctx.GetFilterContext();
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
@@ -47,10 +46,9 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        IFilterFieldInfo field = Assert.Single(context!.GetFields());
+        var field = Assert.Single(context!.GetFields());
         Assert.Empty(context.GetOperations());
-        IFilterOperationInfo operation =
-            Assert.Single(Assert.IsType<FilterInfo>(field.Value).GetOperations());
+        var operation = Assert.Single(Assert.IsType<FilterInfo>(field.Value).GetOperations());
         Assert.Empty(Assert.IsType<FilterInfo>(field.Value).GetFields());
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("eq", operation.Field.Name);
@@ -64,14 +62,14 @@ public class FilterContextTests
         IFilterContext? context = null;
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
+            .AddQueryType(t => t
                 .Name("Query")
                 .Field("test")
                 .Type<ListType<ObjectType<Book>>>()
                 .UseFiltering()
-                .Resolve(x =>
+                .Resolve(ctx =>
                 {
-                    context = x.GetFilterContext();
+                    context = ctx.GetFilterContext();
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
@@ -90,21 +88,20 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        IFilterFieldInfo field = Assert.Single(context!.GetFields());
+        var field = Assert.Single(context!.GetFields());
         Assert.Empty(context.GetOperations());
-        IFilterOperationInfo operation =
+        var operation =
             Assert.Single(Assert.IsType<FilterInfo>(field.Value).GetOperations());
         Assert.Empty(Assert.IsType<FilterInfo>(field.Value).GetFields());
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("in", operation.Field.Name);
-        var value =
-            Assert.IsType<FilterValue>(operation.Value!).Value as IEnumerable<string>;
+        var value = Assert.IsType<FilterValue>(operation.Value!).Value as IEnumerable<string>;
         Assert.Equal("a", value!.FirstOrDefault());
         Assert.Equal("b", value!.LastOrDefault());
     }
 
     [Fact]
-    public async Task GetFields_Should_RetunFilterValueCollectionWhenOr()
+    public async Task GetFields_Should_ReturnFilterValueCollectionWhenOr()
     {
         // arrange
         IFilterContext? context = null;
@@ -141,7 +138,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        IFilterOperationInfo operation = Assert.Single(context!.GetOperations());
+        var operation = Assert.Single(context!.GetOperations());
         Assert.Empty(context!.GetFields());
         var valueCollection = Assert.IsType<FilterValueCollection>(operation.Value);
         var field0 = Assert.Single(Assert.IsType<FilterInfo>(valueCollection[0]).GetFields());
@@ -163,14 +160,14 @@ public class FilterContextTests
         IFilterContext? context = null;
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
+            .AddQueryType(t => t
                 .Name("Query")
                 .Field("test")
                 .Type<ListType<ObjectType<Book>>>()
                 .UseFiltering()
-                .Resolve(x =>
+                .Resolve(ctx =>
                 {
-                    context = x.GetFilterContext();
+                    context = ctx.GetFilterContext();
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()
@@ -189,11 +186,11 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        IFilterFieldInfo author = Assert.Single(context!.GetFields());
+        var author = Assert.Single(context!.GetFields());
         Assert.Empty(context.GetOperations());
-        IFilterFieldInfo name = Assert.Single(Assert.IsType<FilterInfo>(author.Value).GetFields());
+        var name = Assert.Single(Assert.IsType<FilterInfo>(author.Value).GetFields());
         Assert.Empty(Assert.IsType<FilterInfo>(author.Value).GetOperations());
-        IFilterOperationInfo operation =
+        var operation =
             Assert.Single(Assert.IsType<FilterInfo>(name.Value).GetOperations());
         Assert.Empty(Assert.IsType<FilterInfo>(name.Value).GetFields());
         Assert.Equal("author", author.Field.Name);
@@ -209,14 +206,14 @@ public class FilterContextTests
         IFilterContext? context = null;
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
+            .AddQueryType(t => t
                 .Name("Query")
                 .Field("test")
                 .Type<ListType<ObjectType<Book>>>()
                 .UseFiltering()
-                .Resolve(x =>
+                .Resolve(ctx =>
                 {
-                    context = x.GetFilterContext();
+                    context = ctx.GetFilterContext();
                     return Array.Empty<Book>();
                 }))
             .AddFiltering()

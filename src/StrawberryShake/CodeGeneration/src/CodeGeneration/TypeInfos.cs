@@ -117,7 +117,7 @@ public sealed class TypeInfos
             fullTypeName = "global::" + fullTypeName;
         }
 
-        if (!_infos.TryGetValue(fullTypeName, out RuntimeTypeInfo? typeInfo))
+        if (!_infos.TryGetValue(fullTypeName, out var typeInfo))
         {
             typeInfo = factory();
             Debug.Assert(

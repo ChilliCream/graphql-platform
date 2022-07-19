@@ -1,1 +1,0 @@
-﻿MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort IN [ 12, 13 ] RETURN fooCompNullable {.BarShort}

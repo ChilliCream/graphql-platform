@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
@@ -18,12 +18,12 @@ public sealed class InputObjectTypeModel : ITypeModel
     /// <param name="type">The input object type.</param>
     /// <param name="fields">The field models of this input type.</param>
     public InputObjectTypeModel(
-        NameString name,
+        string name,
         string? description,
         InputObjectType type,
         IReadOnlyList<InputFieldModel> fields)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         Description = description;
         Type = type ?? throw new ArgumentNullException(nameof(type));
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
@@ -32,7 +32,7 @@ public sealed class InputObjectTypeModel : ITypeModel
     /// <summary>
     /// Gets the class name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the class xml documentation summary.

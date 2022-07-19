@@ -14,7 +14,7 @@ public static class SerializerNameUtils
 
     private static string CreateName(IType type, string prefix)
     {
-        IType current = type;
+        var current = type;
         var types = new Stack<IType>();
 
         var sb = new StringBuilder();

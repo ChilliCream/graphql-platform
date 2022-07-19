@@ -14,7 +14,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
             this MethodDeclarationSyntax methodSyntax,
             string databaseName)
         {
-            AttributeSyntax attribute =
+            var attribute =
                 Attribute(IdentifierName(Global(UseNeo4JDatabaseAttribute)))
                     .AddArgumentListArguments(
                         AttributeArgument(
@@ -32,7 +32,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
             string name,
             RelationshipDirection direction)
         {
-            AttributeSyntax attribute =
+            var attribute =
                 Attribute(IdentifierName(Global(Neo4JRelationshipAttribute)))
                     .AddArgumentListArguments(
                         AttributeArgument(

@@ -28,7 +28,7 @@ public class DictionaryVisitor<TContext>
         IReadOnlyDictionary<string, object> dictionary,
         TContext context)
     {
-        foreach (KeyValuePair<string, object> field in dictionary)
+        foreach (var field in dictionary)
         {
             VisitField(field, context);
         }

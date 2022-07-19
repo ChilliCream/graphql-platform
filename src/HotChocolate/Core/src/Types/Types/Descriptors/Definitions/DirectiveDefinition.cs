@@ -11,8 +11,7 @@ public sealed class DirectiveDefinition
     {
         ParsedDirective = parsedDirective ??
             throw new ArgumentNullException(nameof(parsedDirective));
-        TypeReference =
-            Descriptors.TypeReference.Create(parsedDirective.Name.Value, TypeContext.None);
+        TypeReference = Descriptors.TypeReference.Create(parsedDirective.Name.Value);
         Reference = new NameDirectiveReference(parsedDirective.Name.Value);
     }
 

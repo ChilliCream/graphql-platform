@@ -56,7 +56,7 @@ public static class QueryableFilterExtensions
     {
         if (context.LocalContextData.TryGetValue(
                 QueryableFilterProvider.ContextApplyFilteringKey,
-                out object? applicatorObj) &&
+                out var applicatorObj) &&
             applicatorObj is ApplyFiltering applicator)
         {
             var resultObj = applicator(context, input);

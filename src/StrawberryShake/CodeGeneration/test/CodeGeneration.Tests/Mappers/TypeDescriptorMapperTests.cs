@@ -16,7 +16,7 @@ public class TypeDescriptorMapperTests
     public async Task MapClientTypeDescriptors()
     {
         // arrange
-        ClientModel clientModel = await CreateClientModelAsync(
+        var clientModel = await CreateClientModelAsync(
             @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         name

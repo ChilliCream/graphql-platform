@@ -21,7 +21,7 @@ internal class QueryableCursorPagingHandler<TEntity> : CursorPagingHandler
         object source,
         CursorPagingArguments arguments)
     {
-        CancellationToken ct = context.RequestAborted;
+        var ct = context.RequestAborted;
         return source switch
         {
             IQueryable<TEntity> q => ResolveAsync(context, q, arguments, ct),

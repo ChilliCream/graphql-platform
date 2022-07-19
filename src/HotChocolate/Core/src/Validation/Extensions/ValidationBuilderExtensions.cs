@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
-using HotChocolate.Validation.Properties;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -143,7 +142,7 @@ public static partial class HotChocolateValidationBuilderExtensions
         return builder.ConfigureValidation((s, m) =>
             m.Modifiers.Add(o =>
             {
-                T instance = factory(s, o);
+                var instance = factory(s, o);
                 if (o.Rules.All(t => t.GetType() != instance.GetType()))
                 {
                     o.Rules.Add(instance);

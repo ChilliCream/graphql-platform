@@ -103,21 +103,21 @@ public class QueryableSortVisitorAscObjectTests
     [InlineData("d", "c", "b", "a")]
     public void Sort_NullableStringAsc(params string[] data)
     {
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { baz: ASC}}");
-        ExecutorBuilder tester = CreateProviderTester(new FooNullableSortType<string>());
-        string[] expected = data.OrderBy(x => x).ToArray();
+        var tester = CreateProviderTester(new FooNullableSortType<string>());
+        var expected = data.OrderBy(x => x).ToArray();
 
         // act
-        Func<FooNullable<string>[], FooNullable<string>[]> func =
+        var func =
             tester.Build<FooNullable<string>>(value);
 
         // assert
-        FooNullable<string>[] inputs =
+        var inputs =
             data.Select(
                     x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x } })
                 .ToArray();
-        FooNullable<string>[] sorted = func(inputs);
+        var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
         {
@@ -130,23 +130,23 @@ public class QueryableSortVisitorAscObjectTests
     [InlineData("d", "c", "b", "a")]
     public void Sort_NullableStringAscWithNull(params string[] data)
     {
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { baz: ASC}}");
-        ExecutorBuilder tester = CreateProviderTester(new FooNullableSortType<string>());
-        string?[] expected = data.Append(null).OrderBy(x => x).ToArray();
+        var tester = CreateProviderTester(new FooNullableSortType<string>());
+        var expected = data.Append(null).OrderBy(x => x).ToArray();
 
         // act
-        Func<FooNullable<string>[], FooNullable<string>[]> func =
+        var func =
             tester.Build<FooNullable<string>>(value);
 
         // assert
-        FooNullable<string>[] inputs =
+        var inputs =
             data
                 .Select(
                     x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x } })
                 .Prepend(new FooNullable<string> { Bar = null })
                 .ToArray();
-        FooNullable<string>[] sorted = func(inputs);
+        var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
         {
@@ -159,19 +159,19 @@ public class QueryableSortVisitorAscObjectTests
     [InlineData(false, false, true, true)]
     public void Sort_Interface_BooleanAsc(params bool[] dataObject)
     {
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ test: { prop: ASC}}");
-        ExecutorBuilder tester = CreateProviderTester(new SortInputType<BarInterface>());
-        bool[] expected = dataObject.OrderBy(x => x).ToArray();
+        var tester = CreateProviderTester(new SortInputType<BarInterface>());
+        var expected = dataObject.OrderBy(x => x).ToArray();
 
         // act
-        Func<BarInterface[], BarInterface[]> func = tester.Build<BarInterface>(value);
+        var func = tester.Build<BarInterface>(value);
 
         // assert
-        BarInterface[] inputs = dataObject
+        var inputs = dataObject
             .Select(x => new BarInterface { Test = new InterfaceImpl1 { Prop = x } })
             .ToArray();
-        BarInterface[] sorted = func(inputs);
+        var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
         {
@@ -182,17 +182,17 @@ public class QueryableSortVisitorAscObjectTests
     protected void Test_Asc<T>(params T[] data)
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { baz: ASC}}");
-        ExecutorBuilder tester = CreateProviderTester(new FooSortType<T>());
-        T[] expected = data.OrderBy(x => x).ToArray();
+        var tester = CreateProviderTester(new FooSortType<T>());
+        var expected = data.OrderBy(x => x).ToArray();
 
         // act
-        Func<Foo<T>[], Foo<T>[]> func = tester.Build<Foo<T>>(value);
+        var func = tester.Build<Foo<T>>(value);
 
         // assert
-        Foo<T>[] inputs = data.Select(x => new Foo<T> { Bar = new Bar<T> { Baz = x } }).ToArray();
-        Foo<T>[] sorted = func(inputs);
+        var inputs = data.Select(x => new Foo<T> { Bar = new Bar<T> { Baz = x } }).ToArray();
+        var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
         {

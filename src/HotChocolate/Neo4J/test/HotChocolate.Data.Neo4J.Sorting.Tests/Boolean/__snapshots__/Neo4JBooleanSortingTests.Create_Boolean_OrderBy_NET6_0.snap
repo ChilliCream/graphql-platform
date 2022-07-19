@@ -1,0 +1,41 @@
+ASC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": false
+      },
+      {
+        "bar": true
+      }
+    ]
+  }
+}
+---------------
+
+ASC Query:
+---------------
+MATCH (fooBool:FooBool) RETURN fooBool ORDER BY fooBool.Bar ASC
+---------------
+
+DESC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+DESC Query:
+---------------
+MATCH (fooBool:FooBool) RETURN fooBool ORDER BY fooBool.Bar DESC
+---------------

@@ -1,0 +1,38 @@
+testatest
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RhdGVzdA=="
+      }
+    ]
+  }
+}
+---------------
+
+testbtest
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RidGVzdA=="
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------

@@ -213,7 +213,7 @@ public static partial class VisitorExtensions
         IReadOnlyList<object> path,
         IReadOnlyList<ISyntaxNode> ancestors)
     {
-        if (_enterVisitors.TryGetValue(node.GetType(), out IntVisitorFn? v))
+        if (_enterVisitors.TryGetValue(node.GetType(), out var v))
         {
             return v.Invoke(visitor, node, parent, path, ancestors);
         }
@@ -227,7 +227,7 @@ public static partial class VisitorExtensions
         IReadOnlyList<object> path,
         IReadOnlyList<ISyntaxNode> ancestors)
     {
-        if (_leaveVisitors.TryGetValue(node.GetType(), out IntVisitorFn? v))
+        if (_leaveVisitors.TryGetValue(node.GetType(), out var v))
         {
             return v.Invoke(visitor, node, parent, path, ancestors);
         }

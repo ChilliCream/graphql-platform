@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations;
 public abstract class OperationDescriptor : ICodeDescriptor
 {
     protected OperationDescriptor(
-        NameString name,
+        string name,
         RuntimeTypeInfo runtimeType,
         ITypeDescriptor resultTypeReference,
         IReadOnlyList<PropertyDescriptor> arguments,
@@ -36,7 +36,7 @@ public abstract class OperationDescriptor : ICodeDescriptor
     /// <summary>
     /// Gets the operation name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the runtime type name.

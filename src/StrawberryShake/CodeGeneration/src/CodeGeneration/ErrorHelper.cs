@@ -48,7 +48,7 @@ public static class ErrorHelper
 
         builder.SetExtension(TitleExtensionKey, "Schema validation error");
 
-        foreach (ISyntaxNode syntaxNode in error.SyntaxNodes)
+        foreach (var syntaxNode in error.SyntaxNodes)
         {
             // if the error has a syntax node we will try to lookup the
             // document and add the filename to the error.

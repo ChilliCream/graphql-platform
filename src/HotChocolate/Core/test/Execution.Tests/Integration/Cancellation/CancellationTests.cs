@@ -15,7 +15,7 @@ public class CancellationTests
         // arrange
         var query = new Query();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(query)
                 .AddGraphQL()
@@ -34,7 +34,7 @@ public class CancellationTests
         // assert
         Assert.True(query.Foo);
         Assert.True(query.FooDone);
-        Assert.False(query.Bar);
+        Assert.True(query.Bar);
     }
 
     public class Query

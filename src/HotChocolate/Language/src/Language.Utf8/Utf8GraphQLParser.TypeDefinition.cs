@@ -31,12 +31,12 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private SchemaDefinitionNode ParseSchemaDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         // skip schema keyword
         MoveNext();
 
-        List<DirectiveNode> directives = ParseDirectives(true);
+        var directives = ParseDirectives(true);
 
         if (_reader.Kind != TokenKind.LeftBrace)
         {
@@ -60,7 +60,7 @@ public ref partial struct Utf8GraphQLParser
         // skip closing token
         ExpectRightBrace();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new SchemaDefinitionNode
         (
@@ -78,13 +78,13 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private OperationTypeDefinitionNode ParseOperationTypeDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
-        OperationType operation = ParseOperationType();
+        var operation = ParseOperationType();
         ExpectColon();
-        NamedTypeNode type = ParseNamedType();
+        var type = ParseNamedType();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new OperationTypeDefinitionNode
         (
@@ -102,15 +102,15 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private ScalarTypeDefinitionNode ParseScalarTypeDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         // skip scalar keyword
         MoveNext();
 
-        NameNode name = ParseName();
-        List<DirectiveNode> directives = ParseDirectives(true);
+        var name = ParseName();
+        var directives = ParseDirectives(true);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new ScalarTypeDefinitionNode
         (
@@ -129,17 +129,17 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private ObjectTypeDefinitionNode ParseObjectTypeDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         // skip type keyword
         MoveNext();
 
-        NameNode name = ParseName();
-        List<NamedTypeNode> interfaces = ParseImplementsInterfaces();
-        List<DirectiveNode> directives = ParseDirectives(true);
-        List<FieldDefinitionNode> fields = ParseFieldsDefinition();
+        var name = ParseName();
+        var interfaces = ParseImplementsInterfaces();
+        var directives = ParseDirectives(true);
+        var fields = ParseFieldsDefinition();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new ObjectTypeDefinitionNode
         (
@@ -214,16 +214,16 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private FieldDefinitionNode ParseFieldDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
-        StringValueNode? description = ParseDescription();
-        NameNode name = ParseName();
-        List<InputValueDefinitionNode> arguments = ParseArgumentDefinitions();
+        var description = ParseDescription();
+        var name = ParseName();
+        var arguments = ParseArgumentDefinitions();
         ExpectColon();
-        ITypeNode type = ParseTypeReference();
-        List<DirectiveNode> directives = ParseDirectives(true);
+        var type = ParseTypeReference();
+        var directives = ParseDirectives(true);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new FieldDefinitionNode
         (
@@ -271,19 +271,19 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private InputValueDefinitionNode ParseInputValueDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
-        StringValueNode? description = ParseDescription();
-        NameNode name = ParseName();
+        var description = ParseDescription();
+        var name = ParseName();
         ExpectColon();
-        ITypeNode type = ParseTypeReference();
-        IValueNode? defaultValue = SkipEqual()
+        var type = ParseTypeReference();
+        var defaultValue = SkipEqual()
             ? ParseValueLiteral(true)
             : null;
-        List<DirectiveNode> directives =
+        var directives =
             ParseDirectives(true);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new InputValueDefinitionNode
         (
@@ -304,16 +304,16 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         MoveNext();
 
-        NameNode name = ParseName();
-        List<NamedTypeNode> interfaces = ParseImplementsInterfaces();
-        List<DirectiveNode> directives = ParseDirectives(true);
-        List<FieldDefinitionNode> fields = ParseFieldsDefinition();
+        var name = ParseName();
+        var interfaces = ParseImplementsInterfaces();
+        var directives = ParseDirectives(true);
+        var fields = ParseFieldsDefinition();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new InterfaceTypeDefinitionNode
         (
@@ -334,15 +334,15 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private UnionTypeDefinitionNode ParseUnionTypeDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         MoveNext();
 
-        NameNode name = ParseName();
-        List<DirectiveNode> directives = ParseDirectives(true);
-        List<NamedTypeNode> types = ParseUnionMemberTypes();
+        var name = ParseName();
+        var directives = ParseDirectives(true);
+        var types = ParseUnionMemberTypes();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new UnionTypeDefinitionNode
         (
@@ -385,15 +385,15 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private EnumTypeDefinitionNode ParseEnumTypeDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         MoveNext();
 
-        NameNode name = ParseName();
-        List<DirectiveNode> directives = ParseDirectives(true);
-        List<EnumValueDefinitionNode> values = ParseEnumValuesDefinition();
+        var name = ParseName();
+        var directives = ParseDirectives(true);
+        var values = ParseEnumValuesDefinition();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new EnumTypeDefinitionNode
         (
@@ -442,13 +442,13 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private EnumValueDefinitionNode ParseEnumValueDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
-        StringValueNode? description = ParseDescription();
-        NameNode name = ParseName();
-        List<DirectiveNode> directives = ParseDirectives(true);
+        var description = ParseDescription();
+        var name = ParseName();
+        var directives = ParseDirectives(true);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new EnumValueDefinitionNode
         (
@@ -461,15 +461,15 @@ public ref partial struct Utf8GraphQLParser
 
     private InputObjectTypeDefinitionNode ParseInputObjectTypeDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         MoveNext();
 
-        NameNode name = ParseName();
-        List<DirectiveNode> directives = ParseDirectives(true);
-        List<InputValueDefinitionNode> fields = ParseInputFieldsDefinition();
+        var name = ParseName();
+        var directives = ParseDirectives(true);
+        var fields = ParseInputFieldsDefinition();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new InputObjectTypeDefinitionNode
         (

@@ -111,7 +111,7 @@ public interface ISortConventionDescriptor
     /// <paramref name="argumentName"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    ISortConventionDescriptor ArgumentName(NameString argumentName);
+    ISortConventionDescriptor ArgumentName(string argumentName);
 
     /// <summary>
     /// Add a extensions that is applied to <see cref="SortProvider{TContext}"/>

@@ -17,7 +17,7 @@ namespace HotChocolate.Execution.Benchmarks
 
         public string GetResourceString(string fileName)
         {
-            Stream stream = GetResourceStream(fileName);
+            var stream = GetResourceStream(fileName);
             if (stream != null)
             {
                 using (var reader = new StreamReader(stream, Encoding.UTF8))

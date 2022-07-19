@@ -28,7 +28,7 @@ public class RgbType : RegexType
     /// Initializes a new instance of the <see cref="RgbType"/> class.
     /// </summary>
     public RgbType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(

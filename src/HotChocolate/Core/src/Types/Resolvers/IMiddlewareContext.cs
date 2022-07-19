@@ -54,6 +54,6 @@ public interface IMiddlewareContext : IResolverContext
     /// Returns the original argument values map so that a middleware is able to conserve them
     /// and restore the initial state of the context after it finished to execute.
     /// </returns>
-    IReadOnlyDictionary<NameString, ArgumentValue> ReplaceArguments(
-        IReadOnlyDictionary<NameString, ArgumentValue> argumentValues);
+    IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
+        IReadOnlyDictionary<string, ArgumentValue> argumentValues);
 }

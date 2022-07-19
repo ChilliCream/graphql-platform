@@ -57,7 +57,7 @@ public class Neo4JExecutable<T>
     /// <inheritdoc />
     public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
     {
-        IResultCursor cursor = await _session.RunAsync(Pipeline().Build());
+        var cursor = await _session.RunAsync(Pipeline().Build());
         return await cursor.MapAsync<T>().ConfigureAwait(false);
     }
 
@@ -111,7 +111,7 @@ public class Neo4JExecutable<T>
 
     public StatementBuilder Pipeline()
     {
-        StatementBuilder statement = Cypher.Match(Node).Return(Node);
+        var statement = Cypher.Match(Node).Return(Node);
 
         if (_filters is not null)
         {
@@ -130,9 +130,9 @@ public class Neo4JExecutable<T>
 
         var sorts = new List<SortItem>();
 
-        foreach (Neo4JSortDefinition sort in _sorting)
+        foreach (var sort in _sorting)
         {
-            SortItem sortItem = Cypher.Sort(Node.Property(sort.Field));
+            var sortItem = Cypher.Sort(Node.Property(sort.Field));
             if (sort.Direction == SortDirection.Ascending)
             {
                 sorts.Push(sortItem.Ascending());

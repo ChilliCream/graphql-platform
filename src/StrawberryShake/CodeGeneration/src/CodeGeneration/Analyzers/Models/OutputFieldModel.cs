@@ -2,22 +2,23 @@ using System;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
 public class OutputFieldModel : IFieldModel
 {
     public OutputFieldModel(
-        NameString name,
-        NameString responseName,
+        string name,
+        string responseName,
         string? description,
         IOutputField field,
         IOutputType type,
         FieldNode syntaxNode,
         Path path)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
-        ResponseName = responseName.EnsureNotEmpty(nameof(responseName));
+        Name = name.EnsureGraphQLName();
+        ResponseName = responseName.EnsureGraphQLName();
         Description = description;
         Field = field ?? throw new ArgumentNullException(nameof(field));
         SyntaxNode = syntaxNode ?? throw new ArgumentNullException(nameof(syntaxNode));
@@ -25,9 +26,9 @@ public class OutputFieldModel : IFieldModel
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
-    public NameString Name { get; }
+    public string Name { get; }
 
-    public NameString ResponseName { get; }
+    public string ResponseName { get; }
 
     public string? Description { get; }
 

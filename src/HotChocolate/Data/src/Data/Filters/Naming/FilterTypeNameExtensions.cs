@@ -7,7 +7,7 @@ public static class FilterTypeNameExtensions
 {
     public static IFilterInputTypeNameDependencyDescriptor<T> Name<T>(
         this IFilterInputTypeDescriptor<T> descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         if (descriptor is null)
         {

@@ -4,7 +4,7 @@ using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 
 namespace HotChocolate.Data.Projections.Handlers;
 
-public class QueryableSortProjectionOptimizer : IProjectionOptimizer
+public sealed class QueryableSortProjectionOptimizer : IProjectionOptimizer
 {
     public bool CanHandle(ISelection field) =>
         field.Field.Member is { } &&
@@ -12,10 +12,10 @@ public class QueryableSortProjectionOptimizer : IProjectionOptimizer
         field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 
     public Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection)
     {
-        FieldDelegate resolverPipeline =
+        var resolverPipeline =
             selection.ResolverPipeline ??
             context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
 
@@ -28,16 +28,8 @@ public class QueryableSortProjectionOptimizer : IProjectionOptimizer
 
         resolverPipeline = WrappedPipeline(resolverPipeline);
 
-        var compiledSelection = new Selection(
-            context.GetNextId(),
-            context.Type,
-            selection.Field,
-            selection.SyntaxNode,
-            resolverPipeline,
-            arguments: selection.Arguments,
-            internalSelection: false);
+        context.SetResolver(selection, resolverPipeline);
 
-        context.Fields[compiledSelection.ResponseName] = compiledSelection;
-        return compiledSelection;
+        return selection;
     }
 }

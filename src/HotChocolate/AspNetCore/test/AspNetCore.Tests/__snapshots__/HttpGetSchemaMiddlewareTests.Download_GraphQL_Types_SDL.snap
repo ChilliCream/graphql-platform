@@ -1,4 +1,4 @@
-﻿type Query {
+type Query {
   hero(episode: Episode! = NEW_HOPE): Character
   heroes(episodes: [Episode!]): [Character!]
   character(characterIds: [String]): [Character!]!

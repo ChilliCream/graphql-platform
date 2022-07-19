@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
@@ -86,7 +85,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeDefinition>
     {
         base.OnRegisterDependencies(context, definition);
 
-        foreach (ITypeReference typeRef in definition.Types)
+        foreach (var typeRef in definition.Types)
         {
             context.Dependencies.Add(new(typeRef));
         }

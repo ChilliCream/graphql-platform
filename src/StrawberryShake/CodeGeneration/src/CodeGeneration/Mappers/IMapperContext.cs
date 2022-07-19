@@ -50,9 +50,9 @@ public interface IMapperContext
 
     void Register(IEnumerable<DataTypeDescriptor> dataTypeDescriptors);
 
-    void Register(NameString operationName, OperationDescriptor operationDescriptor);
+    void Register(string operationName, OperationDescriptor operationDescriptor);
 
-    void Register(NameString resultBuilderName, ResultBuilderDescriptor operationDescriptor);
+    void Register(string resultBuilderName, ResultBuilderDescriptor operationDescriptor);
 
     void Register(ClientDescriptor clientDescriptor);
 
@@ -62,11 +62,11 @@ public interface IMapperContext
 
     void Register(StoreAccessorDescriptor storeAccessorDescriptor);
 
-    bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
+    bool Register(string typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
 
     void Register(ResultFromEntityDescriptor descriptor);
 
-    RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind);
+    RuntimeTypeInfo GetRuntimeType(string typeName, TypeKind kind);
 
     T GetType<T>(string runtimeTypeName) where T : INamedTypeDescriptor;
 }

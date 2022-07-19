@@ -12,7 +12,7 @@ public partial class JsonResultBuilderGenerator
         MethodBuilder methodBuilder,
         ILeafTypeDescriptor namedType)
     {
-        MethodCallBuilder methodCall = MethodCallBuilder
+        var methodCall = MethodCallBuilder
             .New()
             .SetReturn()
             .SetMethodName(GetFieldName(namedType.Name) + "Parser", "Parse");

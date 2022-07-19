@@ -44,7 +44,7 @@ public class GraphQLClientException : Exception
     }
 
     /// <summary>
-    /// Creates a new exception that is caused by the specified client <see cref="errors"/>.
+    /// Creates a new exception that is caused by the specified client <paramref cref="errors"/>.
     /// </summary>
     /// <param name="errors">
     /// The client errors.
@@ -71,7 +71,7 @@ public class GraphQLClientException : Exception
         {
             var message = new StringBuilder("Multiple errors occurred:");
 
-            foreach (IClientError error in errors)
+            foreach (var error in errors)
             {
                 message.AppendLine();
                 message.Append("- ");
@@ -85,7 +85,7 @@ public class GraphQLClientException : Exception
     }
 
     /// <summary>
-    /// Creates a new exception that is caused by the specified client <see cref="errors"/>.
+    /// Creates a new exception that is caused by the specified client <paramref cref="errors"/>.
     /// </summary>
     /// <param name="errors">
     /// The client errors.

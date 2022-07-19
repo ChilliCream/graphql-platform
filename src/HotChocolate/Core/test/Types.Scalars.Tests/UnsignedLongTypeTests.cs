@@ -12,7 +12,7 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
     public void Schema_WithScalar_IsMatch()
     {
         // arrange
-        ISchema schema = BuildSchema<UnsignedLongType>();
+        var schema = BuildSchema<UnsignedLongType>();
 
         // act
         // assert
@@ -34,7 +34,7 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
         bool expected)
     {
         // arrange
-        IValueNode valueNode = CreateValueNode(type, value);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
@@ -73,7 +73,7 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
         object expected)
     {
         // arrange
-        IValueNode valueNode = CreateValueNode(type, value);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
@@ -88,7 +88,7 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
     public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
-        IValueNode valueNode = CreateValueNode(type, value);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert

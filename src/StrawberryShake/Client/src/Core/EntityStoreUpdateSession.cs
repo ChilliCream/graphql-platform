@@ -61,7 +61,7 @@ internal sealed class EntityStoreUpdateSession : IEntityStoreUpdateSession
             throw new ArgumentNullException(nameof(entityIds));
         }
 
-        foreach (EntityId entityId in entityIds)
+        foreach (var entityId in entityIds)
         {
             _entities.Remove(entityId);
             UpdatedEntityIds.Add(entityId);

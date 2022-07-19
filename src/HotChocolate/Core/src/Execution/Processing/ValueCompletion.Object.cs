@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ErrorHelper;
@@ -12,15 +11,14 @@ namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    private static bool TryCompleteCompositeValue(
-        IOperationContext operationContext,
+    private static ObjectResult? CompleteCompositeValue(
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
+        List<ResolverTask> tasks,
         ISelection selection,
         Path path,
         IType fieldType,
-        object result,
-        List<ResolverTask> bufferedTasks,
-        [NotNullWhen(true)] out object? completedResult)
+        object result)
     {
         if (TryResolveObjectType(
             operationContext,
@@ -29,11 +27,10 @@ internal static partial class ValueCompletion
             path,
             fieldType,
             result,
-            out ObjectType? objectType))
+            out var objectType))
         {
-            SelectionSetNode selectionSet = selection.SyntaxNode.SelectionSet!;
-            ISelectionSet selections = operationContext.CollectFields(selectionSet, objectType);
-            Type runtimeType = objectType.RuntimeType;
+            var selectionSet = operationContext.CollectFields(selection, objectType);
+            var runtimeType = objectType.RuntimeType;
 
             if (!runtimeType.IsInstanceOfType(result) &&
                 operationContext.Converter.TryConvert(runtimeType, result, out var converted))
@@ -41,29 +38,23 @@ internal static partial class ValueCompletion
                 result = converted;
             }
 
-            completedResult = EnqueueOrInlineResolverTasks(
+            return EnqueueOrInlineResolverTasks(
                 operationContext,
                 resolverContext,
                 path,
                 objectType,
                 result,
-                selections,
-                bufferedTasks);
-            return true;
+                selectionSet,
+                tasks);
         }
 
-        ReportError(
-            operationContext,
-            resolverContext,
-            selection,
-            ValueCompletion_CouldNotResolveAbstractType(selection.SyntaxNode, path, result));
-
-        completedResult = null;
-        return false;
+        var error = ValueCompletion_CouldNotResolveAbstractType(selection.SyntaxNode, path, result);
+        operationContext.ReportError(error, resolverContext, selection);
+        return null;
     }
 
     private static bool TryResolveObjectType(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
         Path path,
@@ -97,23 +88,20 @@ internal static partial class ValueCompletion
                     return objectType is not null;
             }
 
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                UnableToResolveTheAbstractType(fieldType.Print(), selection.SyntaxNode, path));
+            var error = UnableToResolveTheAbstractType(
+                fieldType.Print(),
+                selection.SyntaxNode,
+                path);
+            operationContext.ReportError(error, resolverContext, selection);
         }
         catch (Exception ex)
         {
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                UnexpectedErrorWhileResolvingAbstractType(
-                    ex,
-                    fieldType.Print(),
-                    selection.SyntaxNode,
-                    path));
+            var error = UnexpectedErrorWhileResolvingAbstractType(
+                ex,
+                fieldType.Print(),
+                selection.SyntaxNode,
+                path);
+            operationContext.ReportError(error, resolverContext, selection);
         }
 
         objectType = null;

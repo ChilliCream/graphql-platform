@@ -12,8 +12,6 @@
         "stringToName"
       ],
       "extensions": {
-        "actualValue": "  ",
-        "actualType": "System.String",
         "code": "EXEC_INVALID_LEAF_VALUE"
       }
     }

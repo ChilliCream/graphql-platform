@@ -8,37 +8,38 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
 #nullable enable
 
-namespace HotChocolate.Types.Relay
-{
-    public class IdAttributeTests
-    {
-        [Fact]
-        public async Task Id_On_Arguments()
-        {
-            // arrange
-            var idSerializer = new IdSerializer();
-            var intId = idSerializer.Serialize("Query", 1);
-            var stringId = idSerializer.Serialize("Query", "abc");
-            var guidId = idSerializer.Serialize(
-                "Query",
-                new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5"));
+namespace HotChocolate.Types.Relay;
 
-            // act
-            IExecutionResult result =
-                await SchemaBuilder.New()
-                    .AddQueryType<Query>()
-                    .AddType<FooPayload>()
-                    .AddGlobalObjectIdentification(false)
-                    .Create()
-                    .MakeExecutable()
-                    .ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(@"query foo (
+public class IdAttributeTests
+{
+    [Fact]
+    public async Task Id_On_Arguments()
+    {
+        // arrange
+        var idSerializer = new IdSerializer();
+        var intId = idSerializer.Serialize("Query", 1);
+        var stringId = idSerializer.Serialize("Query", "abc");
+        var guidId = idSerializer.Serialize(
+            "Query",
+            new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5"));
+
+        // act
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"query foo (
                                 $intId: ID!
                                 $nullIntId: ID = null
                                 $stringId: ID!
@@ -62,59 +63,59 @@ namespace HotChocolate.Types.Relay
                                 guidIdList(id: [$guidId $guidId])
                                 nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
                             }")
-                            .SetVariableValue("intId", intId)
-                            .SetVariableValue("stringId", stringId)
-                            .SetVariableValue("guidId", guidId)
-                            .Create());
+                        .SetVariableValue("intId", intId)
+                        .SetVariableValue("stringId", stringId)
+                        .SetVariableValue("guidId", guidId)
+                        .Create());
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task InterceptedId_On_Arguments()
-        {
-            // arrange
-            // act
-            IExecutionResult result =
-                await SchemaBuilder.New()
-                    .AddQueryType<Query>()
-                    .AddType<FooPayload>()
-                    .AddGlobalObjectIdentification(false)
-                    .Create()
-                    .MakeExecutable()
-                    .ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(@"query foo {
+    [Fact]
+    public async Task InterceptedId_On_Arguments()
+    {
+        // arrange
+        // act
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"query foo {
                                 interceptedId(id: 1)
                                 interceptedIds(id: [1, 2])
                             }")
-                            .Create());
+                        .Create());
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Id_On_Objects()
-        {
-            // arrange
-            var idSerializer = new IdSerializer();
-            var someId = idSerializer.Serialize("Some", "1");
-            var someIntId = idSerializer.Serialize("Some", 1);
+    [Fact]
+    public async Task Id_On_Objects()
+    {
+        // arrange
+        var idSerializer = new IdSerializer();
+        var someId = idSerializer.Serialize("Some", "1");
+        var someIntId = idSerializer.Serialize("Some", 1);
 
-            // act
-            IExecutionResult result =
-                await SchemaBuilder.New()
-                    .AddQueryType<Query>()
-                    .AddType<FooPayload>()
-                    .AddGlobalObjectIdentification(false)
-                    .Create()
-                    .MakeExecutable()
-                    .ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"query foo ($someId: ID! $someIntId: ID!) {
+        // act
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query foo ($someId: ID! $someIntId: ID!) {
                                     foo(input: {
                                         someId: $someId someIds: [$someIntId]
                                         someNullableId: $someId someNullableIds: [$someIntId] })
@@ -127,41 +128,41 @@ namespace HotChocolate.Types.Relay
                                         }
                                     }
                                 }")
-                            .SetVariableValue("someId", someId)
-                            .SetVariableValue("someNullableId", null)
-                            .SetVariableValue("someIntId", someIntId)
-                            .SetVariableValue("someNullableIntId", null)
-                            .Create());
+                        .SetVariableValue("someId", someId)
+                        .SetVariableValue("someNullableId", null)
+                        .SetVariableValue("someIntId", someIntId)
+                        .SetVariableValue("someNullableIntId", null)
+                        .Create());
 
-            // assert
-            new
-            {
-                result = result.ToJson(),
-                someId,
-                someIntId
-            }.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Id_On_Objects_Given_Nulls()
+        // assert
+        new
         {
-            // arrange
-            var idSerializer = new IdSerializer();
-            var someId = idSerializer.Serialize("Some", "1");
-            var someIntId = idSerializer.Serialize("Some", 1);
+            result = result.ToJson(),
+            someId,
+            someIntId
+        }.MatchSnapshot();
+    }
 
-            // act
-            IExecutionResult result =
-                await SchemaBuilder.New()
-                    .AddQueryType<Query>()
-                    .AddType<FooPayload>()
-                    .AddGlobalObjectIdentification(false)
-                    .Create()
-                    .MakeExecutable()
-                    .ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"query foo (
+    [Fact]
+    public async Task Id_On_Objects_Given_Nulls()
+    {
+        // arrange
+        var idSerializer = new IdSerializer();
+        var someId = idSerializer.Serialize("Some", "1");
+        var someIntId = idSerializer.Serialize("Some", 1);
+
+        // act
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query foo (
                                     $someId: ID! $someIntId: ID!
                                     $someNullableId: ID
                                     $someNullableIntId: ID) {
@@ -178,42 +179,42 @@ namespace HotChocolate.Types.Relay
                                         }
                                     }
                                 }")
-                            .SetVariableValue("someId", someId)
-                            .SetVariableValue("someNullableId", null)
-                            .SetVariableValue("someIntId", someIntId)
-                            .SetVariableValue("someNullableIntId", null)
-                            .Create());
+                        .SetVariableValue("someId", someId)
+                        .SetVariableValue("someNullableId", null)
+                        .SetVariableValue("someIntId", someIntId)
+                        .SetVariableValue("someNullableIntId", null)
+                        .Create());
 
-            // assert
-            new
-            {
-                result = result.ToJson(),
-                someId,
-                someIntId
-            }.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task InterceptedId_On_Objects()
+        // assert
+        new
         {
-            // arrange
-            var idSerializer = new IdSerializer();
-            var someId = idSerializer.Serialize("Some", "1");
-            var someIntId = idSerializer.Serialize("Some", 1);
+            result = result.ToJson(),
+            someId,
+            someIntId
+        }.MatchSnapshot();
+    }
 
-            IRequestExecutor executor = SchemaBuilder.New()
-                .AddQueryType<Query>()
-                .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable();
+    [Fact]
+    public async Task InterceptedId_On_Objects()
+    {
+        // arrange
+        var idSerializer = new IdSerializer();
+        var someId = idSerializer.Serialize("Some", "1");
+        var someIntId = idSerializer.Serialize("Some", 1);
 
-            // act
-            IExecutionResult result = await executor
-                .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
-                            @"query foo($someId: ID! $someIntId: ID!) {
+        var executor = SchemaBuilder.New()
+            .AddQueryType<Query>()
+            .AddType<FooPayload>()
+            .AddGlobalObjectIdentification(false)
+            .Create()
+            .MakeExecutable();
+
+        // act
+        var result = await executor
+            .ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"query foo($someId: ID! $someIntId: ID!) {
                                 foo(input: {
                                     someId: $someId
                                     someIds: [$someIntId]
@@ -226,301 +227,300 @@ namespace HotChocolate.Types.Relay
                                     interceptedIds
                                 }
                             }")
-                        .SetVariableValue("someId", someId)
-                        .SetVariableValue("someIntId", someIntId)
-                        .Create());
+                    .SetVariableValue("someId", someId)
+                    .SetVariableValue("someIntId", someIntId)
+                    .Create());
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Id_On_Objects_InvalidType()
-        {
-            // arrange
-            var idSerializer = new IdSerializer();
-            var someId = idSerializer.Serialize("Some", Guid.Empty);
+    [Fact]
+    public async Task Id_On_Objects_InvalidType()
+    {
+        // arrange
+        var idSerializer = new IdSerializer();
+        var someId = idSerializer.Serialize("Some", Guid.Empty);
 
-            // act
-            IExecutionResult result =
-                await SchemaBuilder.New()
-                    .AddQueryType<Query>()
-                    .AddType<FooPayload>()
-                    .AddGlobalObjectIdentification(false)
-                    .Create()
-                    .MakeExecutable()
-                    .ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"query foo ($someId: ID!) {
-                                    foo(input: { someId: $someId someIds: [$someId] }) {
-                                        someId
-                                        ... on FooPayload {
-                                            someIds
-                                        }
-                                    }
-                                }")
-                            .SetVariableValue("someId", someId)
-                            .Create());
-
-            // assert
-            new
-            {
-                result = result.ToJson(),
-                someId
-            }.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Id_On_Objects_InvalidId()
-        {
-            // arrange
-            var someId = "abc";
-
-            // act
-            IExecutionResult result =
-                await SchemaBuilder.New()
-                    .AddQueryType<Query>()
-                    .AddType<FooPayload>()
-                    .AddGlobalObjectIdentification(false)
-                    .Create()
-                    .MakeExecutable()
-                    .ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"query foo ($someId: ID!) {
-                                    foo(input: { someId: $someId someIds: [$someId] }) {
-                                        someId
-                                        ... on FooPayload {
-                                            someIds
-                                        }
-                                    }
-                                }")
-                            .SetVariableValue("someId", someId)
-                            .Create());
-
-            // assert
-            new
-            {
-                result = result.ToJson(),
-                someId
-            }.MatchSnapshot();
-        }
-
-        [Fact]
-        public void Id_Type_Is_Correctly_Inferred()
-        {
-            SchemaBuilder.New()
+        // act
+        var result =
+            await SchemaBuilder.New()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
                 .Create()
-                .ToString()
-                .MatchSnapshot();
-        }
+                .MakeExecutable()
+                .ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query foo ($someId: ID!) {
+                                    foo(input: { someId: $someId someIds: [$someId] }) {
+                                        someId
+                                        ... on FooPayload {
+                                            someIds
+                                        }
+                                    }
+                                }")
+                        .SetVariableValue("someId", someId)
+                        .Create());
 
-        [Fact]
-        public void EnsureIdIsOnlyAppliedOnce()
+        // assert
+        new
         {
-            var inspector = new TestTypeInterceptor();
+            result = result.ToJson(),
+            someId
+        }.MatchSnapshot();
+    }
 
-            SchemaBuilder.New()
-                .AddQueryType(d =>
-                {
-                    d.Name("Query");
-                    d.Field("abc").ID().ID().ID().ID().Resolve("abc");
-                })
+    [Fact]
+    public async Task Id_On_Objects_InvalidId()
+    {
+        // arrange
+        var someId = "abc";
+
+        // act
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .TryAddTypeInterceptor(inspector)
-                .Create();
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query foo ($someId: ID!) {
+                                    foo(input: { someId: $someId someIds: [$someId] }) {
+                                        someId
+                                        ... on FooPayload {
+                                            someIds
+                                        }
+                                    }
+                                }")
+                        .SetVariableValue("someId", someId)
+                        .Create());
 
-            Assert.Equal(1, inspector.Count);
-        }
-
-        [SuppressMessage("Performance", "CA1822:Mark members as static")]
-        public class Query
+        // assert
+        new
         {
-            public string IntId([ID] int id) => id.ToString();
-            public string IntIdList([ID] int[] id) =>
-                string.Join(", ", id.Select(t => t.ToString()));
+            result = result.ToJson(),
+            someId
+        }.MatchSnapshot();
+    }
 
-            public string NullableIntId([ID] int? id) => id?.ToString() ?? "null";
-            public string NullableIntIdList([ID] int?[] id) =>
-                string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+    [Fact]
+    public void Id_Type_Is_Correctly_Inferred()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<Query>()
+            .AddType<FooPayload>()
+            .AddGlobalObjectIdentification(false)
+            .Create()
+            .ToString()
+            .MatchSnapshot();
+    }
 
-            public string StringId([ID] string id) => id;
-            public string StringIdList([ID] string[] id) =>
-                string.Join(", ", id.Select(t => t.ToString()));
+    [Fact]
+    public void EnsureIdIsOnlyAppliedOnce()
+    {
+        var inspector = new TestTypeInterceptor();
 
-            public string NullableStringId([ID] string? id) => id ?? "null";
-            public string NullableStringIdList([ID] string?[] id) =>
-                string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
-
-            public string GuidId([ID] Guid id) => id.ToString();
-            public string GuidIdList([ID] IReadOnlyList<Guid> id) =>
-                string.Join(", ", id.Select(t => t.ToString()));
-
-            public string NullableGuidId([ID] Guid? id) => id?.ToString() ?? "null";
-            public string NullableGuidIdList([ID] IReadOnlyList<Guid?> id) =>
-                string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
-
-            public string InterceptedId([InterceptedID] [ID] int id) => id.ToString();
-
-            public string InterceptedIds([InterceptedID] [ID] int[] id) =>
-                string.Join(", ", id.Select(t => t.ToString()));
-
-            public IFooPayload Foo(FooInput input) =>
-                new FooPayload(
-                    input.SomeId,
-                    input.SomeNullableId,
-                    input.SomeIds,
-                    input.SomeNullableIds,
-                    input.InterceptedId,
-                    input.InterceptedIds);
-        }
-
-        public class FooInput
-        {
-            public FooInput(
-                string someId,
-                string? someNullableId,
-                IReadOnlyList<int> someIds,
-                IReadOnlyList<int?>? someNullableIds,
-                int? interceptedId,
-                IReadOnlyList<int>? interceptedIds)
+        SchemaBuilder.New()
+            .AddQueryType(d =>
             {
-                SomeId = someId;
-                SomeNullableId = someNullableId;
-                SomeIds = someIds;
-                SomeNullableIds = someNullableIds;
-                InterceptedId = interceptedId;
-                InterceptedIds = interceptedIds;
+                d.Name("Query");
+                d.Field("abc").ID().ID().ID().ID().Resolve("abc");
+            })
+            .AddGlobalObjectIdentification(false)
+            .TryAddTypeInterceptor(inspector)
+            .Create();
+
+        Assert.Equal(1, inspector.Count);
+    }
+
+    [SuppressMessage("Performance", "CA1822:Mark members as static")]
+    public class Query
+    {
+        public string IntId([ID] int id) => id.ToString();
+        public string IntIdList([ID] int[] id) =>
+            string.Join(", ", id.Select(t => t.ToString()));
+
+        public string NullableIntId([ID] int? id) => id?.ToString() ?? "null";
+        public string NullableIntIdList([ID] int?[] id) =>
+            string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+
+        public string StringId([ID] string id) => id;
+        public string StringIdList([ID] string[] id) =>
+            string.Join(", ", id.Select(t => t.ToString()));
+
+        public string NullableStringId([ID] string? id) => id ?? "null";
+        public string NullableStringIdList([ID] string?[] id) =>
+            string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+
+        public string GuidId([ID] Guid id) => id.ToString();
+        public string GuidIdList([ID] IReadOnlyList<Guid> id) =>
+            string.Join(", ", id.Select(t => t.ToString()));
+
+        public string NullableGuidId([ID] Guid? id) => id?.ToString() ?? "null";
+        public string NullableGuidIdList([ID] IReadOnlyList<Guid?> id) =>
+            string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+
+        public string InterceptedId([InterceptedID] [ID] int id) => id.ToString();
+
+        public string InterceptedIds([InterceptedID] [ID] int[] id) =>
+            string.Join(", ", id.Select(t => t.ToString()));
+
+        public IFooPayload Foo(FooInput input) =>
+            new FooPayload(
+                input.SomeId,
+                input.SomeNullableId,
+                input.SomeIds,
+                input.SomeNullableIds,
+                input.InterceptedId,
+                input.InterceptedIds);
+    }
+
+    public class FooInput
+    {
+        public FooInput(
+            string someId,
+            string? someNullableId,
+            IReadOnlyList<int> someIds,
+            IReadOnlyList<int?>? someNullableIds,
+            int? interceptedId,
+            IReadOnlyList<int>? interceptedIds)
+        {
+            SomeId = someId;
+            SomeNullableId = someNullableId;
+            SomeIds = someIds;
+            SomeNullableIds = someNullableIds;
+            InterceptedId = interceptedId;
+            InterceptedIds = interceptedIds;
+        }
+
+        [ID("Some")] public string SomeId { get; }
+
+        [ID("Some")] public string? SomeNullableId { get; }
+
+        [ID("Some")] public IReadOnlyList<int> SomeIds { get; }
+
+        [ID("Some")] public IReadOnlyList<int?>? SomeNullableIds { get; }
+
+        [ID, InterceptedID]
+        public int? InterceptedId { get; }
+
+        [ID, InterceptedID]
+        public IReadOnlyList<int>? InterceptedIds { get; }
+    }
+
+    public class FooPayload : IFooPayload
+    {
+        public FooPayload(
+            string someId,
+            string? someNullableId,
+            IReadOnlyList<int> someIds,
+            IReadOnlyList<int?>? someNullableIds,
+            int? interceptedId,
+            IReadOnlyList<int>? interceptedIds)
+        {
+            SomeId = someId;
+            SomeNullableId = someNullableId;
+            SomeIds = someIds;
+            SomeNullableIds = someNullableIds;
+            InterceptedId = interceptedId;
+            InterceptedIds = interceptedIds;
+        }
+
+        [ID("Bar")] public string SomeId { get; }
+
+        [ID("Bar")] public IReadOnlyList<int> SomeIds { get; }
+
+        [ID("Bar")] public string? SomeNullableId { get; }
+
+        [ID("Bar")] public IReadOnlyList<int?>? SomeNullableIds { get; }
+
+        public int? InterceptedId { get; }
+
+        public IReadOnlyList<int>? InterceptedIds { get; }
+
+        public string Raw =>
+            $"{nameof(SomeId)}: {SomeId}, " +
+            $"{nameof(SomeIds)}: [{string.Join(", ", SomeIds)}], " +
+            $"{nameof(SomeNullableId)}: {SomeNullableId}, " +
+            $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds ?? Array.Empty<int?>())}]" +
+            $"{nameof(InterceptedId)}: {InterceptedId}" +
+            $"{nameof(InterceptedIds)}: [{string.Join(", ", InterceptedIds ?? Array.Empty<int>())}]";
+    }
+
+    public interface IFooPayload
+    {
+        [ID] string SomeId { get; }
+
+        [ID] public string? SomeNullableId { get; }
+
+        [ID] IReadOnlyList<int> SomeIds { get; }
+
+        [ID] IReadOnlyList<int?>? SomeNullableIds { get; }
+
+        int? InterceptedId { get; }
+
+        IReadOnlyList<int>? InterceptedIds { get; }
+
+        string Raw { get; }
+    }
+
+    [AttributeUsage(
+        AttributeTargets.Parameter |
+        AttributeTargets.Property |
+        AttributeTargets.Method)]
+    public class InterceptedIDAttribute : DescriptorAttribute
+    {
+        protected internal override void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element)
+        {
+            switch (descriptor)
+            {
+                case IInputFieldDescriptor dc when element is PropertyInfo:
+                    dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
+                    break;
+                case IArgumentDescriptor dc when element is ParameterInfo:
+                    dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
+                    break;
             }
-
-            [ID("Some")] public string SomeId { get; }
-
-            [ID("Some")] public string? SomeNullableId { get; }
-
-            [ID("Some")] public IReadOnlyList<int> SomeIds { get; }
-
-            [ID("Some")] public IReadOnlyList<int?>? SomeNullableIds { get; }
-
-            [ID, InterceptedID]
-            public int? InterceptedId { get; }
-
-            [ID, InterceptedID]
-            public IReadOnlyList<int>? InterceptedIds { get; }
         }
 
-        public class FooPayload : IFooPayload
+        private static void AddInterceptingSerializer(ArgumentDefinition definition) =>
+            definition.Formatters.Insert(0, new InterceptingFormatter());
+
+        private sealed class InterceptingFormatter : IInputValueFormatter
         {
-            public FooPayload(
-                string someId,
-                string? someNullableId,
-                IReadOnlyList<int> someIds,
-                IReadOnlyList<int?>? someNullableIds,
-                int? interceptedId,
-                IReadOnlyList<int>? interceptedIds)
-            {
-                SomeId = someId;
-                SomeNullableId = someNullableId;
-                SomeIds = someIds;
-                SomeNullableIds = someNullableIds;
-                InterceptedId = interceptedId;
-                InterceptedIds = interceptedIds;
-            }
-
-            [ID("Bar")] public string SomeId { get; }
-
-            [ID("Bar")] public IReadOnlyList<int> SomeIds { get; }
-
-            [ID("Bar")] public string? SomeNullableId { get; }
-
-            [ID("Bar")] public IReadOnlyList<int?>? SomeNullableIds { get; }
-
-            public int? InterceptedId { get; }
-
-            public IReadOnlyList<int>? InterceptedIds { get; }
-
-            public string Raw =>
-                $"{nameof(SomeId)}: {SomeId}, " +
-                $"{nameof(SomeIds)}: [{string.Join(", ", SomeIds)}], " +
-                $"{nameof(SomeNullableId)}: {SomeNullableId}, " +
-                $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds ?? Array.Empty<int?>())}]" +
-                $"{nameof(InterceptedId)}: {InterceptedId}" +
-                $"{nameof(InterceptedIds)}: [{string.Join(", ", InterceptedIds ?? Array.Empty<int>())}]";
+            public object? OnAfterDeserialize(object? runtimeValue) =>
+                runtimeValue is IEnumerable<string> list
+                    ? list
+                        .Select(x => new IdValue("x", "y", int.Parse(x)))
+                        .ToArray()
+                    : new IdValue("x", "y", int.Parse((string)runtimeValue!));
         }
+    }
 
-        public interface IFooPayload
+    public class TestTypeInterceptor : TypeInterceptor
+    {
+        public int Count { get; set; }
+
+        public override void OnValidateType(
+            ITypeSystemObjectContext validationContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
-            [ID] string SomeId { get; }
-
-            [ID] public string? SomeNullableId { get; }
-
-            [ID] IReadOnlyList<int> SomeIds { get; }
-
-            [ID] IReadOnlyList<int?>? SomeNullableIds { get; }
-
-            int? InterceptedId { get; }
-
-            IReadOnlyList<int>? InterceptedIds { get; }
-
-            string Raw { get; }
-        }
-
-        [AttributeUsage(
-            AttributeTargets.Parameter |
-            AttributeTargets.Property |
-            AttributeTargets.Method)]
-        public class InterceptedIDAttribute : DescriptorAttribute
-        {
-            protected internal override void TryConfigure(
-                IDescriptorContext context,
-                IDescriptor descriptor,
-                ICustomAttributeProvider element)
+            if (validationContext.Type.Name.EqualsOrdinal("Query") &&
+                definition is ObjectTypeDefinition typeDef)
             {
-                switch (descriptor)
-                {
-                    case IInputFieldDescriptor dc when element is PropertyInfo:
-                        dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
-                        break;
-                    case IArgumentDescriptor dc when element is ParameterInfo:
-                        dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
-                        break;
-                }
-            }
-
-            private static void AddInterceptingSerializer(ArgumentDefinition definition) =>
-                definition.Formatters.Insert(0, new InterceptingFormatter());
-
-            private sealed class InterceptingFormatter : IInputValueFormatter
-            {
-                public object? OnAfterDeserialize(object? runtimeValue) =>
-                    runtimeValue is IEnumerable<string> list
-                        ? list
-                            .Select(x => new IdValue("x", "y", int.Parse(x)))
-                            .ToArray()
-                        : new IdValue("x", "y", int.Parse((string)runtimeValue!));
-            }
-        }
-
-        public class TestTypeInterceptor : TypeInterceptor
-        {
-            public int Count { get; set; }
-
-            public override void OnValidateType(
-                ITypeSystemObjectContext validationContext,
-                DefinitionBase? definition,
-                IDictionary<string, object?> contextData)
-            {
-                if (validationContext.Type.Name.Equals("Query") &&
-                    definition is ObjectTypeDefinition typeDef)
-                {
-                    Count = typeDef.Fields
-                        .Single(t => t.Name.Equals("abc"))
-                        .GetResultConverters()
-                        .Count;
-                }
+                Count = typeDef.Fields
+                    .Single(t => t.Name.EqualsOrdinal("abc"))
+                    .GetResultConverters()
+                    .Count;
             }
         }
     }
