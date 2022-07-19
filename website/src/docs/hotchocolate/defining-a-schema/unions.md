@@ -23,7 +23,7 @@ Clients can query fields returning a union like the following.
 
 ```graphql
 {
-  postContent {
+  content {
     ... on TextContent {
       text
     }
