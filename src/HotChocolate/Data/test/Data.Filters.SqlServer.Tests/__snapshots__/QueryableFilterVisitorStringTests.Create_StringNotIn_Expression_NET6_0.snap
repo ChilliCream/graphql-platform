@@ -4,10 +4,6 @@ testatestAndtestb Result:
   "data": {
     "root": []
   }
-}{
-  "data": {
-    "root": []
-  }
 }
 ---------------
 
@@ -15,37 +11,12 @@ testatestAndtestb SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" NOT IN ('testatest', 'testbtest')SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
 WHERE "d"."Bar" NOT IN ('testatest', 'testbtest')
 ---------------
 
 testbtestAndNull Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "The provided value for filter \u0060nin\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 29
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "[String!]",
-        "filterType": "StringOperationFilterInput"
-      }
-    }
-  ],
-  "data": {
-    "root": []
-  }
-}{
   "errors": [
     {
       "message": "The provided value for filter \u0060nin\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
@@ -81,22 +52,12 @@ testatest Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testbtest"
-      }
-    ]
-  }
 }
 ---------------
 
 testatest SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-WHERE "d"."Bar" <> 'testatest'SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
 WHERE "d"."Bar" <> 'testatest'
 ---------------

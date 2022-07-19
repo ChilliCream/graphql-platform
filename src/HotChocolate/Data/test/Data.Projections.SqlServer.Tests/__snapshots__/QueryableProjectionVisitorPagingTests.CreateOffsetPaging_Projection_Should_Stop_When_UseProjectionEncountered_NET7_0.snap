@@ -29,41 +29,11 @@ Result:
       ]
     }
   }
-}{
-  "data": {
-    "root": {
-      "items": [
-        {
-          "bar": true,
-          "list": [
-            {
-              "barBaz": "a_a"
-            },
-            {
-              "barBaz": "a_b"
-            }
-          ]
-        },
-        {
-          "bar": false,
-          "list": [
-            {
-              "barBaz": "a_a"
-            },
-            {
-              "barBaz": "a_b"
-            }
-          ]
-        }
-      ]
-    }
-  }
 }
 ---------------
 
 SQL:
 ---------------
 SELECT "d"."Bar"
-FROM "Data" AS "d"SELECT "d"."Bar"
 FROM "Data" AS "d"
 ---------------

@@ -25,31 +25,6 @@ testatestAndtestb Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barString": "testatest"
-        }
-      },
-      {
-        "foo": {
-          "barString": "testatest"
-        }
-      },
-      {
-        "foo": {
-          "barString": "testbtest"
-        }
-      },
-      {
-        "foo": {
-          "barString": "testbtest"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
@@ -58,38 +33,12 @@ testatestAndtestb SQL:
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarString" IN ('testatest', 'testbtest')SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarString" IN ('testatest', 'testbtest')
 ---------------
 
 testbtestAndNull Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "The provided value for filter \u0060in\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 41
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "[String!]",
-        "filterType": "StringOperationFilterInput"
-      }
-    }
-  ],
-  "data": {
-    "root": []
-  }
-}{
   "errors": [
     {
       "message": "The provided value for filter \u0060in\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
@@ -132,30 +81,12 @@ testatest Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barString": "testatest"
-        }
-      },
-      {
-        "foo": {
-          "barString": "testatest"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 testatest SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarString" = 'testatest'SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarString" = 'testatest'

@@ -25,37 +25,11 @@ Result:
       ]
     }
   }
-}{
-  "data": {
-    "root": {
-      "nodes": [
-        {
-          "baz": "a"
-        },
-        {
-          "baz": "b"
-        }
-      ],
-      "edges": [
-        {
-          "node": {
-            "baz": "a"
-          }
-        },
-        {
-          "node": {
-            "baz": "b"
-          }
-        }
-      ]
-    }
-  }
 }
 ---------------
 
 SQL:
 ---------------
 SELECT "d"."Baz"
-FROM "Data" AS "d"SELECT "d"."Baz"
 FROM "Data" AS "d"
 ---------------

@@ -11,25 +11,12 @@ ASC Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testatest"
-      },
-      {
-        "bar": "testbtest"
-      }
-    ]
-  }
 }
 ---------------
 
 ASC SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-ORDER BY "d"."Bar"SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
 ORDER BY "d"."Bar"
 ---------------
@@ -47,25 +34,12 @@ DESC Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testbtest"
-      },
-      {
-        "bar": "testatest"
-      }
-    ]
-  }
 }
 ---------------
 
 DESC SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-ORDER BY "d"."Bar" DESCSELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
 ORDER BY "d"."Bar" DESC
 ---------------

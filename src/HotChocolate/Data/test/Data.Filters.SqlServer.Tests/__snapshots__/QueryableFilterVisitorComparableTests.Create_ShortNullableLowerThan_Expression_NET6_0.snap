@@ -4,20 +4,12 @@
   "data": {
     "root": []
   }
-}{
-  "data": {
-    "root": []
-  }
 }
 ---------------
 
 12 SQL:
 ---------------
 .param set @__p_0 12
-
-SELECT "d"."Id", "d"."BarShort"
-FROM "Data" AS "d"
-WHERE "d"."BarShort" < @__p_0.param set @__p_0 12
 
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
@@ -34,24 +26,12 @@ WHERE "d"."BarShort" < @__p_0
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": 12
-      }
-    ]
-  }
 }
 ---------------
 
 13 SQL:
 ---------------
 .param set @__p_0 13
-
-SELECT "d"."Id", "d"."BarShort"
-FROM "Data" AS "d"
-WHERE "d"."BarShort" < @__p_0.param set @__p_0 13
 
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
@@ -71,17 +51,6 @@ WHERE "d"."BarShort" < @__p_0
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": 12
-      },
-      {
-        "barShort": 13
-      }
-    ]
-  }
 }
 ---------------
 
@@ -91,39 +60,12 @@ WHERE "d"."BarShort" < @__p_0
 
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" < @__p_0.param set @__p_0 14
-
-SELECT "d"."Id", "d"."BarShort"
-FROM "Data" AS "d"
 WHERE "d"."BarShort" < @__p_0
 ---------------
 
 null Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "The provided value for filter \u0060lt\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 33
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "Short!",
-        "filterType": "ShortOperationFilterInput"
-      }
-    }
-  ],
-  "data": {
-    "root": []
-  }
-}{
   "errors": [
     {
       "message": "The provided value for filter \u0060lt\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",

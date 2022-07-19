@@ -4,21 +4,12 @@ false Result:
   "data": {
     "root": []
   }
-}{
-  "data": {
-    "root": []
-  }
 }
 ---------------
 
 false SQL:
 ---------------
 SELECT "d"."Id"
-FROM "Data" AS "d"
-WHERE NOT (EXISTS (
-    SELECT 1
-    FROM "FooNested" AS "f"
-    WHERE "d"."Id" = "f"."FooId"))SELECT "d"."Id"
 FROM "Data" AS "d"
 WHERE NOT (EXISTS (
     SELECT 1
@@ -98,76 +89,6 @@ true Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "fooNested": [
-          {
-            "bar": "a"
-          },
-          {
-            "bar": "a"
-          },
-          {
-            "bar": "a"
-          }
-        ]
-      },
-      {
-        "fooNested": [
-          {
-            "bar": "c"
-          },
-          {
-            "bar": "a"
-          },
-          {
-            "bar": "a"
-          }
-        ]
-      },
-      {
-        "fooNested": [
-          {
-            "bar": "a"
-          },
-          {
-            "bar": "d"
-          },
-          {
-            "bar": "b"
-          }
-        ]
-      },
-      {
-        "fooNested": [
-          {
-            "bar": "c"
-          },
-          {
-            "bar": "d"
-          },
-          {
-            "bar": "b"
-          }
-        ]
-      },
-      {
-        "fooNested": [
-          {
-            "bar": null
-          },
-          {
-            "bar": "d"
-          },
-          {
-            "bar": "b"
-          }
-        ]
-      }
-    ]
-  }
 }
 ---------------
 
@@ -178,35 +99,12 @@ FROM "Data" AS "d"
 WHERE EXISTS (
     SELECT 1
     FROM "FooNested" AS "f"
-    WHERE "d"."Id" = "f"."FooId")SELECT "d"."Id"
-FROM "Data" AS "d"
-WHERE EXISTS (
-    SELECT 1
-    FROM "FooNested" AS "f"
     WHERE "d"."Id" = "f"."FooId")
 ---------------
 
 null Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "root"
-      ]
-    }
-  ],
-  "data": {
-    "root": null
-  }
-}{
   "errors": [
     {
       "message": "Unexpected Execution Error",

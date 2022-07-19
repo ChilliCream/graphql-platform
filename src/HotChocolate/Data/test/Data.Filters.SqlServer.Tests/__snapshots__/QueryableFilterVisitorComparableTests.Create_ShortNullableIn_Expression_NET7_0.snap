@@ -11,25 +11,12 @@
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": 12
-      },
-      {
-        "barShort": 13
-      }
-    ]
-  }
 }
 ---------------
 
 12and13 SQL:
 ---------------
 SELECT "d"."Id", "d"."BarShort"
-FROM "Data" AS "d"
-WHERE "d"."BarShort" IN (12, 13)SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
 WHERE "d"."BarShort" IN (12, 13)
 ---------------
@@ -47,25 +34,12 @@ WHERE "d"."BarShort" IN (12, 13)
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": 14
-      },
-      {
-        "barShort": 13
-      }
-    ]
-  }
 }
 ---------------
 
 13and14 SQL:
 ---------------
 SELECT "d"."Id", "d"."BarShort"
-FROM "Data" AS "d"
-WHERE "d"."BarShort" IN (13, 14)SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
 WHERE "d"."BarShort" IN (13, 14)
 ---------------
@@ -83,25 +57,12 @@ WHERE "d"."BarShort" IN (13, 14)
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barShort": null
-      },
-      {
-        "barShort": 13
-      }
-    ]
-  }
 }
 ---------------
 
 13andNull SQL:
 ---------------
 SELECT "d"."Id", "d"."BarShort"
-FROM "Data" AS "d"
-WHERE "d"."BarShort" = 13 OR "d"."BarShort" IS NULLSELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
 WHERE "d"."BarShort" = 13 OR "d"."BarShort" IS NULL
 ---------------

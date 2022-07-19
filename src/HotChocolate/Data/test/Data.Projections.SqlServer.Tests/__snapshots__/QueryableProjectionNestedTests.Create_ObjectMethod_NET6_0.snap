@@ -15,27 +15,11 @@ Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "method": {
-          "barString": "Worked"
-        }
-      },
-      {
-        "method": {
-          "barString": "Worked"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 SQL:
 ---------------
 SELECT 1
-FROM "Data" AS "d"SELECT 1
 FROM "Data" AS "d"
 ---------------

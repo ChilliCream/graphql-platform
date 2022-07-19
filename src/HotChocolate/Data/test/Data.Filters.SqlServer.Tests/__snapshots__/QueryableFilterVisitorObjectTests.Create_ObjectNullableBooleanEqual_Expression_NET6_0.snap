@@ -15,32 +15,12 @@ true Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barBool": true
-        }
-      },
-      {
-        "foo": {
-          "barBool": true
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 true SQL:
 ---------------
 .param set @__p_0 1
-
-SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarBool" = @__p_0.param set @__p_0 1
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
@@ -70,37 +50,12 @@ false Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barBool": false
-        }
-      },
-      {
-        "foo": {
-          "barBool": false
-        }
-      },
-      {
-        "foo": {
-          "barBool": false
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 false SQL:
 ---------------
 .param set @__p_0 0
-
-SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarBool" = @__p_0.param set @__p_0 0
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
@@ -125,30 +80,12 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barBool": null
-        }
-      },
-      {
-        "foo": {
-          "barBool": null
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 null SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarBool" IS NULLSELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarBool" IS NULL

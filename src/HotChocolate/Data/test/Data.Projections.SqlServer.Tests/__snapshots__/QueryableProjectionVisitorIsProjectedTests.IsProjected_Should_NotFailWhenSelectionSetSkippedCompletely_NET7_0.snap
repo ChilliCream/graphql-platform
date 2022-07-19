@@ -11,23 +11,11 @@ Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "isProjectedFalse": null
-      },
-      {
-        "isProjectedFalse": null
-      }
-    ]
-  }
 }
 ---------------
 
 SQL:
 ---------------
 SELECT 1
-FROM "Data" AS "d"SELECT 1
 FROM "Data" AS "d"
 ---------------

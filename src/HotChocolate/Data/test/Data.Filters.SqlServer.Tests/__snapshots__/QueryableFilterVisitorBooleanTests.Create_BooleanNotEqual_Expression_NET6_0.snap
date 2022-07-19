@@ -8,24 +8,12 @@ true Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": false
-      }
-    ]
-  }
 }
 ---------------
 
 true SQL:
 ---------------
 .param set @__p_0 1
-
-SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-WHERE "d"."Bar" <> @__p_0.param set @__p_0 1
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
@@ -42,24 +30,12 @@ false Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": true
-      }
-    ]
-  }
 }
 ---------------
 
 false SQL:
 ---------------
 .param set @__p_0 0
-
-SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-WHERE "d"."Bar" <> @__p_0.param set @__p_0 0
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"

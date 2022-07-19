@@ -30,45 +30,12 @@ ASC Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barBool": false
-        }
-      },
-      {
-        "foo": {
-          "barBool": true
-        }
-      },
-      {
-        "foo": {
-          "barBool": true
-        }
-      },
-      {
-        "foo": {
-          "barBool": true
-        }
-      },
-      {
-        "foo": {
-          "barBool": true
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 ASC SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-ORDER BY "f"."BarBool"SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 ORDER BY "f"."BarBool"
@@ -106,45 +73,12 @@ DESC Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barBool": true
-        }
-      },
-      {
-        "foo": {
-          "barBool": true
-        }
-      },
-      {
-        "foo": {
-          "barBool": true
-        }
-      },
-      {
-        "foo": {
-          "barBool": true
-        }
-      },
-      {
-        "foo": {
-          "barBool": false
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 DESC SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-ORDER BY "f"."BarBool" DESCSELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 ORDER BY "f"."BarBool" DESC

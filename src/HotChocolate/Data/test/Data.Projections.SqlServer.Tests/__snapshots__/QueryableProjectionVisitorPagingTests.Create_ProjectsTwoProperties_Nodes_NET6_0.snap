@@ -15,27 +15,11 @@ Result:
       ]
     }
   }
-}{
-  "data": {
-    "root": {
-      "nodes": [
-        {
-          "bar": true,
-          "baz": "a"
-        },
-        {
-          "bar": false,
-          "baz": "b"
-        }
-      ]
-    }
-  }
 }
 ---------------
 
 SQL:
 ---------------
 SELECT "d"."Bar", "d"."Baz"
-FROM "Data" AS "d"SELECT "d"."Bar", "d"."Baz"
 FROM "Data" AS "d"
 ---------------

@@ -16,22 +16,4 @@
   "data": {
     "root": null
   }
-}{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 2,
-          "column": 25
-        }
-      ],
-      "path": [
-        "root"
-      ]
-    }
-  ],
-  "data": {
-    "root": null
-  }
 }

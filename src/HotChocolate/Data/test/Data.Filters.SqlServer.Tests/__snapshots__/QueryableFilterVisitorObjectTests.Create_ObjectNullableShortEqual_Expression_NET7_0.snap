@@ -15,32 +15,12 @@
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barShort": 12
-        }
-      },
-      {
-        "foo": {
-          "barShort": 12
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 12 SQL:
 ---------------
 .param set @__p_0 12
-
-SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" = @__p_0.param set @__p_0 12
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
@@ -60,27 +40,12 @@ WHERE "f"."BarShort" = @__p_0
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barShort": 13
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 13 SQL:
 ---------------
 .param set @__p_0 13
-
-SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" = @__p_0.param set @__p_0 13
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
@@ -105,30 +70,12 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barShort": null
-        }
-      },
-      {
-        "foo": {
-          "barShort": null
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 null SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" IS NULLSELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarShort" IS NULL

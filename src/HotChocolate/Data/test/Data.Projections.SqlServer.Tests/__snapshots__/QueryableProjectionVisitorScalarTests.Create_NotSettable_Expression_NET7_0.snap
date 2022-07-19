@@ -11,23 +11,11 @@ Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "notSettable": null
-      },
-      {
-        "notSettable": null
-      }
-    ]
-  }
 }
 ---------------
 
 SQL:
 ---------------
 SELECT 1
-FROM "Data" AS "d"SELECT 1
 FROM "Data" AS "d"
 ---------------

@@ -20,35 +20,12 @@ BarAndFoo Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barEnum": "BAR"
-        }
-      },
-      {
-        "foo": {
-          "barEnum": "BAR"
-        }
-      },
-      {
-        "foo": {
-          "barEnum": "FOO"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 BarAndFoo SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarEnum" IN (1, 0)SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarEnum" IN (1, 0)
@@ -66,25 +43,12 @@ FOO Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barEnum": "FOO"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 FOO SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarEnum" = 0SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarEnum" = 0
@@ -102,25 +66,12 @@ nullAndFoo Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barEnum": "FOO"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 nullAndFoo SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE ("f"."BarEnum" = 0) OR "f"."BarEnum" IS NULLSELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE ("f"."BarEnum" = 0) OR "f"."BarEnum" IS NULL

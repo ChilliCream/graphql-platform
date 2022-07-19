@@ -20,35 +20,12 @@
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barShort": 12
-        }
-      },
-      {
-        "foo": {
-          "barShort": 12
-        }
-      },
-      {
-        "foo": {
-          "barShort": 13
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 12and13 SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" IN (12, 13)SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarShort" IN (12, 13)
@@ -76,35 +53,12 @@ WHERE "f"."BarShort" IN (12, 13)
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barShort": 14
-        }
-      },
-      {
-        "foo": {
-          "barShort": 14
-        }
-      },
-      {
-        "foo": {
-          "barShort": 13
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 13and14 SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" IN (13, 14)SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarShort" IN (13, 14)
@@ -132,35 +86,12 @@ WHERE "f"."BarShort" IN (13, 14)
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barShort": null
-        }
-      },
-      {
-        "foo": {
-          "barShort": null
-        }
-      },
-      {
-        "foo": {
-          "barShort": 13
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 13andNull SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE ("f"."BarShort" = 13) OR "f"."BarShort" IS NULLSELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE ("f"."BarShort" = 13) OR "f"."BarShort" IS NULL

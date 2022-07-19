@@ -8,22 +8,12 @@ testatestAndtestb Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": null
-      }
-    ]
-  }
 }
 ---------------
 
 testatestAndtestb SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-WHERE "d"."Bar" NOT IN ('testatest', 'testbtest') OR "d"."Bar" IS NULLSELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
 WHERE "d"."Bar" NOT IN ('testatest', 'testbtest') OR "d"."Bar" IS NULL
 ---------------
@@ -38,22 +28,12 @@ testbtestAndNull Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testatest"
-      }
-    ]
-  }
 }
 ---------------
 
 testbtestAndNull SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-WHERE ("d"."Bar" <> 'testbtest') AND "d"."Bar" IS NOT NULLSELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
 WHERE ("d"."Bar" <> 'testbtest') AND "d"."Bar" IS NOT NULL
 ---------------
@@ -71,25 +51,12 @@ testatest Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": "testbtest"
-      },
-      {
-        "bar": null
-      }
-    ]
-  }
 }
 ---------------
 
 testatest SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-WHERE ("d"."Bar" <> 'testatest') OR "d"."Bar" IS NULLSELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
 WHERE ("d"."Bar" <> 'testatest') OR "d"."Bar" IS NULL
 ---------------

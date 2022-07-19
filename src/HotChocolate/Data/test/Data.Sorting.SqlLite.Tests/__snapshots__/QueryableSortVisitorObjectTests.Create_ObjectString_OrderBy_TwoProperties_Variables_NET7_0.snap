@@ -35,50 +35,12 @@ ASC Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 12
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 12
-        }
-      },
-      {
-        "foo": {
-          "barBool": false,
-          "barShort": 13
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 14
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 14
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 ASC SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-ORDER BY "f"."BarShort", "f"."BarBool"SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 ORDER BY "f"."BarShort", "f"."BarBool"
@@ -121,50 +83,12 @@ ASC Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 12
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 12
-        }
-      },
-      {
-        "foo": {
-          "barBool": false,
-          "barShort": 13
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 14
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 14
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 ASC SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-ORDER BY "f"."BarShort", "f"."BarBool"SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 ORDER BY "f"."BarShort", "f"."BarBool"
@@ -207,50 +131,12 @@ DESC Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 14
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 14
-        }
-      },
-      {
-        "foo": {
-          "barBool": false,
-          "barShort": 13
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 12
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 12
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 DESC SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-ORDER BY "f"."BarShort" DESC, "f"."BarBool" DESCSELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 ORDER BY "f"."BarShort" DESC, "f"."BarBool" DESC
@@ -293,50 +179,12 @@ DESC Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 14
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 14
-        }
-      },
-      {
-        "foo": {
-          "barBool": false,
-          "barShort": 13
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 12
-        }
-      },
-      {
-        "foo": {
-          "barBool": true,
-          "barShort": 12
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 DESC SQL:
 ---------------
 SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-ORDER BY "f"."BarShort" DESC, "f"."BarBool" DESCSELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 ORDER BY "f"."BarShort" DESC, "f"."BarBool" DESC

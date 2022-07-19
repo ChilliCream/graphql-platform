@@ -9,21 +9,11 @@ Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      null,
-      {
-        "fooProp": "FooProp"
-      }
-    ]
-  }
 }
 ---------------
 
 SQL:
 ---------------
 SELECT "d"."d" = 'foo', "d"."FooProp"
-FROM "Data" AS "d"SELECT "d"."d" = 'foo', "d"."FooProp"
 FROM "Data" AS "d"
 ---------------

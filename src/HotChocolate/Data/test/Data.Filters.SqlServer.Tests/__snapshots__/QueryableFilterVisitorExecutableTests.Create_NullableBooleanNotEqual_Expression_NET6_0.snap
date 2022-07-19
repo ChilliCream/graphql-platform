@@ -11,17 +11,6 @@ true Result:
       }
     ]
   }
-}{
-  "data": {
-    "rootExecutable": [
-      {
-        "bar": null
-      },
-      {
-        "bar": false
-      }
-    ]
-  }
 }
 ---------------
 
@@ -38,34 +27,12 @@ false Result:
       }
     ]
   }
-}{
-  "data": {
-    "rootExecutable": [
-      {
-        "bar": true
-      },
-      {
-        "bar": null
-      }
-    ]
-  }
 }
 ---------------
 
 null Result:
 ---------------
 {
-  "data": {
-    "rootExecutable": [
-      {
-        "bar": true
-      },
-      {
-        "bar": false
-      }
-    ]
-  }
-}{
   "data": {
     "rootExecutable": [
       {

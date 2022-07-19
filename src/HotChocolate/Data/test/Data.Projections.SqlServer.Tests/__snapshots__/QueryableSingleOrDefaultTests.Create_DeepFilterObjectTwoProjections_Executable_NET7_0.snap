@@ -16,22 +16,4 @@
   "data": {
     "rootExecutable": null
   }
-}{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 3,
-          "column": 29
-        }
-      ],
-      "path": [
-        "rootExecutable"
-      ]
-    }
-  ],
-  "data": {
-    "rootExecutable": null
-  }
 }

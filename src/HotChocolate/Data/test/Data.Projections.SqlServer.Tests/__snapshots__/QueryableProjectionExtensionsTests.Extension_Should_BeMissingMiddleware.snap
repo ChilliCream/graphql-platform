@@ -26,8 +26,5 @@ Exception:
 For more details look at the `Errors` property.
 
 1. Projection was not found. Register projection with [UseProjection] or descriptor.UseProjection().
-For more details look at the `Errors` property.
-
-1. Projection was not found. Register projection with [UseProjection] or descriptor.UseProjection().
 
 ---------------

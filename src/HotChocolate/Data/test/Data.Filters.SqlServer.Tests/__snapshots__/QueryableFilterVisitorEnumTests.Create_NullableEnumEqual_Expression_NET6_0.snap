@@ -8,24 +8,12 @@ BAR Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barEnum": "BAR"
-      }
-    ]
-  }
 }
 ---------------
 
 BAR SQL:
 ---------------
 .param set @__p_0 1
-
-SELECT "d"."Id", "d"."BarEnum"
-FROM "Data" AS "d"
-WHERE "d"."BarEnum" = @__p_0.param set @__p_0 1
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
@@ -42,24 +30,12 @@ FOO Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barEnum": "FOO"
-      }
-    ]
-  }
 }
 ---------------
 
 FOO SQL:
 ---------------
 .param set @__p_0 0
-
-SELECT "d"."Id", "d"."BarEnum"
-FROM "Data" AS "d"
-WHERE "d"."BarEnum" = @__p_0.param set @__p_0 0
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
@@ -76,22 +52,12 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "barEnum": null
-      }
-    ]
-  }
 }
 ---------------
 
 null SQL:
 ---------------
 SELECT "d"."Id", "d"."BarEnum"
-FROM "Data" AS "d"
-WHERE "d"."BarEnum" IS NULLSELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
 WHERE "d"."BarEnum" IS NULL
 ---------------

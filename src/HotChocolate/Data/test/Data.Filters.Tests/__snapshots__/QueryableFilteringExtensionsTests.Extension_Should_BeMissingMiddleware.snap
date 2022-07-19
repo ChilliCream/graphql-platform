@@ -26,8 +26,5 @@ Exception:
 For more details look at the `Errors` property.
 
 1. Filtering was not found. Register filtering with [UseFiltering] or descriptor.UseFiltering().
-For more details look at the `Errors` property.
-
-1. Filtering was not found. Register filtering with [UseFiltering] or descriptor.UseFiltering().
 
 ---------------

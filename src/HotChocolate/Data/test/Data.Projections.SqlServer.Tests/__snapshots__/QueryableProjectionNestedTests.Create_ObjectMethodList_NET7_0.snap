@@ -19,31 +19,11 @@ Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "methodList": [
-          {
-            "barString": "Worked"
-          }
-        ]
-      },
-      {
-        "methodList": [
-          {
-            "barString": "Worked"
-          }
-        ]
-      }
-    ]
-  }
 }
 ---------------
 
 SQL:
 ---------------
 SELECT 1
-FROM "Data" AS "d"SELECT 1
 FROM "Data" AS "d"
 ---------------

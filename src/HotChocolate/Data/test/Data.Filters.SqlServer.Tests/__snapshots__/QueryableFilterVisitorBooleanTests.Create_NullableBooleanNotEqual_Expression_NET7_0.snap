@@ -11,27 +11,12 @@ true Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": null
-      },
-      {
-        "bar": false
-      }
-    ]
-  }
 }
 ---------------
 
 true SQL:
 ---------------
 .param set @__p_0 1
-
-SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-WHERE "d"."Bar" <> @__p_0 OR ("d"."Bar" IS NULL).param set @__p_0 1
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
@@ -51,27 +36,12 @@ false Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": true
-      },
-      {
-        "bar": null
-      }
-    ]
-  }
 }
 ---------------
 
 false SQL:
 ---------------
 .param set @__p_0 0
-
-SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-WHERE "d"."Bar" <> @__p_0 OR ("d"."Bar" IS NULL).param set @__p_0 0
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
@@ -91,25 +61,12 @@ null Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": true
-      },
-      {
-        "bar": false
-      }
-    ]
-  }
 }
 ---------------
 
 null SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-WHERE "d"."Bar" IS NOT NULLSELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
 WHERE "d"."Bar" IS NOT NULL
 ---------------

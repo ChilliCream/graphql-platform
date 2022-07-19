@@ -14,28 +14,12 @@ ASC Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": null
-      },
-      {
-        "bar": false
-      },
-      {
-        "bar": true
-      }
-    ]
-  }
 }
 ---------------
 
 ASC SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-ORDER BY "d"."Bar"SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
 ORDER BY "d"."Bar"
 ---------------
@@ -56,28 +40,12 @@ DESC Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "bar": true
-      },
-      {
-        "bar": false
-      },
-      {
-        "bar": null
-      }
-    ]
-  }
 }
 ---------------
 
 DESC SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
-FROM "Data" AS "d"
-ORDER BY "d"."Bar" DESCSELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
 ORDER BY "d"."Bar" DESC
 ---------------

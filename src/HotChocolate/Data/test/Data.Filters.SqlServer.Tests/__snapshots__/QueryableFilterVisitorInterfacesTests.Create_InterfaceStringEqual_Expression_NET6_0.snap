@@ -10,27 +10,12 @@ a Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "test": {
-          "prop": "a"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
 a SQL:
 ---------------
 .param set @__p_0 'a'
-
-SELECT "d"."Id", "d"."TestId"
-FROM "Data" AS "d"
-INNER JOIN "Test" AS "t" ON "d"."TestId" = "t"."Id"
-WHERE "t"."Prop" = @__p_0.param set @__p_0 'a'
 
 SELECT "d"."Id", "d"."TestId"
 FROM "Data" AS "d"
@@ -50,16 +35,6 @@ ba Result:
       }
     ]
   }
-}{
-  "data": {
-    "root": [
-      {
-        "test": {
-          "prop": "b"
-        }
-      }
-    ]
-  }
 }
 ---------------
 
@@ -70,40 +45,12 @@ ba SQL:
 SELECT "d"."Id", "d"."TestId"
 FROM "Data" AS "d"
 INNER JOIN "Test" AS "t" ON "d"."TestId" = "t"."Id"
-WHERE "t"."Prop" = @__p_0.param set @__p_0 'b'
-
-SELECT "d"."Id", "d"."TestId"
-FROM "Data" AS "d"
-INNER JOIN "Test" AS "t" ON "d"."TestId" = "t"."Id"
 WHERE "t"."Prop" = @__p_0
 ---------------
 
 null Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "The provided value for filter \u0060eq\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 37
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "String!",
-        "filterType": "StringOperationFilterInput"
-      }
-    }
-  ],
-  "data": {
-    "root": []
-  }
-}{
   "errors": [
     {
       "message": "The provided value for filter \u0060eq\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
