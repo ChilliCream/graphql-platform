@@ -5,7 +5,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Data;
 

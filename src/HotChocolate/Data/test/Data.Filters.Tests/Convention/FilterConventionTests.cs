@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -39,7 +36,7 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        var schema = CreateSchemaWith(type, convention);
+        CreateSchemaWith(type, convention);
         var executor = new ExecutorBuilder(type);
 
         var func = executor.Build<Foo>(value);
@@ -72,10 +69,10 @@ public class FilterConventionTests
 
         var type = new FooFilterInput();
 
-        //act
-        var error =
-            Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+        // act
+        var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
+        // assert
         Assert.Single(error.Errors);
         error.Errors[0].Message.MatchSnapshot();
     }
@@ -101,9 +98,9 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        var error =
-            Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+        var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
+        // assert
         Assert.Single(error.Errors);
         error.Errors[0].Message.MatchSnapshot();
     }
@@ -129,9 +126,9 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        var error =
-            Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+        var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
+        // assert
         Assert.Single(error.Errors);
         error.Errors[0].Message.MatchSnapshot();
     }
@@ -175,8 +172,7 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        var error =
-            Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+        var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
         error.Errors[0].Message.MatchSnapshot();
@@ -203,15 +199,11 @@ public class FilterConventionTests
         var type = new FooFilterInput();
 
         //act
-        var error =
-            Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+        var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
+        // assert
         Assert.Single(error.Errors);
-#if NETCOREAPP2_1
-            error.Errors[0].Message.MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         error.Errors[0].Message.MatchSnapshot();
-#endif
     }
 
     [Fact]
@@ -362,7 +354,7 @@ public class FilterConventionTests
         var schema = await builder.BuildSchemaAsync();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -407,7 +399,7 @@ public class FilterConventionTests
         var schema = await builder.BuildSchemaAsync();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -432,7 +424,7 @@ public class FilterConventionTests
         var schema = await builder.BuildSchemaAsync();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     protected ISchema CreateSchemaWithTypes(

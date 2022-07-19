@@ -1,5 +1,4 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -10,7 +9,6 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -18,14 +16,15 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true }, new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
     private static readonly Bar[] _barEntities =
     {
-            new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
-            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-        };
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
+    };
 
     private readonly MongoResource _resource;
 
@@ -41,29 +40,28 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
         var tester = CreateSchema(
             () =>
             {
-                var collection =
-                    _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
-
-                collection.InsertMany(_fooEntities);
-
-                return collection.Aggregate().AsExecutable();
+                var col = _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
+                col.InsertMany(_fooEntities);
+                return col.Aggregate().AsExecutable();
             });
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("true");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("false");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .MatchAsync();
     }
 
     [Fact]
@@ -78,29 +76,28 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
         var tester = CreateSchema(
             () =>
             {
-                var collection =
-                    _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
-
-                collection.InsertMany(_barEntities);
-
-                return collection.Aggregate().AsExecutable();
+                var col = _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
+                col.InsertMany(_barEntities);
+                return col.Aggregate().AsExecutable();
             });
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("2020-01-11");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("2020-01-12");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "2020-01-11")
+            .AddSqlFrom(res2, "2020-01-12")
+            .MatchAsync();
     }
 
     public class Foo
@@ -132,8 +129,7 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
                     .Name("Query")
                     .Field("root")
                     .Type<ListType<ObjectType<TEntity>>>()
-                    .Resolve(
-                        async ctx => await new ValueTask<IExecutable<TEntity>>(resolver()))
+                    .Resolve(async _ => await new ValueTask<IExecutable<TEntity>>(resolver()))
                     .Use(
                         next => async context =>
                         {

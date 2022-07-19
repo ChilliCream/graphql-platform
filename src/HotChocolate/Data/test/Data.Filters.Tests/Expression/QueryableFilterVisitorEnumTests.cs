@@ -1,13 +1,10 @@
-using System;
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
-public class QueryableFilterVisitorEnumTests
-    : FilterVisitorTestBase
+public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
 {
     [Fact]
     public void Create_EnumEqual_Expression()
@@ -227,7 +224,7 @@ public class QueryableFilterVisitorEnumTests
         var schema = CreateSchema(new FilterInputType<EntityWithTypeAttribute>());
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Foo
@@ -248,13 +245,11 @@ public class QueryableFilterVisitorEnumTests
         QUX
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
+    public class FooFilterInput : FilterInputType<Foo>
     {
     }
 
-    public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
+    public class FooNullableFilterInput : FilterInputType<FooNullable>
     {
     }
 

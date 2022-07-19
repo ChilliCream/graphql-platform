@@ -1,6 +1,5 @@
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -8,10 +7,7 @@ public class ObjectInputTests
 {
     [Fact]
     public void Create_Implicit_Operation()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
+        => SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")
@@ -20,33 +16,22 @@ public class ObjectInputTests
                     .Resolve("foo")
                     .Argument("test", a => a.Type<FilterInputType<Bar>>()))
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
+            .Create()
+            .MatchSnapshot();
 
     [Fact]
     public void Create_Explicit_Operation()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                t => t
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("foo")
-                    .Argument("test", a => a.Type<ExplicitFilterInput>()))
-            .TryAddConvention<IFilterConvention>(
-                (sp) => new FilterConvention(x => x.UseMock()))
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<ExplicitFilterInput>()))
+            .TryAddConvention<IFilterConvention>(_ => new FilterConvention(x => x.UseMock()))
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
+            .Create()
+            .MatchSnapshot();
 
     public class ExplicitFilterInput : FilterInputType
     {

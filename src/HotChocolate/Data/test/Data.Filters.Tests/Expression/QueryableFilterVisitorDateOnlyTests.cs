@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
+
 using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
@@ -9,7 +9,6 @@ namespace HotChocolate.Data.Filters.Expressions;
 public class QueryableFilterVisitorDateOnlyTests
     : FilterVisitorTestBase
 {
-#if NET6_0_OR_GREATER
     [Fact]
     public void Create_ShortEqual_Expression()
     {
@@ -78,13 +77,10 @@ public class QueryableFilterVisitorDateOnlyTests
         public DateOnly? Value { get; set; }
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
+    public class FooFilterInput : FilterInputType<Foo>
     {
     }
-    public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
+    public class FooNullableFilterInput : FilterInputType<FooNullable>
     {
     }
-#endif
 }

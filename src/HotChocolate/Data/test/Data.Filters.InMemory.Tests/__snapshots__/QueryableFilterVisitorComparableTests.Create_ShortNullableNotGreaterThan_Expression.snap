@@ -1,0 +1,84 @@
+12
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 12
+      },
+      {
+        "barShort": null
+      }
+    ]
+  }
+}
+---------------
+
+13
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 12
+      },
+      {
+        "barShort": null
+      },
+      {
+        "barShort": 13
+      }
+    ]
+  }
+}
+---------------
+
+14
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 12
+      },
+      {
+        "barShort": null
+      },
+      {
+        "barShort": 14
+      },
+      {
+        "barShort": 13
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060ngt\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 34
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "Short!",
+        "filterType": "ShortOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

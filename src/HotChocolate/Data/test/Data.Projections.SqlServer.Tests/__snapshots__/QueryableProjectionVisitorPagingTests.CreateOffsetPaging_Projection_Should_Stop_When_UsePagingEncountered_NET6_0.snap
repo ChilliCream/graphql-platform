@@ -1,0 +1,45 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "bar": true,
+          "paging": {
+            "nodes": [
+              {
+                "barBaz": "a_a"
+              },
+              {
+                "barBaz": "a_b"
+              }
+            ]
+          }
+        },
+        {
+          "bar": false,
+          "paging": {
+            "nodes": [
+              {
+                "barBaz": "a_a"
+              },
+              {
+                "barBaz": "a_b"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "d"."Bar", "d"."Id", "b"."Id", "b"."BarBaz", "b"."BarQux", "b"."FooId", "b"."FooId1"
+FROM "Data" AS "d"
+LEFT JOIN "Bar" AS "b" ON "d"."Id" = "b"."FooId1"
+ORDER BY "d"."Id"
+---------------

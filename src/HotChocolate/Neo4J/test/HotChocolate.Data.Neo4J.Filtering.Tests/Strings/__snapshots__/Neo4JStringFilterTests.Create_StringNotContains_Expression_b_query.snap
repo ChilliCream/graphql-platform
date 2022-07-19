@@ -1,1 +1,0 @@
-﻿MATCH (fooString:FooString) WHERE NOT (fooString.Bar CONTAINS 'b') RETURN fooString {.Bar}

@@ -13,6 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.1.4" Condition="'$(TargetFramework)' == 'netcoreapp3.1'"/>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="5.0.17" Condition="'$(TargetFramework)' == 'net5.0'"/>
@@ -28,8 +32,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Moq" Version="4.18.1" />
-    <PackageReference Include="Snapshooter.Xunit" Version="0.5.4" />
-    <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
   </ItemGroup>
 
 </Project>

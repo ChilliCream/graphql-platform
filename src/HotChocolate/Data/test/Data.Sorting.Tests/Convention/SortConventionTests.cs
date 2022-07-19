@@ -1,9 +1,8 @@
 using System;
+using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -78,7 +77,7 @@ public class SortConventionTests
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
-        error.Errors[0].Message.MatchSnapshot();
+        error.Errors.MatchSnapshot();
     }
 
     [Fact]
@@ -106,7 +105,7 @@ public class SortConventionTests
             Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
-        error.Errors[0].Message.MatchSnapshot();
+        error.Errors.MatchSnapshot();
     }
 
     [Fact]

@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial;
@@ -283,7 +280,7 @@ public class GeoJsonPointSerializerTests
         var literal = type.ParseResult(serialized);
 
         // assert
-        literal.ToString().MatchSnapshot();
+        literal.MatchSnapshot();
     }
 
     [Theory]
@@ -299,7 +296,7 @@ public class GeoJsonPointSerializerTests
         var literal = inputFormatter.FormatResult(_geometry, type);
 
         // assert
-        literal.ToString().MatchSnapshot();
+        literal.MatchSnapshot();
     }
 
     [Theory]
@@ -342,7 +339,7 @@ public class GeoJsonPointSerializerTests
         var literal = type.ParseValue(serialized);
 
         // assert
-        literal.ToString().MatchSnapshot();
+        literal.MatchSnapshot();
     }
 
     [Theory]
@@ -358,7 +355,7 @@ public class GeoJsonPointSerializerTests
         var literal = inputFormatter.FormatValue(_geometry, type);
 
         // assert
-        literal.ToString().MatchSnapshot();
+        literal.MatchSnapshot();
     }
 
     [Theory]

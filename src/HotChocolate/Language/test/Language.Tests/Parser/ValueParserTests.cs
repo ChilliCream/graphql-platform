@@ -28,7 +28,7 @@ public class ValueParserTests
     {
         // arrange
         // act
-        IValueNode valueNode = ParseValue(value);
+        var valueNode = ParseValue(value);
 
         // assert
         Assert.Equal(expectedNodeType, valueNode.GetType());

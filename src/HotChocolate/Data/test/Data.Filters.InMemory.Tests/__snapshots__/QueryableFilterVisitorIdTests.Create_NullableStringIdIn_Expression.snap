@@ -1,0 +1,44 @@
+testatestAndtestb
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RhdGVzdA=="
+      },
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RidGVzdA=="
+      }
+    ]
+  }
+}
+---------------
+
+testbtestAndNull
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RidGVzdA=="
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testatest
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RhdGVzdA=="
+      }
+    ]
+  }
+}
+---------------

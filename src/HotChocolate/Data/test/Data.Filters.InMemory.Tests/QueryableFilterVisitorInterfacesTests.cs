@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
-using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
@@ -17,8 +15,7 @@ public class QueryableFilterVisitorInterfacesTests
 
     private readonly SchemaCache _cache;
 
-    public QueryableFilterVisitorInterfacesTests(
-        SchemaCache cache)
+    public QueryableFilterVisitorInterfacesTests(SchemaCache cache)
     {
         _cache = cache;
     }
@@ -27,39 +24,40 @@ public class QueryableFilterVisitorInterfacesTests
     public async Task Create_InterfaceStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache
+        var tester = _cache
             .CreateSchema<BarInterface, FilterInputType<BarInterface>>(
                 _barEntities,
                 configure: Configure);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { test: { prop: { eq: \"a\"}}}) " +
                     "{ test{ prop }}}")
                 .Create());
 
-        res1.MatchSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { test: { prop: { eq: \"b\"}}}) " +
                     "{ test{ prop }}}")
                 .Create());
 
-        res2.MatchSnapshot("b");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { test: { prop: { eq: null}}}) " +
                     "{ test{ prop}}}")
                 .Create());
 
-        res3.MatchSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "a")
+            .Add(res2, "b")
+            .Add(res3, "null")
+            .MatchAsync();
     }
 
     private static void Configure(ISchemaBuilder builder)

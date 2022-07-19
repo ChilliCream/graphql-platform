@@ -1,5 +1,5 @@
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -89,7 +89,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -216,7 +216,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -247,7 +247,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -265,7 +265,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -283,7 +283,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -314,7 +314,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]

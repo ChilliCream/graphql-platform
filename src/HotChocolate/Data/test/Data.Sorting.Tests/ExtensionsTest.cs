@@ -1,9 +1,8 @@
 using System;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Tests;
 
@@ -32,7 +31,7 @@ public class ExtensionTests
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -58,7 +57,7 @@ public class ExtensionTests
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -85,7 +84,7 @@ public class ExtensionTests
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -112,7 +111,7 @@ public class ExtensionTests
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -129,7 +128,7 @@ public class ExtensionTests
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -146,7 +145,7 @@ public class ExtensionTests
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -163,7 +162,7 @@ public class ExtensionTests
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -180,7 +179,7 @@ public class ExtensionTests
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -197,7 +196,7 @@ public class ExtensionTests
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     private sealed class TestSort : SortInputType

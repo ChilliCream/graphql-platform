@@ -1,11 +1,8 @@
-using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
@@ -22,7 +19,7 @@ public class FilterVisitorTestBase
 
         collection.InsertMany(results);
 
-        return ctx => collection.AsExecutable();
+        return _ => collection.AsExecutable();
     }
 
     protected IRequestExecutor CreateSchema<TEntity, T>(

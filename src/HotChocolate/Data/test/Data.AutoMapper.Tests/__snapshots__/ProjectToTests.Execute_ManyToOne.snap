@@ -1,4 +1,6 @@
-﻿{
+Result:
+---------------
+{
   "data": {
     "posts": [
       {
@@ -32,3 +34,23 @@
     ]
   }
 }
+---------------
+
+SQL:
+---------------
+SELECT "b"."BlogId" IS NULL, "b"."Url", COALESCE("p"."PostId", 0), "p"."Title"
+FROM "Posts" AS "p"
+LEFT JOIN "Blogs" AS "b" ON "p"."BlogId" = "b"."BlogId"
+---------------
+
+Expression:
+---------------
+DbSet<Post>()
+    .Select(dtoPost => new PostDto{ 
+        Blog = dtoPost.Blog == null ? null : new BlogDto{ Url = dtoPost.Blog.Url }
+        , 
+        PostId = dtoPost.PostId ?? 0, 
+        Title = dtoPost.Title 
+    }
+    )
+---------------

@@ -1,12 +1,11 @@
+using System.Net;
+using CookieCrumble;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
-using Snapshooter;
-using Snapshooter.Xunit;
 using HotChocolate.AspNetCore.Instrumentation;
-using System.Net;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Execution;
 using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore;
@@ -603,7 +602,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
             });
 
         // assert
-        result.MatchSnapshot(new SnapshotNameExtension(operationName));
+        result.MatchSnapshot(operationName);
     }
 
     [Fact]
@@ -788,7 +787,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var result = await server.PostAsync(request);
 
         // assert
-        result.MatchSnapshot(new SnapshotNameExtension(id.ToString()));
+        result.MatchSnapshot(id);
     }
 
     [InlineData("[]", 1)]
@@ -805,7 +804,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var result = await server.PostAsync(request);
 
         // assert
-        result.MatchSnapshot(new SnapshotNameExtension(id.ToString()));
+        result.MatchSnapshot(id);
     }
 
     [Fact]

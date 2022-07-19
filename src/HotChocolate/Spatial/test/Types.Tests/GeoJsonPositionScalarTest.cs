@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;
-using Xunit;
 
-namespace HotChocolate.Types.Spatial.Tests;
+namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonPositionScalarTest
 {

@@ -1,12 +1,9 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
@@ -201,7 +198,6 @@ public class GeoJsonMultiLineStringInputTests
     [Fact]
     public void Schema_Tests() =>
         CreateSchema()
-            .Print()
             .MatchSnapshot();
 
     private ISchema CreateSchema() => SchemaBuilder.New()

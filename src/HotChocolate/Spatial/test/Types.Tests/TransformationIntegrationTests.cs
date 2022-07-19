@@ -1,23 +1,30 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
 public class TransformationIntegrationTests
 {
     private const string WKT4326 =
-        "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]";
+        "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563," +
+        "AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\"," +
+        "0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\"," +
+        "\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]";
     private const string WKT26918 =
-        "PROJCS[\"NAD83 \\/ UTM zone 18N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4269\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"26918\"]]";
+        "PROJCS[\"NAD83 \\/ UTM zone 18N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\"," +
+        "SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],TOWGS84" +
+        "[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\"," +
+        "\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[" +
+        "\"EPSG\",\"4269\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[" +
+        "\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[" +
+        "\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[" +
+        "\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\"," +
+        "EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"26918\"]]";
 
     [Fact]
     public void Execute_UnknownDefaultCRS()
@@ -34,7 +41,7 @@ public class TransformationIntegrationTests
         var ex = Record.Exception(() => builder.Create());
 
         // assert
-        Assert.IsType<SchemaException>(ex).Message.MatchSnapshot();
+        Assert.IsType<SchemaException>(ex).MatchSnapshot();
     }
 
     [Fact]
@@ -68,7 +75,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -87,10 +94,10 @@ public class TransformationIntegrationTests
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
-                        type Query {
-                            test: GeoJSONLineStringType
-                        }
-                    ")
+                    type Query {
+                        test: GeoJSONLineStringType
+                    }
+                ")
             .AddSpatialTypes(x => x
                 .DefaultSrid(4326)
                 .AddCoordinateSystemFromString(4326, WKT4326))
@@ -112,7 +119,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -158,7 +165,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -204,7 +211,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -250,7 +257,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -282,7 +289,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -317,7 +324,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -351,7 +358,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -385,7 +392,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -428,7 +435,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -463,7 +470,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -499,7 +506,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -544,7 +551,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -589,7 +596,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -624,7 +631,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     public class Query

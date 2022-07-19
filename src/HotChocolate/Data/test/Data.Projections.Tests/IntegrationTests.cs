@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -16,7 +15,7 @@ public class IntegrationTests
     {
         // arrange
         // act
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<FooExtensions>()
@@ -24,7 +23,7 @@ public class IntegrationTests
             .BuildRequestExecutorAsync();
 
         // assert
-        IExecutionResult result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(@"
             {
                 foos {
                     bar
@@ -33,7 +32,7 @@ public class IntegrationTests
             }
             ");
 
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -41,7 +40,7 @@ public class IntegrationTests
     {
         // arrange
         // act
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<FooExtensions>()
@@ -49,7 +48,7 @@ public class IntegrationTests
             .BuildRequestExecutorAsync();
 
         // assert
-        IExecutionResult result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(@"
             {
                 foos {
                     bar
@@ -58,7 +57,7 @@ public class IntegrationTests
             }
             ");
 
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -66,7 +65,7 @@ public class IntegrationTests
     {
         // arrange
         // act
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<FooExtensions>()
@@ -74,7 +73,7 @@ public class IntegrationTests
             .BuildRequestExecutorAsync();
 
         // assert
-        IExecutionResult result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(@"
             {
                 foos {
                     bar
@@ -85,7 +84,7 @@ public class IntegrationTests
             }
             ");
 
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -93,7 +92,7 @@ public class IntegrationTests
     {
         // arrange
         // act
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<FooExtensions>()
@@ -101,7 +100,7 @@ public class IntegrationTests
             .BuildRequestExecutorAsync();
 
         // assert
-        IExecutionResult result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(@"
             {
                 foos {
                     bar
@@ -112,7 +111,7 @@ public class IntegrationTests
             }
             ");
 
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 }
 

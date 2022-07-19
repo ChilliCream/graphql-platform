@@ -1,12 +1,11 @@
 using System.Text;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.AspNetCore;
 
@@ -459,8 +458,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
     [InlineData("a")]
     [InlineData("b")]
     [Theory]
-    public async Task SingleRequest_Execute_Specific_Operation(
-        string operationName)
+    public async Task SingleRequest_Execute_Specific_Operation(string operationName)
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -485,7 +483,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
             });
 
         // assert
-        result.MatchSnapshot(new SnapshotNameExtension(operationName));
+        result.MatchSnapshot(operationName);
     }
 
     [Fact]

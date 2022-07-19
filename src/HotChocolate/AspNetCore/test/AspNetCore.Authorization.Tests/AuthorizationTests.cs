@@ -1,5 +1,6 @@
 using System.Net;
 using System.Security.Claims;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -80,10 +80,7 @@ public class AuthorizationTests : ServerTestBase
     {
         // arrange
         var server = CreateTestServer(
-            builder =>
-            {
-                configure(builder);
-            },
+            configure,
             context =>
             {
                 context.User = new ClaimsPrincipal(

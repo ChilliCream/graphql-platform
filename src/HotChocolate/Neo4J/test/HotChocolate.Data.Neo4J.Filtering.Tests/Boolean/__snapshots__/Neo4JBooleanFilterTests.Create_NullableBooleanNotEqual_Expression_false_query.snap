@@ -1,1 +1,0 @@
-﻿MATCH (fooBoolNullable:FooBoolNullable) WHERE fooBoolNullable.Bar <> False RETURN fooBoolNullable {.Bar}

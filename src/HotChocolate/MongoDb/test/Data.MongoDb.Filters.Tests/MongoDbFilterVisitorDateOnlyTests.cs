@@ -1,5 +1,4 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson;
@@ -7,7 +6,6 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -15,19 +13,18 @@ public class MongoDbFilterVisitorDateOnlyTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-#if NET6_0_OR_GREATER
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = new DateOnly(2022, 01, 16) },
-            new Foo { Bar = new DateOnly(2022, 01, 15) }
-        };
+        new() { Bar = new DateOnly(2022, 01, 16) },
+        new() { Bar = new DateOnly(2022, 01, 15) }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { Bar = new DateOnly(2022, 01, 16) },
-            new FooNullable { Bar = null },
-            new FooNullable { Bar = new DateOnly(2022, 01, 15) }
-        };
+        new() { Bar = new DateOnly(2022, 01, 16) },
+        new() { Bar = null },
+        new() { Bar = new DateOnly(2022, 01, 15) }
+    };
 
     public MongoDbFilterVisitorDateOnlyTests(MongoResource resource)
     {
@@ -50,14 +47,17 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .SetQuery("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
                 .Create());
 
-        res1.MatchDocumentSnapshot("2022-01-16");
-
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
                 .Create());
 
-        res2.MatchDocumentSnapshot("2022-01-15");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "2022-01-16")
+            .AddSqlFrom(res2, "2022-01-15")
+            .MatchAsync();
     }
 
     [Fact]
@@ -67,20 +67,22 @@ public class MongoDbFilterVisitorDateOnlyTests
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
                 .Create());
-
-        res1.MatchDocumentSnapshot("2022-01-15");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
                 .Create());
 
-        res2.MatchDocumentSnapshot("2022-01-16");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "2022-01-16")
+            .AddSqlFrom(res2, "2022-01-15")
+            .MatchAsync();
     }
 
     [Fact]
@@ -91,27 +93,28 @@ public class MongoDbFilterVisitorDateOnlyTests
             _fooNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
                 .Create());
-
-        res1.MatchDocumentSnapshot("2022-01-16");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
                 .Create());
 
-        res2.MatchDocumentSnapshot("2022-01-15");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null } }){ bar } }")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "2022-01-16")
+            .AddSqlFrom(res2, "2022-01-15")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -128,21 +131,23 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .SetQuery("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
                 .Create());
 
-        res1.MatchDocumentSnapshot("2022-01-15");
-
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
                 .Create());
-
-        res2.MatchDocumentSnapshot("2022-01-16");
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null } }){ bar } }")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "2022-01-16")
+            .AddSqlFrom(res2, "2022-01-15")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     public class Foo
@@ -161,13 +166,11 @@ public class MongoDbFilterVisitorDateOnlyTests
         public DateOnly? Bar { get; set; }
     }
 
-    public class FooFilterType
-        : FilterInputType<Foo>
+    public class FooFilterType : FilterInputType<Foo>
     {
     }
 
-    public class FooNullableFilterType
-        : FilterInputType<FooNullable>
+    public class FooNullableFilterType : FilterInputType<FooNullable>
     {
     }
 
@@ -181,14 +184,14 @@ public class MongoDbFilterVisitorDateOnlyTests
 
     internal class DateOnlySerializer : StructSerializerBase<DateOnly>
     {
-        private static readonly TimeOnly zeroTimeComponent = new();
+        private static readonly TimeOnly _zeroTimeComponent = new();
 
         public override void Serialize(
             BsonSerializationContext context,
             BsonSerializationArgs args,
             DateOnly value)
         {
-            var dateTime = value.ToDateTime(zeroTimeComponent, DateTimeKind.Utc);
+            var dateTime = value.ToDateTime(_zeroTimeComponent, DateTimeKind.Utc);
             var ticks = BsonUtils.ToMillisecondsSinceEpoch(dateTime);
             context.Writer.WriteDateTime(ticks);
         }
@@ -202,5 +205,4 @@ public class MongoDbFilterVisitorDateOnlyTests
             return new DateOnly(dateTime.Year, dateTime.Month, dateTime.Day);
         }
     }
-#endif
 }

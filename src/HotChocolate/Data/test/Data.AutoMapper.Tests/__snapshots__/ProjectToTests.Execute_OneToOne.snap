@@ -1,4 +1,6 @@
-﻿{
+Result:
+---------------
+{
   "data": {
     "blogs": [
       {
@@ -16,3 +18,22 @@
     ]
   }
 }
+---------------
+
+SQL:
+---------------
+SELECT 0, "i"."Url", "b"."Url"
+FROM "Blogs" AS "b"
+INNER JOIN "Images" AS "i" ON "b"."ImageId" = "i"."ImageId"
+---------------
+
+Expression:
+---------------
+DbSet<Blog>()
+    .Select(dtoBlog => new BlogDto{ 
+        TitleImage = dtoBlog.TitleImage == null ? null : new ImageDto{ Url = dtoBlog.TitleImage.Url }
+        , 
+        Url = dtoBlog.Url 
+    }
+    )
+---------------

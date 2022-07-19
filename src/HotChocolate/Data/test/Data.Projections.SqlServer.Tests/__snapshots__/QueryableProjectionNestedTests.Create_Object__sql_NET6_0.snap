@@ -1,3 +1,0 @@
-﻿SELECT 1, "f"."BarString"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"

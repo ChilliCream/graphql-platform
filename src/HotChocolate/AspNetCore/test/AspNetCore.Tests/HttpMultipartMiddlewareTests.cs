@@ -1,6 +1,6 @@
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Newtonsoft.Json;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.AspNetCore;
 

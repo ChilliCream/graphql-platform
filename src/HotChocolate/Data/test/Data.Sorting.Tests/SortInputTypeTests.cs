@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
+
 using Xunit;
 
 namespace HotChocolate.Data.Tests;
@@ -25,7 +26,7 @@ public class SortInputTypeTest : SortTestBase
                         .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -41,7 +42,7 @@ public class SortInputTypeTest : SortTestBase
                         .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -57,7 +58,7 @@ public class SortInputTypeTest : SortTestBase
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -71,7 +72,7 @@ public class SortInputTypeTest : SortTestBase
                 .AddType(new SortInputType<Foo>(d => d.Directive("foo").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -86,7 +87,7 @@ public class SortInputTypeTest : SortTestBase
                         d => d.Directive(new DirectiveNode("foo")).Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -103,7 +104,7 @@ public class SortInputTypeTest : SortTestBase
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -120,7 +121,7 @@ public class SortInputTypeTest : SortTestBase
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -134,7 +135,7 @@ public class SortInputTypeTest : SortTestBase
                     d => d.Description("Test").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -148,7 +149,7 @@ public class SortInputTypeTest : SortTestBase
                     d => d.Name("Test").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -221,7 +222,7 @@ public class SortInputTypeTest : SortTestBase
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -237,7 +238,7 @@ public class SortInputTypeTest : SortTestBase
         var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
         schema.Print().MatchSnapshot();
     }
 
@@ -251,7 +252,7 @@ public class SortInputTypeTest : SortTestBase
             .Field(x => x.Author, d => d.Field(x => x.Name)));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -264,7 +265,7 @@ public class SortInputTypeTest : SortTestBase
             .Field(x => x.Author, d => d.Field(x => x.Account, d => d.Field(x => x.Name))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -281,7 +282,7 @@ public class SortInputTypeTest : SortTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -301,7 +302,7 @@ public class SortInputTypeTest : SortTestBase
                 .Location(Types.DirectiveLocation.InputObject))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -319,7 +320,7 @@ public class SortInputTypeTest : SortTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -334,7 +335,7 @@ public class SortInputTypeTest : SortTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]

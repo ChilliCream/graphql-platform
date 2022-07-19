@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -15,104 +12,104 @@ public class MongoDbFilterVisitorObjectTests
 {
     private static readonly Bar[] _barEntities =
     {
-            new Bar
+        new()
+        {
+            Foo = new Foo
             {
-                Foo = new Foo
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                ObjectArray = new List<Bar>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    ObjectArray = new List<Bar>
-                    {
-                        new Bar { Foo = new Foo { BarShort = 12, BarString = "a" } }
-                    }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 14,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    ObjectArray = new List<Bar>
-                    {
-                        new Bar { Foo = new Foo { BarShort = 14, BarString = "d" } }
-                    }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testctest",
-                    //ScalarArray = null,
-                    ObjectArray = null,
+                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } }
                 }
             }
-        };
+        },
+        new()
+        {
+            Foo = new Foo
+            {
+                BarShort = 14,
+                BarBool = true,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                ObjectArray = new List<Bar>
+                {
+                    new() { Foo = new Foo { BarShort = 14, BarString = "d" } }
+                }
+            }
+        },
+        new()
+        {
+            Foo = new Foo
+            {
+                BarShort = 13,
+                BarBool = false,
+                BarEnum = BarEnum.FOO,
+                BarString = "testctest",
+                //ScalarArray = null,
+                ObjectArray = null,
+            }
+        }
+    };
 
     private static readonly BarNullable[] _barNullableEntities =
     {
-            new BarNullable
+        new()
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                ObjectArray = new List<BarNullable>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    ObjectArray = new List<BarNullable>
-                    {
-                        new BarNullable { Foo = new FooNullable { BarShort = 12 } }
-                    }
-                }
-            },
-            new BarNullable
-            {
-                Foo = new FooNullable
-                {
-                    BarShort = null,
-                    BarBool = null,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    ObjectArray = new List<BarNullable>
-                    {
-                        new BarNullable { Foo = new FooNullable { BarShort = null } }
-                    }
-                }
-            },
-            new BarNullable
-            {
-                Foo = new FooNullable
-                {
-                    BarShort = 14,
-                    BarBool = false,
-                    BarEnum = BarEnum.QUX,
-                    BarString = "testctest",
-                    ObjectArray = new List<BarNullable>
-                    {
-                        new BarNullable { Foo = new FooNullable { BarShort = 14, } }
-                    }
-                }
-            },
-            new BarNullable
-            {
-                Foo = new FooNullable
-                {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testdtest",
-                    ObjectArray = null
+                    new() { Foo = new FooNullable { BarShort = 12 } }
                 }
             }
-        };
+        },
+        new()
+        {
+            Foo = new FooNullable
+            {
+                BarShort = null,
+                BarBool = null,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                ObjectArray = new List<BarNullable>
+                {
+                    new() { Foo = new FooNullable { BarShort = null } }
+                }
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
+            {
+                BarShort = 14,
+                BarBool = false,
+                BarEnum = BarEnum.QUX,
+                BarString = "testctest",
+                ObjectArray = new List<BarNullable>
+                {
+                    new() { Foo = new FooNullable { BarShort = 14, } }
+                }
+            }
+        },
+        new()
+        {
+            Foo = new FooNullable
+            {
+                BarShort = 13,
+                BarBool = false,
+                BarEnum = BarEnum.FOO,
+                BarString = "testdtest",
+                ObjectArray = null
+            }
+        }
+    };
 
     public MongoDbFilterVisitorObjectTests(MongoResource resource)
     {
@@ -126,15 +123,12 @@ public class MongoDbFilterVisitorObjectTests
         var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { eq: 12}}}) " +
                     "{ foo{ barShort}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -143,8 +137,6 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barShort}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -152,22 +144,28 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barShort}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectShortIn_Expression()
     {
+        // arrange
         var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
+        // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12and13");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -176,8 +174,6 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barShort}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13and14");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -185,26 +181,28 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barShort}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("nullAnd14");
+        // assert
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12and13")
+            .AddSqlFrom(res2, "13and14")
+            .AddSqlFrom(res3, "nullAnd14")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectNullableShortEqual_Expression()
     {
         // arrange
-        var tester =
-            CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { eq: 12}}}) " +
                     "{ foo{ barShort}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -213,8 +211,6 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barShort}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -222,23 +218,28 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barShort}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12")
+            .AddSqlFrom(res2, "13")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectNullableShortIn_Expression()
     {
-        var tester =
-            CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+        // arrange
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
 
+        // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("12and13");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -247,8 +248,6 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barShort}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("13and14");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -256,7 +255,13 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barShort}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("13andNull");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "12and13")
+            .AddSqlFrom(res2, "13and14")
+            .AddSqlFrom(res3, "13andNull")
+            .MatchAsync();
     }
 
     [Fact]
@@ -266,15 +271,12 @@ public class MongoDbFilterVisitorObjectTests
         var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barBool: { eq: true}}}) " +
                     "{ foo{ barBool}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("true");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -283,7 +285,12 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barBool}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("false");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .MatchAsync();
     }
 
     [Fact]
@@ -302,16 +309,12 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barBool}}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("true");
-
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barBool: { eq: false}}}) " +
                     "{ foo{ barBool}}}")
                 .Create());
-
-        res2.MatchDocumentSnapshot("false");
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -320,24 +323,28 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barBool}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "true")
+            .AddSqlFrom(res2, "false")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectEnumEqual_Expression()
     {
+        // arrange
         var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
                     "{ foo{ barEnum}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("BAR");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -346,8 +353,6 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barEnum}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -355,24 +360,28 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barEnum}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BAR")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectEnumIn_Expression()
     {
+        // arrange
         var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("BarAndFoo");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -381,8 +390,6 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barEnum}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -390,25 +397,28 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barEnum}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("nullAndFoo");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BarAndFoo")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "nullAndFoo")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectNullableEnumEqual_Expression()
     {
-        var tester = CreateSchema<BarNullable, BarNullableFilterType>(
-            _barNullableEntities);
+        // assert
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
                     "{ foo{ barEnum}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("BAR");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -417,8 +427,6 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barEnum}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -426,25 +434,28 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barEnum}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BAR")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectNullableEnumIn_Expression()
     {
-        var tester = CreateSchema<BarNullable, BarNullableFilterType>(
-            _barNullableEntities);
+        // arrange
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
                     "{ foo{ barEnum}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("BarAndFoo");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -453,8 +464,6 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barEnum}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("FOO");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -462,7 +471,13 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barEnum}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("nullAndFoo");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "BarAndFoo")
+            .AddSqlFrom(res2, "FOO")
+            .AddSqlFrom(res3, "nullAndFoo")
+            .MatchAsync();
     }
 
     [Fact]
@@ -472,15 +487,12 @@ public class MongoDbFilterVisitorObjectTests
         var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barString: { eq: \"testatest\"}}}) " +
                     "{ foo{ barString}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("testatest");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -489,15 +501,19 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barString}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("testbtest");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barString: { eq: null}}}){ foo{ barString}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "testatest")
+            .AddSqlFrom(res2, "testbtest")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -507,7 +523,6 @@ public class MongoDbFilterVisitorObjectTests
         var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -516,16 +531,12 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barString}}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("testatestAndtestb");
-
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { barString: { in: [\"testbtest\" null]}}}) " +
                     "{ foo{ barString}}}")
                 .Create());
-
-        res2.MatchDocumentSnapshot("testbtestAndNull");
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -534,7 +545,13 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo{ barString}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("testatest");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "testatestAndtestb")
+            .AddSqlFrom(res2, "testbtestAndNull")
+            .AddSqlFrom(res3, "testatest")
+            .MatchAsync();
     }
 
     [Fact]
@@ -544,7 +561,6 @@ public class MongoDbFilterVisitorObjectTests
         var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -552,8 +568,6 @@ public class MongoDbFilterVisitorObjectTests
                     "some: { foo: { barString: { eq: \"a\"}}}}}}) " +
                     "{ foo { objectArray { foo { barString}}}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("a");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -563,8 +577,6 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo { objectArray { foo { barString}}}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("d");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -573,7 +585,13 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo { objectArray { foo {barString}}}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "a")
+            .AddSqlFrom(res2, "d")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
@@ -583,15 +601,12 @@ public class MongoDbFilterVisitorObjectTests
         var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { foo: { objectArray: { any: false}}}) " +
                     "{ foo { objectArray  { foo { barString }}}}}")
                 .Create());
-
-        res1.MatchDocumentSnapshot("false");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -600,8 +615,6 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo { objectArray  { foo { barString }}}}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("true");
-
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -609,7 +622,13 @@ public class MongoDbFilterVisitorObjectTests
                     "{ foo { objectArray  { foo { barString }}}}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // arrange
+        await Snapshot
+            .Create()
+            .AddSqlFrom(res1, "false")
+            .AddSqlFrom(res2, "true")
+            .AddSqlFrom(res3, "null")
+            .MatchAsync();
     }
 
     public class Foo

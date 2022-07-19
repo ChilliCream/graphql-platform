@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Spatial.Tests</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
+    <RootNamespace>HotChocolate.Data.Spatial</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
