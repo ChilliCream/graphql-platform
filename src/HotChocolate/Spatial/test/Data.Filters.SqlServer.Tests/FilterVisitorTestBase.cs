@@ -1,17 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
 public class FilterVisitorTestBase
 {

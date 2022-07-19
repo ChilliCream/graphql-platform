@@ -18,7 +18,7 @@ public class FilterVisitorTestBase
                 new QueryableFilterProvider(
                     p => p.AddSpatialHandlers().AddDefaultFieldHandlers())));
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .TryAddTypeInterceptor<FilterTypeInterceptor>()
             .AddQueryType(c => c
@@ -44,7 +44,7 @@ public class FilterVisitorTestBase
                 new QueryableFilterProvider(
                     p => p.AddSpatialHandlers().AddDefaultFieldHandlers())));
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .TryAddTypeInterceptor<FilterTypeInterceptor>()
             .AddQueryType(c => c

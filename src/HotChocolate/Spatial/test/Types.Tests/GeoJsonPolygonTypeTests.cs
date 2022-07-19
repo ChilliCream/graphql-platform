@@ -1,22 +1,20 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonPolygonTypeTests
 {
-    private readonly Polygon _geom = new Polygon(
+    private readonly Polygon _geom = new(
         new LinearRing(new[]
         {
-                new Coordinate(30, 10),
-                new Coordinate(40, 40),
-                new Coordinate(20, 40),
-                new Coordinate(10, 20),
-                new Coordinate(30, 10)
+            new Coordinate(30, 10),
+            new Coordinate(40, 40),
+            new Coordinate(20, 40),
+            new Coordinate(10, 20),
+            new Coordinate(30, 10)
         }));
 
     [Fact]
@@ -72,6 +70,7 @@ public class GeoJsonPolygonTypeTests
     public void Polygon_Execution_Tests()
     {
         // arrange
+        // act
         var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
@@ -82,8 +81,7 @@ public class GeoJsonPolygonTypeTests
                 .Resolve(_geom))
             .Create();
 
-        // act
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 }

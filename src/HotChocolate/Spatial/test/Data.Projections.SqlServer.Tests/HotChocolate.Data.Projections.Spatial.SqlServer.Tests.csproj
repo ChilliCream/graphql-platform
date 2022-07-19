@@ -9,7 +9,6 @@
     <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
     <ProjectReference Include="..\..\..\Spatial\src\Types\HotChocolate.Types.Spatial.csproj" />
     <ProjectReference Include="..\..\..\Spatial\src\Data\HotChocolate.Data.Spatial.csproj" />
-    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

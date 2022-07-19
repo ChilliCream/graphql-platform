@@ -1,21 +1,19 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonMultiPointTypeTests
 {
-    private readonly MultiPoint _geom = new MultiPoint(new[]
+    private readonly MultiPoint _geom = new(new[]
     {
-            new Point(new Coordinate(10, 40)),
-            new Point(new Coordinate(40, 30)),
-            new Point(new Coordinate(20, 20)),
-            new Point(new Coordinate(30, 10)),
-        });
+        new Point(new Coordinate(10, 40)),
+        new Point(new Coordinate(40, 30)),
+        new Point(new Coordinate(20, 20)),
+        new Point(new Coordinate(30, 10)),
+    });
 
     [Fact]
     public async Task MultiPoint_Execution_Output()
@@ -82,6 +80,6 @@ public class GeoJsonMultiPointTypeTests
 
         // act
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 }

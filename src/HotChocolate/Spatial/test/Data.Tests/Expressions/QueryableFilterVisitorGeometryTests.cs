@@ -1,11 +1,11 @@
-using System;
+using HotChocolate.Data.Filters;
+using HotChocolate.Data.Filters.Spatial.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types.Spatial;
 using NetTopologySuite.Geometries;
-using Xunit;
-using static HotChocolate.Data.Filters.Spatial.Expressions.QueryableFilterVisitorGeometryTests.TestModels;
+using static HotChocolate.Data.Spatial.Expressions.QueryableFilterVisitorGeometryTests.TestModels;
 
-namespace HotChocolate.Data.Filters.Spatial.Expressions;
+namespace HotChocolate.Data.Spatial.Expressions;
 
 public class QueryableFilterVisitorGeometryTests
 {
@@ -15,7 +15,7 @@ public class QueryableFilterVisitorGeometryTests
         public void Line_Contains_Point()
         {
             // arrange
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             contains: {
@@ -26,10 +26,10 @@ public class QueryableFilterVisitorGeometryTests
                             }
                         }
                     }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
@@ -59,7 +59,7 @@ public class QueryableFilterVisitorGeometryTests
         public void Polygon_Contains_Buffered_Point()
         {
             // arrange
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             contains: {
@@ -72,10 +72,10 @@ public class QueryableFilterVisitorGeometryTests
                         }
                     }");
 
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
@@ -116,7 +116,7 @@ public class QueryableFilterVisitorGeometryTests
         public void Point_to_Line()
         {
             // arrange
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             distance: {
@@ -128,10 +128,10 @@ public class QueryableFilterVisitorGeometryTests
                             }
                         }
                     }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
@@ -161,7 +161,7 @@ public class QueryableFilterVisitorGeometryTests
         public void Line_to_Line()
         {
             // arrange
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             distance: {
@@ -173,10 +173,10 @@ public class QueryableFilterVisitorGeometryTests
                             }
                         }
                     }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
@@ -196,7 +196,7 @@ public class QueryableFilterVisitorGeometryTests
         [Fact]
         public void Point_in_Poly()
         {
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             intersects: {
@@ -207,10 +207,10 @@ public class QueryableFilterVisitorGeometryTests
                             }
                         }
                     }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
@@ -241,7 +241,7 @@ public class QueryableFilterVisitorGeometryTests
         [Fact]
         public void Line_in_Poly()
         {
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             intersects: {
@@ -252,10 +252,10 @@ public class QueryableFilterVisitorGeometryTests
                             }
                         }
                     }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
@@ -286,7 +286,7 @@ public class QueryableFilterVisitorGeometryTests
         [Fact]
         public void Poly_in_Poly()
         {
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             intersects: {
@@ -297,10 +297,10 @@ public class QueryableFilterVisitorGeometryTests
                             }
                         }
                     }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
@@ -334,7 +334,7 @@ public class QueryableFilterVisitorGeometryTests
         [Fact]
         public void Line_and_Line()
         {
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             overlaps: {
@@ -345,10 +345,10 @@ public class QueryableFilterVisitorGeometryTests
                             }
                         }
                     }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
@@ -377,7 +377,7 @@ public class QueryableFilterVisitorGeometryTests
         [Fact]
         public void Poly_and_Poly()
         {
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             overlaps: {
@@ -388,10 +388,10 @@ public class QueryableFilterVisitorGeometryTests
                             }
                         }
                     }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
@@ -426,7 +426,7 @@ public class QueryableFilterVisitorGeometryTests
         public void Point_Within_Line()
         {
             // arrange
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             within: {
@@ -437,10 +437,10 @@ public class QueryableFilterVisitorGeometryTests
                             }
                         }
                     }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
@@ -460,7 +460,7 @@ public class QueryableFilterVisitorGeometryTests
         public void Polygon_Within_Buffered_Point()
         {
             // arrange
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 @"{
                         bar: {
                             within: {
@@ -473,10 +473,10 @@ public class QueryableFilterVisitorGeometryTests
                         }
                     }");
 
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
 
             // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+            var func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo
