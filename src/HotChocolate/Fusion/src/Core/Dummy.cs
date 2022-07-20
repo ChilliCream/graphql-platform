@@ -1,5 +1,10 @@
 using System.Collections;
+using System.Reflection.Metadata;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using Types = HotChocolate.Types;
 
 namespace HotChocolate.Fusion;
@@ -10,30 +15,42 @@ public class QueryPlanBuilder
 
     public void Foo(IOperation operation, ISelectionSet selectionSet, ObjectType type)
     {
-        foreach (var schemaName in _schema.Bindings)
+        var selections = new List<ISelection>(selectionSet.Selections);
+
+        while (selections.Count > 0)
         {
+            var bestScore = 0;
+            var bestSchema = _schema.Bindings[0];
 
-        }
+            foreach (var schemaName in _schema.Bindings)
+            {
+                var score = CalculateSchemaScore(operation, selections, type, schemaName);
 
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestSchema = schemaName;
+                }
+            }
 
-        foreach (var selection in selectionSet.Selections)
-        {
+            foreach (var selection in selectionSet.Selections)
+            {
 
-
+            }
         }
     }
 
     private int CalculateSchemaScore(
         IOperation operation,
-        ISelectionSet selectionSet,
-        ObjectType type,
+        IReadOnlyList<ISelection> selections,
+        ObjectType typeContext,
         string schemaName)
     {
         var score = 0;
 
-        foreach (var selection in selectionSet.Selections)
+        foreach (var selection in selections)
         {
-            if (type.Fields[selection.Field.Name].Bindings.ContainsSchema(schemaName))
+            if (typeContext.Fields[selection.Field.Name].Bindings.ContainsSchema(schemaName))
             {
                 score++;
 
@@ -41,9 +58,13 @@ public class QueryPlanBuilder
                 {
                     foreach (var possibleType in operation.GetPossibleTypes(selection))
                     {
-                        var resultType = _schema.GetType<ObjectType>(possibleType.Name);
-                        var resultSelectionSet = operation.GetSelectionSet(selection, possibleType);
-                        score += CalculateSchemaScore(operation, resultSelectionSet, resultType, schemaName);
+                        var type = _schema.GetType<ObjectType>(possibleType.Name);
+                        var selectionSet = operation.GetSelectionSet(selection, possibleType);
+                        score += CalculateSchemaScore(
+                            operation,
+                            selectionSet.Selections,
+                            type,
+                            schemaName);
                     }
                 }
             }
@@ -51,6 +72,37 @@ public class QueryPlanBuilder
 
         return score;
     }
+}
+
+public class QueryPlan
+{
+    public IReadOnlyList<RequestNode> Nodes { get; }
+}
+
+public class RequestNode
+{
+    public IReadOnlyList<string> Exports { get; }
+
+    public IReadOnlyList<string> Requires { get; }
+
+    public DocumentNode Document { get; }
+
+    public IReadOnlyList<RequestNode> Nodes { get; }
+
+    public Request CreateRequest(IReadOnlyList<IValueNode>? variables)
+        => throw new NotImplementedException();
+
+    public IReadOnlyList<IValueNode> ExtractExports(JsonElement response)
+        => throw new NotImplementedException();
+}
+
+public readonly struct Request
+{
+    public DocumentNode Document { get; }
+
+    public ObjectValueNode? VariableValues { get; }
+
+    public ObjectValueNode? Extensions { get; }
 }
 
 public interface IType
