@@ -108,12 +108,13 @@ public class UnitTest1
             schema);
 
         // act
-        var queryPlanBuilder = new QueryPlanBuilder(distributedSchema);
+        var queryPlan = new QueryPlan();
+        var queryPlanBuilder = new QueryPlanBuilder(distributedSchema, operation);
 
         queryPlanBuilder.CollectSelectionsBySchema1(
-            operation,
-            operation.RootSelectionSet,
-            distributedQueryType);
+            operation.RootSelectionSet.Selections,
+            distributedQueryType,
+            queryPlan);
 
     }
 }

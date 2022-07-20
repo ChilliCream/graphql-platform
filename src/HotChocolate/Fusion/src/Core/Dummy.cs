@@ -9,33 +9,43 @@ namespace HotChocolate.Fusion;
 public class QueryPlanBuilder
 {
     private readonly Schema _schema;
+    private readonly IOperation _operation;
 
-
-    public QueryPlanBuilder(Schema schema)
+    public QueryPlanBuilder(Schema schema, IOperation operation)
     {
         _schema = schema;
+        _operation = operation;
     }
 
     public void CollectSelectionsBySchema1(
-        IOperation operation,
-        ISelectionSet selectionSet,
-        ObjectType typeContext)
+        IReadOnlyList<ISelection> selections,
+        ObjectType typeContext,
+        ExecutionNode parent)
     {
-        var selections = new List<ISelection>(selectionSet.Selections);
-        var schemaName = ResolveBestMatchingSchema(operation, selections, typeContext);
-        var selectionSyntaxList = new List<ISelectionNode>();
+        var schemaName = ResolveBestMatchingSchema(_operation, selections, typeContext);
+        var syntaxList = new List<ISelectionNode>();
 
         foreach (var selection in selections)
         {
             var field = typeContext.Fields[selection.Field.Name];
-
             if (field.Bindings.TryGetValue(schemaName, out var binding))
             {
-                selectionSyntaxList.Add(CreateSelectionSyntax(selection, field, binding, null));
+                syntaxList.Add(CreateSelectionSyntax(selection, field, binding, null));
             }
         }
 
-
+        var selectionSetSyntax = new SelectionSetNode(syntaxList);
+        var operationSyntax = new OperationDefinitionNode(
+            null,
+            null,
+            OperationType.Query,
+            Array.Empty<VariableDefinitionNode>(),
+            Array.Empty<DirectiveNode>(),
+            selectionSetSyntax);
+        var document = new DocumentNode(new[] { operationSyntax });
+        var requestHandler = new RequestHandler(document);
+        var requestNode = new RequestNode(requestHandler);
+        parent.AppendNode(requestNode);
     }
 
     private ISelectionNode CreateSelectionSyntax(
@@ -50,6 +60,12 @@ public class QueryPlanBuilder
                 ? new NameNode(selection.ResponseName)
                 : null;
 
+            SelectionSetNode? selectionSetSyntax = null;
+            if (selection.SelectionSet is not null)
+            {
+                selectionSetSyntax = CreateSelectionSetSyntax(selection, binding.SchemaName);
+            }
+
             return new FieldNode(
                 null,
                 new(binding.Name),
@@ -57,10 +73,33 @@ public class QueryPlanBuilder
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
-                null);
+                selectionSetSyntax);
         }
 
         throw new NotImplementedException();
+    }
+
+    private SelectionSetNode CreateSelectionSetSyntax(
+        ISelection parentSelection,
+        string schemaName)
+    {
+        var syntaxList = new List<ISelectionNode>();
+        var possibleTypes = _operation.GetPossibleTypes(parentSelection);
+
+        foreach (var possibleType in possibleTypes)
+        {
+            var typeContext = _schema.GetType<ObjectType>(possibleType.Name);
+            foreach (var selection in _operation.GetSelectionSet(parentSelection, possibleType).Selections)
+            {
+                var field = typeContext.Fields[selection.Field.Name];
+                if (field.Bindings.TryGetValue(schemaName, out var binding))
+                {
+                    syntaxList.Add(CreateSelectionSyntax(selection, field, binding, null));
+                }
+            }
+        }
+
+        return new SelectionSetNode(syntaxList);
     }
 
 
@@ -178,6 +217,11 @@ public abstract class ExecutionNode
 
 public class RequestHandler
 {
+    public RequestHandler(DocumentNode document)
+    {
+        Document = document;
+    }
+
     public IReadOnlyList<string> Requires { get; }
 
     public IReadOnlyList<string> Exports { get; }
