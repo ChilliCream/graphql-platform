@@ -1,11 +1,6 @@
-using System.Collections;
-using System.Reflection.Metadata;
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using Types = HotChocolate.Types;
 
 namespace HotChocolate.Fusion;
 
@@ -74,20 +69,66 @@ public class QueryPlanBuilder
     }
 }
 
-public class QueryPlan
+public class QueryPlan : ExecutionNode
 {
-    public IReadOnlyList<RequestNode> Nodes { get; }
 }
 
-public class RequestNode
+public sealed class RequestNode : ExecutionNode
 {
-    public IReadOnlyList<string> Exports { get; }
+    public RequestNode(RequestTemplate template)
+    {
+        Template = template;
+    }
+
+    public RequestTemplate Template { get; }
+}
+
+public abstract class ExecutionNode
+{
+    private readonly List<ExecutionNode> _nodes = new();
+    private bool _isReadOnly = false;
+
+    public IReadOnlyList<ExecutionNode> Nodes => _nodes;
+
+    internal void AppendNode(ExecutionNode node)
+    {
+        if (_isReadOnly)
+        {
+            throw new InvalidOperationException("The execution node is read-only.");
+        }
+
+        _nodes.Add(node);
+    }
+
+    internal void Seal()
+    {
+        if (!_isReadOnly)
+        {
+            _isReadOnly = true;
+
+            foreach (var node in _nodes)
+            {
+                node.Seal();
+            }
+        }
+    }
+}
+
+public class RequestTemplate
+{
+    public RequestTemplate(
+        IReadOnlyList<string> requires,
+        IReadOnlyList<string> exports,
+        DocumentNode document)
+    {
+
+    }
 
     public IReadOnlyList<string> Requires { get; }
 
-    public DocumentNode Document { get; }
+    public IReadOnlyList<string> Exports { get; }
 
-    public IReadOnlyList<RequestNode> Nodes { get; }
+    public DocumentNode Document { get; }
 
     public Request CreateRequest(IReadOnlyList<IValueNode>? variables)
         => throw new NotImplementedException();
