@@ -4,5 +4,9 @@
     <AssemblyName>HotChocolate.Fusion.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Core\HotChocolate.Fusion.csproj" />
+  </ItemGroup>
 
 </Project>
