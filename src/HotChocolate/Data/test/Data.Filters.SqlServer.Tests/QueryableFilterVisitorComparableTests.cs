@@ -397,7 +397,7 @@ public class QueryableFilterVisitorComparableTests
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { in: [ null, 14 ]}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
@@ -428,7 +428,7 @@ public class QueryableFilterVisitorComparableTests
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
