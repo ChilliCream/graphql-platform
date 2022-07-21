@@ -1,9 +1,14 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Language.Utf8GraphQLParser;
+using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
+using ObjectField = HotChocolate.Fusion.Types.ObjectField;
+using ObjectType = HotChocolate.Fusion.Types.ObjectType;
 
 namespace test;
 
@@ -45,9 +50,16 @@ public class UnitTest1
                     new[] { new MemberBinding("a", "personById"), },
                     new[]
                     {
+                        new ArgumentVariableDefinition(
+                            "personId",
+                            ParseTypeReference("ID"),
+                            "id")
+                    },
+                    new[]
+                    {
                         new FetchDefinition(
                             "a",
-                            Syntax.ParseSelectionSet("{ personById }"),
+                            ParseField("internalPersonById(id: $personId)"),
                             null,
                             Array.Empty<string>())
                     })
@@ -70,14 +82,17 @@ public class UnitTest1
                         new MemberBinding("a", "id"),
                         new MemberBinding("b", "id"),
                     },
+                    Array.Empty<ArgumentVariableDefinition>(),
                     Array.Empty<FetchDefinition>()),
                 new ObjectField(
                     "name",
                     new[] { new MemberBinding("a", "name"), },
+                    Array.Empty<ArgumentVariableDefinition>(),
                     Array.Empty<FetchDefinition>()),
                 new ObjectField(
                     "bio",
                     new[] { new MemberBinding("b", "bio"), },
+                    Array.Empty<ArgumentVariableDefinition>(),
                     Array.Empty<FetchDefinition>())
             });
 

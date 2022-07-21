@@ -1,19 +1,17 @@
-using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
-using HotChocolate.Resolvers;
 
 namespace HotChocolate.Fusion;
 
 public class QueryPlanBuilder
 {
-    private readonly Schema _schema;
+    private readonly Types.Schema _schema;
     private readonly IOperation _operation;
 
-    public QueryPlanBuilder(Schema schema, IOperation operation)
+    public QueryPlanBuilder(Types.Schema schema, IOperation operation)
     {
         _schema = schema;
         _operation = operation;
@@ -319,160 +317,9 @@ public readonly struct Request
     public ObjectValueNode? Extensions { get; }
 }
 
-public interface IType
+public interface IType // should be called named type
 {
     string Name { get; }
-}
-
-public sealed class Schema
-{
-    private readonly string[] _bindings;
-    private readonly Dictionary<string, IType> _types;
-
-    public Schema(IEnumerable<string> bindings, IEnumerable<IType> types)
-    {
-        _bindings = bindings.ToArray();
-        _types = types.ToDictionary(t => t.Name, StringComparer.Ordinal);
-    }
-
-    public IReadOnlyList<string> Bindings => _bindings;
-
-    public T GetType<T>(string typeName) where T : IType
-    {
-        if (_types.TryGetValue(typeName, out var type) && type is T casted)
-        {
-            return casted;
-        }
-
-        throw new InvalidOperationException("Type not found.");
-    }
-}
-
-public sealed class ObjectType : IType
-{
-    public ObjectType(
-        string name,
-        IEnumerable<MemberBinding> bindings,
-        IEnumerable<FetchDefinition> resolvers,
-        IEnumerable<ObjectField> fields)
-    {
-        Name = name;
-        Bindings = new MemberBindingCollection(bindings);
-        Resolvers = new FetchDefinitionCollection(resolvers);
-        Fields = new ObjectFieldCollection(fields);
-    }
-
-    public string Name { get; }
-
-    public MemberBindingCollection Bindings { get; }
-
-    public FetchDefinitionCollection Resolvers { get; }
-
-    public VariableDefinitionCollection Variables => throw new NotImplementedException();
-
-    public ObjectFieldCollection Fields { get; }
-}
-
-public sealed class ObjectField
-{
-    public ObjectField(
-        string name,
-        IEnumerable<MemberBinding> bindings,
-        IEnumerable<FetchDefinition> resolvers)
-    {
-        Name = name;
-        Bindings = new MemberBindingCollection(bindings);
-        Resolvers = new FetchDefinitionCollection(resolvers);
-    }
-
-    public string Name { get; }
-
-    public MemberBindingCollection Bindings { get; }
-
-    public ArgumentVariableDefinitionCollection Variables => throw new NotImplementedException();
-
-    public FetchDefinitionCollection Resolvers { get; }
-}
-
-public sealed class ObjectFieldCollection : IEnumerable<ObjectField>
-{
-    private readonly Dictionary<string, ObjectField> _fields;
-
-    public ObjectFieldCollection(IEnumerable<ObjectField> fields)
-    {
-        _fields = fields.ToDictionary(t => t.Name, StringComparer.Ordinal);
-    }
-
-    public int Count => _fields.Count;
-
-    public ObjectField this[string fieldName] => _fields[fieldName];
-
-    public bool TryGetValue(string fieldName, [NotNullWhen(true)] out ObjectField? value)
-        => _fields.TryGetValue(fieldName, out value);
-
-    public IEnumerator<ObjectField> GetEnumerator() => _fields.Values.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-}
-
-public sealed class MemberBindingCollection : IEnumerable<MemberBinding>
-{
-    private readonly Dictionary<string, MemberBinding> _bindings;
-
-    public MemberBindingCollection(IEnumerable<MemberBinding> bindings)
-    {
-        _bindings = bindings.ToDictionary(t => t.SchemaName, StringComparer.Ordinal);
-    }
-
-    public int Count => _bindings.Count;
-
-    // public MemberBinding this[string schemaName] => throw new NotImplementedException();
-
-    public bool TryGetValue(string schemaName, [NotNullWhen(true)] out MemberBinding? value)
-        => _bindings.TryGetValue(schemaName, out value);
-
-    public bool ContainsSchema(string schemaName) => _bindings.ContainsKey(schemaName);
-
-    public IEnumerator<MemberBinding> GetEnumerator() => _bindings.Values.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-}
-
-public sealed class FetchDefinitionCollection : IEnumerable<FetchDefinition>
-{
-    private readonly Dictionary<string, FetchDefinition[]> _fetchDefinitions;
-
-    public FetchDefinitionCollection(IEnumerable<FetchDefinition> fetchDefinitions)
-    {
-        _fetchDefinitions = fetchDefinitions
-            .GroupBy(t => t.SchemaName)
-            .ToDictionary(t => t.Key, t => t.ToArray(), StringComparer.Ordinal);
-    }
-
-    public int Count => _fetchDefinitions.Count;
-
-    // public IReadOnlyList<FetchDefinition> this[string schemaName] => throw new NotImplementedException();
-
-    public bool TryGetValue(
-        string schemaName,
-        [NotNullWhen(true)] out IReadOnlyList<FetchDefinition>? values)
-    {
-        if (_fetchDefinitions.TryGetValue(schemaName, out var temp))
-        {
-            values = temp;
-            return true;
-        }
-
-        values = null;
-        return false;
-    }
-
-    public bool ContainsResolvers(string schemaName) => _fetchDefinitions.ContainsKey(schemaName);
-
-    public IEnumerator<FetchDefinition> GetEnumerator()
-        => _fetchDefinitions.Values.SelectMany(t => t).GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
 public class VariableDefinitionCollection
@@ -490,121 +337,9 @@ public class VariableDefinitionCollection
     public bool ContainsVariable(string variableName) => throw new NotImplementedException();
 }
 
-public class ArgumentVariableDefinitionCollection : IEnumerable<ArgumentVariableDefinition>
-{
-    public int Count { get; }
-
-    public ArgumentVariableDefinition this[string variableName]
-        => throw new NotImplementedException();
-
-    public bool TryGetValue(string variableName, out ArgumentVariableDefinition value)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool ContainsVariable(string variableName) => throw new NotImplementedException();
-
-    public IEnumerator<ArgumentVariableDefinition> GetEnumerator()
-    {
-        throw new NotImplementedException();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-}
-
-/// <summary>
-/// The type system member binding information.
-/// </summary>
-public class MemberBinding
-{
-    /// <summary>
-    /// Initializes a new instance of <see cref="MemberBinding"/>.
-    /// </summary>
-    /// <param name="schemaName">
-    /// The schema to which the type system member is bound to.
-    /// </param>
-    /// <param name="name">
-    /// The name which the type system member has in the <see cref="SchemaName"/>.
-    /// </param>
-    public MemberBinding(string schemaName, string name)
-    {
-        SchemaName = schemaName;
-        Name = name;
-    }
-
-    /// <summary>
-    /// Gets the schema to which the type system member is bound to.
-    /// </summary>
-    public string SchemaName { get; }
-
-    /// <summary>
-    /// Gets the name which the type system member has in the <see cref="SchemaName"/>.
-    /// </summary>
-    public string Name { get; }
-}
-
-public class FetchDefinition
-{
-    public FetchDefinition(
-        string schemaName,
-        ISelectionNode select,
-        FragmentSpreadNode? placeholder,
-        IReadOnlyList<string> requires)
-    {
-        SchemaName = schemaName;
-        Select = select;
-        Placeholder = placeholder;
-        Requires = requires;
-    }
-
-    /// <summary>
-    /// Gets the schema to which the type system member is bound to.
-    /// </summary>
-    public string SchemaName { get; }
-
-    public ISelectionNode Select { get; }
-
-    public FragmentSpreadNode? Placeholder { get; }
-
-    public IReadOnlyList<string> Requires { get; }
-
-    public ISelectionNode CreateSelection(
-        IReadOnlyDictionary<string, string> variables,
-        SelectionSetNode? selectionSet)
-    {
-
-    }
-
-    private class FetchRewriter : SyntaxRewriter<FetchRewriterContext>
-    {
-        
-
-        protected override FragmentSpreadNode? RewriteFragmentSpread(
-            FragmentSpreadNode node,
-            FetchRewriterContext context)
-        {
-            if (ReferenceEquals(context.Placeholder, node))
-            {
-
-            }
-
-            return base.RewriteFragmentSpread(node, context);
-        }
-    }
-
-    private sealed class FetchRewriterContext : ISyntaxVisitorContext
-    {
-        public FragmentSpreadNode? Placeholder { get; }
-
-        public IReadOnlyDictionary<string, string> Variables { get; }
-
-        public SelectionSetNode? SelectionSet { get; }
-    }
-}
-
 public sealed class FieldVariableDefinition : IVariableDefinition
 {
-    public FieldVariableDefinition(string name, IType type, SelectionSetNode select)
+    public FieldVariableDefinition(string name, ITypeNode type, SelectionSetNode select)
     {
         Name = name;
         Type = type;
@@ -613,30 +348,7 @@ public sealed class FieldVariableDefinition : IVariableDefinition
 
     public string Name { get; }
 
-    public IType Type { get; }
+    public ITypeNode Type { get; }
 
     public SelectionSetNode Select { get; }
-}
-
-public sealed class ArgumentVariableDefinition : IVariableDefinition
-{
-    public ArgumentVariableDefinition(string name, IType type, string argumentName)
-    {
-        Name = name;
-        Type = type;
-        ArgumentName = argumentName;
-    }
-
-    public string Name { get; }
-
-    public IType Type { get; }
-
-    public string ArgumentName { get; }
-}
-
-public interface IVariableDefinition
-{
-    string Name { get; }
-
-    IType Type { get; }
 }
