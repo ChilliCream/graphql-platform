@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Fusion;
 
@@ -22,15 +24,39 @@ public class QueryPlanBuilder
         ObjectType typeContext,
         ExecutionNode parent)
     {
+        CollectSelectionsBySchema2(new Context(), selections, typeContext, parent);
+    }
+
+    private void CollectSelectionsBySchema2(
+        Context context,
+        IReadOnlyList<ISelection> selections,
+        ObjectType typeContext,
+        ExecutionNode parent)
+    {
         var schemaName = ResolveBestMatchingSchema(_operation, selections, typeContext);
         var syntaxList = new List<ISelectionNode>();
 
         foreach (var selection in selections)
         {
             var field = typeContext.Fields[selection.Field.Name];
+
             if (field.Bindings.TryGetValue(schemaName, out var binding))
             {
-                syntaxList.Add(CreateSelectionSyntax(selection, field, binding, null));
+                context.Variables.Clear();
+
+                foreach (var variable in field.Variables)
+                {
+                    context.Variables.Add(variable.Name, variable);
+                }
+
+                if (!TryGetResolver(field, schemaName, context.Variables, out var resolver))
+                {
+                    // todo : error message and type
+                    throw new InvalidOperationException(
+                        "There must be a field fetch definition valid in this context!");
+                }
+
+                syntaxList.Add(CreateSelectionSyntax(context, selection, binding, resolver));
             }
         }
 
@@ -49,22 +75,26 @@ public class QueryPlanBuilder
     }
 
     private ISelectionNode CreateSelectionSyntax(
+        Context context,
         ISelection selection,
-        ObjectField field,
         MemberBinding binding,
         FetchDefinition? resolver)
     {
+        SelectionSetNode? selectionSetSyntax = null;
+
+        if (selection.SelectionSet is not null)
+        {
+            selectionSetSyntax = CreateSelectionSetSyntax(
+                context,
+                selection,
+                binding.SchemaName);
+        }
+
         if (resolver is null)
         {
             var alias = !selection.ResponseName.Equals(binding.Name)
                 ? new NameNode(selection.ResponseName)
                 : null;
-
-            SelectionSetNode? selectionSetSyntax = null;
-            if (selection.SelectionSet is not null)
-            {
-                selectionSetSyntax = CreateSelectionSetSyntax(selection, binding.SchemaName);
-            }
 
             return new FieldNode(
                 null,
@@ -76,10 +106,11 @@ public class QueryPlanBuilder
                 selectionSetSyntax);
         }
 
-        throw new NotImplementedException();
+        return resolver.CreateSelection(context.VariableMapping, selectionSetSyntax);
     }
 
     private SelectionSetNode CreateSelectionSetSyntax(
+        Context context,
         ISelection parentSelection,
         string schemaName)
     {
@@ -89,12 +120,25 @@ public class QueryPlanBuilder
         foreach (var possibleType in possibleTypes)
         {
             var typeContext = _schema.GetType<ObjectType>(possibleType.Name);
-            foreach (var selection in _operation.GetSelectionSet(parentSelection, possibleType).Selections)
+            var selectionSet = _operation.GetSelectionSet(parentSelection, possibleType);
+
+            foreach (var selection in selectionSet.Selections)
             {
                 var field = typeContext.Fields[selection.Field.Name];
+
                 if (field.Bindings.TryGetValue(schemaName, out var binding))
                 {
-                    syntaxList.Add(CreateSelectionSyntax(selection, field, binding, null));
+                    FetchDefinition? resolver = null;
+
+                    if (field.Resolvers.ContainsResolvers(schemaName) &&
+                        !TryGetResolver(field, schemaName, context.Variables, out resolver))
+                    {
+                        // todo : error message and type
+                        throw new InvalidOperationException(
+                            "There must be a field fetch definition valid in this context!");
+                    }
+
+                    syntaxList.Add(CreateSelectionSyntax(context, selection, binding, resolver));
                 }
             }
         }
@@ -123,15 +167,6 @@ public class QueryPlanBuilder
         }
 
         return bestSchema;
-    }
-
-    private void CreateRequest(
-        IOperation operation,
-        IReadOnlyList<ISelection> selections,
-        ObjectType typeContext,
-        string schemaName)
-    {
-
     }
 
     private int CalculateSchemaScore(
@@ -167,12 +202,49 @@ public class QueryPlanBuilder
         return score;
     }
 
+    private bool TryGetResolver(
+        ObjectField field,
+        string schemaName,
+        Dictionary<string, IVariableDefinition> variables,
+        [NotNullWhen(true)] out FetchDefinition? resolver)
+    {
+        if (field.Resolvers.TryGetValue(schemaName, out var resolvers))
+        {
+            foreach (var current in resolvers)
+            {
+                var canBeUsed = true;
 
+                foreach (var requirement in current.Requires)
+                {
+                    if (!variables.ContainsKey(requirement))
+                    {
+                        canBeUsed = false;
+                        break;
+                    }
+                }
+
+                if (canBeUsed)
+                {
+                    resolver = current;
+                    return true;
+                }
+            }
+        }
+
+        resolver = null;
+        return false;
+    }
+
+
+    private class Context
+    {
+        public Dictionary<string, IVariableDefinition> Variables { get; } = new();
+
+        public Dictionary<string, string> VariableMapping { get; } = new();
+    }
 }
 
-public class QueryPlan : ExecutionNode
-{
-}
+public class QueryPlan : ExecutionNode { }
 
 public sealed class RequestNode : ExecutionNode
 {
@@ -278,7 +350,8 @@ public sealed class Schema
 
 public sealed class ObjectType : IType
 {
-    public ObjectType(string name,
+    public ObjectType(
+        string name,
         IEnumerable<MemberBinding> bindings,
         IEnumerable<FetchDefinition> resolvers,
         IEnumerable<ObjectField> fields)
@@ -295,10 +368,9 @@ public sealed class ObjectType : IType
 
     public FetchDefinitionCollection Resolvers { get; }
 
-    // public VariableDefinitionCollection Variables { get; }
+    public VariableDefinitionCollection Variables => throw new NotImplementedException();
 
     public ObjectFieldCollection Fields { get; }
-
 }
 
 public sealed class ObjectField
@@ -316,6 +388,8 @@ public sealed class ObjectField
     public string Name { get; }
 
     public MemberBindingCollection Bindings { get; }
+
+    public ArgumentVariableDefinitionCollection Variables => throw new NotImplementedException();
 
     public FetchDefinitionCollection Resolvers { get; }
 }
@@ -379,7 +453,9 @@ public sealed class FetchDefinitionCollection : IEnumerable<FetchDefinition>
 
     // public IReadOnlyList<FetchDefinition> this[string schemaName] => throw new NotImplementedException();
 
-    public bool TryGetValue(string schemaName, out IReadOnlyList<FetchDefinition>? values)
+    public bool TryGetValue(
+        string schemaName,
+        [NotNullWhen(true)] out IReadOnlyList<FetchDefinition>? values)
     {
         if (_fetchDefinitions.TryGetValue(schemaName, out var temp))
         {
@@ -391,7 +467,7 @@ public sealed class FetchDefinitionCollection : IEnumerable<FetchDefinition>
         return false;
     }
 
-    public bool ContainsSchema(string schemaName) => _fetchDefinitions.ContainsKey(schemaName);
+    public bool ContainsResolvers(string schemaName) => _fetchDefinitions.ContainsKey(schemaName);
 
     public IEnumerator<FetchDefinition> GetEnumerator()
         => _fetchDefinitions.Values.SelectMany(t => t).GetEnumerator();
@@ -403,16 +479,38 @@ public class VariableDefinitionCollection
 {
     public int Count { get; }
 
-    public VariableDefinition this[string variableName] => throw new NotImplementedException();
+    public IReadOnlyList<IVariableDefinition> this[string variableName]
+        => throw new NotImplementedException();
 
-    public bool TryGetValue(string variableName, out VariableDefinition value)
+    public bool TryGetValue(string variableName, out IReadOnlyList<IVariableDefinition> value)
     {
         throw new NotImplementedException();
     }
 
-    public bool ContainsSchema(string variableName) => throw new NotImplementedException();
+    public bool ContainsVariable(string variableName) => throw new NotImplementedException();
 }
 
+public class ArgumentVariableDefinitionCollection : IEnumerable<ArgumentVariableDefinition>
+{
+    public int Count { get; }
+
+    public ArgumentVariableDefinition this[string variableName]
+        => throw new NotImplementedException();
+
+    public bool TryGetValue(string variableName, out ArgumentVariableDefinition value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool ContainsVariable(string variableName) => throw new NotImplementedException();
+
+    public IEnumerator<ArgumentVariableDefinition> GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
 
 /// <summary>
 /// The type system member binding information.
@@ -449,7 +547,7 @@ public class FetchDefinition
 {
     public FetchDefinition(
         string schemaName,
-        SelectionSetNode select,
+        ISelectionNode select,
         FragmentSpreadNode? placeholder,
         IReadOnlyList<string> requires)
     {
@@ -464,16 +562,49 @@ public class FetchDefinition
     /// </summary>
     public string SchemaName { get; }
 
-    public SelectionSetNode Select { get; }
+    public ISelectionNode Select { get; }
 
     public FragmentSpreadNode? Placeholder { get; }
 
     public IReadOnlyList<string> Requires { get; }
+
+    public ISelectionNode CreateSelection(
+        IReadOnlyDictionary<string, string> variables,
+        SelectionSetNode? selectionSet)
+    {
+
+    }
+
+    private class FetchRewriter : SyntaxRewriter<FetchRewriterContext>
+    {
+        
+
+        protected override FragmentSpreadNode? RewriteFragmentSpread(
+            FragmentSpreadNode node,
+            FetchRewriterContext context)
+        {
+            if (ReferenceEquals(context.Placeholder, node))
+            {
+
+            }
+
+            return base.RewriteFragmentSpread(node, context);
+        }
+    }
+
+    private sealed class FetchRewriterContext : ISyntaxVisitorContext
+    {
+        public FragmentSpreadNode? Placeholder { get; }
+
+        public IReadOnlyDictionary<string, string> Variables { get; }
+
+        public SelectionSetNode? SelectionSet { get; }
+    }
 }
 
-public class VariableDefinition
+public sealed class FieldVariableDefinition : IVariableDefinition
 {
-    public VariableDefinition(string name, IType type, SelectionSetNode select)
+    public FieldVariableDefinition(string name, IType type, SelectionSetNode select)
     {
         Name = name;
         Type = type;
@@ -485,4 +616,27 @@ public class VariableDefinition
     public IType Type { get; }
 
     public SelectionSetNode Select { get; }
+}
+
+public sealed class ArgumentVariableDefinition : IVariableDefinition
+{
+    public ArgumentVariableDefinition(string name, IType type, string argumentName)
+    {
+        Name = name;
+        Type = type;
+        ArgumentName = argumentName;
+    }
+
+    public string Name { get; }
+
+    public IType Type { get; }
+
+    public string ArgumentName { get; }
+}
+
+public interface IVariableDefinition
+{
+    string Name { get; }
+
+    IType Type { get; }
 }
