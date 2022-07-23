@@ -18,5 +18,6 @@ public sealed class FieldVariableDefinition : IVariableDefinition
 
     public ITypeNode Type { get; }
 
+    // TODO : this probably should be a selection set ...
     public FieldNode Select { get; }
 }

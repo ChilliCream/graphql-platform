@@ -4,14 +4,14 @@ public sealed class ObjectField
 {
     public ObjectField(
         string name,
-        IEnumerable<MemberBinding> bindings,
-        IEnumerable<ArgumentVariableDefinition> variables,
-        IEnumerable<FetchDefinition> resolvers)
+        MemberBindingCollection bindings,
+        ArgumentVariableDefinitionCollection variables,
+        FetchDefinitionCollection resolvers)
     {
         Name = name;
-        Bindings = new MemberBindingCollection(bindings);
-        Variables = new ArgumentVariableDefinitionCollection(variables);
-        Resolvers = new FetchDefinitionCollection(resolvers);
+        Bindings = bindings;
+        Variables =variables;
+        Resolvers = resolvers;
     }
 
     public string Name { get; }
