@@ -83,10 +83,13 @@ internal sealed class RequirementsPlaner
                 // to evaluate the schemas that we did skip for efficiency reasons.
                 // TODO: CODE
 
-                // if the schema meta data are not consistent we could end up with no way to
-                // execute the current execution step. In this case we will fail here.
-                // TODO : NEEDS A PROPER EXCEPTION
-                throw new Exception("NEEDS A PROPER EXCEPTION");
+                if (requires.Count > 0)
+                {
+                    // if the schema meta data are not consistent we could end up with no way to
+                    // execute the current execution step. In this case we will fail here.
+                    // TODO : NEEDS A PROPER EXCEPTION
+                    throw new Exception("NEEDS A PROPER EXCEPTION");
+                }
             }
         }
     }
