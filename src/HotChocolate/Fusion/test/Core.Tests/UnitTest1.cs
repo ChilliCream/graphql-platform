@@ -1,7 +1,6 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
