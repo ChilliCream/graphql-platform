@@ -1,57 +1,79 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Metadata;
+using static System.StringComparer;
 
 namespace HotChocolate.Fusion.Planning;
 
+/// <summary>
+/// The requirements planer will analyze the requirements for each
+/// request to a downstream service and enrich these so that all requirements for each requests
+/// are fulfilled.
+/// </summary>
 internal sealed class RequirementsPlaner
 {
-    private readonly Metadata.Schema _schema;
-
-    public RequirementsPlaner(Metadata.Schema schema)
+    public void Plan(QueryPlanContext context)
     {
-        _schema = schema;
-    }
+        var selectionLookup = CreateSelectionLookup(context.Steps);
+        var schemas = new Dictionary<string, SelectionExecutionStep>(Ordinal);
+        var requires = new HashSet<string>(Ordinal);
 
-    public void Plan(IOperation operation, IReadOnlyList<QueryPlanWorkItem> executionSteps)
-    {
-        var selectionLookup = CreateSelectionLookup(executionSteps);
-        var schemas = new HashSet<string>(StringComparer.Ordinal);
-        var requires = new HashSet<string>(StringComparer.Ordinal);
-        var variableGroup = Guid.NewGuid().ToString("N")[24..];
-        var variableId = 0;
-
-        foreach (var executionStep in executionSteps.Where(static t => t.Requires.Count > 0))
+        foreach (var step in context.Steps)
         {
-            if (executionStep.ParentSelection is { } parent &&
-                executionStep.Resolver is { } resolver)
+            if (step is SelectionExecutionStep executionStep &&
+                executionStep.ParentSelection is { } parent &&
+                executionStep.Resolver is { })
             {
                 var declaringType = executionStep.RootSelections[0].Selection.DeclaringType;
-                var siblingSelectionSet = operation.GetSelectionSet(parent, declaringType);
-                var siblings = siblingSelectionSet.Selections;
+                var selectionSet = context.Operation.GetSelectionSet(parent, declaringType);
+                var siblings = selectionSet.Selections;
                 var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, siblings);
 
                 // remove the execution step for which we try to resolve dependencies.
                 siblingExecutionSteps.Remove(executionStep);
 
-                // clean and fill preferred schemas set
-                InitializeSet(schemas, siblingExecutionSteps.Select(static t => t.SchemaName));
+                // clean and fill the schema execution step lookup
+                foreach (var siblingExecutionStep in siblingExecutionSteps)
+                {
+                    schemas.TryAdd(siblingExecutionStep.SchemaName, siblingExecutionStep);
+                }
 
                 // clean and fill requires set
                 InitializeSet(requires, executionStep.Requires);
 
-                foreach (var variable in executionStep.DeclaringType.Variables)
+                // first we need to check if the selectionSet from which we want to do the
+                // exports already is exporting the required variables
+                // if so we just need to refer to it.
+                foreach (var requirement in requires)
+                {
+                    if (context.Exports.TryGetStateKey(
+                        selectionSet,
+                        requirement,
+                        out var stateKey,
+                        out var providingExecutionStep))
+                    {
+                        executionStep.DependsOn.Add(providingExecutionStep);
+                        executionStep.Variables.Add(requirement, stateKey);
+                    }
+                }
+
+                // if we still have requirements unfulfilled will try to resolve them
+                // from sibling execution steps.
+                foreach (var variable in step.DeclaringType.Variables)
                 {
                     var schemaName = variable.SchemaName;
-                    if (schemas.Contains(schemaName) && requires.Contains(variable.Name))
+                    if (requires.Contains(variable.Name) &&
+                        schemas.TryGetValue(schemaName, out var providingExecutionStep))
                     {
                         requires.Remove(variable.Name);
 
-                        // first we need to check if the selectionSet from which we want to do the
-                        // export already is exporting the required variable
-                        // if so we need to just refer to it.
-                        var variableName = $"_{variableGroup}_{++variableId}";
-                        var siblingExecutionStep = siblingExecutionSteps.First(t => string.Equals(t.SchemaName, schemaName, StringComparison.Ordinal));
-                        // we need to annotate the export with the selectionSet
-                        // from which we are exporting.
+                        var stateKey = context.Exports.Register(
+                            selectionSet,
+                            variable,
+                            providingExecutionStep);
+
+                        executionStep.DependsOn.Add(providingExecutionStep);
+                        executionStep.Variables.Add(variable.Name, stateKey);
                     }
                 }
 
@@ -59,20 +81,21 @@ internal sealed class RequirementsPlaner
                 // and that we have to introduce a fetch to another remote schema to get the
                 // required value for the current execution step. In this case we will have
                 // to evaluate the schemas that we did skip for efficiency reasons.
-                // CODE
+                // TODO: CODE
 
                 // if the schema meta data are not consistent we could end up with no way to
                 // execute the current execution step. In this case we will fail here.
+                // TODO : NEEDS A PROPER EXCEPTION
                 throw new Exception("NEEDS A PROPER EXCEPTION");
             }
         }
     }
 
-    private static HashSet<QueryPlanWorkItem> GetSiblingExecutionSteps(
-        Dictionary<ISelection, QueryPlanWorkItem>  selectionLookup,
+    private static HashSet<SelectionExecutionStep> GetSiblingExecutionSteps(
+        Dictionary<ISelection, SelectionExecutionStep>  selectionLookup,
         IReadOnlyList<ISelection> siblings)
     {
-        var executionSteps = new HashSet<QueryPlanWorkItem>();
+        var executionSteps = new HashSet<SelectionExecutionStep>();
 
         foreach (var sibling in siblings)
         {
@@ -85,16 +108,19 @@ internal sealed class RequirementsPlaner
         return executionSteps;
     }
 
-    private static Dictionary<ISelection, QueryPlanWorkItem> CreateSelectionLookup(
-        IReadOnlyList<QueryPlanWorkItem> executionSteps)
+    private static Dictionary<ISelection, SelectionExecutionStep> CreateSelectionLookup(
+        IReadOnlyList<IExecutionStep> executionSteps)
     {
-        var dictionary = new Dictionary<ISelection, QueryPlanWorkItem>();
+        var dictionary = new Dictionary<ISelection, SelectionExecutionStep>();
 
         foreach (var executionStep in executionSteps)
         {
-            foreach (var selection in executionStep.AllSelections)
+            if (executionStep is SelectionExecutionStep ses)
             {
-                dictionary.Add(selection, executionStep);
+                foreach (var selection in ses.AllSelections)
+                {
+                    dictionary.Add(selection, ses);
+                }
             }
         }
 
@@ -110,4 +136,67 @@ internal sealed class RequirementsPlaner
             set.Add(value);
         }
     }
+}
+
+internal sealed class ExportDefinitions
+{
+    private readonly Dictionary<(ISelectionSet, string), string> _stateKeyLookup = new();
+    private readonly Dictionary<string, ExportDefinition> _exportDefinitions = new(Ordinal);
+    private readonly string _groupKey = Guid.NewGuid().ToString("N")[..24];
+    private int _stateId;
+
+    public bool TryGetStateKey(
+        ISelectionSet selectionSet,
+        string variableName,
+        [NotNullWhen(true)] out string? stateKey,
+        [NotNullWhen(true)] out IExecutionStep? executionStep)
+    {
+        if (_stateKeyLookup.TryGetValue((selectionSet, variableName), out stateKey))
+        {
+            executionStep = _exportDefinitions[stateKey].ExecutionStep;
+            return true;
+        }
+
+        stateKey = null;
+        executionStep = null;
+        return false;
+    }
+
+    public string Register(
+        ISelectionSet selectionSet,
+        FieldVariableDefinition variableDefinition,
+        IExecutionStep executionStep)
+    {
+        var exportDefinition = new ExportDefinition(
+            $"_{_groupKey}_{++_stateId}",
+            selectionSet,
+            variableDefinition,
+            executionStep);
+        _exportDefinitions.Add(exportDefinition.StateKey, exportDefinition);
+        _stateKeyLookup.Add((selectionSet, variableDefinition.Name), exportDefinition.StateKey);
+        return exportDefinition.StateKey;
+    }
+}
+
+internal readonly struct ExportDefinition
+{
+    public ExportDefinition(
+        string stateKey,
+        ISelectionSet selectionSet,
+        FieldVariableDefinition variableDefinition,
+        IExecutionStep executionStep)
+    {
+        StateKey = stateKey;
+        SelectionSet = selectionSet;
+        VariableDefinition = variableDefinition;
+        ExecutionStep = executionStep;
+    }
+
+    public string StateKey { get; }
+
+    public ISelectionSet SelectionSet { get; }
+
+    public FieldVariableDefinition VariableDefinition { get; }
+
+    public IExecutionStep ExecutionStep { get; }
 }

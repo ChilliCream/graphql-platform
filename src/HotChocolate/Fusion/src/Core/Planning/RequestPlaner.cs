@@ -4,36 +4,35 @@ using HotChocolate.Fusion.Metadata;
 
 namespace HotChocolate.Fusion.Planning;
 
-// TODO : Name is incorrect
+/// <summary>
+/// The request planer will rewrite the <see cref="IOperation"/> into
+/// queries against the downstream services.
+/// </summary>
 internal sealed class RequestPlaner
 {
     private readonly Metadata.Schema _schema;
-    private readonly Queue<BacklogItem> _backlog = new();
-    private readonly List<QueryPlanWorkItem> _workItems = new();
+    private readonly Queue<BacklogItem> _backlog = new(); // TODO: we should get rid of this, maybe put it on the context?
 
     public RequestPlaner(Metadata.Schema schema)
     {
         _schema = schema;
     }
 
-    public IReadOnlyList<QueryPlanWorkItem> Plan(IOperation operation)
+    public void Plan(QueryPlanContext context)
     {
-        var declaringType = _schema.GetType<ObjectType>(operation.RootType.Name);
-        var selections = operation.RootSelectionSet.Selections;
+        var declaringType = _schema.GetType<ObjectType>(context.Operation.RootType.Name);
+        var selections = context.Operation.RootSelectionSet.Selections;
 
-        // inspect operation
-        Plan(operation, declaringType, selections, null);
+        Plan(context, declaringType, selections, null);
 
         while (_backlog.TryDequeue(out var item))
         {
-            Plan(operation, item.DeclaringType, item.Selections, item.ParentSelection);
+            Plan(context, item.DeclaringType, item.Selections, item.ParentSelection);
         }
-
-        return _workItems;
     }
 
     private void Plan(
-        IOperation operation,
+        QueryPlanContext context,
         ObjectType declaringType,
         IReadOnlyList<ISelection> selections,
         ISelection? parentSelection)
@@ -44,9 +43,9 @@ internal sealed class RequestPlaner
         do
         {
             var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
-            var schemaName = ResolveBestMatchingSchema(operation, current, declaringType);
-            var workItem = new QueryPlanWorkItem(schemaName, declaringType, parentSelection);
-            _workItems.Add(workItem);
+            var schemaName = ResolveBestMatchingSchema(context.Operation, current, declaringType);
+            var workItem = new SelectionExecutionStep(schemaName, declaringType, parentSelection);
+            context.Steps.Add(workItem);
             leftovers = null;
             FetchDefinition? resolver;
 
@@ -95,7 +94,7 @@ internal sealed class RequestPlaner
 
                     if (selection.SelectionSet is not null)
                     {
-                        CollectChildSelections(operation, selection, workItem);
+                        CollectChildSelections(context.Operation, selection, workItem);
                     }
                 }
                 else
@@ -109,7 +108,7 @@ internal sealed class RequestPlaner
     private void CollectChildSelections(
         IOperation operation,
         ISelection parentSelection,
-        QueryPlanWorkItem workItem)
+        SelectionExecutionStep workItem)
     {
         foreach (var possibleType in operation.GetPossibleTypes(parentSelection))
         {
@@ -370,61 +369,16 @@ internal sealed class RequestPlaner
     }
 }
 
-// The name of this class is wrong.
-internal class QueryPlanWorkItem : IExecutionStep
+internal sealed class QueryPlanContext
 {
-    public QueryPlanWorkItem(
-        string schemaNameName,
-        ObjectType declaringType,
-        ISelection? parentSelection)
+    public QueryPlanContext(IOperation operation)
     {
-        DeclaringType = declaringType;
-        ParentSelection = parentSelection;
-        SchemaName = schemaNameName;
+        Operation = operation;
     }
 
-    public string SchemaName { get; }
+    public IOperation Operation { get; }
 
-    public ObjectType DeclaringType { get; }
+    public ExportDefinitions Exports { get; } = new();
 
-    public ISelection? ParentSelection { get; }
-
-    public FetchDefinition? Resolver { get; set; }
-
-    public List<RootSelection> RootSelections { get; } = new();
-
-    public HashSet<ISelection> AllSelections { get; } = new();
-
-    public List<QueryPlanWorkItem> DependsOn { get; } = new();
-
-    public List<ExportDefinition> Exports { get; } = new();
-
-    public HashSet<string> Requires { get; } = new();
+    public List<IExecutionStep> Steps { get; } = new();
 }
-
-internal readonly struct ExportDefinition
-{
-    public ExportDefinition(string name, FieldVariableDefinition variable)
-    {
-        Name = name;
-        Variable = variable;
-    }
-
-    public string Name { get; }
-
-    public FieldVariableDefinition Variable { get; }
-}
-
-internal readonly struct RootSelection
-{
-    public RootSelection(ISelection selection, FetchDefinition? resolver)
-    {
-        Selection = selection;
-        Resolver = resolver;
-    }
-
-    public ISelection Selection { get; }
-
-    public FetchDefinition? Resolver { get; }
-}
-

@@ -133,8 +133,13 @@ public class UnitTest1
         // act
         // var queryPlan = new QueryPlan();
         // var queryPlanBuilder = new QueryPlanBuilder(distributedSchema, operation);
-        var inspector = new RequestPlaner(distributedSchema);
-        var result = inspector.Plan(operation);
+        var queryPlanContext = new QueryPlanContext(operation);
+        var requestPlaner = new RequestPlaner(distributedSchema);
+        var requirementsPlaner = new RequirementsPlaner();
+
+        requestPlaner.Plan(queryPlanContext);
+        requirementsPlaner.Plan(queryPlanContext);
+
 
         // assert
         /*

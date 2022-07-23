@@ -43,7 +43,7 @@ public interface ISelection : IOptionalSelection
     bool IsList { get; }
 
     /// <summary>
-    /// The type that declares the field that is selected by this selection.
+    /// Gets the type that declares the field that is selected by this selection.
     /// </summary>
     IObjectType DeclaringType { get; }
 
