@@ -5,37 +5,34 @@ using HotChocolate.Fusion.Metadata;
 namespace HotChocolate.Fusion.Planning;
 
 // TODO : Name is incorrect
-internal sealed class OperationInspector
+internal sealed class RequestPlaner
 {
     private readonly Metadata.Schema _schema;
     private readonly Queue<BacklogItem> _backlog = new();
     private readonly List<QueryPlanWorkItem> _workItems = new();
 
-    public OperationInspector(Metadata.Schema schema)
+    public RequestPlaner(Metadata.Schema schema)
     {
         _schema = schema;
     }
 
-    public IReadOnlyList<QueryPlanWorkItem> Inspect(IOperation operation)
+    public IReadOnlyList<QueryPlanWorkItem> Plan(IOperation operation)
     {
         var declaringType = _schema.GetType<ObjectType>(operation.RootType.Name);
         var selections = operation.RootSelectionSet.Selections;
 
         // inspect operation
-        Inspect(operation, declaringType, selections, null);
+        Plan(operation, declaringType, selections, null);
 
         while (_backlog.TryDequeue(out var item))
         {
-            Inspect(operation, item.DeclaringType, item.Selections, item.ParentSelection);
+            Plan(operation, item.DeclaringType, item.Selections, item.ParentSelection);
         }
-
-        // reorder for execution.
-
 
         return _workItems;
     }
 
-    private void Inspect(
+    private void Plan(
         IOperation operation,
         ObjectType declaringType,
         IReadOnlyList<ISelection> selections,

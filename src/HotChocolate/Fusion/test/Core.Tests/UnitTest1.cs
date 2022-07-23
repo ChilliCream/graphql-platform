@@ -133,8 +133,8 @@ public class UnitTest1
         // act
         // var queryPlan = new QueryPlan();
         // var queryPlanBuilder = new QueryPlanBuilder(distributedSchema, operation);
-        var inspector = new OperationInspector(distributedSchema);
-        var result = inspector.Inspect(operation);
+        var inspector = new RequestPlaner(distributedSchema);
+        var result = inspector.Plan(operation);
 
         // assert
         /*

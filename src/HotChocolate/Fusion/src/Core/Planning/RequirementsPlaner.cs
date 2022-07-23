@@ -2,11 +2,11 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class ExecutionDependencyPlaner
+internal sealed class RequirementsPlaner
 {
     private readonly Metadata.Schema _schema;
 
-    public ExecutionDependencyPlaner(Metadata.Schema schema)
+    public RequirementsPlaner(Metadata.Schema schema)
     {
         _schema = schema;
     }
@@ -25,7 +25,8 @@ internal sealed class ExecutionDependencyPlaner
                 executionStep.Resolver is { } resolver)
             {
                 var declaringType = executionStep.RootSelections[0].Selection.DeclaringType;
-                var siblings = operation.GetSelectionSet(parent, declaringType).Selections;
+                var siblingSelectionSet = operation.GetSelectionSet(parent, declaringType);
+                var siblings = siblingSelectionSet.Selections;
                 var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, siblings);
 
                 // remove the execution step for which we try to resolve dependencies.
@@ -48,8 +49,7 @@ internal sealed class ExecutionDependencyPlaner
                         // export already is exporting the required variable
                         // if so we need to just refer to it.
                         var variableName = $"_{variableGroup}_{++variableId}";
-                        var siblingExecutionStep = siblingExecutionSteps.First(
-                            t => string.Equals(t.SchemaName, schemaName, StringComparison.Ordinal));
+                        var siblingExecutionStep = siblingExecutionSteps.First(t => string.Equals(t.SchemaName, schemaName, StringComparison.Ordinal));
                         // we need to annotate the export with the selectionSet
                         // from which we are exporting.
                     }
