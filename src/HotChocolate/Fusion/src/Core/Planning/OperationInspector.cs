@@ -2,8 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Planning;
 
+// TODO : Name is incorrect
 internal sealed class OperationInspector
 {
     private readonly Metadata.Schema _schema;
@@ -372,102 +373,7 @@ internal sealed class OperationInspector
     }
 }
 
-internal sealed class ExecutionDependencyPlaner
-{
-    private readonly Metadata.Schema _schema;
-
-    public void Plan(IOperation operation, IReadOnlyList<QueryPlanWorkItem> executionSteps)
-    {
-        var selectionLookup = CreateSelectionLookup(executionSteps);
-        var schemas = new HashSet<string>();
-        var requires = new HashSet<string>();
-        var variableGroup = Guid.NewGuid().ToString("N")[24..];
-        var variableId = 0;
-
-        foreach (var executionStep in executionSteps.Where(static t => t.Requires.Count > 0))
-        {
-            if (executionStep.ParentSelection is { } parent &&
-                executionStep.Resolver is { } resolver)
-            {
-                var declaringType = executionStep.RootSelections[0].Selection.DeclaringType;
-                var siblings = operation.GetSelectionSet(parent, declaringType).Selections;
-                var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, siblings);
-
-                // remove the execution step for which we try to resolve dependencies.
-                siblingExecutionSteps.Remove(executionStep);
-
-                // clean and fill preferred schemas set
-                InitializeSet(schemas, siblingExecutionSteps.Select(static t => t.SchemaName));
-
-                // clean and fill requires set
-                InitializeSet(requires, executionStep.Requires);
-
-                foreach (var variable in executionStep.DeclaringType.Variables)
-                {
-                    if (schemas.Contains(variable.SchemaName) && requires.Contains(variable.Name))
-                    {
-
-                    }
-                }
-            }
-        }
-    }
-
-    private static HashSet<QueryPlanWorkItem> GetSiblingExecutionSteps(
-        Dictionary<ISelection, QueryPlanWorkItem>  selectionLookup,
-        IReadOnlyList<ISelection> siblings)
-    {
-        var executionSteps = new HashSet<QueryPlanWorkItem>();
-
-        foreach (var sibling in siblings)
-        {
-            if (selectionLookup.TryGetValue(sibling, out var executionStep))
-            {
-                executionSteps.Add(executionStep);
-            }
-        }
-
-        return executionSteps;
-    }
-
-    private static Dictionary<ISelection, QueryPlanWorkItem> CreateSelectionLookup(
-        IReadOnlyList<QueryPlanWorkItem> executionSteps)
-    {
-        var dictionary = new Dictionary<ISelection, QueryPlanWorkItem>();
-
-        foreach (var executionStep in executionSteps)
-        {
-            foreach (var selection in executionStep.AllSelections)
-            {
-                dictionary.Add(selection, executionStep);
-            }
-        }
-
-        return dictionary;
-    }
-
-    private static void InitializeSet(HashSet<string> set, IEnumerable<string> values)
-    {
-        set.Clear();
-
-        foreach (var value in values)
-        {
-            set.Add(value);
-        }
-    }
-}
-
-public interface IExecutionStep
-{
-    string SchemaName { get; }
-
-    ObjectType DeclaringType { get; }
-
-    ISelection? ParentSelection { get; }
-
-    FetchDefinition? Resolver { get; set; }
-}
-
+// The name of this class is wrong.
 internal class QueryPlanWorkItem : IExecutionStep
 {
     public QueryPlanWorkItem(
