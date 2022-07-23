@@ -2,21 +2,16 @@ using System.Collections;
 
 namespace HotChocolate.Fusion.Metadata;
 
-public class VariableDefinitionCollection : IEnumerable<FieldVariableDefinition>
+internal sealed class VariableDefinitionCollection : IEnumerable<FieldVariableDefinition>
 {
+    private readonly FieldVariableDefinition[] _variables;
 
-
-    public int Count { get; }
-
-    public IReadOnlyList<IVariableDefinition> this[string variableName]
-        => throw new NotImplementedException();
-
-    public bool TryGetValue(string variableName, out IReadOnlyList<IVariableDefinition> value)
+    public VariableDefinitionCollection(IEnumerable<FieldVariableDefinition> variables)
     {
-        throw new NotImplementedException();
+        _variables = variables.ToArray();
     }
 
-    public bool ContainsVariable(string variableName) => throw new NotImplementedException();
+    public int Count => _variables.Length;
 
     public IEnumerator<FieldVariableDefinition> GetEnumerator()
         => Enumerable.Empty<FieldVariableDefinition>().GetEnumerator();

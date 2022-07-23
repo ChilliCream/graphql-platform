@@ -1,22 +1,24 @@
 namespace HotChocolate.Fusion.Metadata;
 
-public sealed class ObjectType : IType
+internal sealed class ObjectType : IType
 {
     public ObjectType(
         string name,
+        VariableDefinitionCollection variables,
         FetchDefinitionCollection resolvers,
         ObjectFieldCollection fields)
     {
         Name = name;
-        Resolvers = new FetchDefinitionCollection(resolvers);
-        Fields = new ObjectFieldCollection(fields);
+        Variables = variables;
+        Resolvers = resolvers;
+        Fields = fields;
     }
 
     public string Name { get; }
 
-    public FetchDefinitionCollection Resolvers { get; }
+    public VariableDefinitionCollection Variables { get; }
 
-    public VariableDefinitionCollection Variables { get; } = new();
+    public FetchDefinitionCollection Resolvers { get; }
 
     public ObjectFieldCollection Fields { get; }
 }

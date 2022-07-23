@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Fusion.Metadata;
 
-public sealed class ObjectFieldCollection : IEnumerable<ObjectField>
+internal sealed class ObjectFieldCollection : IEnumerable<ObjectField>
 {
     private readonly Dictionary<string, ObjectField> _fields;
 

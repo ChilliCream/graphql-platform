@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Metadata;
 /// <summary>
 /// The type system member binding information.
 /// </summary>
-public class MemberBinding
+internal class MemberBinding
 {
     /// <summary>
     /// Initializes a new instance of <see cref="MemberBinding"/>.

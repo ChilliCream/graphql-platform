@@ -7,7 +7,7 @@ using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 namespace HotChocolate.Fusion.Metadata;
 
 // TODO : Name .... RemoteService?
-public sealed class Schema
+internal sealed class Schema
 {
     private readonly string[] _bindings;
     private readonly Dictionary<string, IType> _types;
@@ -30,40 +30,140 @@ public sealed class Schema
         throw new InvalidOperationException("Type not found.");
     }
 
-    public static Schema Load(string body) => throw new NotImplementedException();
+    public static Schema Load(string sourceText)
+        => new SchemaReader().Read(sourceText);
 }
 
 internal sealed class SchemaReader
 {
     private readonly HashSet<string> _assert = new();
 
+    public Schema Read(string sourceText)
+        => ReadServiceDefinition(Utf8GraphQLParser.Parse(sourceText));
+
+    private Schema ReadServiceDefinition(DocumentNode documentNode)
+    {
+        var types = new List<IType>();
+        IReadOnlyList<HttpClientConfig>? httpClientConfigs = null;
+
+        foreach (var definition in documentNode.Definitions)
+        {
+            switch (definition)
+            {
+                case ObjectTypeDefinitionNode node:
+                    types.Add(ReadObjectType(node));
+                    break;
+
+                case SchemaDefinitionNode node:
+                    httpClientConfigs = ReadHttpClientConfigs(node.Directives);
+                    break;
+            }
+        }
+
+        if (httpClientConfigs is not { Count: > 0 })
+        {
+            // TODO : EXCEPTION
+            throw new Exception("No clients configured");
+        }
+
+        if (types.Count == 0)
+        {
+            // TODO : EXCEPTION
+            throw new Exception("No types");
+        }
+
+
+        return new Schema(
+            httpClientConfigs.Select(t => t.SchemaName),
+            types);
+    }
 
     private ObjectType ReadObjectType(ObjectTypeDefinitionNode typeDef)
     {
-        var variableDefinitions = ReadFieldVariableDefinitions(typeDef.Directives);
-
-
+        var variables = ReadFieldVariableDefinitions(typeDef.Directives);
+        var resolvers = ReadFetchDefinitions(typeDef.Directives);
+        var fields = ReadObjectFields(typeDef.Fields);
+        return new ObjectType(typeDef.Name.Value, variables, resolvers, fields);
     }
 
     private ObjectFieldCollection ReadObjectFields(
         IReadOnlyList<FieldDefinitionNode> fieldDefinitionNodes)
     {
-        foreach (var field in fieldDefinitionNodes)
-        {
-            var resolvers = ReadFetchDefinitions(field.Directives);
+        var collection = new List<ObjectField>();
 
+        foreach (var fieldDef in fieldDefinitionNodes)
+        {
+            var resolvers = ReadFetchDefinitions(fieldDef.Directives);
+            var bindings = ReadMemberBindings(fieldDef.Directives, fieldDef, resolvers);
+            var variables = ReadArgumentVariableDefinitions(fieldDef.Directives, fieldDef);
+            var field = new ObjectField(fieldDef.Name.Value, bindings, variables, resolvers);
+            collection.Add(field);
         }
+
+        return new ObjectFieldCollection(collection);
+    }
+
+    private IReadOnlyList<HttpClientConfig> ReadHttpClientConfigs(
+        IReadOnlyList<DirectiveNode> directiveNodes)
+    {
+        var configs = new List<HttpClientConfig>();
+
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(HttpDirective))
+            {
+                configs.Add(ReadHttpClientConfig(directiveNode));
+            }
+        }
+
+        return configs;
+    }
+
+    private HttpClientConfig ReadHttpClientConfig(
+        DirectiveNode directiveNode)
+    {
+        AssertName(directiveNode, HttpDirective);
+        AssertArguments(directiveNode, NameArg, BaseAddressArg);
+
+        string name = default!; ;
+        string baseAddress = default!;
+
+        foreach (var argument in directiveNode.Arguments)
+        {
+            switch (argument.Name.Value)
+            {
+                case NameArg:
+                    name = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+
+                case BaseAddressArg:
+                    baseAddress = Expect<StringValueNode>(argument.Value).Value;
+                    break;
+            }
+        }
+
+        return new HttpClientConfig(name, new Uri(baseAddress));
     }
 
     private VariableDefinitionCollection ReadFieldVariableDefinitions(
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
+        var definitions = new List<FieldVariableDefinition>();
 
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(VariableDirective))
+            {
+                definitions.Add(ReadFieldVariableDefinition(directiveNode));
+            }
+        }
+
+        return new VariableDefinitionCollection(definitions);
     }
 
     private FieldVariableDefinition ReadFieldVariableDefinition(DirectiveNode directiveNode)
     {
-        AssertName(directiveNode, Variable);
+        AssertName(directiveNode, VariableDirective);
         AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, FromArg);
 
         string name = default!;
@@ -103,7 +203,7 @@ internal sealed class SchemaReader
 
         foreach (var directiveNode in directiveNodes)
         {
-            if (directiveNode.Name.Value.EqualsOrdinal(Fetch))
+            if (directiveNode.Name.Value.EqualsOrdinal(FetchDirective))
             {
                 definitions.Add(ReadFetchDefinition(directiveNode));
             }
@@ -114,7 +214,7 @@ internal sealed class SchemaReader
 
     private FetchDefinition ReadFetchDefinition(DirectiveNode directiveNode)
     {
-        AssertName(directiveNode, Fetch);
+        AssertName(directiveNode, FetchDirective);
         AssertArguments(directiveNode, SelectArg, FromArg);
 
         ISelectionNode select = default!;
@@ -163,36 +263,92 @@ internal sealed class SchemaReader
                 : _assert.ToArray());
     }
 
-    private MemberBinding ReadMemberBinding(DirectiveNode directiveNode)
+    private MemberBindingCollection ReadMemberBindings(
+        IReadOnlyList<DirectiveNode> directiveNodes,
+        FieldDefinitionNode annotatedField,
+        FetchDefinitionCollection resolvers)
     {
-        AssertName(directiveNode, Bind);
+        var definitions = new List<MemberBinding>();
+
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(BindDirective))
+            {
+                definitions.Add(ReadMemberBinding(directiveNode, annotatedField));
+            }
+        }
+
+        if (resolvers.Count > 0)
+        {
+            _assert.Clear();
+
+            foreach (var binding in definitions)
+            {
+                _assert.Add(binding.SchemaName);
+            }
+
+            foreach (var resolver in resolvers)
+            {
+                if (_assert.Add(resolver.SchemaName))
+                {
+                    definitions.Add(
+                        new MemberBinding(resolver.SchemaName, annotatedField.Name.Value));
+                }
+            }
+        }
+
+        return new MemberBindingCollection(definitions);
+    }
+
+    private MemberBinding ReadMemberBinding(
+        DirectiveNode directiveNode,
+        FieldDefinitionNode annotatedField)
+    {
+        AssertName(directiveNode, BindDirective);
         AssertArguments(directiveNode, ToArg, AsArg);
 
-        string name = default!;
+        string? name = null;
         string schemaName = default!;
 
         foreach (var argument in directiveNode.Arguments)
         {
             switch (argument.Name.Value)
             {
-                case NameArg:
+                case AsArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
-                case FromArg:
+                case ToArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
         }
 
-        return new MemberBinding(name, schemaName);
+        return new MemberBinding(schemaName, name ?? annotatedField.Name.Value);
+    }
+
+    private ArgumentVariableDefinitionCollection ReadArgumentVariableDefinitions(
+        IReadOnlyList<DirectiveNode> directiveNodes,
+        FieldDefinitionNode annotatedField)
+    {
+        var definitions = new List<ArgumentVariableDefinition>();
+
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(VariableDirective))
+            {
+                definitions.Add(ReadArgumentVariableDefinition(directiveNode, annotatedField));
+            }
+        }
+
+        return new ArgumentVariableDefinitionCollection(definitions);
     }
 
     private ArgumentVariableDefinition ReadArgumentVariableDefinition(
         DirectiveNode directiveNode,
         FieldDefinitionNode annotatedField)
     {
-        AssertName(directiveNode, Variable);
+        AssertName(directiveNode, VariableDirective);
         AssertArguments(directiveNode, NameArg, ArgumentArg);
 
         string name = default!; ;
@@ -264,9 +420,10 @@ internal sealed class SchemaReader
 
 internal static class FusionDirectiveNames
 {
-    public const string Variable = "variable";
-    public const string Fetch = "fetch";
-    public const string Bind = "bind";
+    public const string VariableDirective = "variable";
+    public const string FetchDirective = "fetch";
+    public const string BindDirective = "bind";
+    public const string HttpDirective = "httpClient";
     public const string NameArg = "name";
     public const string SelectArg = "select";
     public const string TypeArg = "type";
@@ -274,4 +431,5 @@ internal static class FusionDirectiveNames
     public const string ToArg = "to";
     public const string AsArg = "as";
     public const string ArgumentArg = "argument";
+    public const string BaseAddressArg = "baseAddress";
 }

@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Fusion.Metadata;
 
-public class ArgumentVariableDefinitionCollection : IEnumerable<ArgumentVariableDefinition>
+internal sealed class ArgumentVariableDefinitionCollection : IEnumerable<ArgumentVariableDefinition>
 {
     private readonly Dictionary<string, ArgumentVariableDefinition> _variableDefinitions;
 

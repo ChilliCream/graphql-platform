@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Metadata;
 
-public sealed class ArgumentVariableDefinition : IVariableDefinition
+internal sealed class ArgumentVariableDefinition : IVariableDefinition
 {
     public ArgumentVariableDefinition(string name, ITypeNode type, string argumentName)
     {

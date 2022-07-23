@@ -3,7 +3,6 @@ User Request
 query GetPersonById {
   personById(id: 1) {
     id
-    name
     bio
   }
 }
@@ -12,18 +11,11 @@ query GetPersonById {
 Request 1
 ---------------
 query GetPersonById_1 {
-  internalPersonById(id: 1) {
-    id
-    name
-  }
-}
----------------
-
-Request 2
----------------
-query GetPersonById_2 {
-  personById(id: 1) {
-    bio
+  node(id: $personId) {
+    ... on Person {
+      id
+      bio
+    }
   }
 }
 ---------------

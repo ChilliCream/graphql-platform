@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Metadata;
 
-public sealed class ObjectField
+internal sealed class ObjectField
 {
     public ObjectField(
         string name,

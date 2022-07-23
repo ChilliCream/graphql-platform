@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Fusion.Metadata;
 
-public sealed class FetchDefinitionCollection : IEnumerable<FetchDefinition>
+internal sealed class FetchDefinitionCollection : IEnumerable<FetchDefinition>
 {
     private readonly Dictionary<string, FetchDefinition[]> _fetchDefinitions;
 

@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Fusion.Metadata;
 
-public sealed class MemberBindingCollection : IEnumerable<MemberBinding>
+internal sealed class MemberBindingCollection : IEnumerable<MemberBinding>
 {
     private readonly Dictionary<string, MemberBinding> _bindings;
 

@@ -3,7 +3,7 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Fusion.Metadata;
 
-public class FetchDefinition
+internal sealed class FetchDefinition
 {
     private static readonly FetchRewriter _rewriter = new();
 

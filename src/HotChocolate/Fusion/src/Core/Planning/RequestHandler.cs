@@ -13,6 +13,8 @@ internal sealed class RequestHandler
         _document = document;
     }
 
+    public DocumentNode Document => _document;
+
     public Request CreateRequest(IReadOnlyList<IValueNode>? variables)
         => throw new NotImplementedException();
 

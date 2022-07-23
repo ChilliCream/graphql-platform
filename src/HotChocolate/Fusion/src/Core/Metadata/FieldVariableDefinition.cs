@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Metadata;
 
-public sealed class FieldVariableDefinition : IVariableDefinition
+internal sealed class FieldVariableDefinition : IVariableDefinition
 {
     public FieldVariableDefinition(string name, string schemaName, ITypeNode type, FieldNode select)
     {
