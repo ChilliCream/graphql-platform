@@ -48,7 +48,11 @@ public class UnitTest1
             {
                 new ObjectField(
                     "personById",
-                    new[] { new MemberBinding("a", "personById"), },
+                    new[]
+                    {
+                        new MemberBinding("a", "internalPersonById"),
+                        new MemberBinding("b", "personById"),
+                    },
                     new[]
                     {
                         new ArgumentVariableDefinition(
@@ -61,6 +65,11 @@ public class UnitTest1
                         new FetchDefinition(
                             "a",
                             ParseField("internalPersonById(id: $personId)"),
+                            null,
+                            new[] { "personId" }),
+                        new FetchDefinition(
+                            "b",
+                            ParseField("personById(id: $personId)"),
                             null,
                             new[] { "personId" })
                     })
