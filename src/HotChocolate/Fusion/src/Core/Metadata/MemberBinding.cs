@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Metadata;
 
 /// <summary>
 /// The type system member binding information.

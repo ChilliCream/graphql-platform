@@ -1,0 +1,386 @@
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
+
+namespace HotChocolate.Fusion;
+
+public sealed class QueryPlanBuilder
+{
+    private readonly Types.Schema _schema;
+    private readonly IOperation _operation;
+    private readonly string _operationNameBase;
+    private readonly Queue<BacklogItem> _backlog = new();
+    private int _segmentId;
+
+    public QueryPlanBuilder(Types.Schema schema, IOperation operation)
+    {
+        _schema = schema;
+        _operation = operation;
+        _operationNameBase = operation.Name ?? "Operation_" + Guid.NewGuid().ToString("N");
+    }
+
+    public void CollectSelectionsBySchema1(
+        List<ISelection> selections,
+        ObjectType typeContext,
+        ExecutionNode parent)
+    {
+        var context = new Context();
+        _backlog.Enqueue(new BacklogItem(selections, typeContext, parent));
+
+        while (_backlog.TryDequeue(out var backlogItem))
+        {
+            context.Initialize(backlogItem);
+            CollectSelectionsBySchema2(context, backlogItem.Selections, backlogItem.TypeContext);
+        }
+    }
+
+    private void EnqueueForProcessing(
+        IReadOnlyList<ISelection> selections,
+        ObjectType typeContext,
+        ExecutionNode parent,
+        bool root)
+    {
+        var grouped = new Dictionary<string, RequestHandler>();
+        List<ISelection>? leftovers = null;
+        FetchDefinition? resolver = null;
+
+        do
+        {
+            var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
+            var schemaName = ResolveBestMatchingSchema(_operation, current, typeContext);
+            var selected = new List<ISyntaxNode>();
+            leftovers = null;
+
+            if (!root)
+            {
+
+            }
+
+            foreach (var selection in current)
+            {
+                var field = typeContext.Fields[selection.Field.Name];
+
+                if (field.Bindings.TryGetValue(schemaName, out var binding))
+                {
+
+                    if (root)
+                    {
+
+                    }
+
+
+
+                    if (field.Resolvers.ContainsResolvers(schemaName) &&
+                        !TryGetResolver(field, schemaName, context.Variables, out resolver))
+                    {
+                        // todo : error message and type
+                        throw new InvalidOperationException(
+                            "There must be a field fetch definition valid in this context!");
+                    }
+
+
+                }
+                else
+                {
+                    (leftovers ??= new()).Add(selection);
+                }
+            }
+        } while (leftovers is not null);
+    }
+
+    private void CollectSelectionsBySchema2(Context context)
+    {
+        var schemaName = ResolveBestMatchingSchema(_operation, selections, typeContext);
+        var syntaxList = new List<ISelectionNode>();
+        List<ISelection>? leftovers = null;
+
+        var requestNode = new RequestNode();
+
+        foreach (var selection in selections)
+        {
+            var field = typeContext.Fields[selection.Field.Name];
+
+            if (field.Bindings.TryGetValue(schemaName, out var binding))
+            {
+                context.Variables.Clear();
+
+                foreach (var variable in field.Variables)
+                {
+                    context.Variables.Add(variable.Name, variable);
+                }
+
+                FetchDefinition? resolver = null;
+                if (field.Resolvers.ContainsResolvers(schemaName) &&
+                    !TryGetResolver(field, schemaName, context.Variables, out resolver))
+                {
+                    // todo : error message and type
+                    throw new InvalidOperationException(
+                        "There must be a field fetch definition valid in this context!");
+                }
+
+                syntaxList.Add(CreateSelectionSyntax(context, selection, binding, resolver));
+            }
+            else
+            {
+                (leftovers ??= new()).Add(selection);
+            }
+        }
+
+        // enqueue leftovers
+        if (leftovers is not null)
+        {
+            _backlog.Enqueue(new BacklogItem(leftovers, typeContext, context));
+        }
+
+        var selectionSetSyntax = new SelectionSetNode(syntaxList);
+        var operationSyntax = new OperationDefinitionNode(
+            null,
+            new NameNode($"{_operationNameBase}_{++_segmentId}"),
+            OperationType.Query,
+            Array.Empty<VariableDefinitionNode>(),
+            Array.Empty<DirectiveNode>(),
+            selectionSetSyntax);
+        var document = new DocumentNode(new[] { operationSyntax });
+        requestNode.Handler = new RequestHandler(document);
+        context.Parent.AppendNode(requestNode);
+    }
+
+    private ISelectionNode CreateSelectionSyntax(
+        Context context,
+        ISelection selection,
+        MemberBinding binding,
+        FetchDefinition? resolver)
+    {
+        SelectionSetNode? selectionSetSyntax = null;
+
+        if (selection.SelectionSet is not null)
+        {
+            selectionSetSyntax = CreateSelectionSetSyntax(
+                context,
+                selection,
+                binding.SchemaName);
+        }
+
+        if (resolver is null)
+        {
+            var alias = !selection.ResponseName.Equals(binding.Name)
+                ? new NameNode(selection.ResponseName)
+                : null;
+
+            return new FieldNode(
+                null,
+                new(binding.Name),
+                alias,
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                selectionSetSyntax);
+        }
+
+        return resolver.CreateSelection(context.VariableMapping, selectionSetSyntax);
+    }
+
+    private SelectionSetNode CreateSelectionSetSyntax(
+        Context context,
+        ISelection parentSelection,
+        string schemaName)
+    {
+        var syntaxList = new List<ISelectionNode>();
+        var possibleTypes = _operation.GetPossibleTypes(parentSelection);
+
+        foreach (var possibleType in possibleTypes)
+        {
+            List<ISelection>? leftovers = null;
+            var typeContext = _schema.GetType<ObjectType>(possibleType.Name);
+            var selectionSet = _operation.GetSelectionSet(parentSelection, possibleType);
+
+            foreach (var selection in selectionSet.Selections)
+            {
+                var field = typeContext.Fields[selection.Field.Name];
+
+                if (field.Bindings.TryGetValue(schemaName, out var binding))
+                {
+                    FetchDefinition? resolver = null;
+                    if (field.Resolvers.ContainsResolvers(schemaName) &&
+                        !TryGetResolver(field, schemaName, context.Variables, out resolver))
+                    {
+                        // todo : error message and type
+                        throw new InvalidOperationException(
+                            "There must be a field fetch definition valid in this context!");
+                    }
+
+                    syntaxList.Add(CreateSelectionSyntax(context, selection, binding, resolver));
+                }
+                else
+                {
+                    (leftovers ??= new()).Add(selection);
+                }
+            }
+
+            if (leftovers is not null)
+            {
+                _backlog.Enqueue(new BacklogItem(leftovers, typeContext, context));
+            }
+        }
+
+        return new SelectionSetNode(syntaxList);
+    }
+
+
+
+    private string ResolveBestMatchingSchema(
+        IOperation operation,
+        IReadOnlyList<ISelection> selections,
+        ObjectType typeContext)
+    {
+        var bestScore = 0;
+        var bestSchema = _schema.Bindings[0];
+
+        foreach (var schemaName in _schema.Bindings)
+        {
+            var score = CalculateSchemaScore(operation, selections, typeContext, schemaName);
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestSchema = schemaName;
+            }
+        }
+
+        return bestSchema;
+    }
+
+    private int CalculateSchemaScore(
+        IOperation operation,
+        IReadOnlyList<ISelection> selections,
+        ObjectType typeContext,
+        string schemaName)
+    {
+        var score = 0;
+
+        foreach (var selection in selections)
+        {
+            if (typeContext.Fields[selection.Field.Name].Bindings.ContainsSchema(schemaName))
+            {
+                score++;
+
+                if (selection.SelectionSet is not null)
+                {
+                    foreach (var possibleType in operation.GetPossibleTypes(selection))
+                    {
+                        var type = _schema.GetType<ObjectType>(possibleType.Name);
+                        var selectionSet = operation.GetSelectionSet(selection, possibleType);
+                        score += CalculateSchemaScore(
+                            operation,
+                            selectionSet.Selections,
+                            type,
+                            schemaName);
+                    }
+                }
+            }
+        }
+
+        return score;
+    }
+
+    private bool TryGetResolver(
+        ObjectField field,
+        string schemaName,
+        Dictionary<string, IVariableDefinition> variables,
+        [NotNullWhen(true)] out FetchDefinition? resolver)
+    {
+        if (field.Resolvers.TryGetValue(schemaName, out var resolvers))
+        {
+            foreach (var current in resolvers)
+            {
+                var canBeUsed = true;
+
+                foreach (var requirement in current.Requires)
+                {
+                    if (!variables.ContainsKey(requirement))
+                    {
+                        canBeUsed = false;
+                        break;
+                    }
+                }
+
+                if (canBeUsed)
+                {
+                    resolver = current;
+                    return true;
+                }
+            }
+        }
+
+        resolver = null;
+        return false;
+    }
+
+    private readonly struct BacklogItem
+    {
+        public BacklogItem(
+            List<ISelection> selections,
+            ObjectType typeContext,
+            Context context)
+        {
+            Selections = selections;
+            TypeContext = typeContext;
+            Current = context.Current;
+            Parent = context.Parent;
+        }
+
+        public BacklogItem(
+            List<ISelection> selections,
+            ObjectType typeContext,
+            ExecutionNode current)
+        {
+            Selections = selections;
+            TypeContext = typeContext;
+            Current = current;
+            Parent = current;
+        }
+
+        public List<ISelection> Selections { get; }
+
+        public ObjectType TypeContext { get; }
+
+        public ExecutionNode Current{ get; }
+
+        public ExecutionNode Parent { get; }
+    }
+
+
+    private class Context
+    {
+        public ExecutionNode Parent { get; private set; } = default!;
+
+        public ExecutionNode Current { get; private set; } = default!;
+
+        public IReadOnlyList<ISelection> Selections { get; private set; } = default!;
+
+        public ObjectType TypeContext { get; private set; } = default!;
+
+        public ImmutableStack<IReadOnlyDictionary<string, IVariableDefinition>> Variables { get; }
+
+        public void Initialize(BacklogItem backlogItem)
+            => Initialize(
+                backlogItem.Parent,
+                backlogItem.Current,
+                backlogItem.Selections,
+                backlogItem.TypeContext);
+
+        public void Initialize(
+            ExecutionNode parent,
+            ExecutionNode current,
+            IReadOnlyList<ISelection> selections,
+            ObjectType typeContext)
+        {
+            Parent = parent;
+            Current = current;
+            Selections = selections;
+            TypeContext = typeContext;
+        }
+    }
+}

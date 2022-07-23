@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Metadata;
 
 public class FetchDefinition
 {

@@ -1,24 +1,26 @@
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Metadata;
 
-public sealed class ObjectField
+public sealed class ObjectType : IType
 {
-    public ObjectField(
+    public ObjectType(
         string name,
         IEnumerable<MemberBinding> bindings,
-        IEnumerable<ArgumentVariableDefinition> variables,
-        IEnumerable<FetchDefinition> resolvers)
+        IEnumerable<FetchDefinition> resolvers,
+        IEnumerable<ObjectField> fields)
     {
         Name = name;
         Bindings = new MemberBindingCollection(bindings);
-        Variables = new ArgumentVariableDefinitionCollection(variables);
         Resolvers = new FetchDefinitionCollection(resolvers);
+        Fields = new ObjectFieldCollection(fields);
     }
 
     public string Name { get; }
 
     public MemberBindingCollection Bindings { get; }
 
-    public ArgumentVariableDefinitionCollection Variables { get; }
-
     public FetchDefinitionCollection Resolvers { get; }
+
+    public VariableDefinitionCollection Variables { get; } = new();
+
+    public ObjectFieldCollection Fields { get; }
 }

@@ -1,14 +1,14 @@
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion;
-using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
-using ObjectField = HotChocolate.Fusion.Types.ObjectField;
-using ObjectType = HotChocolate.Fusion.Types.ObjectType;
+using ObjectField = HotChocolate.Fusion.Metadata.ObjectField;
+using ObjectType = HotChocolate.Fusion.Metadata.ObjectType;
 
 namespace test;
 
@@ -72,7 +72,14 @@ public class UnitTest1
                 new MemberBinding("a", "Person"),
                 new MemberBinding("b", "Person"),
             },
-            Array.Empty<FetchDefinition>(),
+            new[]
+            {
+                new FetchDefinition(
+                    "b",
+                    ParseField("personById(id: $personId)"),
+                    null,
+                    Array.Empty<string>())
+            },
             new[]
             {
                 new ObjectField(
@@ -106,7 +113,7 @@ public class UnitTest1
 
         var request =
             Parse(
-                @"{
+                @"query GetPersonById {
                     personById(id: 1) {
                         id
                         name
@@ -123,13 +130,17 @@ public class UnitTest1
             schema);
 
         // act
-        var queryPlan = new QueryPlan();
-        var queryPlanBuilder = new QueryPlanBuilder(distributedSchema, operation);
+        // var queryPlan = new QueryPlan();
+        // var queryPlanBuilder = new QueryPlanBuilder(distributedSchema, operation);
+        var inspector = new OperationInspector(distributedSchema);
+        var result = inspector.Inspect(operation);
 
-        queryPlanBuilder.CollectSelectionsBySchema1(
-            operation.RootSelectionSet.Selections,
-            distributedQueryType,
-            queryPlan);
-
+        // assert
+        /*
+        await Snapshot
+            .Create()
+            .Add(request, "User Request")
+            .Add(((RequestNode)queryPlan.Nodes[0]).Handler.Document, "Request 1")
+            .MatchAsync();*/
     }
 }

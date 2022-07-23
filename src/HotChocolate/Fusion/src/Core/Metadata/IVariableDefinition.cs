@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Metadata;
 
 public interface IVariableDefinition
 {

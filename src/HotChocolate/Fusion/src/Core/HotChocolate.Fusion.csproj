@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Metadata;
 
 public sealed class MemberBindingCollection : IEnumerable<MemberBinding>
 {

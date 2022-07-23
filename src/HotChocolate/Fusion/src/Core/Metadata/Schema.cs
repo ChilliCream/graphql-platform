@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Metadata;
 
 public sealed class Schema
 {
