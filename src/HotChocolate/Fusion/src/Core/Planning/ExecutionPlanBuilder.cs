@@ -1,4 +1,3 @@
-using System.Reflection.Metadata;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
@@ -35,10 +34,17 @@ internal sealed class ExecutionPlanBuilder
     {
         var rootSelectionSetNode = CreateRootSelectionSetNode(context, executionStep);
 
-        if (executionStep.Resolver is not null)
+        if (executionStep.Resolver is not null &&
+            executionStep.ParentSelection is not null)
         {
+            ResolveRequirements(
+                context,
+                executionStep.ParentSelection,
+                executionStep.Resolver,
+                executionStep.Variables);
+
             var rootResolver = executionStep.Resolver.CreateSelection(
-                executionStep.Variables,
+                context.VariableValues,
                 rootSelectionSetNode);
 
             rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver });
@@ -88,8 +94,16 @@ internal sealed class ExecutionPlanBuilder
                         rootSelection.Selection);
                 }
 
+                ResolveRequirements(
+                    context,
+                    rootSelection.Selection,
+                    executionStep.DeclaringType,
+                    executionStep.ParentSelection,
+                    rootSelection.Resolver,
+                    executionStep.Variables);
+
                 selectionNode = rootSelection.Resolver.CreateSelection(
-                    executionStep.Variables,
+                    context.VariableValues,
                     selectionSetNode);
             }
 
@@ -164,5 +178,82 @@ internal sealed class ExecutionPlanBuilder
         }
 
         return new SelectionSetNode(selectionNodes);
+    }
+
+    private void ResolveRequirements(
+        QueryPlanContext context,
+        ISelection parent,
+        FetchDefinition resolver,
+        Dictionary<string, string> variableStateLookup)
+    {
+        context.VariableValues.Clear();
+
+        var parentDeclaringType = _schema.GetType<ObjectType>(parent.DeclaringType.Name);
+        var parentField = parentDeclaringType.Fields[parent.Field.Name];
+
+        foreach (var variable in parentField.Variables)
+        {
+            if (resolver.Requires.Contains(variable.Name))
+            {
+                var argumentValue = parent.Arguments[variable.ArgumentName];
+                context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+            }
+        }
+
+        foreach (var requirement in resolver.Requires)
+        {
+            if (!context.VariableValues.ContainsKey(requirement))
+            {
+                var stateKey = variableStateLookup[requirement];
+                context.VariableValues.Add(requirement, new VariableNode(stateKey));
+            }
+        }
+    }
+
+    private void ResolveRequirements(
+        QueryPlanContext context,
+        ISelection selection,
+        ObjectType declaringType,
+        ISelection? parent,
+        FetchDefinition resolver,
+        Dictionary<string, string> variableStateLookup)
+    {
+        context.VariableValues.Clear();
+
+        var field = declaringType.Fields[selection.Field.Name];
+
+        foreach (var variable in field.Variables)
+        {
+            if (resolver.Requires.Contains(variable.Name))
+            {
+                var argumentValue = selection.Arguments[variable.ArgumentName];
+                context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+            }
+        }
+
+        if (parent is not null)
+        {
+            var parentDeclaringType = _schema.GetType<ObjectType>(parent.DeclaringType.Name);
+            var parentField = parentDeclaringType.Fields[parent.Field.Name];
+
+            foreach (var variable in parentField.Variables)
+            {
+                if (!context.VariableValues.ContainsKey(variable.Name) &&
+                    resolver.Requires.Contains(variable.Name))
+                {
+                    var argumentValue = parent.Arguments[variable.ArgumentName];
+                    context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
+                }
+            }
+        }
+
+        foreach (var requirement in resolver.Requires)
+        {
+            if (!context.VariableValues.ContainsKey(requirement))
+            {
+                var stateKey = variableStateLookup[requirement];
+                context.VariableValues.Add(requirement, new VariableNode(stateKey));
+            }
+        }
     }
 }

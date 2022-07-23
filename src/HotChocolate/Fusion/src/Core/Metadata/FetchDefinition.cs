@@ -31,7 +31,7 @@ public class FetchDefinition
     public IReadOnlyList<string> Requires { get; }
 
     public ISelectionNode CreateSelection(
-        IReadOnlyDictionary<string, string> variables,
+        IReadOnlyDictionary<string, IValueNode> variables,
         SelectionSetNode? selectionSet)
     {
         var selection = _rewriter.Rewrite(
@@ -99,19 +99,23 @@ public class FetchDefinition
             return rewritten;
         }
 
-        protected override VariableNode? RewriteVariable(
-            VariableNode node,
-            FetchRewriterContext context)
-            => context.Variables.TryGetValue(node.Name.Value, out var name)
-                ? node.WithName(node.Name.WithValue(name))
-                : base.RewriteVariable(node, context);
+        protected override ISyntaxNode? OnRewrite(ISyntaxNode node, FetchRewriterContext context)
+        {
+            if (node is VariableNode variableNode &&
+                context.Variables.TryGetValue(variableNode.Name.Value, out var valueNode))
+            {
+                return valueNode;
+            }
+
+            return base.OnRewrite(node, context);
+        }
     }
 
     private sealed class FetchRewriterContext : ISyntaxVisitorContext
     {
         public FetchRewriterContext(
             FragmentSpreadNode? placeholder,
-            IReadOnlyDictionary<string, string> variables,
+            IReadOnlyDictionary<string, IValueNode> variables,
             SelectionSetNode? selectionSet)
         {
             Placeholder = placeholder;
@@ -121,7 +125,7 @@ public class FetchDefinition
 
         public FragmentSpreadNode? Placeholder { get; }
 
-        public IReadOnlyDictionary<string, string> Variables { get; }
+        public IReadOnlyDictionary<string, IValueNode> Variables { get; }
 
         public SelectionSetNode? SelectionSet { get; }
     }

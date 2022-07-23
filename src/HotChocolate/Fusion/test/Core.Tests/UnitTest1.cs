@@ -62,7 +62,7 @@ public class UnitTest1
                             "a",
                             ParseField("internalPersonById(id: $personId)"),
                             null,
-                            Array.Empty<string>())
+                            new[] { "personId" })
                     })
             });
 
@@ -79,7 +79,7 @@ public class UnitTest1
                     "b",
                     ParseField("personById(id: $personId)"),
                     null,
-                    Array.Empty<string>())
+                    new[] { "personId" })
             },
             new[]
             {
@@ -141,7 +141,6 @@ public class UnitTest1
         requestPlaner.Plan(queryPlanContext);
         requirementsPlaner.Plan(queryPlanContext);
         var documents = executionPlanBuilder.Build(queryPlanContext);
-
 
         // assert
         var index = 0;

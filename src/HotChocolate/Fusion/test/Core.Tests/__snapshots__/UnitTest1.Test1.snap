@@ -22,7 +22,7 @@ query GetPersonById_1 {
 Request 2
 ---------------
 query GetPersonById_2 {
-  internal2PersonById(id: 1) {
+  personById(id: 1) {
     bio
   }
 }
