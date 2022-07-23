@@ -22,6 +22,8 @@ internal sealed class QueryPlanContext
 
     public Dictionary<string, IValueNode> VariableValues { get; } = new();
 
+    public Dictionary<IExecutionStep, RequestNode> RequestNodes { get; } = new();
+
     public NameNode CreateRemoteOperationName()
         => new($"{_opName}_{++_opId}");
 }

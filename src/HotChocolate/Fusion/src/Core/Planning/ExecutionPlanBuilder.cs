@@ -13,19 +13,38 @@ internal sealed class ExecutionPlanBuilder
         _schema = schema;
     }
 
-    public IReadOnlyList<DocumentNode> Build(QueryPlanContext context)
+    public QueryPlan Build(QueryPlanContext context)
     {
-        var list = new List<DocumentNode>();
-
         foreach (var step in context.Steps)
         {
             if (step is SelectionExecutionStep executionStep)
             {
-                list.Add(CreateRequestDocument(context, executionStep));
+                var requestNode = CreateRequestNode(context, executionStep);
+                context.RequestNodes.Add(executionStep, requestNode);
             }
         }
 
-        return list;
+        foreach (var (step, node) in context.RequestNodes)
+        {
+            if (step.DependsOn.Count > 0)
+            {
+                foreach (var dependency in step.DependsOn)
+                {
+                    node.AddDependency(context.RequestNodes[dependency]);
+                }
+            }
+        }
+
+        return new QueryPlan(context.RequestNodes.Values.ToArray());
+    }
+
+    private RequestNode CreateRequestNode(
+        QueryPlanContext context,
+        SelectionExecutionStep executionStep)
+    {
+        var requestDocument = CreateRequestDocument(context, executionStep);
+        var requestHandler = new RequestHandler(requestDocument);
+        return new RequestNode(requestHandler);
     }
 
     private DocumentNode CreateRequestDocument(
