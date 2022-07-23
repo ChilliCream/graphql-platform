@@ -12,7 +12,7 @@ query GetPersonById {
 Request 1
 ---------------
 query GetPersonById_1 {
-  personById(id: $personId) {
+  personById(id: 1) {
     id
     name
   }
@@ -22,7 +22,7 @@ query GetPersonById_1 {
 Request 2
 ---------------
 query GetPersonById_2 {
-  node(id: $personId) {
+  node(id: 1) {
     ... on Person {
       bio
     }

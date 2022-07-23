@@ -251,7 +251,8 @@ internal sealed class SchemaReader
                     }
 
                     return SyntaxVisitor.Continue;
-                })
+                },
+                options: new() { VisitArguments = true })
             .Visit(select);
 
         return new FetchDefinition(
@@ -351,7 +352,7 @@ internal sealed class SchemaReader
         AssertName(directiveNode, VariableDirective);
         AssertArguments(directiveNode, NameArg, ArgumentArg);
 
-        string name = default!; ;
+        string name = default!;
         string argumentName = default!;
 
         foreach (var argument in directiveNode.Arguments)
