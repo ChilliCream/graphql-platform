@@ -14,7 +14,7 @@ public sealed class MemberBindingCollection : IEnumerable<MemberBinding>
 
     public int Count => _bindings.Count;
 
-    // public MemberBinding this[string schemaName] => throw new NotImplementedException();
+    public MemberBinding this[string schemaName] => _bindings[schemaName];
 
     public bool TryGetValue(string schemaName, [NotNullWhen(true)] out MemberBinding? value)
         => _bindings.TryGetValue(schemaName, out value);

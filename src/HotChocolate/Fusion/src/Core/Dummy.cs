@@ -1,15 +1,16 @@
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion;
 
-public class QueryPlan : ExecutionNode
+internal class QueryPlan : ExecutionNode
 {
 }
 
-public sealed class RequestNode : ExecutionNode
+internal  sealed class RequestNode : ExecutionNode
 {
     private RequestHandler? _handler;
 
@@ -31,7 +32,7 @@ public sealed class RequestNode : ExecutionNode
     }
 }
 
-public abstract class ExecutionNode
+internal  abstract class ExecutionNode
 {
     private readonly List<ExecutionNode> _nodes = new();
     private bool _isReadOnly = false;
@@ -66,18 +67,14 @@ public abstract class ExecutionNode
     protected virtual void OnSeal() { }
 }
 
-public class RequestHandler
+internal sealed class RequestHandler
 {
-    public RequestHandler(DocumentNode document)
+    private readonly DocumentNode _document;
+
+    internal RequestHandler(DocumentNode document)
     {
-        Document = document;
+        _document = document;
     }
-
-    public IReadOnlyList<string> Requires { get; }
-
-    public IReadOnlyList<string> Exports { get; }
-
-    public DocumentNode Document { get; set; }
 
     public Request CreateRequest(IReadOnlyList<IValueNode>? variables)
         => throw new NotImplementedException();

@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Language;
 using static System.StringComparer;
 
 namespace HotChocolate.Fusion.Planning;
@@ -148,6 +149,21 @@ internal sealed class ExportDefinitions
     private readonly string _groupKey = Guid.NewGuid().ToString("N")[..24];
     private int _stateId;
 
+    public string Register(
+        ISelectionSet selectionSet,
+        FieldVariableDefinition variableDefinition,
+        IExecutionStep executionStep)
+    {
+        var exportDefinition = new ExportDefinition(
+            $"_{_groupKey}_{++_stateId}",
+            selectionSet,
+            variableDefinition,
+            executionStep);
+        _exportDefinitions.Add(exportDefinition.StateKey, exportDefinition);
+        _stateKeyLookup.Add((selectionSet, variableDefinition.Name), exportDefinition.StateKey);
+        return exportDefinition.StateKey;
+    }
+
     public bool TryGetStateKey(
         ISelectionSet selectionSet,
         string variableName,
@@ -165,19 +181,41 @@ internal sealed class ExportDefinitions
         return false;
     }
 
-    public string Register(
-        ISelectionSet selectionSet,
-        FieldVariableDefinition variableDefinition,
-        IExecutionStep executionStep)
+    public IReadOnlyList<VariableDefinitionNode> CreateVariableDefinitions(
+        IReadOnlyCollection<string> stateKeys)
     {
-        var exportDefinition = new ExportDefinition(
-            $"_{_groupKey}_{++_stateId}",
-            selectionSet,
-            variableDefinition,
-            executionStep);
-        _exportDefinitions.Add(exportDefinition.StateKey, exportDefinition);
-        _stateKeyLookup.Add((selectionSet, variableDefinition.Name), exportDefinition.StateKey);
-        return exportDefinition.StateKey;
+        if (stateKeys.Count == 0)
+        {
+            return Array.Empty<VariableDefinitionNode>();
+        }
+
+        var definitions = new VariableDefinitionNode[stateKeys.Count];
+        var index = 0;
+
+        foreach (var stateKey in stateKeys)
+        {
+            var variableDefinition = _exportDefinitions[stateKey].VariableDefinition;
+            definitions[index++] = new VariableDefinitionNode(
+                null,
+                new VariableNode(stateKey),
+                variableDefinition.Type,
+                null,
+                Array.Empty<DirectiveNode>());
+        }
+
+        return definitions;
+    }
+
+    public IEnumerable<ISelectionNode> GetExportSelections(IExecutionStep executionStep)
+    {
+        foreach (var exportDefinition in _exportDefinitions.Values)
+        {
+            if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep))
+            {
+                // TODO : we need to transform this for better selection during execution
+                yield return exportDefinition.VariableDefinition.Select;
+            }
+        }
     }
 }
 

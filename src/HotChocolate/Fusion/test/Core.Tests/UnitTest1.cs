@@ -136,17 +136,23 @@ public class UnitTest1
         var queryPlanContext = new QueryPlanContext(operation);
         var requestPlaner = new RequestPlaner(distributedSchema);
         var requirementsPlaner = new RequirementsPlaner();
+        var executionPlanBuilder = new ExecutionPlanBuilder(distributedSchema);
 
         requestPlaner.Plan(queryPlanContext);
         requirementsPlaner.Plan(queryPlanContext);
+        var documents = executionPlanBuilder.Build(queryPlanContext);
 
 
         // assert
-        /*
-        await Snapshot
-            .Create()
-            .Add(request, "User Request")
-            .Add(((RequestNode)queryPlan.Nodes[0]).Handler.Document, "Request 1")
-            .MatchAsync();*/
+        var index = 0;
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+
+        foreach (var document in documents)
+        {
+            snapshot.Add(document, $"Request {++index}");
+        }
+
+        await snapshot.MatchAsync();
     }
 }
