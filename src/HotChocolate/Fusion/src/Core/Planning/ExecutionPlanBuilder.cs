@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 
@@ -43,7 +44,10 @@ internal sealed class ExecutionPlanBuilder
         SelectionExecutionStep executionStep)
     {
         var requestDocument = CreateRequestDocument(context, executionStep);
-        var requestHandler = new RequestHandler(requestDocument);
+        var requestHandler = new RequestHandler(
+            executionStep.SchemaName,
+            requestDocument,
+            Array.Empty<string>());
         return new RequestNode(requestHandler);
     }
 

@@ -1,11 +1,11 @@
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Planning;
 
 internal abstract class ExecutionNode
 {
-    private readonly HashSet<ExecutionNode> _dependsOn = new();
-    private bool _isReadOnly = false;
+    private readonly List<ExecutionNode> _dependsOn = new();
+    private bool _isReadOnly;
 
-    public IReadOnlySet<ExecutionNode> DependsOn => _dependsOn;
+    public IReadOnlyList<ExecutionNode> DependsOn => _dependsOn;
 
     internal void AddDependency(ExecutionNode node)
     {
@@ -14,7 +14,10 @@ internal abstract class ExecutionNode
             throw new InvalidOperationException("The execution node is read-only.");
         }
 
-        _dependsOn.Add(node);
+        if (!_dependsOn.Contains(node))
+        {
+            _dependsOn.Add(node);
+        }
     }
 
     internal void Seal()

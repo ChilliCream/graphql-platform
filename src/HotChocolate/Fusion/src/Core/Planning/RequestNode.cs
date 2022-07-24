@@ -1,4 +1,6 @@
-namespace HotChocolate.Fusion;
+using HotChocolate.Fusion.Execution;
+
+namespace HotChocolate.Fusion.Planning;
 
 internal sealed class RequestNode : ExecutionNode
 {

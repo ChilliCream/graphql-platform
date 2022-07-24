@@ -1,14 +1,12 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
-namespace test;
+namespace HotChocolate.Fusion;
 
 public class ExecutionPlanBuilderTests
 {
@@ -63,7 +61,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Schema.Load(serviceDefinition);
+        var serviceConfig = Metadata.Schema.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -159,7 +157,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Schema.Load(serviceDefinition);
+        var serviceConfig = Metadata.Schema.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -242,10 +240,8 @@ public class ExecutionPlanBuilderTests
                 @bind(to: ""a"")
               bio: String
                 @bind(to: ""b"")
-
               friends: [Person!]
                 @bind(to: ""a"")
-
             }
 
             schema
@@ -260,7 +256,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Schema.Load(serviceDefinition);
+        var serviceConfig = Metadata.Schema.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -276,7 +272,7 @@ public class ExecutionPlanBuilderTests
         var operationCompiler = new OperationCompiler(new());
         var operation = operationCompiler.Compile(
             "abc",
-            (OperationDefinitionNode)request.Definitions.First(),
+            (OperationDefinitionNode)request.Definitions[0],
             schema.QueryType,
             request,
             schema);
