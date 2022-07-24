@@ -24,8 +24,7 @@ internal sealed class RequirementsPlaner
             {
                 var declaringType = executionStep.RootSelections[0].Selection.DeclaringType;
                 var selectionSet = context.Operation.GetSelectionSet(parent, declaringType);
-                var siblings = selectionSet.Selections;
-                var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, siblings);
+                var siblingExecutionSteps = GetSiblingExecutionSteps(selectionLookup, selectionSet);
 
                 // remove the execution step for which we try to resolve dependencies.
                 siblingExecutionSteps.Remove(executionStep);
@@ -93,14 +92,19 @@ internal sealed class RequirementsPlaner
     }
 
     private static HashSet<SelectionExecutionStep> GetSiblingExecutionSteps(
-        Dictionary<ISelection, SelectionExecutionStep>  selectionLookup,
-        IReadOnlyList<ISelection> siblings)
+        Dictionary<object, SelectionExecutionStep>  selectionLookup,
+        ISelectionSet selectionSet)
     {
         var executionSteps = new HashSet<SelectionExecutionStep>();
 
-        foreach (var sibling in siblings)
+        if (selectionLookup.TryGetValue(selectionSet, out var executionStep))
         {
-            if (selectionLookup.TryGetValue(sibling, out var executionStep))
+            executionSteps.Add(executionStep);
+        }
+
+        foreach (var sibling in selectionSet.Selections)
+        {
+            if (selectionLookup.TryGetValue(sibling, out executionStep))
             {
                 executionSteps.Add(executionStep);
             }
@@ -109,10 +113,10 @@ internal sealed class RequirementsPlaner
         return executionSteps;
     }
 
-    private static Dictionary<ISelection, SelectionExecutionStep> CreateSelectionLookup(
+    private static Dictionary<object, SelectionExecutionStep> CreateSelectionLookup(
         IReadOnlyList<IExecutionStep> executionSteps)
     {
-        var dictionary = new Dictionary<ISelection, SelectionExecutionStep>();
+        var dictionary = new Dictionary<object, SelectionExecutionStep>();
 
         foreach (var executionStep in executionSteps)
         {
@@ -121,6 +125,11 @@ internal sealed class RequirementsPlaner
                 foreach (var selection in ses.AllSelections)
                 {
                     dictionary.Add(selection, ses);
+                }
+
+                foreach (var selectionSet in ses.AllSelectionSets)
+                {
+                    dictionary.Add(selectionSet, ses);
                 }
             }
         }

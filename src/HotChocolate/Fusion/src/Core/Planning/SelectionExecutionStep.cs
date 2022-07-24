@@ -27,6 +27,8 @@ internal class SelectionExecutionStep : IExecutionStep
 
     public HashSet<ISelection> AllSelections { get; } = new();
 
+    public HashSet<ISelectionSet> AllSelectionSets { get; } = new();
+
     /// <summary>
     /// Gets the execution steps this execution step is depending on.
     /// </summary>

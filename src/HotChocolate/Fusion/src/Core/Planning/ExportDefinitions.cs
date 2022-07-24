@@ -9,7 +9,7 @@ internal sealed class ExportDefinitions
 {
     private readonly Dictionary<(ISelectionSet, string), string> _stateKeyLookup = new();
     private readonly Dictionary<string, ExportDefinition> _exportDefinitions = new(StringComparer.Ordinal);
-    private readonly string _groupKey = Guid.NewGuid().ToString("N")[..24];
+    private readonly string _groupKey = "_fusion_exports_";
     private int _stateId;
 
     public string Register(
@@ -69,11 +69,14 @@ internal sealed class ExportDefinitions
         return definitions;
     }
 
-    public IEnumerable<ISelectionNode> GetExportSelections(IExecutionStep executionStep)
+    public IEnumerable<ISelectionNode> GetExportSelections(
+        IExecutionStep executionStep,
+        ISelectionSet selectionSet)
     {
         foreach (var exportDefinition in _exportDefinitions.Values)
         {
-            if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep))
+            if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep) &&
+                ReferenceEquals(exportDefinition.SelectionSet, selectionSet))
             {
                 // TODO : we need to transform this for better selection during execution
                 yield return exportDefinition.VariableDefinition.Select;

@@ -72,7 +72,7 @@ internal sealed class SelectionSet : ISelectionSet
         {
             for (var i = 0; i < _selections.Length; i++)
             {
-                _selections[i].Seal();
+                _selections[i].Seal(this);
             }
 
             _flags |= Flags.Sealed;

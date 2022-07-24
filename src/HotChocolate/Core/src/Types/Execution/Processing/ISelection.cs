@@ -48,6 +48,11 @@ public interface ISelection : IOptionalSelection
     IObjectType DeclaringType { get; }
 
     /// <summary>
+    /// Gets the selectionSet that declares this selection.
+    /// </summary>
+    ISelectionSet DeclaringSelectionSet { get; }
+
+    /// <summary>
     /// Gets the field selection syntax node.
     /// </summary>
     FieldNode SyntaxNode { get; }

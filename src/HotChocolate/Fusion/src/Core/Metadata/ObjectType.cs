@@ -21,4 +21,6 @@ internal sealed class ObjectType : IType
     public FetchDefinitionCollection Resolvers { get; }
 
     public ObjectFieldCollection Fields { get; }
+
+    public override string ToString() => Name;
 }

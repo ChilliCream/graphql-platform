@@ -14,7 +14,12 @@ internal sealed class VariableDefinitionCollection : IEnumerable<FieldVariableDe
     public int Count => _variables.Length;
 
     public IEnumerator<FieldVariableDefinition> GetEnumerator()
-        => Enumerable.Empty<FieldVariableDefinition>().GetEnumerator();
+    {
+        foreach (var variable in _variables)
+        {
+            yield return variable;
+        }
+    }
 
     IEnumerator IEnumerable.GetEnumerator()
     {

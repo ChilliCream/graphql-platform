@@ -85,6 +85,7 @@ internal sealed class ExecutionPlanBuilder
         SelectionExecutionStep executionStep)
     {
         var selectionNodes = new List<ISelectionNode>();
+        var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
 
         // create
         foreach (var rootSelection in executionStep.RootSelections)
@@ -102,7 +103,6 @@ internal sealed class ExecutionPlanBuilder
             }
             else
             {
-
                 SelectionSetNode? selectionSetNode = null;
 
                 if (rootSelection.Selection.SelectionSet is not null)
@@ -130,7 +130,7 @@ internal sealed class ExecutionPlanBuilder
         }
 
         // append exports that were required by other execution steps.
-        foreach (var selection in context.Exports.GetExportSelections(executionStep))
+        foreach (var selection in context.Exports.GetExportSelections(executionStep, selectionSet))
         {
             selectionNodes.Add(selection);
         }
@@ -193,6 +193,13 @@ internal sealed class ExecutionPlanBuilder
                         field);
                     selectionNodes.Add(selectionNode);
                 }
+            }
+
+            // append exports that were required by other execution steps.
+            foreach (var selection in
+                context.Exports.GetExportSelections(executionStep, selectionSet))
+            {
+                selectionNodes.Add(selection);
             }
         }
 

@@ -108,7 +108,7 @@ internal sealed class RequestPlaner
     private void CollectChildSelections(
         IOperation operation,
         ISelection parentSelection,
-        SelectionExecutionStep workItem)
+        SelectionExecutionStep executionStep)
     {
         foreach (var possibleType in operation.GetPossibleTypes(parentSelection))
         {
@@ -116,13 +116,20 @@ internal sealed class RequestPlaner
             var selectionSet = operation.GetSelectionSet(parentSelection, possibleType);
             List<ISelection>? leftovers = null;
 
+            executionStep.AllSelectionSets.Add(selectionSet);
+
             foreach (var selection in selectionSet.Selections)
             {
                 var field = declaringType.Fields[selection.Field.Name];
 
-                if (field.Bindings.TryGetValue(workItem.SchemaName, out _))
+                if (field.Bindings.TryGetValue(executionStep.SchemaName, out _))
                 {
-                    workItem.AllSelections.Add(selection);
+                    executionStep.AllSelections.Add(selection);
+
+                    if (selection.SelectionSet is not null)
+                    {
+                        CollectChildSelections(operation, selection, executionStep);
+                    }
                 }
                 else
                 {
