@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Language;
+using static HotChocolate.Fusion.Execution.JsonValueToGraphQLValueConverter;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -9,6 +10,9 @@ internal sealed class ExecutionState : IExecutionState
 {
     private static readonly ListValueNode _emptyList = new(Array.Empty<IValueNode>());
     private readonly ConcurrentDictionary<string, State> _store = new();
+
+    public void TryGetState(string key, ITypeNode expectedType, out IValueNode value)
+        => throw new NotImplementedException();
 
     public IValueNode GetState(string key, ITypeNode expectedType)
     {
@@ -53,7 +57,7 @@ internal sealed class ExecutionState : IExecutionState
 
     public void AddState(string key, JsonElement value, ITypeNode type)
     {
-        var literal = CreateLiteral(value);
+        var literal = Convert(value);
 
         if (_store.ContainsKey(key))
         {
@@ -107,58 +111,6 @@ internal sealed class ExecutionState : IExecutionState
                     return s;
                 },
                 state);
-        }
-    }
-
-    private IValueNode CreateLiteral(JsonElement value)
-    {
-        switch (value.ValueKind)
-        {
-            case JsonValueKind.Object:
-                var properties = new List<ObjectFieldNode>();
-
-                foreach (var property in value.EnumerateObject())
-                {
-                    properties.Add(new ObjectFieldNode(property.Name, CreateLiteral(property.Value)));
-                }
-
-                return new ObjectValueNode(properties);
-
-            case JsonValueKind.Array:
-                var length = value.GetArrayLength();
-
-                if (length is 0)
-                {
-                    return _emptyList;
-                }
-
-                var items = new IValueNode[length];
-                var index = 0;
-
-                foreach (var element in value.EnumerateArray())
-                {
-                    items[index++] = CreateLiteral(element);
-                }
-
-                return new ListValueNode(items);
-
-            case JsonValueKind.String:
-                return new StringValueNode(value.GetString()!);
-
-            case JsonValueKind.Number:
-                return Utf8GraphQLParser.Syntax.ParseValueLiteral(value.GetRawText());
-
-            case JsonValueKind.True:
-                return BooleanValueNode.True;
-
-            case JsonValueKind.False:
-                return BooleanValueNode.False;
-
-            case JsonValueKind.Null:
-                return NullValueNode.Default;
-
-            default:
-                throw new ArgumentOutOfRangeException();
         }
     }
 

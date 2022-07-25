@@ -1,3 +1,5 @@
+using HotChocolate.Execution.Processing;
+
 namespace HotChocolate.Fusion.Planning;
 
 internal class QueryPlan
@@ -11,4 +13,6 @@ internal class QueryPlan
     public IReadOnlyList<ExecutionNode> RootExecutionNodes { get; }
 
     public IReadOnlyList<ExecutionNode> ExecutionNodes { get; }
+
+    public IEnumerable<RequestNode> GetRequestNodes(ISelectionSet selectionSet);
 }
