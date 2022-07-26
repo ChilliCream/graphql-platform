@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -28,7 +27,7 @@ public class QueryableOffsetPagingHandler<TEntity>
         object source,
         OffsetPagingArguments arguments)
     {
-        CancellationToken ct = context.RequestAborted;
+        var ct = context.RequestAborted;
         return source switch
         {
             IQueryable<TEntity> q => ResolveAsync(context, q, arguments, ct),
@@ -52,14 +51,13 @@ public class QueryableOffsetPagingHandler<TEntity>
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
         if (IncludeTotalCount &&
             context.Selection.Type is ObjectType objectType &&
-            context.Selection.SyntaxNode.SelectionSet is { } selectionSet)
+            context.Selection.SyntaxNode.SelectionSet is not null)
         {
-            IReadOnlyList<IFieldSelection> selections =
-                context.GetSelections(objectType, selectionSet, true);
+            var selections = context.GetSelections(objectType, null, true);
 
             for (var i = 0; i < selections.Count; i++)
             {
-                if (selections[i].Field.Name.Value is "totalCount")
+                if (selections[i].Field.Name is "totalCount")
                 {
                     totalCount = source.Count();
                 }

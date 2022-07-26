@@ -1,0 +1,67 @@
+ASC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": null
+        }
+      },
+      {
+        "foo": null
+      },
+      null,
+      {
+        "foo": {
+          "barBool": false
+        }
+      },
+      {
+        "foo": {
+          "barBool": false
+        }
+      },
+      {
+        "foo": {
+          "barBool": true
+        }
+      }
+    ]
+  }
+}
+---------------
+
+13
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": true
+        }
+      },
+      {
+        "foo": {
+          "barBool": false
+        }
+      },
+      {
+        "foo": {
+          "barBool": false
+        }
+      },
+      {
+        "foo": {
+          "barBool": null
+        }
+      },
+      {
+        "foo": null
+      },
+      null
+    ]
+  }
+}
+---------------

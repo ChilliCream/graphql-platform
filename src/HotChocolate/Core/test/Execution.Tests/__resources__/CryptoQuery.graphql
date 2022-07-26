@@ -1,0 +1,93 @@
+query DashboardContainerQuery {
+  ...DashboardTickerFragment_query
+  ...DashboardFeaturedFragment_query
+  ...DashboardSpotlightFragment_query @defer(label: "DashboardContainerQuery$defer$spotlight")
+}
+
+fragment DashboardFeaturedCardFragment_asset on Asset {
+  symbol
+  color
+  price {
+    currency
+    lastPrice
+    change24Hour
+    change(span: DAY) {
+      history {
+        nodes {
+          epoch
+          price
+        }
+      }
+      id
+    }
+    id
+  }
+}
+
+fragment DashboardFeaturedFragment_query on Query {
+  featured: assets(where: {symbol: {in: ["BTC", "ADA", "ALGO"]}}) {
+    nodes {
+      id
+      ...DashboardFeaturedCardFragment_asset
+    }
+  }
+}
+
+fragment DashboardSpotlightCardFragment_asset on AssetsConnection {
+  nodes {
+    id
+    ...DashboardSpotlightItemFragment_asset
+  }
+}
+
+fragment DashboardSpotlightFragment_query on Query {
+  ...DashboardSpotlightGainersFragment_query
+  ...DashboardSpotlightLosersFragment_query
+}
+
+fragment DashboardSpotlightGainersFragment_query on Query {
+  gainers: assets(first: 5, where: {price: {change24Hour: {gt: 0}}}, order: {price: {change24Hour: DESC}}) {
+    ...DashboardSpotlightCardFragment_asset @defer(label: "DashboardSpotlightGainersFragment_query$defer$gainers")
+  }
+}
+
+fragment DashboardSpotlightItemFragment_asset on Asset {
+  id
+  symbol
+  name
+  imageUrl
+  isInWatchlist
+  price {
+    currency
+    lastPrice
+    change24Hour
+    id
+  }
+}
+
+fragment DashboardSpotlightLosersFragment_query on Query {
+  losers: assets(first: 5, where: {price: {change24Hour: {lt: 0}}}, order: {price: {change24Hour: ASC}}) {
+    ...DashboardSpotlightCardFragment_asset @defer(label: "DashboardSpotlightLosersFragment_query$defer$losers")
+  }
+}
+
+fragment DashboardTickerFragment_query on Query {
+  ticker: assets(first: 10, order: {price: {tradableMarketCapRank: ASC}}) {
+    nodes {
+      symbol
+      ...DashboardTickerItemFragment_asset
+      id
+    }
+  }
+}
+
+fragment DashboardTickerItemFragment_asset on Asset {
+  symbol
+  color
+  price {
+    currency
+    lastPrice
+    change24Hour
+    id
+  }
+}

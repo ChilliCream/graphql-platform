@@ -42,8 +42,8 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
 
     public bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind)
     {
-        if (_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef) &&
-            _typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType))
+        if (_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef) &&
+            _typeRegistry.TryGetType(namedTypeRef, out var registeredType))
         {
             switch (registeredType.Type)
             {

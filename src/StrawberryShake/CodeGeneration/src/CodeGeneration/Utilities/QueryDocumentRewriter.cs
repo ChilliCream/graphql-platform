@@ -18,7 +18,7 @@ public static class QueryDocumentRewriter
             throw new ArgumentNullException(nameof(schema));
         }
 
-        DocumentNode current = document;
+        var current = document;
         current = EntityIdRewriter.Rewrite(current, schema);
         current = TypeNameQueryRewriter.Rewrite(current);
         current = RemoveClientDirectivesRewriter.Rewrite(current);

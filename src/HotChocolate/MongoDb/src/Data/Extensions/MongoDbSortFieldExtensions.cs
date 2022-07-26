@@ -7,7 +7,7 @@ public static class MongoDbSortFieldExtensions
     public static string GetName(
         this ISortField field)
     {
-        string fieldName = field.Name;
+        var fieldName = field.Name;
         if (field.Member is { } p)
         {
             fieldName = p.Name;

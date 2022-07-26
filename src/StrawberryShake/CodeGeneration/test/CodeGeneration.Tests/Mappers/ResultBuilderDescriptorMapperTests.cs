@@ -14,7 +14,7 @@ public class ResultBuilderDescriptorMapperTests
     public async Task MapResultBuilderDescriptors()
     {
         // arrange
-        ClientModel clientModel = await CreateClientModelAsync(
+        var clientModel = await CreateClientModelAsync(
             @"
                 query GetHero {
                     hero(episode: NEW_HOPE) {

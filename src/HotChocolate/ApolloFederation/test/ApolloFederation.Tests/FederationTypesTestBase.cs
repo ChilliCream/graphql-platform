@@ -8,7 +8,7 @@ public class FederationTypesTestBase
 {
     protected ISchema CreateSchema(Action<ISchemaBuilder> configure)
     {
-        ISchemaBuilder builder =
+        var builder =
             SchemaBuilder.New()
                 .AddQueryType(
                     c =>

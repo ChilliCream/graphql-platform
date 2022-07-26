@@ -67,7 +67,7 @@ public class SortEnumType
         }
 
         if (valueSyntax is EnumValueNode evn &&
-            ValueLookup.TryGetValue(evn.Value, out IEnumValue? ev) &&
+            ValueLookup.TryGetValue(evn.Value, out var ev) &&
             ev is ISortEnumValue sortEnumValue)
         {
             return sortEnumValue;

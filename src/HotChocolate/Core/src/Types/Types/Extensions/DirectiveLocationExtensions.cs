@@ -87,7 +87,7 @@ public static class DirectiveLocationExtensions
     public static Language.DirectiveLocation MapDirectiveLocation(
         this DirectiveLocation location)
     {
-        if (!_locs.TryGetValue(location, out Language.DirectiveLocation l))
+        if (!_locs.TryGetValue(location, out var l))
         {
             throw new NotSupportedException(string.Format(
                 CultureInfo.InvariantCulture,

@@ -80,7 +80,7 @@ public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinit
         yield return Name;
         yield return TypeCondition;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

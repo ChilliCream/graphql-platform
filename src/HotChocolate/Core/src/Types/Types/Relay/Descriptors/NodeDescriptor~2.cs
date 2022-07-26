@@ -71,11 +71,11 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
             throw new ArgumentNullException(nameof(method));
         }
 
-        MemberInfo? member = method.TryExtractMember();
+        var member = method.TryExtractMember();
 
         if (member is MethodInfo m)
         {
-            FieldResolverDelegates resolver =
+            var resolver =
                 Context.ResolverCompiler.CompileResolve(
                     m,
                     typeof(object),
@@ -96,7 +96,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
             throw new ArgumentNullException(nameof(method));
         }
 
-        FieldResolverDelegates resolver =
+        var resolver =
             Context.ResolverCompiler.CompileResolve(
                 method,
                 typeof(object),

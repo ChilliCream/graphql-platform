@@ -1,7 +1,6 @@
-using System;
 using Squadron;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
 public class PostgisConfig : PostgreSqlDefaultOptions
 {

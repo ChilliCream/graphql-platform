@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "The \u0060\u0060 authorization policy does not exist.",
@@ -15,8 +15,5 @@
         "code": "AUTH_POLICY_NOT_FOUND"
       }
     }
-  ],
-  "data": {
-    "bar": null
-  }
+  ]
 }

@@ -43,7 +43,7 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
     {
         var key = GetKey(parameter);
 
-        ConstantExpression keyExpression =
+        var keyExpression =
             key is null
                 ? Expression.Constant(parameter.Name, typeof(string))
                 : Expression.Constant(key, typeof(string));
@@ -61,7 +61,7 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
         ConstantExpression key,
         Expression context)
     {
-        MethodInfo setGlobalState =
+        var setGlobalState =
             parameter.ParameterType.IsGenericType
                 ? SetStateGenericMethod.MakeGenericMethod(
                     parameter.ParameterType.GetGenericArguments()[0])
@@ -81,9 +81,9 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
     {
         targetType ??= parameter.ParameterType;
 
-        MemberExpression contextData = Expression.Property(context, ContextDataProperty);
+        var contextData = Expression.Property(context, ContextDataProperty);
 
-        MethodInfo getScopedState =
+        var getScopedState =
             parameter.HasDefaultValue
                 ? _getScopedStateWithDefault.MakeGenericMethod(targetType)
                 : _getScopedState.MakeGenericMethod(targetType);

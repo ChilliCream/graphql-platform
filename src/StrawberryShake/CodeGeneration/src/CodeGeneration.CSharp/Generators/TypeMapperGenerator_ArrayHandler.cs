@@ -51,7 +51,7 @@ public partial class TypeMapperGenerator
                         .AddCode("()")));
         methodBuilder.AddEmptyLine();
 
-        ForEachBuilder forEachBuilder = ForEachBuilder
+        var forEachBuilder = ForEachBuilder
             .New()
             .SetLoopHeader(
                 CodeBlockBuilder

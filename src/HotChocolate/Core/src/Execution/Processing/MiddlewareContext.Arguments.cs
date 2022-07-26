@@ -8,16 +8,20 @@ using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
-internal partial class MiddlewareContext : IMiddlewareContext
+internal partial class MiddlewareContext
 {
-    public IReadOnlyDictionary<NameString, ArgumentValue> Arguments { get; set; } =
-        default!;
+    public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = default!;
 
-    public T Argument<T>(NameString name)
+    public T Argument<T>(string name)
     {
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
         if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
         {
-            IValueNode literal = ArgumentLiteral<IValueNode>(name);
+            var literal = ArgumentLiteral<IValueNode>(name);
 
             if (literal is T casted)
             {
@@ -31,9 +35,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
         return ArgumentValue<T>(name);
     }
 
-    public T ArgumentValue<T>(NameString name)
+    public T ArgumentValue<T>(string name)
     {
-        if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        if (!Arguments.TryGetValue(name, out var argument))
         {
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
@@ -41,9 +50,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
         return CoerceArgumentValue<T>(argument);
     }
 
-    public Optional<T> ArgumentOptional<T>(NameString name)
+    public Optional<T> ArgumentOptional<T>(string name)
     {
-        if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        if (!Arguments.TryGetValue(name, out var argument))
         {
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
@@ -53,14 +67,19 @@ internal partial class MiddlewareContext : IMiddlewareContext
             : new Optional<T>(CoerceArgumentValue<T>(argument));
     }
 
-    public TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode
+    public TValueNode ArgumentLiteral<TValueNode>(string name) where TValueNode : IValueNode
     {
-        if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        if (!Arguments.TryGetValue(name, out var argument))
         {
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
 
-        IValueNode literal = argument.ValueLiteral!;
+        var literal = argument.ValueLiteral!;
 
         if (literal is TValueNode castedLiteral)
         {
@@ -71,9 +90,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
             _selection.SyntaxNode, Path, name, typeof(TValueNode), literal.GetType());
     }
 
-    public ValueKind ArgumentKind(NameString name)
+    public ValueKind ArgumentKind(string name)
     {
-        if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        if (!Arguments.TryGetValue(name, out var argument))
         {
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
@@ -124,15 +148,15 @@ internal partial class MiddlewareContext : IMiddlewareContext
             typeof(T));
     }
 
-    public IReadOnlyDictionary<NameString, ArgumentValue> ReplaceArguments(
-        IReadOnlyDictionary<NameString, ArgumentValue> argumentValues)
+    public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
+        IReadOnlyDictionary<string, ArgumentValue> argumentValues)
     {
         if (argumentValues is null)
         {
             throw new ArgumentNullException(nameof(argumentValues));
         }
 
-        IReadOnlyDictionary<NameString, ArgumentValue> original = Arguments;
+        var original = Arguments;
         Arguments = argumentValues;
         return original;
     }

@@ -159,7 +159,7 @@ public static class FieldInitHelper
         where TFieldDefinition : FieldDefinitionBase, IHasSyntaxNode
         where TField : class, IField
     {
-        IEnumerable<TFieldDefinition> fieldDefs = fieldDefinitions.Where(t => !t.Ignore);
+        var fieldDefs = fieldDefinitions.Where(t => !t.Ignore);
 
         if (context.DescriptorContext.Options.SortFieldsByName)
         {
@@ -169,7 +169,7 @@ public static class FieldInitHelper
         var index = 0;
         var fields = new TField[fieldCount];
 
-        foreach (TFieldDefinition fieldDefinition in fieldDefs)
+        foreach (var fieldDefinition in fieldDefs)
         {
             fields[index] = fieldFactory(fieldDefinition, index);
             index++;
@@ -204,7 +204,7 @@ public static class FieldInitHelper
             return FieldCollection<TField>.Empty;
         }
 
-        foreach (TField field in fields)
+        foreach (var field in fields)
         {
             ((IFieldCompletion)field).CompleteField(context, declaringMember);
         }

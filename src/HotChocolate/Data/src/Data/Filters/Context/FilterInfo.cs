@@ -47,7 +47,7 @@ public class FilterInfo : FilterValueNode, IFilterInfo
             return;
         }
 
-        IType type = Type;
+        var type = Type;
         if (Type is NonNullType nonNullType)
         {
             type = nonNullType.Type;
@@ -58,11 +58,11 @@ public class FilterInfo : FilterValueNode, IFilterInfo
         {
             List<IFilterFieldInfo>? fieldInfos = null;
             List<IFilterOperationInfo>? operationInfos = null;
-            foreach (ObjectFieldNode fieldValue in valueNode.Fields)
+            foreach (var fieldValue in valueNode.Fields)
             {
                 if (filterInputType.Fields.TryGetField(fieldValue.Name.Value, out var field))
                 {
-                    IFilterValueNode value = CreateValueInfo(fieldValue.Value, field.Type);
+                    var value = CreateValueInfo(fieldValue.Value, field.Type);
                     switch (field)
                     {
                         case FilterOperationField operationField:
@@ -88,7 +88,7 @@ public class FilterInfo : FilterValueNode, IFilterInfo
 
     private IFilterValueNode CreateValueInfo(IValueNode valueNode, IType type)
     {
-        IType normalizedType = type;
+        var normalizedType = type;
         if (type is NonNullType nonNullType)
         {
             normalizedType = nonNullType.Type;
@@ -100,7 +100,7 @@ public class FilterInfo : FilterValueNode, IFilterInfo
         {
             List<IFilterValueNode> values = new(listValueNode.Items.Count);
 
-            foreach (IValueNode item in listValueNode.Items)
+            foreach (var item in listValueNode.Items)
             {
                 values.Add(CreateValueInfo(item, normalizedType.ElementType()));
             }

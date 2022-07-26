@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -19,11 +20,11 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
     public InterfaceFieldDefinition(
-        NameString name,
+        string name,
         string? description = null,
         ITypeReference? type = null)
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
         Type = type;
     }

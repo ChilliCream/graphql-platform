@@ -59,7 +59,7 @@ internal static class MessageUtilities
 
     public static bool TryGetPayload(JsonElement root, out JsonElement payload)
     {
-        if (root.TryGetProperty(Utf8MessageProperties.Payload, out JsonElement payloadValue) &&
+        if (root.TryGetProperty(Utf8MessageProperties.Payload, out var payloadValue) &&
             payloadValue.ValueKind is JsonValueKind.Object)
         {
             payload = payloadValue;

@@ -14,7 +14,7 @@ internal class VariablePath
     public static VariablePath Parse(string s)
     {
         const string variables = nameof(variables);
-        string[] segments = s.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        var segments = s.Split('.', StringSplitOptions.RemoveEmptyEntries);
 
         if (segments.Length < 2)
         {
@@ -30,7 +30,7 @@ internal class VariablePath
 
         for (var i = segments.Length - 1; i >= 0; i--)
         {
-            string item = segments[i];
+            var item = segments[i];
 
             if (item.Equals(variables, StringComparison.Ordinal))
             {

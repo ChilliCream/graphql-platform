@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution;
 
@@ -9,9 +10,9 @@ namespace HotChocolate.Execution;
 /// </summary>
 public readonly struct VariableValue
 {
-    public VariableValue(NameString name, IInputType type, IValueNode value)
+    public VariableValue(string name, IInputType type, IValueNode value)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         Type = type ?? throw new ArgumentNullException(nameof(type));
         Value = value ?? throw new ArgumentNullException(nameof(value));
     }
@@ -19,7 +20,7 @@ public readonly struct VariableValue
     /// <summary>
     /// Gets the variable name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the variable type.

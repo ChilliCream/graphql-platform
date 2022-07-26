@@ -4,7 +4,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
@@ -22,7 +21,7 @@ internal sealed class __DirectiveArgument : ObjectType<ArgumentNode>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
 
         return new ObjectTypeDefinition(
             Names.__DirectiveArgument,

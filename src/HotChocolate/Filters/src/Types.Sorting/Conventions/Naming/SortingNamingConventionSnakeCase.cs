@@ -1,11 +1,10 @@
 
 using System;
 
-namespace HotChocolate.Types.Sorting
+namespace HotChocolate.Types.Sorting;
+
+[Obsolete("Use HotChocolate.Data.")]
+public class SortingNamingConventionSnakeCase : SortingNamingConventionBase
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public class SortingNamingConventionSnakeCase : SortingNamingConventionBase
-    {
-        public override NameString ArgumentName => "order_by";
-    }
+    public override string ArgumentName => "order_by";
 }

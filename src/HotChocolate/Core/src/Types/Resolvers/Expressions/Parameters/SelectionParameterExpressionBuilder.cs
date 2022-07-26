@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Internal;
 
 #nullable enable
@@ -17,7 +18,7 @@ internal sealed class SelectionParameterExpressionBuilder
     public override ArgumentKind Kind => ArgumentKind.Selection;
 
     public override bool CanHandle(ParameterInfo parameter)
-        => typeof(IFieldSelection).IsAssignableFrom(parameter.ParameterType);
+        => typeof(ISelection).IsAssignableFrom(parameter.ParameterType);
 
     public override Expression Build(ParameterInfo parameter, Expression context)
         => Expression.Convert(base.Build(parameter, context), parameter.ParameterType);

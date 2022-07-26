@@ -41,7 +41,7 @@ public class QueryableListAnyOperationHandler
             context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args &&
             parsedValue is bool parsedBool)
         {
-            Expression? property = context.GetInstance();
+            var property = context.GetInstance();
 
             Expression expression;
             if (parsedBool)

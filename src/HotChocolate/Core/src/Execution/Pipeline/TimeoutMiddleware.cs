@@ -38,7 +38,7 @@ internal sealed class TimeoutMiddleware
 
         // We do not dispose the combined token in this middleware at all times.
         // The dispose is handled in the finally block.
-        CancellationTokenSource combined = CreateLinkedTokenSource(
+        var combined = CreateLinkedTokenSource(
             context.RequestAborted, timeout.Token);
 
         try

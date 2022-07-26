@@ -2797,6 +2797,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    /// <summary>
+    /// An enum describing what kind of type a given `__Type` is.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum __TypeKind
     {

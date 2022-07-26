@@ -31,7 +31,7 @@ public interface IRequestExecutorResolver
     /// given configuration <paramref name="schemaName" />.
     /// </returns>
     ValueTask<IRequestExecutor> GetRequestExecutorAsync(
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -44,5 +44,5 @@ public interface IRequestExecutorResolver
     /// <param name="schemaName">
     /// The schema name.
     /// </param>
-    void EvictRequestExecutor(NameString schemaName = default);
+    void EvictRequestExecutor(string? schemaName = default);
 }

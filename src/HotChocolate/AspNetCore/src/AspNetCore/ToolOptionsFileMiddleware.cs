@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -23,14 +22,14 @@ public class ToolOptionsFileMiddleware
     public async Task Invoke(HttpContext context)
     {
         if (context.Request.IsGetOrHeadMethod() &&
-            context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
+            context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
             subPath.Value == _configFile &&
             (context.GetGraphQLToolOptions()?.Enable ?? true))
         {
             if (_config is null)
             {
-                GraphQLToolOptions? options = context.GetGraphQLToolOptions();
-                GraphQLEndpointOptions? endpointOptions = context.GetGraphQLEndpointOptions();
+                var options = context.GetGraphQLToolOptions();
+                var endpointOptions = context.GetGraphQLEndpointOptions();
 
                 var config = new BananaCakePopConfiguration();
 
@@ -76,7 +75,7 @@ public class ToolOptionsFileMiddleware
         {
             var result = new Dictionary<string, string>();
 
-            foreach ((var key, StringValues value) in httpHeaders)
+            foreach ((var key, var value) in httpHeaders)
             {
                 result.Add(key, value.ToString());
             }

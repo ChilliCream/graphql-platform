@@ -17,7 +17,7 @@ internal sealed class DelegateSyntaxRewriter<TContext>
     {
         _rewrite = rewrite ?? new RewriteSyntaxNode<TContext>(static (node, _) => node);
         _enter = enter ?? new Func<ISyntaxNode, TContext, TContext>(static (_, ctx) => ctx);
-        _leave = leave ?? new Action<ISyntaxNode?, TContext>(static (node, _) => { });
+        _leave = leave ?? new Action<ISyntaxNode?, TContext>(static (_, _) => { });
     }
 
     protected override TContext OnEnter(
@@ -29,8 +29,8 @@ internal sealed class DelegateSyntaxRewriter<TContext>
         ISyntaxNode node,
         TContext context)
     {
-        ISyntaxNode? rewrittenNode = base.OnRewrite(node, context);
-        return _rewrite(rewrittenNode, context);
+        var rewrittenNode = base.OnRewrite(node, context);
+        return rewrittenNode is null ? null : _rewrite(rewrittenNode, context);
     }
 
     protected override void OnLeave(

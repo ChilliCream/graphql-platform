@@ -75,7 +75,7 @@ public class CollectionSegment<T> : CollectionSegment
 
         public IEnumerator<object> GetEnumerator()
         {
-            foreach (T element in _collection)
+            foreach (var element in _collection)
             {
                 yield return element!;
             }

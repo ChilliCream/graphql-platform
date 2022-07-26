@@ -33,7 +33,7 @@ internal static class CodeBlockBuilderExtensions
         this CodeBlockBuilder builder,
         string? assignedTo = null)
     {
-        AssignmentBuilder assignmentBuilder = AssignmentBuilder
+        var assignmentBuilder = AssignmentBuilder
             .New();
 
         if (assignedTo is not null)
@@ -51,7 +51,7 @@ internal static class CodeBlockBuilderExtensions
         IEnumerable<T> enumerable,
         Action<CodeBlockBuilder, T> configure)
     {
-        foreach (T element in enumerable)
+        foreach (var element in enumerable)
         {
             configure(codeBlockBuilder, element);
         }

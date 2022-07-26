@@ -10,7 +10,7 @@ namespace GreenDonut;
 public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEventListener
 {
     /// <summary>
-    /// A no-op <see cref="IActivityScope"/> that can be returned from
+    /// A no-op <see cref="IDisposable"/> that can be returned from
     /// event methods that are not interested in when the scope is disposed.
     /// </summary>
     protected static IDisposable EmptyScope { get; } = new EmptyActivityScope();

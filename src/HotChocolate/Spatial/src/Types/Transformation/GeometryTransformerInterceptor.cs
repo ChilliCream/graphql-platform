@@ -22,7 +22,7 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        ISpatialConvention convention = completionContext.GetSpatialConvention();
+        var convention = completionContext.GetSpatialConvention();
         if (convention.TransformerFactory.HasCoordinateSystems() &&
             convention.DefaultSrid > 0)
         {

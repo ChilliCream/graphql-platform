@@ -48,7 +48,7 @@ public abstract class Path : IEquatable<Path>
         }
 
         var stack = new List<object>();
-        Path current = this;
+        var current = this;
 
         while (!current.IsRoot)
         {
@@ -114,17 +114,15 @@ public abstract class Path : IEquatable<Path>
             return Root;
         }
 
-        Path segment =
-            PathFactory.Instance.New(path[0] is NameString s ? s : (string)path[0]);
+        Path segment = PathFactory.Instance.New(path[0] is string s ? s : (string)path[0]);
 
         for (var i = 1; i < path.Count; i++)
         {
             segment = path[i] switch
             {
-                NameString n => PathFactory.Instance.Append(segment, n),
                 string n => PathFactory.Instance.Append(segment, n),
                 int n => PathFactory.Instance.Append(segment, n),
-                _ => throw new NotSupportedException("notsupported")
+                _ => throw new NotSupportedException()
             };
         }
 

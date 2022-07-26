@@ -163,16 +163,14 @@ public interface IExecutionDiagnosticEvents
     /// The ExecuteStream scope will run longer then the ExecuteOperation scope.
     /// The ExecuteOperation scope is completed once the initial operation is executed.
     /// All deferred elements will be executed and delivered within the ExecuteStream scope.
-    /// The passed in context is polled and can only be used at the initialization of the scope.
     /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
+    /// <param name="operation">
+    /// The operation that is being streamed.
     /// </param>
     /// <returns>
     /// A scope that will be disposed when the execution has finished.
     /// </returns>
-    IDisposable ExecuteStream(IRequestContext context);
+    IDisposable ExecuteStream(IOperation operation);
 
     /// <summary>
     /// Called when starting to execute a deferred part an operation
@@ -211,6 +209,20 @@ public interface IExecutionDiagnosticEvents
     /// The error object.
     /// </param>
     void ResolverError(IMiddlewareContext context, IError error);
+
+    /// <summary>
+    /// Called for field errors that do NOT occur within the resolver task.
+    /// </summary>
+    /// <param name="operation">
+    /// The operation that is being executed.
+    /// </param>
+    /// <param name="selection">
+    /// The selection that is affected by the error.
+    /// </param>
+    /// <param name="error">
+    /// The error object.
+    /// </param>
+    void ResolverError(IOperation operation, ISelection selection, IError error);
 
     /// <summary>
     /// Called when starting to run an execution engine task.

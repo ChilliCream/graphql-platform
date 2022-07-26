@@ -23,7 +23,7 @@ public class NonNullTypeNodeTests
     {
         // arrange
         // act
-        Action action = () => new NonNullTypeNode(null);
+        Action action = () => new NonNullTypeNode(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

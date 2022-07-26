@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -52,7 +51,7 @@ public sealed class EnumValueDefinitionNode : NamedSyntaxNode
 
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

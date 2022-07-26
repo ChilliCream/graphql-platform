@@ -30,7 +30,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
             return EmptyScope;
         }
 
-        Activity? activity = HotChocolateActivitySource.Source.StartActivity();
+        var activity = HotChocolateActivitySource.Source.StartActivity();
 
         if (activity is null)
         {
@@ -105,7 +105,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
             return EmptyScope;
         }
 
-        Activity? activity = HotChocolateActivitySource.Source.StartActivity();
+        var activity = HotChocolateActivitySource.Source.StartActivity();
 
         if (activity is null)
         {
@@ -126,7 +126,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         {
             var activity = (Activity)value!;
 
-            foreach (IError error in errors)
+            foreach (var error in errors)
             {
                 _enricher.EnrichParserErrors(context, error, activity);
             }
@@ -143,7 +143,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
             return EmptyScope;
         }
 
-        Activity? activity = HotChocolateActivitySource.Source.StartActivity();
+        var activity = HotChocolateActivitySource.Source.StartActivity();
 
         if (activity is null)
         {

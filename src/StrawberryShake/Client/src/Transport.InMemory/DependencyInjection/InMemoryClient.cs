@@ -31,7 +31,7 @@ public class InMemoryClient : IInMemoryClient
     }
 
     /// <inheritdoc />
-    public NameString SchemaName { get; set; } = Schema.DefaultName;
+    public string SchemaName { get; set; } = Schema.DefaultName;
 
     /// <inheritdoc />
     public IRequestExecutor? Executor { get; set; }

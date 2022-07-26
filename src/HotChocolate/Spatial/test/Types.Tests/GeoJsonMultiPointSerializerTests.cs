@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial;
@@ -27,28 +24,28 @@ public class GeoJsonMultiPointSerializerTests
 
     private readonly Geometry _geometry = new MultiPoint(new[]
     {
-            new Point(new Coordinate(10, 40)),
-            new Point(new Coordinate(40, 30)),
-            new Point(new Coordinate(20, 20)),
-            new Point(new Coordinate(30, 10)),
-        });
+        new Point(new Coordinate(10, 40)),
+        new Point(new Coordinate(40, 30)),
+        new Point(new Coordinate(20, 20)),
+        new Point(new Coordinate(30, 10)),
+    });
 
     private const string _geometryType = "MultiPoint";
 
     private readonly object _geometryParsed = new[]
     {
-            new[] { 10.0, 40.0 },
-            new[] { 40.0, 30.0 },
-            new[] { 20.0, 20.0 },
-            new[] { 30.0, 10.0 }
-        };
+        new[] { 10.0, 40.0 },
+        new[] { 40.0, 30.0 },
+        new[] { 20.0, 20.0 },
+        new[] { 30.0, 10.0 }
+    };
 
     [Theory]
     [InlineData(GeometryTypeName)]
     public void Serialize_Should_Pass_When_SerializeNullValue(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         // assert
@@ -60,7 +57,7 @@ public class GeoJsonMultiPointSerializerTests
     public void Serialize_Should_Pass_When_SerializeGeometry(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         var result = type.Serialize(_geometry);
@@ -74,7 +71,7 @@ public class GeoJsonMultiPointSerializerTests
     public void Serialize_Should_Throw_When_InvalidObjectShouldThrow(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         // assert
@@ -87,7 +84,7 @@ public class GeoJsonMultiPointSerializerTests
     public void IsInstanceOfType_Should_Throw_When_Null(string typeName)
     {
         // arrange
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -99,7 +96,7 @@ public class GeoJsonMultiPointSerializerTests
     public void IsInstanceOfType_Should_Pass_When_ObjectValueNode(string typeName)
     {
         // arrange
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -112,7 +109,7 @@ public class GeoJsonMultiPointSerializerTests
     public void IsInstanceOfType_Should_Pass_When_NullValueNode(string typeName)
     {
         // arrange
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -124,7 +121,7 @@ public class GeoJsonMultiPointSerializerTests
     public void IsInstanceOfType_Should_Fail_When_DifferentGeoJsonObject(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         // assert
@@ -139,7 +136,7 @@ public class GeoJsonMultiPointSerializerTests
     public void IsInstanceOfType_Should_Pass_When_GeometryOfType(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         // assert
@@ -151,7 +148,7 @@ public class GeoJsonMultiPointSerializerTests
     public void IsInstanceOfType_Should_Fail_When_NoGeometry(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         // assert
@@ -165,7 +162,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -179,7 +176,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -194,7 +191,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
         var coordField = new ObjectFieldNode(
             WellKnownFields.CoordinatesFieldName,
@@ -216,7 +213,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var coordField = new ObjectFieldNode(
             WellKnownFields.CoordinatesFieldName,
             _coordinatesSyntaxNode);
@@ -235,7 +232,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
         var crsField = new ObjectFieldNode(WellKnownFields.CrsFieldName, 0);
         var valueNode = new ObjectValueNode(typeField, crsField);
@@ -252,7 +249,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
         var coordField = new ObjectFieldNode(
             WellKnownFields.CoordinatesFieldName,
@@ -260,7 +257,7 @@ public class GeoJsonMultiPointSerializerTests
         var valueNode = new ObjectValueNode(typeField, coordField);
 
         // act
-        object? parsedResult = inputParser.ParseLiteral(valueNode, type);
+        var parsedResult = inputParser.ParseLiteral(valueNode, type);
 
         // assert
         AssertGeometry(parsedResult);
@@ -273,7 +270,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -285,14 +282,14 @@ public class GeoJsonMultiPointSerializerTests
     public void ParseResult_Should_Pass_When_Serialized(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
         var serialized = type.Serialize(_geometry);
 
         // act
-        IValueNode literal = type.ParseResult(serialized);
+        var literal = type.ParseResult(serialized);
 
         // assert
-        literal.ToString().MatchSnapshot();
+        literal.MatchSnapshot();
     }
 
     [Theory]
@@ -302,13 +299,13 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
-        IValueNode literal = inputFormatter.FormatResult(_geometry, type);
+        var literal = inputFormatter.FormatResult(_geometry, type);
 
         // assert
-        literal.ToString().MatchSnapshot();
+        literal.MatchSnapshot();
     }
 
     [Theory]
@@ -318,7 +315,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -332,7 +329,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -346,13 +343,13 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
-        IValueNode literal = inputFormatter.FormatValue(_geometry, type);
+        var literal = inputFormatter.FormatValue(_geometry, type);
 
         // assert
-        literal.ToString().MatchSnapshot();
+        literal.MatchSnapshot();
     }
 
     [Theory]
@@ -362,7 +359,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -376,7 +373,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -388,7 +385,7 @@ public class GeoJsonMultiPointSerializerTests
     public void Deserialize_Should_Pass_When_PassedSerializedResult(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
         var serialized = type.Serialize(_geometry);
 
         // act
@@ -405,7 +402,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         var result = inputParser.ParseResult(_geometry, type);
@@ -421,7 +418,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -435,7 +432,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -457,7 +454,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -478,7 +475,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
@@ -497,7 +494,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -516,7 +513,7 @@ public class GeoJsonMultiPointSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var coords = new ListValueNode(
             new IntValueNode(30),
             new IntValueNode(10));

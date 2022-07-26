@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -17,9 +18,9 @@ public sealed class Representation
     /// <param name="data">
     /// The required data to resolve the data from an entity.
     /// </param>
-    public Representation(NameString typeName, ObjectValueNode data)
+    public Representation(string typeName, ObjectValueNode data)
     {
-        TypeName = typeName.EnsureNotEmpty(nameof(typeName));
+        TypeName = typeName.EnsureGraphQLName();
         Data = data ?? throw new ArgumentNullException(nameof(data));
     }
 
@@ -27,7 +28,7 @@ public sealed class Representation
     /// Gets the type name of the entity.
     /// </summary>
     /// <value></value>
-    public NameString TypeName { get; }
+    public string TypeName { get; }
 
     /// <summary>
     /// Gets the required data to resolve the data from an entity.

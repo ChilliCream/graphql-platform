@@ -1,0 +1,79 @@
+﻿query($if: Boolean!) {
+  human(id: "1000") {
+    ... Human1 @include(if: $if)
+    ... Human2 @skip(if: $if)
+  }
+}
+
+fragment Human1 on Human {
+  friends {
+    edges {
+      ... FriendEdge1
+    }
+  }
+}
+
+fragment FriendEdge1 on CharacterEdge {
+  node {
+    __typename
+    friends {
+      nodes {
+        __typename
+        ... Human3
+      }
+    }
+  }
+}
+
+fragment Human2 on Human {
+  friends {
+    edges {
+      node {
+        __typename
+        ... Human3
+      }
+    }
+  }
+}
+
+fragment Human3 on Human {
+  name
+  otherHuman {
+    __typename
+    name
+  }
+}
+
+---------------------------------------------------------
+
+query($if: Boolean!) @includeCondition(flag: 2) @includeCondition(flag: 3) {
+  ... on Query {
+    human(id: "1000") @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+      ... on Human {
+        friends @conditional @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
+          ... on FriendsConnection {
+            edges @conditional @__execute(id: 2, kind: DEFAULT, type: COMPOSITE_LIST) {
+              ... on FriendsEdge {
+                node @conditional @__execute(id: 3, kind: DEFAULT, type: COMPOSITE) {
+                  ... on Human {
+                    __typename @conditional @__execute(id: 4, kind: DEFAULT, type: LEAF)
+                    name @conditional @__execute(id: 5, kind: DEFAULT, type: LEAF)
+                    otherHuman @conditional @__execute(id: 6, kind: DEFAULT, type: COMPOSITE) {
+                      ... on Human {
+                        __typename @conditional @__execute(id: 7, kind: DEFAULT, type: LEAF)
+                        name @conditional @__execute(id: 8, kind: DEFAULT, type: LEAF)
+                      }
+                    }
+                  }
+                  ... on Droid {
+                    __typename @conditional @__execute(id: 9, kind: DEFAULT, type: LEAF)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

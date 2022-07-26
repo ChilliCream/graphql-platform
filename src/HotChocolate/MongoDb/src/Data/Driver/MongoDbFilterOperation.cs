@@ -25,8 +25,8 @@ public class MongoDbFilterOperation : MongoDbFilterDefinition
         StringFieldDefinitionHelper.Resolve(
             _path,
             documentSerializer,
-            out string? resolvedFieldName,
-            out IBsonSerializer? resolvedFieldSerializer);
+            out var resolvedFieldName,
+            out var resolvedFieldSerializer);
 
         resolvedFieldSerializer ??= documentSerializer;
 

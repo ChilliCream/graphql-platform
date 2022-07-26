@@ -42,7 +42,7 @@ public class ObjectValueToDictionaryConverter
         var obj = new Dictionary<string, object>();
         setValue(obj);
 
-        foreach (ObjectFieldNode field in node.Fields)
+        foreach (var field in node.Fields)
         {
             Action<object> setField =
                 value => obj[field.Name.Value] = value;
@@ -59,7 +59,7 @@ public class ObjectValueToDictionaryConverter
 
         Action<object> addItem = item => list.Add(item);
 
-        foreach (IValueNode value in node.Items)
+        foreach (var value in node.Items)
         {
             VisitValue(value, addItem);
         }
@@ -70,7 +70,7 @@ public class ObjectValueToDictionaryConverter
        Action<object> setValue)
     {
         if (int.TryParse(node.Value, NumberStyles.Integer,
-            CultureInfo.InvariantCulture, out int i))
+            CultureInfo.InvariantCulture, out var i))
         {
             setValue(i);
         }
@@ -85,7 +85,7 @@ public class ObjectValueToDictionaryConverter
         Action<object> setValue)
     {
         if (double.TryParse(node.Value, NumberStyles.Float,
-            CultureInfo.InvariantCulture, out double d))
+            CultureInfo.InvariantCulture, out var d))
         {
             setValue(d);
         }

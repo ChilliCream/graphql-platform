@@ -57,7 +57,7 @@ internal class GeoJsonPointSerializer
             throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
 
-        GeometryFactory factory = crs is null
+        var factory = crs is null
             ? NtsGeometryServices.Instance.CreateGeometryFactory()
             : NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 

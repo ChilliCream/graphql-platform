@@ -60,7 +60,7 @@ public sealed class InlineFragmentNode : ISelectionNode
             yield return TypeCondition;
         }
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

@@ -21,8 +21,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         public async Task Execute_StarWarsGetFriendsDeferred_Test()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
-            using IWebHost host = TestServerHelper.CreateServer(_ => { }, out var port);
+            var ct = new CancellationTokenSource(20_000).Token;
+            using var host = TestServerHelper.CreateServer(_ => { }, out var port);
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient(
                 StarWarsGetFriendsDeferredClient.ClientName,
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             var client = services.GetRequiredService<StarWarsGetFriendsDeferredClient>();
 
             // act
-            IOperationResult<IGetHeroResult> result = await client.GetHero.ExecuteAsync(ct);
+            var result = await client.GetHero.ExecuteAsync(ct);
 
             // assert
             Assert.NotNull(result.Data?.Hero?.FriendsListLabel);
@@ -47,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         public void Watch_StarWarsGetFriendsDeferred_Test()
         {
             // arrange
-            using IWebHost host = TestServerHelper.CreateServer(_ => { }, out var port);
+            using var host = TestServerHelper.CreateServer(_ => { }, out var port);
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient(
                 StarWarsGetFriendsDeferredClient.ClientName,
@@ -62,9 +62,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             var updates = new List<bool>();
 
             // act
-            using IDisposable session = client.GetHero.Watch().Subscribe(result =>
+            using var session = client.GetHero.Watch().Subscribe(result =>
             {
                 updates.Add(result.Data?.Hero?.FriendsListLabel is not null);
+
                 if (updates.Count is 2)
                 {
                     waitHandle.Set();

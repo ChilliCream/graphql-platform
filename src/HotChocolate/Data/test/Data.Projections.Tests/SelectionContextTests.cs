@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Projections.Context;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -20,7 +18,7 @@ public class SelectionContextTests
         // arrange
         var list = new List<string>();
 
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
                 @"
@@ -49,7 +47,7 @@ public class SelectionContextTests
                 {
                     visitedFields.Push(field.Field.Name);
                     list.Add(string.Join(".", visitedFields.Reverse()));
-                    foreach (ISelectedField subField in field.GetFields())
+                    foreach (var subField in field.GetFields())
                     {
                         VisitFields(subField);
                     }
@@ -62,7 +60,7 @@ public class SelectionContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(@"
             {
                 foo {
                     bar {
@@ -82,7 +80,7 @@ public class SelectionContextTests
         // arrange
         var list = new List<string>();
 
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
                 @"
@@ -111,7 +109,7 @@ public class SelectionContextTests
                 {
                     visitedFields.Push(field.Selection.ResponseName);
                     list.Add(string.Join(".", visitedFields.Reverse()));
-                    foreach (ISelectedField subField in field.GetFields())
+                    foreach (var subField in field.GetFields())
                     {
                         VisitFields(subField);
                     }
@@ -124,7 +122,7 @@ public class SelectionContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(@"
             {
                 foo {
                     bar {
@@ -146,7 +144,7 @@ public class SelectionContextTests
         // arrange
         var list = new List<string>();
 
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
                 @"
@@ -180,11 +178,11 @@ public class SelectionContextTests
 
                     if (field.IsAbstractType)
                     {
-                        IReadOnlyList<ObjectType> possibleTypes =
+                        var possibleTypes =
                             context.Schema.GetPossibleTypes(field.Type.NamedType());
-                        foreach (ObjectType type in possibleTypes)
+                        foreach (var type in possibleTypes)
                         {
-                            foreach (ISelectedField subField in field.GetFields(type))
+                            foreach (var subField in field.GetFields(type))
                             {
                                 VisitFields(subField);
                             }
@@ -192,7 +190,7 @@ public class SelectionContextTests
                     }
                     else
                     {
-                        foreach (ISelectedField subField in field.GetFields())
+                        foreach (var subField in field.GetFields())
                         {
                             VisitFields(subField);
                         }
@@ -206,7 +204,7 @@ public class SelectionContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(@"
             {
                 foo {
                     ... on Foo {
@@ -232,7 +230,7 @@ public class SelectionContextTests
         // arrange
         Exception? ex = null;
 
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
                 @"
@@ -262,7 +260,7 @@ public class SelectionContextTests
 
                     void VisitFields(ISelectedField field)
                     {
-                        foreach (ISelectedField subField in field.GetFields())
+                        foreach (var subField in field.GetFields())
                         {
                             VisitFields(subField);
                         }
@@ -278,7 +276,7 @@ public class SelectionContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(@"
             {
                 foo {
                     ... on Foo {
@@ -307,7 +305,7 @@ public class SelectionContextTests
         // arrange
         var list = new List<string>();
 
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
                 @"
@@ -340,7 +338,7 @@ public class SelectionContextTests
                         $"{string.Join(".", visitedFields.Reverse())}" +
                         $":{field.IsSelected(selectedField)}");
 
-                    foreach (ISelectedField subField in field.GetFields())
+                    foreach (var subField in field.GetFields())
                     {
                         VisitFields(subField);
                     }
@@ -353,7 +351,7 @@ public class SelectionContextTests
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(@"
             {
                 foo {
                     bar {
@@ -364,6 +362,6 @@ public class SelectionContextTests
 
         // assert
         Assert.Null(Assert.IsType<QueryResult>(result).Errors);
-        string.Join("\n", list).MatchSnapshot(new SnapshotNameExtension(selectedField));
+        string.Join("\n", list).MatchSnapshot(selectedField);
     }
 }

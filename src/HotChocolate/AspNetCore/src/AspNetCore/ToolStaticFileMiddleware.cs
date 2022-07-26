@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
@@ -56,7 +55,7 @@ public class ToolStaticFileMiddleware
     public Task Invoke(HttpContext context)
     {
         if (context.Request.IsGetOrHeadMethod() &&
-            context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
+            context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
             _contentTypeProvider.TryGetContentType(subPath.Value!, out var contentType) &&
             (context.GetGraphQLToolOptions()?.Enable ?? true))
         {
@@ -68,7 +67,7 @@ public class ToolStaticFileMiddleware
 
     private Task TryServeStaticFile(HttpContext context, string contentType, PathString subPath)
     {
-        if (LookupFileInfo(subPath, contentType, out StaticFileInfo fileInfo))
+        if (LookupFileInfo(subPath, contentType, out var fileInfo))
         {
             return SendAsync(context, fileInfo);
         }
@@ -81,21 +80,21 @@ public class ToolStaticFileMiddleware
         string contentType,
         out StaticFileInfo staticFileInfo)
     {
-        IFileInfo? fileInfo = _fileProvider.GetFileInfo(subPath.Value);
+        var fileInfo = _fileProvider.GetFileInfo(subPath);
 
         if (fileInfo.Exists)
         {
             var length = fileInfo.Length;
 
-            DateTimeOffset last = fileInfo.LastModified;
+            var last = fileInfo.LastModified;
 
             // Truncate to the second.
-            DateTimeOffset lastModified = new DateTimeOffset(
+            var lastModified = new DateTimeOffset(
                 last.Year, last.Month, last.Day, last.Hour,
                 last.Minute, last.Second, last.Offset)
                 .ToUniversalTime();
 
-            long etagHash = lastModified.ToFileTime() ^ length;
+            var etagHash = lastModified.ToFileTime() ^ length;
             var etag = new EntityTagHeaderValue('\"' + Convert.ToString(etagHash, 16) + '\"');
 
             staticFileInfo = new StaticFileInfo(fileInfo, etag, contentType);
@@ -113,7 +112,7 @@ public class ToolStaticFileMiddleware
         context.Response.ContentLength = fileInfo.File.Length;
         context.Response.ContentType = fileInfo.ContentType;
 
-        ResponseHeaders headers = context.Response.GetTypedHeaders();
+        var headers = context.Response.GetTypedHeaders();
         headers.LastModified = fileInfo.File.LastModified;
         headers.ETag = fileInfo.EntityTagHeader;
         headers.Headers[HeaderNames.AcceptRanges] = "bytes";

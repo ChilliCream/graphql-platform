@@ -9,15 +9,15 @@ namespace HotChocolate.Types;
 
 public class FieldCollection<T> : IFieldCollection<T> where T : class, IField
 {
-    private readonly Dictionary<NameString, T> _fieldsLookup;
+    private readonly Dictionary<string, T> _fieldsLookup;
     private readonly T[] _fields;
 
     internal FieldCollection(T[] fields)
     {
         _fields = fields ?? throw new ArgumentNullException(nameof(fields));
-        _fieldsLookup = new Dictionary<NameString, T>(_fields.Length);
+        _fieldsLookup = new Dictionary<string, T>(_fields.Length, StringComparer.Ordinal);
 
-        foreach (T? field in _fields)
+        foreach (var field in _fields)
         {
             _fieldsLookup.Add(field.Name, field);
         }
@@ -29,14 +29,24 @@ public class FieldCollection<T> : IFieldCollection<T> where T : class, IField
 
     public int Count => _fields.Length;
 
-    public bool ContainsField(NameString fieldName)
-        => _fieldsLookup.ContainsKey(fieldName.EnsureNotEmpty(nameof(fieldName)));
-
-    public bool TryGetField(NameString fieldName, [NotNullWhen(true)] out T? field)
+    public bool ContainsField(string fieldName)
     {
-        if (_fieldsLookup.TryGetValue(
-            fieldName.EnsureNotEmpty(nameof(fieldName)),
-            out T? item))
+        if (string.IsNullOrEmpty(fieldName))
+        {
+            throw new ArgumentNullException(fieldName);
+        }
+
+        return _fieldsLookup.ContainsKey(fieldName);
+    }
+
+    public bool TryGetField(string fieldName, [NotNullWhen(true)] out T? field)
+    {
+        if (string.IsNullOrEmpty(fieldName))
+        {
+            throw new ArgumentNullException(nameof(fieldName));
+        }
+
+        if (_fieldsLookup.TryGetValue(fieldName, out var item))
         {
             field = item;
             return true;

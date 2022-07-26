@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
-using Snapshooter.Xunit;
+
 using Xunit;
 
 namespace HotChocolate.Data;
@@ -25,7 +26,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -41,7 +42,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -51,14 +52,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_OnlyOneItem_When_SingleOrDefault()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -76,7 +77,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -86,14 +87,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultMoreThanOne()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -111,7 +112,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -121,14 +122,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultZero()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -146,7 +147,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -156,14 +157,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -181,7 +182,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -191,14 +192,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefaultZero()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -216,7 +217,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     executable {
@@ -226,14 +227,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_BothMiddlewaresAreApplied()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -245,7 +246,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books {
@@ -262,14 +263,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_BothAreAppliedAndProvided()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -281,7 +282,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books {
@@ -298,14 +299,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragment()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -317,7 +318,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books {
@@ -335,14 +336,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragment()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -354,7 +355,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books {
@@ -370,14 +371,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragmentNested()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -389,7 +390,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books {
@@ -408,14 +409,14 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentNested()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -427,7 +428,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books {
@@ -444,7 +445,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -452,7 +453,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -464,7 +465,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books {
@@ -482,7 +483,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -490,7 +491,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -503,7 +504,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books {
@@ -521,8 +522,11 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -530,7 +534,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddGlobalObjectIdentification()
@@ -543,7 +547,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books {
@@ -555,22 +559,25 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task CreateSchema_CodeFirst_AsyncQueryable()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddQueryType<FooType>()
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     foos(where: { qux: {eq: ""a""}}) {
@@ -580,15 +587,18 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task CreateSchema_OnDifferentScope()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering("Foo")
             .AddSorting("Foo")
@@ -597,7 +607,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books(where: { title: {eq: ""BookTitle""}}) {
@@ -607,15 +617,18 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Execute_And_OnRoot()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering("Foo")
             .AddSorting("Foo")
@@ -624,7 +637,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 query GetBooks($title: String) {
                     books(where: {
@@ -639,15 +652,18 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             new Dictionary<string, object?> { ["title"] = "BookTitle" });
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Execute_And_OnRoot_Reverse()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering("Foo")
             .AddSorting("Foo")
@@ -656,7 +672,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 query GetBooks($title: String) {
                     books(where: {
@@ -671,15 +687,18 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             new Dictionary<string, object?> { ["title"] = "BookTitle" });
 
         // assert
-        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        await Snapshot
+            .Create()
+            .Add(result, "Result:")
+            .Add(executor.Schema, "Schema:")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ArgumentAndFirstOrDefault_When_Executed()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -688,7 +707,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     books(book: {id: 1, authorId: 0}) {
@@ -698,7 +717,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -706,7 +725,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -727,7 +746,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
             .AddSorting()
@@ -752,7 +771,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 .Type<ListType<ObjectType<Bar>>>()
                 .Resolve(_ =>
                 {
-                    IQueryable<Bar> data = new[]
+                    var data = new[]
                     {
                         Bar.Create("a"),
                         Bar.Create("b")

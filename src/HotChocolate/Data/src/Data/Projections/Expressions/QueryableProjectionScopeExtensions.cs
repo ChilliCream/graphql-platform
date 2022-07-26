@@ -37,9 +37,9 @@ public static class QueryableProjectionScopeExtensions
         {
             Expression lastValue = Expression.Default(scope.RuntimeType);
 
-            foreach (KeyValuePair<Type, Queue<MemberAssignment>> val in scope.GetAbstractTypes())
+            foreach (var val in scope.GetAbstractTypes())
             {
-                NewExpression ctor = Expression.New(val.Key);
+                var ctor = Expression.New(val.Key);
                 Expression memberInit = Expression.MemberInit(ctor, val.Value);
 
                 lastValue = Expression.Condition(
@@ -52,7 +52,7 @@ public static class QueryableProjectionScopeExtensions
         }
         else
         {
-            NewExpression ctor = Expression.New(scope.RuntimeType);
+            var ctor = Expression.New(scope.RuntimeType);
             return Expression.MemberInit(ctor, scope.Level.Peek());
         }
     }
@@ -73,7 +73,7 @@ public static class QueryableProjectionScopeExtensions
         Expression source,
         Type sourceType)
     {
-        MethodCallExpression selection = Expression.Call(
+        var selection = Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.Select),
             new[]
@@ -89,7 +89,7 @@ public static class QueryableProjectionScopeExtensions
             return ToArray(scope, selection);
         }
 
-        if (TryGetSetType(sourceType, out Type? setType))
+        if (TryGetSetType(sourceType, out var setType))
         {
             return ToSet(selection, setType);
         }
@@ -125,10 +125,10 @@ public static class QueryableProjectionScopeExtensions
         Expression source,
         Type setType)
     {
-        Type typedGeneric =
+        var typedGeneric =
             setType.MakeGenericType(source.Type.GetGenericArguments()[0]);
 
-        ConstructorInfo? ctor =
+        var ctor =
             typedGeneric.GetConstructor(new[]
             {
                 source.Type
@@ -148,7 +148,7 @@ public static class QueryableProjectionScopeExtensions
     {
         if (type.IsGenericType)
         {
-            Type typeDefinition = type.GetGenericTypeDefinition();
+            var typeDefinition = type.GetGenericTypeDefinition();
             if (typeDefinition == typeof(ISet<>) ||
                 typeDefinition == typeof(HashSet<>))
             {

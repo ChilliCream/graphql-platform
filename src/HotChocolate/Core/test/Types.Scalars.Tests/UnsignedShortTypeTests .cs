@@ -12,7 +12,7 @@ public class UnsignedShortTypeTests : ScalarTypeTestBase
     public void Schema_WithScalar_IsMatch()
     {
         // arrange
-        ISchema schema = BuildSchema<UnsignedShortType>();
+        var schema = BuildSchema<UnsignedShortType>();
 
         // act
         // assert
@@ -36,7 +36,7 @@ public class UnsignedShortTypeTests : ScalarTypeTestBase
         bool expected)
     {
         // arrange
-        IValueNode valueNode = CreateValueNode(type, value);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
@@ -75,7 +75,7 @@ public class UnsignedShortTypeTests : ScalarTypeTestBase
         object expected)
     {
         // arrange
-        IValueNode valueNode = CreateValueNode(type, value);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
@@ -90,7 +90,7 @@ public class UnsignedShortTypeTests : ScalarTypeTestBase
     public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
-        IValueNode valueNode = CreateValueNode(type, value);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert

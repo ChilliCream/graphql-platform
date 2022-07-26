@@ -26,7 +26,7 @@ public class RgbaType : RegexType
     /// Initializes a new instance of the <see cref="RgbaType"/> class.
     /// </summary>
     public RgbaType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(

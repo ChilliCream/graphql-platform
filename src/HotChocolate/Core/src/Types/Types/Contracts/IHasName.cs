@@ -8,5 +8,5 @@ public interface IHasName
     /// <summary>
     /// Gets the GraphQL type system member name.
     /// </summary>
-    NameString Name { get; }
+    string Name { get; }
 }

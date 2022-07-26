@@ -16,7 +16,7 @@ public class NumberTokenReaderTests
     private void ReadToken(string sourceBody, bool isFloat)
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(sourceBody);
+        var source = Encoding.UTF8.GetBytes(sourceBody);
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -37,7 +37,7 @@ public class NumberTokenReaderTests
     public void InvalidNumberToken()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(".1");
+        var source = Encoding.UTF8.GetBytes(".1");
 
         // act
         void Fail() => new Utf8GraphQLReader(source).Read();

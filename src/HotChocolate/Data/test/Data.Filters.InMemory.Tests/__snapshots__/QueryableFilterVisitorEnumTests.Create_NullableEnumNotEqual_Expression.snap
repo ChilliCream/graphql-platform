@@ -1,0 +1,65 @@
+BAR
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "FOO"
+      },
+      {
+        "barEnum": null
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}
+---------------
+
+FOO
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAR"
+      },
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": null
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAR"
+      },
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "FOO"
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}
+---------------

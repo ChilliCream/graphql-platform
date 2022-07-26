@@ -1,3 +1,0 @@
-﻿SELECT "d"."Id", "d"."BarEnum"
-FROM "Data" AS "d"
-ORDER BY "d"."BarEnum"

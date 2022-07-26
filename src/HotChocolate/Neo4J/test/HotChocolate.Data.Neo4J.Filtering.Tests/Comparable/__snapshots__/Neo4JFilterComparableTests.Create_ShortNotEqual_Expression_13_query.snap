@@ -1,1 +1,0 @@
-﻿MATCH (fooComp:FooComp) WHERE fooComp.BarShort <> 13 RETURN fooComp {.BarShort}

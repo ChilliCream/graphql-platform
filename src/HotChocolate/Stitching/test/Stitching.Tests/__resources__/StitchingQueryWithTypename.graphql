@@ -1,6 +1,0 @@
-{
-  consultant {
-    __typename
-    name
-  }
-}

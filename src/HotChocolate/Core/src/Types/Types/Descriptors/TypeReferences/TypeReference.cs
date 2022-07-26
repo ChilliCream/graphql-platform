@@ -71,7 +71,7 @@ public abstract class TypeReference : ITypeReference
         => HashCode.Combine(Scope);
 
     public static DependantFactoryTypeReference Create(
-        NameString name,
+        string name,
         ITypeReference dependency,
         Func<IDescriptorContext, TypeSystemObjectBase> factory,
         TypeContext context = TypeContext.None,
@@ -97,11 +97,11 @@ public abstract class TypeReference : ITypeReference
         new(type, context, scope, factory);
 
     public static SyntaxTypeReference Create(
-        NameString typeName,
+        string typeName,
         TypeContext context = TypeContext.None,
         string? scope = null,
         Func<IDescriptorContext, TypeSystemObjectBase>? factory = null) =>
-        new(new NamedTypeNode(typeName), context, scope, factory);
+        new(new NamedTypeNode(typeName.EnsureGraphQLName()), context, scope, factory);
 
     public static SyntaxTypeReference Parse(
         string sourceText,

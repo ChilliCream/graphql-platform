@@ -29,7 +29,7 @@ internal class GeoJsonMultiPointSerializer
         Point[]? geometries;
 
         if (coordinates is IList { Count: > 0 } listObjects &&
-            listObjects.TryConvertToCoordinates(out Coordinate[] list))
+            listObjects.TryConvertToCoordinates(out var list))
         {
             geometries = new Point[list.Length];
 
@@ -45,7 +45,7 @@ internal class GeoJsonMultiPointSerializer
         goto Error;
 
 Success:
-        GeometryFactory factory = crs is null
+        var factory = crs is null
             ? NtsGeometryServices.Instance.CreateGeometryFactory()
             : NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
         

@@ -27,7 +27,7 @@ internal sealed class MongoOffsetPagination<TEntity>
         IMongoPagingContainer<TEntity> query,
         CancellationToken cancellationToken)
     {
-        List<TEntity> result = await query.ToListAsync(cancellationToken);
+        var result = await query.ToListAsync(cancellationToken);
         return result;
     }
 }
