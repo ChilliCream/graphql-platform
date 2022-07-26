@@ -12,8 +12,7 @@ public static class QueryableFilterVisitorContextExtensions
     /// </summary>
     /// <param name="context">The context</param>
     /// <returns>The current closure</returns>
-    public static QueryableScope GetClosure(
-        this QueryableFilterContext context) =>
+    public static QueryableScope GetClosure(this QueryableFilterContext context) =>
         (QueryableScope)context.GetScope();
 
     /// <summary>

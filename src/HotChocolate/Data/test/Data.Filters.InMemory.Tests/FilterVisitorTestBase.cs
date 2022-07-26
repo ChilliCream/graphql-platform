@@ -29,13 +29,16 @@ public class FilterVisitorTestBase
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
-        convention ??= new FilterConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
+        convention ??= new FilterConvention(x
+            => new QueryableFilterConventionDescriptor(x).AddCaseInsensitiveContains()
+                .AddDefaults()
+                .BindRuntimeType<TEntity, T>());
 
         var resolver = BuildResolver(entities);
 
         var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
-            .AddFiltering()
+            .AddQueryableFiltering()
             .AddQueryType(
                 c =>
                 {

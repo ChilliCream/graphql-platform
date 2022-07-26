@@ -8,16 +8,31 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters.Expressions;
 
 public class QueryableStringCaseInsensitiveContainsHandler : QueryableStringOperationHandler
-{
-    private static readonly ConstantExpression s_null =
+{ 
+    private static readonly ConstantExpression _sNull =
         Expression.Constant(null, typeof(object));
 
-    public QueryableStringCaseInsensitiveContainsHandler(InputParser inputParser) : base(inputParser)
+    private static readonly MethodInfo _sContainsInvariant =
+        typeof(string).GetMethods()
+            .Single(m =>
+                m.Name.Equals(nameof(string.Contains), StringComparison.Ordinal) &&
+                m.GetParameters().Length == 2 &&
+                m.GetParameters().First().ParameterType == typeof(string) &&
+                m.GetParameters().Skip(1).First().ParameterType == typeof(StringComparison));
+
+    private static readonly MethodInfo _sCreateAndConvert =
+        typeof(FilterExpressionBuilder)
+            .GetMethod(
+                nameof(CreateAndConvertParameter),
+                BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    public QueryableStringCaseInsensitiveContainsHandler(InputParser inputParser)
+        : base(inputParser)
     {
         CanBeNull = false;
     }
 
-    protected override int Operation => 2103;
+    protected override int Operation => DefaultFilterOperations.CaseInsensitiveContains;
 
     public override Expression HandleOperation(
         QueryableFilterContext context,
@@ -34,23 +49,19 @@ public class QueryableStringCaseInsensitiveContainsHandler : QueryableStringOper
         object? value)
     {
         return Expression.AndAlso(
-                Expression.NotEqual(property, s_null),
-                Expression.Call(
-                    property,
-                    s_containsInvariant,
-                    CreateParameter(value, property.Type),
-                    Expression.Constant(StringComparison.InvariantCultureIgnoreCase)));
+            Expression.NotEqual(property, _sNull),
+            Expression.Call(
+                property,
+                _sContainsInvariant,
+                CreateParameter(value, property.Type),
+                Expression.Constant(StringComparison.InvariantCultureIgnoreCase)));
     }
 
-    private static readonly MethodInfo s_createAndConvert =
-                typeof(FilterExpressionBuilder)
-                    .GetMethod(
-                        nameof(CreateAndConvertParameter),
-                        BindingFlags.NonPublic | BindingFlags.Static)!;
     private static Expression CreateParameter(object? value, Type type)
     {
-        return (Expression)s_createAndConvert
-            .MakeGenericMethod(type).Invoke(null, new[] { value })!;
+        return (Expression)_sCreateAndConvert
+            .MakeGenericMethod(type)
+            .Invoke(null, new[] { value })!;
     }
 
     private static Expression CreateAndConvertParameter<T>(object value)
@@ -58,11 +69,4 @@ public class QueryableStringCaseInsensitiveContainsHandler : QueryableStringOper
         Expression<Func<T>> lambda = () => (T)value;
         return lambda.Body;
     }
-
-    private static readonly MethodInfo s_containsInvariant =
-        typeof(string).GetMethods().Single(m =>
-            m.Name.Equals(nameof(string.Contains), StringComparison.Ordinal)
-            && m.GetParameters().Length == 2
-            && m.GetParameters().First().ParameterType == typeof(string)
-            && m.GetParameters().Skip(1).First().ParameterType == typeof(StringComparison));
 }
