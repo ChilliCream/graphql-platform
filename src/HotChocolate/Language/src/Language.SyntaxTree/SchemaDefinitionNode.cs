@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -61,12 +60,12 @@ public sealed class SchemaDefinitionNode : SchemaDefinitionNodeBase, ITypeSystem
             yield return Description;
         }
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
 
-        foreach (OperationTypeDefinitionNode operationType in OperationTypes)
+        foreach (var operationType in OperationTypes)
         {
             yield return operationType;
         }

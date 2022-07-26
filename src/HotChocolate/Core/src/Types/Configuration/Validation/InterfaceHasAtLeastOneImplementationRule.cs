@@ -1,12 +1,9 @@
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration.Validation;
 
-internal class InterfaceHasAtLeastOneImplementationRule
-    : ISchemaValidationRule
+internal class InterfaceHasAtLeastOneImplementationRule : ISchemaValidationRule
 {
     public void Validate(
         IReadOnlyList<ITypeSystemObject> typeSystemObjects,
@@ -18,36 +15,55 @@ internal class InterfaceHasAtLeastOneImplementationRule
             return;
         }
 
-        var interfaceTypes = new HashSet<InterfaceType>(
-            typeSystemObjects.OfType<InterfaceType>());
-
+        var interfaceTypes = new HashSet<InterfaceType>();
         var fieldTypes = new HashSet<INamedType>();
 
-        foreach (ObjectType objectType in typeSystemObjects.OfType<ObjectType>())
+        // first we get all interface types and add them to the interface type list.
+        // we will strike from this list all the items that we find being implemented by
+        // object types.
+        for (var i = 0; i < typeSystemObjects.Count; i++)
         {
-            foreach (InterfaceType interfaceType in objectType.Implements)
+            if (typeSystemObjects[i] is InterfaceType interfaceType)
             {
-                interfaceTypes.Remove(interfaceType);
-            }
-
-            foreach (ObjectField field in objectType.Fields)
-            {
-                fieldTypes.Add(field.Type.NamedType());
+                interfaceTypes.Add(interfaceType);
             }
         }
 
-        foreach (InterfaceType interfaceType in interfaceTypes.Where(fieldTypes.Contains))
+        // next we go through all the object types and strike the interfaces from the interface
+        // list that we find being implemented.
+        for (var i = 0; i < typeSystemObjects.Count; i++)
         {
-            // TODO : resources
-            errors.Add(SchemaErrorBuilder.New()
-                .SetMessage(string.Format(
-                    CultureInfo.InvariantCulture,
-                    "There is no object type implementing interface `{0}`.",
-                    interfaceType.Name.Value))
-                .SetCode(ErrorCodes.Schema.InterfaceNotImplemented)
-                .SetTypeSystemObject(interfaceType)
-                .AddSyntaxNode(interfaceType.SyntaxNode)
-                .Build());
+            if (typeSystemObjects[i] is ObjectType objectType)
+            {
+                // we strike the interfaces that are being implemented.
+                foreach (var interfaceType in objectType.Implements)
+                {
+                    interfaceTypes.Remove(interfaceType);
+                }
+
+                // we register all the interfaces that are being used as a field type.
+                // if there are interfaces that are not being implemented and not being used by
+                // fields they are removed by the cleanup of the schema, so we do not worry about
+                // these.
+                foreach (var field in objectType.Fields)
+                {
+                    if (field.Type.NamedType() is { Kind: TypeKind.Interface } type)
+                    {
+                        fieldTypes.Add(type);
+                    }
+                }
+            }
+        }
+
+        foreach (var interfaceType in interfaceTypes)
+        {
+            // if we do not remove unreachable types than all the interfaces left over here are
+            // violations; otherwise, only the interfaces in the fieldTypes collection represent
+            // violations.
+            if (/* !options.RemoveUnreachableTypes || */ fieldTypes.Contains(interfaceType))
+            {
+                errors.Add(ErrorHelper.InterfaceHasNoImplementation(interfaceType));
+            }
         }
     }
 }

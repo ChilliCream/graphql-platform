@@ -1,0 +1,178 @@
+Variables:
+---------------
+{
+  "a": {
+    "Kind": "StringValue",
+    "Location": null,
+    "Value": "b",
+    "Block": false
+  },
+  "b": {
+    "Kind": "ObjectValue",
+    "Location": null,
+    "Fields": [
+      {
+        "Kind": "ObjectField",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "a"
+        },
+        "Value": {
+          "Kind": "StringValue",
+          "Location": null,
+          "Value": "b",
+          "Block": false
+        }
+      },
+      {
+        "Kind": "ObjectField",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "b"
+        },
+        "Value": {
+          "Kind": "BooleanValue",
+          "Location": null,
+          "Value": true
+        }
+      },
+      {
+        "Kind": "ObjectField",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "c"
+        },
+        "Value": {
+          "Kind": "IntValue",
+          "Location": null,
+          "Value": "1"
+        }
+      },
+      {
+        "Kind": "ObjectField",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "d"
+        },
+        "Value": {
+          "Kind": "FloatValue",
+          "Location": null,
+          "Format": "FixedPoint",
+          "Value": "1.1"
+        }
+      }
+    ]
+  },
+  "c": {
+    "Kind": "ListValue",
+    "Location": null,
+    "Items": [
+      {
+        "Kind": "ObjectValue",
+        "Location": null,
+        "Fields": [
+          {
+            "Kind": "ObjectField",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "a"
+            },
+            "Value": {
+              "Kind": "StringValue",
+              "Location": null,
+              "Value": "b",
+              "Block": false
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+Extensions:
+---------------
+{
+  "aa": "bb",
+  "bb": {
+    "aa": "bb",
+    "bb": true,
+    "cc": 1,
+    "df": 1.1
+  },
+  "cc": [
+    {
+      "aa": "bb",
+      "ab": null,
+      "ac": false
+    }
+  ]
+}
+---------------
+
+Query:
+---------------
+query queryName($foo: ComplexType, $site: Site = MOBILE) {
+  whoever123is: node(id: [ 123, 456 ]) {
+    id
+    ... on User @defer {
+      field2 {
+        id
+        alias: field1(first: 10, after: $foo) @include(if: $foo) {
+          id
+          ... frag
+        }
+      }
+    }
+    ... @skip(unless: $foo) {
+      id
+    }
+    ... {
+      id
+    }
+  }
+}
+
+mutation likeStory {
+  like(story: 123) @defer {
+    story {
+      id
+    }
+  }
+}
+
+subscription StoryLikeSubscription($input: StoryLikeSubscribeInput) {
+  storyLikeSubscribe(input: $input) {
+    story {
+      likers {
+        count
+      }
+      likeSentence {
+        text
+      }
+    }
+  }
+}
+
+fragment frag on Friend {
+  foo(size: $size, bar: $b, obj: { key: "value", block: """
+      block string uses \"""
+  """ })
+}
+
+{
+  unnamed(truthy: true, falsey: false, nullish: null)
+  query
+}
+---------------

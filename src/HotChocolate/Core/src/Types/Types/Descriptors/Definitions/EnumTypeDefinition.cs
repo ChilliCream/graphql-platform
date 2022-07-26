@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -21,12 +22,12 @@ public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
     /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
     /// </summary>
     public EnumTypeDefinition(
-        NameString name,
+        string name,
         string? description = null,
         Type? runtimeType = null)
         : base(runtimeType ?? typeof(object))
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
     }
 
@@ -46,7 +47,7 @@ public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
             configs.AddRange(Configurations);
         }
 
-        foreach (EnumValueDefinition value in Values)
+        foreach (var value in Values)
         {
             if (value.HasConfigurations)
             {

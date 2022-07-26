@@ -29,7 +29,7 @@ internal sealed class DocumentParserMiddleware
         if (context.Document is null && context.Request.Query is not null)
         {
             var success = false;
-            IQuery query = context.Request.Query;
+            var query = context.Request.Query;
 
             // a parsed document was passed into the request.
             if (query is QueryDocument parsed)
@@ -58,7 +58,7 @@ internal sealed class DocumentParserMiddleware
                     {
                         // if we have syntax errors we will report them within the
                         // parse document diagnostic span.
-                        IError error = context.ErrorHandler.Handle(
+                        var error = context.ErrorHandler.Handle(
                             ErrorBuilder.New()
                                 .SetMessage(ex.Message)
                                 .SetCode(ErrorCodes.Execution.SyntaxError)

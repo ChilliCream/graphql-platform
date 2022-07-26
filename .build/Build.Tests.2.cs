@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using Nuke.Common;
 using Nuke.Common.IO;
-using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
@@ -105,7 +103,7 @@ partial class Build
             .SetProjectFile(solutionFile)
             .SetConfiguration(Debug));
 
-        IEnumerable<Project> testProjects = ParseSolution(solutionFile).GetProjects("*.Tests");
+        var testProjects = ParseSolution(solutionFile).GetProjects("*.Tests");
 
         try
         {

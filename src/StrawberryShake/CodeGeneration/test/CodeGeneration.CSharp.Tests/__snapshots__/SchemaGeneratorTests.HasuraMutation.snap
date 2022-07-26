@@ -3311,6 +3311,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    /// <summary>
+    /// unique or primary key constraints on table "people"
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum People_constraint
     {
@@ -3343,6 +3346,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    /// <summary>
+    /// update columns of table "people"
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum People_update_column
     {
@@ -3387,6 +3393,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    /// <summary>
+    /// unique or primary key constraints on table "cars"
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum Cars_constraint
     {
@@ -3419,6 +3428,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    /// <summary>
+    /// update columns of table "cars"
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum Cars_update_column
     {

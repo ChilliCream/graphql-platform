@@ -65,8 +65,7 @@ public interface ISchema
     /// specified type kind.
     /// </exception>
     [return: NotNull]
-    T GetType<T>(NameString typeName)
-        where T : INamedType;
+    T GetType<T>(string typeName) where T : INamedType;
 
     /// <summary>
     /// Tries to get a type by its name and kind.
@@ -78,8 +77,7 @@ public interface ISchema
     /// <c>true</c>, if a type with the name exists and is of the specified
     /// kind, <c>false</c> otherwise.
     /// </returns>
-    bool TryGetType<T>(NameString typeName, [MaybeNullWhen(false)] out T type)
-        where T : INamedType;
+    bool TryGetType<T>(string typeName, [MaybeNullWhen(false)] out T type) where T : INamedType;
 
     /// <summary>
     /// Tries to get the .net type representation of a schema type.
@@ -90,7 +88,7 @@ public interface ISchema
     /// <c>true</c>, if a .net type was found that was bound
     /// the specified schema type, <c>false</c> otherwise.
     /// </returns>
-    bool TryGetRuntimeType(NameString typeName, [MaybeNullWhen(false)] out Type? runtimeType);
+    bool TryGetRuntimeType(string typeName, [NotNullWhen(true)] out Type? runtimeType);
 
     /// <summary>
     /// Gets the possible object types to
@@ -116,7 +114,7 @@ public interface ISchema
     /// <exception cref="ArgumentException">
     /// The specified directive type does not exist.
     /// </exception>
-    DirectiveType GetDirectiveType(NameString directiveName);
+    DirectiveType GetDirectiveType(string directiveName);
 
     /// <summary>
     /// Tries to get a directive type by its name.
@@ -133,7 +131,7 @@ public interface ISchema
     /// name exists; otherwise, <c>false</c>.
     /// </returns>
     bool TryGetDirectiveType(
-        NameString directiveName,
+        string directiveName,
         [NotNullWhen(true)] out DirectiveType? directiveType);
 
     /// <summary>

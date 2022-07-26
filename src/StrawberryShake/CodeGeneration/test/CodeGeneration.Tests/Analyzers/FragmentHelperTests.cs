@@ -203,21 +203,21 @@ public class FragmentHelperTests
             returnTypeFragment,
             fieldSelection.Path));
 
-        foreach (SelectionSet selectionSet in
-                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name.Value))
+        foreach (var selectionSet in
+                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,
                 fieldSelection.Path,
                 appendTypeName: true);
 
-            OutputTypeModel @interface = FragmentHelper.CreateInterface(
+            var @interface = FragmentHelper.CreateInterface(
                 context,
                 returnTypeFragment,
                 fieldSelection.Path,
                 new []{ list[0] });
 
-            OutputTypeModel @class = FragmentHelper.CreateClass(
+            var @class = FragmentHelper.CreateClass(
                 context,
                 returnTypeFragment,
                 selectionSet,
@@ -334,21 +334,21 @@ public class FragmentHelperTests
             returnTypeFragment,
             fieldSelection.Path));
 
-        foreach (SelectionSet selectionSet in
-                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name.Value))
+        foreach (var selectionSet in
+                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,
                 fieldSelection.Path,
                 appendTypeName: true);
 
-            OutputTypeModel @interface = FragmentHelper.CreateInterface(
+            var @interface = FragmentHelper.CreateInterface(
                 context,
                 returnTypeFragment,
                 fieldSelection.Path,
                 new []{ list[0] });
 
-            OutputTypeModel @class = FragmentHelper.CreateClass(
+            var @class = FragmentHelper.CreateClass(
                 context,
                 returnTypeFragment,
                 selectionSet,
@@ -479,8 +479,8 @@ public class FragmentHelperTests
             returnTypeFragment!,
             fieldSelection.Path));
 
-        foreach (SelectionSet selectionSet in
-                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name.Value))
+        foreach (var selectionSet in
+                 selectionSetVariants.Variants.OrderBy(t => t.Type.Name))
         {
             returnTypeFragment = FragmentHelper.CreateFragmentNode(
                 selectionSet,
@@ -489,13 +489,13 @@ public class FragmentHelperTests
 
             returnTypeFragment = FragmentHelper.RewriteForConcreteType(returnTypeFragment);
 
-            OutputTypeModel @interface = FragmentHelper.CreateInterface(
+            var @interface = FragmentHelper.CreateInterface(
                 context,
                 returnTypeFragment,
                 fieldSelection.Path,
                 new []{ list[0] });
 
-            OutputTypeModel @class = FragmentHelper.CreateClass(
+            var @class = FragmentHelper.CreateClass(
                 context,
                 returnTypeFragment,
                 selectionSet,

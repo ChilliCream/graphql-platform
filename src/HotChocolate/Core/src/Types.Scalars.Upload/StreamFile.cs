@@ -26,6 +26,9 @@ public class StreamFile : IFile
     /// <param name="length">
     /// The file length if available.
     /// </param>
+    /// <param name="contentType">
+    /// The file content-type.
+    /// </param>
     /// <exception cref="ArgumentException">
     /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
     /// </exception>
@@ -35,7 +38,8 @@ public class StreamFile : IFile
     public StreamFile(
         string name,
         Func<Stream> openReadStream,
-        long? length = null)
+        long? length = null,
+        string? contentType = null)
     {
         if (string.IsNullOrEmpty(name))
         {
@@ -48,6 +52,7 @@ public class StreamFile : IFile
         _openReadStream = openReadStream ??
                           throw new ArgumentNullException(nameof(openReadStream));
         Length = length;
+        ContentType = contentType;
     }
 
     /// <inheritdoc />
@@ -57,18 +62,21 @@ public class StreamFile : IFile
     public long? Length { get; }
 
     /// <inheritdoc />
+    public string? ContentType { get; }
+
+    /// <inheritdoc />
     public virtual async Task CopyToAsync(
         Stream target,
         CancellationToken cancellationToken = default)
     {
 #if NETSTANDARD2_0 || NETSTANDARD2_1
-            using Stream stream = OpenReadStream();
+        using var stream = OpenReadStream();
 #else
-        await using Stream stream = OpenReadStream();
+        await using var stream = OpenReadStream();
 #endif
 
 #if NETSTANDARD2_0
-            await stream.CopyToAsync(target, 1024, cancellationToken).ConfigureAwait(false);
+        await stream.CopyToAsync(target, 1024, cancellationToken).ConfigureAwait(false);
 #else
         await stream.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
 #endif

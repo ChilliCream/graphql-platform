@@ -12,9 +12,9 @@ internal partial class MiddlewareContext
     }
 
     public void Initialize(
-        IOperationContext operationContext,
+        OperationContext operationContext,
         ISelection selection,
-        ResultMap resultMap,
+        ObjectResult parentResult,
         int responseIndex,
         object? parent,
         Path path,
@@ -23,7 +23,7 @@ internal partial class MiddlewareContext
         _operationContext = operationContext;
         _services = operationContext.Services;
         _selection = selection;
-        ResultMap = resultMap;
+        ParentResult = parentResult;
         ResponseIndex = responseIndex;
         _parent = parent;
         _parser = _operationContext.Services.GetRequiredService<InputParser>();
@@ -52,7 +52,7 @@ internal partial class MiddlewareContext
         IsResultModified = false;
         ValueType = null;
         ResponseIndex = default;
-        ResultMap = default!;
+        ParentResult = default!;
         HasErrors = false;
         Arguments = default!;
         RequestAborted = default!;

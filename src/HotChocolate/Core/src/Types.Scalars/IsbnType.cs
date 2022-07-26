@@ -31,7 +31,7 @@ public class IsbnType : RegexType
     /// Initializes a new instance of the <see cref="IsbnType"/> class.
     /// </summary>
     public IsbnType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(

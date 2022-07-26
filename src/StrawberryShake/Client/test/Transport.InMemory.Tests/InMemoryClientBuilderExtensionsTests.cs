@@ -19,7 +19,7 @@ public class InMemoryClientBuilderExtensionsTests
         Action<IInMemoryClient> action = x => x.SchemaName = "Bar";
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureInMemoryClient(action));
+        var ex = Record.Exception(() => builder.ConfigureInMemoryClient(action));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -35,7 +35,7 @@ public class InMemoryClientBuilderExtensionsTests
         Action<IInMemoryClient> action = null!;
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureInMemoryClient(action));
+        var ex = Record.Exception(() => builder.ConfigureInMemoryClient(action));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -61,7 +61,7 @@ public class InMemoryClientBuilderExtensionsTests
             .InMemoryClientActions
             .Single()(stubClient, default);
 
-        Assert.Equal("Bar", stubClient.SchemaName.Value);
+        Assert.Equal("Bar", stubClient.SchemaName);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class InMemoryClientBuilderExtensionsTests
         };
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureInMemoryClientAsync(action));
+        var ex = Record.Exception(() => builder.ConfigureInMemoryClientAsync(action));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -92,7 +92,7 @@ public class InMemoryClientBuilderExtensionsTests
         Func<IInMemoryClient, CancellationToken, ValueTask> action = null!;
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureInMemoryClientAsync(action));
+        var ex = Record.Exception(() => builder.ConfigureInMemoryClientAsync(action));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -122,7 +122,7 @@ public class InMemoryClientBuilderExtensionsTests
             .InMemoryClientActions
             .Single()(stubClient, default);
 
-        Assert.Equal("Bar", stubClient.SchemaName.Value);
+        Assert.Equal("Bar", stubClient.SchemaName);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class InMemoryClientBuilderExtensionsTests
         Action<IServiceProvider, IInMemoryClient> action = (_, x) => x.SchemaName = "Bar";
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureInMemoryClient(action));
+        var ex = Record.Exception(() => builder.ConfigureInMemoryClient(action));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -149,7 +149,7 @@ public class InMemoryClientBuilderExtensionsTests
         Action<IServiceProvider, IInMemoryClient> action = null!;
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureInMemoryClient(action));
+        var ex = Record.Exception(() => builder.ConfigureInMemoryClient(action));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -177,7 +177,7 @@ public class InMemoryClientBuilderExtensionsTests
             .InMemoryClientActions
             .Single()(stubClient, default);
 
-        Assert.Equal("Bar", stubClient.SchemaName.Value);
+        Assert.Equal("Bar", stubClient.SchemaName);
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class InMemoryClientBuilderExtensionsTests
             };
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureInMemoryClientAsync(action));
+        var ex = Record.Exception(() => builder.ConfigureInMemoryClientAsync(action));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -210,7 +210,7 @@ public class InMemoryClientBuilderExtensionsTests
             null!;
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureInMemoryClientAsync(action));
+        var ex = Record.Exception(() => builder.ConfigureInMemoryClientAsync(action));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -243,7 +243,7 @@ public class InMemoryClientBuilderExtensionsTests
             .InMemoryClientActions
             .Single()(stubClient, default);
 
-        Assert.Equal("Bar", stubClient.SchemaName.Value);
+        Assert.Equal("Bar", stubClient.SchemaName);
     }
 
     [Fact]
@@ -254,7 +254,7 @@ public class InMemoryClientBuilderExtensionsTests
         IInMemoryRequestInterceptor interceptor = new StubInterceptor();
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => builder.ConfigureRequestInterceptor(interceptor));
 
         // assert
@@ -271,7 +271,7 @@ public class InMemoryClientBuilderExtensionsTests
         IInMemoryRequestInterceptor interceptor = null!;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => builder.ConfigureRequestInterceptor(interceptor));
 
         // assert
@@ -310,7 +310,7 @@ public class InMemoryClientBuilderExtensionsTests
         IInMemoryClientBuilder builder = default!;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => builder.ConfigureRequestInterceptor<StubInterceptor>());
 
         // assert
@@ -324,7 +324,7 @@ public class InMemoryClientBuilderExtensionsTests
         var collection = new ServiceCollection();
         IInMemoryClientBuilder builder =
             new DefaultInMemoryClientBuilder(collection, "foo");
-        StubInterceptor interceptor = new StubInterceptor();
+        var interceptor = new StubInterceptor();
         collection.AddSingleton(interceptor);
 
         // act
@@ -352,7 +352,7 @@ public class InMemoryClientBuilderExtensionsTests
         Func<IServiceProvider, IInMemoryRequestInterceptor> factory = provider => interceptor;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => builder.ConfigureRequestInterceptor(factory));
 
         // assert
@@ -369,7 +369,7 @@ public class InMemoryClientBuilderExtensionsTests
         Func<IServiceProvider, IInMemoryRequestInterceptor> factory = null!;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => builder.ConfigureRequestInterceptor(factory));
 
         // assert

@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
+
 using Xunit;
 
 namespace HotChocolate.Data.Tests;
@@ -16,7 +17,7 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new SortInputType<Foo>(
                     d => d
@@ -25,7 +26,7 @@ public class SortInputTypeTest : SortTestBase
                         .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -33,7 +34,7 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new SortInputType<Foo>(
                     d => d.Name(dep => dep.Name + "Foo")
@@ -41,7 +42,7 @@ public class SortInputTypeTest : SortTestBase
                         .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -49,7 +50,7 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new SortInputType<Foo>(
@@ -57,7 +58,7 @@ public class SortInputTypeTest : SortTestBase
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -65,18 +66,13 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
-            s => s.AddDirectiveType<FooDirectiveType>()
-                .AddType(
-                    new SortInputType<Foo>(
-                        d => d.Directive(new NameString("foo"))
-                            .Field(x => x.Bar)
-                    )
-                )
-        );
+        var schema = CreateSchema(
+            s => s
+                .AddDirectiveType<FooDirectiveType>()
+                .AddType(new SortInputType<Foo>(d => d.Directive("foo").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -84,14 +80,14 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new SortInputType<Foo>(
                         d => d.Directive(new DirectiveNode("foo")).Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -99,7 +95,7 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new SortInputType<Foo>(
@@ -108,7 +104,7 @@ public class SortInputTypeTest : SortTestBase
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -116,7 +112,7 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new SortInputType<Foo>(
@@ -125,7 +121,7 @@ public class SortInputTypeTest : SortTestBase
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -133,13 +129,13 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new SortInputType<Foo>(
                     d => d.Description("Test").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -147,20 +143,20 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new SortInputType<Foo>(
                     d => d.Name("Test").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public void SortInputType_Should_ThrowException_WhenNoConventionIsRegistered()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddQueryType(
                 c =>
                     c.Name("Query")
@@ -170,7 +166,7 @@ public class SortInputTypeTest : SortTestBase
 
         // act
         // assert
-        SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(() => builder.Create());
         exception.Message.MatchSnapshot();
     }
 
@@ -178,7 +174,7 @@ public class SortInputTypeTest : SortTestBase
     public void SortInputType_Should_ThrowException_WhenNoConventionIsRegisteredDefault()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddQueryType(
                 c =>
                     c.Name("Query")
@@ -188,7 +184,7 @@ public class SortInputTypeTest : SortTestBase
 
         // act
         // assert
-        SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(() => builder.Create());
         exception.Message.MatchSnapshot();
     }
 
@@ -196,7 +192,7 @@ public class SortInputTypeTest : SortTestBase
     public void SortInputType_Should_UseCustomSortType_When_Nested()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting()
             .AddQueryType<UserQueryType>();
 
@@ -209,7 +205,7 @@ public class SortInputTypeTest : SortTestBase
     public void SortInputType_Should_IgnoreFieldWithoutCallingConvention()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting(
                 x => x.AddDefaultOperations()
                     .BindRuntimeType<int, DefaultSortEnumType>()
@@ -223,26 +219,26 @@ public class SortInputTypeTest : SortTestBase
                         .UseSorting<IgnoreTestSortInputType>()));
 
         // act
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public void SortInputType_Should_InfereType_When_ItIsAInterface()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<TestingType<ITest<Foo>>>()
             .AddObjectType<ITest<Foo>>();
 
         // act
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
         schema.Print().MatchSnapshot();
     }
 
@@ -251,12 +247,12 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithSort<Book>(x => x
+        var schema = CreateSchemaWithSort<Book>(x => x
             .BindFieldsExplicitly()
             .Field(x => x.Author, d => d.Field(x => x.Name)));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -264,12 +260,12 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithSort<Book>(x => x
+        var schema = CreateSchemaWithSort<Book>(x => x
             .BindFieldsExplicitly()
             .Field(x => x.Author, d => d.Field(x => x.Account, d => d.Field(x => x.Name))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -277,7 +273,7 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithSort<Book>(descriptor =>
+        var schema = CreateSchemaWithSort<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(
@@ -286,7 +282,7 @@ public class SortInputTypeTest : SortTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -294,7 +290,7 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithSort<Book>(descriptor =>
+        var schema = CreateSchemaWithSort<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(
@@ -306,7 +302,7 @@ public class SortInputTypeTest : SortTestBase
                 .Location(Types.DirectiveLocation.InputObject))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -314,7 +310,7 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithSort<Book>(descriptor =>
+        var schema = CreateSchemaWithSort<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Chapters);
@@ -324,7 +320,7 @@ public class SortInputTypeTest : SortTestBase
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -332,14 +328,14 @@ public class SortInputTypeTest : SortTestBase
     {
         // arrange
         // act
-        ISchema schema = CreateSchemaWithSort<Book>(descriptor =>
+        var schema = CreateSchemaWithSort<Book>(descriptor =>
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field(x => x.Author, d => d.BindFieldsImplicitly());
         });
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]

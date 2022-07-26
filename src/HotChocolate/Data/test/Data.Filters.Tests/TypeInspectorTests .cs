@@ -11,10 +11,10 @@ public class TypeInspectorTests
     public void FilterInputType_Should_BeASchemaType_When_Inferred()
     {
         // arrange
-        DefaultTypeInspector inspector = new DefaultTypeInspector();
+        var inspector = new DefaultTypeInspector();
 
         // act
-        IExtendedType extendedType = inspector.GetType(typeof(FilterInputType<Foo>));
+        var extendedType = inspector.GetType(typeof(FilterInputType<Foo>));
 
         // assert
         Assert.True(extendedType.IsSchemaType);
@@ -24,10 +24,10 @@ public class TypeInspectorTests
     public void FilterInputType_Should_BeASchemaType_When_NonGeneric()
     {
         // arrange
-        DefaultTypeInspector inspector = new DefaultTypeInspector();
+        var inspector = new DefaultTypeInspector();
 
         // act
-        IExtendedType extendedType = inspector.GetType(typeof(NonGenericType));
+        var extendedType = inspector.GetType(typeof(NonGenericType));
 
         // assert
         Assert.True(extendedType.IsSchemaType);
@@ -37,10 +37,10 @@ public class TypeInspectorTests
     public void FilterInputType_Should_BeASchemaType_When_Generic()
     {
         // arrange
-        DefaultTypeInspector inspector = new DefaultTypeInspector();
+        var inspector = new DefaultTypeInspector();
 
         // act
-        IExtendedType extendedType = inspector.GetType(typeof(GenericType));
+        var extendedType = inspector.GetType(typeof(GenericType));
 
         // assert
         Assert.True(extendedType.IsSchemaType);
@@ -50,15 +50,15 @@ public class TypeInspectorTests
     public void FilterInputType_Should_BeASchemaType_When_List()
     {
         // arrange
-        DefaultTypeInspector inspector = new DefaultTypeInspector();
+        var inspector = new DefaultTypeInspector();
 
         // act
-        IExtendedType extendedType =
+        var extendedType =
             inspector.GetType(typeof(ListFilterInputType<FilterInputType<Foo>>));
 
         // assert
         Assert.True(extendedType.IsSchemaType);
-        IExtendedType? typeArgument = Assert.Single(extendedType.TypeArguments);
+        var typeArgument = Assert.Single(extendedType.TypeArguments);
         Assert.NotNull(typeArgument);
         Assert.True(typeArgument!.IsSchemaType);
     }

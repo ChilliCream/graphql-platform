@@ -144,5 +144,17 @@ namespace HotChocolate.Validation
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
         }
+
+        [Fact]
+        public void DisallowedOnlyIntrospectionField()
+        {
+            ExpectErrors(@"
+                subscription sub {
+                    __typename
+                }
+            ",
+            t => Assert.Equal(
+                "Subscription must not select an introspection top level field.", t.Message));
+        }
     }
 }

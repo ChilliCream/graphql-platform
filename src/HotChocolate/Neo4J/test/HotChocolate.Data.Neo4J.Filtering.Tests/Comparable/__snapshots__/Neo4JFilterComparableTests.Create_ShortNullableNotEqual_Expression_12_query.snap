@@ -1,1 +1,0 @@
-﻿MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort <> 12 RETURN fooCompNullable {.BarShort}

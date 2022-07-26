@@ -137,10 +137,10 @@ public static class ObjectFieldDescriptorExtensions
         {
             // first we preserve the original services so that we can restore them once
             // we have executed the inner pipeline.
-            IServiceProvider services = context.Services;
+            var services = context.Services;
 
             // now we create the service scope that we will wrap around the execution of next.
-            using IServiceScope scope = services.CreateScope();
+            using var scope = services.CreateScope();
             context.Services = scope.ServiceProvider;
 
             try

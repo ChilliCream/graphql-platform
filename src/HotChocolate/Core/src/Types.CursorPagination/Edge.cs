@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Types.Properties;
 
 namespace HotChocolate.Types.Pagination;
 

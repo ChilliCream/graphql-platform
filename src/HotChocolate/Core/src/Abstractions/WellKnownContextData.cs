@@ -121,4 +121,8 @@ public static class WellKnownContextData
     /// </summary>
     public const string OperationSessionId ="HotChocolate.Execution.Transport.OperationSessionId";
 
+    /// <summary>
+    /// The key to get the deferred task ID on the scoped context data.
+    /// </summary>
+    public const string DeferredResultId = "HotChocolate.Execution.Defer.ResultId";
 }

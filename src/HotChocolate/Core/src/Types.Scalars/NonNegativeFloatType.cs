@@ -22,7 +22,7 @@ public class NonNegativeFloatType : FloatType
     /// Initializes a new instance of <see cref="NonNegativeFloatType"/>
     /// </summary>
     public NonNegativeFloatType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, description, 0, double.MaxValue, bind)

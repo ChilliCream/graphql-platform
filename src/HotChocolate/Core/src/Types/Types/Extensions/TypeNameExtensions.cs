@@ -7,7 +7,7 @@ public static class TypeNameExtensions
 {
     public static IObjectTypeNameDependencyDescriptor Name(
         this IObjectTypeDescriptor descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         if (descriptor is null)
         {
@@ -25,7 +25,7 @@ public static class TypeNameExtensions
 
     public static IObjectTypeNameDependencyDescriptor<T> Name<T>(
         this IObjectTypeDescriptor<T> descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         if (descriptor is null)
         {
@@ -43,7 +43,7 @@ public static class TypeNameExtensions
 
     public static IEnumTypeNameDependencyDescriptor Name(
         this IEnumTypeDescriptor descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         if (descriptor is null)
         {
@@ -61,7 +61,7 @@ public static class TypeNameExtensions
 
     public static IEnumTypeNameDependencyDescriptor<T> Name<T>(
         this IEnumTypeDescriptor<T> descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         if (descriptor is null)
         {
@@ -79,7 +79,7 @@ public static class TypeNameExtensions
 
     public static IInputObjectTypeNameDependencyDescriptor Name(
         this IInputObjectTypeDescriptor descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         if (descriptor is null)
         {
@@ -97,7 +97,7 @@ public static class TypeNameExtensions
 
     public static IInputObjectTypeNameDependencyDescriptor<T> Name<T>(
         this IInputObjectTypeDescriptor<T> descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         if (descriptor is null)
         {
@@ -115,7 +115,7 @@ public static class TypeNameExtensions
 
     public static IInterfaceTypeNameDependencyDescriptor Name(
         this IInterfaceTypeDescriptor descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         if (descriptor is null)
         {
@@ -133,7 +133,7 @@ public static class TypeNameExtensions
 
     public static IInterfaceTypeNameDependencyDescriptor<T> Name<T>(
         this IInterfaceTypeDescriptor<T> descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         if (descriptor is null)
         {
@@ -151,7 +151,7 @@ public static class TypeNameExtensions
 
     public static IUnionTypeNameDependencyDescriptor Name(
         this IUnionTypeDescriptor descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         if (descriptor is null)
         {

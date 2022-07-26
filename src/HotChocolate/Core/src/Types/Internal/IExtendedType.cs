@@ -18,7 +18,7 @@ public interface IExtendedType : IEquatable<IExtendedType>
     /// <summary>
     /// Gets the original type representation.
     /// In case of a nullable int the original type will be
-    /// <see cref="Nullable{int}"/>.
+    /// <see cref="Nullable{T}"/>.
     /// </summary>
     Type Source { get; }
 

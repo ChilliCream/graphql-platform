@@ -9,8 +9,7 @@ public class SchemaCache
     : FilterVisitorTestBase,
       IDisposable
 {
-    private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache =
-        new ConcurrentDictionary<(Type, Type, object), IRequestExecutor>();
+    private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache = new();
 
     public IRequestExecutor CreateSchema<T, TType>(
         T[] entities,
@@ -23,7 +22,7 @@ public class SchemaCache
         (Type, Type, T[] entites) key = (typeof(T), typeof(TType), entities);
         return _cache.GetOrAdd(
             key,
-            k => base.CreateSchema<T, TType>(
+            _ => base.CreateSchema<T, TType>(
                 entities,
                 withPaging: withPaging,
                 configure: configure,

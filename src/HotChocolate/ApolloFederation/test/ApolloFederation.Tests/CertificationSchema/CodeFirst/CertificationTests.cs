@@ -13,7 +13,7 @@ public class CertificationTests
     [Fact]
     public async Task Schema_Snapshot()
     {
-        IRequestExecutor executor = await SchemaSetup.CreateAsync();
+        var executor = await SchemaSetup.CreateAsync();
         executor.Schema.Print().MatchSnapshot();
     }
 
@@ -21,10 +21,10 @@ public class CertificationTests
     public async Task Subgraph_SDL()
     {
         // arrange
-        IRequestExecutor executor = await SchemaSetup.CreateAsync();
+        var executor = await SchemaSetup.CreateAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
                 _service {
                     sdl
@@ -32,8 +32,8 @@ public class CertificationTests
             }");
 
         // assert
-        Assert.IsType<ResultMap>(
-            Assert.IsType<ResultMap>(
+        Assert.IsType<ObjectResult>(
+            Assert.IsType<ObjectResult>(
                 Assert.IsType<QueryResult>(result).Data)
                     .GetValueOrDefault("_service"))
                         .GetValueOrDefault("sdl")
@@ -44,10 +44,10 @@ public class CertificationTests
     public async Task Product_By_Id()
     {
         // arrange
-        IRequestExecutor executor = await SchemaSetup.CreateAsync();
+        var executor = await SchemaSetup.CreateAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query ($representations: [_Any!]!) {
                 _entities(representations: $representations) {
                     ... on Product {
@@ -73,10 +73,10 @@ public class CertificationTests
     public async Task Product_By_Package()
     {
         // arrange
-        IRequestExecutor executor = await SchemaSetup.CreateAsync();
+        var executor = await SchemaSetup.CreateAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query ($representations: [_Any!]!) {
                 _entities(representations: $representations) {
                     ... on Product {
@@ -103,10 +103,10 @@ public class CertificationTests
     public async Task Product_By_Variation()
     {
         // arrange
-        IRequestExecutor executor = await SchemaSetup.CreateAsync();
+        var executor = await SchemaSetup.CreateAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query ($representations: [_Any!]!) {
                 _entities(representations: $representations) {
                     ... on Product {
@@ -135,10 +135,10 @@ public class CertificationTests
     public async Task Provides()
     {
         // arrange
-        IRequestExecutor executor = await SchemaSetup.CreateAsync();
+        var executor = await SchemaSetup.CreateAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query ($id: ID!) {
                 product(id: $id) {
                     createdBy { email totalProductsCreated }
@@ -157,10 +157,10 @@ public class CertificationTests
     public async Task Requires()
     {
         // arrange
-        IRequestExecutor executor = await SchemaSetup.CreateAsync();
+        var executor = await SchemaSetup.CreateAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query ($id: ID!) {
                 product(id: $id) {
                     dimensions { size weight }

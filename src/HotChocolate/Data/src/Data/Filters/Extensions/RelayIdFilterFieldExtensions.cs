@@ -32,7 +32,7 @@ internal static class RelayIdFilterFieldExtensions
     private static IInputValueFormatter CreateSerializer(
         ITypeCompletionContext completionContext)
     {
-        IIdSerializer serializer =
+        var serializer =
             completionContext.Services.GetService<IIdSerializer>() ??
             (_idSerializer ??= new IdSerializer());
 

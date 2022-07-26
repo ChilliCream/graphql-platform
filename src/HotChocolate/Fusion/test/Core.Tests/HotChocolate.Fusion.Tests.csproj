@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion</RootNamespace>
+  </PropertyGroup>
+
+</Project>

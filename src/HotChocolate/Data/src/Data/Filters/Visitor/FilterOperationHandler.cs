@@ -21,7 +21,7 @@ public abstract class FilterOperationHandler<TContext, T>
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
         if (field is IFilterOperationField filterOperationField &&
-            TryHandleOperation(context, filterOperationField, node, out T? result))
+            TryHandleOperation(context, filterOperationField, node, out var result))
         {
             context.GetLevel().Enqueue(result);
             action = SyntaxVisitor.SkipAndLeave;

@@ -15,7 +15,7 @@ internal class CollectionSegmentType
     , IPageType
 {
     internal CollectionSegmentType(
-        NameString? collectionSegmentName,
+        string? collectionSegmentName,
         ITypeReference nodeType,
         bool withTotalCount)
     {
@@ -28,7 +28,7 @@ internal class CollectionSegmentType
 
         if (collectionSegmentName is not null)
         {
-            Definition.Name = collectionSegmentName.Value + "CollectionSegment";
+            Definition.Name = collectionSegmentName + "CollectionSegment";
         }
         else
         {
@@ -36,7 +36,7 @@ internal class CollectionSegmentType
                 new CompleteConfiguration(
                     (c, d) =>
                     {
-                        IType type = c.GetType<IType>(nodeType);
+                        var type = c.GetType<IType>(nodeType);
                         var definition = (ObjectTypeDefinition)d;
                         definition.Name = type.NamedType().Name + "CollectionSegment";
                     },
@@ -53,7 +53,7 @@ internal class CollectionSegmentType
                     ItemType = c.GetType<IOutputType>(nodeType);
 
                     var definition = (ObjectTypeDefinition)d;
-                    ObjectFieldDefinition nodes = definition.Fields.First(IsItemsField);
+                    var nodes = definition.Fields.First(IsItemsField);
                     nodes.Type = TypeReference.Parse($"[{ItemType.Print()}]", TypeContext.Output);
                 },
                 Definition,
@@ -74,18 +74,18 @@ internal class CollectionSegmentType
         DefinitionBase definition,
         IDictionary<string, object?> contextData)
     {
-        context.Dependencies.Add(new(
-            context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType))));
-
+        var typeRef = context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType));
+        context.Dependencies.Add(new(typeRef));
         base.OnBeforeRegisterDependencies(context, definition, contextData);
     }
 
     private static ObjectTypeDefinition CreateTypeDefinition(bool withTotalCount)
     {
-        var definition = new ObjectTypeDefinition(
-            default,
-            CollectionSegmentType_Description,
-            typeof(CollectionSegment));
+        var definition = new ObjectTypeDefinition
+        {
+            Description = CollectionSegmentType_Description,
+            RuntimeType = typeof(CollectionSegment)
+        };
 
         definition.Fields.Add(new(
             Names.PageInfo,
@@ -119,8 +119,7 @@ internal class CollectionSegmentType
         => await context.Parent<CollectionSegment>().GetTotalCountAsync(context.RequestAborted);
 
     private static bool IsItemsField(ObjectFieldDefinition field)
-        => field.CustomSettings.Count > 0 &&
-            field.CustomSettings[0].Equals(ContextDataKeys.Items);
+        => field.CustomSettings.Count > 0 && field.CustomSettings[0].Equals(ContextDataKeys.Items);
 
     internal static class Names
     {

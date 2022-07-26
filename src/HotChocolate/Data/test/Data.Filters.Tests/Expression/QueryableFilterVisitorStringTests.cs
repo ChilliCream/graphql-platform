@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
@@ -11,11 +9,11 @@ public class QueryableFilterVisitorStringTests
     public void Create_StringEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -29,11 +27,11 @@ public class QueryableFilterVisitorStringTests
     public void Create_StringNotEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { neq:\"a\" }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { neq:\"a\" }}");
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -47,12 +45,12 @@ public class QueryableFilterVisitorStringTests
     public void Create_StringIn_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { in:[\"a\", \"c\"]}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -66,11 +64,11 @@ public class QueryableFilterVisitorStringTests
     public void Create_StringIn_SingleValue_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { in:[\"a\"]}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { in:[\"a\"]}}");
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -84,12 +82,12 @@ public class QueryableFilterVisitorStringTests
     public void Create_StringNotIn_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { nin:[\"a\", \"c\"]}}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -103,12 +101,12 @@ public class QueryableFilterVisitorStringTests
     public void Create_StringContains_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { contains:\"a\" }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "testatest" };
@@ -147,12 +145,12 @@ public class QueryableFilterVisitorStringTests
     [Fact]
     public void Create_StringNoContains_Expression()
     {
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { ncontains:\"a\" }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "testatest" };
@@ -166,12 +164,12 @@ public class QueryableFilterVisitorStringTests
     public void Create_StringStartsWith_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { startsWith:\"a\" }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "ab" };
@@ -185,12 +183,12 @@ public class QueryableFilterVisitorStringTests
     public void Create_StringNotStartsWith_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { nstartsWith:\"a\" }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "ab" };
@@ -204,12 +202,12 @@ public class QueryableFilterVisitorStringTests
     public void Create_StringEndsWith_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { endsWith:\"a\" }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "ab" };
@@ -223,12 +221,12 @@ public class QueryableFilterVisitorStringTests
     public void Create_StringNotEndsWith_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ bar: { nendsWith:\"a\" }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "ab" };

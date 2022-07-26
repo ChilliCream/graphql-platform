@@ -36,7 +36,7 @@ public sealed class DependencyInjectionDescriptor : ICodeDescriptor
     /// <summary>
     /// The name of the client
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     public ClientDescriptor ClientDescriptor { get; }
 

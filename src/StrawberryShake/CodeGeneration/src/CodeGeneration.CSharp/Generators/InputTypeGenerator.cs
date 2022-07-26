@@ -14,8 +14,8 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
         InputObjectTypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
     {
-        string stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
-        string infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
+        var stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
+        var infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
 
         return new(
             descriptor.Name,
@@ -30,7 +30,7 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
         InputObjectTypeDescriptor descriptor,
         string infoInterfaceType)
     {
-        RecordDeclarationSyntax recordDeclaration =
+        var recordDeclaration =
             RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.Name.ToEscapedName())
                 .AddImplements(infoInterfaceType)
                 .AddModifiers(
@@ -57,7 +57,7 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
         InputObjectTypeDescriptor descriptor,
         string infoInterfaceType)
     {
-        ClassDeclarationSyntax classDeclaration =
+        var classDeclaration =
             ClassDeclaration(descriptor.Name.ToEscapedName())
                 .AddImplements(infoInterfaceType)
                 .AddModifiers(
@@ -87,7 +87,7 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
 
         foreach (var prop in descriptor.Properties)
         {
-            VariableDeclaratorSyntax variable =
+            var variable =
                 VariableDeclarator(
                     Identifier(CreateInputValueField(prop.Name)));
 
@@ -115,7 +115,7 @@ public class InputTypeGenerator : CSharpSyntaxGenerator<InputObjectTypeDescripto
 
         foreach (var prop in descriptor.Properties)
         {
-            PropertyDeclarationSyntax property =
+            var property =
                 PropertyDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
                     .AddModifiers(Token(SyntaxKind.PublicKeyword))
                     .AddSummary(prop.Description)

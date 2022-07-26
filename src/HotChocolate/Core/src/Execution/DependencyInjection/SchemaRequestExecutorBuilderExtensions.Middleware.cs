@@ -1,8 +1,11 @@
 using System;
-using System.Threading.Tasks;
-using HotChocolate;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -30,10 +33,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         FieldReference fieldReference,
         FieldMiddleware middleware)
     {
-        return builder.UseField(
-            FieldClassMiddlewareFactory.Create(
-                (s, n) => new MapMiddleware(
-                    n, fieldReference, middleware(n))));
+        return builder.MapFieldMiddleware(fieldReference, middleware);
     }
 
     public static IRequestExecutorBuilder MapField<TMiddleware>(
@@ -41,15 +41,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         FieldReference fieldReference)
         where TMiddleware : class
     {
-        return builder.UseField(
-            FieldClassMiddlewareFactory.Create(
-                (s, n) =>
-                {
-                    FieldMiddleware classMiddleware =
-                        FieldClassMiddlewareFactory.Create<TMiddleware>();
-                    return new MapMiddleware(
-                        n, fieldReference, classMiddleware(n));
-                }));
+        var classMiddleware = FieldClassMiddlewareFactory.Create<TMiddleware>();
+        return builder.MapFieldMiddleware(fieldReference, classMiddleware);
     }
 
     public static IRequestExecutorBuilder MapField<TMiddleware>(
@@ -58,16 +51,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
-        return builder.UseField(
-            FieldClassMiddlewareFactory.Create(
-                (s, n) =>
-                {
-                    FieldMiddleware classMiddleware =
-                        FieldClassMiddlewareFactory
-                            .Create(factory);
-                    return new MapMiddleware(
-                        n, fieldReference, classMiddleware(n));
-                }));
+        var classMiddleware = FieldClassMiddlewareFactory.Create(factory);
+        return builder.MapFieldMiddleware(fieldReference, classMiddleware);
     }
 
     public static IRequestExecutorBuilder UseField(
@@ -87,36 +72,116 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         return builder.ConfigureSchema(b => b.Use(middleware));
     }
 
-    private sealed class MapMiddleware
+    private static IRequestExecutorBuilder MapFieldMiddleware(
+        this IRequestExecutorBuilder builder,
+        FieldReference fieldReference,
+        FieldMiddleware middleware)
+        => builder
+            .TryAddTypeInterceptor(typeof(ApplyFieldMiddlewareInterceptor))
+            .ConfigureSchema(b => b
+                .SetContextData(
+                    ApplyFieldMiddlewareInterceptor.ContextKey,
+                    obj =>
+                    {
+                        if (obj is not FieldMiddlewareLookup lookup)
+                        {
+                            lookup = new FieldMiddlewareLookup();
+                        }
+
+                        lookup.RegisterFieldMiddleware(fieldReference, middleware);
+                        return lookup;
+                    }));
+
+    private sealed class FieldMiddlewareLookup
     {
-        private readonly FieldDelegate _next;
-        private readonly FieldReference _fieldReference;
-        private readonly FieldDelegate _fieldDelegate;
+        private readonly IDictionary<string, List<FieldMiddlewareReference>> _lookup =
+            new Dictionary<string, List<FieldMiddlewareReference>>();
 
-        public MapMiddleware(
-            FieldDelegate next,
-            FieldReference fieldReference,
-            FieldDelegate fieldDelegate)
+        public bool HasFieldMiddleware(string typeName) =>
+            _lookup.ContainsKey(typeName);
+
+        public bool TryGetFieldMiddlewares(
+            string type,
+            [NotNullWhen(true)] out List<FieldMiddlewareReference>? middlewareReferences)
         {
-            _next = next
-                ?? throw new ArgumentNullException(nameof(next));
-            _fieldReference = fieldReference
-                ?? throw new ArgumentNullException(nameof(fieldReference));
-            _fieldDelegate = fieldDelegate
-                ?? throw new ArgumentNullException(nameof(fieldDelegate));
+            middlewareReferences = null;
+            if (!_lookup.TryGetValue(type, out var references))
+            {
+                return false;
+            }
+
+            middlewareReferences = references;
+            return true;
         }
 
-        public ValueTask InvokeAsync(IMiddlewareContext context)
+        public void RegisterFieldMiddleware(FieldReference reference, FieldMiddleware middleware)
         {
-            return IsField(context.ObjectType.Name, context.Selection.Field.Name)
-                ? _fieldDelegate(context)
-                : _next(context);
+            if (!_lookup.TryGetValue(reference.TypeName, out var middlewares))
+            {
+                middlewares = new List<FieldMiddlewareReference>();
+                _lookup[reference.TypeName] = middlewares;
+            }
+
+            middlewares.Add(new(reference, middleware));
+        }
+    }
+
+    private sealed class ApplyFieldMiddlewareInterceptor : TypeInterceptor
+    {
+        public const string ContextKey = "HotChocolate.Execution.FieldMiddlewareLookup";
+
+        public override bool CanHandle(ITypeSystemObjectContext context) =>
+            context.Type is ObjectType { Name: { } typeName } &&
+            context.ContextData.TryGetValue(ContextKey, out var value) &&
+            value is FieldMiddlewareLookup lookup &&
+            lookup.HasFieldMiddleware(typeName);
+
+        public override void OnAfterCompleteName(
+            ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+            if (!completionContext.ContextData.TryGetValue(ContextKey, out var value) ||
+                value is not FieldMiddlewareLookup lookup)
+            {
+                return;
+            }
+
+            if (definition is not ObjectTypeDefinition def)
+            {
+                return;
+            }
+
+            foreach (var field in def.Fields)
+            {
+                if (lookup.TryGetFieldMiddlewares(def.Name, out var refs))
+                {
+                    foreach (var middlewareRef in refs)
+                    {
+                        if (middlewareRef.Reference.FieldName.Equals(field.Name))
+                        {
+                            var middlewareDefinition = new FieldMiddlewareDefinition(
+                                middlewareRef.Middleware);
+                            field.MiddlewareDefinitions.Add(middlewareDefinition);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private sealed class FieldMiddlewareReference
+    {
+        public FieldMiddlewareReference(
+            FieldReference reference,
+            FieldMiddleware middleware)
+        {
+            Reference = reference;
+            Middleware = middleware;
         }
 
-        private bool IsField(NameString typeName, NameString fieldName)
-        {
-            return _fieldReference.TypeName.Equals(typeName)
-                && _fieldReference.FieldName.Equals(fieldName);
-        }
+        public FieldReference Reference { get; }
+
+        public FieldMiddleware Middleware { get; }
     }
 }

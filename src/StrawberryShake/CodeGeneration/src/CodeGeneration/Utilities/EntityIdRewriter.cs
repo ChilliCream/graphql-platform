@@ -31,7 +31,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
             return node;
         }
 
-        IOutputField field = ((IComplexOutputType)context.Types.Peek()).Fields[node.Name.Value];
+        var field = ((IComplexOutputType)context.Types.Peek()).Fields[node.Name.Value];
 
         if(field.Type.NamedType().IsLeafType())
         {
@@ -76,28 +76,28 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         SelectionSetNode node,
         Context context)
     {
-        SelectionSetNode current = base.RewriteSelectionSet(node, context);
+        var current = base.RewriteSelectionSet(node, context);
 
         if (context.Nodes.Peek() is FieldNode or OperationDefinitionNode)
         {
             var selections = current.Selections.ToList();
 
-            foreach (ObjectType objectType in
+            foreach (var objectType in
                      context.Schema.GetPossibleTypes(context.Types.Peek()))
             {
                 if (objectType.IsEntity())
                 {
-                    SelectionSetNode entityDefinition = objectType.GetEntityDefinition();
+                    var entityDefinition = objectType.GetEntityDefinition();
                     List<ISelectionNode> fields = new();
 
-                    foreach (ISelectionNode selection in entityDefinition.Selections)
+                    foreach (var selection in entityDefinition.Selections)
                     {
                         fields.Add(selection);
                     }
 
                     selections.Add(new InlineFragmentNode(
                         null,
-                        new NamedTypeNode(objectType.Name.Value),
+                        new NamedTypeNode(objectType.Name),
                         new List<DirectiveNode>(),
                         new SelectionSetNode(fields)));
                 }

@@ -12,7 +12,7 @@ public class InterfaceBuilder : AbstractTypeBuilder
 
     public static InterfaceBuilder New() => new();
 
-    public new InterfaceBuilder SetName(NameString name)
+    public new InterfaceBuilder SetName(string name)
     {
         base.SetName(name);
         return this;

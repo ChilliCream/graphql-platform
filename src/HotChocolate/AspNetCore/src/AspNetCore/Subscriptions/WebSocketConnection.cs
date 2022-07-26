@@ -44,11 +44,11 @@ internal sealed class WebSocketConnection : ISocketConnection
             throw new ObjectDisposedException(nameof(WebSocketConnection));
         }
 
-        WebSocketManager webSocketManager = HttpContext.WebSockets;
+        var webSocketManager = HttpContext.WebSockets;
 
         if (webSocketManager.WebSocketRequestedProtocols.Count > 0)
         {
-            foreach (IProtocolHandler protocolHandler in _protocolHandlers)
+            foreach (var protocolHandler in _protocolHandlers)
             {
                 if (webSocketManager.WebSocketRequestedProtocols.Contains(protocolHandler.Name))
                 {
@@ -58,7 +58,7 @@ internal sealed class WebSocketConnection : ISocketConnection
             }
         }
 
-        using WebSocket socket = await webSocketManager.AcceptWebSocketAsync();
+        using var socket = await webSocketManager.AcceptWebSocketAsync();
         await socket.CloseOutputAsync(
             WebSocketCloseStatus.ProtocolError,
             $"Expected the {GraphQL_Transport_WS} or {GraphQL_WS} protocol.",
@@ -71,7 +71,7 @@ internal sealed class WebSocketConnection : ISocketConnection
         ReadOnlyMemory<byte> message,
         CancellationToken cancellationToken = default)
     {
-        WebSocket? webSocket = _webSocket;
+        var webSocket = _webSocket;
 
         if (_disposed || webSocket.IsClosed())
         {
@@ -85,7 +85,7 @@ internal sealed class WebSocketConnection : ISocketConnection
         IBufferWriter<byte> writer,
         CancellationToken cancellationToken = default)
     {
-        WebSocket? webSocket = _webSocket;
+        var webSocket = _webSocket;
 
         if (_disposed || webSocket.IsClosed())
         {
@@ -104,7 +104,7 @@ internal sealed class WebSocketConnection : ISocketConnection
                     break;
                 }
 
-                Memory<byte> memory = writer.GetMemory(BufferSize);
+                var memory = writer.GetMemory(BufferSize);
                 socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
                 writer.Advance(socketResult.Count);
                 size += socketResult.Count;
@@ -126,7 +126,7 @@ internal sealed class WebSocketConnection : ISocketConnection
     {
         try
         {
-            WebSocket? webSocket = _webSocket;
+            var webSocket = _webSocket;
 
             if (_disposed || webSocket.IsClosed())
             {
@@ -153,7 +153,7 @@ internal sealed class WebSocketConnection : ISocketConnection
     {
         try
         {
-            WebSocket? webSocket = _webSocket;
+            var webSocket = _webSocket;
 
             if (_disposed || webSocket.IsClosed())
             {

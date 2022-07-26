@@ -1,5 +1,7 @@
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -31,15 +33,15 @@ public class OperationVisitor : DocumentValidatorVisitor
         DocumentNode node,
         IDocumentValidatorContext context)
     {
-        bool hasAnonymousOp = false;
-        int opCount = 0;
+        var hasAnonymousOp = false;
+        var opCount = 0;
         OperationDefinitionNode? anonymousOp = null;
 
         context.Names.Clear();
 
-        for (int i = 0; i < node.Definitions.Count; i++)
+        for (var i = 0; i < node.Definitions.Count; i++)
         {
-            IDefinitionNode definition = node.Definitions[i];
+            var definition = node.Definitions[i];
             if (definition.Kind == SyntaxKind.OperationDefinition)
             {
                 opCount++;
@@ -54,7 +56,8 @@ public class OperationVisitor : DocumentValidatorVisitor
                 else if (!context.Names.Add(operation.Name.Value))
                 {
                     context.ReportError(context.OperationNameNotUnique(
-                        operation, operation.Name.Value));
+                        operation,
+                        operation.Name.Value));
                 }
             }
         }
@@ -89,6 +92,11 @@ public class OperationVisitor : DocumentValidatorVisitor
         {
             context.ReportError(context.SubscriptionSingleRootField(node));
         }
+        else if (IntrospectionFields.TypeName.Equals(context.Names.Single()))
+        {
+            context.ReportError(context.SubscriptionNoTopLevelIntrospectionField(node));
+        }
+
         return Continue;
     }
 

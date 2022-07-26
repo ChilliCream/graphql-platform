@@ -13,7 +13,7 @@ public class StringTokenReaderTests
     private void ReadToken(string sourceText)
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var source = Encoding.UTF8.GetBytes(sourceText);
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -54,7 +54,7 @@ public class StringTokenReaderTests
     private void EscapeCharacters(string sourceText, string expectedResult)
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var source = Encoding.UTF8.GetBytes(sourceText);
         var reader = new Utf8GraphQLReader(source);
 
         // act

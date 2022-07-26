@@ -21,8 +21,7 @@ public class FilterInputTypeDescriptor
         : base(context)
     {
         Convention = context.GetFilterConvention(scope);
-        Definition.EntityType = entityType ??
-            throw new ArgumentNullException(nameof(entityType));
+        Definition.EntityType = entityType ?? throw new ArgumentNullException(nameof(entityType));
         Definition.RuntimeType = typeof(object);
         Definition.Name = Convention.GetTypeName(entityType);
         Definition.Description = Convention.GetTypeDescription(entityType);
@@ -55,7 +54,8 @@ public class FilterInputTypeDescriptor
 
     protected IFilterConvention Convention { get; }
 
-    protected internal override FilterInputTypeDefinition Definition { get; protected set; } = new();
+    protected internal override FilterInputTypeDefinition Definition { get; protected set; } =
+        new();
 
     protected BindableList<FilterFieldDescriptor> Fields { get; } = new();
 
@@ -71,7 +71,7 @@ public class FilterInputTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<NameString, FilterFieldDefinition>();
+        var fields = new Dictionary<string, FilterFieldDefinition>(StringComparer.Ordinal);
         var handledProperties = new HashSet<MemberInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
@@ -87,15 +87,16 @@ public class FilterInputTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<NameString, FilterFieldDefinition> fields,
+        IDictionary<string, FilterFieldDefinition> fields,
         ISet<MemberInfo> handledProperties)
     {
     }
 
     /// <inheritdoc />
-    public IFilterInputTypeDescriptor Name(NameString value)
+    public IFilterInputTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
+        Definition.IsNamed = true;
         return this;
     }
 
@@ -121,7 +122,7 @@ public class FilterInputTypeDescriptor
     /// <inheritdoc />
     public IFilterOperationFieldDescriptor Operation(int operationId)
     {
-        FilterOperationFieldDescriptor? fieldDescriptor =
+        var fieldDescriptor =
             Operations.FirstOrDefault(t => t.Definition.Id == operationId);
 
         if (fieldDescriptor is null)
@@ -137,9 +138,9 @@ public class FilterInputTypeDescriptor
     }
 
     /// <inheritdoc />
-    public IFilterFieldDescriptor Field(NameString name)
+    public IFilterFieldDescriptor Field(string name)
     {
-        FilterFieldDescriptor? fieldDescriptor =
+        var fieldDescriptor =
             Fields.FirstOrDefault(t => t.Definition.Name == name);
 
         if (fieldDescriptor is null)
@@ -153,10 +154,10 @@ public class FilterInputTypeDescriptor
 
     /// <inheritdoc />
     public IFilterFieldDescriptor Field(
-        NameString name,
+        string name,
         Action<IFilterInputTypeDescriptor> configure)
     {
-        IFilterFieldDescriptor descriptor = Field(name);
+        var descriptor = Field(name);
         descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
         return descriptor;
 
@@ -164,7 +165,7 @@ public class FilterInputTypeDescriptor
             IDescriptorContext context,
             string? scope)
         {
-            FilterInputTypeDescriptor descriptor = Inline(context, typeof(object), scope);
+            var descriptor = Inline(context, typeof(object), scope);
             configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -173,7 +174,7 @@ public class FilterInputTypeDescriptor
     /// <inheritdoc />
     public IFilterInputTypeDescriptor Ignore(int operationId)
     {
-        FilterOperationFieldDescriptor? fieldDescriptor =
+        var fieldDescriptor =
             Operations.FirstOrDefault(t => t.Definition.Id == operationId);
 
         if (fieldDescriptor is null)
@@ -190,9 +191,9 @@ public class FilterInputTypeDescriptor
     }
 
     /// <inheritdoc />
-    public IFilterInputTypeDescriptor Ignore(NameString name)
+    public IFilterInputTypeDescriptor Ignore(string name)
     {
-        FilterFieldDescriptor? fieldDescriptor =
+        var fieldDescriptor =
             Fields.FirstOrDefault(t => t.Definition.Name == name);
 
         if (fieldDescriptor is null)
@@ -240,7 +241,7 @@ public class FilterInputTypeDescriptor
 
     /// <inheritdoc />
     public IFilterInputTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
@@ -264,7 +265,7 @@ public class FilterInputTypeDescriptor
         Type schemaType,
         string? scope = null)
     {
-        FilterInputTypeDescriptor? descriptor = New(context, schemaType, scope);
+        var descriptor = New(context, schemaType, scope);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }
@@ -274,14 +275,14 @@ public class FilterInputTypeDescriptor
         Type entityType,
         string? scope = null)
     {
-        FilterInputTypeDescriptor descriptor = New(context, entityType, scope);
+        var descriptor = New(context, entityType, scope);
 
         descriptor.BindFieldsExplicitly();
 
         // This resets the name on the definition. This way we can check if the user has
         // set a custom name. The context the user specifying descriptor.Name("Foo") is
         // preserved this way.
-        descriptor.Definition.Name = default!;
+        descriptor.Definition.IsNamed = false;
 
         // we deactivate And and Or by default.
         descriptor.Definition.UseAnd = false;
@@ -295,14 +296,14 @@ public class FilterInputTypeDescriptor
         Type entityType,
         string? scope = null)
     {
-        FilterInputTypeDescriptor<T> descriptor = New<T>(context, entityType, scope);
+        var descriptor = New<T>(context, entityType, scope);
 
         descriptor.BindFieldsExplicitly();
 
         // This resets the name on the definition. This way we can check if the user has
         // set a custom name. The context the user specifying descriptor.Name("Foo") is
         // preserved this way.
-        descriptor.Definition.Name = default!;
+        descriptor.Definition.IsNamed = false;
 
         // we deactivate And and Or by default.
         descriptor.Definition.UseAnd = false;
@@ -314,17 +315,17 @@ public class FilterInputTypeDescriptor
     public static FilterInputTypeDescriptor From(
         IDescriptorContext context,
         FilterInputTypeDefinition definition,
-        string? scope = null) =>
-        new FilterInputTypeDescriptor(context, definition, scope);
+        string? scope = null)
+        => new(context, definition, scope);
 
     public static FilterInputTypeDescriptor<T> From<T>(
         IDescriptorContext context,
         FilterInputTypeDefinition definition,
-        string? scope = null) =>
-        new FilterInputTypeDescriptor<T>(context, definition, scope);
+        string? scope = null)
+        => new(context, definition, scope);
 
     public static FilterInputTypeDescriptor<T> From<T>(
         FilterInputTypeDescriptor descriptor,
-        string? scope = null) =>
-        From<T>(descriptor.Context, descriptor.Definition, scope);
+        string? scope = null)
+        => From<T>(descriptor.Context, descriptor.Definition, scope);
 }

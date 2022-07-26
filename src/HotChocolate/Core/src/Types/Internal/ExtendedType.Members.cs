@@ -19,7 +19,7 @@ internal sealed partial class ExtendedType
         private static ExtendedType FromMember(MemberInfo member)
         {
             var helper = new NullableHelper(member.DeclaringType!);
-            bool? context = helper.GetContext(member);
+            var context = helper.GetContext(member);
             ReadOnlySpan<bool?> flags = helper.GetFlags(member);
 
             return member switch
@@ -34,7 +34,7 @@ internal sealed partial class ExtendedType
         public static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
         {
             var helper = new NullableHelper(method.DeclaringType!);
-            bool? context = helper.GetContext(method);
+            var context = helper.GetContext(method);
 
             IExtendedType returnType = cache.GetOrCreateType(
                 method,
@@ -43,10 +43,10 @@ internal sealed partial class ExtendedType
                     method,
                     cache));
 
-            ParameterInfo[] parameters = method.GetParameters();
+            var parameters = method.GetParameters();
             var parameterTypes = new Dictionary<ParameterInfo, IExtendedType>();
 
-            foreach (ParameterInfo parameter in parameters)
+            foreach (var parameter in parameters)
             {
                 parameterTypes.Add(
                     parameter,
@@ -71,7 +71,7 @@ internal sealed partial class ExtendedType
         {
             extendedType = Helper.RemoveNonEssentialTypes(extendedType);
 
-            IReadOnlyList<IExtendedType> arguments = extendedType.TypeArguments;
+            var arguments = extendedType.TypeArguments;
             var extendedArguments = new ExtendedType[arguments.Count];
 
             for (var i = 0; i < extendedArguments.Length; i++)
@@ -86,11 +86,11 @@ internal sealed partial class ExtendedType
 
             if (isList)
             {
-                Type itemType = Helper.GetInnerListType(extendedType.Type)!;
+                var itemType = Helper.GetInnerListType(extendedType.Type)!;
 
                 if (extendedType.TypeArguments.Count == 1)
                 {
-                    IExtendedType typeArgument = extendedType.TypeArguments[0];
+                    var typeArgument = extendedType.TypeArguments[0];
                     if (itemType == typeArgument.Type || itemType == typeArgument.Source)
                     {
                         elementType = extendedArguments[0];
@@ -138,7 +138,7 @@ internal sealed partial class ExtendedType
             Type type,
             ref int position)
         {
-            bool? state = position == -1 || (type.IsValueType && !type.IsGenericType)
+            var state = position == -1 || (type.IsValueType && !type.IsGenericType)
                 ? null
                 : GetNextState(flags, ref position);
 
@@ -147,7 +147,7 @@ internal sealed partial class ExtendedType
                 if (type.IsGenericType
                     && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
-                    Type inner = type.GetGenericArguments()[0];
+                    var inner = type.GetGenericArguments()[0];
 
                     return new ExtendedType(
                         inner,
@@ -167,7 +167,7 @@ internal sealed partial class ExtendedType
 
             if (type.IsArray)
             {
-                ExtendedType elementType =
+                var elementType =
                     CreateExtendedType(
                         context,
                         flags,
@@ -192,7 +192,7 @@ internal sealed partial class ExtendedType
 
             bool? GetNextState(ReadOnlySpan<bool?> flags, ref int position)
             {
-                bool? state = context;
+                var state = context;
                 if (!flags.IsEmpty)
                 {
                     if (flags.Length > position)
@@ -217,12 +217,12 @@ internal sealed partial class ExtendedType
         {
             if (type.IsGenericType)
             {
-                Type[] arguments = type.GetGenericArguments();
-                ExtendedType[] extendedArguments = new ExtendedType[arguments.Length];
-                bool skipFlags = SkipFlags(arguments);
-                int skipPos = -1;
+                var arguments = type.GetGenericArguments();
+                var extendedArguments = new ExtendedType[arguments.Length];
+                var skipFlags = SkipFlags(arguments);
+                var skipPos = -1;
 
-                for (int i = 0; i < arguments.Length; i++)
+                for (var i = 0; i < arguments.Length; i++)
                 {
                     extendedArguments[i] =
                         skipFlags
@@ -238,9 +238,9 @@ internal sealed partial class ExtendedType
 
         private static bool SkipFlags(Type[] arguments)
         {
-            bool skipFlags = true;
+            var skipFlags = true;
 
-            foreach (Type argument in arguments)
+            foreach (var argument in arguments)
             {
                 if (!argument.IsValueType)
                 {

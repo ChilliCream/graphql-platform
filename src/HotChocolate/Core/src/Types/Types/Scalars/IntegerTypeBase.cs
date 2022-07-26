@@ -11,7 +11,7 @@ public abstract class IntegerTypeBase<TRuntimeType>
     where TRuntimeType : IComparable
 {
     protected IntegerTypeBase(
-        NameString name,
+        string name,
         TRuntimeType min,
         TRuntimeType max,
         BindingBehavior bind = BindingBehavior.Explicit)

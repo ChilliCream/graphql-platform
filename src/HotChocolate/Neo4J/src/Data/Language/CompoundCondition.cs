@@ -61,11 +61,11 @@ public class CompoundCondition : Condition
             return;
         }
 
-        foreach (Condition condition in _conditions.Skip(1))
+        foreach (var condition in _conditions.Skip(1))
         {
             // This takes care of a potential inner compound condition that got added with a
             // different operator and thus forms a tree.
-            Operator? actualOperator = condition is CompoundCondition condition1
+            var actualOperator = condition is CompoundCondition condition1
                 ? condition1._operator
                 : _operator;
 
@@ -130,7 +130,7 @@ public class CompoundCondition : Condition
             return false;
         }
 
-        foreach (Condition c in _conditions)
+        foreach (var c in _conditions)
         {
             if (c is CompoundCondition condition && condition._operator != operatorBefore)
             {

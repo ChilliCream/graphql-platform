@@ -1,6 +1,6 @@
 using System;
-using HotChocolate;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
@@ -17,12 +17,12 @@ public class InputFieldModel : IFieldModel
     /// <param name="field"></param>
     /// <param name="type"></param>
     public InputFieldModel(
-        NameString name,
+        string name,
         string? description,
         IInputField field,
         IInputType type)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         Description = description;
         Field = field ?? throw new ArgumentNullException(nameof(field));
         Type = type ?? throw new ArgumentNullException(nameof(type));
@@ -31,7 +31,7 @@ public class InputFieldModel : IFieldModel
     /// <summary>
     /// Gets the property name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the property xml documentation summary.

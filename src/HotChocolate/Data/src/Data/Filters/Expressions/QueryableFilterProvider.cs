@@ -40,9 +40,9 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     protected virtual FilterVisitor<QueryableFilterContext, Expression> Visitor { get; } =
         new(new QueryableCombinator());
 
-    public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
     {
-        ApplyFiltering applyFilter = CreateApplicator<TEntityType>(argumentName);
+        var applyFilter = CreateApplicator<TEntityType>(argumentName);
 
         return next => context => ExecuteAsync(next, context);
 
@@ -58,14 +58,14 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         }
     }
 
-    private static ApplyFiltering CreateApplicator<TEntityType>(NameString argumentName)
+    private static ApplyFiltering CreateApplicator<TEntityType>(string argumentName)
     {
         return (context, input) =>
         {
             // next we get the filter argument. If the filter argument is already on the context
             // we use this. This enabled overriding the context with LocalContextData
-            IInputField argument = context.Selection.Field.Arguments[argumentName];
-            IValueNode filter = context.LocalContextData.ContainsKey(ContextValueNodeKey) &&
+            var argument = context.Selection.Field.Arguments[argumentName];
+            var filter = context.LocalContextData.ContainsKey(ContextValueNodeKey) &&
                 context.LocalContextData[ContextValueNodeKey] is IValueNode node
                     ? node
                     : context.ArgumentLiteral<IValueNode>(argumentName);
@@ -95,7 +95,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
                     input is not IQueryable ||
                     input is EnumerableQuery;
 
-                QueryableFilterContext visitorContext =
+                var visitorContext =
                     executor(filter, filterInput, inMemory);
 
                 // compile expression tree
@@ -116,7 +116,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
                     if (visitorContext.Errors.Count > 0)
                     {
                         input = Array.Empty<TEntityType>();
-                        foreach (IError error in visitorContext.Errors)
+                        foreach (var error in visitorContext.Errors)
                         {
                             context.ReportError(error.WithPath(context.Path));
                         }
@@ -129,7 +129,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     }
 
     public override void ConfigureField(
-        NameString argumentName,
+        string argumentName,
         IObjectFieldDescriptor descriptor)
     {
         QueryableFilterContext VisitFilterArgumentExecutor(
@@ -146,7 +146,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             return visitorContext;
         }
 
-        ExtensionData contextData = descriptor.Extend().Definition.ContextData;
+        var contextData = descriptor.Extend().Definition.ContextData;
         var argumentKey = (VisitFilterArgument)VisitFilterArgumentExecutor;
         contextData[ContextVisitFilterArgumentKey] = argumentKey;
         contextData[ContextArgumentNameKey] = argumentName;

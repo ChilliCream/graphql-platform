@@ -9,7 +9,7 @@ public static class TypeNameHelper
 {
     public static void AddNameFunction<TDefinition>(
         IDescriptor<TDefinition> descriptor,
-        Func<INamedType, NameString> createName,
+        Func<INamedType, string> createName,
         Type dependency)
         where TDefinition : DefinitionBase, ITypeDefinition
     {
@@ -48,8 +48,8 @@ public static class TypeNameHelper
             .Extend()
             .OnBeforeNaming((ctx, definition) =>
             {
-                IType type = ctx.GetType<IType>(
-                    ctx.DescriptorContext.TypeInspector.GetTypeRef(dependency));
+                var typeRef = ctx.DescriptorContext.TypeInspector.GetTypeRef(dependency);
+                var type = ctx.GetType<IType>(typeRef);
                 definition.Name = createName(type.NamedType());
             })
             .DependsOn(dependency, true);

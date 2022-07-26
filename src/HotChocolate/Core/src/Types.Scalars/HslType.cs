@@ -26,7 +26,7 @@ public class HslType : RegexType
     /// Initializes a new instance of the <see cref="HslType"/> class.
     /// </summary>
     public HslType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(

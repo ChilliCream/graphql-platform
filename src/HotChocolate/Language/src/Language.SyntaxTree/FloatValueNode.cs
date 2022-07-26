@@ -156,7 +156,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
         {
             if (_stringValue is null)
             {
-                ReadOnlySpan<byte> span = AsSpan();
+                var span = AsSpan();
                 fixed (byte* b = span)
                 {
                     _stringValue = Encoding.UTF8.GetString(b, span.Length);

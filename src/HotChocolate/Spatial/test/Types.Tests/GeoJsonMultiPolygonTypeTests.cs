@@ -1,38 +1,36 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonMultiPolygonTypeTests
 {
-    private readonly MultiPolygon _geom = new MultiPolygon(new[]
+    private readonly MultiPolygon _geom = new(new[]
     {
-            new Polygon(new LinearRing(new[]
-            {
-                new Coordinate(30, 20),
-                new Coordinate(45, 40),
-                new Coordinate(10, 40),
-                new Coordinate(30, 20)
-            })),
-            new Polygon(new LinearRing(new[]
-            {
-                new Coordinate(15, 5),
-                new Coordinate(40, 10),
-                new Coordinate(10, 20),
-                new Coordinate(5, 15),
-                new Coordinate(15, 5)
-            }))
-        });
+        new Polygon(new LinearRing(new[]
+        {
+            new Coordinate(30, 20),
+            new Coordinate(45, 40),
+            new Coordinate(10, 40),
+            new Coordinate(30, 20)
+        })),
+        new Polygon(new LinearRing(new[]
+        {
+            new Coordinate(15, 5),
+            new Coordinate(40, 10),
+            new Coordinate(10, 20),
+            new Coordinate(5, 15),
+            new Coordinate(15, 5)
+        }))
+    });
 
     [Fact]
     public async Task MultiPolygon_Execution_Output()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonMultiPolygonType>()
@@ -43,10 +41,10 @@ public class GeoJsonMultiPolygonTypeTests
                     .Resolve(_geom))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { type coordinates bbox crs }}");
 
         // assert
@@ -57,7 +55,7 @@ public class GeoJsonMultiPolygonTypeTests
     public async Task MultiPolygon_Execution_With_Fragments()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddSpatialTypes()
             .AddQueryType(
@@ -67,10 +65,10 @@ public class GeoJsonMultiPolygonTypeTests
                     .Type<GeoJsonMultiPolygonType>()
                     .Resolve(_geom))
             .Create();
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test { ... on MultiPolygon { type coordinates bbox crs }}}");
 
         // assert
@@ -81,7 +79,7 @@ public class GeoJsonMultiPolygonTypeTests
     public void MultiPolygon_Execution_Tests()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonMultiPolygonType>()
@@ -94,6 +92,6 @@ public class GeoJsonMultiPolygonTypeTests
 
         // act
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 }

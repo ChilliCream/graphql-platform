@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -30,10 +31,10 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async ValueTask<ISchema> GetSchemaAsync(
         this IServiceProvider services,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -57,11 +58,11 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async ValueTask<ISchema> BuildSchemaAsync(
         this IRequestExecutorBuilder builder,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
         IServiceProvider services = builder.Services.BuildServiceProvider();
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -85,7 +86,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static ValueTask<IRequestExecutor> GetRequestExecutorAsync(
         this IServiceProvider services,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default) =>
         services
             .GetRequiredService<IRequestExecutorResolver>()
@@ -109,7 +110,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static ValueTask<IRequestExecutor> BuildRequestExecutorAsync(
         this IRequestExecutorBuilder builder,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default) =>
         builder
             .Services
@@ -150,10 +151,10 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IServiceProvider services,
         IQueryRequest request,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -195,10 +196,10 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IRequestExecutorBuilder builder,
         IQueryRequest request,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await BuildRequestExecutorAsync(builder, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -241,10 +242,10 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IServiceProvider services,
         string query,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -290,10 +291,10 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IRequestExecutorBuilder builder,
         string query,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await BuildRequestExecutorAsync(builder, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -311,9 +312,6 @@ public static class RequestExecutorServiceProviderExtensions
     /// <param name="requestBatch">
     /// The GraphQL request batch.
     /// </param>
-    /// <param name="allowParallelExecution">
-    /// Defines if the executor is allowed to execute the batch in parallel.
-    /// </param>
     /// <param name="schemaName">
     /// The schema name.
     /// </param>
@@ -326,10 +324,10 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IResponseStream> ExecuteBatchRequestAsync(
         this IServiceProvider services,
         IReadOnlyList<IQueryRequest> requestBatch,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 

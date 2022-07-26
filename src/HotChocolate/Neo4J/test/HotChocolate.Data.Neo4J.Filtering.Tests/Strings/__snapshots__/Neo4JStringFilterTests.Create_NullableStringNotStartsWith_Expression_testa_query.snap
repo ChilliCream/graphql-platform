@@ -1,1 +1,0 @@
-﻿MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar STARTS WITH 'testa') RETURN fooStringNullable {.Bar}

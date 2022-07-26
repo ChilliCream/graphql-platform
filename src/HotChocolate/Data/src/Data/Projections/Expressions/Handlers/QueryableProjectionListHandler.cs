@@ -20,10 +20,10 @@ public class QueryableProjectionListHandler
         QueryableProjectionContext context,
         ISelection selection)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
         if (field.Member is PropertyInfo { CanWrite: true })
         {
-            Expression next = context.GetInstance().Append(field.Member);
+            var next = context.GetInstance().Append(field.Member);
 
             context.PushInstance(next);
         }
@@ -36,7 +36,7 @@ public class QueryableProjectionListHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
 
         if (field.Member is not PropertyInfo { CanWrite: true })
         {
@@ -44,9 +44,9 @@ public class QueryableProjectionListHandler
             return true;
         }
 
-        IOutputType type = field.Type;
+        var type = field.Type;
 
-        Type clrType = type.IsListType()
+        var clrType = type.IsListType()
             ? type.ElementType().ToRuntimeType()
             : type.ToRuntimeType();
 
@@ -62,7 +62,7 @@ public class QueryableProjectionListHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
 
         if (field.Member is null)
         {
@@ -70,10 +70,10 @@ public class QueryableProjectionListHandler
             return false;
         }
 
-        ProjectionScope<Expression> scope = context.PopScope();
+        var scope = context.PopScope();
 
         if (!(scope is QueryableProjectionScope queryableScope) ||
-            !context.TryGetQueryableScope(out QueryableProjectionScope? parentScope))
+            !context.TryGetQueryableScope(out var parentScope))
         {
             action = null;
             return false;
@@ -88,9 +88,9 @@ public class QueryableProjectionListHandler
             return true;
         }
 
-        Type type = field.Member.GetReturnType();
+        var type = field.Member.GetReturnType();
 
-        Expression select = queryableScope.CreateSelection(context.PopInstance(), type);
+        var select = queryableScope.CreateSelection(context.PopInstance(), type);
 
         parentScope.Level.Peek().Enqueue(Expression.Bind(field.Member, select));
 

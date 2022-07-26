@@ -133,7 +133,7 @@ public sealed class SchemaTypeReference
     {
         if (type is IType t)
         {
-            INamedType namedType = t.NamedType();
+            var namedType = t.NamedType();
 
             if (namedType.IsInputType() && namedType.IsOutputType())
             {
@@ -176,7 +176,7 @@ public sealed class SchemaTypeReference
             throw new ArgumentNullException(nameof(type));
         }
 
-        Type? namedType = ExtendedType.Tools.GetNamedType(type);
+        var namedType = ExtendedType.Tools.GetNamedType(type);
         return InferTypeContextInternal(namedType ?? type);
     }
 

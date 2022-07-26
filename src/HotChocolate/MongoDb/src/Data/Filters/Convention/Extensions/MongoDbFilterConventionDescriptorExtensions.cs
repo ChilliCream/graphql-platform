@@ -19,6 +19,7 @@ public static class MongoDbFilterConventionDescriptorExtensions
     /// Initializes the default configuration for MongoDb on the convention by adding operations
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
+    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
     /// <returns>The descriptor that was passed in as a parameter</returns>
     public static IFilterConventionDescriptor AddMongoDbDefaults(
         this IFilterConventionDescriptor descriptor,
@@ -79,6 +80,7 @@ public static class MongoDbFilterConventionDescriptorExtensions
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
     /// <returns>The descriptor that was passed in as a parameter</returns>
+    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
     /// <exception cref="ArgumentNullException">
     /// Throws in case the argument <paramref name="descriptor"/> is null
     /// </exception>

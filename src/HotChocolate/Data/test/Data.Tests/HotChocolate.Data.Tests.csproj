@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <TargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0; netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -12,10 +10,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
 
 </Project>

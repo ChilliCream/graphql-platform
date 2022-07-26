@@ -114,9 +114,9 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             else
             {
                 var expressions = new Stack<(Expression Condition, Expression Execute)>();
-                ParameterExpression context = Expression.Parameter(typeof(IResolverContext));
+                var context = Expression.Parameter(typeof(IResolverContext));
 
-                foreach (ReferenceResolverDefinition resolverDef in resolvers)
+                foreach (var resolverDef in resolvers)
                 {
                     Expression required = Expression.Constant(resolverDef.Required);
                     Expression resolver = Expression.Constant(resolverDef.Resolver);
@@ -126,7 +126,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 }
 
                 Expression current = Expression.Call(_invalid, context);
-                ParameterExpression variable = Expression.Variable(typeof(ValueTask<object?>));
+                var variable = Expression.Variable(typeof(ValueTask<object?>));
 
                 while (expressions.Count > 0)
                 {
@@ -185,11 +185,11 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     {
         if (objectType.RuntimeType != typeof(object))
         {
-            IDescriptorContext descriptorContext = discoveryContext.DescriptorContext;
-            ITypeInspector typeInspector = discoveryContext.TypeInspector;
+            var descriptorContext = discoveryContext.DescriptorContext;
+            var typeInspector = discoveryContext.TypeInspector;
             var descriptor = ObjectTypeDescriptor.From(descriptorContext, objectTypeDefinition);
 
-            foreach (MethodInfo possibleReferenceResolver in
+            foreach (var possibleReferenceResolver in
                 objectType.RuntimeType.GetMethods(BindingFlags.Static | BindingFlags.Public))
             {
                 if (possibleReferenceResolver.IsDefined(typeof(ReferenceResolverAttribute)))
@@ -210,7 +210,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ObjectTypeDefinition objectTypeDefinition)
     {
         if (objectTypeDefinition.Directives.Any(
-            d => d.Reference is NameDirectiveReference { Name.Value: WellKnownTypeNames.Key }) ||
+            d => d.Reference is NameDirectiveReference { Name: WellKnownTypeNames.Key }) ||
             objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(WellKnownTypeNames.Key)))
         {
             _entityTypes.Add(objectType);
@@ -229,7 +229,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             IReadOnlyList<ObjectFieldDefinition> fields = objectTypeDefinition.Fields;
             var fieldSet = new StringBuilder();
 
-            foreach (ObjectFieldDefinition? fieldDefinition in fields)
+            foreach (var fieldDefinition in fields)
             {
                 if (fieldDefinition.ContextData.ContainsKey(KeyMarker))
                 {
@@ -247,7 +247,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
             // register dependency to the key directive so that it is completed before
             // we complete this type.
-            foreach (DirectiveDefinition directiveDefinition in objectTypeDefinition.Directives)
+            foreach (var directiveDefinition in objectTypeDefinition.Directives)
             {
                 discoveryContext.Dependencies.Add(
                     new TypeDependency(
@@ -270,7 +270,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         if (completionContext.Type is EntityType &&
             definition is UnionTypeDefinition unionTypeDefinition)
         {
-            foreach (ObjectType objectType in _entityTypes)
+            foreach (var objectType in _entityTypes)
             {
                 unionTypeDefinition.Types.Add(TypeReference.Create(objectType));
             }

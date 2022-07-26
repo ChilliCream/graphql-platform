@@ -8,218 +8,217 @@ using HotChocolate.Types.Relay;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types.Pagination;
+
+public class UsePagingAttributeTests
 {
-    public class UsePagingAttributeTests
+    [Fact]
+    public async Task UsePagingAttribute_Infer_Types()
     {
-        [Fact]
-        public async Task UsePagingAttribute_Infer_Types()
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .Services
+            .BuildServiceProvider()
+            .GetSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task UsePagingAttribute_Execute_Query()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .Services
+            .BuildServiceProvider()
+            .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task UsePagingAttribute_Infer_Types_On_Interface()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<IHasFoos>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Services
+            .BuildServiceProvider()
+            .GetSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task UsePagingAttribute_On_Extension_Infer_Types()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddType<QueryExtension>()
+            .Services
+            .BuildServiceProvider()
+            .GetSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task UsePagingAttribute_On_Extension_Execute_Query()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddType<QueryExtension>()
+            .Services
+            .BuildServiceProvider()
+            .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Ensure_Attributes_Are_Applied_Once()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query1>()
+            .AddType<Query1Extensions>()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Ensure_Attributes_Are_Applied_Once_Execute_Query()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query1>()
+            .AddType<Query1Extensions>()
+            .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task UnknownNodeType()
+    {
+        Snapshot.FullName();
+
+        try
         {
-            Snapshot.FullName();
-
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .Services
-                .BuildServiceProvider()
-                .GetSchemaAsync()
-                .MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task UsePagingAttribute_Execute_Query()
-        {
-            Snapshot.FullName();
-
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .Services
-                .BuildServiceProvider()
-                .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
-                .MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task UsePagingAttribute_Infer_Types_On_Interface()
-        {
-            Snapshot.FullName();
-
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddType<IHasFoos>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Services
-                .BuildServiceProvider()
-                .GetSchemaAsync()
-                .MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task UsePagingAttribute_On_Extension_Infer_Types()
-        {
-            Snapshot.FullName();
-
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddType<QueryExtension>()
-                .Services
-                .BuildServiceProvider()
-                .GetSchemaAsync()
-                .MatchSnapshotAsync();
+                .AddType<NoNodeType>()
+                .BuildSchemaAsync();
         }
-
-        [Fact]
-        public async Task UsePagingAttribute_On_Extension_Execute_Query()
+        catch (SchemaException ex)
         {
-            Snapshot.FullName();
-
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<QueryType>()
-                .AddType<QueryExtension>()
-                .Services
-                .BuildServiceProvider()
-                .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
-                .MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task Ensure_Attributes_Are_Applied_Once()
-        {
-            Snapshot.FullName();
-
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query1>()
-                .AddType<Query1Extensions>()
-                .BuildSchemaAsync()
-                .MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task Ensure_Attributes_Are_Applied_Once_Execute_Query()
-        {
-            Snapshot.FullName();
-
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query1>()
-                .AddType<Query1Extensions>()
-                .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
-                .MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task UnknownNodeType()
-        {
-            Snapshot.FullName();
-
-            try
+            new
             {
-                await new ServiceCollection()
-                    .AddGraphQL()
-                    .AddQueryType<QueryType>()
-                    .AddType<NoNodeType>()
-                    .BuildSchemaAsync();
-            }
-            catch (SchemaException ex)
+                ex.Errors[0].Message,
+                ex.Errors[0].Code
+            }.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public void UsePagingAttribute_Can_Use_Defaults()
+    {
+        var attr = new UsePagingAttribute();
+
+        Assert.True(attr.AllowBackwardPagination);
+        Assert.True(attr.InferConnectionNameFromField);
+        Assert.False(attr.RequirePagingBoundaries);
+    }
+
+    public class QueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("Query");
+        }
+    }
+
+    public class Query
+    {
+        [UsePaging]
+        public IQueryable<Foo> Foos ()
+        {
+            return new List<Foo>
             {
-                new
-                {
-                    ex.Errors[0].Message,
-                    ex.Errors[0].Code
-                }.MatchSnapshot();
-            }
+                new Foo { Bar = "first" },
+                new Foo { Bar = "second" },
+            }.AsQueryable();
         }
+    }
 
-        [Fact]
-        public void UsePagingAttribute_Can_Use_Defaults()
+    public class Query1
+    {
+        public IQueryable<Foo> Foos ()
         {
-            var attr = new UsePagingAttribute();
-
-            Assert.True(attr.AllowBackwardPagination);
-            Assert.True(attr.InferConnectionNameFromField);
-            Assert.False(attr.RequirePagingBoundaries);
-        }
-
-        public class QueryType : ObjectType
-        {
-            protected override void Configure(IObjectTypeDescriptor descriptor)
+            return new List<Foo>
             {
-                descriptor.Name("Query");
-            }
+                new Foo { Bar = "first" },
+                new Foo { Bar = "second" },
+            }.AsQueryable();
         }
+    }
 
-        public class Query
+    [Node]
+    [ExtendObjectType(typeof(Query1))]
+    public class Query1Extensions
+    {
+        [UsePaging]
+        [BindMember(nameof(Query1.Foos))]
+        public IQueryable<Foo> Foos ()
         {
-            [UsePaging]
-            public IQueryable<Foo> Foos ()
+            return new List<Foo>
             {
-                return new List<Foo>
-                {
-                    new Foo { Bar = "first" },
-                    new Foo { Bar = "second" },
-                }.AsQueryable();
-            }
+                new Foo { Bar = "first" },
+                new Foo { Bar = "second" },
+            }.AsQueryable();
         }
 
-        public class Query1
+        [NodeResolver]
+        public Query1 GetQuery()
         {
-            public IQueryable<Foo> Foos ()
-            {
-                return new List<Foo>
-                {
-                    new Foo { Bar = "first" },
-                    new Foo { Bar = "second" },
-                }.AsQueryable();
-            }
+            return new Query1();
         }
+    }
 
-        [Node]
-        [ExtendObjectType(typeof(Query1))]
-        public class Query1Extensions
-        {
-            [UsePaging]
-            [BindMember(nameof(Query1.Foos))]
-            public IQueryable<Foo> Foos ()
-            {
-                return new List<Foo>
-                {
-                    new Foo { Bar = "first" },
-                    new Foo { Bar = "second" },
-                }.AsQueryable();
-            }
+    [ExtendObjectType("Query")]
+    public class QueryExtension : Query
+    {
+    }
 
-            [NodeResolver]
-            public Query1 GetQuery()
-            {
-                return new Query1();
-            }
-        }
+    public class Foo
+    {
+        public string Bar { get; set; }
+    }
 
-        [ExtendObjectType("Query")]
-        public class QueryExtension : Query
-        {
-        }
+    public interface IHasFoos
+    {
+        [UsePaging]
+        IQueryable<Foo> Foos { get; }
+    }
 
-        public class Foo
-        {
-            public string Bar { get; set; }
-        }
-
-        public interface IHasFoos
-        {
-            [UsePaging]
-            IQueryable<Foo> Foos { get; }
-        }
-
-        [ExtendObjectType("Query")]
-        public class NoNodeType
-        {
-            [UsePaging]
-            public int GetSomething() => 1;
-        }
+    [ExtendObjectType("Query")]
+    public class NoNodeType
+    {
+        [UsePaging]
+        public int GetSomething() => 1;
     }
 }

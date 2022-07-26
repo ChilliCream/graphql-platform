@@ -1,24 +1,72 @@
 ﻿query($if: Boolean!) {
+  human(id: "1000") {
+    ... Human1 @include(if: $if)
+    ... Human2 @skip(if: $if)
+  }
+}
+
+fragment Human1 on Human {
+  friends {
+    edges {
+      ... FriendEdge1
+    }
+  }
+}
+
+fragment FriendEdge1 on CharacterEdge {
+  node {
+    __typename
+    friends {
+      nodes {
+        __typename
+        ... Human3
+      }
+    }
+  }
+}
+
+fragment Human2 on Human {
+  friends {
+    edges {
+      node {
+        __typename
+        ... Human3
+      }
+    }
+  }
+}
+
+fragment Human3 on Human {
+  name
+  otherHuman {
+    __typename
+    name
+  }
+}
+
+---------------------------------------------------------
+
+query($if: Boolean!) @includeCondition(flag: 2) @includeCondition(flag: 3) {
   ... on Query {
     human(id: "1000") @__execute(id: 0, kind: PURE, type: COMPOSITE) {
       ... on Human {
-        friends @include(if: $if) @skip(if: $if) @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
+        friends @conditional @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
           ... on FriendsConnection {
-            edges @include(if: $if) @skip(if: $if) @__execute(id: 2, kind: PURE, type: COMPOSITE_LIST) {
+            edges @conditional @__execute(id: 2, kind: PURE, type: COMPOSITE_LIST) {
               ... on FriendsEdge {
-                node @skip(if: $if) @__execute(id: 3, kind: PURE, type: COMPOSITE) {
+                node @conditional @__execute(id: 3, kind: PURE, type: COMPOSITE) {
                   ... on Human {
-                    __typename @skip(if: $if) @__execute(id: 4, kind: PURE, type: LEAF)
-                    name @skip(if: $if) @__execute(id: 5, kind: PURE, type: LEAF)
-                    otherHuman @skip(if: $if) @__execute(id: 6, kind: PURE, type: COMPOSITE) {
+                    __typename @conditional @__execute(id: 4, kind: PURE, type: LEAF)
+                    name @conditional @__execute(id: 5, kind: PURE, type: LEAF)
+                    otherHuman @conditional @__execute(id: 6, kind: PURE, type: COMPOSITE) {
                       ... on Human {
-                        __typename @skip(if: $if) @__execute(id: 7, kind: PURE, type: LEAF)
-                        name @skip(if: $if) @__execute(id: 8, kind: PURE, type: LEAF)
+                        __typename @conditional @__execute(id: 7, kind: PURE, type: LEAF)
+                        name @conditional @__execute(id: 8, kind: PURE, type: LEAF)
                       }
                     }
                   }
                   ... on Droid {
-                    __typename @skip(if: $if) @__execute(id: 9, kind: PURE, type: LEAF)
+                    __typename @conditional @__execute(id: 9, kind: PURE, type: LEAF)
                   }
                 }
               }

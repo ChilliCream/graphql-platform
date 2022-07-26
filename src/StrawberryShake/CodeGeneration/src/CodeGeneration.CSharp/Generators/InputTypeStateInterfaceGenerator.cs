@@ -13,12 +13,12 @@ public class InputTypeStateInterfaceGenerator : CSharpSyntaxGenerator<InputObjec
     {
         var name = NamingConventions.CreateInputValueInfo(descriptor.Name);
 
-        InterfaceDeclarationSyntax interfaceDeclaration =
+        var interfaceDeclaration =
             SyntaxFactory.InterfaceDeclaration(name)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.InternalKeyword))
                 .AddGeneratedAttribute();
 
-        foreach (PropertyDescriptor prop in descriptor.Properties)
+        foreach (var prop in descriptor.Properties)
         {
             interfaceDeclaration = interfaceDeclaration.AddMembers(
                 SyntaxFactory.PropertyDeclaration(

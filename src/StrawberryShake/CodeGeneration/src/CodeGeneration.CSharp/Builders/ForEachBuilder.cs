@@ -56,7 +56,7 @@ public class ForEachBuilder : ICodeContainer<ForEachBuilder>
         writer.WriteLine("{");
         using (writer.IncreaseIndent())
         {
-            foreach (ICode line in _lines)
+            foreach (var line in _lines)
             {
                 line.Build(writer);
             }

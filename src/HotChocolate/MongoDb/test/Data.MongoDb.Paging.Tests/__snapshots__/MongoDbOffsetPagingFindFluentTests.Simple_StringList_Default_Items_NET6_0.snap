@@ -1,0 +1,16 @@
+{
+  "errors": [
+    {
+      "message": "Unexpected token: Name.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 17
+        }
+      ],
+      "extensions": {
+        "code": "HC0014"
+      }
+    }
+  ]
+}

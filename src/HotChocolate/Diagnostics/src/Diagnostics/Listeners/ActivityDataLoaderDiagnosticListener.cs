@@ -29,7 +29,7 @@ internal sealed class ActivityDataLoaderDiagnosticListener : DataLoaderDiagnosti
             return EmptyScope;
         }
 
-        Activity? activity = Source.StartActivity();
+        var activity = Source.StartActivity();
 
         if (activity is null)
         {

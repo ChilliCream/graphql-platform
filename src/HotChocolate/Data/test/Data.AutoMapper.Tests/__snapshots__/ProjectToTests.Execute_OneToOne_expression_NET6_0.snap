@@ -1,7 +1,0 @@
-﻿DbSet<Blog>()
-    .Select(dtoBlog => new BlogDto{ 
-        TitleImage = dtoBlog.TitleImage == null ? null : new ImageDto{ Url = dtoBlog.TitleImage.Url }
-        , 
-        Url = dtoBlog.Url 
-    }
-    )
