@@ -10,7 +10,7 @@ allowfullscreen></iframe>
 
 # Request Middleware
 
-The GraphQL execution is abstraction into a request pipeline that is composed of many request middleware. Each request middleware represents one part of executing a GraphQL request like the parsing of the GraphQL request document or the semantical validation of the GraphQL document.
+The GraphQL execution is abstracted into a request pipeline composed of many request middleware. Each request middleware represents one part of executing a GraphQL request, like the parsing of the GraphQL request document or the semantical validation of the GraphQL request document.
 
 # Field middleware
 
